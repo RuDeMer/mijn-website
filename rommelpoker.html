@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rommelpoker – Ruben's rommelhoekje</title>
+<meta name="description" content="Rommelpoker: speel pokerhanden, verzamel snuisterijen en versla de kraampjes op de rommelmarkt.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bord: #2F4C8F; --gat: #1E3263;
+  --manila: #F2DDA0; --manila-d: #D9BE78; --papier: #FBF6E9;
+  --inkt: #1F2333; --zacht: #5E5643;
+  --rood: #C8323C; --rood-d: #9E2430; --blauw: #2F4C8F;
+  --hout: #7A4E2D; --hout-d: #573720; --munt: #E9B949; --tape: #23252B;
+  --kb: min(80px, calc((100vw - 3.4rem) / 8.7));
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bord: #1F3466; --gat: #12204A; --manila: #E6D094; --papier: #F1E9D6; --hout: #66412A; --hout-d: #452B19; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; color: var(--inkt);
+  background-color: var(--bord);
+  background-image: radial-gradient(circle, var(--gat) 2.5px, transparent 3px);
+  background-size: 26px 26px;
+  font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+.wrap { max-width: 60rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+.kop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.terug { color: var(--manila); font-weight: 600; text-underline-offset: .2em; }
+.terug:hover { color: #fff; }
+.kop h1 { margin: 0; }
+.tape {
+  display: inline-block; background: var(--tape); color: #F4F1EC;
+  font-weight: 800; font-stretch: 75%; font-variation-settings: "wdth" 75;
+  text-transform: uppercase; letter-spacing: .07em; font-size: clamp(1.4rem, 4vw, 2rem);
+  padding: .12em .45em .06em; border-radius: 3px; transform: rotate(-1.5deg);
+  text-shadow: 0 1px 0 rgba(255,255,255,.3), 0 -1px 0 rgba(0,0,0,.6);
+  box-shadow: 0 3px 0 rgba(0,0,0,.3);
+}
+:focus-visible { outline: 3px solid var(--munt); outline-offset: 2px; }
+
+/* stand */
+.status { background: var(--manila); border-radius: 6px; padding: .8rem 1rem; box-shadow: 0 3px 0 rgba(0,0,0,.28); }
+.kraam { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .8rem; margin-bottom: .6rem; }
+.kraam-nr { color: var(--zacht); font-size: .85rem; }
+.kraam-naam { font-size: 1.25rem; }
+.baas { flex-basis: 100%; color: var(--rood-d); font-weight: 600; }
+.tellers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .4rem; }
+.teller span { display: block; font-size: .75rem; color: var(--zacht); }
+.teller b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.teller.munt b { color: #8A5D00; }
+.balk { height: 8px; background: rgba(31,35,51,.13); border-radius: 4px; margin-top: .6rem; overflow: hidden; }
+.balk span { display: block; height: 100%; background: var(--blauw); width: 0; }
+
+/* plank met snuisterijen */
+.plank { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; margin: 1rem 0 .5rem; padding: .6rem .5rem .55rem; background: var(--hout); border-bottom: 6px solid var(--hout-d); border-radius: 4px 4px 0 0; }
+.snuis-plek { position: relative; }
+.snuis {
+  display: block; width: 100%; min-height: 4.4rem; border: 0; font: inherit; color: var(--inkt); cursor: pointer;
+  background: var(--manila); padding: .95rem .35rem .45rem; text-align: center;
+  clip-path: polygon(14% 0, 86% 0, 100% 16%, 100% 100%, 0 100%, 0 16%);
+  position: relative;
+}
+.snuis::before { content: ""; position: absolute; top: .38rem; left: 50%; width: .42rem; height: .42rem; border-radius: 50%; background: var(--hout-d); transform: translateX(-50%); }
+.snuis b { display: block; font-size: .78rem; line-height: 1.15; }
+.snuis span { display: block; font-size: .72rem; line-height: 1.2; color: var(--rood-d); margin-top: .2rem; }
+.snuis.leeg { clip-path: none; background: transparent; border: 2px dashed rgba(242,221,160,.35); color: rgba(242,221,160,.65); font-size: .75rem; display: flex; align-items: center; justify-content: center; cursor: default; border-radius: 4px; }
+.snuis.leeg::before { display: none; }
+
+/* rekensom en tafel */
+.tafel { text-align: center; padding: .4rem 0 .2rem; }
+.handnaam { color: var(--manila); font-weight: 700; font-size: 1.15rem; min-height: 1.7rem; }
+.handnaam small { font-weight: 400; opacity: .8; }
+.som { display: flex; align-items: center; justify-content: center; gap: .6rem; margin: .3rem 0; }
+.fiches, .mult { font-weight: 800; font-size: clamp(1.4rem, 5vw, 2rem); min-width: 5.5rem; padding: .15rem .7rem; border-radius: 6px; font-variant-numeric: tabular-nums; box-shadow: 0 3px 0 rgba(0,0,0,.28); }
+.fiches { background: var(--papier); color: var(--blauw); text-align: right; }
+.mult { background: var(--rood); color: #fff; text-align: left; }
+.keer { color: var(--manila); font-size: 1.6rem; font-weight: 700; }
+.totaal { color: var(--munt); font-weight: 800; font-size: 1.3rem; min-height: 2rem; }
+.veld { display: flex; justify-content: center; gap: .4rem; min-height: calc(var(--kb) * 1.4 + 1.8rem); padding-top: 1.6rem; }
+
+/* kaarten */
+.werkbank { background: var(--hout); border-radius: 8px; padding: 1.3rem .5rem .9rem; border-bottom: 8px solid var(--hout-d); }
+.hand { display: flex; justify-content: center; gap: clamp(3px, .8vw, 8px); }
+.kaart {
+  flex: none; position: relative; width: var(--kb); height: calc(var(--kb) * 1.4); padding: 0;
+  background: var(--papier); color: var(--inkt); border: 1px solid #CFC4A8; border-radius: calc(var(--kb) * .1);
+  font: inherit; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,.32); transition: transform .14s ease;
+}
+.kaart.rood { color: var(--rood); }
+.kaart .hoek { position: absolute; top: 5%; left: 9%; display: flex; flex-direction: column; align-items: center; font-weight: 800; line-height: .95; font-size: calc(var(--kb) * .25); }
+.kaart .hoek i { font-style: normal; font-size: .8em; }
+.kaart .hoek.onder { top: auto; left: auto; bottom: 5%; right: 9%; transform: rotate(180deg); }
+.kaart .midden { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(var(--kb) * .52); }
+.kaart.gekozen { transform: translateY(-20%); outline: 3px solid var(--munt); outline-offset: 1px; }
+.kaart.uit { filter: grayscale(1); opacity: .5; }
+.kaart[disabled] { cursor: default; }
+.veld .kaart { cursor: default; }
+.veld .kaart.niet-tel { opacity: .4; }
+.kaart.tel { transform: translateY(-12%) scale(1.07); }
+
+/* knoppen */
+.knoppen { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: 1.1rem; }
+.knop {
+  font: inherit; font-weight: 700; font-size: 1rem; padding: .7rem 1.15rem; border: 0; border-radius: 6px;
+  background: var(--manila); color: var(--inkt); cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.32);
+}
+.knop:active:not([disabled]) { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.32); }
+.knop.hoofd { background: var(--rood); color: #fff; }
+.knop.licht { background: var(--papier); }
+.knop[disabled] { opacity: .45; cursor: not-allowed; }
+.klein-knop { font-size: .88rem; padding: .45rem .8rem; }
+.bericht { color: var(--manila); text-align: center; min-height: 1.5em; margin: .9rem 0 0; }
+.klein { color: rgba(242,221,160,.7); font-size: .85rem; text-align: center; margin: .3rem 0 0; }
+
+/* panelen */
+.paneel { background: var(--manila); border-radius: 8px; padding: 1.3rem 1.4rem 1.5rem; margin: 1rem auto; max-width: 44rem; box-shadow: 0 4px 0 rgba(0,0,0,.28); }
+.paneel h2 { margin: 0 0 .5rem; font-size: 1.6rem; line-height: 1.15; }
+.paneel h2:focus { outline: none; }
+.paneel h3 { margin: 1.4rem 0 .5rem; font-size: 1.05rem; }
+.paneel p { max-width: 36rem; }
+.record { color: var(--rood-d); font-weight: 600; }
+.regels { list-style: none; padding: 0; margin: 1rem 0; border-top: 1px solid var(--manila-d); }
+.regels li { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem 0; border-bottom: 1px solid var(--manila-d); }
+.winkel-kop { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.beurs { background: var(--munt); font-weight: 800; padding: .2rem .7rem; border-radius: 999px; white-space: nowrap; }
+.let-op { color: var(--rood-d); font-weight: 600; }
+.aanbod { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .8rem; margin: 1rem 0; }
+.waar {
+  position: relative; display: flex; flex-direction: column; background: var(--papier); padding: 1.5rem .9rem .9rem;
+  clip-path: polygon(10% 0, 90% 0, 100% 9%, 100% 100%, 0 100%, 0 9%);
+}
+.waar::before { content: ""; position: absolute; top: .55rem; left: 50%; width: .55rem; height: .55rem; border-radius: 50%; background: var(--manila-d); transform: translateX(-50%); }
+.waar.boek { background: #E4ECF8; }
+.waar-naam { font-size: 1.02rem; line-height: 1.2; }
+.waar p { margin: .4rem 0 .8rem; font-size: .9rem; flex: 1; }
+.waar-voet { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.prijs { background: var(--munt); font-weight: 800; font-size: .82rem; padding: .1rem .55rem; border-radius: 999px; }
+.waar.verkocht { justify-content: center; align-items: center; color: var(--zacht); min-height: 9rem; }
+.bezit { list-style: none; padding: 0; margin: 0; }
+.bezit li { display: flex; justify-content: space-between; align-items: center; gap: .8rem; padding: .55rem 0; border-bottom: 1px solid var(--manila-d); font-size: .92rem; }
+.bezit .geen { color: var(--zacht); }
+.volgende { display: flex; flex-direction: column; background: rgba(31,35,51,.07); border-left: 4px solid var(--rood); padding: .7rem .9rem; margin: 1.3rem 0 1rem; }
+.volgende span:first-child { font-size: .8rem; color: var(--zacht); }
+
+.waaier { --kb: clamp(56px, 16vw, 78px); display: flex; justify-content: center; padding: .6rem 0 1.4rem; }
+.waaier .kaart { margin: 0 -9px; cursor: default; }
+.waaier .kaart:nth-child(1) { transform: rotate(-16deg) translateY(14px); }
+.waaier .kaart:nth-child(2) { transform: rotate(-8deg) translateY(4px); }
+.waaier .kaart:nth-child(4) { transform: rotate(8deg) translateY(4px); }
+.waaier .kaart:nth-child(5) { transform: rotate(16deg) translateY(14px); }
+
+/* uitleg */
+.uitleg { margin-top: 2rem; display: grid; gap: .8rem; }
+.uitleg details { background: rgba(10,18,40,.35); color: var(--manila); border-radius: 8px; padding: .8rem 1rem; }
+.uitleg summary { cursor: pointer; font-weight: 700; }
+.uitleg ul { padding-left: 1.2rem; }
+.uitleg li { margin: .35rem 0; }
+.tabel-wrap { overflow-x: auto; }
+.uitleg table { border-collapse: collapse; width: 100%; margin-top: .6rem; font-size: .92rem; }
+.uitleg th, .uitleg td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid rgba(242,221,160,.2); vertical-align: top; }
+.uitleg th small { font-weight: 400; color: var(--munt); }
+.uitleg td.num { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* effecten */
+.bel { position: absolute; left: 50%; top: -.3rem; transform: translate(-50%, -100%); z-index: 5; white-space: nowrap; pointer-events: none; color: #fff; font-weight: 800; font-size: .85rem; padding: .12rem .45rem; border-radius: 4px; }
+.bel.blauw { background: var(--papier); color: var(--blauw); box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+.bel.rood { background: var(--rood); }
+.bel.grijs { background: #6B6B6B; }
+@media (prefers-reduced-motion: no-preference) {
+  .bel { animation: op .95s ease-out forwards; }
+  .pulse { animation: pulse .3s ease-out; }
+  @keyframes op { 0% { opacity: 0; transform: translate(-50%, -60%); } 18% { opacity: 1; transform: translate(-50%, -100%); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -150%); } }
+  @keyframes pulse { 50% { transform: scale(1.12); } }
+}
+@media (prefers-reduced-motion: reduce) { .kaart { transition: none; } }
+
+@media (max-width: 560px) {
+  .wrap { padding: .7rem .6rem 2.5rem; }
+  :root { --kb: calc((100vw - 2.6rem) / 8.5); }
+  .kaart .hoek.onder { display: none; }
+  .kaart .hoek { font-size: calc(var(--kb) * .34); }
+  .kaart .midden { font-size: calc(var(--kb) * .5); padding-top: 30%; }
+  .werkbank { padding: 1.1rem .3rem .8rem; }
+  .tellers { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: .5rem; }
+  .teller b { font-size: 1.1rem; }
+  .teller span { font-size: .7rem; }
+  .plank { gap: .3rem; padding: .5rem .3rem; }
+  .snuis { min-height: 4rem; padding: .9rem .2rem .35rem; }
+  .snuis b { font-size: .7rem; }
+  .snuis span { font-size: .7rem; }
+  .knop { padding: .65rem .9rem; }
+  .bezit li { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="kop">
+    <a class="terug" href="./">Terug naar het rommelhoekje</a>
+    <h1><span class="tape">Rommelpoker</span></h1>
+  </header>
+  <main id="spel" class="spel"><noscript><p class="bericht">Dit spel heeft JavaScript nodig.</p></noscript></main>
+  <section class="uitleg" aria-label="Uitleg">
+    <details>
+      <summary>Hoe speel je?</summary>
+      <ul>
+        <li>Kies maximaal 5 kaarten uit je hand en klik op <b>Speel hand</b>. Het spel ziet zelf welke pokerhand je hebt.</li>
+        <li>Je punten zijn <b>fiches × mult</b>. Elke pokerhand heeft een basis. Daar komen de fiches bij van de kaarten die meetellen: 2 tot en met 10 hun eigen waarde, boer, vrouw en heer 10, aas 11.</li>
+        <li>Per kraampje heb je 4 handen en mag je 3 keer weggooien. Met <b>Gooi weg</b> ruil je de gekozen kaarten in voor nieuwe.</li>
+        <li>Haal je het doel, dan krijg je munten: een beloning, 1 munt per hand die je over hebt, en rente: 1 munt per 5 munten die je al hebt, tot maximaal 5.</li>
+        <li>Snuisterijen werken vanzelf. Effecten met × worden altijd als laatste gerekend, dus die vermenigvuldigen alles wat ervoor kwam.</li>
+        <li>Een handboekje maakt een pokerhand voor de rest van het spel sterker.</li>
+        <li>Kraampje 3, 6 en 8 hebben een baas met een eigen regel. In de winkel zie je vooraf wat die regel is.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>Pokerhanden</summary>
+      <div class="tabel-wrap"><table><thead><tr><th scope="col">Hand</th><th scope="col">Wat is het</th><th scope="col" class="num">Fiches × mult</th></tr></thead><tbody id="handen-tabel"></tbody></table></div>
+    </details>
+  </section>
+</div>
+<script>
+// ===== Rommelpoker engine (geen DOM) =====
+const KLEUREN = ['h', 'r', 's', 'k'];
+const KLEURTEKEN = { h: '♥', r: '♦', s: '♠', k: '♣' };
+const KLEURNAAM = { h: 'harten', r: 'ruiten', s: 'schoppen', k: 'klaveren' };
+const RANGLABEL = { 11: 'B', 12: 'V', 13: 'H', 14: 'A' };
+const rangLabel = r => RANGLABEL[r] || String(r);
+const fichesVan = r => (r <= 10 ? r : r === 14 ? 11 : 10);
+
+const HANDEN = {
+  straatkleur: { naam: 'Straatkleur', f: 100, m: 8, uf: 45, um: 3, uitleg: 'Vijf opeenvolgende kaarten van dezelfde kleur.' },
+  vier: { naam: 'Vier gelijk', f: 60, m: 7, uf: 35, um: 3, uitleg: 'Vier kaarten met dezelfde waarde.' },
+  fullhouse: { naam: 'Full house', f: 45, m: 4, uf: 25, um: 2, uitleg: 'Drie gelijk plus een paar.' },
+  kleur: { naam: 'Kleur', f: 40, m: 4, uf: 20, um: 2, uitleg: 'Vijf kaarten van dezelfde kleur, bijvoorbeeld vijf harten.' },
+  straat: { naam: 'Straat', f: 35, m: 4, uf: 25, um: 2, uitleg: 'Vijf opeenvolgende waarden, bijvoorbeeld 5 6 7 8 9.' },
+  drie: { naam: 'Drie gelijk', f: 30, m: 3, uf: 20, um: 1, uitleg: 'Drie kaarten met dezelfde waarde.' },
+  tweepaar: { naam: 'Twee paar', f: 25, m: 2, uf: 15, um: 1, uitleg: 'Twee keer twee gelijke kaarten.' },
+  paar: { naam: 'Paar', f: 10, m: 2, uf: 10, um: 1, uitleg: 'Twee kaarten met dezelfde waarde.' },
+  hoog: { naam: 'Hoge kaart', f: 5, m: 1, uf: 10, um: 1, uitleg: 'Niets van het bovenstaande. Alleen je hoogste kaart telt.' },
+};
+const HAND_VOLGORDE = Object.keys(HANDEN);
+
+const isKleurHand = h => h === 'kleur' || h === 'straatkleur';
+const isStraatHand = h => h === 'straat' || h === 'straatkleur';
+
+const SNUIS = {
+  hoefijzer: { naam: 'Roestig hoefijzer', prijs: 3, kort: '+5 mult', tekst: 'Elke hand +5 mult.', opHand: () => ({ m: 5 }) },
+  jampot: { naam: 'Lege jampot', prijs: 3, kort: '+35 fiches', tekst: 'Elke hand +35 fiches.', opHand: () => ({ f: 35 }) },
+  rodeknoop: { naam: 'Rode knoop', prijs: 5, kort: '♥ +4 mult', tekst: 'Elke gescoorde ♥ geeft +4 mult.', opKaart: c => (c.s === 'h' ? { m: 4 } : null) },
+  knikker: { naam: 'Glazen knikker', prijs: 5, kort: '♦ +4 mult', tekst: 'Elke gescoorde ♦ geeft +4 mult.', opKaart: c => (c.s === 'r' ? { m: 4 } : null) },
+  sleutel: { naam: 'Gietijzeren sleutel', prijs: 5, kort: '♠ +4 mult', tekst: 'Elke gescoorde ♠ geeft +4 mult.', opKaart: c => (c.s === 's' ? { m: 4 } : null) },
+  klavertje: { naam: 'Gedroogd klavertje', prijs: 5, kort: '♣ +4 mult', tekst: 'Elke gescoorde ♣ geeft +4 mult.', opKaart: c => (c.s === 'k' ? { m: 4 } : null) },
+  fietsbel: { naam: 'Fietsbel', prijs: 4, kort: 'paar: +6 mult', tekst: '+6 mult als je hand een paar bevat. Twee paar, drie gelijk en full house tellen ook.', opHand: x => (x.heeftPaar ? { m: 6 } : null) },
+  ladder: { naam: 'Gammele ladder', prijs: 5, kort: 'straat: +10 mult', tekst: '+10 mult als je een straat speelt.', opHand: x => (isStraatHand(x.hand) ? { m: 10 } : null) },
+  kranten: { naam: 'Stapel kranten', prijs: 5, kort: 'kleur: +70 fiches', tekst: '+70 fiches als je een kleur speelt.', opHand: x => (isKleurHand(x.hand) ? { f: 70 } : null) },
+  vergrootglas: { naam: 'Vergrootglas', prijs: 5, kort: 'B V H: +25 fiches', tekst: 'Elke gescoorde boer, vrouw of heer geeft +25 fiches.', opKaart: c => (c.r >= 11 && c.r <= 13 ? { f: 25 } : null) },
+  mottenballen: { naam: 'Mottenballen', prijs: 5, kort: '+3 mult per weggooi', tekst: '+3 mult voor elke weggooibeurt die je nog over hebt.', opHand: x => (x.weggooien > 0 ? { m: 3 * x.weggooien } : null) },
+  eendje: { naam: 'Rubberen eendje', prijs: 6, kort: '+{val} mult, groeit', tekst: 'Geeft +{val} mult. Wordt na elk gehaald kraampje 2 sterker.', start: 2, opHand: (x, sn) => ({ m: sn.val }), naRonde: sn => { sn.val += 2; } },
+  dobbelsteen: { naam: 'Tweedehands dobbelsteen', prijs: 4, kort: '+0 tot 15 mult', tekst: 'Elke hand een nieuwe worp: +0 tot +15 mult.', opHand: () => ({ m: Math.floor(Math.random() * 16) }) },
+  spiegel: { naam: 'Gebarsten spiegel', prijs: 6, kort: '1e kaart telt 2×', tekst: 'De eerste gescoorde kaart van elke hand telt twee keer.' },
+  spaarvarken: { naam: 'Spaarvarken', prijs: 4, kort: '+2 munten', tekst: 'Na elk gehaald kraampje krijg je 2 munten extra.', opRonde: () => 2 },
+  bol: { naam: 'Kristallen bol', prijs: 7, kort: 'laatste hand: ×2,5', tekst: '×2,5 mult bij je laatste hand van een kraampje.', opHand: x => (x.laatste ? { x: 2.5 } : null) },
+  sokken: { naam: 'Sokken zonder paar', prijs: 6, kort: 'geen paar: ×2', tekst: '×2 mult als je hand géén paar bevat.', opHand: x => (!x.heeftPaar ? { x: 2 } : null) },
+  wekker: { naam: 'Kapotte wekker', prijs: 6, kort: 'max. 3 kaarten: ×2', tekst: '×2 mult als je 3 of minder kaarten speelt.', opHand: x => (x.n <= 3 ? { x: 2 } : null) },
+};
+const SNUIS_IDS = Object.keys(SNUIS);
+const vulIn = (t, sn) => t.replace('{val}', sn && sn.val != null ? sn.val : SNUIS[sn.id].start);
+
+const BAZEN = [
+  { id: 'gerda', naam: 'Gierige Gerda', maak: () => { const s = KLEUREN[Math.floor(Math.random() * 4)]; return { kleurUit: s, tekst: `Al je ${KLEURNAAM[s]} tellen niet mee.` }; } },
+  { id: 'piet', naam: 'Prikkelbare Piet', maak: () => ({ plaatjesUit: true, tekst: 'Boeren, vrouwen en heren tellen niet mee.' }) },
+  { id: 'harry', naam: 'Haastige Harry', maak: () => ({ handen: -1, tekst: 'Je hebt maar 3 handen.' }) },
+  { id: 'stien', naam: 'Strenge Stien', maak: () => ({ geenWeggooi: true, tekst: 'Je mag niets weggooien.' }) },
+  { id: 'okke', naam: 'Opkoper Okke', maak: () => ({ handGrootte: 7, tekst: 'Je hebt maar 7 kaarten in je hand.' }) },
+];
+
+const DOELEN = [300, 500, 800, 1200, 1800, 2700, 4000, 6000];
+const BAAS_PLEK = [2, 5, 7];
+const MAX_SNUIS = 5;
+
+function schud(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function nieuwStapel() {
+  const d = [];
+  for (const s of KLEUREN) for (let r = 2; r <= 14; r++) d.push({ id: s + r, r, s });
+  return schud(d);
+}
+
+function maakMarkt() {
+  const namen = schud(['Kees', 'Bep', 'Theo', 'Lies', 'Sjaak']);
+  const bazen = schud(BAZEN).slice(0, 3);
+  return DOELEN.map((doel, i) => {
+    const b = BAAS_PLEK.indexOf(i);
+    if (b >= 0) {
+      const B = bazen[b];
+      return { naam: B.naam, doel, baas: Object.assign({ id: B.id }, B.maak()), beloning: 5, eind: i === DOELEN.length - 1 };
+    }
+    return { naam: 'Kraam van ' + namen.pop(), doel, baas: null, beloning: i % 3 === 0 ? 3 : 4 };
+  });
+}
+
+function beoordeel(kaarten) {
+  const n = kaarten.length;
+  const perRang = {};
+  kaarten.forEach(c => (perRang[c.r] = perRang[c.r] || []).push(c));
+  const groepen = Object.values(perRang).sort((a, b) => b.length - a.length || b[0].r - a[0].r);
+  const kleur = n === 5 && kaarten.every(c => c.s === kaarten[0].s);
+  let straat = false;
+  if (n === 5 && groepen.length === 5) {
+    const rs = kaarten.map(c => c.r).sort((a, b) => a - b);
+    straat = rs[4] - rs[0] === 4 || rs.join() === '2,3,4,5,14';
+  }
+  const g0 = groepen[0] ? groepen[0].length : 0, g1 = groepen[1] ? groepen[1].length : 0;
+  let hand, telt;
+  if (straat && kleur) { hand = 'straatkleur'; telt = kaarten; }
+  else if (g0 === 4) { hand = 'vier'; telt = groepen[0]; }
+  else if (g0 === 3 && g1 === 2) { hand = 'fullhouse'; telt = kaarten; }
+  else if (kleur) { hand = 'kleur'; telt = kaarten; }
+  else if (straat) { hand = 'straat'; telt = kaarten; }
+  else if (g0 === 3) { hand = 'drie'; telt = groepen[0]; }
+  else if (g0 === 2 && g1 === 2) { hand = 'tweepaar'; telt = groepen[0].concat(groepen[1]); }
+  else if (g0 === 2) { hand = 'paar'; telt = groepen[0]; }
+  else { hand = 'hoog'; telt = [kaarten.reduce((a, b) => (b.r > a.r ? b : a))]; }
+  const ids = new Set(telt.map(c => c.id));
+  return { hand, telt: kaarten.filter(c => ids.has(c.id)), heeftPaar: g0 >= 2 };
+}
+
+function basisVan(hand, niveaus) {
+  const H = HANDEN[hand], l = (niveaus[hand] || 1) - 1;
+  return { f: H.f + l * H.uf, m: H.m + l * H.um };
+}
+
+const rond1 = v => Math.round(v * 10) / 10;
+function effectTekst(r) {
+  const d = [];
+  if ('f' in r) d.push('+' + r.f + ' fiches');
+  if ('m' in r) d.push('+' + r.m + ' mult');
+  if ('x' in r) d.push('×' + String(r.x).replace('.', ',') + ' mult');
+  return d.join(', ');
+}
+
+// st: {snuis:[{id,val}], niveaus, baas, handen, weggooien}
+function berekenScore(gespeeld, st) {
+  const b = beoordeel(gespeeld);
+  const basis = basisVan(b.hand, st.niveaus);
+  let f = basis.f, m = basis.m;
+  const stappen = [{ t: 'basis', f, m }];
+  const x = { hand: b.hand, heeftPaar: b.heeftPaar, n: gespeeld.length, laatste: st.handen === 1, weggooien: st.weggooien };
+  const baas = st.baas || {};
+  const uit = c => (baas.kleurUit && c.s === baas.kleurUit) || (baas.plaatjesUit && c.r >= 11 && c.r <= 13);
+  const spiegel = st.snuis.some(s => s.id === 'spiegel');
+  b.telt.forEach((c, i) => {
+    if (uit(c)) { stappen.push({ t: 'kaart', id: c.id, tekst: 'telt niet', uit: true, f, m }); return; }
+    const keer = i === 0 && spiegel ? 2 : 1;
+    for (let k = 0; k < keer; k++) {
+      f += fichesVan(c.r);
+      stappen.push({ t: 'kaart', id: c.id, tekst: '+' + fichesVan(c.r), f, m, nogEens: k === 1 });
+      st.snuis.forEach((sn, idx) => {
+        const d = SNUIS[sn.id];
+        const r = d.opKaart && d.opKaart(c, sn, x);
+        if (r) { f += r.f || 0; m += r.m || 0; stappen.push({ t: 'snuis', idx, id: c.id, tekst: effectTekst(r), f, m: rond1(m) }); }
+      });
+    }
+  });
+  const pas = (sn, idx) => {
+    const d = SNUIS[sn.id];
+    const r = d.opHand && d.opHand(x, sn);
+    if (!r) return;
+    f += r.f || 0; m += r.m || 0; if (r.x) m = m * r.x;
+    m = rond1(m);
+    stappen.push({ t: 'snuis', idx, tekst: effectTekst(r), f, m });
+  };
+  const isX = sn => sn.id === 'bol' || sn.id === 'sokken' || sn.id === 'wekker';
+  st.snuis.forEach((sn, idx) => { if (!isX(sn)) pas(sn, idx); });
+  st.snuis.forEach((sn, idx) => { if (isX(sn)) pas(sn, idx); });
+  m = rond1(m);
+  return { hand: b.hand, telt: b.telt.map(c => c.id), stappen, f, m, totaal: Math.floor(f * m) };
+}
+
+if (typeof module !== 'undefined') module.exports = { KLEUREN, HANDEN, HAND_VOLGORDE, SNUIS, SNUIS_IDS, BAZEN, DOELEN, BAAS_PLEK, MAX_SNUIS, schud, nieuwStapel, maakMarkt, beoordeel, basisVan, berekenScore, fichesVan };
+
+</script>
+<script>
+(function () {
+  const R = document.getElementById('spel');
+  const motion = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const sleep = ms => new Promise(r => setTimeout(r, motion ? ms : Math.min(ms, 60)));
+  const fmt = n => Math.round(n).toLocaleString('nl-NL');
+  const fmtM = m => String(m).replace('.', ',');
+  const RANGNAAM = { 11: 'boer', 12: 'vrouw', 13: 'heer', 14: 'aas' };
+  const RKEY = 'rommelpoker-record';
+  let rec = { verst: 0, beste: 0 };
+  try { const r = localStorage.getItem(RKEY); if (r) rec = Object.assign(rec, JSON.parse(r)); } catch (e) {}
+  const bewaarRec = () => { try { localStorage.setItem(RKEY, JSON.stringify(rec)); } catch (e) {} };
+
+  let S = { fase: 'start' };
+  let bezig = false;
+  let vorigeFase = null;
+
+  // ---------- spelverloop
+  function nieuwSpel() {
+    S = { fase: 'ronde', markt: maakMarkt(), i: 0, munten: 4, snuis: [], niveaus: {}, beste: 0, sorteer: 'waarde', bericht: '' };
+    startRonde();
+  }
+  function kraam() { return S.markt[S.i]; }
+  function startRonde() {
+    const k = kraam();
+    S.baas = k.baas;
+    S.handen = 4 + ((k.baas && k.baas.handen) || 0);
+    S.weggooien = k.baas && k.baas.geenWeggooi ? 0 : 3;
+    S.handGrootte = (k.baas && k.baas.handGrootte) || 8;
+    S.stapel = nieuwStapel();
+    S.hand = [];
+    S.gekozen = new Set();
+    S.score = 0;
+    trek();
+    S.fase = 'ronde';
+    S.bericht = 'Kies maximaal 5 kaarten en speel een pokerhand.';
+    render();
+  }
+  function trek() {
+    while (S.hand.length < S.handGrootte && S.stapel.length) S.hand.push(S.stapel.pop());
+    sorteerHand();
+  }
+  function sorteerHand() {
+    const ko = { h: 0, r: 1, s: 2, k: 3 };
+    S.hand.sort(S.sorteer === 'waarde' ? (a, b) => b.r - a.r || ko[a.s] - ko[b.s] : (a, b) => ko[a.s] - ko[b.s] || b.r - a.r);
+  }
+  function kies(id) {
+    if (S.gekozen.has(id)) S.gekozen.delete(id);
+    else if (S.gekozen.size >= 5) { S.bericht = 'Je kunt maximaal 5 kaarten kiezen.'; return render(); }
+    else S.gekozen.add(id);
+    S.bericht = '';
+    render();
+  }
+  function gooiWeg() {
+    if (S.fase !== 'ronde' || !S.gekozen.size) return;
+    if (S.weggooien <= 0) { S.bericht = 'Je hebt geen weggooibeurten meer.'; return render(); }
+    const n = S.gekozen.size;
+    S.hand = S.hand.filter(c => !S.gekozen.has(c.id));
+    S.gekozen = new Set();
+    S.weggooien--;
+    trek();
+    S.bericht = n === 1 ? '1 kaart ingeruild.' : n + ' kaarten ingeruild.';
+    render();
+  }
+
+  async function speel() {
+    if (S.fase !== 'ronde' || !S.gekozen.size) return;
+    bezig = true;
+    const gek = S.hand.filter(c => S.gekozen.has(c.id));
+    const res = berekenScore(gek, { snuis: S.snuis, niveaus: S.niveaus, baas: S.baas, handen: S.handen, weggooien: S.weggooien });
+    S.hand = S.hand.filter(c => !S.gekozen.has(c.id));
+    S.gekozen = new Set();
+    S.gespeeld = gek; S.res = res; S.fase = 'scoren'; S.bericht = '';
+    render();
+    const $ = id => document.getElementById(id);
+    await sleep(250);
+    for (const st of res.stappen) {
+      if (st.t === 'basis') {
+        $('r-f').textContent = fmt(st.f); $('r-m').textContent = fmtM(st.m);
+        pulse($('r-f')); pulse($('r-m'));
+        await sleep(420);
+      } else if (st.t === 'kaart') {
+        const el = $('v-' + st.id);
+        if (el) { el.classList.add('tel'); bel(el, st.nogEens ? 'nog een keer ' + st.tekst : st.tekst, st.uit ? 'grijs' : 'blauw'); }
+        $('r-f').textContent = fmt(st.f); pulse($('r-f'));
+        await sleep(340);
+        if (el) el.classList.remove('tel');
+      } else {
+        const el = $('sn-' + st.idx);
+        if (el) { pulse(el); bel(el, st.tekst, 'rood'); }
+        $('r-f').textContent = fmt(st.f); $('r-m').textContent = fmtM(st.m);
+        pulse($('r-m'));
+        await sleep(440);
+      }
+    }
+    $('r-tot').textContent = '= ' + fmt(res.totaal) + ' punten';
+    await sleep(400);
+    const k = kraam();
+    const van = S.score, naar = S.score + res.totaal;
+    const sEl = $('t-score'), balk = $('balk');
+    const n = motion ? 16 : 1;
+    for (let j = 1; j <= n; j++) {
+      const v = van + (naar - van) * j / n;
+      sEl.textContent = fmt(v);
+      balk.style.width = Math.min(100, v / k.doel * 100) + '%';
+      await sleep(28);
+    }
+    S.score = naar; S.handen--; S.beste = Math.max(S.beste, res.totaal);
+    if (res.totaal > rec.beste) { rec.beste = res.totaal; bewaarRec(); }
+    await sleep(350);
+    S.gespeeld = null; S.res = null; bezig = false;
+    if (S.score >= k.doel) return rondeGehaald();
+    if (S.handen <= 0) return verloren();
+    trek();
+    S.fase = 'ronde';
+    S.bericht = `${HANDEN[res.hand].naam}: ${fmt(res.totaal)} punten. Nog ${fmt(k.doel - S.score)} te gaan.`;
+    render();
+  }
+
+  function rondeGehaald() {
+    const k = kraam();
+    const regels = [[k.naam + ' gehaald', k.beloning]];
+    if (S.handen > 0) regels.push([S.handen + (S.handen === 1 ? ' hand' : ' handen') + ' over', S.handen]);
+    const rente = Math.min(5, Math.floor(S.munten / 5));
+    if (rente) regels.push(['Rente: 1 per 5 munten', rente]);
+    S.snuis.forEach(sn => { const d = SNUIS[sn.id]; if (d.opRonde) regels.push([d.naam, d.opRonde(sn)]); });
+    const som = regels.reduce((a, r) => a + r[1], 0);
+    S.munten += som;
+    S.snuis.forEach(sn => { const d = SNUIS[sn.id]; if (d.naRonde) d.naRonde(sn); });
+    rec.verst = Math.max(rec.verst, S.i + 1); bewaarRec();
+    S.uitslag = { regels, score: S.score, doel: k.doel };
+    S.fase = k.eind ? 'gewonnen' : 'uitslag';
+    render();
+  }
+  function verloren() {
+    S.fase = 'verloren';
+    rec.verst = Math.max(rec.verst, S.i); bewaarRec();
+    render();
+  }
+
+  // ---------- winkel
+  const trekAanbod = () => schud(SNUIS_IDS.filter(id => !S.snuis.some(s => s.id === id))).slice(0, 3);
+  const verkoopPrijs = sn => Math.max(1, Math.floor(SNUIS[sn.id].prijs / 2));
+  function openWinkel() {
+    S.winkel = { aanbod: trekAanbod(), boek: HAND_VOLGORDE[Math.floor(Math.random() * HAND_VOLGORDE.length)], boekWeg: false, reroll: 2 };
+    S.fase = 'winkel';
+    render();
+  }
+  function koop(j) {
+    const id = S.winkel.aanbod[j];
+    if (!id) return;
+    const d = SNUIS[id];
+    if (S.munten < d.prijs || S.snuis.length >= MAX_SNUIS) return;
+    S.munten -= d.prijs;
+    S.snuis.push({ id, val: d.start });
+    S.winkel.aanbod[j] = null;
+    render();
+  }
+  function koopBoek() {
+    if (S.winkel.boekWeg || S.munten < 3) return;
+    S.munten -= 3;
+    S.niveaus[S.winkel.boek] = (S.niveaus[S.winkel.boek] || 1) + 1;
+    S.winkel.boekWeg = true;
+    render();
+  }
+  function reroll() {
+    if (S.munten < S.winkel.reroll) return;
+    S.munten -= S.winkel.reroll;
+    S.winkel.reroll++;
+    S.winkel.aanbod = trekAanbod();
+    render();
+  }
+  function verkoop(i) {
+    const sn = S.snuis[i];
+    if (!sn) return;
+    S.munten += verkoopPrijs(sn);
+    S.snuis.splice(i, 1);
+    render();
+  }
+
+  // ---------- weergave
+  const isUit = c => S.baas && ((S.baas.kleurUit && c.s === S.baas.kleurUit) || (S.baas.plaatjesUit && c.r >= 11 && c.r <= 13));
+  const niv = h => ((S.niveaus[h] || 1) > 1 ? ` <small>niveau ${S.niveaus[h]}</small>` : '');
+  const teller = (l, v, id, cls) => `<div class="teller ${cls || ''}"><span>${l}</span><b${id ? ` id="${id}"` : ''}>${v}</b></div>`;
+
+  function kaartHTML(c, o) {
+    const rood = c.s === 'h' || c.s === 'r';
+    const uit = isUit(c);
+    const sel = !o.veld && S.gekozen.has(c.id);
+    const cls = ['kaart', rood ? 'rood' : '', sel ? 'gekozen' : '', uit ? 'uit' : '', o.veld && !o.telt ? 'niet-tel' : ''].join(' ');
+    const lab = `${RANGNAAM[c.r] || c.r} ${KLEURNAAM[c.s]}${uit ? ', telt niet mee' : ''}`;
+    const l = rangLabel(c.r), t = KLEURTEKEN[c.s];
+    const inner = `<span class="hoek" aria-hidden="true">${l}<i>${t}</i></span><span class="midden" aria-hidden="true">${t}</span><span class="hoek onder" aria-hidden="true">${l}<i>${t}</i></span>`;
+    if (o.veld) return `<div class="${cls}" id="v-${c.id}" role="img" aria-label="${lab}">${inner}</div>`;
+    return `<button class="${cls}" data-a="kies" data-id="${c.id}" aria-pressed="${sel}" aria-label="${lab}"${S.fase !== 'ronde' ? ' disabled' : ''}>${inner}</button>`;
+  }
+
+  function statusHTML() {
+    const k = kraam();
+    const pct = Math.min(100, S.score / k.doel * 100);
+    const soort = k.eind ? 'eindbaas' : k.baas ? 'baas' : '';
+    return `<section class="status" aria-label="Stand">
+      <div class="kraam">
+        <span class="kraam-nr">Kraampje ${S.i + 1} van ${S.markt.length}${soort ? ', ' + soort : ''}</span>
+        <strong class="kraam-naam">${k.naam}</strong>
+        ${k.baas ? `<span class="baas">${k.baas.tekst}</span>` : ''}
+      </div>
+      <div class="tellers">
+        ${teller('Doel', fmt(k.doel))}${teller('Score', fmt(S.score), 't-score')}${teller('Handen', S.handen)}${teller('Weggooien', S.weggooien)}${teller('Munten', S.munten, '', 'munt')}
+      </div>
+      <div class="balk" role="progressbar" aria-label="Voortgang naar het doel" aria-valuemin="0" aria-valuemax="${k.doel}" aria-valuenow="${Math.min(S.score, k.doel)}"><span id="balk" style="width:${pct}%"></span></div>
+    </section>`;
+  }
+
+  function plankHTML() {
+    let h = '<section class="plank" aria-label="Jouw snuisterijen">';
+    for (let i = 0; i < MAX_SNUIS; i++) {
+      const sn = S.snuis[i];
+      if (sn) {
+        const d = SNUIS[sn.id];
+        h += `<div class="snuis-plek" id="sn-${i}"><button class="snuis" data-a="info" data-i="${i}" title="${vulIn(d.tekst, sn)}"><b>${d.naam}</b><span>${vulIn(d.kort, sn)}</span></button></div>`;
+      } else h += '<div class="snuis-plek"><div class="snuis leeg">leeg haakje</div></div>';
+    }
+    return h + '</section>';
+  }
+
+  function tafelHTML() {
+    let naam = 'Kies tot 5 kaarten', f = 0, m = 0;
+    if (S.fase === 'ronde') {
+      const gek = S.hand.filter(c => S.gekozen.has(c.id));
+      if (gek.length) { const b = beoordeel(gek); const bs = basisVan(b.hand, S.niveaus); naam = HANDEN[b.hand].naam + niv(b.hand); f = bs.f; m = bs.m; }
+    } else if (S.fase === 'scoren') naam = HANDEN[S.res.hand].naam + niv(S.res.hand);
+    const veld = S.fase === 'scoren' ? S.gespeeld.map(c => kaartHTML(c, { veld: true, telt: S.res.telt.includes(c.id) })).join('') : '';
+    return `<section class="tafel" aria-label="Rekensom">
+      <div class="handnaam" id="r-hand">${naam}</div>
+      <div class="som"><span class="fiches" id="r-f" aria-label="fiches">${fmt(f)}</span><span class="keer" aria-hidden="true">×</span><span class="mult" id="r-m" aria-label="mult">${fmtM(m)}</span></div>
+      <div class="totaal" id="r-tot" aria-live="polite"></div>
+      <div class="veld">${veld}</div>
+    </section>`;
+  }
+
+  function handHTML() {
+    const n = S.gekozen.size, dicht = S.fase !== 'ronde';
+    return `<section class="werkbank" aria-label="Jouw hand"><div class="hand">${S.hand.map(c => kaartHTML(c, {})).join('')}</div></section>
+      <div class="knoppen">
+        <button class="knop licht" data-a="sorteer"${dicht ? ' disabled' : ''}>Sorteer op ${S.sorteer === 'waarde' ? 'kleur' : 'waarde'}</button>
+        <button class="knop" data-a="weg"${dicht || !n || !S.weggooien ? ' disabled' : ''}>Gooi weg${n ? ' (' + n + ')' : ''}</button>
+        <button class="knop hoofd" data-a="speel"${dicht || !n ? ' disabled' : ''}>Speel hand</button>
+      </div>
+      <p class="bericht" aria-live="polite">${S.bericht || ''}</p>
+      <p class="klein">${S.stapel.length} kaarten in de stapel</p>`;
+  }
+
+  function uitslagHTML() {
+    const u = S.uitslag;
+    return `<section class="paneel uitslag">
+      <h2 tabindex="-1">Gehaald!</h2>
+      <p>Je scoorde ${fmt(u.score)} punten. Het doel was ${fmt(u.doel)}.</p>
+      <ul class="regels">${u.regels.map(r => `<li><span>${r[0]}</span><b>+${r[1]}</b></li>`).join('')}</ul>
+      <p>Je hebt nu <b>${S.munten} munten</b>.</p>
+      <button class="knop hoofd" data-a="winkel">Naar de winkel</button>
+    </section>`;
+  }
+
+  function winkelHTML() {
+    const W = S.winkel, vol = S.snuis.length >= MAX_SNUIS;
+    const vk = S.markt[S.i + 1];
+    const items = W.aanbod.map((id, j) => {
+      if (!id) return '<div class="waar verkocht"><b>Verkocht</b></div>';
+      const d = SNUIS[id], kan = S.munten >= d.prijs && !vol;
+      return `<div class="waar"><b class="waar-naam">${d.naam}</b><p>${vulIn(d.tekst, { id })}</p>
+        <div class="waar-voet"><span class="prijs">${d.prijs} munten</span><button class="knop klein-knop" data-a="koop" data-i="${j}"${kan ? '' : ' disabled'}>Koop</button></div></div>`;
+    }).join('');
+    const H = HANDEN[W.boek], nv = S.niveaus[W.boek] || 1;
+    const boek = W.boekWeg ? '<div class="waar boek verkocht"><b>Verkocht</b></div>'
+      : `<div class="waar boek"><b class="waar-naam">Handboekje: ${H.naam}</b><p>${H.naam} gaat van niveau ${nv} naar ${nv + 1}: +${H.uf} fiches en +${H.um} mult.</p>
+        <div class="waar-voet"><span class="prijs">3 munten</span><button class="knop klein-knop" data-a="boek"${S.munten >= 3 ? '' : ' disabled'}>Koop</button></div></div>`;
+    const bezit = S.snuis.length ? S.snuis.map((sn, i) => {
+      const d = SNUIS[sn.id];
+      return `<li><span><b>${d.naam}</b><br>${vulIn(d.tekst, sn)}</span><button class="knop klein-knop licht" data-a="verkoop" data-i="${i}">Verkoop voor ${verkoopPrijs(sn)} ${verkoopPrijs(sn) === 1 ? 'munt' : 'munten'}</button></li>`;
+    }).join('') : '<li class="geen">Je hebt nog geen snuisterijen.</li>';
+    return `<section class="paneel winkel">
+      <div class="winkel-kop"><h2 tabindex="-1">De winkel</h2><span class="beurs">${S.munten} munten</span></div>
+      ${vol ? '<p class="let-op">Je plank is vol. Verkoop eerst iets als je iets nieuws wilt.</p>' : ''}
+      <div class="aanbod">${items}${boek}</div>
+      <button class="knop licht" data-a="reroll"${S.munten >= W.reroll ? '' : ' disabled'}>Nieuw aanbod voor ${W.reroll} munten</button>
+      <h3>Jouw snuisterijen (${S.snuis.length} van ${MAX_SNUIS})</h3>
+      <ul class="bezit">${bezit}</ul>
+      <div class="volgende"><span>Hierna</span><b>Kraampje ${S.i + 2}: ${vk.naam}</b><span>Doel: ${fmt(vk.doel)} punten.${vk.baas ? ' ' + vk.baas.tekst : ''}</span></div>
+      <button class="knop hoofd" data-a="verder">Naar het volgende kraampje</button>
+    </section>`;
+  }
+
+  function startHTML() {
+    const waaier = [14, 13, 12, 11, 10].map(r => kaartHTML({ id: 'w' + r, r, s: 'h' }, { veld: true, telt: true })).join('');
+    return `<section class="paneel start">
+      <div class="waaier" aria-hidden="true">${waaier}</div>
+      <h2 tabindex="-1">Welkom op de rommelmarkt</h2>
+      <p>Er staan acht kraampjes. Bij elk kraampje moet je een doelscore halen door pokerhanden te spelen. Hoe beter je hand, hoe meer punten.</p>
+      <p>Na elk kraampje krijg je munten. Daarmee koop je snuisterijen: rare spulletjes die je punten flink opkrikken. Drie kraampjes worden bemand door een lastige baas met een eigen regel.</p>
+      ${rec.verst ? `<p class="record">Jouw record: ${rec.verst} van 8 kraampjes, beste hand ${fmt(rec.beste)} punten.</p>` : ''}
+      <button class="knop hoofd" data-a="nieuw">Begin met spelen</button>
+    </section>`;
+  }
+
+  function eindHTML(w) {
+    const gehaald = w ? S.markt.length : S.i, k = kraam();
+    return `<section class="paneel einde">
+      <h2 tabindex="-1">${w ? 'Je hebt de hele rommelmarkt verslagen!' : 'Hier strandt je tocht'}</h2>
+      <p>${w ? 'Alle acht kraampjes gehaald. Knap gedaan.' : `${k.naam} wilde ${fmt(k.doel)} punten zien. Jij kwam tot ${fmt(S.score)}.`}</p>
+      <ul class="regels">
+        <li><span>Kraampjes gehaald</span><b>${gehaald} van ${S.markt.length}</b></li>
+        <li><span>Beste hand dit spel</span><b>${fmt(S.beste)}</b></li>
+        <li><span>Jouw record</span><b>${rec.verst} kraampjes, ${fmt(rec.beste)} punten</b></li>
+      </ul>
+      <button class="knop hoofd" data-a="nieuw">Opnieuw spelen</button>
+    </section>`;
+  }
+
+  function renderHanden() {
+    const T = document.getElementById('handen-tabel');
+    if (!T) return;
+    const nv = S.niveaus || {};
+    T.innerHTML = HAND_VOLGORDE.map(h => {
+      const b = basisVan(h, nv), l = nv[h] || 1;
+      return `<tr><th scope="row">${HANDEN[h].naam}${l > 1 ? ` <small>niveau ${l}</small>` : ''}</th><td>${HANDEN[h].uitleg}</td><td class="num">${b.f} × ${b.m}</td></tr>`;
+    }).join('');
+  }
+
+  function render() {
+    const f = document.activeElement;
+    const sleutel = f && R.contains(f) && f.dataset && f.dataset.a ? [f.dataset.a, f.dataset.id || f.dataset.i || ''] : null;
+    let h = '';
+    switch (S.fase) {
+      case 'start': h = startHTML(); break;
+      case 'ronde': case 'scoren': h = statusHTML() + plankHTML() + tafelHTML() + handHTML(); break;
+      case 'uitslag': h = statusHTML() + plankHTML() + uitslagHTML(); break;
+      case 'winkel': h = winkelHTML(); break;
+      case 'verloren': h = eindHTML(false); break;
+      case 'gewonnen': h = eindHTML(true); break;
+    }
+    R.innerHTML = h;
+    let hersteld = false;
+    if (sleutel) {
+      for (const el of R.querySelectorAll(`[data-a="${sleutel[0]}"]`)) {
+        if ((el.dataset.id || el.dataset.i || '') === sleutel[1] && !el.disabled) { el.focus({ preventScroll: true }); hersteld = true; break; }
+      }
+    }
+    if (S.fase !== vorigeFase && vorigeFase !== null) {
+      const paneel = R.querySelector('.paneel h2');
+      if (paneel || S.fase === 'ronde' && vorigeFase !== 'scoren') {
+        R.scrollIntoView({ block: 'start', behavior: motion ? 'smooth' : 'auto' });
+        if (paneel && !hersteld) paneel.focus({ preventScroll: true });
+      }
+    }
+    vorigeFase = S.fase;
+    renderHanden();
+  }
+
+  function pulse(el) { if (!el) return; el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); }
+  function bel(el, tekst, kleur) {
+    const b = document.createElement('span');
+    b.className = 'bel ' + kleur;
+    b.textContent = tekst;
+    el.appendChild(b);
+    setTimeout(() => b.remove(), 1000);
+  }
+
+  R.addEventListener('click', e => {
+    const b = e.target.closest('[data-a]');
+    if (!b || b.disabled) return;
+    const a = b.dataset.a;
+    if (a === 'nieuw') return nieuwSpel();
+    if (bezig) return;
+    switch (a) {
+      case 'kies': kies(b.dataset.id); break;
+      case 'speel': speel(); break;
+      case 'weg': gooiWeg(); break;
+      case 'sorteer': S.sorteer = S.sorteer === 'waarde' ? 'kleur' : 'waarde'; sorteerHand(); render(); break;
+      case 'info': { const sn = S.snuis[+b.dataset.i]; if (sn) { S.bericht = SNUIS[sn.id].naam + ': ' + vulIn(SNUIS[sn.id].tekst, sn); render(); } break; }
+      case 'winkel': openWinkel(); break;
+      case 'koop': koop(+b.dataset.i); break;
+      case 'boek': koopBoek(); break;
+      case 'reroll': reroll(); break;
+      case 'verkoop': verkoop(+b.dataset.i); break;
+      case 'verder': S.i++; startRonde(); break;
+    }
+  });
+
+  render();
+})();
+
+</script>
+</body>
+</html>

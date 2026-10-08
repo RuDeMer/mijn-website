@@ -24,6 +24,9 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Thema: een gaatjesbord in een schuurtje of op een rommelmarkt. Labeltape, vastgeprikte briefjes, prijskaartjes aan touwtjes.
 - Lettertype: Bricolage Grotesque via Google Fonts, met system-ui als terugval.
 - Kleuren: bord `#2F4C8F` met gaatjes `#1E3263`, manila `#F2DDA0`, papier `#FBF6E9`, inkt `#1F2333`, rood `#C8323C`, labeltape `#23252B`, hout `#7A4E2D`, munt `#E9B949`.
+- Elk spel heeft een eigen icoon. Op de homepage kies je het met `data-icoon` op de `label-kaart` (kaarten, woord, doos, puzzel, dobbelsteen, controller, potlood, ster, label); het script onderaan de homepage tekent het icoon. Hetzelfde icoon staat in de kop van het spel en als favicon.
+- Op elke pagina hangt gereedschap aan het gaatjesbord. Dat zijn `div.rek` elementen met `data-gereedschap` (bijvoorbeeld `hamer,zaag,tang`); het gereedschapsscript onderaan de pagina hangt ze op. Zwaaien bij hover, een zetje bij klikken, verslepen naar een ander gaatje met de muis. `body` heeft `data-gat` (afstand tussen de gaatjes in px) en `data-pagina`. Gereedschap mag nooit over tekst of knoppen hangen.
+- Alle decoratieve elementen (labeltape, briefjes, labels, stempels, iconen) krijgen een kleine hover-animatie. Zet animaties altijd binnen `@media (prefers-reduced-motion: no-preference)`.
 
 ## Rommelpoker
 

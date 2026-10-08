@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.github.com; img-src 'self' data:; form-action 'none'; base-uri 'none'">
+<title>Werkplaats – Ruben's rommelhoekje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bord: #2F4C8F; --gat: #1E3263; --manila: #F2DDA0; --manila-d: #D9BE78; --papier: #FBF6E9;
+  --inkt: #1F2333; --zacht: #5E5643; --rood: #C8323C; --rood-d: #9E2430; --tape: #23252B; --groen: #2E7D5B;
+}
+@media (prefers-color-scheme: dark) { :root { --bord: #1F3466; --gat: #12204A; --manila: #E6D094; --papier: #F1E9D6; } }
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5;
+  background: var(--bord) radial-gradient(circle, var(--gat) 3px, transparent 3.5px) 0 0 / 30px 30px;
+  font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.wrap { max-width: 46rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+:focus-visible { outline: 3px solid var(--manila); outline-offset: 3px; }
+.kop { margin-bottom: 1.5rem; }
+.kop h1 { margin: 0 0 .6rem; }
+.tape {
+  display: inline-block; background: var(--tape); color: #F6F2EA; font-weight: 800; font-stretch: 75%; font-variation-settings: "wdth" 75;
+  text-transform: uppercase; letter-spacing: .06em; font-size: clamp(2rem, 8vw, 3.2rem); padding: .1em .4em .04em; border-radius: 4px;
+  transform: rotate(-2deg); text-shadow: 0 2px 0 rgba(255,255,255,.28), 0 -2px 0 rgba(0,0,0,.55); box-shadow: 0 5px 0 rgba(0,0,0,.28);
+}
+.kop p { color: var(--manila); margin: .4rem 0 0; }
+.kop a { color: var(--manila); }
+.paneel { background: var(--manila); border-radius: 8px; padding: 1.2rem 1.3rem 1.3rem; margin-bottom: 1.2rem; box-shadow: 0 4px 0 rgba(0,0,0,.28); }
+.paneel h2 { margin: 0 0 .6rem; font-size: 1.3rem; }
+.paneel p { margin: .4rem 0; }
+label.veld { display: block; margin: .8rem 0 0; font-weight: 600; }
+label.veld span { display: block; font-size: .85rem; font-weight: 400; color: var(--zacht); }
+input[type=text], input[type=password], textarea {
+  width: 100%; font: inherit; padding: .55rem .7rem; margin-top: .25rem; border: 2px solid var(--manila-d); border-radius: 6px; background: var(--papier); color: var(--inkt);
+}
+textarea { min-height: 4.5rem; resize: vertical; }
+.knop { font: inherit; font-weight: 700; padding: .65rem 1.1rem; border: 0; border-radius: 6px; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.knop.hoofd { background: var(--rood); color: #fff; }
+.knop[disabled] { opacity: .5; cursor: not-allowed; }
+.knop:active:not([disabled]) { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+.rij-knoppen { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+.check { display: flex; gap: .5rem; align-items: flex-start; margin-top: .8rem; }
+.check input { margin-top: .3rem; width: 1.1rem; height: 1.1rem; }
+.verbonden { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.stip { width: .8rem; height: .8rem; border-radius: 50%; background: var(--groen); flex: none; }
+.drop {
+  display: block; border: 3px dashed var(--manila-d); border-radius: 8px; background: var(--papier); padding: 1.6rem 1rem; text-align: center; cursor: pointer;
+}
+.drop.boven { border-color: var(--rood); background: #FFF3E6; }
+.drop b { display: block; font-size: 1.1rem; }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.lijst { list-style: none; padding: 0; margin: 1rem 0 0; }
+.lijst > li { background: var(--papier); border-radius: 6px; padding: .8rem .9rem; margin-bottom: .6rem; border-left: 5px solid var(--manila-d); }
+.lijst > li.vervang { border-left-color: var(--rood); }
+.lijst > li.nieuw { border-left-color: var(--groen); }
+.rij-kop { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.rij-kop input { flex: 1 1 12rem; margin-top: 0; }
+.status-tag { font-size: .8rem; font-weight: 700; padding: .1rem .5rem; border-radius: 999px; background: var(--manila); white-space: nowrap; }
+.vervang .status-tag { background: #F6DCD8; color: var(--rood-d); }
+.nieuw .status-tag { background: #D9EEE3; color: var(--groen); }
+.fout-tag { background: var(--rood) !important; color: #fff !important; }
+.weg { font: inherit; font-size: .85rem; background: none; border: 0; color: var(--rood-d); text-decoration: underline; cursor: pointer; padding: .2rem; }
+.hint { font-size: .85rem; color: var(--zacht); margin: .4rem 0 0; }
+.label-velden { border: 0; margin: .6rem 0 0; padding: .6rem 0 0; border-top: 1px dashed var(--manila-d); }
+.versie-regel { background: var(--papier); border-radius: 6px; padding: .7rem .9rem; margin-top: 1rem; }
+.versie-regel b { font-variant-numeric: tabular-nums; }
+.log { list-style: none; padding: 0; margin: 1rem 0 0; }
+.log li { padding: .3rem 0 .3rem 1.4rem; position: relative; }
+.log li::before { content: ""; position: absolute; left: .2rem; top: .75rem; width: .55rem; height: .55rem; border-radius: 50%; background: var(--manila-d); }
+.log li.ok::before { background: var(--groen); }
+.log li.fout { color: var(--rood-d); font-weight: 600; }
+.log li.fout::before { background: var(--rood); }
+.melding { padding: .8rem 1rem; border-radius: 6px; margin-top: 1rem; font-weight: 600; }
+.melding.ok { background: #D9EEE3; color: #1F5A40; }
+.melding.fout { background: #F6DCD8; color: var(--rood-d); }
+.commits { list-style: none; padding: 0; margin: 0; }
+.commits li { padding: .5rem 0; border-bottom: 1px solid var(--manila-d); }
+.commits a { color: var(--inkt); font-weight: 600; }
+.commits small { display: block; color: var(--zacht); }
+details.hulp { background: rgba(10,18,40,.35); color: var(--manila); border-radius: 8px; padding: .8rem 1rem; }
+details.hulp summary { cursor: pointer; font-weight: 700; }
+details.hulp a { color: #fff; }
+details.hulp ol { padding-left: 1.3rem; }
+details.hulp li { margin: .4rem 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="kop">
+    <h1><span class="tape">Werkplaats</span></h1>
+    <p>Alleen voor Ruben. Hier zet je nieuwe en bijgewerkte bestanden online. <a href="./">Naar het rommelhoekje</a></p>
+  </header>
+
+  <section class="paneel" id="p-sleutel" aria-labelledby="h-sleutel">
+    <h2 id="h-sleutel">Sleutel</h2>
+    <div id="niet-verbonden">
+      <p>Deze pagina werkt alleen met jouw persoonlijke GitHub-sleutel. Zonder die sleutel kan niemand hier iets mee, ook niet als ze deze pagina vinden.</p>
+      <label class="veld">GitHub-sleutel<span>Begint met github_pat_. Plak hem alleen hier, nooit in een chat of e-mail.</span>
+        <input type="password" id="in-token" autocomplete="off" spellcheck="false"></label>
+      <label class="veld">GitHub-gebruikersnaam<input type="text" id="in-owner" autocomplete="off" spellcheck="false"></label>
+      <label class="veld">Repository<input type="text" id="in-repo" value="mijn-website" autocomplete="off" spellcheck="false"></label>
+      <label class="check"><input type="checkbox" id="in-onthoud" checked><span>Onthoud de sleutel in deze browser. Doe dit alleen op je eigen computer of telefoon.</span></label>
+      <div class="rij-knoppen"><button class="knop hoofd" id="b-verbind">Verbinden</button></div>
+    </div>
+    <div id="wel-verbonden" hidden>
+      <p class="verbonden"><span class="stip" aria-hidden="true"></span><span>Verbonden met <b id="t-repo"></b></span></p>
+      <div class="rij-knoppen"><button class="knop" id="b-ververs">Vernieuwen</button><button class="knop" id="b-vergeet">Vergeet sleutel op dit apparaat</button></div>
+    </div>
+    <div id="sleutel-melding" aria-live="polite"></div>
+  </section>
+
+  <section class="paneel" id="p-upload" aria-labelledby="h-upload" hidden>
+    <h2 id="h-upload">Bestanden online zetten</h2>
+    <label class="drop" id="drop">
+      <b>Sleep bestanden hierheen</b>
+      <span>of klik om ze te kiezen</span>
+      <input type="file" id="in-bestanden" multiple>
+    </label>
+    <ul class="lijst" id="lijst"></ul>
+    <div id="verder" hidden>
+      <div class="versie-regel">
+        <label class="check" style="margin-top:0"><input type="checkbox" id="in-versie" checked><span id="t-versie">Versienummer verhogen</span></label>
+      </div>
+      <label class="veld">Notitie bij deze update<span>Zo zie je later terug wat je wanneer hebt veranderd.</span>
+        <input type="text" id="in-notitie"></label>
+      <div class="rij-knoppen"><button class="knop hoofd" id="b-online">Zet online</button></div>
+    </div>
+    <ul class="log" id="log" aria-live="polite"></ul>
+    <div id="upload-melding" aria-live="polite"></div>
+  </section>
+
+  <section class="paneel" id="p-geschiedenis" aria-labelledby="h-gesch" hidden>
+    <h2 id="h-gesch">Laatste wijzigingen</h2>
+    <ul class="commits" id="commits"></ul>
+  </section>
+
+  <details class="hulp">
+    <summary>Hoe maak ik een GitHub-sleutel?</summary>
+    <ol>
+      <li>Ga naar <a href="https://github.com/settings/personal-access-tokens/new" rel="noopener">github.com/settings/personal-access-tokens/new</a> (of: profielfoto, Settings, Developer settings, Personal access tokens, Fine-grained tokens).</li>
+      <li>Geef de sleutel een naam, bijvoorbeeld Werkplaats, en kies hoe lang hij geldig blijft, bijvoorbeeld 90 dagen.</li>
+      <li>Kies bij Repository access voor Only select repositories en selecteer alleen mijn-website.</li>
+      <li>Zet bij de permissies Contents op Read and write.</li>
+      <li>Klik op Generate token en kopieer de sleutel meteen. GitHub laat hem maar één keer zien.</li>
+    </ol>
+  </details>
+</div>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const API = 'https://api.github.com';
+  const KEY = 'werkplaats-sleutel-v1';
+  const opGitHubPages = /\.github\.io$/i.test(location.hostname);
+  let cfg = null;
+  let bestanden = [];
+  let repoNamen = new Set();
+  let huidigeVersie = null;
+  let bezig = false;
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  class GhFout extends Error { constructor(status, msg) { super(msg); this.status = status; } }
+  async function gh(pad, opts) {
+    opts = opts || {};
+    const headers = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + cfg.token, 'X-GitHub-Api-Version': '2022-11-28' };
+    if (opts.body) headers['Content-Type'] = 'application/json';
+    const res = await fetch(API + pad, { method: opts.method || 'GET', headers, body: opts.body, cache: 'no-store' });
+    if (!res.ok) { let m = ''; try { m = (await res.json()).message; } catch (e) {} throw new GhFout(res.status, m); }
+    return res.status === 204 ? null : res.json();
+  }
+  function uitleg(e) {
+    if (!(e instanceof GhFout)) return 'Er ging iets mis met de verbinding. Controleer je internet en probeer het opnieuw.';
+    if (e.status === 401) return 'GitHub herkent deze sleutel niet. Misschien is hij verlopen of niet helemaal goed geplakt.';
+    if (e.status === 403) return 'Deze sleutel mag niet schrijven. Zet bij je sleutel de permissie Contents op Read and write.';
+    if (e.status === 404) return 'Repository niet gevonden. Controleer je gebruikersnaam, de naam van de repository en of je sleutel toegang heeft tot die repository.';
+    if (e.status === 409 || e.status === 422) return 'Er is net iets anders veranderd in je map. Klik op Vernieuwen en probeer het nog een keer.';
+    return 'GitHub gaf een foutmelding (' + e.status + '): ' + e.message;
+  }
+  const repoPad = () => '/repos/' + encodeURIComponent(cfg.owner) + '/' + encodeURIComponent(cfg.repo);
+
+  // ---------- base64
+  function bytesNaarB64(bytes) { let s = ''; const CH = 0x8000; for (let i = 0; i < bytes.length; i += CH) s += String.fromCharCode.apply(null, bytes.subarray(i, i + CH)); return btoa(s); }
+  const tekstNaarB64 = t => bytesNaarB64(new TextEncoder().encode(t));
+  async function bestandNaarB64(f) { return bytesNaarB64(new Uint8Array(await f.arrayBuffer())); }
+  function b64NaarTekst(b64) { const bin = atob(b64.replace(/\s/g, '')); const b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return new TextDecoder('utf-8').decode(b); }
+
+  // ---------- versies: 'Versie 0.05' (honderdsten); een oud 'Versie 4' telt als 0.04
+  const VERSIE_RE = /Versie (\d+)(?:\.(\d{2}))?/;
+  function leesVersie(t) { const m = t.match(VERSIE_RE); if (!m) return null; return m[2] !== undefined ? parseInt(m[1], 10) * 100 + parseInt(m[2], 10) : parseInt(m[1], 10); }
+  const fmtVersie = n => Math.floor(n / 100) + '.' + String(n % 100).padStart(2, '0');
+
+  // ---------- opslag
+  function laad() { try { const r = localStorage.getItem(KEY); if (r) cfg = JSON.parse(r); } catch (e) {} }
+  function bewaar(aan) { try { if (aan) localStorage.setItem(KEY, JSON.stringify(cfg)); else localStorage.removeItem(KEY); } catch (e) {} }
+
+  function melding(el, soort, tekst) { $(el).innerHTML = tekst ? `<p class="melding ${soort}">${esc(tekst)}</p>` : ''; }
+
+  // ---------- verbinden
+  async function verbind() {
+    const token = $('in-token').value.trim(), owner = $('in-owner').value.trim(), repo = $('in-repo').value.trim() || 'mijn-website';
+    if (!token || !owner) return melding('sleutel-melding', 'fout', 'Vul je sleutel en je GitHub-gebruikersnaam in.');
+    cfg = { token, owner, repo };
+    $('b-verbind').disabled = true;
+    melding('sleutel-melding', '', '');
+    try {
+      const r = await gh(repoPad());
+      cfg.branch = r.default_branch || 'main';
+      bewaar($('in-onthoud').checked);
+      $('in-token').value = '';
+      await ververs();
+      toonVerbonden(true);
+    } catch (e) {
+      cfg = null;
+      melding('sleutel-melding', 'fout', uitleg(e));
+    }
+    $('b-verbind').disabled = false;
+  }
+  function toonVerbonden(aan) {
+    $('niet-verbonden').hidden = aan;
+    $('wel-verbonden').hidden = !aan;
+    $('p-upload').hidden = !aan;
+    $('p-geschiedenis').hidden = !aan;
+    if (aan) $('t-repo').textContent = cfg.owner + '/' + cfg.repo;
+  }
+  async function ververs() {
+    const lijst = await gh(repoPad() + '/contents?ref=' + encodeURIComponent(cfg.branch));
+    repoNamen = new Set(lijst.filter(x => x.type === 'file').map(x => x.name));
+    huidigeVersie = null;
+    if (repoNamen.has('index.html')) {
+      const idx = await gh(repoPad() + '/contents/index.html?ref=' + encodeURIComponent(cfg.branch));
+      huidigeVersie = leesVersie(b64NaarTekst(idx.content));
+    }
+    const commits = await gh(repoPad() + '/commits?per_page=5&sha=' + encodeURIComponent(cfg.branch));
+    $('commits').innerHTML = commits.map(c => {
+      const d = new Date(c.commit.author.date);
+      return `<li><a href="${esc(c.html_url)}" rel="noopener">${esc(c.commit.message.split('\n')[0])}</a><small>${esc(d.toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' }))}</small></li>`;
+    }).join('');
+    bestanden.forEach(werkStatusBij);
+    renderLijst();
+  }
+
+  // ---------- bestanden kiezen
+  function schoneNaam(n) { return n.replace(/\s*\(\d+\)(?=\.[^.]+$)/, '').replace(/\s+/g, '-'); }
+  const geldig = n => /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(n);
+  const isHtml = n => /\.html?$/i.test(n);
+  function werkStatusBij(b) { b.nieuw = !repoNamen.has(b.naam); }
+  async function voegToe(files) {
+    for (const file of files) {
+      const naam = schoneNaam(file.name);
+      const b = { file, origineel: file.name, naam, label: null };
+      werkStatusBij(b);
+      if (isHtml(naam) && naam !== 'index.html' && naam !== 'werkplaats.html') {
+        const t = await file.text();
+        const titel = (t.match(/<title>([^<]*)<\/title>/i) || [])[1] || naam.replace(/\.html?$/i, '');
+        const beschr = (t.match(/<meta\s+name=["']description["']\s+content=["']([^"']*)["']/i) || [])[1] || '';
+        b.label = { aan: true, naam: titel.split(/\s+[–-]\s+/)[0].trim(), soort: 'Spel', tekst: beschr };
+      }
+      const bestaand = bestanden.findIndex(x => x.naam === naam);
+      if (bestaand >= 0) bestanden[bestaand] = b; else bestanden.push(b);
+    }
+    $('log').innerHTML = ''; melding('upload-melding', '', '');
+    renderLijst();
+  }
+  function renderLijst() {
+    $('lijst').innerHTML = bestanden.map((b, i) => {
+      const fout = !geldig(b.naam);
+      const tag = fout ? '<span class="status-tag fout-tag">Ongeldige naam</span>' : b.nieuw ? '<span class="status-tag">Nieuw bestand</span>' : '<span class="status-tag">Vervangt het bestaande bestand</span>';
+      const label = b.label && b.nieuw && !fout ? `<fieldset class="label-velden">
+          <label class="check" style="margin-top:0"><input type="checkbox" data-i="${i}" data-v="aan"${b.label.aan ? ' checked' : ''}><span>Zet een label op de homepage. Dit label krijgt het stempel Nieuw.</span></label>
+          <label class="veld">Naam op het label<input type="text" data-i="${i}" data-v="naam" value="${esc(b.label.naam)}"></label>
+          <label class="veld">Soort<span>Bijvoorbeeld Spel, Kaartspel, Tool of Quiz.</span><input type="text" data-i="${i}" data-v="soort" value="${esc(b.label.soort)}"></label>
+          <label class="veld">Korte beschrijving<textarea data-i="${i}" data-v="tekst">${esc(b.label.tekst)}</textarea></label>
+        </fieldset>` : '';
+      return `<li class="${fout ? '' : b.nieuw ? 'nieuw' : 'vervang'}">
+        <div class="rij-kop"><input type="text" data-i="${i}" data-v="bestandsnaam" value="${esc(b.naam)}" aria-label="Bestandsnaam">${tag}<button class="weg" data-weg="${i}">Verwijder</button></div>
+        ${b.origineel !== b.naam ? `<p class="hint">Hernoemd van ${esc(b.origineel)}.</p>` : ''}
+        ${fout ? '<p class="hint">Gebruik alleen letters, cijfers, punten, streepjes en liggende streepjes, zonder spaties.</p>' : ''}
+        ${label}
+      </li>`;
+    }).join('');
+    $('verder').hidden = !bestanden.length;
+    const vt = huidigeVersie == null ? 'Versienummer zetten op 0.01' : `Versienummer verhogen van ${fmtVersie(huidigeVersie)} naar ${fmtVersie(huidigeVersie + 1)}`;
+    $('t-versie').innerHTML = vt.replace(/(\d+\.\d{2})/g, '<b>$1</b>');
+    if (!$('in-notitie').dataset.zelf) $('in-notitie').value = standaardNotitie();
+  }
+  function standaardNotitie() {
+    if (!bestanden.length) return '';
+    const namen = bestanden.map(b => b.naam);
+    const nieuw = bestanden.filter(b => b.nieuw).length;
+    return (nieuw === bestanden.length ? 'Nieuw: ' : 'Bijgewerkt: ') + namen.join(', ');
+  }
+
+  // ---------- homepage-label
+  function maakLabel(b) {
+    const L = b.label;
+    return `    <div class="label">
+      <a class="label-kaart" href="${esc(b.naam)}">
+        <span class="soort">${esc(L.soort || 'Spel')} <span class="stempel">Nieuw</span></span>
+        <span class="naam">${esc(L.naam || b.naam)}</span>
+        <p>${esc(L.tekst)}</p>
+        <span class="doe">Probeer het</span>
+      </a>
+    </div>
+`;
+  }
+  function voegLabelsToe(t, lijst) {
+    if (!lijst.length) return { t, ok: true };
+    if (t.search(/[ \t]*<div class="label leeg">/) < 0) return { t, ok: false };
+    t = t.replace(/ <span class="stempel">Nieuw<\/span>/g, '');
+    const plek = t.search(/[ \t]*<div class="label leeg">/);
+    return { t: t.slice(0, plek) + lijst.map(maakLabel).join('') + t.slice(plek), ok: true };
+  }
+
+  // ---------- online zetten in één commit
+  function logRegel(tekst, soort) { const li = document.createElement('li'); li.textContent = tekst; if (soort) li.className = soort; $('log').appendChild(li); return li; }
+  async function zetOnline() {
+    if (bezig || !bestanden.length) return;
+    if (bestanden.some(b => !geldig(b.naam))) return melding('upload-melding', 'fout', 'Eén of meer bestandsnamen zijn ongeldig. Pas ze eerst aan.');
+    bezig = true; $('b-online').disabled = true;
+    $('log').innerHTML = ''; melding('upload-melding', '', '');
+    let nieuweVersieTekst = null;
+    try {
+      const p = repoPad();
+      logRegel('Verbinding met je map controleren', 'ok');
+      const ref = await gh(p + '/git/ref/heads/' + encodeURIComponent(cfg.branch));
+      const basis = ref.object.sha;
+      const commit = await gh(p + '/git/commits/' + basis);
+      const items = [];
+      let indexTekst = null, repoVersie = null;
+      try {
+        const idx = await gh(p + '/contents/index.html?ref=' + basis);
+        indexTekst = b64NaarTekst(idx.content);
+        repoVersie = leesVersie(indexTekst);
+      } catch (e) { if (!(e instanceof GhFout && e.status === 404)) throw e; }
+      let indexAangepast = false;
+      for (const b of bestanden) {
+        if (b.naam === 'index.html') { indexTekst = await b.file.text(); indexAangepast = true; logRegel('index.html voorbereid', 'ok'); continue; }
+        const blob = await gh(p + '/git/blobs', { method: 'POST', body: JSON.stringify({ content: await bestandNaarB64(b.file), encoding: 'base64' }) });
+        items.push({ path: b.naam, mode: '100644', type: 'blob', sha: blob.sha });
+        logRegel(b.naam + ' geüpload', 'ok');
+      }
+      const labels = bestanden.filter(b => b.label && b.label.aan && b.nieuw && geldig(b.naam));
+      if (labels.length && indexTekst != null) {
+        const r = voegLabelsToe(indexTekst, labels);
+        if (r.ok) { indexTekst = r.t; indexAangepast = true; logRegel(labels.length === 1 ? 'Label op de homepage gezet' : labels.length + ' labels op de homepage gezet', 'ok'); }
+        else logRegel('Kon geen plek voor het label vinden op de homepage. Het bestand staat wel online.', 'fout');
+      }
+      if ($('in-versie').checked && indexTekst != null) {
+        const basisVersie = repoVersie != null ? repoVersie : (leesVersie(indexTekst) || 0);
+        nieuweVersieTekst = 'Versie ' + fmtVersie(basisVersie + 1);
+        if (VERSIE_RE.test(indexTekst)) { indexTekst = indexTekst.replace(VERSIE_RE, nieuweVersieTekst); indexAangepast = true; logRegel('Versienummer verhoogd naar ' + fmtVersie(basisVersie + 1), 'ok'); }
+        else { nieuweVersieTekst = null; logRegel('Geen versienummer gevonden op de homepage', 'fout'); }
+      }
+      if (indexAangepast) {
+        const blob = await gh(p + '/git/blobs', { method: 'POST', body: JSON.stringify({ content: tekstNaarB64(indexTekst), encoding: 'base64' }) });
+        items.push({ path: 'index.html', mode: '100644', type: 'blob', sha: blob.sha });
+      }
+      const boom = await gh(p + '/git/trees', { method: 'POST', body: JSON.stringify({ base_tree: commit.tree.sha, tree: items }) });
+      const notitie = ($('in-notitie').value.trim() || standaardNotitie()) + (nieuweVersieTekst ? ' (' + nieuweVersieTekst.toLowerCase() + ')' : '');
+      const nieuw = await gh(p + '/git/commits', { method: 'POST', body: JSON.stringify({ message: notitie, tree: boom.sha, parents: [basis] }) });
+      await gh(p + '/git/refs/heads/' + encodeURIComponent(cfg.branch), { method: 'PATCH', body: JSON.stringify({ sha: nieuw.sha, force: false }) });
+      logRegel('Opgeslagen in je map', 'ok');
+      bestanden = []; $('in-notitie').value = ''; delete $('in-notitie').dataset.zelf;
+      renderLijst();
+      await ververs();
+      if (nieuweVersieTekst && opGitHubPages) {
+        const wacht = logRegel('Wachten tot GitHub Pages je site heeft bijgewerkt...');
+        const live = await wachtOpLive(nieuweVersieTekst);
+        wacht.className = live ? 'ok' : '';
+        wacht.textContent = live ? 'Je site is bijgewerkt' : 'GitHub Pages is nog bezig. Dat kan een paar minuten duren.';
+        melding('upload-melding', 'ok', live ? 'Gelukt! ' + nieuweVersieTekst + ' staat live.' : 'Gelukt! Je bestanden staan in je map en komen zo vanzelf online.');
+      } else {
+        melding('upload-melding', 'ok', 'Gelukt! Je bestanden staan in je map en zijn over ongeveer een minuut live.');
+      }
+    } catch (e) {
+      logRegel('Niet gelukt', 'fout');
+      melding('upload-melding', 'fout', uitleg(e) + ' Er is niets veranderd op je site.');
+    }
+    bezig = false; $('b-online').disabled = false;
+  }
+  async function wachtOpLive(tekst) {
+    for (let i = 0; i < 36; i++) {
+      await sleep(5000);
+      try { const r = await fetch('./?controle=' + Date.now(), { cache: 'no-store' }); if ((await r.text()).includes(tekst)) return true; } catch (e) {}
+    }
+    return false;
+  }
+
+  // ---------- events
+  $('b-verbind').addEventListener('click', verbind);
+  $('in-token').addEventListener('keydown', e => { if (e.key === 'Enter') verbind(); });
+  $('b-vergeet').addEventListener('click', () => { bewaar(false); cfg = null; bestanden = []; toonVerbonden(false); melding('sleutel-melding', 'ok', 'De sleutel is van dit apparaat verwijderd.'); });
+  $('b-ververs').addEventListener('click', async () => { try { await ververs(); melding('sleutel-melding', '', ''); } catch (e) { melding('sleutel-melding', 'fout', uitleg(e)); } });
+  $('b-online').addEventListener('click', zetOnline);
+  $('in-notitie').addEventListener('input', () => { $('in-notitie').dataset.zelf = '1'; });
+  $('in-bestanden').addEventListener('change', e => { voegToe(Array.from(e.target.files)); e.target.value = ''; });
+  const drop = $('drop');
+  ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('boven'); }));
+  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('boven'); }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) voegToe(Array.from(e.dataTransfer.files)); });
+  $('lijst').addEventListener('click', e => { const w = e.target.closest('[data-weg]'); if (w) { bestanden.splice(+w.dataset.weg, 1); renderLijst(); } });
+  $('lijst').addEventListener('input', e => {
+    const el = e.target, b = bestanden[+el.dataset.i]; if (!b) return;
+    const v = el.dataset.v;
+    if (v === 'bestandsnaam') b.naam = el.value.trim();
+    else if (b.label && v === 'aan') b.label.aan = el.checked;
+    else if (b.label) b.label[v] = el.value;
+  });
+  $('lijst').addEventListener('change', e => {
+    if (e.target.dataset.v !== 'bestandsnaam') return;
+    const b = bestanden[+e.target.dataset.i]; if (!b) return;
+    werkStatusBij(b);
+    if (isHtml(b.naam) && b.naam !== 'index.html' && b.naam !== 'werkplaats.html' && !b.label) b.label = { aan: true, naam: b.naam.replace(/\.html?$/i, ''), soort: 'Spel', tekst: '' };
+    renderLijst();
+  });
+
+  // ---------- start
+  if (opGitHubPages) { $('in-owner').value = location.hostname.split('.')[0]; const seg = location.pathname.split('/').filter(Boolean)[0]; if (seg && !/\.html?$/i.test(seg)) $('in-repo').value = seg; }
+  laad();
+  if (cfg && cfg.token) {
+    toonVerbonden(true);
+    ververs().catch(e => { melding('sleutel-melding', 'fout', uitleg(e)); });
+  }
+})();
+</script>
+</body>
+</html>

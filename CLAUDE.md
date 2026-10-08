@@ -50,6 +50,14 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Het spel wordt bewaard in localStorage onder `vlaaienbakker-v1`. Verander je de opbouw van de opgeslagen gegevens, verhoog dan het versienummer `v` en zorg dat oude spelletjes netjes worden omgezet.
 - Thema: Limburgse vlaaien, zonder echte merken of bekende personen. Elke smaak heeft een eigen tekening in `topping()`.
 
+## Rommelhotel
+
+- Pixelhotel in `rommelhotel.html`: een eigen ontwerp in isometrische pixelstijl, geen namaak van een bestaand spel. Gebruik geen namen, poppetjes, meubels of logo's van bestaande games.
+- Alles wordt met code getekend op een canvas van 480 bij 300 pixels (op kleine schermen 300 bij 250, met een camera die meekijkt). `poly()` tekent vlakken met harde pixelranden, `blok()` tekent isometrische blokken, `muurVlak()` en `muurTekst()` tekenen op de muren.
+- Ruimtes staan in `RUIMTES` (vloer, muren, deuren, muurdecoratie, meubels, bewoners). Meubels tekenen via `TEKEN[type]`; zitplekken staan in `zit`, acties in `actie`.
+- Bewoners: Mien (receptie, incheckt gasten), Joep (café), Harrie (lobby, dweilt rond) en een duif buiten. Echte andere bezoekers zijn er nog niet; daarvoor is een server nodig.
+- Opslag in localStorage onder `rommelhotel-v1` (uiterlijk, ruimte, plek, bezochte ruimtes, ingecheckt, lampen).
+
 ## Werkwijze
 
 - Commitberichten in het Nederlands, kort en duidelijk, bijvoorbeeld "Winkel overzichtelijker gemaakt".

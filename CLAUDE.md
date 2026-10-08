@@ -8,7 +8,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Elke tool is één zelfstandig HTML-bestand in de root, bijvoorbeeld `rommelpoker.html`. CSS en JavaScript staan in het bestand zelf.
 - Er is geen build-stap. Wat in de repo staat, staat live.
 - Onderaan de homepage staat een versienummer in de vorm `Versie 0.05`. Verhoog het bij elke update met 0.01 (0.09 wordt 0.10, 0.99 wordt 1.00), zodat Ruben kan controleren dat de update live staat. Een oud nummer zonder punt, zoals `Versie 4`, telt als 0.04.
-- `werkplaats.html` is Rubens eigen uploadpagina. Die staat bewust niet op de homepage en krijgt nooit een label. Hij zet bestanden online via de GitHub API met een sleutel die alleen in zijn browser staat, en verhoogt daarbij zelf het versienummer.
+- `werkplaats.html` is Rubens eigen uploadpagina en homepage-editor. In het paneel Homepage past hij het briefje, de volgorde van de labels, het stempel Nieuw, zichtbaarheid, teksten en iconen aan, met een live voorbeeld. De editor leest en schrijft de labels binnen `.haak-rij`; houd die structuur dus aan (`div.label` met `a.label-kaart`, `.soort`, `.stempel`, `.naam`, `p`, `.doe`, en een verborgen label krijgt het attribuut `hidden`). De werkplaats staat bewust niet op de homepage en krijgt nooit een label. Hij zet bestanden online via de GitHub API met een sleutel die alleen in zijn browser staat, en verhoogt daarbij zelf het versienummer.
 
 ## Regels voor nieuwe of aangepaste pagina's
 
@@ -27,6 +27,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Elk spel heeft een eigen icoon. Op de homepage kies je het met `data-icoon` op de `label-kaart` (kaarten, woord, doos, puzzel, dobbelsteen, controller, potlood, ster, label); het script onderaan de homepage tekent het icoon. Hetzelfde icoon staat in de kop van het spel en als favicon.
 - Op elke pagina hangt gereedschap aan het gaatjesbord. Dat zijn `div.rek` elementen met `data-gereedschap` (bijvoorbeeld `hamer,zaag,tang`); het gereedschapsscript onderaan de pagina hangt ze op. Zwaaien bij hover, een zetje bij klikken, verslepen naar een ander gaatje met de muis. `body` heeft `data-gat` (afstand tussen de gaatjes in px) en `data-pagina`. Gereedschap mag nooit over tekst of knoppen hangen.
 - Alle decoratieve elementen (labeltape, briefjes, labels, stempels, iconen) krijgen een kleine hover-animatie. Zet animaties altijd binnen `@media (prefers-reduced-motion: no-preference)`.
+- Gebruik nooit `:hover` met een transform op het element dat zelf beweegt: het schuift dan onder de muis vandaan en de animatie gaat haperen. Decoratieve animaties lopen via het bewegingsscript onderaan elke pagina (lijst `SOORTEN`): die speelt een animatie één keer helemaal af en start pas daarna opnieuw. Wil je toch CSS-hover, laat dan een stilstaand ouder-element de hover vangen en beweeg alleen een kind-element.
 
 ## Rommelpoker
 

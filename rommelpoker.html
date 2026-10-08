@@ -1058,6 +1058,7 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
   const actief = new Set();
   let laatste = 0, loopt = false;
   const snap = v => Math.round((v - OFF) / G) * G + OFF;
+  const GRAAD = 180 / Math.PI;
   const breedte = () => document.documentElement.clientWidth;
   const hoogte = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
@@ -1141,7 +1142,7 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
     el.addEventListener('pointerenter', e => {
       if (e.pointerType !== 'mouse' || s.sleep || reduce) return;
       const nu = performance.now();
-      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.a) > 14) return;
+      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.v) > 300) return;
       s.laatsteDuw = nu;
       const mx = e.movementX || (e.clientX - pivotScherm(s).x) / 4;
       duw(s, (mx > 0 ? -1 : 1) * (14 + Math.min(1, Math.abs(mx) / 25) * 30));
@@ -1161,14 +1162,16 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
       const W = breedte(), H = hoogte();
       const nx = Math.min(W - (T.w - T.px), Math.max(T.px, e.clientX + window.scrollX - s.start.dx));
       const ny = Math.min(H - (T.h - T.py), Math.max(T.py, e.clientY + window.scrollY - s.start.dy));
-      if (!reduce) s.v += (nx - s.px) * 6;
+      if (!reduce) s.v += (nx - s.px) * 7 * Math.cos(s.a / GRAAD) - (ny - s.py) * 7 * Math.sin(s.a / GRAAD);
       s.px = nx; s.py = ny; zet(s); start(s);
     });
     const los = e => {
       if (!s.start) return;
       if (!s.bewogen) {
         s.laatsteDuw = performance.now();
-        duw(s, (e.clientX > pivotScherm(s).x ? 1 : -1) * 110);
+        // zwaait hij al, dan geeft een klik extra vaart in dezelfde richting, zoals een schommel aanduwen
+        const richting = Math.abs(s.v) > 30 ? Math.sign(s.v) : (e.clientX > pivotScherm(s).x ? 1 : -1);
+        duw(s, richting * (Math.abs(s.v) > 30 ? 320 : 160));
       } else {
         const lijst = hindernissen();
         const plek = vrijGaatje(T, s.px, s.py, s, lijst) || s.vorig;
@@ -1193,12 +1196,17 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
     s.haak.style.left = s.px + 'px'; s.haak.style.top = s.py + 'px';
     if (s.bel) s.bel.setAttribute('cx', (138 - Math.max(-13, Math.min(13, s.a * 1.6))).toFixed(1));
   }
-  function duw(s, v) { if (reduce) return; s.v = Math.max(-220, Math.min(220, s.v + v)); start(s); }
+  function duw(s, v) { if (reduce) return; s.v = Math.max(-2400, Math.min(2400, s.v + v)); start(s); }
   function start(s) { actief.add(s); if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); } }
   function tik(t) {
     const dt = Math.min(0.04, (t - laatste) / 1000); laatste = t;
     for (const s of actief) {
-      if (!reduce) { s.v += (-38 * s.a - 2.6 * s.v) * dt; s.a = Math.max(-45, Math.min(45, s.a + s.v * dt)); }
+      if (!reduce) {
+        // slinger: zwaartekracht trekt naar beneden, demping laat hem rustig uitzwaaien
+        const stappen = 4, h = dt / stappen;
+        for (let i = 0; i < stappen; i++) { s.v += (-38 * GRAAD * Math.sin(s.a / GRAAD) - 1.3 * s.v) * h; s.a += s.v * h; }
+        s.a = ((s.a + 180) % 360 + 360) % 360 - 180;   // na een rondje over de kop weer netjes tussen -180 en 180
+      }
       zet(s);
       if (!s.sleep && Math.abs(s.a) < 0.05 && Math.abs(s.v) < 0.08) { s.a = 0; s.v = 0; zet(s); actief.delete(s); }
     }

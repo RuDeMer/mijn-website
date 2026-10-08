@@ -116,11 +116,19 @@ body {
 .upg.te-duur .prijs { background: #E3D4AE; color: #8A7D5C; }
 .upg.te-duur .ico { opacity: .6; }
 .geen { color: var(--zacht); font-size: .9rem; margin: 0; }
-.prestaties { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.2rem, 1fr)); gap: .45rem; list-style: none; padding: 0; margin: 0; }
-.prestaties li { background: var(--papier); border-radius: 6px; padding: .45rem .3rem .35rem; text-align: center; font-size: .7rem; line-height: 1.2; color: var(--zacht); overflow-wrap: anywhere; hyphens: auto; }
-.prestaties li svg { width: 2rem; height: 2rem; display: block; margin: 0 auto .2rem; }
-.prestaties li.dicht { opacity: .55; }
-.prestaties li.open { color: var(--inkt); font-weight: 600; }
+.prestaties { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr)); gap: .45rem; list-style: none; padding: 0; margin: 0; }
+.prestaties li { display: flex; }
+.pres { width: 100%; font: inherit; border: 0; cursor: pointer; background: var(--papier); border-radius: 6px; padding: .45rem .3rem .35rem; text-align: center; font-size: .7rem; line-height: 1.2; color: var(--zacht); overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.pres svg { width: 2rem; height: 2rem; display: block; margin: 0 auto .2rem; }
+.pres.dicht { opacity: .7; }
+.pres.open { color: var(--inkt); font-weight: 600; }
+.pres.gekozen { outline: 3px solid var(--rood); outline-offset: -1px; opacity: 1; }
+.pres-info { background: var(--papier); border-radius: 6px; padding: .6rem .8rem; margin: .7rem 0 0; font-size: .9rem; min-height: 4.6rem; }
+.pres-info small { display: block; color: var(--zacht); margin-top: .2rem; font-variant-numeric: tabular-nums; }
+.pres-status { display: inline-block; font-size: .72rem; font-weight: 800; padding: 0 .45rem; border-radius: 999px; background: #E3D4AE; color: #6E6247; margin-left: .3rem; vertical-align: .1em; }
+.pres-status.ja { background: #2E8B62; color: #fff; }
+.pres-balk { display: block; height: 6px; background: #E3D4AE; border-radius: 3px; margin-top: .45rem; overflow: hidden; }
+.pres-balk i { display: block; height: 100%; background: var(--rood); }
 details.stats { margin-top: .9rem; }
 details.stats summary { cursor: pointer; font-weight: 700; }
 .stats dl { display: grid; grid-template-columns: auto auto; gap: .2rem 1rem; margin: .6rem 0; font-size: .9rem; }
@@ -215,6 +223,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
       <div class="paneel">
         <div class="paneel-kop"><h2 id="prestatie-kop">Prestaties</h2></div>
         <ul class="prestaties" id="prestaties"></ul>
+        <p class="pres-info" id="pres-info" aria-live="polite">Ga met je muis over een prestatie, of tik erop, om te zien wat je ervoor moet doen.</p>
         <details class="stats">
           <summary>Statistieken</summary>
           <dl id="stats"></dl>
@@ -352,24 +361,25 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   UPGRADES.push({ id: 'deegroller', soort: 'klik', icoon: 'deegroller', naam: 'Gouden deegroller', effect: 'Elke klik nog eens +4%', prijs: 5e6, eis: S => S.upg.includes('want') });
 
   const totaalBakkers = S => Object.values(S.bakkers).reduce((a, b) => a + b, 0);
+  // [id, naam, uitleg, hoe meet je het, doel, eenheid]
   const PRESTATIES = [
-    ['eerste', 'Eerste vlaai', 'Je eerste vlaai gebakken.', S => S.totaal >= 1],
-    ['honderd', 'Vlaai voor de buren', '100 vlaaien gebakken.', S => S.totaal >= 100],
-    ['tienduizend', 'Bakkersbloed', '10.000 vlaaien gebakken.', S => S.totaal >= 1e4],
-    ['miljoen', 'Vlaaienkoning', '1 miljoen vlaaien gebakken.', S => S.totaal >= 1e6],
-    ['miljard', 'Heel Limburg eet mee', '1 miljard vlaaien gebakken.', S => S.totaal >= 1e9],
-    ['biljoen', 'De wereld eet mee', '1 biljoen vlaaien gebakken.', S => S.totaal >= 1e12],
-    ['klik100', 'Klikvinger', '100 keer op de vlaai geklikt.', S => S.kliks >= 100],
-    ['klik1000', 'Kramp in je pols', '1.000 keer op de vlaai geklikt.', S => S.kliks >= 1000],
-    ['personeel', 'Personeel', '10 bakkers in dienst.', S => totaalBakkers(S) >= 10],
-    ['ondernemer', 'Ondernemer', '100 bakkers in dienst.', S => totaalBakkers(S) >= 100],
-    ['imperium', 'Vlaaienimperium', '300 bakkers in dienst.', S => totaalBakkers(S) >= 300],
-    ['band', 'Lopende band', '1.000 vlaaien per seconde.', S => vps(true) >= 1000],
-    ['goud', 'Gouden moment', 'Een gouden vlaai gevangen.', S => S.goud >= 1],
-    ['goud10', 'Goudzoeker', '10 gouden vlaaien gevangen.', S => S.goud >= 10],
-    ['proeverij', 'Proeverij', 'Alle smaken ontdekt.', S => S.smaken.length >= SMAKEN.length],
-    ['raket', 'Raketwetenschap', 'Je eerste vlaaienraket.', S => (S.bakkers.raket || 0) >= 1],
-  ].map(([id, naam, tekst, test]) => ({ id, naam, tekst, test }));
+    ['eerste', 'Eerste vlaai', 'Bak je allereerste vlaai.', S => S.totaal, 1, 'vlaaien gebakken'],
+    ['honderd', 'Vlaai voor de buren', 'Bak in totaal 100 vlaaien.', S => S.totaal, 100, 'vlaaien gebakken'],
+    ['tienduizend', 'Bakkers\u00ADbloed', 'Bak in totaal 10.000 vlaaien.', S => S.totaal, 1e4, 'vlaaien gebakken'],
+    ['miljoen', 'Vlaaien\u00ADkoning', 'Bak in totaal 1 miljoen vlaaien.', S => S.totaal, 1e6, 'vlaaien gebakken'],
+    ['miljard', 'Heel Limburg eet mee', 'Bak in totaal 1 miljard vlaaien.', S => S.totaal, 1e9, 'vlaaien gebakken'],
+    ['biljoen', 'De wereld eet mee', 'Bak in totaal 1 biljoen vlaaien.', S => S.totaal, 1e12, 'vlaaien gebakken'],
+    ['klik100', 'Klikvinger', 'Klik 100 keer op de vlaai.', S => S.kliks, 100, 'keer geklikt'],
+    ['klik1000', 'Kramp in je pols', 'Klik 1.000 keer op de vlaai.', S => S.kliks, 1000, 'keer geklikt'],
+    ['personeel', 'Personeel', 'Heb 10 bakkers tegelijk in dienst.', S => totaalBakkers(S), 10, 'bakkers in dienst'],
+    ['ondernemer', 'Ondernemer', 'Heb 100 bakkers tegelijk in dienst.', S => totaalBakkers(S), 100, 'bakkers in dienst'],
+    ['imperium', 'Vlaaien\u00ADimperium', 'Heb 300 bakkers tegelijk in dienst.', S => totaalBakkers(S), 300, 'bakkers in dienst'],
+    ['band', 'Lopende band', 'Bak 1.000 vlaaien per seconde.', S => vps(true), 1000, 'vlaaien per seconde'],
+    ['goud', 'Gouden moment', 'Vang een gouden vlaai.', S => S.goud, 1, 'gouden vlaaien gevangen'],
+    ['goud10', 'Goud\u00ADzoeker', 'Vang 10 gouden vlaaien.', S => S.goud, 10, 'gouden vlaaien gevangen'],
+    ['proeverij', 'Proeverij', 'Ontdek alle zeven smaken.', S => S.smaken.length, SMAKEN.length, 'smaken ontdekt'],
+    ['raket', 'Raket\u00ADwetenschap', 'Neem je eerste vlaaienraket in dienst.', S => S.bakkers.raket || 0, 1, 'vlaaienraketten'],
+  ].map(([id, naam, tekst, meet, doel, eenheid]) => ({ id, naam, tekst, meet, doel, eenheid, test: S => meet(S) >= doel }));
 
   // ---------- staat
   const KEY = 'vlaaienbakker-v1';
@@ -512,11 +522,29 @@ details.stats summary { cursor: pointer; font-weight: 700; }
 
   // ---------- prestaties
   function tekenPrestaties() {
-    $('prestaties').innerHTML = PRESTATIES.map(p => S.pres.includes(p.id)
-      ? `<li class="open" title="${p.tekst}">${ico('lint')}<span>${p.naam}</span></li>`
-      : `<li class="dicht" title="Nog niet behaald"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="22" r="14" fill="#D9CFB8"/><text x="24" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#8A7D5C" font-family="sans-serif">?</text></svg><span>Nog geheim</span></li>`).join('');
+    $('prestaties').innerHTML = PRESTATIES.map(p => {
+      const open = S.pres.includes(p.id);
+      const beeld = open ? ico('lint') : '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="22" r="14" fill="#D9CFB8"/><rect x="17" y="21" width="14" height="11" rx="2" fill="#8A7D5C"/><path d="M19.5 21v-3a4.5 4.5 0 0 1 9 0v3" fill="none" stroke="#8A7D5C" stroke-width="2.6"/></svg>';
+      return `<li><button class="pres ${open ? 'open' : 'dicht'}" data-p="${p.id}" aria-label="${p.naam}: ${open ? 'behaald' : 'nog niet behaald'}">${beeld}<span>${p.naam}</span></button></li>`;
+    }).join('');
     $('prestatie-kop').textContent = `Prestaties (${S.pres.length} van ${PRESTATIES.length})`;
+    if (gekozenPres) toonPrestatie(gekozenPres);
   }
+  let gekozenPres = null;
+  function toonPrestatie(id) {
+    const p = PRESTATIES.find(x => x.id === id); if (!p) return;
+    gekozenPres = id;
+    const open = S.pres.includes(id);
+    const nu = Math.min(p.meet(S), p.doel);
+    const pct = Math.floor(nu / p.doel * 100);
+    $('pres-info').innerHTML = `<b>${p.naam}</b> <span class="pres-status ${open ? 'ja' : ''}">${open ? 'Behaald' : 'Nog niet behaald'}</span><br>${p.tekst}`
+      + (open ? '' : `<span class="pres-balk" aria-hidden="true"><i style="width:${pct}%"></i></span><small>${fmtD(nu)} van ${fmt(p.doel)} ${p.eenheid}</small>`);
+    $('prestaties').querySelectorAll('.pres').forEach(b => b.classList.toggle('gekozen', b.dataset.p === id));
+  }
+  $('prestaties').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b) toonPrestatie(b.dataset.p); });
+  $('prestaties').addEventListener('pointerover', e => { const b = e.target.closest('[data-p]'); if (b && e.pointerType === 'mouse') toonPrestatie(b.dataset.p); });
+  $('prestaties').addEventListener('focusin', e => { const b = e.target.closest('[data-p]'); if (b) toonPrestatie(b.dataset.p); });
+
   function controleerPrestaties() {
     let nieuw = false;
     for (const p of PRESTATIES) if (!S.pres.includes(p.id) && p.test(S)) { S.pres.push(p.id); nieuw = true; meld('Prestatie behaald: ' + p.naam); }
@@ -595,7 +623,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     const p = vps() * dt; S.vlaaien += p; S.totaal += p;
     tekenTeller();
     if (++tik % 3 === 0) { tekenBakkers(); tekenUpgrades(); tekenBuffs(); controleerPrestaties(); }
-    if (tik % 10 === 0) { tekenStats(); document.title = fmt(S.vlaaien) + ' vlaaien – Vlaaienbakker'; }
+    if (tik % 10 === 0) { tekenStats(); if (gekozenPres) toonPrestatie(gekozenPres); document.title = fmt(S.vlaaien) + ' vlaaien – Vlaaienbakker'; }
     if (tik % 50 === 0) bewaar();
     if (!goudEl && nu > goudVolgende && !document.hidden) toonGoud();
     if (goudEl && nu > goudWeg) haalGoudWeg();
@@ -654,6 +682,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   const actief = new Set();
   let laatste = 0, loopt = false;
   const snap = v => Math.round((v - OFF) / G) * G + OFF;
+  const GRAAD = 180 / Math.PI;
   const breedte = () => document.documentElement.clientWidth;
   const hoogte = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
@@ -737,7 +766,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     el.addEventListener('pointerenter', e => {
       if (e.pointerType !== 'mouse' || s.sleep || reduce) return;
       const nu = performance.now();
-      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.a) > 14) return;
+      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.v) > 300) return;
       s.laatsteDuw = nu;
       const mx = e.movementX || (e.clientX - pivotScherm(s).x) / 4;
       duw(s, (mx > 0 ? -1 : 1) * (14 + Math.min(1, Math.abs(mx) / 25) * 30));
@@ -757,14 +786,16 @@ details.stats summary { cursor: pointer; font-weight: 700; }
       const W = breedte(), H = hoogte();
       const nx = Math.min(W - (T.w - T.px), Math.max(T.px, e.clientX + window.scrollX - s.start.dx));
       const ny = Math.min(H - (T.h - T.py), Math.max(T.py, e.clientY + window.scrollY - s.start.dy));
-      if (!reduce) s.v += (nx - s.px) * 6;
+      if (!reduce) s.v += (nx - s.px) * 7 * Math.cos(s.a / GRAAD) - (ny - s.py) * 7 * Math.sin(s.a / GRAAD);
       s.px = nx; s.py = ny; zet(s); start(s);
     });
     const los = e => {
       if (!s.start) return;
       if (!s.bewogen) {
         s.laatsteDuw = performance.now();
-        duw(s, (e.clientX > pivotScherm(s).x ? 1 : -1) * 110);
+        // zwaait hij al, dan geeft een klik extra vaart in dezelfde richting, zoals een schommel aanduwen
+        const richting = Math.abs(s.v) > 30 ? Math.sign(s.v) : (e.clientX > pivotScherm(s).x ? 1 : -1);
+        duw(s, richting * (Math.abs(s.v) > 30 ? 320 : 160));
       } else {
         const lijst = hindernissen();
         const plek = vrijGaatje(T, s.px, s.py, s, lijst) || s.vorig;
@@ -789,12 +820,17 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     s.haak.style.left = s.px + 'px'; s.haak.style.top = s.py + 'px';
     if (s.bel) s.bel.setAttribute('cx', (138 - Math.max(-13, Math.min(13, s.a * 1.6))).toFixed(1));
   }
-  function duw(s, v) { if (reduce) return; s.v = Math.max(-220, Math.min(220, s.v + v)); start(s); }
+  function duw(s, v) { if (reduce) return; s.v = Math.max(-2400, Math.min(2400, s.v + v)); start(s); }
   function start(s) { actief.add(s); if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); } }
   function tik(t) {
     const dt = Math.min(0.04, (t - laatste) / 1000); laatste = t;
     for (const s of actief) {
-      if (!reduce) { s.v += (-38 * s.a - 2.6 * s.v) * dt; s.a = Math.max(-45, Math.min(45, s.a + s.v * dt)); }
+      if (!reduce) {
+        // slinger: zwaartekracht trekt naar beneden, demping laat hem rustig uitzwaaien
+        const stappen = 4, h = dt / stappen;
+        for (let i = 0; i < stappen; i++) { s.v += (-38 * GRAAD * Math.sin(s.a / GRAAD) - 1.3 * s.v) * h; s.a += s.v * h; }
+        s.a = ((s.a + 180) % 360 + 360) % 360 - 180;   // na een rondje over de kop weer netjes tussen -180 en 180
+      }
       zet(s);
       if (!s.sleep && Math.abs(s.a) < 0.05 && Math.abs(s.v) < 0.08) { s.a = 0; s.v = 0; zet(s); actief.delete(s); }
     }

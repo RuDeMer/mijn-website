@@ -52,11 +52,15 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 ## Rommelhotel
 
-- Pixelhotel in `rommelhotel.html`: een eigen ontwerp in isometrische pixelstijl, geen namaak van een bestaand spel. Gebruik geen namen, poppetjes, meubels of logo's van bestaande games.
-- Alles wordt met code getekend op een canvas van 480 bij 300 pixels (op kleine schermen 300 bij 250, met een camera die meekijkt). `poly()` tekent vlakken met harde pixelranden, `blok()` tekent isometrische blokken, `muurVlak()` en `muurTekst()` tekenen op de muren.
-- Ruimtes staan in `RUIMTES` (vloer, muren, deuren, muurdecoratie, meubels, bewoners). Meubels tekenen via `TEKEN[type]`; zitplekken staan in `zit`, acties in `actie`.
-- Bewoners: Mien (receptie, incheckt gasten), Joep (café), Harrie (lobby, dweilt rond) en een duif buiten. Echte andere bezoekers zijn er nog niet; daarvoor is een server nodig.
-- Opslag in localStorage onder `rommelhotel-v1` (uiterlijk, ruimte, plek, bezochte ruimtes, ingecheckt, lampen).
+- Pixelhotel in `rommelhotel.html`: een eigen ontwerp in isometrische pixelstijl, geen namaak van een bestaand spel. Gebruik geen namen, poppetjes, meubels, ruimtes of logo's van bestaande games.
+- Je komt aan op `plein`: buiten aan de gracht, met het hele hotelgebouw (`gebouw` in de ruimte, getekend door `tekenGebouw`), de rommelmarkt, een brug, eenden en een park. Daar kijkt de camera mee en kun je slepen om rond te kijken.
+- Ruimtes in `RUIMTES`: plein, receptie, lobby, café, spel (spelletjeskamer), dak (dakterras) en kamer (kamer 12). De lift in de receptie gaat naar spel en dak (`LIFTSTOP`).
+- Tekenen: `poly()` vult vlakken met harde pixelranden, `blok()` tekent isometrische blokken, `muurVlak()` en `muurTekst()` tekenen op elk verticaal vlak (met `q` als positie van het vlak). Meubels via `TEKEN[type]`.
+- Bewoners hebben `zinnen` voor praatjes; `dwaal` met `gebied` laat ze rondlopen, `zit` laat ze zitten, `volgt` laat de hond achter het baasje aanlopen, `water` laat eenden zwemmen.
+- Munten verdien je met opdrachten (`S.taken`): Harries sokken (`SOKPLEK`), Miens brief, eendjes voeren, darts en sterren kijken. Uitgeven bij Kees (meubels, `MEUBELWAAR`), Rob (souvenirs, `SOUVENIRS`), Bep (vlaai), Joep (drinken) en de snoepautomaat. Badges staan in `BADGES`.
+- In kamer 12 zet je gekochte meubels neer met Inrichten (`S.kamerItems`).
+- Echte andere bezoekers zijn er nog niet; daarvoor is een server nodig.
+- Opslag in localStorage onder `rommelhotel-v1`. Oude opslag met de ruimte `ingang` wordt automatisch omgezet naar `plein`.
 
 ## Werkwijze
 

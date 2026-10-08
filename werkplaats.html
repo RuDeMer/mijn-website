@@ -235,7 +235,7 @@ body { position: relative; }
       <li>Ga naar <a href="https://github.com/settings/personal-access-tokens/new" rel="noopener">github.com/settings/personal-access-tokens/new</a> (of: profielfoto, Settings, Developer settings, Personal access tokens, Fine-grained tokens).</li>
       <li>Geef de sleutel een naam, bijvoorbeeld Werkplaats, en kies hoe lang hij geldig blijft, bijvoorbeeld 90 dagen.</li>
       <li>Kies bij Repository access voor Only select repositories en selecteer alleen mijn-website.</li>
-      <li>Zet bij de permissies Contents op Read and write.</li>
+      <li>Zet bij de permissies Contents op Read and write, en Pages ook op Read and write. Met Pages kan de werkplaats GitHub zelf vragen je site op te bouwen en precies zien wanneer je update live staat.</li>
       <li>Klik op Generate token en kopieer de sleutel meteen. GitHub laat hem maar één keer zien.</li>
     </ol>
   </details>
@@ -478,15 +478,16 @@ body { position: relative; }
       const nieuw = await gh(p + '/git/commits', { method: 'POST', body: JSON.stringify({ message: notitie, tree: boom.sha, parents: [basis] }) });
       await gh(p + '/git/refs/heads/' + encodeURIComponent(cfg.branch), { method: 'PATCH', body: JSON.stringify({ sha: nieuw.sha, force: false }) });
       logRegel('Opgeslagen in je map', 'ok');
+      const bouwt = await vraagBouw(p);
+      logRegel(bouwt ? 'GitHub gevraagd je site opnieuw op te bouwen' : 'Tip: geef je sleutel ook toegang tot Pages (zie onderaan), dan kan ik GitHub zelf vragen je site op te bouwen.', bouwt ? 'ok' : '');
       bestanden = []; $('in-notitie').value = ''; delete $('in-notitie').dataset.zelf;
       renderLijst();
       await ververs();
-      if (nieuweVersieTekst && opWebsite) {
-        const wacht = logRegel('Wachten tot GitHub Pages je site heeft bijgewerkt...');
-        const live = await wachtOpLive(nieuweVersieTekst);
-        wacht.className = live ? 'ok' : '';
-        wacht.textContent = live ? 'Je site is bijgewerkt' : 'GitHub Pages is nog bezig. Dat kan een paar minuten duren.';
-        melding('upload-melding', 'ok', live ? 'Gelukt! ' + nieuweVersieTekst + ' staat live.' : 'Gelukt! Je bestanden staan in je map en komen zo vanzelf online.');
+      bezig = false; $('b-online').disabled = false;
+      if (bouwt || (nieuweVersieTekst && opWebsite)) {
+        const regel = logRegel('');
+        const uit = await wacht(regel, bouwt ? controleBouw(p, nieuw.sha) : controleSite(nieuweVersieTekst));
+        rondAf(uit, regel, 'upload-melding', nieuweVersieTekst || 'Je update', 'Je site is bijgewerkt');
       } else {
         melding('upload-melding', 'ok', 'Gelukt! Je bestanden staan in je map en zijn over ongeveer een minuut live.');
       }
@@ -496,12 +497,55 @@ body { position: relative; }
     }
     bezig = false; $('b-online').disabled = false;
   }
-  async function wachtOpLive(tekst) {
-    for (let i = 0; i < 36; i++) {
-      await sleep(5000);
-      try { const r = await fetch('./?controle=' + Date.now(), { cache: 'no-store' }); if ((await r.text()).includes(tekst)) return true; } catch (e) {}
-    }
-    return false;
+  // Wacht tot je update live staat. Je update is dan al opgeslagen; dit is alleen een controle.
+  async function wacht(regel, check) {
+    const start = Date.now();
+    let stop = false;
+    const span = document.createElement('span');
+    const knop = document.createElement('button');
+    knop.className = 'mini'; knop.type = 'button'; knop.textContent = 'Niet meer wachten'; knop.style.marginLeft = '.6rem';
+    knop.addEventListener('click', () => { stop = true; });
+    regel.textContent = ''; regel.append(span, knop);
+    const klok = () => { span.textContent = 'Je update is opgeslagen. Ik kijk nu of hij al op je site staat (' + Math.round((Date.now() - start) / 1000) + ' s)...'; };
+    klok();
+    const t = setInterval(klok, 1000);
+    try {
+      for (let i = 0; i < 36; i++) {
+        for (let w = 0; w < 16 && !stop; w++) await sleep(250);
+        if (stop) return 'gestopt';
+        const uit = await check();
+        if (uit) return uit;
+      }
+      return 'later';
+    } finally { clearInterval(t); knop.remove(); }
+  }
+  // controle via de site zelf
+  const controleSite = tekst => async () => {
+    let r;
+    try { r = await fetch('./index.html?controle=' + Date.now(), { cache: 'no-store' }); } catch (e) { return 'onbekend'; }
+    if (r.redirected && new URL(r.url).origin !== location.origin) return 'onbekend';
+    if (r.ok && (await r.text()).includes(tekst)) return 'live';
+    return null;
+  };
+  // controle via GitHub (werkt als je sleutel ook bij Pages mag)
+  const controleBouw = (p, sha) => async () => {
+    try {
+      const b = await gh(p + '/pages/builds/latest');
+      if (b.commit === sha && b.status === 'built') return 'live';
+      if (b.commit === sha && b.status === 'errored') return 'fout';
+      return null;
+    } catch (e) { return null; }
+  };
+  // vraag GitHub expliciet om je site te bouwen
+  async function vraagBouw(p) { try { await gh(p + '/pages/builds', { method: 'POST' }); return true; } catch (e) { return false; } }
+
+  function rondAf(uit, regel, plek, versie, klaarTekst) {
+    if (uit === 'live') { regel.className = 'ok'; regel.textContent = klaarTekst; melding(plek, 'ok', 'Gelukt! ' + versie + ' staat live.'); return; }
+    regel.className = uit === 'fout' ? 'fout' : '';
+    if (uit === 'fout') { regel.textContent = 'GitHub kon je site niet bouwen.'; melding(plek, 'fout', 'Je bestanden zijn wel opgeslagen, maar GitHub kon je site niet bouwen. Kijk bij Actions in GitHub wat er misging.'); return; }
+    regel.textContent = uit === 'onbekend' ? 'Ik kan vanaf hier niet zien of je site al is bijgewerkt.'
+      : uit === 'gestopt' ? 'Gestopt met wachten.' : 'GitHub Pages is nog bezig. Dat kan een paar minuten duren.';
+    melding(plek, 'ok', 'Gelukt! Je update is opgeslagen en komt vanzelf online. Kijk over een minuutje op je site of bij Actions in GitHub.');
   }
 
   // ---------- homepage bewerken
@@ -688,13 +732,15 @@ body { position: relative; }
       const nieuw = await gh(p + '/git/commits', { method: 'POST', body: JSON.stringify({ message: 'Homepage aangepast in de werkplaats' + (versieTekst ? ' (' + versieTekst.toLowerCase() + ')' : ''), tree: boom.sha, parents: [basis] }) });
       await gh(p + '/git/refs/heads/' + encodeURIComponent(cfg.branch), { method: 'PATCH', body: JSON.stringify({ sha: nieuw.sha, force: false }) });
       log('Opgeslagen in je map', 'ok');
+      const bouwt = await vraagBouw(p);
+      log(bouwt ? 'GitHub gevraagd je site opnieuw op te bouwen' : 'Tip: geef je sleutel ook toegang tot Pages (zie onderaan), dan kan ik GitHub zelf vragen je site op te bouwen.', bouwt ? 'ok' : '');
       homeVies = false;
       await ververs();
-      if (versieTekst && opWebsite) {
-        const w = log('Wachten tot GitHub Pages je site heeft bijgewerkt...');
-        const live = await wachtOpLive(versieTekst);
-        w.className = live ? 'ok' : ''; w.textContent = live ? 'Je homepage is bijgewerkt' : 'GitHub Pages is nog bezig. Dat kan een paar minuten duren.';
-        melding('home-melding', 'ok', live ? 'Gelukt! ' + versieTekst + ' staat live.' : 'Gelukt! Je homepage komt zo vanzelf online.');
+      bezig = false;
+      if (bouwt || (versieTekst && opWebsite)) {
+        const w = log('');
+        const uit = await wacht(w, bouwt ? controleBouw(p, nieuw.sha) : controleSite(versieTekst));
+        rondAf(uit, w, 'home-melding', versieTekst || 'Je update', 'Je homepage is bijgewerkt');
       } else melding('home-melding', 'ok', 'Gelukt! Je homepage staat over ongeveer een minuut live.');
     } catch (e) {
       log('Niet gelukt', 'fout');

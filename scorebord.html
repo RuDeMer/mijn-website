@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scorebord – Ruben's rommelhoekje</title>
+<meta name="description" content="Wie bakt de meeste vlaaien, wie heeft de langste reeks in Rommelwoord en wie komt het verst in Rommelpoker?">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M20%2010h24v14a12%2012%200%200%201-24%200z%22%20fill%3D%22%23E9B949%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M20%2014h-6a6%206%200%200%200%206%2010M44%2014h6a6%206%200%200%201-6%2010%22%20fill%3D%22none%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M29%2036h6v8h-6z%22%20fill%3D%22%23C99A2E%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%2222%22%20y%3D%2244%22%20width%3D%2220%22%20height%3D%227%22%20rx%3D%221.5%22%20fill%3D%22%237A4E2D%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M27%2015v9%22%20stroke%3D%22%23FFF3C4%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M32%2052v0%22%20/%3E%3Crect%20x%3D%2227%22%20y%3D%2246%22%20width%3D%2210%22%20height%3D%223%22%20fill%3D%22%23E9B949%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bord: #2F4C8F; --gat: #1E3263; --manila: #F2DDA0; --manila-d: #D9BE78; --papier: #FBF6E9;
+  --inkt: #1F2333; --zacht: #5E5643; --rood: #C8323C; --rood-d: #9E2430; --tape: #23252B; --munt: #E9B949;
+  --inhoud: 66rem;
+}
+@media (prefers-color-scheme: dark) { :root { --bord: #1F3466; --gat: #12204A; --manila: #E6D094; --papier: #F1E9D6; } }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; position: relative; background: var(--bord) radial-gradient(circle, var(--gat) 2.5px, transparent 3px) 0 0 / 26px 26px; font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif; }
+.wrap { max-width: var(--inhoud); margin: 0 auto; padding: 1rem 1rem 3rem; position: relative; z-index: 1; }
+:focus-visible { outline: 3px solid var(--munt); outline-offset: 2px; }
+.kop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.terug { color: var(--manila); font-weight: 600; text-underline-offset: .2em; }
+.terug:hover { color: #fff; }
+.kop h1 { margin: 0; display: flex; align-items: center; gap: .55rem; }
+.kop-icoon { display: inline-block; width: 3.1rem; height: 3.1rem; flex: none; }
+.kop-icoon svg { display: block; width: 100%; height: 100%; filter: drop-shadow(2px 3px 0 rgba(0,0,0,.25)); }
+.tape { display: inline-block; background: var(--tape); color: #F4F1EC; font-weight: 800; font-stretch: 75%; font-variation-settings: "wdth" 75; text-transform: uppercase; letter-spacing: .07em; font-size: clamp(1.4rem, 4vw, 2rem); padding: .12em .45em .06em; border-radius: 3px; --r: -1.5deg; transform: rotate(var(--r)); text-shadow: 0 1px 0 rgba(255,255,255,.3), 0 -1px 0 rgba(0,0,0,.6); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.paneel { background: var(--manila); border-radius: 8px; padding: 1rem 1.1rem 1.1rem; box-shadow: 0 4px 0 rgba(0,0,0,.28); }
+.paneel h2 { margin: 0 0 .5rem; font-size: 1.25rem; display: flex; align-items: center; gap: .5rem; }
+.paneel h2 svg { width: 1.8rem; height: 1.8rem; flex: none; }
+.ik { margin-bottom: 1.2rem; }
+.ik p { margin: .2rem 0 .7rem; }
+.ik form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ik input { flex: 1 1 12rem; min-width: 0; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid var(--manila-d); background: var(--papier); }
+.knop { font: inherit; font-weight: 700; padding: .55rem 1rem; border: 0; border-radius: 6px; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.knop.hoofd { background: var(--rood); color: #fff; }
+.knop:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+.ik .klein { font-size: .85rem; color: var(--zacht); margin-top: .6rem; }
+.ik .klein button { font: inherit; background: none; border: 0; color: var(--rood-d); text-decoration: underline; cursor: pointer; padding: 0; font-weight: 600; }
+.lijsten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.lijst { list-style: none; padding: 0; margin: 0; counter-reset: plek; }
+.lijst li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .5rem; align-items: center; padding: .4rem .55rem; border-radius: 6px; background: var(--papier); margin-bottom: .3rem; font-variant-numeric: tabular-nums; }
+.lijst li .plek { font-weight: 800; color: var(--zacht); text-align: center; }
+.lijst li:nth-child(1) .plek { color: #fff; background: #C99A2E; border-radius: 999px; }
+.lijst li:nth-child(2) .plek { color: #fff; background: #9AA0A6; border-radius: 999px; }
+.lijst li:nth-child(3) .plek { color: #fff; background: #B5793F; border-radius: 999px; }
+.lijst li .wie { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lijst li .wie small { display: block; font-weight: 500; color: var(--zacht); font-size: .78rem; }
+.lijst li .hoeveel { font-weight: 800; text-align: right; }
+.lijst li.jij { outline: 3px solid var(--rood); outline-offset: -3px; }
+.leeg { color: var(--zacht); margin: .3rem 0; }
+.melding { color: var(--manila); background: rgba(10,18,40,.35); border-radius: 8px; padding: .8rem 1rem; }
+.uitleg { margin-top: 1.4rem; }
+.uitleg details { background: rgba(10,18,40,.35); color: var(--manila); border-radius: 8px; padding: .8rem 1rem; }
+.uitleg summary { cursor: pointer; font-weight: 700; }
+.uitleg li { margin: .35rem 0; }
+@media (max-width: 860px) { .lijsten { grid-template-columns: 1fr; } }
+
+.rek { position: relative; }
+.rek.zijkant { position: absolute; top: 7rem; height: 50rem; width: calc((100% - var(--inhoud)) / 2 - 2rem); display: none; z-index: 0; }
+.rek.zijkant.links { left: 1rem; }
+.rek.zijkant.rechts { right: 1rem; }
+.muurlaag { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 3; }
+.gs { position: absolute; pointer-events: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(3px 5px 0 rgba(0,0,0,.25)); z-index: 1; }
+.gs svg { display: block; pointer-events: none; overflow: visible; }
+.gs svg * { pointer-events: visiblePainted; cursor: grab; }
+.gs.sleept { z-index: 30; filter: drop-shadow(9px 16px 0 rgba(0,0,0,.22)); }
+.gs.sleept svg * { cursor: grabbing; }
+.gs-haak { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #A8B3CC; box-shadow: 0 2px 0 rgba(0,0,0,.45); pointer-events: none; z-index: 2; transition: opacity .2s; }
+@media (pointer: coarse) { .gs svg * { cursor: pointer; } }
+.gs-sleept, .gs-sleept * { -webkit-user-select: none !important; user-select: none !important; cursor: grabbing !important; }
+
+@media (min-width: 1420px) { .rek.zijkant { display: block; } }
+.dag b { display: inline-block; }
+.label-icoon svg { transform-origin: 50% 80%; }
+
+</style>
+</head>
+<body data-gat="26" data-pagina="scorebord">
+<div class="rek zijkant links" id="rek-links" data-gereedschap="schroevendraaier,kwast,waterpas" aria-hidden="true"></div>
+<div class="rek zijkant rechts" id="rek-rechts" data-gereedschap="tang,duimstok,schaar" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="kop">
+    <a class="terug" href="./">Terug naar het rommelhoekje</a>
+    <h1><span class="kop-icoon" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><path d="M20 10h24v14a12 12 0 0 1-24 0z" fill="#E9B949" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M20 14h-6a6 6 0 0 0 6 10M44 14h6a6 6 0 0 1-6 10" fill="none" stroke="#1F2333" stroke-width="2.5"/><path d="M29 36h6v8h-6z" fill="#C99A2E" stroke="#1F2333" stroke-width="2"/><rect x="22" y="44" width="20" height="7" rx="1.5" fill="#7A4E2D" stroke="#1F2333" stroke-width="2"/><path d="M27 15v9" stroke="#FFF3C4" stroke-width="2.5" stroke-linecap="round"/><path d="M32 52v0" /><rect x="27" y="46" width="10" height="3" fill="#E9B949"/></svg></span><span class="tape">Scorebord</span></h1>
+  </header>
+  <main>
+    <section class="paneel ik" id="ik" aria-labelledby="ik-titel">
+      <h2 id="ik-titel">Doe mee</h2>
+      <div id="ik-inhoud"><p>Even laden...</p></div>
+    </section>
+    <div id="lijsten" class="lijsten" aria-live="polite"></div>
+  </main>
+  <section class="uitleg" aria-label="Uitleg">
+    <details>
+      <summary>Hoe werkt het scorebord?</summary>
+      <ul>
+        <li>Je doet alleen mee als je zelf een naam kiest. Dan sturen de spellen je beste score naar het scorebord.</li>
+        <li>Vlaaienbakker: het totaal aantal vlaaien dat je ooit hebt gebakken. Rommelwoord: je langste reeks dagen achter elkaar goed, en bij gelijke stand het aantal gewonnen spellen. Rommelpoker: het aantal kraampjes dat je het verst bent gekomen, en bij gelijke stand je beste hand.</li>
+        <li>We bewaren alleen je naam en je scores, geen andere gegevens. Je kunt je naam altijd veranderen, of stoppen en je scores weghalen.</li>
+        <li>Je scores horen bij deze browser. Speel je op een ander apparaat, dan kun je daar dezelfde naam kiezen, maar je staat er dan als aparte speler.</li>
+      </ul>
+    </details>
+  </section>
+</div>
+<script>
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+  window.Scorebord = API;
+})();
+
+</script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const ICO = {"vlaai": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><defs><clipPath id=\"vlaai-icoon-knip\"><circle cx=\"31\" cy=\"32\" r=\"19\"/><\/clipPath><\/defs><ellipse cx=\"34\" cy=\"37\" rx=\"28\" ry=\"25\" fill=\"#1F2333\" opacity=\".18\"/><circle cx=\"31\" cy=\"32\" r=\"27\" fill=\"#C98A43\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"31\" cy=\"32\" r=\"23.5\" fill=\"none\" stroke=\"#E0AE66\" stroke-width=\"3.2\" stroke-dasharray=\"4 2.6\"/><circle cx=\"31\" cy=\"32\" r=\"19\" fill=\"#A8162B\"/><g clip-path=\"url(#vlaai-icoon-knip)\" stroke=\"#E0AE66\" stroke-width=\"3.6\"><g transform=\"rotate(45 31 32)\"><path d=\"M8 24h46M8 32h46M8 40h46\"/><\/g><g transform=\"rotate(-45 31 32)\"><path d=\"M8 24h46M8 32h46M8 40h46\"/><\/g><\/g><\/svg>", "woord": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><g transform=\"rotate(-8 18 34)\"><rect x=\"5\" y=\"20\" width=\"24\" height=\"24\" rx=\"4\" fill=\"#5F6470\" stroke=\"#1F2333\" stroke-width=\"2\"/><path d=\"M12 27h10M17 27v11\" stroke=\"#E6E3DA\" stroke-width=\"3\" stroke-linecap=\"round\"/><\/g><g transform=\"rotate(6 46 30)\"><rect x=\"35\" y=\"16\" width=\"24\" height=\"24\" rx=\"4\" fill=\"#F2DDA0\" stroke=\"#C8323C\" stroke-width=\"2.4\" stroke-dasharray=\"4 2.4\"/><path d=\"M41 34l6-12 6 12M43.2 29.6h7.6\" stroke=\"#9E2430\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><\/g><rect x=\"20\" y=\"30\" width=\"26\" height=\"26\" rx=\"4\" fill=\"#2E8B62\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"41\" cy=\"35\" r=\"2\" fill=\"#fff\"/><path d=\"M25 37l3 12 5-8 5 8 3-12\" stroke=\"#fff\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><\/svg>", "kaarten": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><g transform=\"rotate(-14 26 36)\"><rect x=\"10\" y=\"12\" width=\"28\" height=\"40\" rx=\"4\" fill=\"#2F4C8F\" stroke=\"#1F2333\" stroke-width=\"2\"/><rect x=\"14\" y=\"16\" width=\"20\" height=\"32\" rx=\"2\" fill=\"none\" stroke=\"#F2DDA0\" stroke-width=\"1.6\"/><path d=\"M24 25l5 7-5 7-5-7z\" fill=\"#F2DDA0\"/><\/g><g transform=\"rotate(11 40 34)\"><rect x=\"25\" y=\"12\" width=\"28\" height=\"40\" rx=\"4\" fill=\"#FBF6E9\" stroke=\"#1F2333\" stroke-width=\"2\"/><path d=\"M39 41c-6.5-4.2-9.5-7.6-9.5-10.8a4.8 4.8 0 0 1 9.5-1.2 4.8 4.8 0 0 1 9.5 1.2c0 3.2-3 6.6-9.5 10.8z\" fill=\"#C8323C\"/><path d=\"M29 15.5v6M29 15.5l3 6M29 18.5h2.4\" stroke=\"#C8323C\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\"/><\/g><\/svg>"};
+  const SPELLEN = [
+    { id: 'vlaai', naam: 'Vlaaienbakker', icoon: 'vlaai', link: 'vlaaienbakker.html', eenheid: 'vlaaien', extra: r => fmtGroot(r.extra) + ' per seconde' },
+    { id: 'woord', naam: 'Rommelwoord', icoon: 'woord', link: 'rommelwoord.html', eenheid: r => (r.score === 1 ? 'dag' : 'dagen'), extra: r => r.extra + ' gewonnen' },
+    { id: 'poker', naam: 'Rommelpoker', icoon: 'kaarten', link: 'rommelpoker.html', eenheid: r => (r.score === 1 ? 'kraampje' : 'kraampjes'), extra: r => 'beste hand ' + Math.round(r.extra).toLocaleString('nl-NL') },
+  ];
+  const NAMEN = [[1e24, 'quadriljoen'], [1e21, 'triljard'], [1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']];
+  function fmtGroot(n) { n = Math.floor(n || 0); if (n < 1e6) return n.toLocaleString('nl-NL'); for (const [v, w] of NAMEN) if (n >= v) return (n / v).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' ' + w; return n.toExponential(1); }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  async function tekenIk() {
+    const el = $('ik-inhoud');
+    if (Scorebord.doetMee()) {
+      el.innerHTML = `<p>Je doet mee als <b>${esc(Scorebord.naam())}</b>. Speel een van de spellen, en je beste score komt vanzelf op het scorebord.</p>
+        <form id="f-naam"><input id="i-naam" maxlength="16" value="${esc(Scorebord.naam())}" aria-label="Je naam"><button class="knop hoofd" type="submit">Naam veranderen</button></form>
+        <p class="klein">Wil je niet meer meedoen? <button type="button" id="b-stop">Stop en haal mijn scores weg</button></p>`;
+      $('b-stop').addEventListener('click', async () => { if (!confirm('Weet je het zeker? Je naam en al je scores verdwijnen van het scorebord.')) return; await Scorebord.stopEnVerwijder(); tekenIk(); laad(); });
+    } else {
+      el.innerHTML = `<p>Kies een naam om mee te doen. Je naam en je beste scores verschijnen dan op deze pagina. Verder bewaren we niets.</p>
+        <form id="f-naam"><input id="i-naam" maxlength="16" placeholder="Je naam (2 tot 16 tekens)" aria-label="Je naam"><button class="knop hoofd" type="submit">Doe mee</button></form>`;
+    }
+    $('f-naam').addEventListener('submit', async e => {
+      e.preventDefault();
+      const n = $('i-naam').value.trim();
+      if (n.length < 2) { $('i-naam').focus(); return; }
+      await Scorebord.zetNaam(n); tekenIk(); setTimeout(laad, 600);
+    });
+  }
+  document.addEventListener('scorebord-fout', e => { const p = document.createElement('p'); p.className = 'klein'; p.style.color = 'var(--rood-d)'; p.textContent = e.detail; $('ik-inhoud').appendChild(p); });
+
+  async function laad() {
+    if (!(await Scorebord.actief())) { $('lijsten').innerHTML = '<p class="melding">Het scorebord is nog niet aangezet. Kom straks nog eens kijken!</p>'; $('ik').hidden = true; return; }
+    let data = null;
+    try { data = await Scorebord.lijsten(); } catch (e) {}
+    if (!data) { $('lijsten').innerHTML = '<p class="melding">Het scorebord kon even niet geladen worden. Probeer het zo nog eens.</p>'; return; }
+    const ik = await Scorebord.mijnId();
+    $('lijsten').innerHTML = SPELLEN.map(s => {
+      const rijen = data[s.id] || [];
+      const eenheid = r => (typeof s.eenheid === 'function' ? s.eenheid(r) : s.eenheid);
+      return `<section class="paneel" aria-labelledby="t-${s.id}"><h2 id="t-${s.id}">${ICO[s.icoon] || ''}${s.naam}</h2>
+        ${rijen.length ? `<ol class="lijst">${rijen.map((r, i) => `<li class="${r.id === ik ? 'jij' : ''}"><span class="plek">${i + 1}</span><span class="wie">${esc(r.naam)}${r.id === ik ? ' (jij)' : ''}<small>${esc(s.extra(r))}</small></span><span class="hoeveel">${s.id === 'vlaai' ? fmtGroot(r.score) : r.score} <small>${eenheid(r)}</small></span></li>`).join('')}</ol>`
+        : `<p class="leeg">Nog niemand. Wordt jij de eerste? <a href="${s.link}">Speel ${s.naam}</a></p>`}
+      </section>`;
+    }).join('');
+  }
+  tekenIk(); laad();
+  setInterval(() => { if (!document.hidden) laad(); }, 60000);
+})();
+</script>
+<script>
+(function () {
+  // Elk stuk gereedschap hangt aan een haakje op punt (px, py) van zijn eigen tekening.
+  const D = '#23252B';
+  const TANDEN = 'M44 50' + 'l4 5l4-5'.repeat(15);
+  const GEREEDSCHAP = {
+    hamer: { w: 70, h: 152, px: 35, py: 6, svg: `<circle cx="35" cy="6" r="5" fill="none" stroke="#3A2A1E" stroke-width="2.5"/><path d="M35 11v4" stroke="#3A2A1E" stroke-width="2.5"/><rect x="29" y="14" width="12" height="108" rx="5" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><rect x="29" y="18" width="12" height="34" rx="4" fill="#2E2E33"/><path d="M31 24h8M31 30h8M31 36h8M31 42h8" stroke="#55555C" stroke-width="1.5"/><rect x="6" y="118" width="58" height="24" rx="3" fill="#8C939E" stroke="#5F6470" stroke-width="1.5"/><rect x="56" y="115" width="10" height="30" rx="2" fill="#6F7785" stroke="#4A4F59" stroke-width="1.5"/><path d="M6 121l-5-5M6 139l-5 5" stroke="#5F6470" stroke-width="4" stroke-linecap="round"/>` },
+    schroevendraaier: { w: 34, h: 150, px: 17, py: 7, svg: `<rect x="7" y="0" width="20" height="56" rx="8" fill="#C8323C" stroke="#9E2430" stroke-width="1.5"/><circle cx="17" cy="7" r="3.4" fill="${D}"/><path d="M12 17v32M17 17v32M22 17v32" stroke="#9E2430" stroke-width="2" stroke-linecap="round"/><rect x="11" y="55" width="12" height="9" rx="2" fill="#C9CED6" stroke="#8C939E"/><rect x="15" y="64" width="4" height="76" fill="#A9AFB8"/><path d="M14.5 140h5l-1.5 9h-2z" fill="#8C939E"/>` },
+    zaag: { w: 170, h: 70, px: 23, py: 24, svg: `<path d="M44 14L166 24V50H44z" fill="#C9CED6" stroke="#8C939E" stroke-width="1.5"/><path d="${TANDEN}" fill="none" stroke="#8C939E" stroke-width="1.5" stroke-linejoin="round"/><path d="M60 22l90 7" stroke="#E6EAEF" stroke-width="2"/><path d="M4 8h42v54H4q-4 0-4-4V12q0-4 4-4z" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><rect x="12" y="20" width="22" height="28" rx="7" fill="${D}"/><circle cx="40" cy="18" r="2" fill="#8C939E"/><circle cx="40" cy="52" r="2" fill="#8C939E"/>` },
+    tang: { w: 60, h: 150, px: 30, py: 26, svg: `<path d="M15 4q-5 42 13 86" stroke="#2F7A6E" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M45 4q5 42-13 86" stroke="#C8323C" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M24 92l2 48 4 6 4-6 2-48z" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5" stroke-linejoin="round"/><path d="M30 100v40" stroke="#6F7785" stroke-width="1.2"/><circle cx="30" cy="92" r="7" fill="#8C939E" stroke="#5F6470" stroke-width="1.5"/><circle cx="30" cy="92" r="2.4" fill="#5F6470"/>` },
+    steeksleutel: { w: 44, h: 168, px: 22, py: 9, svg: `<circle cx="22" cy="20" r="17" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><rect x="15" y="0" width="14" height="20" rx="2" fill="${D}"/><rect x="16" y="32" width="12" height="108" rx="4" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><path d="M19 46v80" stroke="#C9CED6" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="150" r="15" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><circle cx="22" cy="150" r="7" fill="${D}"/>` },
+    duimstok: { w: 40, h: 166, px: 20, py: 10, svg: `<rect x="10" y="4" width="24" height="158" rx="2" fill="#E0AE1E" stroke="#B8901A" stroke-width="1.5"/><rect x="6" y="2" width="24" height="158" rx="2" fill="#F2C230" stroke="#B8901A" stroke-width="1.5"/><circle cx="20" cy="10" r="3" fill="${D}"/><path d="M6 24h7M6 34h5M6 44h7M6 54h5M6 64h7M6 74h5M6 84h7M6 94h5M6 104h7M6 114h5M6 124h7M6 134h5M6 144h7" stroke="#3A3D46" stroke-width="1.4"/><circle cx="18" cy="152" r="2.4" fill="#B8862F"/>` },
+    schaar: { w: 62, h: 132, px: 20, py: 11, svg: `<path d="M26 28L37 124l5-2L31 28z" fill="#C9CED6" stroke="#8C939E" stroke-width="1.5" stroke-linejoin="round"/><path d="M36 28L25 124l-5-2L31 28z" fill="#DDE1E6" stroke="#8C939E" stroke-width="1.5" stroke-linejoin="round"/><circle cx="20" cy="18" r="10" fill="none" stroke="#2F4C8F" stroke-width="6"/><circle cx="42" cy="18" r="10" fill="none" stroke="#2F4C8F" stroke-width="6"/><circle cx="31" cy="48" r="3.2" fill="#6F7785"/>` },
+    plakband: { w: 72, h: 72, px: 36, py: 24, svg: `<circle cx="36" cy="36" r="31" fill="#D9BE78" stroke="#B8862F" stroke-width="1.5"/><circle cx="36" cy="36" r="25" fill="none" stroke="#C9A85E" stroke-width="1"/><circle cx="36" cy="36" r="17" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><circle cx="36" cy="36" r="13" fill="${D}"/><path d="M66 40l3 18-12 2z" fill="#E4CC8E" stroke="#B8862F" stroke-width="1.2"/>` },
+    kwast: { w: 40, h: 150, px: 20, py: 9, svg: `<rect x="13" y="0" width="14" height="82" rx="7" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><circle cx="20" cy="9" r="3.4" fill="${D}"/><rect x="8" y="78" width="24" height="20" rx="2" fill="#C9CED6" stroke="#8C939E" stroke-width="1.5"/><path d="M8 84h24M8 90h24" stroke="#A9AFB8"/><path d="M8 98h24l2 42q-14 7-28 0z" fill="#3A3D46"/><path d="M6 132q14 8 28 0l0 8q-14 7-28 0z" fill="#C8323C"/>` },
+    waterpas: { w: 190, h: 40, px: 95, py: 11, svg: `<rect x="2" y="4" width="186" height="30" rx="4" fill="#E9B949" stroke="#B8862F" stroke-width="1.5"/><rect x="2" y="4" width="14" height="30" rx="3" fill="#3A3D46"/><rect x="174" y="4" width="14" height="30" rx="3" fill="#3A3D46"/><circle cx="95" cy="11" r="3.4" fill="${D}"/><rect x="118" y="12" width="40" height="14" rx="7" fill="#CDEFE0" stroke="#5E7F8C" stroke-width="1.5"/><path d="M131 12v14M145 12v14" stroke="#5E7F8C" stroke-width="1"/><circle class="bel" cx="138" cy="19" r="4.5" fill="#fff" stroke="#9FD3C7"/><rect x="40" y="14" width="34" height="10" rx="5" fill="#CDEFE0" stroke="#5E7F8C" stroke-width="1.2"/>` },
+  };
+
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = +(document.body.dataset.gat || 30), OFF = G / 2;
+  const PAGINA = document.body.dataset.pagina || location.pathname;
+  const KEY = 'gereedschap-v2';
+  // dingen waar gereedschap nooit overheen mag hangen
+  const HINDER = 'h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
+  let opgeslagen = {};
+  try { opgeslagen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { opgeslagen = {}; }
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opgeslagen)); } catch (e) {} };
+
+  const laag = document.createElement('div');
+  laag.className = 'muurlaag'; laag.setAttribute('aria-hidden', 'true');
+  laag.style.cssText = 'position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:3;';
+  document.body.prepend(laag);
+  const stijl = document.createElement('style');
+  stijl.textContent = '.gs-sleept, .gs-sleept * { -webkit-user-select: none !important; user-select: none !important; cursor: grabbing !important; }';
+  document.head.appendChild(stijl);
+
+  const stukken = [];
+  const actief = new Set();
+  let laatste = 0, loopt = false;
+  const snap = v => Math.round((v - OFF) / G) * G + OFF;
+  const GRAAD = 180 / Math.PI;
+  const breedte = () => document.documentElement.clientWidth;
+  const hoogte = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+
+  function hindernissen() {
+    const sx = window.scrollX, sy = window.scrollY, uit = [];
+    document.querySelectorAll(HINDER).forEach(el => {
+      if (laag.contains(el)) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      uit.push({ l: r.left + sx, t: r.top + sy, r: r.right + sx, b: r.bottom + sy });
+    });
+    return uit;
+  }
+  function kader(T, px, py) { return { l: px - T.px, t: py - T.py, r: px - T.px + T.w, b: py - T.py + T.h }; }
+  function botst(k, lijst, marge) { return lijst.some(h => k.l < h.r + marge && k.r > h.l - marge && k.t < h.b + marge && k.b > h.t - marge); }
+  function past(T, px, py, lijst, zelf) {
+    const k = kader(T, px, py);
+    if (k.l < 2 || k.r > breedte() - 2 || k.t < 2) return false;
+    if (botst(k, lijst, 8)) return false;
+    return !stukken.some(s => s !== zelf && botst(k, [kader(s.T, s.px, s.py)], 4));
+  }
+  // zoek het dichtstbijzijnde vrije gaatje rond (x, y)
+  function vrijGaatje(T, x, y, zelf, lijst) {
+    x = snap(x); y = snap(y);
+    if (past(T, x, y, lijst, zelf)) return [x, y];
+    for (let ring = 1; ring <= 14; ring++) {
+      let beste = null, bd = Infinity;
+      for (let dx = -ring; dx <= ring; dx++) for (let dy = -ring; dy <= ring; dy++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+        const cx = x + dx * G, cy = y + dy * G, d = dx * dx + dy * dy;
+        if (d < bd && past(T, cx, cy, lijst, zelf)) { beste = [cx, cy]; bd = d; }
+      }
+      if (beste) return beste;
+    }
+    return null;
+  }
+
+  function bouw() {
+    laag.innerHTML = ''; stukken.length = 0; actief.clear();
+    laag.style.height = hoogte() + 'px';
+    const lijst = hindernissen(), W = breedte(), midden = W / 2;
+    const bewaard = opgeslagen[PAGINA] || {};
+    const zones = Array.from(document.querySelectorAll('.rek[data-gereedschap]')).sort((p, q) => p.classList.contains('zijkant') - q.classList.contains('zijkant'));
+    zones.forEach(zone => {
+      const r = zone.getBoundingClientRect();
+      if (r.width < 40 || r.height < 40) return;
+      const bx = r.left + window.scrollX, by = r.top + window.scrollY;
+      const ids = (zone.dataset.gereedschap || '').split(',').map(s => s.trim()).filter(id => GEREEDSCHAP[id]);
+      let x = 12, y = 14, rij = 0;
+      for (const id of ids) {
+        if (stukken.some(s => s.id === id)) continue;
+        const T = GEREEDSCHAP[id];
+        let plek = null;
+        const b = bewaard[id];
+        if (b) { const px = snap(midden + b[0]), py = snap(b[1]); if (past(T, px, py, lijst, null)) plek = [px, py]; }
+        if (!plek) {
+          if (x + T.w > r.width - 8) { x = 12; y += rij + 34; rij = 0; }
+          if (y + T.h > r.height) continue;
+          const px = snap(bx + x + T.px), py = snap(by + y + T.py);
+          x += T.w + 26; rij = Math.max(rij, T.h);
+          plek = past(T, px, py, lijst, null) ? [px, py] : vrijGaatje(T, px, py, null, lijst);
+          if (!plek) continue;
+        }
+        maakStuk(id, T, plek[0], plek[1]);
+      }
+    });
+    if (!begroet && !reduce && stukken.length && window.name !== 'voorbeeld') { begroet = true; stukken.forEach((s, i) => setTimeout(() => duw(s, (i % 2 ? 1 : -1) * (14 + Math.random() * 14)), 300 + i * 110)); }
+  }
+  let begroet = false;
+
+  function maakStuk(id, T, px, py) {
+    const haak = document.createElement('span'); haak.className = 'gs-haak';
+    const el = document.createElement('div'); el.className = 'gs gs-' + id;
+    el.style.width = T.w + 'px'; el.style.height = T.h + 'px';
+    el.style.transformOrigin = T.px + 'px ' + T.py + 'px';
+    el.innerHTML = `<svg viewBox="0 0 ${T.w} ${T.h}" width="${T.w}" height="${T.h}" aria-hidden="true" focusable="false">${T.svg}</svg>`;
+    laag.appendChild(el); laag.appendChild(haak);
+    const s = { id, T, el, haak, px, py, a: 0, v: 0, sleep: false, bel: el.querySelector('.bel'), vorig: [px, py] };
+    zet(s); stukken.push(s);
+
+    el.addEventListener('pointerenter', e => {
+      if (e.pointerType !== 'mouse' || s.sleep || reduce) return;
+      const nu = performance.now();
+      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.v) > 300) return;
+      s.laatsteDuw = nu;
+      const mx = e.movementX || (e.clientX - pivotScherm(s).x) / 4;
+      duw(s, (mx > 0 ? -1 : 1) * (14 + Math.min(1, Math.abs(mx) / 25) * 30));
+    });
+    el.addEventListener('mousedown', e => e.preventDefault());
+    el.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const p = pivotScherm(s);
+      s.start = { x: e.clientX, y: e.clientY, dx: e.clientX - p.x, dy: e.clientY - p.y, t: e.pointerType };
+      s.bewogen = false;
+      if (e.pointerType === 'mouse' || e.pointerType === 'pen') { el.setPointerCapture(e.pointerId); e.preventDefault(); }
+    });
+    el.addEventListener('pointermove', e => {
+      if (!s.start || s.start.t === 'touch') return;
+      if (!s.bewogen && Math.hypot(e.clientX - s.start.x, e.clientY - s.start.y) < 5) return;
+      if (!s.bewogen) { s.bewogen = true; s.sleep = true; s.vorig = [s.px, s.py]; el.classList.add('sleept'); haak.style.opacity = '0'; document.documentElement.classList.add('gs-sleept'); const sel = window.getSelection && window.getSelection(); if (sel) sel.removeAllRanges(); }
+      const W = breedte(), H = hoogte();
+      const nx = Math.min(W - (T.w - T.px), Math.max(T.px, e.clientX + window.scrollX - s.start.dx));
+      const ny = Math.min(H - (T.h - T.py), Math.max(T.py, e.clientY + window.scrollY - s.start.dy));
+      if (!reduce) s.v += (nx - s.px) * 7 * Math.cos(s.a / GRAAD) - (ny - s.py) * 7 * Math.sin(s.a / GRAAD);
+      s.px = nx; s.py = ny; zet(s); start(s);
+    });
+    const los = e => {
+      if (!s.start) return;
+      if (!s.bewogen) {
+        s.laatsteDuw = performance.now();
+        // zwaait hij al, dan geeft een klik extra vaart in dezelfde richting, zoals een schommel aanduwen
+        const richting = Math.abs(s.v) > 30 ? Math.sign(s.v) : (e.clientX > pivotScherm(s).x ? 1 : -1);
+        duw(s, richting * (Math.abs(s.v) > 30 ? 320 : 160));
+      } else {
+        const lijst = hindernissen();
+        const plek = vrijGaatje(T, s.px, s.py, s, lijst) || s.vorig;
+        s.px = plek[0]; s.py = plek[1];
+        s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; document.documentElement.classList.remove('gs-sleept');
+        zet(s); start(s);
+        opgeslagen[PAGINA] = opgeslagen[PAGINA] || {};
+        opgeslagen[PAGINA][id] = [Math.round(s.px - breedte() / 2), Math.round(s.py)];
+        bewaar();
+      }
+      s.start = null;
+    };
+    el.addEventListener('pointerup', los);
+    el.addEventListener('pointercancel', () => { s.start = null; document.documentElement.classList.remove('gs-sleept'); if (s.sleep) { s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; s.px = s.vorig[0]; s.py = s.vorig[1]; zet(s); } });
+  }
+
+  function pivotScherm(s) { return { x: s.px - window.scrollX, y: s.py - window.scrollY }; }
+  function zet(s) {
+    s.el.style.left = (s.px - s.T.px) + 'px';
+    s.el.style.top = (s.py - s.T.py) + 'px';
+    s.el.style.transform = 'rotate(' + s.a.toFixed(2) + 'deg)';
+    s.haak.style.left = s.px + 'px'; s.haak.style.top = s.py + 'px';
+    if (s.bel) s.bel.setAttribute('cx', (138 - Math.max(-13, Math.min(13, s.a * 1.6))).toFixed(1));
+  }
+  function duw(s, v) { if (reduce) return; s.v = Math.max(-2400, Math.min(2400, s.v + v)); start(s); }
+  function start(s) { actief.add(s); if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); } }
+  function tik(t) {
+    const dt = Math.min(0.04, (t - laatste) / 1000); laatste = t;
+    for (const s of actief) {
+      if (!reduce) {
+        // slinger: zwaartekracht trekt naar beneden, demping laat hem rustig uitzwaaien
+        const stappen = 4, h = dt / stappen;
+        for (let i = 0; i < stappen; i++) { s.v += (-38 * GRAAD * Math.sin(s.a / GRAAD) - 1.3 * s.v) * h; s.a += s.v * h; }
+        s.a = ((s.a + 180) % 360 + 360) % 360 - 180;   // na een rondje over de kop weer netjes tussen -180 en 180
+      }
+      zet(s);
+      if (!s.sleep && Math.abs(s.a) < 0.05 && Math.abs(s.v) < 0.08) { s.a = 0; s.v = 0; zet(s); actief.delete(s); }
+    }
+    if (actief.size) requestAnimationFrame(tik); else loopt = false;
+  }
+  // als de pagina verandert (bijvoorbeeld een nieuw paneel), schuift gereedschap opzij
+  function ruimOp() {
+    laag.style.height = hoogte() + 'px';
+    const lijst = hindernissen();
+    for (const s of stukken) {
+      if (s.sleep) continue;
+      if (!botst(kader(s.T, s.px, s.py), lijst, 4)) continue;
+      const plek = vrijGaatje(s.T, s.px, s.py, s, lijst);
+      if (plek) { s.px = plek[0]; s.py = plek[1]; zet(s); duw(s, 40); }
+      else { s.el.style.display = 'none'; s.haak.style.display = 'none'; }
+    }
+  }
+  setInterval(ruimOp, 1500);
+
+  let wachtR = null, oudeB = breedte();
+  window.addEventListener('resize', () => { if (breedte() === oudeB) return; oudeB = breedte(); clearTimeout(wachtR); wachtR = setTimeout(bouw, 200); });
+  window.gereedschapTerug = () => { delete opgeslagen[PAGINA]; bewaar(); bouw(); stukken.forEach(s => duw(s, (Math.random() - .5) * 60)); };
+  bouw();
+  window.addEventListener('load', bouw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(bouw);
+})();
+
+</script>
+<script>
+(function () {
+  // Veerkrachtige hover-animaties. Elke keer dat je muis een element raakt, krijgt het
+  // meteen een zetje. Een veer brengt het daarna altijd rustig terug naar zijn plek.
+  // Er wordt nooit een animatie opnieuw gestart, dus het blijft vloeiend, ook als je
+  // snel heen en weer gaat of op het randje blijft hangen.
+  const SOORTEN = [
+    // [selector, soort]
+    ['.stempel', 'stempel'],
+    ['.label', 'zwaai'],
+    ['.briefje', 'zwaai'],
+    ['.tape', 'wiebel'],
+    ['h2 > span', 'wiebel'],
+    ['.versie', 'wiebel'],
+    ['.legenda li', 'hop'],
+    ['.dag b', 'hop'],
+  ];
+  // veren per soort: k = stijfheid, d = demping, max = grootste uitslag
+  const VEER = {
+    wiebel: { a: { k: 90, d: 7, max: 4, duw: 70 }, y: { k: 160, d: 13, max: 5, duw: 90 } },
+    zwaai: { a: { k: 26, d: 2.4, max: 5, duw: 34 } },
+    hop: { a: { k: 120, d: 9, max: 5, duw: 60 }, y: { k: 170, d: 12, max: 6, duw: 120 } },
+    stempel: { a: { k: 130, d: 9, max: 9, duw: 120 }, s: { k: 220, d: 14, max: 0.16, duw: 3 } },
+    icoon: { a: { k: 110, d: 8, max: 7, duw: 80 }, y: { k: 150, d: 11, max: 7, duw: 130 } },
+  };
+  const KIES = SOORTEN.map(s => s[0]).join(', ');
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+
+  const staat = new WeakMap();
+  const actief = new Set();
+  let loopt = false, laatste = 0;
+
+  function soortVan(el) { for (const [sel, s] of SOORTEN) if (el.matches(sel)) return s; return null; }
+  function st(el, soort) {
+    let s = staat.get(el);
+    if (!s) { s = { el, soort, a: 0, va: 0, y: 0, vy: 0, s: 0, vs: 0, rust: 0 }; staat.set(el, s); }
+    return s;
+  }
+  function zet(s) {
+    if (Math.abs(s.a) < 0.01 && Math.abs(s.y) < 0.01 && Math.abs(s.s) < 0.0005) { s.el.style.transform = ''; return; }
+    s.el.style.transform = `translateY(${s.y.toFixed(2)}px) rotate(calc(var(--r, 0deg) + ${s.a.toFixed(3)}deg)) scale(${(1 + s.s).toFixed(4)})`;
+  }
+  function duw(el, soort, richting, kracht) {
+    const s = st(el, soort), V = VEER[soort];
+    kracht = kracht == null ? 1 : kracht;
+    if (V.a) s.va += richting * V.a.duw * kracht;
+    if (V.y) s.vy -= V.y.duw * kracht;
+    if (V.s) s.vs += V.s.duw * kracht;
+    actief.add(s);
+    if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); }
+  }
+  const klem = (v, m) => Math.max(-m, Math.min(m, v));
+  function stap(x, v, V, dt) { v += (-V.k * x - V.d * v) * dt; x += v * dt; if (Math.abs(x) > V.max) { x = klem(x, V.max); v *= 0.5; } return [x, v]; }
+  function tik(t) {
+    const dt = Math.min(0.033, (t - laatste) / 1000); laatste = t;
+    for (const s of actief) {
+      const V = VEER[s.soort];
+      if (V.a) [s.a, s.va] = stap(s.a, s.va, V.a, dt);
+      if (V.y) [s.y, s.vy] = stap(s.y, s.vy, V.y, dt);
+      if (V.s) [s.s, s.vs] = stap(s.s, s.vs, V.s, dt);
+      zet(s);
+      if (Math.abs(s.a) + Math.abs(s.va) / 20 < 0.02 && Math.abs(s.y) + Math.abs(s.vy) / 20 < 0.02 && Math.abs(s.s) + Math.abs(s.vs) / 20 < 0.0008) {
+        s.a = s.va = s.y = s.vy = s.s = s.vs = 0; zet(s); actief.delete(s);
+      }
+    }
+    if (actief.size) requestAnimationFrame(tik); else loopt = false;
+  }
+
+  document.addEventListener('pointerover', e => {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    const el = e.target.closest && e.target.closest(KIES);
+    if (!el || (e.relatedTarget && el.contains(e.relatedTarget))) return;
+    const soort = soortVan(el); if (!soort) return;
+    const s = st(el, soort), nu = performance.now();
+    if (nu - s.rust < 120) return;   // tegen haperen op het randje
+    s.rust = nu;
+    const mx = e.movementX || 0;
+    const kracht = 0.55 + Math.min(1, Math.abs(mx) / 30) * 0.65;   // snel langs = iets meer zwaai
+    duw(el, soort, mx >= 0 ? -1 : 1, kracht);
+    if (soort === 'zwaai') { const ic = el.querySelector('.label-icoon svg'); if (ic) duw(ic, 'icoon', mx >= 0 ? 1 : -1, kracht); }
+  });
+
+  // binnenkomst: labels zwaaien even als de pagina opent
+  if (window.name !== 'voorbeeld') document.querySelectorAll('.label').forEach((l, i) => setTimeout(() => duw(l, 'zwaai', i % 2 ? 1 : -1, 1.6), 250 + i * 160));
+})();
+
+</script>
+</body>
+</html>

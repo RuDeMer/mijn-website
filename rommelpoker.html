@@ -322,6 +322,118 @@ body { position: relative; }
   </section>
 </div>
 <script>
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+  window.Scorebord = API;
+})();
+
+</script>
+<script>
 // ===== Rommelpoker engine (geen DOM) =====
 const KLEUREN = ['h', 'r', 's', 'k'];
 const KLEURTEKEN = { h: '♥', r: '♦', s: '♠', k: '♣' };
@@ -562,6 +674,8 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
   let rec = { verst: 0, beste: 0 };
   try { const r = localStorage.getItem(RKEY); if (r) rec = Object.assign(rec, JSON.parse(r)); } catch (e) {}
   const bewaarRec = () => { try { localStorage.setItem(RKEY, JSON.stringify(rec)); } catch (e) {} };
+  // je record naar het scorebord (alleen als je meedoet): verst gekomen, en bij gelijke stand je beste hand
+  const stuurRec = () => { if (window.Scorebord && rec.verst > 0) Scorebord.stuur('poker', rec.verst, Math.round(rec.beste)); };
 
   const SKEY = 'rommelpoker-spel-v2';
   let S = { fase: 'start' };
@@ -708,14 +822,14 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
     const som = regels.reduce((a, r) => a + r[1], 0);
     S.munten += som;
     S.snuis.forEach(sn => { const d = SNUIS[sn.id]; if (d.naRonde) d.naRonde(sn); });
-    rec.verst = Math.max(rec.verst, S.i + 1); bewaarRec();
+    rec.verst = Math.max(rec.verst, S.i + 1); bewaarRec(); stuurRec();
     S.uitslag = { regels, score: S.score, doel: k.doel };
     S.fase = k.eind && !S.eindeloos ? 'gewonnen' : 'uitslag';
     render();
   }
   function verloren() {
     S.fase = 'verloren';
-    rec.verst = Math.max(rec.verst, S.i); bewaarRec();
+    rec.verst = Math.max(rec.verst, S.i); bewaarRec(); stuurRec();
     render();
   }
 
@@ -917,6 +1031,7 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
       <p>Je trekt langs acht markten. Op elke markt staan drie kraampjes: een kleine kraam, een grote kraam en een baas. Bij elk kraampje moet je een doelscore halen door pokerhanden te spelen.</p>
       <p>Na elk kraampje krijg je munten. Daarmee koop je snuisterijen: rare spulletjes die je punten flink opkrikken. Elke baas heeft een eigen lastige regel, en hoe verder je komt, hoe hoger de doelen.</p>
       ${rec.verst ? `<p class="record">Jouw record: ${rec.verst} kraampjes gehaald, beste hand ${fmt(rec.beste)} punten.</p>` : ''}
+      <div id="sb-poker" hidden></div>
       <div class="rij-knoppen">
         ${bewaard ? `<button class="knop hoofd" data-a="hervat">Verder spelen: ${marktLabel(bewaard.markt[bewaard.i].markt).toLowerCase()}</button><button class="knop licht" data-a="nieuw">Nieuw spel</button>` : '<button class="knop hoofd" data-a="nieuw">Begin met spelen</button>'}
       </div>
@@ -937,6 +1052,7 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
         <li><span>Beste hand dit spel</span><b>${fmt(S.beste)}</b></li>
         <li><span>Jouw record</span><b>${rec.verst} kraampjes, ${fmt(rec.beste)} punten</b></li>
       </ul>
+      <div id="sb-poker" hidden></div>
       <div class="rij-knoppen">${w ? '<button class="knop hoofd" data-a="door">Speel eindeloos door</button><button class="knop licht" data-a="nieuw">Opnieuw spelen</button>' : '<button class="knop hoofd" data-a="nieuw">Opnieuw spelen</button>'}</div>
     </section>`;
   }
@@ -964,6 +1080,7 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
       case 'gewonnen': h = eindHTML(true); break;
     }
     R.innerHTML = h;
+    if (window.Scorebord && document.getElementById('sb-poker')) Scorebord.blokje(document.getElementById('sb-poker'), 'je record');
     let hersteld = false;
     if (sleutel) {
       for (const el of R.querySelectorAll(`[data-a="${sleutel[0]}"]`)) {

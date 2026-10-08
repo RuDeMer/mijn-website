@@ -271,6 +271,7 @@ body {
 .rek.zijkant { position: absolute; top: 7rem; height: 50rem; width: calc((100% - var(--inhoud)) / 2 - 2rem); display: none; z-index: 0; }
 .rek.zijkant.links { left: 1rem; }
 .rek.zijkant.rechts { right: 1rem; }
+.muurlaag { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 3; }
 .gs { position: absolute; pointer-events: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(3px 5px 0 rgba(0,0,0,.25)); z-index: 1; }
 .gs svg { display: block; pointer-events: none; overflow: visible; }
 .gs svg * { pointer-events: visiblePainted; cursor: grab; }
@@ -278,28 +279,14 @@ body {
 .gs.sleept svg * { cursor: grabbing; }
 .gs-haak { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #A8B3CC; box-shadow: 0 2px 0 rgba(0,0,0,.45); pointer-events: none; z-index: 2; transition: opacity .2s; }
 @media (pointer: coarse) { .gs svg * { cursor: pointer; } }
+.gs-sleept, .gs-sleept * { -webkit-user-select: none !important; user-select: none !important; cursor: grabbing !important; }
 
 :root { --inhoud: 60rem; }
 body { position: relative; }
 .wrap { position: relative; z-index: 1; }
 @media (min-width: 1320px) { .rek.zijkant { display: block; } }
-@media (prefers-reduced-motion: no-preference) {
-  .label.binnen { animation: binnen 1.6s cubic-bezier(.37, 0, .63, 1) both; }
-  @keyframes binnen { 0% { transform: rotate(6deg); } 30% { transform: rotate(-3.5deg); } 55% { transform: rotate(1.8deg); } 78% { transform: rotate(-.7deg); } 100% { transform: rotate(0); } }
-  .w-zwaai { animation: w-zwaai 1.6s cubic-bezier(.37, 0, .63, 1); }
-  @keyframes w-zwaai { 0% { transform: rotate(0); } 22% { transform: rotate(-2.4deg); } 48% { transform: rotate(1.6deg); } 72% { transform: rotate(-.7deg); } 100% { transform: rotate(0); } }
-  .w-zwaai .label-icoon svg { animation: w-hop .8s cubic-bezier(.37, 0, .63, 1) .1s; }
-  .w-papier { animation: w-papier 1.4s cubic-bezier(.37, 0, .63, 1); }
-  @keyframes w-papier { 0% { transform: rotate(var(--r, 0deg)); } 25% { transform: rotate(calc(var(--r, 0deg) + 2.2deg)); } 52% { transform: rotate(calc(var(--r, 0deg) - 1.6deg)); } 76% { transform: rotate(calc(var(--r, 0deg) + .6deg)); } 100% { transform: rotate(var(--r, 0deg)); } }
-  .w-wiebel { animation: w-wiebel 1s cubic-bezier(.37, 0, .63, 1); }
-  @keyframes w-wiebel { 0% { transform: rotate(var(--r, 0deg)); } 28% { transform: translateY(-3px) rotate(calc(var(--r, 0deg) - 1.4deg)); } 58% { transform: translateY(-1.5px) rotate(calc(var(--r, 0deg) + 1deg)); } 82% { transform: rotate(calc(var(--r, 0deg) - .3deg)); } 100% { transform: rotate(var(--r, 0deg)); } }
-  .w-hop { animation: w-hop .8s cubic-bezier(.37, 0, .63, 1); }
-  @keyframes w-hop { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 38% { transform: translateY(-5px) rotate(calc(var(--r, 0deg) - 5deg)); } 70% { transform: translateY(0) rotate(calc(var(--r, 0deg) + 2deg)); } }
-  .w-stempel { animation: w-stempel .7s cubic-bezier(.37, 0, .63, 1); }
-  @keyframes w-stempel { 0%, 100% { transform: rotate(var(--r, 0deg)) scale(1); } 35% { transform: rotate(calc(var(--r, 0deg) - 7deg)) scale(1.15); } 70% { transform: rotate(calc(var(--r, 0deg) + 1.5deg)) scale(.97); } }
-  .legenda li, .dag b { display: inline-flex; }
-  .dag b { display: inline-block; }
-}
+.dag b { display: inline-block; }
+.label-icoon svg { transform-origin: 50% 80%; }
 
 </style>
 </head>
@@ -1050,67 +1037,116 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
   };
 
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const fijn = window.matchMedia && matchMedia('(pointer: fine)').matches;
   const G = +(document.body.dataset.gat || 30), OFF = G / 2;
   const PAGINA = document.body.dataset.pagina || location.pathname;
-  const KEY = 'gereedschap-v1';
+  const KEY = 'gereedschap-v2';
+  // dingen waar gereedschap nooit overheen mag hangen
+  const HINDER = 'h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
   let opgeslagen = {};
   try { opgeslagen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { opgeslagen = {}; }
   const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opgeslagen)); } catch (e) {} };
 
+  const laag = document.createElement('div');
+  laag.className = 'muurlaag'; laag.setAttribute('aria-hidden', 'true');
+  laag.style.cssText = 'position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:3;';
+  document.body.prepend(laag);
+  const stijl = document.createElement('style');
+  stijl.textContent = '.gs-sleept, .gs-sleept * { -webkit-user-select: none !important; user-select: none !important; cursor: grabbing !important; }';
+  document.head.appendChild(stijl);
+
   const stukken = [];
   const actief = new Set();
   let laatste = 0, loopt = false;
+  const snap = v => Math.round((v - OFF) / G) * G + OFF;
+  const breedte = () => document.documentElement.clientWidth;
+  const hoogte = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
-  const snap = (v, basis) => Math.round((basis + v - OFF) / G) * G + OFF - basis;
-
-  function bouwZone(zone) {
-    zone.querySelectorAll('.gs, .gs-haak').forEach(e => e.remove());
-    const r = zone.getBoundingClientRect();
-    if (r.width < 40 || r.height < 40 || getComputedStyle(zone).display === 'none') return;
-    const bx = r.left + window.scrollX, by = r.top + window.scrollY;
-    const ids = (zone.dataset.gereedschap || '').split(',').map(s => s.trim()).filter(id => GEREEDSCHAP[id]);
-    const zid = zone.id || 'zone';
-    const bewaard = (opgeslagen[PAGINA] || {})[zid] || {};
-    let x = 12, y = 14, rij = 0;
-    for (const id of ids) {
-      const T = GEREEDSCHAP[id];
-      if (x + T.w > r.width - 8) { x = 12; y += rij + 34; rij = 0; }
-      let px, py;
-      const b = bewaard[id];
-      if (b && b[0] >= T.px && b[0] <= r.width - (T.w - T.px) && b[1] >= T.py && b[1] <= r.height - (T.h - T.py)) { px = b[0]; py = b[1]; }
-      else {
-        if (y + T.h > r.height) continue;
-        px = x + T.px; py = y + T.py;
-        x += T.w + 26; rij = Math.max(rij, T.h);
+  function hindernissen() {
+    const sx = window.scrollX, sy = window.scrollY, uit = [];
+    document.querySelectorAll(HINDER).forEach(el => {
+      if (laag.contains(el)) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      uit.push({ l: r.left + sx, t: r.top + sy, r: r.right + sx, b: r.bottom + sy });
+    });
+    return uit;
+  }
+  function kader(T, px, py) { return { l: px - T.px, t: py - T.py, r: px - T.px + T.w, b: py - T.py + T.h }; }
+  function botst(k, lijst, marge) { return lijst.some(h => k.l < h.r + marge && k.r > h.l - marge && k.t < h.b + marge && k.b > h.t - marge); }
+  function past(T, px, py, lijst, zelf) {
+    const k = kader(T, px, py);
+    if (k.l < 2 || k.r > breedte() - 2 || k.t < 2) return false;
+    if (botst(k, lijst, 8)) return false;
+    return !stukken.some(s => s !== zelf && botst(k, [kader(s.T, s.px, s.py)], 4));
+  }
+  // zoek het dichtstbijzijnde vrije gaatje rond (x, y)
+  function vrijGaatje(T, x, y, zelf, lijst) {
+    x = snap(x); y = snap(y);
+    if (past(T, x, y, lijst, zelf)) return [x, y];
+    for (let ring = 1; ring <= 14; ring++) {
+      let beste = null, bd = Infinity;
+      for (let dx = -ring; dx <= ring; dx++) for (let dy = -ring; dy <= ring; dy++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+        const cx = x + dx * G, cy = y + dy * G, d = dx * dx + dy * dy;
+        if (d < bd && past(T, cx, cy, lijst, zelf)) { beste = [cx, cy]; bd = d; }
       }
-      px = snap(px, bx); py = snap(py, by);
-      maakStuk(zone, zid, id, T, px, py, r.width, r.height);
+      if (beste) return beste;
     }
+    return null;
   }
 
-  function maakStuk(zone, zid, id, T, px, py, W, H) {
-    const haak = document.createElement('span');
-    haak.className = 'gs-haak';
-    const el = document.createElement('div');
-    el.className = 'gs gs-' + id;
+  function bouw() {
+    laag.innerHTML = ''; stukken.length = 0; actief.clear();
+    laag.style.height = hoogte() + 'px';
+    const lijst = hindernissen(), W = breedte(), midden = W / 2;
+    const bewaard = opgeslagen[PAGINA] || {};
+    const zones = Array.from(document.querySelectorAll('.rek[data-gereedschap]')).sort((p, q) => p.classList.contains('zijkant') - q.classList.contains('zijkant'));
+    zones.forEach(zone => {
+      const r = zone.getBoundingClientRect();
+      if (r.width < 40 || r.height < 40) return;
+      const bx = r.left + window.scrollX, by = r.top + window.scrollY;
+      const ids = (zone.dataset.gereedschap || '').split(',').map(s => s.trim()).filter(id => GEREEDSCHAP[id]);
+      let x = 12, y = 14, rij = 0;
+      for (const id of ids) {
+        if (stukken.some(s => s.id === id)) continue;
+        const T = GEREEDSCHAP[id];
+        let plek = null;
+        const b = bewaard[id];
+        if (b) { const px = snap(midden + b[0]), py = snap(b[1]); if (past(T, px, py, lijst, null)) plek = [px, py]; }
+        if (!plek) {
+          if (x + T.w > r.width - 8) { x = 12; y += rij + 34; rij = 0; }
+          if (y + T.h > r.height) continue;
+          const px = snap(bx + x + T.px), py = snap(by + y + T.py);
+          x += T.w + 26; rij = Math.max(rij, T.h);
+          plek = past(T, px, py, lijst, null) ? [px, py] : vrijGaatje(T, px, py, null, lijst);
+          if (!plek) continue;
+        }
+        maakStuk(id, T, plek[0], plek[1]);
+      }
+    });
+    if (!begroet && !reduce && stukken.length && window.name !== 'voorbeeld') { begroet = true; stukken.forEach((s, i) => setTimeout(() => duw(s, (i % 2 ? 1 : -1) * (14 + Math.random() * 14)), 300 + i * 110)); }
+  }
+  let begroet = false;
+
+  function maakStuk(id, T, px, py) {
+    const haak = document.createElement('span'); haak.className = 'gs-haak';
+    const el = document.createElement('div'); el.className = 'gs gs-' + id;
     el.style.width = T.w + 'px'; el.style.height = T.h + 'px';
     el.style.transformOrigin = T.px + 'px ' + T.py + 'px';
     el.innerHTML = `<svg viewBox="0 0 ${T.w} ${T.h}" width="${T.w}" height="${T.h}" aria-hidden="true" focusable="false">${T.svg}</svg>`;
-    zone.appendChild(el); zone.appendChild(haak);
-    const s = { id, T, el, haak, zone, zid, W, H, px, py, a: 0, v: 0, sleep: false, bel: el.querySelector('.bel') };
-    zet(s);
-    stukken.push(s);
+    laag.appendChild(el); laag.appendChild(haak);
+    const s = { id, T, el, haak, px, py, a: 0, v: 0, sleep: false, bel: el.querySelector('.bel'), vorig: [px, py] };
+    zet(s); stukken.push(s);
 
     el.addEventListener('pointerenter', e => {
-      if (e.pointerType !== 'mouse' || s.sleep) return;
-      // alleen een zetje als het gereedschap (bijna) stil hangt en niet net al geduwd is
+      if (e.pointerType !== 'mouse' || s.sleep || reduce) return;
       const nu = performance.now();
-      if (Math.abs(s.a) > 3 || Math.abs(s.v) > 15 || nu - (s.laatsteDuw || 0) < 900) return;
+      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.a) > 14) return;
       s.laatsteDuw = nu;
-      const snel = Math.min(1, Math.abs(e.movementX || 0) / 25);
-      duw(s, ((e.movementX || (e.clientX - pivotScherm(s).x)) > 0 ? -1 : 1) * (18 + 22 * snel));
+      const mx = e.movementX || (e.clientX - pivotScherm(s).x) / 4;
+      duw(s, (mx > 0 ? -1 : 1) * (14 + Math.min(1, Math.abs(mx) / 25) * 30));
     });
+    el.addEventListener('mousedown', e => e.preventDefault());
     el.addEventListener('pointerdown', e => {
       if (e.button !== 0) return;
       const p = pivotScherm(s);
@@ -1121,39 +1157,35 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
     el.addEventListener('pointermove', e => {
       if (!s.start || s.start.t === 'touch') return;
       if (!s.bewogen && Math.hypot(e.clientX - s.start.x, e.clientY - s.start.y) < 5) return;
-      if (!s.bewogen) { s.bewogen = true; s.sleep = true; el.classList.add('sleept'); haak.style.opacity = '0'; }
-      const zr = zone.getBoundingClientRect();
-      const nx = Math.min(W - (T.w - T.px), Math.max(T.px, e.clientX - s.start.dx - zr.left));
-      const ny = Math.min(H - (T.h - T.py), Math.max(T.py, e.clientY - s.start.dy - zr.top));
+      if (!s.bewogen) { s.bewogen = true; s.sleep = true; s.vorig = [s.px, s.py]; el.classList.add('sleept'); haak.style.opacity = '0'; document.documentElement.classList.add('gs-sleept'); const sel = window.getSelection && window.getSelection(); if (sel) sel.removeAllRanges(); }
+      const W = breedte(), H = hoogte();
+      const nx = Math.min(W - (T.w - T.px), Math.max(T.px, e.clientX + window.scrollX - s.start.dx));
+      const ny = Math.min(H - (T.h - T.py), Math.max(T.py, e.clientY + window.scrollY - s.start.dy));
       if (!reduce) s.v += (nx - s.px) * 6;
-      s.px = nx; s.py = ny;
-      zet(s); start(s);
+      s.px = nx; s.py = ny; zet(s); start(s);
     });
     const los = e => {
       if (!s.start) return;
       if (!s.bewogen) {
-        const p = pivotScherm(s);
         s.laatsteDuw = performance.now();
-        duw(s, (e.clientX > p.x ? 1 : -1) * 110);
+        duw(s, (e.clientX > pivotScherm(s).x ? 1 : -1) * 110);
       } else {
-        const zr = zone.getBoundingClientRect();
-        const bx = zr.left + window.scrollX, by = zr.top + window.scrollY;
-        s.px = Math.min(W - (T.w - T.px), Math.max(T.px, snap(s.px, bx)));
-        s.py = Math.min(H - (T.h - T.py), Math.max(T.py, snap(s.py, by)));
-        s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = '';
+        const lijst = hindernissen();
+        const plek = vrijGaatje(T, s.px, s.py, s, lijst) || s.vorig;
+        s.px = plek[0]; s.py = plek[1];
+        s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; document.documentElement.classList.remove('gs-sleept');
         zet(s); start(s);
         opgeslagen[PAGINA] = opgeslagen[PAGINA] || {};
-        opgeslagen[PAGINA][zid] = opgeslagen[PAGINA][zid] || {};
-        opgeslagen[PAGINA][zid][id] = [Math.round(s.px), Math.round(s.py)];
+        opgeslagen[PAGINA][id] = [Math.round(s.px - breedte() / 2), Math.round(s.py)];
         bewaar();
       }
       s.start = null;
     };
     el.addEventListener('pointerup', los);
-    el.addEventListener('pointercancel', () => { s.start = null; if (s.sleep) { s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; } });
+    el.addEventListener('pointercancel', () => { s.start = null; document.documentElement.classList.remove('gs-sleept'); if (s.sleep) { s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; s.px = s.vorig[0]; s.py = s.vorig[1]; zet(s); } });
   }
 
-  function pivotScherm(s) { const zr = s.zone.getBoundingClientRect(); return { x: zr.left + s.px, y: zr.top + s.py }; }
+  function pivotScherm(s) { return { x: s.px - window.scrollX, y: s.py - window.scrollY }; }
   function zet(s) {
     s.el.style.left = (s.px - s.T.px) + 'px';
     s.el.style.top = (s.py - s.T.py) + 'px';
@@ -1161,87 +1193,125 @@ const icoon = id => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fals
     s.haak.style.left = s.px + 'px'; s.haak.style.top = s.py + 'px';
     if (s.bel) s.bel.setAttribute('cx', (138 - Math.max(-13, Math.min(13, s.a * 1.6))).toFixed(1));
   }
-  function duw(s, v) { if (reduce) return; s.v += v; start(s); }
+  function duw(s, v) { if (reduce) return; s.v = Math.max(-220, Math.min(220, s.v + v)); start(s); }
   function start(s) { actief.add(s); if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); } }
   function tik(t) {
     const dt = Math.min(0.04, (t - laatste) / 1000); laatste = t;
     for (const s of actief) {
-      if (!reduce) {
-        s.v += (-38 * s.a - 2.6 * s.v) * dt;
-        s.a = Math.max(-45, Math.min(45, s.a + s.v * dt));
-      }
+      if (!reduce) { s.v += (-38 * s.a - 2.6 * s.v) * dt; s.a = Math.max(-45, Math.min(45, s.a + s.v * dt)); }
       zet(s);
       if (!s.sleep && Math.abs(s.a) < 0.05 && Math.abs(s.v) < 0.08) { s.a = 0; s.v = 0; zet(s); actief.delete(s); }
     }
     if (actief.size) requestAnimationFrame(tik); else loopt = false;
   }
-
-  let begroet = false;
-  function alles() {
-    stukken.length = 0; actief.clear();
-    document.querySelectorAll('.rek[data-gereedschap]').forEach(bouwZone);
-    if (!begroet && !reduce && stukken.length && window.name !== 'voorbeeld') { begroet = true; stukken.forEach((s, i) => setTimeout(() => duw(s, (i % 2 ? 1 : -1) * (14 + Math.random() * 14)), 300 + i * 110)); }
+  // als de pagina verandert (bijvoorbeeld een nieuw paneel), schuift gereedschap opzij
+  function ruimOp() {
+    laag.style.height = hoogte() + 'px';
+    const lijst = hindernissen();
+    for (const s of stukken) {
+      if (s.sleep) continue;
+      if (!botst(kader(s.T, s.px, s.py), lijst, 4)) continue;
+      const plek = vrijGaatje(s.T, s.px, s.py, s, lijst);
+      if (plek) { s.px = plek[0]; s.py = plek[1]; zet(s); duw(s, 40); }
+      else { s.el.style.display = 'none'; s.haak.style.display = 'none'; }
+    }
   }
-  let wacht = null, breedte = window.innerWidth;
-  window.addEventListener('resize', () => { if (window.innerWidth === breedte) return; breedte = window.innerWidth; clearTimeout(wacht); wacht = setTimeout(alles, 200); });
-  window.gereedschapTerug = () => { delete opgeslagen[PAGINA]; bewaar(); alles(); stukken.forEach(s => duw(s, (Math.random() - .5) * 60)); };
-  alles();
-  window.addEventListener('load', alles);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(alles);
+  setInterval(ruimOp, 1500);
+
+  let wachtR = null, oudeB = breedte();
+  window.addEventListener('resize', () => { if (breedte() === oudeB) return; oudeB = breedte(); clearTimeout(wachtR); wachtR = setTimeout(bouw, 200); });
+  window.gereedschapTerug = () => { delete opgeslagen[PAGINA]; bewaar(); bouw(); stukken.forEach(s => duw(s, (Math.random() - .5) * 60)); };
+  bouw();
+  window.addEventListener('load', bouw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(bouw);
 })();
 
 </script>
 <script>
 (function () {
-  // Decoratieve hover-animaties. Elke animatie speelt één keer helemaal af en kan pas
-  // daarna opnieuw starten. Zo gaat hij niet haperen als het element onder de muis
-  // vandaan beweegt of als je muis op het randje staat.
+  // Veerkrachtige hover-animaties. Elke keer dat je muis een element raakt, krijgt het
+  // meteen een zetje. Een veer brengt het daarna altijd rustig terug naar zijn plek.
+  // Er wordt nooit een animatie opnieuw gestart, dus het blijft vloeiend, ook als je
+  // snel heen en weer gaat of op het randje blijft hangen.
   const SOORTEN = [
+    // [selector, soort]
     ['.stempel', 'stempel'],
     ['.label', 'zwaai'],
-    ['.briefje', 'papier'],
+    ['.briefje', 'zwaai'],
     ['.tape', 'wiebel'],
     ['h2 > span', 'wiebel'],
     ['.versie', 'wiebel'],
     ['.legenda li', 'hop'],
     ['.dag b', 'hop'],
   ];
+  // veren per soort: k = stijfheid, d = demping, max = grootste uitslag
+  const VEER = {
+    wiebel: { a: { k: 90, d: 7, max: 4, duw: 70 }, y: { k: 160, d: 13, max: 5, duw: 90 } },
+    zwaai: { a: { k: 26, d: 2.4, max: 5, duw: 34 } },
+    hop: { a: { k: 120, d: 9, max: 5, duw: 60 }, y: { k: 170, d: 12, max: 6, duw: 120 } },
+    stempel: { a: { k: 130, d: 9, max: 9, duw: 120 }, s: { k: 220, d: 14, max: 0.16, duw: 3 } },
+    icoon: { a: { k: 110, d: 8, max: 7, duw: 80 }, y: { k: 150, d: 11, max: 7, duw: 130 } },
+  };
   const KIES = SOORTEN.map(s => s[0]).join(', ');
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // binnenkomst: labels zwaaien één keer als de pagina opent
-  document.querySelectorAll('.label').forEach((l, i) => {
-    if (reduce) return;
-    l.style.animationDelay = (i * 0.15) + 's';
-    l.classList.add('binnen');
-    l.addEventListener('animationend', function klaar(e) { if (e.target !== l) return; l.classList.remove('binnen'); l.style.animationDelay = ''; l.removeEventListener('animationend', klaar); });
-  });
   if (reduce) return;
 
-  const rust = new WeakMap();
+  const staat = new WeakMap();
+  const actief = new Set();
+  let loopt = false, laatste = 0;
+
   function soortVan(el) { for (const [sel, s] of SOORTEN) if (el.matches(sel)) return s; return null; }
-  function speel(el) {
-    if (el.classList.contains('wiebelt') || el.classList.contains('binnen')) return;
-    if (performance.now() - (rust.get(el) || 0) < 400) return;
-    const s = soortVan(el); if (!s) return;
-    el.classList.add('wiebelt', 'w-' + s);
-    let nood;
-    const klaar = e => {
-      if (e && e.target !== el) return;
-      el.classList.remove('wiebelt', 'w-' + s);
-      rust.set(el, performance.now());
-      el.removeEventListener('animationend', klaar);
-      clearTimeout(nood);
-    };
-    el.addEventListener('animationend', klaar);
-    nood = setTimeout(klaar, 2500);
+  function st(el, soort) {
+    let s = staat.get(el);
+    if (!s) { s = { el, soort, a: 0, va: 0, y: 0, vy: 0, s: 0, vs: 0, rust: 0 }; staat.set(el, s); }
+    return s;
   }
+  function zet(s) {
+    if (Math.abs(s.a) < 0.01 && Math.abs(s.y) < 0.01 && Math.abs(s.s) < 0.0005) { s.el.style.transform = ''; return; }
+    s.el.style.transform = `translateY(${s.y.toFixed(2)}px) rotate(calc(var(--r, 0deg) + ${s.a.toFixed(3)}deg)) scale(${(1 + s.s).toFixed(4)})`;
+  }
+  function duw(el, soort, richting, kracht) {
+    const s = st(el, soort), V = VEER[soort];
+    kracht = kracht == null ? 1 : kracht;
+    if (V.a) s.va += richting * V.a.duw * kracht;
+    if (V.y) s.vy -= V.y.duw * kracht;
+    if (V.s) s.vs += V.s.duw * kracht;
+    actief.add(s);
+    if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); }
+  }
+  const klem = (v, m) => Math.max(-m, Math.min(m, v));
+  function stap(x, v, V, dt) { v += (-V.k * x - V.d * v) * dt; x += v * dt; if (Math.abs(x) > V.max) { x = klem(x, V.max); v *= 0.5; } return [x, v]; }
+  function tik(t) {
+    const dt = Math.min(0.033, (t - laatste) / 1000); laatste = t;
+    for (const s of actief) {
+      const V = VEER[s.soort];
+      if (V.a) [s.a, s.va] = stap(s.a, s.va, V.a, dt);
+      if (V.y) [s.y, s.vy] = stap(s.y, s.vy, V.y, dt);
+      if (V.s) [s.s, s.vs] = stap(s.s, s.vs, V.s, dt);
+      zet(s);
+      if (Math.abs(s.a) + Math.abs(s.va) / 20 < 0.02 && Math.abs(s.y) + Math.abs(s.vy) / 20 < 0.02 && Math.abs(s.s) + Math.abs(s.vs) / 20 < 0.0008) {
+        s.a = s.va = s.y = s.vy = s.s = s.vs = 0; zet(s); actief.delete(s);
+      }
+    }
+    if (actief.size) requestAnimationFrame(tik); else loopt = false;
+  }
+
   document.addEventListener('pointerover', e => {
     if (e.pointerType && e.pointerType !== 'mouse') return;
     const el = e.target.closest && e.target.closest(KIES);
     if (!el || (e.relatedTarget && el.contains(e.relatedTarget))) return;
-    speel(el);
+    const soort = soortVan(el); if (!soort) return;
+    const s = st(el, soort), nu = performance.now();
+    if (nu - s.rust < 120) return;   // tegen haperen op het randje
+    s.rust = nu;
+    const mx = e.movementX || 0;
+    const kracht = 0.55 + Math.min(1, Math.abs(mx) / 30) * 0.65;   // snel langs = iets meer zwaai
+    duw(el, soort, mx >= 0 ? -1 : 1, kracht);
+    if (soort === 'zwaai') { const ic = el.querySelector('.label-icoon svg'); if (ic) duw(ic, 'icoon', mx >= 0 ? 1 : -1, kracht); }
   });
+
+  // binnenkomst: labels zwaaien even als de pagina opent
+  if (window.name !== 'voorbeeld') document.querySelectorAll('.label').forEach((l, i) => setTimeout(() => duw(l, 'zwaai', i % 2 ? 1 : -1, 1.6), 250 + i * 160));
 })();
 
 </script>

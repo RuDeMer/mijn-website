@@ -62,11 +62,20 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Echte andere bezoekers zijn er nog niet; daarvoor is een server nodig.
 - Opslag in localStorage onder `rommelhotel-v1`. Oude opslag met de ruimte `ingang` wordt automatisch omgezet naar `plein`.
 
+## Rommelbeesten
+
+- Eigen verzamelkaartspel in `rommelbeesten.html`: een eigen ontwerp, geen namaak van een bestaand kaartspel. Gebruik geen namen, beesten, kaartontwerpen, symbolen of logo's van bestaande kaartspellen of games.
+- Kaarten staan in `beesten_data.js` (`KAARTEN`, 130 stuks: 120 in de Zolderset en 10 geheime). Elke kaart heeft een eigen beest-recept: lichaamsvorm `v`, kleuren `k`, onderdelen `a`, patroon `pat`, ogen `o` en mond `m`. De tekenmachine (`BT` in `beesten_tekenaar.js`) bouwt daar SVG-tekeningen van. Maak bij een nieuwe kaart altijd een nieuw, uniek beest.
+- Zeldzaamheid `z`: g gewoon, o ongewoon, z zeldzaam, h holo zeldzaam, u ultra zeldzaam (volle kaart), x geheim (goud, volle kaart). Elke kaart kan ook glimmend zijn.
+- Pakjes en kansen staan in `PAKJES`, verkoopwaarden in `WAARDE`, de dagbonus in `BONUS`. Een pakje levert gemiddeld minder op dan het kost; zo blijven de dagbonus en zeldzame kaarten waardevol.
+- Opslag in localStorage onder `rommelbeesten-v1` (`munten`, `bezit` als {id: [normaal, glimmend]}, `dag`, `stats`, `beste`).
+- Het geheime muntenluik: drie keer op de titel tikken en dan twee keer op de muntjes (binnen 6 seconden), of 'rommelrijk' typen. Zet dit nergens op de site.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.
 - Spelers doen alleen mee als ze zelf een naam kiezen. Die staat met een willekeurig geheim in localStorage onder `rommelhoekje-speler`. De server bewaart alleen naam, beste score en een extra getal per spel.
-- Scores sturen: `Scorebord.stuur(spel, score, extra)` met spel `vlaai` (totaal gebakken, extra = per seconde), `woord` (beste reeks, extra = gewonnen) of `poker` (verst gekomen kraampjes, extra = beste hand). `Scorebord.blokje(element, tekst)` toont een meedoen-blokje.
+- Scores sturen: `Scorebord.stuur(spel, score, extra)` met spel `vlaai` (totaal gebakken, extra = per seconde), `woord` (beste reeks, extra = gewonnen) of `poker` (verst gekomen kraampjes, extra = beste hand) of `beest` (verschillende Rommelbeesten verzameld, extra = totaal aantal kaarten). `Scorebord.blokje(element, tekst)` toont een meedoen-blokje.
 - De server is `scorebord-worker.js` (Cloudflare Worker met D1-database als binding `DB` en een geheim `BEHEER` voor beheer). Dat bestand hoort niet op de site, maar in Cloudflare. Endpoints: GET /scores, POST /score, POST /naam, POST /verwijder, DELETE /score (met beheerwachtwoord).
 - Een nieuw spel op het scorebord? Voeg het toe aan `SPELLEN` in de worker en in `scorebord_template.html`.
 

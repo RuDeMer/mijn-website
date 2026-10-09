@@ -40,7 +40,7 @@ body {
 /* het scherm */
 .kast { background: var(--hout); border-radius: 12px; padding: .7rem; border-bottom: 8px solid var(--hout-d); box-shadow: 0 6px 0 rgba(0,0,0,.25); }
 .scherm { position: relative; border-radius: 6px; overflow: hidden; background: #101A33; line-height: 0; }
-#c { display: block; width: 100%; height: auto; aspect-ratio: 480 / 300; image-rendering: pixelated; image-rendering: crisp-edges; cursor: pointer; touch-action: none; }
+#c { display: block; margin: 0 auto; max-width: 100%; width: 100%; height: auto; aspect-ratio: 480 / 300; image-rendering: pixelated; image-rendering: crisp-edges; cursor: pointer; touch-action: none; }
 .laag { position: absolute; inset: 0; pointer-events: none; line-height: 1.3; }
 .bubbel {
   position: absolute; transform: translate(-50%, -100%); max-width: 46%; background: #fff; color: var(--inkt); border: 2px solid var(--inkt);
@@ -374,7 +374,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   const W = 480, H = 300, WH = 72;
   // op kleine schermen kijkt een camera mee met je poppetje, zodat alles groter in beeld is
   let VW = W, VH = H, camX = 0, camY = 0;
-  const cv = $('c'), ctx = cv.getContext('2d');
+  const cv = $('c'), ctx = cv.getContext('2d', { willReadFrequently: true });
   ctx.imageSmoothingEnabled = false;
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -393,7 +393,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function poly(pts, c) {
     let minY = Infinity, maxY = -Infinity, minX = Infinity, maxX = -Infinity;
     for (const p of pts) { if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1]; if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0]; }
-    g.fillStyle = c;
+    const tex = typeof c === 'function';
+    if (!tex) g.fillStyle = c;
     const y0 = Math.ceil(minY - 0.5), y1 = Math.floor(maxY - 0.5);
     if (y1 - y0 > 3000) return;
     for (let y = y0; y <= y1; y++) {
@@ -402,10 +403,24 @@ dialog { max-height: 90vh; overflow-y: auto; }
         const a = pts[i], b = pts[(i + 1) % pts.length];
         if ((a[1] <= yc && b[1] > yc) || (b[1] <= yc && a[1] > yc)) { const x = a[0] + (yc - a[1]) * (b[0] - a[0]) / (b[1] - a[1]); if (x < lo) lo = x; if (x > hi) hi = x; }
       }
-      if (hi > lo) { const xa = Math.round(lo), xb = Math.round(hi); if (xb > xa) g.fillRect(xa, y, xb - xa, 1); }
+      if (hi > lo) {
+        const xa = Math.round(lo), xb = Math.round(hi);
+        if (xb > xa) {
+          if (!tex) g.fillRect(xa, y, xb - xa, 1);
+          else { let start = xa, vorige = c(xa, y); for (let x = xa + 1; x <= xb; x++) { const k = x < xb ? c(x, y) : null; if (k !== vorige) { if (vorige) { g.fillStyle = vorige; g.fillRect(start, y, x - start, 1); } start = x; vorige = k; } } }
+        }
+      }
     }
     bij(minX, minY, maxX, maxY);
   }
+  function lijnP(a, b, c) {
+    let x0 = Math.round(a[0]), y0 = Math.round(a[1]); const x1 = Math.round(b[0]), y1 = Math.round(b[1]);
+    g.fillStyle = c; const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let e = dx + dy, n = 0;
+    for (;;) { g.fillRect(x0, y0, 1, 1); if ((x0 === x1 && y0 === y1) || ++n > 2000) break; const e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } }
+  }
+  const ruis = (a, b) => { let h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >> 13)) * 1274126177 | 0; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
+  const kleurCache = new Map();
+  const kl = (hex, f) => { const k = hex + f; let v = kleurCache.get(k); if (!v) { v = kleur(hex, f); kleurCache.set(k, v); } return v; };
   function ovaal(cx, cy, rx, ry, c) {
     g.fillStyle = c;
     for (let dy = -ry; dy <= ry; dy++) { const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + 0.5)) ** 2))); if (w > 0) g.fillRect(Math.round(cx - w), Math.round(cy + dy), w * 2, 1); }
@@ -415,14 +430,21 @@ dialog { max-height: 90vh; overflow-y: auto; }
   // ---------------------------------------------------------------- isometrie
   let ox = 240, oy = 100;
   const P = (x, y, z) => [ox + (x - y) * 16, oy + (x + y) * 8 - (z || 0)];
+  let LIJNEN = true;
   function blok(x, y, w, d, h, c, z) {
     z = z || 0; c = drie(c);
     const A = P(x, y, z + h), B = P(x + w, y, z + h), C = P(x + w, y + d, z + h), D = P(x, y + d, z + h);
-    if (h > 0) {
-      poly([D, C, P(x + w, y + d, z), P(x, y + d, z)], c.links);
-      poly([C, B, P(x + w, y, z), P(x + w, y + d, z)], c.rechts);
-    }
+    const Bb = P(x + w, y, z), Cb = P(x + w, y + d, z), Db = P(x, y + d, z);
+    if (h > 0) { poly([D, C, Cb, Db], c.links); poly([C, B, Bb, Cb], c.rechts); }
     poly([A, B, C, D], c.top);
+    if (!LIJNEN || typeof c.rechts !== 'string' || c.rechts[0] !== '#' || (w + d) * 16 + h < 9) return;
+    const o = kl(c.rechts, 0.48);
+    if (h > 0) { lijnP(D, Db, o); lijnP(Db, Cb, o); lijnP(Cb, Bb, o); lijnP(Bb, B, o); } else { lijnP(B, C, o); lijnP(C, D, o); }
+    lijnP(D, A, o); lijnP(A, B, o);
+    if (h > 2 && typeof c.top === 'string' && c.top[0] === '#') {
+      const hl = kl(c.top, 1.14); lijnP([D[0] + 1, D[1]], [C[0], C[1] - 1], hl); lijnP([C[0], C[1] - 1], [B[0] - 1, B[1]], hl);
+      g.fillStyle = kl(c.rechts, 1.22); for (let yy = Math.round(C[1]) + 1; yy < Math.round(Cb[1]); yy++) g.fillRect(Math.round(C[0]), yy, 1, 1);
+    }
   }
   const vlak = (x, y, w, d, c, z) => poly([P(x, y, z), P(x + w, y, z), P(x + w, y + d, z), P(x, y + d, z)], c);
   // kant 'L' = vlak x = q (loopt langs y), kant 'R' = vlak y = q (loopt langs x)
@@ -469,79 +491,108 @@ dialog { max-height: 90vh; overflow-y: auto; }
   const ITEMKLEUR = { koffie: ['#FBF6E9', '#6B4423'], limonade: ['#DDEBF0', '#E8577A'], vlaai: ['#C98A43', '#A8162B'] };
 
   // st: { richting: 'VR'|'VL'|'AR'|'AL', fase: 0..3, zit, zwaai, dans, t, item }
+  // Poppetjes in pixelkunst: opgebouwd uit vormen, met automatische omlijning en schaduw. Elk plaatje wordt één keer gemaakt en bewaard.
+  const spriteCache = new Map();
+  const rgbVan = hex => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  function maakSprite(huid, haar, shirt, broek, stijl, extra, voor, frame, zit, zwaai, dans, knip, spiegel) {
+    const w = 16, h = 32, gr = new Uint8Array(w * h);
+    const put = (x, y, v) => { if (x >= 0 && y >= 0 && x < w && y < h) gr[y * w + x] = v; };
+    const rc = (x, y, ww, hh, v) => { for (let j = 0; j < hh; j++) for (let i = 0; i < ww; i++) put(x + i, y + j, v); };
+    const ell = (cx, cy, rx, ry, v, cond) => { for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry; if (dx * dx + dy * dy <= 1 && (!cond || cond(x, y))) put(x, y, v); } };
+    // 2 huid, 3 haar, 4 shirt, 5 broek, 6 schoen, 7 oog, 8 wit, 9 blos, 10 pet/bril, 11 mond, 12 schort, 13 vest, 14 overall
+    const z = zit ? 3 : 0, op = dans ? -knip : 0;
+    if (zit) { rc(4, 24, 8, 3, 5); rc(4, 27, 3, 2, 5); rc(9, 27, 3, 2, 5); rc(3, 29, 4, 2, 6); rc(9, 29, 4, 2, 6); }
+    else { const l = frame === 1 ? -1 : 0, r = frame === 2 ? -1 : 0; rc(5, 23 + l + op, 3, 6, 5); rc(8, 23 + r + op, 3, 6, 5); rc(4, 29 + l, 4, 2, 6); rc(8, 29 + r, 4, 2, 6); }
+    const ty = 15 + z + op;
+    rc(4, ty, 8, 9, 4); put(4, ty, 0); put(11, ty, 0);
+    if (extra === 'schort') { rc(5, ty + 3, 6, 6, 12); rc(6, ty + 1, 4, 2, 12); }
+    if (extra === 'vest') { rc(4, ty + 1, 2, 8, 13); rc(10, ty + 1, 2, 8, 13); }
+    if (extra === 'overall') { rc(5, ty + 4, 6, 5, 14); put(5, ty + 1, 14); put(5, ty + 2, 14); put(5, ty + 3, 14); put(10, ty + 1, 14); put(10, ty + 2, 14); put(10, ty + 3, 14); }
+    const al = (!zit && !dans) ? (frame === 1 ? 1 : frame === 2 ? -1 : 0) : 0;
+    if (dans) { const a1 = knip ? 0 : 2, a2 = 2 - a1; rc(1, ty - 6 + a1, 2, 7, 4); rc(1, ty - 8 + a1, 2, 2, 2); rc(13, ty - 6 + a2, 2, 7, 4); rc(13, ty - 8 + a2, 2, 2, 2); }
+    else {
+      rc(2, ty + 1 + al, 2, 6, 4); rc(2, ty + 7 + al, 2, 2, 2);
+      if (zwaai) { rc(13, ty - 6 + knip, 2, 7, 4); rc(13 + (knip ? 0 : 0), ty - 8 + knip, 2, 2, 2); }
+      else { rc(12, ty + 1 - al, 2, 6, 4); rc(12, ty + 7 - al, 2, 2, 2); }
+    }
+    const hy = z + op;
+    ell(8, 9 + hy, 5.7, 5.7, 2); rc(7, 14 + hy, 2, 1, 2);
+    if (!voor) {
+      ell(8, 8.6 + hy, 6.1, 5.9, 3, (x, y) => y < 14 + hy);
+      if (stijl === 'lang') rc(2, 10 + hy, 12, 8, 3);
+      if (stijl === 'knot') ell(8, 2.6 + hy, 2.6, 2.2, 3);
+      if (stijl === 'pet') { rc(3, 3 + hy, 10, 4, 10); rc(3, 7 + hy, 10, 1, 10); }
+    } else {
+      put(5, 10 + hy, 8); put(6, 10 + hy, 7); put(5, 11 + hy, 7); put(6, 11 + hy, 7);
+      put(9, 10 + hy, 8); put(10, 10 + hy, 7); put(9, 11 + hy, 7); put(10, 11 + hy, 7);
+      put(4, 12 + hy, 9); put(11, 12 + hy, 9); put(7, 13 + hy, 11); put(8, 13 + hy, 11);
+      if (extra === 'bril') { rc(4, 9 + hy, 4, 1, 10); rc(8, 9 + hy, 4, 1, 10); put(4, 10 + hy, 10); put(7, 10 + hy, 10); put(8, 10 + hy, 10); put(11, 10 + hy, 10); put(4, 11 + hy, 10); put(7, 11 + hy, 10); put(8, 11 + hy, 10); put(11, 11 + hy, 10); }
+      if (stijl === 'pet') { rc(3, 3 + hy, 10, 4, 10); rc(8, 7 + hy, 7, 1, 10); ell(8, 8.4 + hy, 6.2, 5.8, 3, (x, y) => (x <= 2 || x >= 13) && y >= 7 + hy && y <= 10 + hy); }
+      else {
+        ell(8, 8.4 + hy, 6.2, 5.8, 3, (x, y) => y <= 6 + hy || ((x <= 2 || x >= 13) && y <= 10 + hy));
+        for (let x = 3; x <= 12; x++) if (x % 3 !== 0) put(x, 7 + hy, 3);
+        if (stijl === 'lang') { rc(1, 8 + hy, 3, 10, 3); rc(12, 8 + hy, 3, 10, 3); }
+        if (stijl === 'knot') ell(8, 2.6 + hy, 2.6, 2.2, 3);
+      }
+    }
+    const uit = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = gr[y * w + x]; if (v) { uit[y * w + x] = v; continue; }
+      if ((x > 0 && gr[y * w + x - 1]) || (x < w - 1 && gr[y * w + x + 1]) || (y > 0 && gr[(y - 1) * w + x]) || (y < h - 1 && gr[(y + 1) * w + x])) uit[y * w + x] = 1;
+    }
+    const pal = { 1: [35, 26, 38], 2: rgbVan(huid), 3: rgbVan(haar), 4: rgbVan(shirt), 5: rgbVan(broek), 6: [42, 36, 48], 7: [35, 26, 38], 8: [255, 255, 255], 9: [240, 138, 138], 10: stijl === 'pet' ? rgbVan(haar) : [58, 61, 70], 11: [158, 58, 58], 12: [251, 246, 233], 13: [158, 36, 48], 14: [47, 76, 143] };
+    const doek = document.createElement('canvas'); doek.width = w; doek.height = h;
+    const dg = doek.getContext('2d'), img = dg.createImageData(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = uit[y * w + x]; if (!v) continue;
+      let c = pal[v], f = 1;
+      if ((v > 1 && v < 7) || v >= 12 || v === 10) {
+        const r = x < w - 1 ? uit[y * w + x + 1] : 0, b = y < h - 1 ? uit[(y + 1) * w + x] : 0, l = x > 0 ? uit[y * w + x - 1] : 0, t = y > 0 ? uit[(y - 1) * w + x] : 0;
+        if (r <= 1 || (b > 1 && b !== v && ![7, 8, 9, 11].includes(b))) f = 0.78; else if (l <= 1 && t <= 1) f = 1.18;
+      }
+      const i = ((spiegel ? w - 1 - x : x) + y * w) * 4;
+      img.data[i] = Math.min(255, c[0] * f); img.data[i + 1] = Math.min(255, c[1] * f); img.data[i + 2] = Math.min(255, c[2] * f); img.data[i + 3] = 255;
+    }
+    dg.putImageData(img, 0, 0);
+    return doek;
+  }
   function poppetje(G, fx, fy, L, st) {
     const voor = st.richting[0] === 'V', links = st.richting[1] === 'L';
-    const R = (x, y, w, h, c) => { G.fillStyle = c; G.fillRect(links ? fx - x - w : fx + x, fy + y, w, h); bij(fx - 8, fy - 32, fx + 8, fy + 2); };
     const huid = L.huidK || HUID[L.huid] || HUID[0], haar = L.haarK || HAAR[L.haar] || HAAR[0];
     const shirt = L.shirtK || SHIRT[L.shirt] || SHIRT[0], broek = L.broekK || BROEK[L.broek] || BROEK[0];
-    const schoen = '#23252B', stijl = L.stijlK || STIJL[L.stijl] || 'kort';
+    const stijl = L.stijlK || STIJL[L.stijl] || 'kort';
     const knip = st.t % 2;
-    // schaduw
-    if (!st.zitHoog) { G.fillStyle = 'rgba(0,0,0,.28)'; G.fillRect(fx - 5, fy - 1, 10, 2); G.fillRect(fx - 3, fy + 1, 6, 1); }
     if (st.fietst) { fy -= 4; st = Object.assign({}, st, { fase: 0, loopt: false }); }
-    const op = (st.zit ? 4 : 0) + (st.dans ? knip : 0);
-    // benen
-    if (st.zit) {
-      R(-4, -5, 3, 3, broek); R(1, -5, 3, 3, broek);
-      if (voor) { R(-4, -2, 3, 2, schoen); R(1, -2, 3, 2, schoen); } else { R(-4, -3, 3, 1, schoen); R(1, -3, 3, 1, schoen); }
-    } else {
-      const f = st.fase || 0, l1 = f === 1 ? -1 : 0, l2 = f === 3 ? -1 : 0;
-      R(-4, -8 + l1, 3, 6, broek); R(1, -8 + l2, 3, 6, broek);
-      R(-4, -2 + l1, 3, 2, schoen); R(1, -2 + l2, 3, 2, schoen);
-    }
-    // romp
-    R(-5, -17 + op, 10, 9, shirt); R(3, -17 + op, 2, 9, kleur(shirt, 0.82));
-    if (L.extra === 'schort') { R(-4, -13 + op, 8, 6, '#FBF6E9'); R(-1, -16 + op, 2, 3, '#FBF6E9'); }
-    if (L.extra === 'vest') { R(-5, -17 + op, 3, 9, '#9E2430'); R(2, -17 + op, 3, 9, '#9E2430'); }
-    if (L.extra === 'overall') { R(-4, -14 + op, 8, 6, '#2F4C8F'); R(-3, -17 + op, 1, 3, '#2F4C8F'); R(2, -17 + op, 1, 3, '#2F4C8F'); }
-    // armen
-    const f = st.loopt ? st.fase : 0, aL = f === 1 ? 1 : f === 3 ? -1 : 0;
-    if (st.dans) {
-      const k = knip ? 0 : 2;
-      R(-7, -24 + op + k, 2, 7, shirt); R(-7, -26 + op + k, 2, 2, huid);
-      R(5, -24 + op + (2 - k), 2, 7, shirt); R(5, -26 + op + (2 - k), 2, 2, huid);
-    } else {
-      R(-7, -16 + op + aL, 2, 6, shirt); R(-7, -10 + op + aL, 2, 2, huid);
-      if (st.zwaai) { const k = knip; R(5, -24 + op + k, 2, 7, shirt); R(5 + k, -26 + op + k, 2, 2, huid); }
-      else { R(5, -16 + op - aL, 2, 6, shirt); R(5, -10 + op - aL, 2, 2, huid); }
-    }
-    if (st.item && ITEMKLEUR[st.item] && !st.dans && !st.zwaai) { const [a, b] = ITEMKLEUR[st.item]; R(6, -12 + op, 3, 4, a); R(6, -12 + op, 3, 1, b); }
-    if (L.dweil) { R(7, -22 + op, 1, 22 - op, '#B5793F'); R(5, -1, 5, 2, '#C9CED6'); }
-    // hoofd
-    R(-1, -18 + op, 2, 1, huid);
-    R(-4, -25 + op, 8, 7, huid); R(-3, -26 + op, 6, 1, huid);
-    if (voor) {
-      R(-1, -22 + op, 1, 2, '#1F2333'); R(2, -22 + op, 1, 2, '#1F2333');
-      R(0, -19 + op, 2, 1, kleur(huid, 0.7));
-      if (L.extra === 'bril') { R(-2, -23 + op, 3, 3, 'rgba(255,255,255,.35)'); R(1, -23 + op, 3, 3, 'rgba(255,255,255,.35)'); R(-2, -23 + op, 6, 1, '#3A3D46'); }
-    }
-    // haar
-    const hd = kleur(haar, 0.8);
-    if (stijl === 'kort') {
-      if (voor) { R(-4, -27 + op, 8, 3, haar); R(-4, -24 + op, 2, 3, haar); R(3, -26 + op, 1, 2, hd); }
-      else { R(-4, -27 + op, 8, 8, haar); R(3, -27 + op, 1, 8, hd); }
-    } else if (stijl === 'lang') {
-      if (voor) { R(-4, -27 + op, 8, 3, haar); R(-5, -25 + op, 3, 10, haar); R(3, -25 + op, 2, 7, hd); }
-      else { R(-5, -27 + op, 10, 12, haar); R(3, -26 + op, 2, 11, hd); }
-    } else if (stijl === 'knot') {
-      R(-2, -30 + op, 4, 3, haar);
-      if (voor) { R(-4, -27 + op, 8, 2, haar); R(-4, -25 + op, 1, 3, haar); }
-      else { R(-4, -27 + op, 8, 7, haar); }
-    } else if (stijl === 'pet') {
-      R(-4, -28 + op, 8, 3, haar); R(-4, -25 + op, 8, 1, hd);
-      if (voor) R(2, -25 + op, 4, 1, hd); else R(-4, -24 + op, 8, 2, '#2B2118');
-    }
+    if (!st.zitHoog) { G.fillStyle = 'rgba(20,12,28,.32)'; G.fillRect(fx - 5, fy - 1, 10, 2); G.fillRect(fx - 3, fy + 1, 6, 1); G.fillRect(fx - 6, fy, 12, 1); }
+    const frame = st.loopt ? [0, 1, 0, 2][st.fase || 0] : 0;
+    const zwaai = !!st.zwaai && !st.dans, dans = !!st.dans;
+    const sleutel = [huid, haar, shirt, broek, stijl, L.extra || '', voor ? 1 : 0, frame, st.zit ? 1 : 0, zwaai ? 1 : 0, dans ? 1 : 0, (zwaai || dans) ? knip : 0, links ? 1 : 0].join('|');
+    let spr = spriteCache.get(sleutel);
+    if (!spr) { spr = maakSprite(huid, haar, shirt, broek, stijl, L.extra, voor, frame, st.zit, zwaai, dans, (zwaai || dans) ? knip : 0, links); spriteCache.set(sleutel, spr); }
+    const op = st.zit ? 3 : 0;
+    if (L.dweil) { G.fillStyle = '#B5793F'; G.fillRect(links ? fx - 8 : fx + 7, fy - 22 + op, 1, 22 - op); G.fillStyle = '#C9CED6'; G.fillRect(links ? fx - 10 : fx + 5, fy - 1, 5, 2); G.fillStyle = '#8C939E'; G.fillRect(links ? fx - 10 : fx + 5, fy, 5, 1); }
+    G.drawImage(spr, fx - 8, fy - 30);
+    if (st.item && ITEMKLEUR[st.item] && !st.dans && !st.zwaai) { const [a, b] = ITEMKLEUR[st.item], ix = links ? fx - 9 : fx + 6, iy = fy - 12 + op; G.fillStyle = '#231A26'; G.fillRect(ix - 1, iy - 1, 5, 6); G.fillStyle = a; G.fillRect(ix, iy, 3, 4); G.fillStyle = b; G.fillRect(ix, iy, 3, 1); }
+    bij(fx - 8, fy - 32, fx + 8, fy + 2);
   }
 
   // ---------------------------------------------------------------- meubels
   const HOUT = '#9A6438', HOUTL = '#C08A55', GROEN = '#4E8A3E', GROENL = '#6FAE52', POT = '#B5603A';
   function plant(x, y, groot) {
-    blok(x + 0.3, y + 0.3, 0.4, 0.4, 7, POT);
-    const c = P(x + 0.5, y + 0.5, groot ? 18 : 13);
-    ovaal(c[0], c[1] + 2, groot ? 9 : 7, groot ? 6 : 5, GROEN);
-    ovaal(c[0] - 3, c[1] - 2, groot ? 6 : 5, groot ? 4 : 3, GROENL);
-    ovaal(c[0] + 4, c[1] - 1, groot ? 5 : 4, 3, '#5C9B44');
-    if (groot) { ovaal(c[0], c[1] - 7, 6, 4, GROEN); ovaal(c[0] - 1, c[1] - 9, 4, 2, GROENL); }
+    const s = groot ? 1.25 : 0.95, hp = groot ? 10 : 8;
+    blok(x + 0.3, y + 0.3, 0.4, 0.4, hp, POT);
+    blok(x + 0.27, y + 0.27, 0.46, 0.46, 2, kleur(POT, 1.1), hp);
+    const top = P(x + 0.5, y + 0.5, hp + 1), wind = Math.sin(Date.now() / 900 + x) * 0.04;
+    for (let i = 0; i < 9; i++) {
+      const hoek = -Math.PI / 2 + (i - 4) * 0.34 + wind, len = (11 + (i % 3) * 4) * s;
+      for (let k = 2; k < len; k++) {
+        const px = Math.round(top[0] + Math.cos(hoek) * k * 0.8), py = Math.round(top[1] + Math.sin(hoek) * k + Math.abs(i - 4) * k * 0.04);
+        const br = Math.round(Math.sin(k / len * Math.PI) * 2.2 * s);
+        g.fillStyle = '#24502A'; g.fillRect(px - br - 1, py, 1, 1); g.fillRect(px + br + 1, py, 1, 1);
+        g.fillStyle = GROEN; g.fillRect(px - br, py, br + 1, 1); g.fillStyle = '#3E7A34'; g.fillRect(px + 1, py, br, 1);
+        if (k % 3 === 0) { g.fillStyle = GROENL; g.fillRect(px - br, py, 1, 1); }
+      }
+    }
   }
   function stoel(x, y, r, c) {
     c = c || HOUT;
@@ -586,8 +637,11 @@ dialog { max-height: 90vh; overflow-y: auto; }
       for (const [a, b] of [[0.35, 0.92], [1.6, 0.92], [0.35, 0.08], [1.6, 0.08]]) { const c = P(m.x + a, m.y + b, 3); ovaal(c[0], c[1], 3, 2, '#23252B'); }
     },
     haard: m => {
-      const t = Date.now() / 120;
-      blok(m.x, m.y, 0.55, m.d, 30, '#9E4E3A');
+      const t = Date.now() / 120, X = m.x + 0.55;
+      const steen = (sx, sy) => { const tt = X - ((sx + 0.5) - ox) / 16, z = oy + (X + tt) * 8 - (sy + 0.5), rij = Math.floor(z / 3), u = tt * 3 + (rij % 2) * 0.5; if (z % 3 < 0.9 || u % 1 < 0.1) return '#6E3528'; return ruis(Math.floor(u), rij) < 0.5 ? '#9E4E3A' : '#B05A42'; };
+      const steenL = (sx, sy) => { const tt = ((sx + 0.5) - ox) / 16 + (m.y + m.d), z = oy + (tt + m.y + m.d) * 8 - (sy + 0.5), rij = Math.floor(z / 3), u = tt * 3 + (rij % 2) * 0.5; if (z % 3 < 0.9 || u % 1 < 0.1) return '#5E2E22'; return ruis(Math.floor(u), rij) < 0.5 ? '#8C4434' : '#9A4C3A'; };
+      blok(m.x, m.y, 0.55, m.d, 30, { top: '#B86A52', links: steenL, rechts: steen });
+      lijnP(P(m.x, m.y + m.d, 30), P(m.x, m.y + m.d, 0), '#4A2018'); lijnP(P(m.x, m.y + m.d, 0), P(X, m.y + m.d, 0), '#4A2018'); lijnP(P(X, m.y + m.d, 0), P(X, m.y, 0), '#4A2018'); lijnP(P(X, m.y, 0), P(X, m.y, 30), '#4A2018');
       blok(m.x - 0.02, m.y - 0.05, 0.62, m.d + 0.1, 3, '#D9C9A8', 30);
       const a = P(m.x + 0.55, m.y + 0.35, 0), b = P(m.x + 0.55, m.y + m.d - 0.35, 0);
       poly([[a[0], a[1] - 18], [b[0], b[1] - 18], [b[0], b[1]], [a[0], a[1]]], '#2A1A12');
@@ -706,6 +760,57 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const zw = Math.round(Math.sin(t / 3) * 1);
     for (let i = 0; i < 12; i++) rect(x + 6 + (i % 4 === 0 ? zw : 0), y - 18 - i, 1, 1, '#FBF6E9');
     ovaal(x + 6 + zw, y - 35, 4, 5, kl); rect(x + 4 + zw, y - 38, 1, 2, kleur(kl, 1.4));
+  }
+  const isDag = () => { const u = new Date().getHours(); return u >= 7 && u < 18; };
+  let dagNu = isDag();
+  setInterval(() => { const d = isDag(); if (d !== dagNu) { dagNu = d; achtergrondVies = true; } }, 60000);
+  // licht: een lichtkaart over het hele beeld, met de omgeving als basis en lampen die erbij optellen
+  let lichtKaart = null;
+  const GLOEIT = new Set(['#F6D27A', '#FFF3C4', '#F2C230', '#E07A2E', '#FF7FB0', '#5EC2E8', '#FFE76A'].map(h => parseInt(h.slice(1), 16)));
+  function lichtPass(nu) {
+    const Rm = huidig;
+    let amb = null;
+    if (Rm.buiten || Rm.dak) amb = dagNu ? null : [0.56, 0.6, 0.82];
+    else if (Rm.id === 'spel') amb = [0.6, 0.56, 0.8];
+    else amb = dagNu ? null : [0.6, 0.55, 0.7];
+    const cx = Math.round(camX), cy = Math.round(camY), L = [];
+    const voeg = (p, rad, k, sterk) => { if (sterk > 0) L.push([p[0] - cx, p[1] - cy, rad, k, sterk]); };
+    const fl = 0.86 + 0.14 * Math.sin(nu / 90) * Math.sin(nu / 47 + 1), warm = [1, 0.82, 0.5];
+    for (const m of Rm.meubels) {
+      if (m.onzichtbaar) continue;
+      const z = m.z || 0;
+      if (m.type === 'lamp' && aanUit(m)) voeg(P(m.x + 0.5, m.y + 0.5, z + 26), 74, warm, amb ? 0.85 : 0.16);
+      else if (m.type === 'tafellamp' && aanUit(m)) voeg(P(m.x + 0.5, m.y + 0.5, z + 9), 54, warm, amb ? 0.75 : 0.14);
+      else if (m.type === 'lantaarn') voeg(P(m.x + 0.5, m.y + 0.5, 58), 86, warm, amb ? 0.95 : 0);
+      else if (m.type === 'haard') voeg(P(m.x + 0.7, m.y + (m.d || 1) / 2, 10), 90, [1, 0.55, 0.25], (amb ? 1 : 0.3) * fl);
+      else if (m.type === 'arcade') voeg(P(m.x + 0.5, m.y + 0.6, 20), 46, [0.5, 0.8, 1], amb ? 0.65 : 0.12);
+      else if (m.type === 'jukebox' && jukeboxAan) voeg(P(m.x + 0.5, m.y + 0.6, 16), 60, [1, 0.5, 0.9], amb ? 0.75 : 0.2);
+      else if (m.type === 'snoepautomaat') voeg(P(m.x + 0.5, m.y + 0.6, 18), 40, [1, 0.9, 0.6], amb ? 0.5 : 0.1);
+      else if (m.type === 'draaiorgel' || m.type === 'kraam') voeg(P(m.x + (m.w || 1) / 2, m.y + (m.d || 1) / 2, 20), 56, warm, amb ? 0.6 : 0);
+    }
+    for (const d of Rm.muurDeco || []) {
+      if (d.soort === 'neon') { const nk = rgbVan(d.kleur || '#FF7FB0').map(v => v / 255); voeg(d.kant === 'L' ? P(0.4, d.t - 0.6, d.z) : P(d.t + 0.6, 0.4, d.z), 60, nk, amb ? 0.8 : 0.15); continue; }
+      if (d.t0 === undefined) continue;
+      const tm = (d.t0 + d.t1) / 2, zm = ((d.z0 || 30) + (d.z1 || 40)) / 2;
+      if (d.soort === 'neon') voeg(d.kant === 'L' ? P(0.3, tm, zm) : P(tm, 0.3, zm), 56, [1, 0.45, 0.85], amb ? 0.7 : 0.2);
+      if (d.soort === 'raam' && dagNu && !Rm.buiten) voeg(d.kant === 'L' ? P(1.6, tm, 0) : P(tm, 1.6, 0), 70, [1, 0.95, 0.78], 0.3);
+    }
+    if (!amb && !L.length) return;
+    const n = VW * VH;
+    if (!lichtKaart || lichtKaart.length !== n * 3) lichtKaart = new Float32Array(n * 3);
+    const a0 = amb ? amb[0] : 1, a1 = amb ? amb[1] : 1, a2 = amb ? amb[2] : 1;
+    for (let i = 0; i < n; i++) { lichtKaart[i * 3] = a0; lichtKaart[i * 3 + 1] = a1; lichtKaart[i * 3 + 2] = a2; }
+    for (const [lx, ly, rad, k, sterk] of L) {
+      const x0 = Math.max(0, Math.floor(lx - rad)), x1 = Math.min(VW - 1, Math.ceil(lx + rad)), y0 = Math.max(0, Math.floor(ly - rad / 1.5)), y1 = Math.min(VH - 1, Math.ceil(ly + rad / 1.5));
+      for (let y = y0; y <= y1; y++) { const dy = (y - ly) * 1.5; for (let x = x0; x <= x1; x++) { const dx = x - lx, d2 = dx * dx + dy * dy; if (d2 >= rad * rad) continue; const f = 1 - Math.sqrt(d2) / rad, q = f * f * sterk, i = (y * VW + x) * 3; lichtKaart[i] += k[0] * q; lichtKaart[i + 1] += k[1] * q; lichtKaart[i + 2] += k[2] * q; } }
+    }
+    const img = ctx.getImageData(0, 0, VW, VH), d = img.data;
+    for (let i = 0, j = 0; i < n; i++, j += 4) {
+      if (amb && GLOEIT.has((d[j] << 16) | (d[j + 1] << 8) | d[j + 2])) continue;
+      d[j] = d[j] * lichtKaart[i * 3]; d[j + 1] = d[j + 1] * lichtKaart[i * 3 + 1]; d[j + 2] = d[j + 2] * lichtKaart[i * 3 + 2];
+    }
+    ctx.putImageData(img, 0, 0);
+    if (amb) for (const [lx, ly, rad, k, sterk] of L) { if (sterk < 0.5 || rad < 50) continue; ctx.fillStyle = 'rgba(255,240,200,.55)'; ctx.fillRect(Math.round(lx) - 1, Math.round(ly) - 1, 2, 2); }
   }
   function aanUit(m) { return !!(S.lampen[huidig.id + ':' + m.id] ?? m.aan); }
 
@@ -1398,6 +1503,73 @@ dialog { max-height: 90vh; overflow-y: auto; }
     tik(); jukeboxTimer = setInterval(tik, 260);
   }
 
+  // ---------------------------------------------------------------- texturen in perspectief
+  const MATERIAAL = { plein: { '.': 'kassei', k: 'stoep', g: 'gras', p: 'zand', b: 'brug', h: 'gras' }, receptie: { '.': 'marmer' }, lobby: { '.': 'planken' }, cafe: { '.': 'donkerhout' }, spel: { '.': 'tapijt' }, dak: { '.': 'vlonder' }, kamer: { '.': 'vloerbedekking' } };
+  const naarVloer = (sx, sy, z) => { const a = (sx + 0.5 - ox) / 16, b = (sy + 0.5 - oy + (z || 0)) / 8; return [(a + b) / 2, (b - a) / 2]; };
+  const NEON = ['#FF5C8A', '#5EE8F0', '#FFE76A', '#8AFF8A', '#B88AFF'];
+  function vloerPixel(mat, k, gx, gy, sx, sy) {
+    const r = ruis(sx, sy);
+    switch (mat) {
+      case 'planken': case 'donkerhout': {
+        const breed = mat === 'planken' ? 3 : 2, rij = Math.floor(gy * breed), f = (gy * breed) % 1, verschuif = ruis(rij, 3) * 2, lengte = mat === 'planken' ? 1.6 : 2.2;
+        const plank = Math.floor((gx + verschuif) / lengte), fp = ((gx + verschuif) / lengte) % 1;
+        if (f < 0.1 || fp < 0.02) return kl(k[1], 0.66);
+        const v = ruis(rij, plank); let c = v < 0.33 ? k[0] : v < 0.66 ? k[1] : kl(k[0], 1.06);
+        if (mat === 'donkerhout' && Math.abs(Math.sin(gx * 9 + rij)) > 0.96) c = kl(c, 0.86);
+        return r < 0.05 ? kl(c, 0.92) : c;
+      }
+      case 'vlonder': { const plank = Math.floor(gx * 3), f = (gx * 3) % 1; if (f < 0.12) return kl(k[1], 0.55); const c = ruis(plank, Math.floor(gy / 2.5)) < 0.5 ? k[0] : k[1]; return r < 0.06 ? kl(c, 0.9) : c; }
+      case 'marmer': {
+        const fx = gx % 1, fy = gy % 1;
+        if (fx < 0.04 || fy < 0.04) return '#B8AC90';
+        const c = (Math.floor(gx) + Math.floor(gy)) % 2 ? k[0] : k[1];
+        const ader = Math.abs(Math.sin(gx * 3.1 + Math.sin(gy * 4.3) * 1.6 + Math.floor(gy) * 2));
+        if (ader > 0.985) return kl(c, 0.84);
+        if (fx < 0.12 && fy < 0.12) return kl(c, 1.08);
+        return r < 0.04 ? kl(c, 0.96) : c;
+      }
+      case 'tapijt': {
+        const u = Math.floor(gx * 6), v = Math.floor(gy * 6), q = ruis(u, v);
+        if (q < 0.035) return NEON[Math.floor(ruis(v, u) * NEON.length)];
+        if ((gx * 2) % 1 < 0.05 || (gy * 2) % 1 < 0.05) return kl(k[0], 1.12);
+        return r < 0.3 ? k[1] : k[0];
+      }
+      case 'vloerbedekking': return r < 0.33 ? k[1] : r < 0.4 ? kl(k[0], 1.1) : k[0];
+      case 'kassei': {
+        const rij = Math.floor(gy * 4), u = gx * 4 + (rij % 2) * 0.5, fu = u % 1, fv = (gy * 4) % 1;
+        if (fu < 0.12 || fv < 0.14) return kl(k[1], 0.7);
+        const c = ruis(Math.floor(u), rij) < 0.5 ? k[0] : k[1];
+        if (fu > 0.15 && fu < 0.45 && fv > 0.2 && fv < 0.45) return kl(c, 1.1);
+        return c;
+      }
+      case 'stoep': { const fu = (gx * 2) % 1, fv = (gy * 2) % 1; if (fu < 0.05 || fv < 0.05) return kl(k[1], 0.75); return r < 0.08 ? kl(k[0], 0.95) : k[0]; }
+      case 'gras': { if (r < 0.1) return kl(k[0], 1.18); if (r < 0.2) return kl(k[0], 0.86); if (r > 0.995) return ['#E9B949', '#FBF6E9', '#E8577A'][Math.floor(ruis(sy, sx) * 3)]; return k[0]; }
+      case 'zand': return r < 0.15 ? kl(k[0], 0.9) : r < 0.22 ? kl(k[0], 1.08) : k[0];
+      case 'brug': { const f = (gy * 4) % 1; if (f < 0.12) return kl(k[1], 0.6); return ruis(Math.floor(gy * 4), 1) < 0.5 ? k[0] : k[1]; }
+      default: return (Math.floor(gx) + Math.floor(gy)) % 2 ? k[1] : k[0];
+    }
+  }
+  function vloerTegel(x, y, mat, k) { poly([P(x, y), P(x + 1, y), P(x + 1, y + 1), P(x, y + 1)], (sx, sy) => { const [gx, gy] = naarVloer(sx, sy); return vloerPixel(mat, k, gx, gy, sx, sy); }); }
+  function waterTegel(x, y, k) { poly([P(x, y, -5), P(x + 1, y, -5), P(x + 1, y + 1, -5), P(x, y + 1, -5)], (sx, sy) => { const [gx, gy] = naarVloer(sx, sy, -5); const golf = Math.sin(gx * 5 + Math.sin(gy * 3) * 2) + Math.sin(gy * 7 - gx * 2); if (golf > 1.6) return '#7FB2E0'; if (golf > 1.2) return kl(k[0], 1.12); return golf < -1.5 ? kl(k[0], 0.86) : k[0]; }); }
+  // muurpixel: t loopt langs de muur, z is de hoogte. Patronen volgen de schuine muur.
+  function muurPixel(M, basis, t, z, licht) {
+    let c;
+    const lambris = M.patroon === 'lambrisering' || M.patroon === 'streep';
+    if (z < 3) c = kl(basis, 0.42);
+    else if (z > WH - 4) c = z > WH - 2 ? kl(M.rand, 1.25) : M.rand;
+    else if (lambris && z < 22) { const veld = t % 1, rand = veld < 0.08 || veld > 0.92 || z < 6 || z > 19; c = rand ? kl(basis, 0.62) : (Math.floor(z) % 6 === 0 ? kl(basis, 0.7) : kl(basis, 0.76)); }
+    else if (lambris && z < 24.5) c = z < 23.5 ? kl(M.rand, 1.2) : M.rand;
+    else if (M.patroon === 'streep') { const s8 = Math.floor(t * 6) % 2; c = s8 ? basis : kl(basis, 1.08); if ((t * 6) % 1 < 0.08) c = kl(M.rand, 1.3); }
+    else if (M.patroon === 'lambrisering') {
+      const u = (t * 3) % 1, v = ((z - 24) / 8) % 1, rij = Math.floor((z - 24) / 8), kol = Math.floor(t * 3);
+      const d = Math.abs(u - 0.5) * 1.1 + Math.abs(v - 0.5);
+      c = basis;
+      if ((rij + kol) % 2 === 0 && d > 0.16 && d < 0.24) c = kl(basis, 0.86);
+      if ((rij + kol) % 2 === 0 && d < 0.07) c = kl(M.rand, 1.15);
+    } else { const r = ruis(Math.floor(t * 40), Math.floor(z)); c = r < 0.2 ? kl(basis, 0.97) : basis; }
+    return licht === 1 ? c : kl(c, licht);
+  }
+
   // ---------------------------------------------------------------- achtergrond (vloer en muren)
   function tekenAchtergrond() {
     bg = bg || document.createElement('canvas');
@@ -1405,7 +1577,12 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const vorige = g; g = bg.getContext('2d'); g.imageSmoothingEnabled = false;
     const R = huidig, BW = wereldB, BH = wereldH;
     // lucht of donker
-    if (R.buiten) {
+    if (R.buiten && dagNu) {
+      for (let y = 0; y < BH; y++) { const t = Math.min(1, y / (BH * 0.7)); g.fillStyle = `rgb(${Math.round(110 + 95 * t)},${Math.round(170 + 60 * t)},${Math.round(230 + 20 * t)})`; g.fillRect(0, y, BW, 1); }
+      ovaal(BW - 56, 34, 11, 11, '#FFF3C4'); ovaal(BW - 56, 34, 8, 8, '#FFFBE8');
+      const r = (n => () => (n = (n * 16807) % 2147483647) / 2147483647)(11);
+      for (let i = 0; i < 6; i++) { const wx = r() * BW, wy = 14 + r() * 60; for (const [dx, dy, rx, ry] of [[0, 0, 14, 5], [10, -3, 10, 5], [-10, 1, 9, 4]]) ovaal(wx + dx, wy + dy, rx, ry, 'rgba(255,255,255,.85)'); }
+    } else if (R.buiten) {
       g.fillStyle = '#1C2A52'; g.fillRect(0, 0, BW, BH);
       const r = (n => () => (n = (n * 16807) % 2147483647) / 2147483647)(7);
       for (let i = 0; i < BW * BH / 1600; i++) { g.fillStyle = i % 5 ? 'rgba(255,255,255,.55)' : '#F2DDA0'; g.fillRect(Math.floor(r() * BW), Math.floor(r() * BH * 0.7), 1, 1); }
@@ -1421,15 +1598,15 @@ dialog { max-height: 90vh; overflow-y: auto; }
       const t = tegelType(x, y); if (t === ' ' || t === 'X') continue;
       const k = R.vloer[t] || R.vloer['.'] || ['#888', '#999'];
       if (t === 'w') {
-        vlak(x, y, 1, 1, k[(x + y) % 2], -5);
-        if ((x * 7 + y * 3) % 4 === 0) vlak(x + 0.2, y + 0.4, 0.35, 0.06, '#5E8FC9', -5);
+        waterTegel(x, y, k);
         if (tegelType(x, y - 1) !== 'w' && tegelType(x, y - 1) !== 'b') poly([P(x, y, 0), P(x + 1, y, 0), P(x + 1, y, -5), P(x, y, -5)], '#5F6470');
         continue;
       }
-      vlak(x, y, 1, 1, k[(x + y) % 2]);
+      const mat = (MATERIAAL[R.id] || {})[t];
+      if (mat) vloerTegel(x, y, mat, k); else vlak(x, y, 1, 1, k[(x + y) % 2]);
       if (t === 'g' && (x * 5 + y * 11) % 7 === 0) { const c = P(x + 0.3, y + 0.6); rect(c[0], c[1] - 1, 1, 2, '#6FAE52'); rect(c[0] + 6, c[1] + 1, 1, 2, '#6FAE52'); }
       if (t === 'g' && (x * 3 + y * 7) % 13 === 0) { const c = P(x + 0.6, y + 0.4); rect(c[0], c[1], 2, 2, ['#E9B949', '#FBF6E9', '#E8577A'][(x + y) % 3]); }
-      if (t === 'b') { for (let i = 1; i < 4; i++) vlak(x, y + i * 0.25, 1, 0.03, '#6E4626'); if (tegelType(x + 1, y) === 'w') poly([P(x + 1, y, 0), P(x + 1, y + 1, 0), P(x + 1, y + 1, -4), P(x + 1, y, -4)], '#6E4626'); }
+      if (t === 'b') { if (tegelType(x + 1, y) === 'w') poly([P(x + 1, y, 0), P(x + 1, y + 1, 0), P(x + 1, y + 1, -4), P(x + 1, y, -4)], '#6E4626'); }
       if (t === 'k') vlak(x, y + 0.85, 1, 0.15, '#9AA0A6');
     }
     // heg en bloemen achter het hotel
@@ -1439,7 +1616,18 @@ dialog { max-height: 90vh; overflow-y: auto; }
     }
     if (R.gebouw) tekenGebouw(R.gebouw);
     // kleden
-    (R.kleden || []).forEach(k => { vlak(k.x, k.y, k.w, k.d, k.rand); vlak(k.x + 0.12, k.y + 0.12, k.w - 0.24, k.d - 0.24, k.kleur); vlak(k.x + 0.3, k.y + 0.3, k.w - 0.6, k.d - 0.6, kleur(k.kleur, 1.12)); });
+    (R.kleden || []).forEach(k => {
+      poly([P(k.x, k.y), P(k.x + k.w, k.y), P(k.x + k.w, k.y + k.d), P(k.x, k.y + k.d)], (sx, sy) => {
+        const [gx, gy] = naarVloer(sx, sy), u = (gx - k.x) / k.w, v = (gy - k.y) / k.d, rnd = Math.min(u * k.w, (1 - u) * k.w, v * k.d, (1 - v) * k.d);
+        if (rnd < 0.06) return kl(k.rand, 0.75);
+        if (rnd < 0.16) return k.rand;
+        if (rnd < 0.22) return kl(k.kleur, 0.82);
+        const d = Math.abs(u - 0.5) + Math.abs(v - 0.5);
+        if (Math.abs(d - 0.3) < 0.03 || Math.abs(d - 0.16) < 0.025) return k.rand;
+        if (d < 0.07) return kl(k.rand, 1.08);
+        return (Math.floor(gx * 4) + Math.floor(gy * 4)) % 2 ? k.kleur : kl(k.kleur, 0.93);
+      });
+    });
     if (R.dak) { for (let x = 0; x < R.w; x += 0.5) vlak(x, 0, 0.04, R.h, '#8C5A32'); for (let t = 0; t <= R.w; t += 1) blok(t - 0.04, -0.04, 0.08, 0.08, 10, '#5C3A21'); for (let t = 1; t <= R.h; t += 1) blok(-0.04, t - 0.04, 0.08, 0.08, 10, '#5C3A21'); blok(0, -0.06, R.w, 0.06, 2, '#7A4E2D', 9); blok(-0.06, 0, 0.06, R.h, 2, '#7A4E2D', 9); }
     if (!R.geenMuren) tekenMuren(R);
     // muurdecoratie
@@ -1466,15 +1654,18 @@ dialog { max-height: 90vh; overflow-y: auto; }
   }
   function tekenMuren(R) {
     const M = R.muur;
-    for (let y = 0; y < R.h; y++) muurVlak('L', y, y + 1, 0, WH, M.L);
-    for (let x = 0; x < R.w; x++) muurVlak('R', x, x + 1, 0, WH, M.R);
-    if (M.patroon === 'streep') { for (let y = 0; y < R.h; y++) for (const o of [0.15, 0.6]) muurVlak('L', y + o, y + o + 0.18, 0, WH, kleur(M.L, 1.1)); for (let x = 0; x < R.w; x++) for (const o of [0.15, 0.6]) muurVlak('R', x + o, x + o + 0.18, 0, WH, kleur(M.R, 1.1)); }
-    if (M.patroon === 'lambrisering' || M.patroon === 'streep') { muurVlak('L', 0, R.h, 0, 22, kleur(M.L, 0.8)); muurVlak('R', 0, R.w, 0, 22, kleur(M.R, 0.8)); muurVlak('L', 0, R.h, 22, 24, M.rand); muurVlak('R', 0, R.w, 22, 24, M.rand); }
-    muurVlak('L', 0, R.h, 0, 3, kleur(M.L, 0.6)); muurVlak('R', 0, R.w, 0, 3, kleur(M.R, 0.6));
+    // linkermuur: vlak x = 0, t loopt langs y. Rechtermuur: vlak y = 0, t loopt langs x.
+    poly([P(0, 0, 0), P(0, R.h, 0), P(0, R.h, WH), P(0, 0, WH)], (sx, sy) => { const t = (ox - (sx + 0.5)) / 16, z = oy + t * 8 - (sy + 0.5); return muurPixel(M, M.L, t, z, 1); });
+    poly([P(0, 0, 0), P(R.w, 0, 0), P(R.w, 0, WH), P(0, 0, WH)], (sx, sy) => { const t = ((sx + 0.5) - ox) / 16, z = oy + t * 8 - (sy + 0.5); return muurPixel(M, M.R, t, z, 1); });
+    lijnP(P(0, 0, 0), P(0, 0, WH), kl(M.R, 0.55));
     poly([P(0, 0, WH), P(R.w, 0, WH), P(R.w, -0.25, WH), P(-0.25, -0.25, WH)], kleur(M.rand, 1.25));
     poly([P(0, 0, WH), P(-0.25, -0.25, WH), P(-0.25, R.h, WH), P(0, R.h, WH)], kleur(M.rand, 1.15));
     poly([P(0, R.h, 0), P(-0.25, R.h, 0), P(-0.25, R.h, WH), P(0, R.h, WH)], kleur(M.rand, 0.8));
     poly([P(R.w, 0, 0), P(R.w, -0.25, 0), P(R.w, -0.25, WH), P(R.w, 0, WH)], kleur(M.rand, 0.65));
+    const o = kl(M.rand, 0.4);
+    lijnP(P(-0.25, -0.25, WH), P(R.w, -0.25, WH), o); lijnP(P(-0.25, -0.25, WH), P(-0.25, R.h, WH), o);
+    lijnP(P(-0.25, R.h, WH), P(-0.25, R.h, 0), o); lijnP(P(R.w, -0.25, WH), P(R.w, -0.25, 0), o);
+    lijnP(P(0, R.h, 0), P(R.w, R.h, 0), kl(M.R, 0.35)); lijnP(P(R.w, 0, 0), P(R.w, R.h, 0), kl(M.R, 0.35));
   }
   // het hele hotel, van buiten
   function tekenGebouw(G) {
@@ -1529,8 +1720,10 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const r = (n => () => (n = (n * 16807) % 2147483647) / 2147483647)(9), basis = P(0, 0, 0)[1] - 6;
     for (let x = 0; x < wereldB; ) {
       const w = 18 + Math.floor(r() * 30), h = 30 + Math.floor(r() * 70);
-      g.fillStyle = r() < 0.5 ? '#16223F' : '#1A2849'; g.fillRect(x, basis - h, w, h + wereldH);
-      for (let wx = x + 3; wx < x + w - 3; wx += 5) for (let wy = basis - h + 4; wy < basis; wy += 6) if (r() < 0.35) { g.fillStyle = r() < 0.8 ? '#F6D27A' : '#9FD3E8'; g.fillRect(wx, wy, 2, 3); }
+      const donkerte = r() < 0.5;
+      g.fillStyle = dagNu ? (donkerte ? '#8094B8' : '#91A4C6') : (donkerte ? '#16223F' : '#1A2849'); g.fillRect(x, basis - h, w, h + wereldH);
+      g.fillStyle = dagNu ? '#6E80A6' : '#0E162E'; g.fillRect(x + w - 2, basis - h, 2, h + wereldH); g.fillRect(x, basis - h, w, 1);
+      for (let wx = x + 3; wx < x + w - 3; wx += 5) for (let wy = basis - h + 4; wy < basis; wy += 6) { const q = r(); if (dagNu) { g.fillStyle = q < 0.5 ? '#C9D8EA' : '#7A8CB0'; g.fillRect(wx, wy, 2, 3); } else if (q < 0.35) { g.fillStyle = r() < 0.8 ? '#F6D27A' : '#9FD3E8'; g.fillRect(wx, wy, 2, 3); } }
       x += w + Math.floor(r() * 6);
     }
   }
@@ -1538,7 +1731,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const k = d.kant;
     if (d.soort === 'raam') {
       muurVlak(k, d.t0 - 0.05, d.t1 + 0.05, d.z0 - 3, d.z1 + 3, '#FBF6E9');
-      muurVlak(k, d.t0, d.t1, d.z0, d.z1, huidig.buiten ? '#F6D27A' : '#9FD3E8');
+      muurVlak(k, d.t0, d.t1, d.z0, d.z1, huidig.buiten ? '#F6D27A' : (dagNu ? '#9FD3E8' : '#24305E'));
+      if (!huidig.buiten && !dagNu) for (let i = 0; i < 4; i++) { const tt = d.t0 + (d.t1 - d.t0) * ((i * 0.37 + 0.15) % 1), zz = d.z0 + (d.z1 - d.z0) * ((i * 0.53 + 0.3) % 1), p = k === 'L' ? P(0, tt, zz) : P(tt, 0, zz); rect(p[0], p[1], 1, 1, '#FFF3C4'); }
       muurVlak(k, (d.t0 + d.t1) / 2 - 0.03, (d.t0 + d.t1) / 2 + 0.03, d.z0, d.z1, '#FBF6E9');
       muurVlak(k, d.t0, d.t1, (d.z0 + d.z1) / 2 - 1, (d.z0 + d.z1) / 2 + 1, '#FBF6E9');
       if (!huidig.buiten) muurVlak(k, d.t0 + 0.1, d.t0 + 0.3, d.z0 + 3, d.z1 - 3, 'rgba(255,255,255,.35)');
@@ -1640,13 +1834,9 @@ dialog { max-height: 90vh; overflow-y: auto; }
       }
       meet = null;
     }
-    // lampgloed
-    for (const m of huidig.meubels) {
-      if ((m.type === 'lamp' || m.type === 'tafellamp') && aanUit(m)) { const c = P(m.x + 0.5, m.y + 0.5, (m.z || 0) + (m.type === 'lamp' ? 26 : 9)); lampGloed(c[0], c[1], 14, 0.35); }
-      if (m.type === 'lantaarn') { const c = P(m.x + 0.5, m.y + 0.5, 58); lampGloed(c[0], c[1], 18, 0.45); }
-    }
     tekenDeeltjes();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    lichtPass(nu);
     plaatsBubbels();
   }
   function sorteer(lijst) {
@@ -1950,7 +2140,13 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function zetMaat() {
     const smal = (cv.parentElement.clientWidth || 480) < 640;
     const nw = smal ? 300 : W, nh = smal ? 250 : H;
-    if (nw !== VW || nh !== VH) { VW = nw; VH = nh; cv.width = VW; cv.height = VH; cv.style.aspectRatio = VW + ' / ' + VH; ctx.imageSmoothingEnabled = false; }
+    // elke spelpixel wordt een heel aantal schermpixels: zo blijft alles haarscherp
+    const dpr = window.devicePixelRatio || 1, beschikbaar = (cv.parentElement.clientWidth || 480) * dpr;
+    let schaal, bw = nw, bh = nh;
+    if (smal) { schaal = Math.max(2, Math.round(beschikbaar / 300)); bw = Math.floor(beschikbaar / schaal); bh = Math.round(bw * 250 / 300); }
+    else schaal = Math.max(1, Math.floor(beschikbaar / W));
+    if (bw !== VW || bh !== VH) { VW = bw; VH = bh; cv.width = VW; cv.height = VH; ctx.imageSmoothingEnabled = false; lichtKaart = null; }
+    cv.style.width = (VW * schaal / dpr) + 'px'; cv.style.height = (VH * schaal / dpr) + 'px'; cv.style.aspectRatio = 'auto';
     if (huidig) zetCamera(true);
   }
   zetMaat();

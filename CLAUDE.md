@@ -99,6 +99,17 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Voortgang staat in `S.verhaal` (stap, munten, opgelost, punten, gevonden, gezien, waarde). Een uitroepteken staat boven de bewoner die je moet spreken. Het puzzelboek toont alle puzzels en punten.
 - Zoomen: de knoppen − en + onder in beeld, of de toetsen - en +. `S.zoom` is 1, 2 of 3; bij inzoomen volgt de camera de speler.
 
+## Ideeënbox
+
+- `ideeenbox.html`: bezoekers sturen een idee in (10 tot 500 tekens, een soort en een optionele voornaam). Ideeën met links of scheldwoorden worden geweigerd, en per bezoeker kunnen er hooguit 5 per uur bij.
+- Nieuwe ideeën zijn eerst alleen zichtbaar voor Ruben. In de werkplaats (paneel Scorebord en bezoekers, onderdeel Ideeënbox, met het beheerwachtwoord) zet hij ze op het prikbord, geeft hij ze een status (nieuw, bekeken, in de maak, klaar, niet nu) of verwijdert hij ze. "Kopieer nieuwe ideeën" zet ze als lijstje op het klembord, om in een gesprek met Claude te plakken.
+- Op het prikbord kan iedereen één keer per idee stemmen (een willekeurig geheim in localStorage `rommelhoekje-idee-geheim`).
+- Worker-routes: POST /idee, GET /ideeen (alleen gepubliceerde), POST /stem, en met beheerwachtwoord GET /ideeen/alle, POST /idee/zet en DELETE /idee?id=. De tabellen `ideeen` en `stemmen` maakt de worker zelf aan.
+
+## Homepage-kaarten
+
+- De kaarten op de homepage krijgen hun uiterlijk uit `hebbedingen.js`: elke kaart een eigen kleur (op volgorde: rood, blauw, oranje, groen, paars, roze), een gestreepte kop met het icoon in een rond kader, en een speelknop met pijltje. De ruimte tussen het briefje en de kaarten is kleiner gemaakt.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

@@ -176,7 +176,7 @@ footer { width: 100%; max-width: var(--inhoud); margin: 0 auto; padding: 1.5rem;
     <div class="label">
       <a class="label-kaart" href="rommelhotel.html" data-icoon="hotel">
         <span class="label-icoon" aria-hidden="true"></span>
-        <span class="soort">Spel</span>
+        <span class="soort">Spel <span class="stempel">Nieuw</span></span>
         <span class="naam">Rommel­hotel</span>
         <p>Een pixelhotel om in rond te lopen. Check in bij de receptie, maak je eigen poppetje en ontdek de lobby, het café en je eigen kamer.</p>
         <span class="doe">Probeer het</span>
@@ -227,7 +227,7 @@ footer { width: 100%; max-width: var(--inhoud); margin: 0 auto; padding: 1.5rem;
   </div>
 </main>
 <footer>
-  <span class="versie">Versie 0.50</span>
+  <span class="versie">Versie 0.51</span>
   <button class="terughangen" type="button" onclick="window.gereedschapTerug &amp;&amp; window.gereedschapTerug()">Hang het gereedschap terug</button>
 </footer>
 <script>
@@ -268,7 +268,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   const PAGINA = document.body.dataset.pagina || location.pathname;
   const KEY = 'gereedschap-v2';
   // dingen waar gereedschap nooit overheen mag hangen
-  const HINDER = '.sticker, .prop, .kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
+  const HINDER = '.sticker, .coulissen, .prop, .kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
   let opgeslagen = {};
   try { opgeslagen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { opgeslagen = {}; }
   const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opgeslagen)); } catch (e) {} };
@@ -328,12 +328,35 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     laag.style.height = hoogte() + 'px';
     const lijst = hindernissen(), W = breedte(), midden = W / 2;
     const bewaard = opgeslagen[PAGINA] || {};
-    const zones = Array.from(document.querySelectorAll('.rek[data-gereedschap]')).sort((p, q) => p.classList.contains('zijkant') - q.classList.contains('zijkant'));
+    const orde = z => (z.classList.contains('verspreid') ? 2 : z.classList.contains('zijkant') ? 1 : 0);
+    const zones = Array.from(document.querySelectorAll('.rek[data-gereedschap]')).sort((p, q) => orde(p) - orde(q));
     zones.forEach(zone => {
       const r = zone.getBoundingClientRect();
       if (r.width < 40 || r.height < 40) return;
       const bx = r.left + window.scrollX, by = r.top + window.scrollY;
       const ids = (zone.dataset.gereedschap || '').split(',').map(s => s.trim()).filter(id => GEREEDSCHAP[id]);
+      if (zone.classList.contains('verspreid')) {
+        // los over de hele pagina: zoek per stuk een vrij plekje, zo ver mogelijk van de rest
+        for (const id of ids) {
+          if (stukken.some(s => s.id === id)) continue;
+          const T = GEREEDSCHAP[id], b = bewaard[id];
+          let plek = null;
+          if (b) { const px = snap(midden + b[0]), py = snap(b[1]); if (past(T, px, py, lijst, null)) plek = [px, py]; }
+          if (!plek) {
+            let zaad = [...id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 2147483647, 7) || 7, beste = -1;
+            const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
+            for (let k = 0; k < 140; k++) {
+              const px = snap(bx + 16 + rnd() * Math.max(0, r.width - 32 - T.w) + T.px), py = snap(by + 16 + rnd() * Math.max(0, r.height - 32 - T.h) + T.py);
+              if (!past(T, px, py, lijst, null)) continue;
+              const afstand = stukken.length ? Math.min(...stukken.map(s => Math.hypot(s.px - px, (s.py - py) * 1.3))) : 1e6;
+              if (afstand > beste) { beste = afstand; plek = [px, py]; }
+            }
+            if (!plek || beste < 90) continue;
+          }
+          maakStuk(id, T, plek[0], plek[1]);
+        }
+        return;
+      }
       let x = 12, y = 14, rij = 0;
       for (const id of ids) {
         if (stukken.some(s => s.id === id)) continue;
@@ -790,9 +813,9 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   .sticker { position: absolute; z-index: 4; left: 0; top: 0; width: 120px; visibility: hidden; height: auto; --r: 5deg; transform: rotate(var(--r)); cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
   .sticker-ballon { position: absolute; z-index: 5; transform: translateX(-50%); background: var(--papier, #FBF6E9); color: var(--inkt, #1F2333); font-weight: 700; padding: .4rem .7rem; border-radius: 10px; box-shadow: 0 3px 0 rgba(0,0,0,.28); font-size: .95rem; pointer-events: none; white-space: nowrap; }
   .sticker-ballon::after { content: ""; position: absolute; left: 50%; top: -6px; width: 12px; height: 12px; background: inherit; transform: translateX(-50%) rotate(45deg); }
-  .coulissen { margin-top: 3.5rem; }
-  .coulissen-rij { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 16rem); gap: 2rem; align-items: start; }
-  .rek-plank { min-height: 30rem; }
+  .coulissen { margin-top: 3.5rem; position: relative; z-index: 1; }
+  .coulissen-rij { display: block; }
+  .rek.verspreid { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 0; }
   .props { display: flex; flex-wrap: wrap; justify-content: space-around; align-items: flex-start; gap: 2.2rem 1.2rem; padding-top: 1.4rem; --s: 1; }
   .prop-plek { margin: 0; display: flex; flex-direction: column; align-items: center; }
   .prop { display: block; width: calc(var(--b) * var(--s) * 1px); padding: 0; border: 0; background: none; cursor: pointer; transform-origin: 50% 4px; -webkit-tap-highlight-color: transparent; position: relative; }
@@ -806,7 +829,6 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   .kaartje span { display: block; font-size: .78rem; color: var(--zacht, #5E5643); }
   .prop-ballon { position: absolute; left: 50%; top: -1.6rem; transform: translateX(-50%); background: var(--papier, #FBF6E9); color: var(--inkt, #1F2333); font-weight: 800; font-size: .9rem; padding: .2rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.28); white-space: nowrap; pointer-events: none; z-index: 6; }
   .vonk { position: fixed; width: 6px; height: 6px; border-radius: 50%; background: #6CF2A3; box-shadow: 0 0 8px #4BE38A; pointer-events: none; z-index: 30; }
-  @media (max-width: 900px) { .coulissen-rij { grid-template-columns: 1fr; } .rek-plank { display: none; } }
   @media (max-width: 640px) { .props { --s: .72; gap: 1.6rem .6rem; } .kaartje { max-width: 9.5rem; padding: .35rem .5rem; } .kaartje b { font-size: .88rem; } .sticker-ballon { font-size: .82rem; } }
   `;
   document.head.appendChild(stijl);
@@ -857,7 +879,6 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   sectie.innerHTML = `<h2><span>Uit de coulissen</span></h2>
     <div class="coulissen-rij">
       <div class="props">${PROPS.map(p => `<figure class="prop-plek"><button class="prop" type="button" data-prop="${p.id}" aria-label="${p.naam}, ${p.show}" style="--b:${p.b}"><span class="in">${SVG[p.id]}</span></button><figcaption class="kaartje"><b>${p.naam}</b>${p.rol ? `<span>${p.rol}</span>` : ''}<span><i>${p.show}</i></span></figcaption></figure>`).join('')}</div>
-      <div class="rek rek-plank" id="rek-plank" data-gereedschap="verfroller,klem,beitel,rolmaat,boor" aria-hidden="true"></div>
     </div>`;
   const rij = document.querySelector('.haak-rij'), main = document.querySelector('main');
   if (rij) rij.after(sectie); else if (main) main.appendChild(sectie); else document.body.appendChild(sectie);
@@ -950,14 +971,22 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   };
   sectie.addEventListener('click', e => { const b = e.target.closest('[data-prop]'); if (b && DOEN[b.dataset.prop]) DOEN[b.dataset.prop](); });
 
-  // de ijzerzaag hangt aan de zijkant, als die er is
-  const links = document.getElementById('rek-links');
-  if (links && !/ijzerzaag/.test(links.dataset.gereedschap || '')) links.dataset.gereedschap = (links.dataset.gereedschap ? links.dataset.gereedschap + ',' : '') + 'ijzerzaag';
+  // het gereedschap hangt verspreid over de hele pagina: een paar in het rek bij de titel, de rest los
+  const heldRek = document.getElementById('rek-held');
+  if (heldRek) heldRek.dataset.gereedschap = 'zaag,hamer,tang';
+  const overal = document.createElement('div');
+  overal.className = 'rek verspreid'; overal.id = 'rek-overal'; overal.setAttribute('aria-hidden', 'true');
+  overal.dataset.gereedschap = 'waterpas,boor,verfroller,schroevendraaier,klem,plakband,rolmaat,beitel,ijzerzaag,steeksleutel,kwast,schaar,duimstok';
+  document.body.appendChild(overal);
+  const zetHoogte = () => { overal.style.height = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) + 'px'; };
+  zetHoogte(); addEventListener('resize', zetHoogte);
   // het gereedschap opnieuw ophangen nu er een plank en sticker bij zijn
   if (window.gereedschapBouw) setTimeout(window.gereedschapBouw, 60);
 })();
 
 </script>
+
+
 
 
 

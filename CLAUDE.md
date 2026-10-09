@@ -70,6 +70,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - De server is `scorebord-worker.js` (Cloudflare Worker met D1-database als binding `DB` en een geheim `BEHEER` voor beheer). Dat bestand hoort niet op de site, maar in Cloudflare. Endpoints: GET /scores, POST /score, POST /naam, POST /verwijder, DELETE /score (met beheerwachtwoord).
 - Een nieuw spel op het scorebord? Voeg het toe aan `SPELLEN` in de worker en in `scorebord_template.html`.
 
+## Sticker en planken op de homepage
+
+- `hebbedingen.js` (herkenbaar aan HEBBEDINGEN) bouwt op de homepage de sticker rechtsboven (`ruben-sticker.webp` in de map van de site) en de sectie Op de plank met twee planken en een rek voor extra gereedschap (`#rek-plank`). De werkplaats zet dit script op de homepage en houdt het bij, net als de andere homepage-scripts.
+- Spulletjes staan in `DINGEN` (twee planken van vier), tekeningen in `SVG`, wat ze doen bij een klik in `DOEN`. Het spaarvarken en de lavalamp onthouden hun stand in localStorage (`rommelhoekje-spaarpot`, `rommelhoekje-lavalamp`).
+- Alle spulletjes en tekeningen zijn eigen ontwerpen. Teken geen herkenbare spullen, figuren of logo's uit films, series, games of merken na.
+- Gereedschap bijgekomen: boor, verfroller, klem, beitel, rolmaat en ijzerzaag (in `muur.js`). Het gereedschap ontwijkt ook de sticker en de planken. Met `window.gereedschapBouw()` hang je alles opnieuw op.
+
 ## Werkwijze
 
 - Commitberichten in het Nederlands, kort en duidelijk, bijvoorbeeld "Winkel overzichtelijker gemaakt".

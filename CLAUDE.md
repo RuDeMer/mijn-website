@@ -110,6 +110,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - De kaarten op de homepage krijgen hun uiterlijk uit `hebbedingen.js`: elke kaart een eigen kleur (op volgorde: rood, blauw, oranje, groen, paars, roze), een gestreepte kop met het icoon in een rond kader, en een speelknop met pijltje. De ruimte tussen het briefje en de kaarten is kleiner gemaakt.
 
+## Verborgen grapjes
+
+- `grapjes.js` (herkenbaar aan GRAPJES) zit in `homepage-onderdelen.js` en in alle spelpagina's, het scorebord, de ideeënbox en `404.html`. Er is bewust geen teller, geen lijstje en geen melding: wie een grapje vindt, vindt het gewoon. Verwijs er nergens op de site naar.
+- De grapjes: "vlaai" typen (vlaaienregen), "alaaf" typen (confetti in rood, geel en groen), de sitenaam achterstevoren typen ("ejkeohlemmor", de pagina spiegelt even), 10 keer op de sticker klikken, 6 keer snel op de hamer klikken, 5 keer op het versienummer klikken (de geheime bouwplaats), het muisje dat af en toe uit het gaatje onder aan de homepage kijkt, de nachtuil tussen middernacht en vijf uur, de vlaggetjes op 11 november, Kamer 404 en een begroeting in de browserconsole.
+- `404.html` is de pagina die GitHub Pages toont bij een adres dat niet bestaat. De werkplaats zet er geen label voor op de homepage. Gebruik in die pagina altijd links die met / beginnen.
+- Het voorbeeld in de werkplaats plakt de homepage-onderdelen direct in het voorbeeld: de versie die op de site staat, of anders de kopie in de werkplaats.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

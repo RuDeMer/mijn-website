@@ -214,7 +214,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   <h2 id="kast-titel">Kledingkast</h2>
   <p id="kast-tekst">Kies hoe je poppetje eruitziet.</p>
   <div class="maker">
-    <canvas id="voorbeeld" width="30" height="40" aria-hidden="true"></canvas>
+    <canvas id="voorbeeld" width="30" height="44" aria-hidden="true"></canvas>
     <div>
       <label class="veld">Je naam<input id="k-naam" maxlength="16"></label>
       <div class="rij"><span>Huid</span><div class="stalen" data-k="huid"></div></div>
@@ -473,9 +473,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
       for (let r = 0; r < 5; r++) for (let k = 0; k < 3; k++) {
         if (pat[r * 3 + k] !== '1') continue;
         // elke letter staat recht, maar de letters volgen samen de schuine muur
-        const px = (i * 4 + k) * s, start = i * 4 * s + s;
-        const sx = basis[0] + px, sy = basis[1] + r * s + (kant === 'R' ? Math.floor(start / 2) : -Math.floor(start / 2));
-        g.fillRect(sx, sy, s, s);
+        const px = (i * 4 + k) * s;
+        for (let c = 0; c < s; c++) { const dx = px + c, sy = basis[1] + r * s + (kant === 'R' ? Math.floor(dx / 2) : -Math.floor(dx / 2)); g.fillRect(basis[0] + dx, sy, 1, s); }
       }
     });
   }
@@ -495,68 +494,104 @@ dialog { max-height: 90vh; overflow-y: auto; }
   // Poppetjes in pixelkunst: opgebouwd uit vormen, met automatische omlijning en schaduw. Elk plaatje wordt één keer gemaakt en bewaard.
   const spriteCache = new Map();
   const rgbVan = hex => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
-  function maakSprite(huid, haar, shirt, broek, stijl, extra, voor, frame, zit, zwaai, dans, knip, spiegel) {
-    const w = 16, h = 32, gr = new Uint8Array(w * h);
+  function maakSprite(huid, haar, shirt, broek, stijl, extra, voor, frame, zit, zwaai, dans, knip, spiegel, knipper, praat) {
+    const w = 20, h = 40, gr = new Uint8Array(w * h);
     const put = (x, y, v) => { if (x >= 0 && y >= 0 && x < w && y < h) gr[y * w + x] = v; };
     const rc = (x, y, ww, hh, v) => { for (let j = 0; j < hh; j++) for (let i = 0; i < ww; i++) put(x + i, y + j, v); };
     const ell = (cx, cy, rx, ry, v, cond) => { for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry; if (dx * dx + dy * dy <= 1 && (!cond || cond(x, y))) put(x, y, v); } };
-    // 2 huid, 3 haar, 4 shirt, 5 broek, 6 schoen, 7 oog, 8 wit, 9 blos, 10 pet/bril, 11 mond, 12 schort, 13 vest, 14 overall
-    const z = zit ? 3 : 0, op = dans ? -knip : 0;
-    if (zit) { rc(4, 24, 8, 3, 5); rc(4, 27, 3, 2, 5); rc(9, 27, 3, 2, 5); rc(3, 29, 4, 2, 6); rc(9, 29, 4, 2, 6); }
-    else { const l = frame === 1 ? -1 : 0, r = frame === 2 ? -1 : 0; rc(5, 23 + l + op, 3, 6, 5); rc(8, 23 + r + op, 3, 6, 5); rc(4, 29 + l, 4, 2, 6); rc(8, 29 + r, 4, 2, 6); }
-    const ty = 15 + z + op;
-    rc(4, ty, 8, 9, 4); put(4, ty, 0); put(11, ty, 0);
-    if (extra === 'schort') { rc(5, ty + 3, 6, 6, 12); rc(6, ty + 1, 4, 2, 12); }
-    if (extra === 'vest') { rc(4, ty + 1, 2, 8, 13); rc(10, ty + 1, 2, 8, 13); }
-    if (extra === 'overall') { rc(5, ty + 4, 6, 5, 14); put(5, ty + 1, 14); put(5, ty + 2, 14); put(5, ty + 3, 14); put(10, ty + 1, 14); put(10, ty + 2, 14); put(10, ty + 3, 14); }
-    const al = (!zit && !dans) ? (frame === 1 ? 1 : frame === 2 ? -1 : 0) : 0;
-    if (dans) { const a1 = knip ? 0 : 2, a2 = 2 - a1; rc(1, ty - 6 + a1, 2, 7, 4); rc(1, ty - 8 + a1, 2, 2, 2); rc(13, ty - 6 + a2, 2, 7, 4); rc(13, ty - 8 + a2, 2, 2, 2); }
-    else {
-      rc(2, ty + 1 + al, 2, 6, 4); rc(2, ty + 7 + al, 2, 2, 2);
-      if (zwaai) { rc(13, ty - 6 + knip, 2, 7, 4); rc(13 + (knip ? 0 : 0), ty - 8 + knip, 2, 2, 2); }
-      else { rc(12, ty + 1 - al, 2, 6, 4); rc(12, ty + 7 - al, 2, 2, 2); }
-    }
-    const hy = z + op;
-    ell(8, 9 + hy, 5.7, 5.7, 2); rc(7, 14 + hy, 2, 1, 2);
-    if (!voor) {
-      ell(8, 8.6 + hy, 6.1, 5.9, 3, (x, y) => y < 14 + hy);
-      if (stijl === 'lang') rc(2, 10 + hy, 12, 8, 3);
-      if (stijl === 'knot') ell(8, 2.6 + hy, 2.6, 2.2, 3);
-      if (stijl === 'pet') { rc(3, 3 + hy, 10, 4, 10); rc(3, 7 + hy, 10, 1, 10); }
+    // 2 huid, 3 haar, 4 shirt, 5 broek, 6 schoen, 7 pupil, 8 oogwit, 9 blos, 10 pet/bril, 11 mond, 12 schort, 13 vest, 14 overall, 15 riem, 16 gesp, 17 wenkbrauw, 18 neus/schaduw huid, 19 haarglans
+    const z = zit ? 3 : 0, bob = dans ? (knip ? -1 : 0) : (!zit && frame === 0 ? 0 : 0);
+    const by = z + bob;
+    // benen en schoenen
+    if (zit) {
+      rc(5, 29, 10, 3, 5); rc(12, 29, 4, 3, 5);
+      if (voor) { rc(12, 32, 3, 3, 5); rc(8, 32, 3, 3, 5); rc(12, 35, 5, 2, 6); rc(8, 35, 4, 2, 6); }
+      else { rc(6, 32, 3, 2, 5); rc(11, 32, 3, 2, 5); rc(6, 34, 3, 1, 6); rc(11, 34, 3, 1, 6); }
     } else {
-      put(5, 10 + hy, 8); put(6, 10 + hy, 7); put(5, 11 + hy, 7); put(6, 11 + hy, 7);
-      put(9, 10 + hy, 8); put(10, 10 + hy, 7); put(9, 11 + hy, 7); put(10, 11 + hy, 7);
-      put(4, 12 + hy, 9); put(11, 12 + hy, 9); put(7, 13 + hy, 11); put(8, 13 + hy, 11);
-      if (extra === 'bril') { rc(4, 9 + hy, 4, 1, 10); rc(8, 9 + hy, 4, 1, 10); put(4, 10 + hy, 10); put(7, 10 + hy, 10); put(8, 10 + hy, 10); put(11, 10 + hy, 10); put(4, 11 + hy, 10); put(7, 11 + hy, 10); put(8, 11 + hy, 10); put(11, 11 + hy, 10); }
-      if (stijl === 'pet') { rc(3, 3 + hy, 10, 4, 10); rc(8, 7 + hy, 7, 1, 10); ell(8, 8.4 + hy, 6.2, 5.8, 3, (x, y) => (x <= 2 || x >= 13) && y >= 7 + hy && y <= 10 + hy); }
-      else {
-        ell(8, 8.4 + hy, 6.2, 5.8, 3, (x, y) => y <= 6 + hy || ((x <= 2 || x >= 13) && y <= 10 + hy));
-        for (let x = 3; x <= 12; x++) if (x % 3 !== 0) put(x, 7 + hy, 3);
-        if (stijl === 'lang') { rc(1, 8 + hy, 3, 10, 3); rc(12, 8 + hy, 3, 10, 3); }
-        if (stijl === 'knot') ell(8, 2.6 + hy, 2.6, 2.2, 3);
-      }
+      const l = frame === 1 ? -1 : 0, r = frame === 2 ? -1 : 0, ls = frame === 1 ? -1 : frame === 2 ? 1 : 0;
+      const dl = dans ? (knip ? -2 : 0) : 0, dr = dans ? (knip ? 0 : -2) : 0;
+      rc(5, 29 + bob, 9, 2, 5);
+      rc(5 + ls, 31 + l + dl + bob, 4, 5 - (l + dl) - bob, 5); rc(10 - ls, 31 + r + dr + bob, 4, 5 - (r + dr) - bob, 5);
+      rc(4 + ls, 36 + l + dl, 5, 2, 6); rc(10 - ls, 36 + r + dr, 5, 2, 6);
     }
+    // romp
+    const ty = 19 + by;
+    rc(5, ty, 10, 10, 4); put(5, ty, 0); put(14, ty, 0);
+    rc(5, ty + 9, 10, 1, 15); put(10, ty + 9, 16);
+    if (extra === 'schort') { rc(6, ty + 3, 8, 9, 12); rc(7, ty + 1, 6, 2, 12); put(6, ty, 12); put(13, ty, 12); }
+    if (extra === 'vest') { rc(5, ty + 1, 3, 9, 13); rc(12, ty + 1, 3, 9, 13); put(12, ty + 3, 16); put(12, ty + 6, 16); }
+    if (extra === 'overall') { rc(7, ty + 3, 6, 7, 14); put(7, ty + 1, 14); put(7, ty + 2, 14); put(12, ty + 1, 14); put(12, ty + 2, 14); put(8, ty + 4, 16); put(11, ty + 4, 16); }
+    if (voor && extra !== 'schort' && extra !== 'overall') { put(9, ty, 2); put(10, ty, 2); put(10, ty + 1, 2); }
+    // armen: achterste arm links, voorste rechts
+    const al = (!zit && !dans) ? (frame === 1 ? 1 : frame === 2 ? -1 : 0) : 0;
+    const arm = (x, y0, len) => { rc(x, y0, 2, 3, 4); rc(x, y0 + 3, 2, len - 3, 2); };
+    if (dans) {
+      const a1 = knip ? 0 : 2, a2 = 2 - a1;
+      rc(2, ty - 7 + a1, 2, 3, 4); rc(2, ty - 4 + a1, 2, 4, 4); rc(2, ty - 9 + a1, 2, 2, 2);
+      rc(16, ty - 7 + a2, 2, 7, 4); rc(16, ty - 9 + a2, 2, 2, 2);
+    } else {
+      arm(3, ty + 1 + al, 9);
+      if (zwaai) { rc(16, ty - 6 + knip, 2, 3, 4); rc(17, ty - 3 + knip, 2, 4, 4); rc(16 + (knip ? 1 : 0), ty - 9 + knip, 2, 3, 2); }
+      else arm(15, ty + 1 - al, 9);
+    }
+    // hoofd
+    const hy = by;
+    ell(10, 11 + hy, 6.4, 6.9, 2); rc(9, 18 + hy, 3, 1, 18);
+    if (voor) {
+      // oor aan de achterkant, ogen met wit en pupil naar de kijkrichting, wenkbrauwen, neus, mond, blosjes
+      rc(3, 11 + hy, 2, 3, 2); put(4, 12 + hy, 18);
+      if (knipper) { rc(8, 12 + hy, 2, 1, 7); rc(12, 12 + hy, 2, 1, 7); }
+      else { put(8, 11 + hy, 8); put(9, 11 + hy, 7); put(8, 12 + hy, 8); put(9, 12 + hy, 7); put(12, 11 + hy, 8); put(13, 11 + hy, 7); put(12, 12 + hy, 8); put(13, 12 + hy, 7); }
+      rc(8, 9 + hy, 2, 1, 17); rc(12, 9 + hy, 2, 1, 17);
+      put(15, 13 + hy, 18); put(15, 12 + hy, 18);
+      put(7, 14 + hy, 9); put(14, 14 + hy, 9);
+      if (praat) { rc(11, 15 + hy, 2, 2, 11); } else { rc(11, 15 + hy, 2, 1, 11); put(13, 14 + hy, 11); }
+      if (extra === 'bril') { for (const x0 of [7, 11]) { rc(x0, 13 + hy, 4, 1, 20); put(x0, 11 + hy, 20); put(x0, 12 + hy, 20); put(x0 + 3, 11 + hy, 20); put(x0 + 3, 12 + hy, 20); rc(x0 + 1, 10 + hy, 2, 1, 20); } put(11, 11 + hy, 20); rc(4, 11 + hy, 3, 1, 20); }
+    } else { rc(3, 11 + hy, 2, 3, 2); rc(16, 11 + hy, 1, 3, 2); }
+    // haar
+    if (stijl === 'pet') {
+      ell(10, 9 + hy, 6.9, 5.4, 10, (x, y) => y <= 8 + hy);
+      if (voor) { rc(10, 8 + hy, 9, 2, 10); rc(4, 9 + hy, 2, 3, 3); } else { rc(1, 8 + hy, 9, 2, 10); rc(4, 9 + hy, 12, 6, 3); }
+      put(8, 4 + hy, 19); put(9, 4 + hy, 19);
+    } else if (voor) {
+      ell(10, 9.6 + hy, 6.9, 6.9, 3, (x, y) => y <= 8 + hy || (x <= 5 && y <= 12 + hy) || (x >= 15 && y <= 9 + hy));
+      for (let x = 6; x <= 14; x++) if (x % 3 !== 2) put(x, 9 + hy, 3);
+      put(14, 10 + hy, 3);
+      if (stijl === 'lang') { rc(2, 9 + hy, 4, 13, 3); rc(15, 9 + hy, 2, 9, 3); put(16, 18 + hy, 3); }
+      if (stijl === 'knot') ell(10, 2.6 + hy, 3, 2.6, 3);
+      rc(8, 4 + hy, 4, 1, 19); put(7, 5 + hy, 19);
+    } else {
+      ell(10, 10 + hy, 6.9, 7.1, 3, (x, y) => y < 17 + hy);
+      if (stijl === 'lang') rc(3, 12 + hy, 14, 12, 3);
+      if (stijl === 'knot') ell(10, 2.6 + hy, 3, 2.6, 3);
+      rc(8, 5 + hy, 4, 1, 19);
+    }
+    // omlijning
     const uit = new Uint8Array(w * h);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const v = gr[y * w + x]; if (v) { uit[y * w + x] = v; continue; }
       if ((x > 0 && gr[y * w + x - 1]) || (x < w - 1 && gr[y * w + x + 1]) || (y > 0 && gr[(y - 1) * w + x]) || (y < h - 1 && gr[(y + 1) * w + x])) uit[y * w + x] = 1;
     }
-    const pal = { 1: [35, 26, 38], 2: rgbVan(huid), 3: rgbVan(haar), 4: rgbVan(shirt), 5: rgbVan(broek), 6: [42, 36, 48], 7: [35, 26, 38], 8: [255, 255, 255], 9: [240, 138, 138], 10: stijl === 'pet' ? rgbVan(haar) : [58, 61, 70], 11: [158, 58, 58], 12: [251, 246, 233], 13: [158, 36, 48], 14: [47, 76, 143] };
+    const hR = rgbVan(haar), sR = rgbVan(huid);
+    const pal = { 1: [35, 26, 38], 2: sR, 3: hR, 4: rgbVan(shirt), 5: rgbVan(broek), 6: [42, 36, 48], 7: [35, 26, 38], 8: [255, 255, 255], 9: [240, 140, 140], 10: stijl === 'pet' ? hR : [58, 61, 70], 11: [150, 56, 60], 12: [251, 246, 233], 13: [158, 36, 48], 14: [47, 76, 143], 15: rgbVan(broek).map(v => v * 0.6), 16: [233, 185, 73], 17: hR.map(v => v * 0.62), 18: sR.map(v => v * 0.8), 19: hR.map(v => Math.min(255, v * 1.45 + 30)), 20: [205, 210, 220] };
+    const vlak = v => (v > 1 && v < 7) || v === 10 || v === 12 || v === 13 || v === 14;
     const doek = document.createElement('canvas'); doek.width = w; doek.height = h;
     const dg = doek.getContext('2d'), img = dg.createImageData(w, h);
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const v = uit[y * w + x]; if (!v) continue;
-      let c = pal[v], f = 1;
-      if ((v > 1 && v < 7) || v >= 12 || v === 10) {
+      let col = pal[v], f = 1;
+      if (vlak(v)) {
         const r = x < w - 1 ? uit[y * w + x + 1] : 0, b = y < h - 1 ? uit[(y + 1) * w + x] : 0, l = x > 0 ? uit[y * w + x - 1] : 0, t = y > 0 ? uit[(y - 1) * w + x] : 0;
-        if (r <= 1 || (b > 1 && b !== v && ![7, 8, 9, 11].includes(b))) f = 0.78; else if (l <= 1 && t <= 1) f = 1.18;
+        if (r <= 1) f = 0.74; else if (b > 1 && b !== v && vlak(b)) f = 0.82; else if (l <= 1 || t <= 1) f = 1.16;
+        if (v === 4 || v === 5) { const r2 = x < w - 2 ? uit[y * w + x + 2] : 0; if (f === 1 && r2 <= 1) f = 0.88; }
       }
       const i = ((spiegel ? w - 1 - x : x) + y * w) * 4;
-      img.data[i] = Math.min(255, c[0] * f); img.data[i + 1] = Math.min(255, c[1] * f); img.data[i + 2] = Math.min(255, c[2] * f); img.data[i + 3] = 255;
+      img.data[i] = Math.min(255, col[0] * f); img.data[i + 1] = Math.min(255, col[1] * f); img.data[i + 2] = Math.min(255, col[2] * f); img.data[i + 3] = 255;
     }
     dg.putImageData(img, 0, 0);
     return doek;
   }
+  const knipperFase = (id) => { const t = Date.now() / 100 + (id || 0) * 17; return (t % 46) < 1.4; };
   function poppetje(G, fx, fy, L, st) {
     const voor = st.richting[0] === 'V', links = st.richting[1] === 'L';
     const huid = L.huidK || HUID[L.huid] || HUID[0], haar = L.haarK || HAAR[L.haar] || HAAR[0];
@@ -564,17 +599,18 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const stijl = L.stijlK || STIJL[L.stijl] || 'kort';
     const knip = st.t % 2;
     if (st.fietst) { fy -= 4; st = Object.assign({}, st, { fase: 0, loopt: false }); }
-    if (!st.zitHoog) { G.fillStyle = 'rgba(20,12,28,.32)'; G.fillRect(fx - 5, fy - 1, 10, 2); G.fillRect(fx - 3, fy + 1, 6, 1); G.fillRect(fx - 6, fy, 12, 1); }
+    if (!st.zitHoog) { G.fillStyle = 'rgba(20,12,28,.3)'; G.fillRect(fx - 6, fy - 1, 12, 2); G.fillRect(fx - 4, fy + 1, 8, 1); G.fillRect(fx - 7, fy, 14, 1); }
     const frame = st.loopt ? [0, 1, 0, 2][st.fase || 0] : 0;
-    const zwaai = !!st.zwaai && !st.dans, dans = !!st.dans;
-    const sleutel = [huid, haar, shirt, broek, stijl, L.extra || '', voor ? 1 : 0, frame, st.zit ? 1 : 0, zwaai ? 1 : 0, dans ? 1 : 0, (zwaai || dans) ? knip : 0, links ? 1 : 0].join('|');
+    const zwaai = !!st.zwaai && !st.dans, dans = !!st.dans, wissel = (zwaai || dans) ? knip : 0;
+    const knipper = voor && !st.loopt && knipperFase(st.id), praat = voor && !!st.praat && knip;
+    const sleutel = [huid, haar, shirt, broek, stijl, L.extra || '', voor ? 1 : 0, frame, st.zit ? 1 : 0, zwaai ? 1 : 0, dans ? 1 : 0, wissel, links ? 1 : 0, knipper ? 1 : 0, praat ? 1 : 0].join('|');
     let spr = spriteCache.get(sleutel);
-    if (!spr) { spr = maakSprite(huid, haar, shirt, broek, stijl, L.extra, voor, frame, st.zit, zwaai, dans, (zwaai || dans) ? knip : 0, links); spriteCache.set(sleutel, spr); }
+    if (!spr) { spr = maakSprite(huid, haar, shirt, broek, stijl, L.extra, voor, frame, st.zit, zwaai, dans, wissel, links, knipper, praat); spriteCache.set(sleutel, spr); }
     const op = st.zit ? 3 : 0;
-    if (L.dweil) { G.fillStyle = '#B5793F'; G.fillRect(links ? fx - 8 : fx + 7, fy - 22 + op, 1, 22 - op); G.fillStyle = '#C9CED6'; G.fillRect(links ? fx - 10 : fx + 5, fy - 1, 5, 2); G.fillStyle = '#8C939E'; G.fillRect(links ? fx - 10 : fx + 5, fy, 5, 1); }
-    G.drawImage(spr, fx - 8, fy - 30);
-    if (st.item && ITEMKLEUR[st.item] && !st.dans && !st.zwaai) { const [a, b] = ITEMKLEUR[st.item], ix = links ? fx - 9 : fx + 6, iy = fy - 12 + op; G.fillStyle = '#231A26'; G.fillRect(ix - 1, iy - 1, 5, 6); G.fillStyle = a; G.fillRect(ix, iy, 3, 4); G.fillStyle = b; G.fillRect(ix, iy, 3, 1); }
-    bij(fx - 8, fy - 32, fx + 8, fy + 2);
+    if (L.dweil) { G.fillStyle = '#B5793F'; G.fillRect(links ? fx - 9 : fx + 8, fy - 26 + op, 1, 26 - op); G.fillStyle = '#C9CED6'; G.fillRect(links ? fx - 11 : fx + 6, fy - 1, 6, 2); G.fillStyle = '#8C939E'; G.fillRect(links ? fx - 11 : fx + 6, fy, 6, 1); }
+    G.drawImage(spr, fx - 10, fy - 38);
+    if (st.item && ITEMKLEUR[st.item] && !st.dans && !st.zwaai) { const [a, b] = ITEMKLEUR[st.item], ix = links ? fx - 9 : fx + 6, iy = fy - 13 + op; G.fillStyle = '#231A26'; G.fillRect(ix - 1, iy - 1, 5, 6); G.fillStyle = a; G.fillRect(ix, iy, 3, 4); G.fillStyle = b; G.fillRect(ix, iy, 3, 1); }
+    bij(fx - 10, fy - 40, fx + 10, fy + 2);
   }
 
   // ---------------------------------------------------------------- meubels
@@ -644,6 +680,13 @@ dialog { max-height: 90vh; overflow-y: auto; }
       blok(m.x, m.y, 0.55, m.d, 30, { top: '#B86A52', links: steenL, rechts: steen });
       lijnP(P(m.x, m.y + m.d, 30), P(m.x, m.y + m.d, 0), '#4A2018'); lijnP(P(m.x, m.y + m.d, 0), P(X, m.y + m.d, 0), '#4A2018'); lijnP(P(X, m.y + m.d, 0), P(X, m.y, 0), '#4A2018'); lijnP(P(X, m.y, 0), P(X, m.y, 30), '#4A2018');
       blok(m.x - 0.02, m.y - 0.05, 0.62, m.d + 0.1, 3, '#D9C9A8', 30);
+      if (!m.laag) {
+        const Xs = m.x + 0.42, spiegel = (sx, sy) => { const tt = Xs - ((sx + 0.5) - ox) / 16, z = oy + (Xs + tt) * 8 - (sy + 0.5), u = (tt - m.y - 0.15) / (m.d - 0.3), v = (z - 33) / (WH - 33); if (v > 0.93) return '#C9B590'; const dd = Math.hypot((u - 0.5) * 1.8, (v - 0.5) * 1.1); if (dd < 0.34) return dd > 0.29 ? '#E9B949' : (u + v * 0.6 > 0.9 && u + v * 0.6 < 1.02 ? '#E8F4FF' : '#7FA6C0'); return (z | 0) % 6 === 0 ? '#D6C6A2' : '#E2D3B6'; };
+        blok(m.x, m.y + 0.15, 0.42, m.d - 0.3, WH - 33, { top: '#E2D3B6', links: '#CDBB98', rechts: spiegel, lijn: '#8C7A5A', licht: '#F2E6CC' }, 33);
+        const kl = P(m.x + 0.3, m.y + m.d * 0.3, 33); ovaal(kl[0], kl[1] - 4, 3, 3, '#C99A2E'); ovaal(kl[0], kl[1] - 4, 2, 2, '#F6F1E6');
+        blok(m.x + 0.15, m.y + m.d * 0.7, 0.2, 0.2, 7, '#3E8E9A', 33); blok(m.x + 0.18, m.y + m.d * 0.5, 0.1, 0.1, 6, '#F6F1E6', 33);
+        const v = P(m.x + 0.23, m.y + m.d * 0.5 + 0.05, 40); rect(v[0], v[1] - 1, 1, 1, '#FFE76A');
+      }
       const a = P(m.x + 0.55, m.y + 0.35, 0), b = P(m.x + 0.55, m.y + m.d - 0.35, 0);
       poly([[a[0], a[1] - 18], [b[0], b[1] - 18], [b[0], b[1]], [a[0], a[1]]], '#2A1A12');
       if (!reduce || true) {
@@ -744,33 +787,33 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const diepte = d => d.x + d.w + d.y + d.d;
     for (const groep of [onder, boven]) groep.sort((a, b) => diepte(a) - diepte(b) || (a.z || 0) - (b.z || 0)).forEach(d => blok(d.x, d.y, d.w, d.d, d.h, d.c, d.z || 0));
   }
-  function nieuweBank(x, y, w, d, r, c) {
+  function nieuweBank(x, y, w, d, r, c, deel) {
     const langs = r === 'VR' || r === 'AL', delen = [], zh = 7;
     for (const [a, b] of [[0.08, 0.08], [w - 0.16, 0.08], [0.08, d - 0.16], [w - 0.16, d - 0.16]]) delen.push({ x: x + a, y: y + b, w: 0.08, d: 0.08, h: 2, c: '#3A2416' });
     delen.push({ x: x + 0.05, y: y + 0.05, w: w - 0.1, d: d - 0.1, h: zh - 2, z: 2, c: stof(kleur(c, 0.85)) });
     const rug = { VR: [x + 0.05, y + 0.05, 0.24, d - 0.1], VL: [x + 0.05, y + 0.05, w - 0.1, 0.24], AR: [x + 0.05, y + d - 0.29, w - 0.1, 0.24], AL: [x + w - 0.29, y + 0.05, 0.24, d - 0.1] }[r];
-    delen.push({ x: rug[0], y: rug[1], w: rug[2], d: rug[3], h: 14, z: zh, c: stof(kleur(c, 0.92)) });
+    delen.push({ x: rug[0], y: rug[1], w: rug[2], d: rug[3], h: 14, z: zh, c: stof(kleur(c, 0.92)), rug: true });
     const lengte = langs ? d - 0.5 : w - 0.5, n = Math.max(1, Math.round(lengte));
     for (let i = 0; i < n; i++) {
       const s0 = 0.25 + i * lengte / n + 0.03, s1 = 0.25 + (i + 1) * lengte / n - 0.03;
-      if (langs) { const x0 = r === 'VR' ? x + 0.3 : x + 0.1; delen.push({ x: x0, y: y + s0, w: w - 0.42, d: s1 - s0, h: 3, z: zh, c: stof(c) }); delen.push({ x: r === 'VR' ? x + 0.29 : x + w - 0.42, y: y + s0, w: 0.13, d: s1 - s0, h: 8, z: zh + 2, c: stof(kleur(c, 1.06)) }); }
-      else { const y0 = r === 'VL' ? y + 0.3 : y + 0.1; delen.push({ x: x + s0, y: y0, w: s1 - s0, d: d - 0.42, h: 3, z: zh, c: stof(c) }); delen.push({ x: x + s0, y: r === 'VL' ? y + 0.29 : y + d - 0.42, w: s1 - s0, d: 0.13, h: 8, z: zh + 2, c: stof(kleur(c, 1.06)) }); }
+      if (langs) { const x0 = r === 'VR' ? x + 0.3 : x + 0.1; delen.push({ x: x0, y: y + s0, w: w - 0.42, d: s1 - s0, h: 3, z: zh, c: stof(c) }); delen.push({ x: r === 'VR' ? x + 0.29 : x + w - 0.42, y: y + s0, w: 0.13, d: s1 - s0, h: 8, z: zh + 2, c: stof(kleur(c, 1.06)), rug: true }); }
+      else { const y0 = r === 'VL' ? y + 0.3 : y + 0.1; delen.push({ x: x + s0, y: y0, w: s1 - s0, d: d - 0.42, h: 3, z: zh, c: stof(c) }); delen.push({ x: x + s0, y: r === 'VL' ? y + 0.29 : y + d - 0.42, w: s1 - s0, d: 0.13, h: 8, z: zh + 2, c: stof(kleur(c, 1.06)), rug: true }); }
     }
     if (langs) { delen.push({ x: x + 0.05, y: y + 0.03, w: w - 0.1, d: 0.2, h: 7, z: zh, c: stof(kleur(c, 0.95)) }); delen.push({ x: x + 0.05, y: y + d - 0.23, w: w - 0.1, d: 0.2, h: 7, z: zh, c: stof(kleur(c, 0.95)) }); }
     else { delen.push({ x: x + 0.03, y: y + 0.05, w: 0.2, d: d - 0.1, h: 7, z: zh, c: stof(kleur(c, 0.95)) }); delen.push({ x: x + w - 0.23, y: y + 0.05, w: 0.2, d: d - 0.1, h: 7, z: zh, c: stof(kleur(c, 0.95)) }); }
-    lagen(delen);
+    lagen(deel === 'zonderRug' ? delen.filter(p => !p.rug) : deel === 'rug' ? delen.filter(p => p.rug) : delen);
   }
-  function nieuweStoel(x, y, r, c) {
+  function nieuweStoel(x, y, r, c, deel) {
     c = c || HOUT; const delen = [];
     for (const [a, b] of [[0.24, 0.24], [0.7, 0.24], [0.24, 0.7], [0.7, 0.7]]) delen.push({ x: x + a, y: y + b, w: 0.06, d: 0.06, h: 7, c: '#4A2E1C' });
     delen.push({ x: x + 0.22, y: y + 0.22, w: 0.56, d: 0.56, h: 2, z: 7, c: hout(c) });
     delen.push({ x: x + 0.27, y: y + 0.27, w: 0.46, d: 0.46, h: 1, z: 9, c: stof(kleur(c, 1.25)) });
     const rug = { VR: [x + 0.22, y + 0.22, 0.07, 0.56], VL: [x + 0.22, y + 0.22, 0.56, 0.07], AR: [x + 0.22, y + 0.71, 0.56, 0.07], AL: [x + 0.71, y + 0.22, 0.07, 0.56] }[r];
     const lang = rug[2] > rug[3];
-    for (const f of [0, 1]) delen.push({ x: rug[0] + (lang ? f * 0.49 : 0), y: rug[1] + (lang ? 0 : f * 0.49), w: 0.07, d: 0.07, h: 13, z: 9, c: hout(kleur(c, 0.9)) });
-    delen.push({ x: rug[0], y: rug[1], w: rug[2], d: rug[3], h: 4, z: 18, c: hout(kleur(c, 0.95)) });
-    delen.push({ x: rug[0] + (lang ? 0.2 : 0), y: rug[1] + (lang ? 0 : 0.2), w: lang ? 0.16 : rug[2], d: lang ? rug[3] : 0.16, h: 9, z: 9, c: hout(kleur(c, 0.95)) });
-    lagen(delen);
+    for (const f of [0, 1]) delen.push({ x: rug[0] + (lang ? f * 0.49 : 0), y: rug[1] + (lang ? 0 : f * 0.49), w: 0.07, d: 0.07, h: 13, z: 9, c: hout(kleur(c, 0.9)), rug: true });
+    delen.push({ x: rug[0], y: rug[1], w: rug[2], d: rug[3], h: 4, z: 18, c: hout(kleur(c, 0.95)), rug: true });
+    delen.push({ x: rug[0] + (lang ? 0.2 : 0), y: rug[1] + (lang ? 0 : 0.2), w: lang ? 0.16 : rug[2], d: lang ? rug[3] : 0.16, h: 9, z: 9, c: hout(kleur(c, 0.95)), rug: true });
+    lagen(deel === 'zonderRug' ? delen.filter(p => !p.rug) : deel === 'rug' ? delen.filter(p => p.rug) : delen);
   }
   function boeken(t0, t1, Y, z0, hoog, langsX) {
     const KL = ['#C8323C', '#2F5D9A', '#E3B04B', '#3E8E5A', '#7A4E9A', '#E8DCC4', '#8E2F3A', '#2E6E7A'];
@@ -784,8 +827,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     }
   }
   Object.assign(TEKEN, {
-    bank: m => nieuweBank(m.x, m.y, m.w, m.d, m.r, m.kleur || '#2E8B62'),
-    stoel: m => nieuweStoel(m.x, m.y, m.r, m.kleur),
+    bank: m => nieuweBank(m.x, m.y, m.w, m.d, m.r, m.kleur || '#2E8B62', m._deel),
+    stoel: m => nieuweStoel(m.x, m.y, m.r, m.kleur, m._deel),
     tafel: m => {
       const x = m.x + 0.15, y = m.y + 0.15, w = (m.w || 1) - 0.3, d = (m.d || 1) - 0.3, h = m.h || 12, c = m.kleur || HOUTL;
       lagen([[0.05, 0.05], [w - 0.12, 0.05], [0.05, d - 0.12], [w - 0.12, d - 0.12]].map(([a, b]) => ({ x: x + a, y: y + b, w: 0.07, d: 0.07, h: h - 2, c: '#4A2E1C' })));
@@ -863,11 +906,12 @@ dialog { max-height: 90vh; overflow-y: auto; }
     bed: m => {
       const x = m.x + 0.05, y = m.y, w = 0.9, d = 1.95;
       lagen([[0.03, 0.05], [w - 0.11, 0.05], [0.03, d - 0.11], [w - 0.11, d - 0.11]].map(([a, b]) => ({ x: x + a, y: y + b, w: 0.08, d: 0.08, h: 3, c: '#4A2E1C' })));
-      blok(x, y + 0.05, w, d - 0.05, 4, hout('#7A4E2D'), 3);
-      blok(x, y, w, 0.12, 20, hout('#6E4626'));
+      blok(x, y + 0.05, w, d - 0.05, 4, hout(m.frame || '#7A4E2D'), 3);
+      blok(x, y, w, 0.12, 20, hout(m.frame ? kleur(m.frame, 0.9) : '#6E4626'));
       blok(x + 0.04, y + 0.12, w - 0.08, d - 0.18, 3, stof('#F2EDE2'), 7);
       blok(x + 0.12, y + 0.16, w - 0.24, 0.32, 3, stof('#FFFFFF'), 10);
-      blok(x + 0.03, y + 0.6, w - 0.06, d - 0.66, 3, { top: (sx, sy) => { const [gx, gy] = naarVloer(sx, sy, -10); return (Math.floor(gx * 6) + Math.floor(gy * 6)) % 2 ? '#2F4C8F' : '#3E5EA8'; }, links: '#2A4480', rechts: '#223870', lijn: '#14213F', licht: '#4E6EB8' }, 7);
+      const dk = m.kleur || '#2F4C8F';
+      blok(x + 0.03, y + 0.6, w - 0.06, d - 0.66, 3, { top: (sx, sy) => { const [gx, gy] = naarVloer(sx, sy, -10); return (Math.floor(gx * 6) + Math.floor(gy * 6)) % 2 ? dk : kleur(dk, 1.15); }, links: kleur(dk, 0.9), rechts: kleur(dk, 0.75), lijn: kleur(dk, 0.45), licht: kleur(dk, 1.25) }, 7);
       blok(x + 0.03, y + 0.6, w - 0.06, 0.14, 4, stof('#F2EDE2'), 9);
     },
     nachtkastje: m => { blok(m.x + 0.15, m.y + 0.15, 0.7, 0.7, 11, { top: hout('#9A6438').top, links: voorY(m.y + 0.85, 0, (t, z) => (Math.abs(z - 6) < 0.6 ? '#5C3A21' : (Math.abs(t - m.x - 0.5) < 0.05 && z > 7 && z < 9 ? '#E9B949' : '#8C5530'))), rechts: hout('#9A6438').rechts, lijn: '#3A2414', licht: '#C08A55' }); },
@@ -899,6 +943,65 @@ dialog { max-height: 90vh; overflow-y: auto; }
     duikplank: m => { blok(m.x + 0.1, m.y + 0.2, 0.3, 0.6, 6, '#9AA6C2'); blok(m.x + 0.1, m.y + 0.3, (m.w || 2) - 0.1, 0.4, 2, { top: '#F6F1E6', links: '#E3DCCB', rechts: '#C9C2B4', lijn: '#6F7785', licht: '#FFFFFF' }, 6); },
     trapje: m => { for (const b of [0.25, 0.75]) { const a = P(m.x + 0.95, m.y + b, -10), c = P(m.x + 0.95, m.y + b, 16); g.fillStyle = '#C9CED6'; g.fillRect(Math.round(a[0]), Math.round(c[1]), 1, Math.round(a[1] - c[1])); const k = P(m.x + 0.7, m.y + b, 16); lijnP(c, k, '#C9CED6'); } for (let i = 0; i < 3; i++) { const a = P(m.x + 0.95, m.y + 0.25, -6 + i * 5), b = P(m.x + 0.95, m.y + 0.75, -6 + i * 5); lijnP(a, b, '#9AA6C2'); } },
     zwemband: m => { const c = P(m.x + 0.5, m.y + 0.5, -4 + Math.sin(Date.now() / 600 + m.x) * 1.2); ovaal(c[0], c[1], 8, 4, kleur(m.kleur || '#E8577A', 0.6)); ovaal(c[0], c[1] - 1, 8, 4, m.kleur || '#E8577A'); ovaal(c[0], c[1] - 1, 4, 2, '#3A8DDE'); for (const a of [-6, 0, 5]) rect(c[0] + a, c[1] - 3, 2, 1, '#FBF6E9'); },
+    hanglamp: m => {
+      const top = P(m.x + 0.5, m.y + 0.5, WH + 10), lamp = P(m.x + 0.5, m.y + 0.5, m.hoog || 46), aan = m.id ? aanUit(m) : true;
+      g.fillStyle = '#23252B'; g.fillRect(Math.round(top[0]), Math.round(top[1]), 1, Math.round(lamp[1] - top[1]));
+      poly([[lamp[0] - 2, lamp[1]], [lamp[0] + 3, lamp[1]], [lamp[0] + 6, lamp[1] + 5], [lamp[0] - 5, lamp[1] + 5]], m.kleur || '#2E6E4A');
+      lijnP([lamp[0] - 5, lamp[1] + 5], [lamp[0] + 6, lamp[1] + 5], '#C99A2E');
+      rect(lamp[0] - 2, lamp[1] + 6, 5, 1, aan ? '#FFF3C4' : '#9AA0A6');
+    },
+    tapkraan: m => { const z = m.z || 18; blok(m.x + 0.3, m.y + 0.42, 0.42, 0.14, 4, '#C99A2E', z); for (let i = 0; i < 3; i++) { const p = P(m.x + 0.36 + i * 0.14, m.y + 0.5, z + 4); rect(p[0], p[1] - 7, 1, 7, '#C9CED6'); rect(p[0] - 1, p[1] - 9, 3, 3, ['#C8323C', '#2E8B62', '#2F4C8F'][i]); } },
+    espresso: m => { const z = m.z || 18; blok(m.x + 0.2, m.y + 0.25, 0.6, 0.5, 12, { top: '#9AA6C2', links: '#C9CED6', rechts: '#9AA6C2', lijn: '#3E465A', licht: '#E6EAF0' }, z); blok(m.x + 0.3, m.y + 0.72, 0.4, 0.06, 2, '#23252B', z + 4); const k = P(m.x + 0.45, m.y + 0.78, z); rect(k[0] - 1, k[1] - 3, 3, 3, '#F6F1E6'); if (!reduce) { const f = (Date.now() / 70) % 10; for (let i = 0; i < 2; i++) { const yy = (f + i * 5) % 10; g.fillStyle = `rgba(255,255,255,${(0.45 * (1 - yy / 10)).toFixed(2)})`; g.fillRect(k[0] + i, Math.round(k[1] - 16 - yy), 1, 1); } } },
+    vitrine: m => { const z = m.z || 18, Y = m.y + 0.78; blok(m.x + 0.12, m.y + 0.22, 0.76, 0.56, 12, { top: 'rgba(220,240,255,.55)', links: 'rgba(220,240,255,.35)', rechts: 'rgba(200,225,245,.4)' }, z); for (const [a, kl2] of [[0.3, '#A8162B'], [0.62, '#E9B949']]) { const c = P(m.x + a, m.y + 0.5, z + 2); ovaal(c[0], c[1], 4, 2, '#C98A43'); ovaal(c[0], c[1] - 1, 3, 1, kl2); } lijnP(P(m.x + 0.12, Y, z + 12), P(m.x + 0.88, Y, z + 12), '#C9CED6'); lijnP(P(m.x + 0.88, Y, z + 12), P(m.x + 0.88, m.y + 0.22, z + 12), '#C9CED6'); },
+    bistrotafel: m => { const c0 = m.kleur || '#F2EDE2'; blok(m.x + 0.45, m.y + 0.45, 0.1, 0.1, 10, '#23252B'); blok(m.x + 0.3, m.y + 0.3, 0.4, 0.4, 1, '#23252B'); const c = P(m.x + 0.5, m.y + 0.5, 11); ovaal(c[0], c[1] + 1, 10, 5, kleur(c0, 0.75)); ovaal(c[0], c[1], 10, 5, c0); for (let i = -8; i <= 8; i += 4) rect(c[0] + i, c[1] + 4 - Math.round(Math.abs(i) / 3), 2, 2, '#C8323C'); rect(c[0] - 1, c[1] - 5, 2, 4, '#F6F1E6'); rect(c[0], c[1] - 6 - (Math.sin(Date.now() / 110 + m.x) > 0 ? 1 : 0), 1, 1, '#FFE76A'); rect(c[0] + 4, c[1] - 3, 2, 3, '#9FD3E8'); },
+    kapstok: m => { blok(m.x + 0.4, m.y + 0.4, 0.2, 0.2, 2, '#4A2E1C'); blok(m.x + 0.47, m.y + 0.47, 0.06, 0.06, 40, '#5C3A21', 2); const c = P(m.x + 0.5, m.y + 0.5, 40); for (const [dx, k2] of [[-4, '#2F4C8F'], [3, '#C8323C']]) { g.fillStyle = kleur(k2, 0.6); g.fillRect(c[0] + dx - 2, c[1] + 2, 5, 1); g.fillStyle = k2; g.fillRect(c[0] + dx - 2, c[1] + 3, 5, 12); g.fillStyle = kleur(k2, 0.75); g.fillRect(c[0] + dx + 2, c[1] + 3, 1, 12); } rect(c[0] - 6, c[1] - 2, 5, 2, '#5C3A21'); rect(c[0] - 7, c[1] - 4, 7, 2, '#3A3D46'); },
+    bagagekar: m => { lagen([{ x: m.x + 0.12, y: m.y + 0.2, w: 0.76, d: 0.6, h: 2, z: 3, c: '#C99A2E' }]); for (const [a, b] of [[0.18, 0.25], [0.82, 0.25], [0.18, 0.75], [0.82, 0.75]]) { const c = P(m.x + a, m.y + b, 1); rect(c[0] - 1, c[1] - 1, 3, 3, '#23252B'); } for (const [a, b] of [[0.18, 0.22], [0.82, 0.22]]) { const lo = P(m.x + a, m.y + b, 5), hi = P(m.x + a, m.y + b, 36); g.fillStyle = '#C99A2E'; g.fillRect(Math.round(lo[0]), Math.round(hi[1]), 1, Math.round(lo[1] - hi[1])); } lijnP(P(m.x + 0.18, m.y + 0.22, 36), P(m.x + 0.82, m.y + 0.22, 36), '#E9B949'); blok(m.x + 0.2, m.y + 0.3, 0.6, 0.4, 9, hout('#7A4E2D'), 5); blok(m.x + 0.26, m.y + 0.34, 0.45, 0.32, 7, stof('#2F8BD6'), 14); blok(m.x + 0.32, m.y + 0.38, 0.32, 0.24, 6, stof('#E8577A'), 21); },
+    paraplubak: m => { blok(m.x + 0.35, m.y + 0.35, 0.3, 0.3, 10, '#5C3A21'); const c = P(m.x + 0.5, m.y + 0.5, 10); for (const [dx, k2] of [[-2, '#2F4C8F'], [1, '#C8323C'], [3, '#2E8B62']]) { lijnP([c[0] + dx, c[1]], [c[0] + dx - 1, c[1] - 14], '#3A3D46'); rect(c[0] + dx - 2, c[1] - 16, 3, 3, k2); } },
+    kaptafel: m => {
+      blok(m.x + 0.1, m.y + 0.15, 0.8, 0.5, 12, hout(m.kleur || '#F2F2F2'));
+      blok(m.x + 0.3, m.y + 0.18, 0.4, 0.08, 18, '#E9B949', 12);
+      poly([P(m.x + 0.34, m.y + 0.26, 15), P(m.x + 0.66, m.y + 0.26, 15), P(m.x + 0.66, m.y + 0.26, 28), P(m.x + 0.34, m.y + 0.26, 28)], voorY(m.y + 0.26, 0, (t, z) => (Math.abs(t - m.x - 0.45 + (z - 15) * 0.01) < 0.03 ? '#FFFFFF' : '#C9E6F2')));
+      ['#E8577A', '#B88AFF', '#E9B949'].forEach((k, i) => blok(m.x + 0.17 + i * 0.22, m.y + 0.42, 0.08, 0.08, 4 + (i % 2) * 2, k, 12));
+    },
+    aquarium: m => {
+      blok(m.x + 0.1, m.y + 0.2, (m.w || 1) - 0.2, 0.6, 10, hout('#3A3D46'));
+      const x0 = m.x + 0.12, x1 = m.x + (m.w || 1) - 0.12, Y = m.y + 0.78, t = Date.now();
+      blok(x0, m.y + 0.22, x1 - x0, 0.56, 16, { top: '#BFE6FF', links: voorY(Y, 10, (tt, z) => { const u = (tt - x0) / (x1 - x0), v = z / 16; if (v < 0.12) return '#E0C08A'; if (v > 0.88) return '#BFE6FF'; for (let f = 0; f < 3; f++) { const fx = (u * 3 + t / (2400 + f * 700) + f * 0.37) % 1, fy = 0.35 + f * 0.18; if (Math.abs(((fx * 3) % 1) - 0.5) < 0.06 && Math.abs(v - fy) < 0.06) return ['#F2A93B', '#E8577A', '#E9B949'][f]; } if (Math.abs(u - 0.2) < 0.03 && v < 0.6) return '#4E9E3E'; return '#3A9AD6'; }), rechts: '#2F7AA0', lijn: '#14385C', licht: '#E0F4FF' }, 10);
+    },
+    ezel: m => {
+      const x = m.x + 0.5, y = m.y + 0.5;
+      lijnP(P(x - 0.25, y, 0), P(x, y - 0.1, 34), '#8C5530'); lijnP(P(x + 0.25, y, 0), P(x, y - 0.1, 34), '#8C5530'); lijnP(P(x, y + 0.3, 0), P(x, y - 0.1, 30), '#6E4626');
+      poly([P(x - 0.3, y - 0.05, 14), P(x + 0.3, y - 0.05, 14), P(x + 0.3, y - 0.05, 32), P(x - 0.3, y - 0.05, 32)], voorY(y - 0.05, 14, (t, z) => { const u = (t - x + 0.3) / 0.6, v = z / 18; if (u < 0.05 || u > 0.95 || v < 0.06 || v > 0.94) return '#F6F1E6'; if (v < 0.4) return '#4E9E3E'; if (Math.hypot(u - 0.7, v - 0.75) < 0.12) return '#F2C230'; return v < 0.55 ? '#3A8DDE' : '#9FD3E8'; }));
+      blok(x - 0.32, y - 0.05, 0.64, 0.06, 2, '#8C5530', 12);
+    },
+    bureau: m => {
+      const w = m.w || 1.5, t = Date.now();
+      lagen([[0.08, 0.12], [w - 0.16, 0.12], [0.08, 0.7], [w - 0.16, 0.7]].map(([a, b]) => ({ x: m.x + a, y: m.y + b, w: 0.08, d: 0.08, h: 12, c: '#23252B' })));
+      blok(m.x + 0.04, m.y + 0.08, w - 0.08, 0.76, 2, '#3A3D46', 12);
+      for (let i = 0; i < (m.schermen || 2); i++) {
+        const sx0 = m.x + 0.12 + i * (w - 0.2) / (m.schermen || 2), sx1 = sx0 + (w - 0.3) / (m.schermen || 2), Y = m.y + 0.3;
+        blok((sx0 + sx1) / 2 - 0.04, Y - 0.1, 0.08, 0.08, 4, '#23252B', 14);
+        poly([P(sx0, Y, 17), P(sx1, Y, 17), P(sx1, Y, 28), P(sx0, Y, 28)], voorY(Y, 17, (tt, z) => { const u = (tt - sx0) / (sx1 - sx0); if (u < 0.05 || u > 0.95 || z < 1 || z > 10) return '#14141A'; const r = Math.floor(z * 1.2 + t / 220 + i * 3) % 6; return r === 0 ? '#7FF0FF' : r === 3 ? '#C8A2FF' : '#1E2A5C'; }));
+      }
+      blok(m.x + 0.3, m.y + 0.55, 0.6, 0.18, 1, '#23252B', 14);
+    },
+    drumstel: m => {
+      const c = P(m.x + 0.5, m.y + 0.5, 0), t = Date.now() / 150;
+      for (const [dx, dy, r, hh] of [[-8, -2, 5, 10], [6, -4, 4, 12], [0, 3, 7, 6]]) { ovaal(c[0] + dx, c[1] + dy - hh + 2, r, Math.ceil(r / 2), '#9E2430'); g.fillStyle = '#9E2430'; g.fillRect(c[0] + dx - r, c[1] + dy - hh - 1, r * 2, hh); ovaal(c[0] + dx, c[1] + dy - hh - 1, r, Math.ceil(r / 2), '#F2F2F2'); }
+      for (const [dx, dy] of [[-13, -16], [12, -18]]) { lijnP([c[0] + dx, c[1] + dy + 12], [c[0] + dx, c[1] + dy], '#9AA6C2'); ovaal(c[0] + dx, c[1] + dy - (Math.sin(t + dx) > 0.7 ? 1 : 0), 5, 1, '#E9B949'); }
+    },
+    gitaar: m => { const c = P(m.x + 0.5, m.y + 0.5, 0); lijnP([c[0] - 3, c[1]], [c[0], c[1] - 8], '#3A3D46'); lijnP([c[0] + 3, c[1]], [c[0], c[1] - 8], '#3A3D46'); ovaal(c[0], c[1] - 9, 5, 4, m.kleur || '#C8323C'); ovaal(c[0], c[1] - 15, 4, 3, m.kleur || '#C8323C'); rect(c[0] - 1, c[1] - 12, 2, 2, '#23252B'); rect(c[0] - 1, c[1] - 30, 2, 16, '#5C3A21'); rect(c[0] - 2, c[1] - 32, 4, 3, '#23252B'); },
+    speaker: m => { const t = Date.now(), puls = Math.sin(t / 120) > 0.3 ? 1 : 0; blok(m.x + 0.25, m.y + 0.25, 0.5, 0.5, 24, '#23252B'); const p = P(m.x + 0.75, m.y + 0.5, 16), q = P(m.x + 0.75, m.y + 0.5, 6); ovaal(p[0], p[1], 3 + puls, 3 + puls, '#3A3D46'); ovaal(p[0], p[1], 1, 1, '#9AA6C2'); ovaal(q[0], q[1] - 2, 3, 3, '#3A3D46'); },
+    trofeekast: m => { blok(m.x + 0.1, m.y + 0.1, 0.8, 0.5, 30, hout('#7A4E2D')); for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) { const p = P(m.x + 0.25 + j * 0.25, m.y + 0.6, 8 + i * 12); rect(p[0] - 1, p[1] - 5, 3, 3, ['#E9B949', '#C9CED6', '#C98A43'][(i + j) % 3]); rect(p[0], p[1] - 2, 1, 2, '#E9B949'); rect(p[0] - 1, p[1], 3, 1, '#5C3A21'); } },
+    halters: m => { for (const [a, b] of [[0.3, 0.4], [0.6, 0.6]]) { const c = P(m.x + a, m.y + b, 2); rect(c[0] - 4, c[1] - 1, 8, 1, '#9AA6C2'); rect(c[0] - 6, c[1] - 3, 3, 5, '#23252B'); rect(c[0] + 3, c[1] - 3, 3, 5, '#23252B'); } },
+    bal: m => { const c = P(m.x + 0.5, m.y + 0.5, 4); ovaal(c[0], c[1], 5, 5, '#F2F2F2'); rect(c[0] - 1, c[1] - 1, 3, 3, '#23252B'); rect(c[0] - 4, c[1] + 1, 2, 2, '#23252B'); rect(c[0] + 3, c[1] - 3, 2, 2, '#23252B'); },
+    kandelaar: m => { const z = m.z || 0; blok(m.x + 0.42, m.y + 0.42, 0.16, 0.16, 2, '#C99A2E', z); blok(m.x + 0.47, m.y + 0.47, 0.06, 0.06, 10, '#C99A2E', z + 2); for (const [a, b] of [[0.3, 0.5], [0.5, 0.5], [0.7, 0.5]]) { blok(m.x + a - 0.03, m.y + b - 0.03, 0.06, 0.06, 5, '#F6F1E6', z + 12); const v = P(m.x + a, m.y + b, z + 18); rect(v[0], v[1] - (Math.sin(Date.now() / 110 + a * 9) > 0 ? 1 : 0), 1, 2, '#FFE76A'); } },
+    fornuis: m => { blok(m.x + 0.1, m.y + 0.1, 0.8, 0.7, 14, { top: '#3A3D46', links: voorY(m.y + 0.8, 0, (t, z) => (z > 3 && z < 10 && Math.abs(t - m.x - 0.5) < 0.25 ? '#23252B' : '#F2F2F2')), rechts: '#C9CED6', lijn: '#3A3D46', licht: '#5F6470' }); const pan = P(m.x + 0.4, m.y + 0.4, 14); ovaal(pan[0], pan[1] - 1, 5, 2, '#3A3D46'); ovaal(pan[0], pan[1] - 2, 4, 2, '#C8323C'); rect(pan[0] + 4, pan[1] - 2, 5, 1, '#23252B'); if (!reduce) { const f = (Date.now() / 80) % 10; for (let k = 0; k < 3; k++) { const yy = (f + k * 3.3) % 10; g.fillStyle = `rgba(255,255,255,${(0.45 * (1 - yy / 10)).toFixed(2)})`; g.fillRect(pan[0] + k * 2 - 2, Math.round(pan[1] - 4 - yy), 1, 1); } } },
+    kristalbol: m => { blok(m.x + 0.2, m.y + 0.2, 0.6, 0.6, 2, '#5A2A6E', 10); lagen([{ x: m.x + 0.46, y: m.y + 0.46, w: 0.08, d: 0.08, h: 10, c: '#3A1E3A' }]); blok(m.x + 0.15, m.y + 0.15, 0.7, 0.7, 1, '#E9B949', 10); const c = P(m.x + 0.5, m.y + 0.5, 17), t = Date.now() / 400; ovaal(c[0], c[1], 5, 5, '#5A2A6E'); ovaal(c[0], c[1], 4, 4, '#C8A2FF'); rect(c[0] - 2 + Math.round(Math.sin(t) * 2), c[1] - 1 + Math.round(Math.cos(t) * 1.5), 2, 2, '#7FF0FF'); rect(c[0] - 2, c[1] - 3, 1, 1, '#FFFFFF'); },
+    tent: m => { const x = m.x, y = m.y, w = m.w || 2, d = m.d || 1.5, k = m.kleur || '#E9B949'; poly([P(x, y + d, 0), P(x + w, y + d, 0), P(x + w, y + d / 2, 22), P(x, y + d / 2, 22)], k); poly([P(x + w, y + d, 0), P(x + w, y, 0), P(x + w, y + d / 2, 22)], kleur(k, 0.75)); poly([P(x + w * 0.6, y + d, 0), P(x + w * 0.9, y + d, 0), P(x + w * 0.75, y + d * 0.75, 11)], '#3A2414'); lijnP(P(x, y + d / 2, 22), P(x + w, y + d / 2, 22), kleur(k, 0.5)); lijnP(P(x, y + d, 0), P(x + w, y + d, 0), kleur(k, 0.45)); },
+    skirek: m => { blok(m.x + 0.05, m.y + 0.3, 0.12, 0.4, 2, '#5C3A21', 30); for (const [i, k] of [[0, '#C8323C'], [1, '#2F8BD6']]) { const a = P(m.x + 0.1, m.y + 0.35 + i * 0.2, 2), b = P(m.x + 0.1, m.y + 0.35 + i * 0.2, 44); g.fillStyle = k; g.fillRect(Math.round(a[0]), Math.round(b[1]), 2, Math.round(a[1] - b[1])); g.fillStyle = '#F2F2F2'; g.fillRect(Math.round(a[0]), Math.round(b[1]), 2, 2); } },
+    knuffel: m => { const c = P(m.x + 0.5, m.y + 0.5, m.z || 0), k = m.kleur || '#C98A4B'; ovaal(c[0], c[1] - 4, 4, 4, k); ovaal(c[0], c[1] - 10, 3, 3, k); rect(c[0] - 3, c[1] - 13, 2, 2, k); rect(c[0] + 2, c[1] - 13, 2, 2, k); rect(c[0] - 1, c[1] - 10, 1, 1, '#231A26'); rect(c[0] + 1, c[1] - 10, 1, 1, '#231A26'); },
+    breimand: m => { blok(m.x + 0.3, m.y + 0.3, 0.4, 0.4, 5, hout('#C98A43')); const c = P(m.x + 0.5, m.y + 0.5, 6); ovaal(c[0] - 2, c[1], 3, 2, '#C8507A'); ovaal(c[0] + 2, c[1] - 1, 2, 2, '#2F8BD6'); lijnP([c[0], c[1] - 2], [c[0] + 5, c[1] - 9], '#C9CED6'); },
     handdoeken: m => { blok(m.x + 0.2, m.y + 0.3, 0.6, 0.4, 2, '#9AA6C2', 16); for (const a of [0.25, 0.75]) blok(m.x + a - 0.03, m.y + 0.47, 0.06, 0.06, 16, '#9AA6C2'); ['#E8577A', '#5EC2E8', '#E9B949'].forEach((k, i) => blok(m.x + 0.24 + i * 0.18, m.y + 0.42, 0.15, 0.16, 12, stof(k), 5)); },
   });
   const oudeDeur = null;
@@ -936,7 +1039,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   setInterval(() => { const d = isDag(); if (d !== dagNu) { dagNu = d; achtergrondVies = true; } }, 60000);
   // licht: een lichtkaart over het hele beeld, met de omgeving als basis en lampen die erbij optellen
   let lichtKaart = null;
-  const GLOEIT = new Set(['#F6D27A', '#FFF3C4', '#F2C230', '#E07A2E', '#FF7FB0', '#5EC2E8', '#FFE76A'].map(h => parseInt(h.slice(1), 16)));
+  const GLOEIT = new Set(['#F6D27A', '#FFF3C4', '#F2C230', '#E07A2E', '#FF7FB0', '#5EC2E8', '#FFE76A', '#7FF0FF', '#C8A2FF'].map(h => parseInt(h.slice(1), 16)));
   function lichtPass(nu) {
     const Rm = huidig;
     let amb = null;
@@ -956,9 +1059,15 @@ dialog { max-height: 90vh; overflow-y: auto; }
       else if (m.type === 'arcade') voeg(P(m.x + 0.5, m.y + 0.6, 20), 46, [0.5, 0.8, 1], amb ? 0.65 : 0.12);
       else if (m.type === 'jukebox' && jukeboxAan) voeg(P(m.x + 0.5, m.y + 0.6, 16), 60, [1, 0.5, 0.9], amb ? 0.75 : 0.2);
       else if (m.type === 'snoepautomaat') voeg(P(m.x + 0.5, m.y + 0.6, 18), 40, [1, 0.9, 0.6], amb ? 0.5 : 0.1);
+      else if (m.type === 'hanglamp' && (!m.id || aanUit(m))) voeg(P(m.x + 0.5, m.y + 0.5, (m.hoog || 46) - 2), 66, [1, 0.82, 0.5], amb ? 0.75 : 0.12);
+      else if (m.type === 'kandelaar') voeg(P(m.x + 0.5, m.y + 0.5, (m.z || 0) + 18), 56, [1, 0.72, 0.4], (amb ? 0.85 : 0.15) * fl);
+      else if (m.type === 'kristalbol') voeg(P(m.x + 0.5, m.y + 0.5, 17), 50, [0.75, 0.55, 1], amb ? 0.8 : 0.25);
+      else if (m.type === 'bureau') voeg(P(m.x + (m.w || 1.5) / 2, m.y + 0.4, 22), 50, [0.55, 0.8, 1], amb ? 0.7 : 0.15);
+      else if (m.type === 'aquarium') voeg(P(m.x + (m.w || 1) / 2, m.y + 0.6, 18), 46, [0.5, 0.85, 1], amb ? 0.55 : 0.1);
       else if (m.type === 'draaiorgel' || m.type === 'kraam') voeg(P(m.x + (m.w || 1) / 2, m.y + (m.d || 1) / 2, 20), 56, warm, amb ? 0.6 : 0);
     }
     for (const d of Rm.muurDeco || []) {
+      if (d.soort === 'wandlamp') { voeg(d.kant === 'L' ? P(0.3, d.t, d.z) : P(d.t, 0.3, d.z), 52, [1, 0.82, 0.5], amb ? 0.6 : 0.08); continue; }
       if (d.soort === 'neon') { const nk = rgbVan(d.kleur || '#FF7FB0').map(v => v / 255); voeg(d.kant === 'L' ? P(0.4, d.t - 0.6, d.z) : P(d.t + 0.6, 0.4, d.z), 60, nk, amb ? 0.8 : 0.15); continue; }
       if (d.t0 === undefined) continue;
       const tm = (d.t0 + d.t1) / 2, zm = ((d.z0 || 30) + (d.z1 || 40)) / 2;
@@ -1152,6 +1261,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
         { type: 'stoel', x: 6, y: 6, r: 'AL', zit: [[6, 6, 'AL']], kleur: '#2F4C8F', naam: 'Wachtstoel' },
         { type: 'plant', x: 7, y: 7 },
         { id: 'r1', type: 'lamp', x: 1, y: 7, aan: true, actie: 'lamp', naam: 'Staande lamp' },
+        { type: 'bagagekar', x: 1, y: 5, naam: 'Bagagekar' }, { type: 'paraplubak', x: 7, y: 3, naam: 'Paraplubak' },
       ],
       kleden: [{ x: 2, y: 4, w: 3, d: 3, kleur: '#9E2430', rand: '#E9B949' }],
       npcs: [
@@ -1162,39 +1272,44 @@ dialog { max-height: 90vh; overflow-y: auto; }
       ],
     },
     lobby: {
-      naam: 'Lobby', ondertitel: 'Bank, haard en een piano', w: 10, h: 10,
+      naam: 'Lobby', ondertitel: 'Bij de haard, met een piano en boeken', w: 10, h: 10,
       tegels: ['..........', '..........', '..........', '..........', '..........', '..........', '..........', '..........', '..........', '..........'],
-      vloer: { '.': ['#9A6438', '#8C5A32'] },
-      muur: { L: '#4E8A6A', R: '#3F7558', patroon: 'streep', rand: '#2E5A43' },
+      vloer: { '.': ['#B07A48', '#9C6A3C'] },
+      muur: { L: '#2F5D62', R: '#28525A', patroon: 'lambrisering', rand: '#C9A24E' },
       deuren: [
         { kant: 'L', t: 2, x: 0, y: 2, naar: 'receptie', spawn: [6, 1, 'VL'], naam: 'Naar de receptie' },
         { kant: 'R', t: 3, x: 3, y: 0, naar: 'cafe', spawn: [1, 3, 'VR'], naam: 'Naar het café' },
-        { kant: 'R', t: 7, x: 7, y: 0, naar: 'kamer', spawn: [1, 3, 'VR'], naam: 'Naar kamer 12', slot: 'incheck' },
+        { kant: 'R', t: 7, x: 7, y: 0, naar: 'gang', spawn: [1, 1, 'VR'], naam: 'Naar de kamers' },
       ],
       muurDeco: [
         { soort: 'bord', kant: 'R', t: 2.4, z: 68, tekst: 'CAFE', kleur: '#C8323C', tekstKleur: '#FBF6E9' },
         { soort: 'bord', kant: 'R', t: 6.0, z: 68, tekst: 'KAMERS', kleur: '#23252B', tekstKleur: '#E9B949' },
         { soort: 'prikbord', kant: 'R', t0: 4.4, t1: 5.8, z0: 26, z1: 50, actie: 'prikbord', voor: [5, 1], naam: 'Prikbord' },
-        { soort: 'schilderij', kant: 'L', t0: 3.6, t1: 5.2, z0: 30, z1: 56, kleur: '#C9873A' },
-        { soort: 'raam', kant: 'R', t0: 8.4, t1: 9.6, z0: 24, z1: 54 },
-        { soort: 'bord', kant: 'L', t: 9.5, z: 68, tekst: 'LOBBY', kleur: '#E9B949', tekstKleur: '#23252B' },
+        { soort: 'raam', kant: 'R', t0: 8.2, t1: 9.5, z0: 24, z1: 56, gordijn: '#8E2F3A' },
+        { soort: 'schilderij', kant: 'L', t0: 8.3, t1: 9.5, z0: 26, z1: 46, kleur: '#C9873A' },
+        { soort: 'bord', kant: 'L', t: 9.7, z: 68, tekst: 'LOBBY', kleur: '#E9B949', tekstKleur: '#23252B' },
+        { soort: 'wandlamp', kant: 'L', t: 4.85, z: 50 }, { soort: 'wandlamp', kant: 'L', t: 7.3, z: 50 },
+        { soort: 'wandlamp', kant: 'R', t: 3.95, z: 52 }, { soort: 'wandlamp', kant: 'R', t: 6.55, z: 52 },
       ],
       meubels: [
-        { type: 'haard', x: 0, y: 6, d: 2, actie: 'haard', naam: 'Open haard' },
-        { type: 'salontafel', x: 2, y: 6, w: 1, d: 2 },
-        { type: 'bank', x: 3, y: 6, w: 1, d: 2, r: 'AL', zit: [[3, 6, 'AL'], [3, 7, 'AL']], kleur: '#9E2430', naam: 'Bank' },
-        { type: 'stoel', x: 2, y: 4, r: 'VL', zit: [[2, 4, 'VL']], kleur: '#9E2430' },
-        { type: 'piano', x: 7, y: 6, w: 2, d: 1, actie: 'piano', naam: 'Piano' },
-        { type: 'stoel', x: 7, y: 7, r: 'AR', zit: [[7, 7, 'AR']], kleur: '#23252B', naam: 'Pianokruk' },
-        { type: 'plant', x: 9, y: 1, groot: true }, { type: 'plant', x: 0, y: 9, groot: true }, { type: 'plant', x: 9, y: 9 },
-        { id: 'l1', type: 'lamp', x: 1, y: 0, aan: true, actie: 'lamp', naam: 'Staande lamp' },
+        { type: 'piano', x: 1, y: 0, w: 2, d: 1, actie: 'piano', naam: 'Piano' },
+        { type: 'stoel', x: 1, y: 1, r: 'AR', zit: [[1, 1, 'AR']], kleur: '#23252B', naam: 'Pianokruk' },
+        { type: 'boekenkast', kant: 'L', x: 0, y: 3.2, w: 0.5, d: 1.4, h: 54, naam: 'Boekenkast' },
+        { type: 'haard', x: 0, y: 5, d: 2, actie: 'haard', naam: 'Open haard' },
+        { type: 'staandeklok', x: 0, y: 8, naam: 'Staande klok' },
+        { type: 'bank', x: 3, y: 5, w: 1, d: 2, r: 'VR', zit: [[3, 5, 'VR'], [3, 6, 'VR']], kleur: '#2E7A5E', naam: 'Bank' },
+        { type: 'bank', x: 4, y: 4, w: 2, d: 1, r: 'VL', zit: [[4, 4, 'VL'], [5, 4, 'VL']], kleur: '#2E7A5E', naam: 'Bank' },
+        { type: 'salontafel', x: 4, y: 5, w: 2, d: 2 },
+        { id: 'l1', type: 'lamp', x: 3, y: 4, aan: true, actie: 'lamp', naam: 'Staande lamp' },
+        { type: 'paraplubak', x: 8, y: 0, naam: 'Paraplubak' },
+        { type: 'plant', x: 9, y: 0, groot: true }, { type: 'plant', x: 0, y: 9, groot: true }, { type: 'plant', x: 9, y: 9 }, { type: 'plant', x: 9, y: 5 },
       ],
-      kleden: [{ x: 4, y: 2, w: 4, d: 3, kleur: '#2F4C8F', rand: '#F2DDA0' }],
+      kleden: [{ x: 2.6, y: 3.6, w: 4.4, d: 4.0, kleur: '#8E2F3A', rand: '#E0B34F' }],
       npcs: [
-        { id: 'harrie', naam: 'Harrie', look: HARRIE_DWEIL, x: 6, y: 3, r: 'VL', dwaal: true, gebied: [3, 1, 8, 5] },
-        { id: 'truus', naam: 'Truus', look: L_TRUUS, x: 3, y: 6, r: 'AL', zit: true, zitHoog: 7, zinnen: ['Ik lees de krant van gisteren. Dan weet ik vast hoe het afloopt.', 'Zo lekker warm bij de haard.'] },
-        { id: 'henk', naam: 'Henk', look: L_HENK, x: 2, y: 4, r: 'VL', zit: true, zitHoog: 7, zinnen: ['Harrie heeft weer eens sokken verloren, geloof ik.', 'Speel jij piano? Ik hoorde iemand. Nou ja, hoorde...'] },
-        { id: 'lotte', naam: 'Lotte', look: L_LOTTE, x: 6, y: 8, r: 'VR', dwaal: true, gebied: [4, 7, 9, 9], zinnen: ['Ik mag straks naar de spelletjeskamer!', 'Weet jij hoe de piano werkt?'] },
+        { id: 'harrie', naam: 'Harrie', look: HARRIE_DWEIL, x: 6, y: 2, r: 'VL', dwaal: true, gebied: [4, 1, 9, 3] },
+        { id: 'truus', naam: 'Truus', look: L_TRUUS, x: 3, y: 6, r: 'VR', zit: true, zitHoog: 7, zinnen: ['Ik lees de krant van gisteren. Dan weet ik vast hoe het afloopt.', 'Zo lekker warm bij de haard.'] },
+        { id: 'henk', naam: 'Henk', look: L_HENK, x: 5, y: 4, r: 'VL', zit: true, zitHoog: 7, zinnen: ['Harrie heeft weer eens sokken verloren, geloof ik.', 'Speel jij piano? Ik hoorde iemand. Nou ja, hoorde...'] },
+        { id: 'lotte', naam: 'Lotte', look: L_LOTTE, x: 7, y: 8, r: 'VR', dwaal: true, gebied: [6, 6, 9, 9], zinnen: ['Ik mag straks naar de spelletjeskamer!', 'Weet jij hoe de piano werkt?'] },
       ],
     },
     cafe: {
@@ -1208,12 +1323,19 @@ dialog { max-height: 90vh; overflow-y: auto; }
         { soort: 'flessen', kant: 'R', t0: 3.6, t1: 7.6, z0: 30, z1: 52 },
         { soort: 'dartbord', kant: 'L', t: 1.6, z: 44, actie: 'darts', voor: [0, 1], naam: 'Dartbord' },
         { soort: 'schilderij', kant: 'R', t0: 0.8, t1: 2.2, z0: 30, z1: 52, kleur: '#E9B949' },
+        { soort: 'krijtbord', kant: 'L', t0: 4.3, t1: 5.9, z0: 22, z1: 50, regels: ['MENU', 'VLAAI 2,50', 'KOFFIE 1,80', 'LIMO 1,20'] },
+        { soort: 'raam', kant: 'R', t0: 7.9, t1: 8.8, z0: 26, z1: 54, gordijn: '#2E5A43' },
+        { soort: 'wandlamp', kant: 'R', t: 2.8, z: 50 }, { soort: 'wandlamp', kant: 'L', t: 7.7, z: 48 },
       ],
       meubels: [
         { type: 'bar', x: 4, y: 2, w: 1, d: 1 }, { type: 'bar', x: 5, y: 2, w: 1, d: 1, naam: 'Bar', actie: 'bar' }, { type: 'bar', x: 6, y: 2, w: 1, d: 1 }, { type: 'bar', x: 7, y: 2, w: 1, d: 1 },
-        { type: 'kruk', x: 4, y: 3, zit: [[4, 3, 'AR']], naam: 'Barkruk' }, { type: 'kruk', x: 6, y: 3, zit: [[6, 3, 'AR']] },
-        { type: 'tafel', x: 2, y: 5 }, { type: 'stoel', x: 1, y: 5, r: 'VR', zit: [[1, 5, 'VR']] }, { type: 'stoel', x: 3, y: 5, r: 'AL', zit: [[3, 5, 'AL']] },
-        { type: 'tafel', x: 6, y: 6 }, { type: 'stoel', x: 5, y: 6, r: 'VR', zit: [[5, 6, 'VR']] }, { type: 'stoel', x: 7, y: 6, r: 'AL', zit: [[7, 6, 'AL']], naam: 'Stoel' },
+        { type: 'vitrine', x: 4, y: 2, z: 18, geenBlok: true, naam: 'Vlaaienvitrine' }, { type: 'tapkraan', x: 6, y: 2, z: 18, geenBlok: true, naam: 'Tap' }, { type: 'espresso', x: 7, y: 2, z: 18, geenBlok: true, naam: 'Koffiemachine' },
+        { type: 'hanglamp', x: 4, y: 2, hoog: 50, kleur: '#2E6E4A', geenBlok: true }, { type: 'hanglamp', x: 6, y: 2, hoog: 50, kleur: '#2E6E4A', geenBlok: true },
+        { type: 'kruk', x: 4, y: 3, zit: [[4, 3, 'AR']], naam: 'Barkruk' }, { type: 'kruk', x: 6, y: 3, zit: [[6, 3, 'AR']] }, { type: 'kruk', x: 7, y: 3, zit: [[7, 3, 'AR']] },
+        { type: 'bistrotafel', x: 2, y: 5, kleur: '#F2EDE2' }, { type: 'stoel', x: 1, y: 5, r: 'VR', zit: [[1, 5, 'VR']], kleur: '#5C2E1E' }, { type: 'stoel', x: 3, y: 5, r: 'AL', zit: [[3, 5, 'AL']], kleur: '#5C2E1E' },
+        { type: 'bistrotafel', x: 6, y: 6, kleur: '#F2EDE2' }, { type: 'stoel', x: 5, y: 6, r: 'VR', zit: [[5, 6, 'VR']], kleur: '#5C2E1E' }, { type: 'stoel', x: 7, y: 6, r: 'AL', zit: [[7, 6, 'AL']], naam: 'Stoel', kleur: '#5C2E1E' },
+        { type: 'hanglamp', x: 2, y: 5, hoog: 46, kleur: '#C8323C', geenBlok: true }, { type: 'hanglamp', x: 6, y: 6, hoog: 46, kleur: '#C8323C', geenBlok: true },
+        { type: 'kapstok', x: 0, y: 5, naam: 'Kapstok' },
         { type: 'jukebox', x: 1, y: 1, actie: 'jukebox', naam: 'Jukebox' },
         { type: 'plant', x: 8, y: 7 }, { type: 'plant', x: 0, y: 7, groot: true },
       ],
@@ -1276,7 +1398,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
       tegels: ['.......', '.......', '.......', '.......', '.......', '.......', '.......'],
       vloer: { '.': ['#5E7FA8', '#56769C'] },
       muur: { L: '#C9D8EA', R: '#B3C6DD', patroon: 'vlak', rand: '#8AA2C0' },
-      deuren: [{ kant: 'L', t: 3, x: 0, y: 3, naar: 'lobby', spawn: [7, 1, 'VL'], naam: 'Naar de lobby' }],
+      deuren: [{ kant: 'L', t: 3, x: 0, y: 3, naar: 'gang', spawn: [23, 1, 'VL'], naam: 'Naar de gang' }],
       muurDeco: [
         { soort: 'raam', kant: 'R', t0: 0.9, t1: 2.6, z0: 26, z1: 54, gordijn: '#C8323C' },
         { soort: 'schilderij', kant: 'L', t0: 4.6, t1: 5.9, z0: 30, z1: 50, kleur: '#2E8B62' },
@@ -1292,6 +1414,88 @@ dialog { max-height: 90vh; overflow-y: auto; }
       eigen: true,
     },
   };
+
+  // ---------------------------------------------------------------- de gang en de gastenkamers
+  const GASTEN = {
+    1: { bewoner: 'Roos', titel: 'Alles roze, alles glitter', muur: { L: '#F7B8D8', R: '#F2A3CA', patroon: 'harten', rand: '#E8577A' }, vloer: ['#F7D0E4', '#F2C2DA'], mat: 'vloerbedekking',
+      meubels: [{ type: 'bed', x: 4, y: 0, kleur: '#E8577A', frame: '#F2F2F2', naam: 'Roze bed' }, { type: 'kaptafel', x: 2, y: 0, kleur: '#F7D0E4', naam: 'Kaptafel' }, { type: 'knuffel', x: 4, y: 1, z: 13, kleur: '#F7B8D8', geenBlok: true }, { type: 'zitzak', x: 2, y: 4, kleur: '#E8577A' }, { type: 'kast', x: 0, y: 4, d: 2, naam: 'Kledingkast' }, { type: 'plant', x: 5, y: 5 }, { id: 'l1', type: 'lamp', x: 1, y: 0, aan: true, actie: 'lamp', naam: 'Lamp' }],
+      kleed: { x: 1.5, y: 2.5, w: 2.5, d: 2.5, kleur: '#FFFFFF', rand: '#F28CB4' }, deco: [{ soort: 'schilderij', kant: 'L', t0: 0.4, t1: 1.6, z0: 30, z1: 54, kleur: '#F28CB4' }],
+      npcs: [{ id: 'roos', naam: 'Roos', look: mens('Roos', 0, 3, 'lang', '#E8577A', '#F7B8D8'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [1, 2, 4, 4], zinnen: ['Alles wordt mooier met een beetje roze.', 'Ik heb achtendertig paar schoenen. Allemaal roze, behalve één.', 'Glitter is geen kleur. Het is een manier van leven.'] }] },
+    2: { bewoner: 'Kapitein Wout', titel: 'Een kapitein aan wal', muur: { L: '#2F5D9A', R: '#26508A', patroon: 'streep', rand: '#F2F2F2' }, vloer: ['#B5793F', '#A86F39'], mat: 'vlonder',
+      meubels: [{ type: 'bed', x: 5, y: 0, kleur: '#2F8BD6', frame: '#F2F2F2' }, { type: 'aquarium', x: 1, y: 0, w: 2, naam: 'Aquarium' }, { type: 'globe', x: 0, y: 4, naam: 'Globe' }, { type: 'tafel', x: 3, y: 4, kleur: '#7A4E2D' }, { type: 'stoel', x: 3, y: 3, r: 'VL', zit: [[3, 3, 'VL']], kleur: '#2F4C8F' }, { type: 'plant', x: 5, y: 5 }],
+      deco: [{ soort: 'schilderij', kant: 'L', t0: 3.6, t1: 5.2, z0: 30, z1: 54, kleur: '#3A8DDE' }],
+      npcs: [{ id: 'wout', naam: 'Kapitein Wout', look: mens('Kapitein Wout', 1, 5, 'pet', '#F2F2F2', '#2F4C8F'), x: 2, y: 2, r: 'VR', dwaal: true, gebied: [1, 1, 4, 3], zinnen: ['Ahoy! Dit hotel schommelt minder dan mijn oude schip.', 'Die vissen heten Ankertje, Kombuis en Sjaak.', 'Vroeger voer ik de wereld rond. Nu loop ik naar het ontbijt.'] }] },
+    3: { bewoner: 'Jade', titel: 'Een kamer vol planten', muur: { L: '#5E9E4E', R: '#4E8A3E', patroon: 'lambrisering', rand: '#2E5A2A' }, vloer: ['#B5793F', '#A86F39'], mat: 'planken',
+      meubels: [{ type: 'plant', x: 0, y: 0, groot: true }, { type: 'plant', x: 1, y: 0 }, { type: 'bed', x: 3, y: 0, kleur: '#4E9E3E' }, { type: 'plant', x: 5, y: 0, groot: true }, { type: 'plant', x: 0, y: 4, groot: true }, { type: 'plant', x: 0, y: 5 }, { type: 'plant', x: 5, y: 5, groot: true }, { type: 'plant', x: 5, y: 3 }, { type: 'ligstoel', x: 2, y: 4, zit: [[2, 4, 'VL']], kleur: '#4E8A3E' }],
+      kleed: { x: 1.5, y: 2, w: 3, d: 3, kleur: '#C9A36B', rand: '#4E8A3E' },
+      npcs: [{ id: 'jade', naam: 'Jade', look: mens('Jade', 2, 1, 'knot', '#4E9E3E', '#7A4E2D'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [1, 2, 4, 3], zinnen: ['Ik praat elke ochtend met mijn planten. Ze zeggen niet zoveel terug.', 'Deze varen heet Fred. Hij is een beetje gevoelig.', 'Water geven? Pas op, niet te veel. Fred houdt niet van natte voeten.'] }] },
+    4: { bewoner: 'Max', titel: 'Gamen tot diep in de nacht', muur: { L: '#2A2440', R: '#221E36', patroon: 'streep', rand: '#5EC2E8' }, vloer: ['#3A3D46', '#45495A'], mat: 'tapijt',
+      meubels: [{ type: 'bureau', x: 1, y: 0, w: 2, schermen: 2, naam: 'Gamebureau' }, { type: 'stoel', x: 1, y: 1, r: 'AR', zit: [[1, 1, 'AR']], kleur: '#C8323C' }, { type: 'bed', x: 4, y: 0, kleur: '#3A3D46' }, { type: 'zitzak', x: 3, y: 4, kleur: '#5EC2E8' }, { type: 'speaker', x: 0, y: 4 }, { type: 'speaker', x: 5, y: 3 }],
+      deco: [{ soort: 'neon', kant: 'L', t: 4.6, z: 60, tekst: 'GG', kleur: '#5EC2E8' }],
+      npcs: [{ id: 'max', naam: 'Max', look: mens('Max', 1, 1, 'kort', '#23252B', '#2F4C8F'), x: 1, y: 1, r: 'AR', zit: true, zitHoog: 7, zinnen: ['Nog één potje. Echt waar. Nou ja, misschien twee.', 'Mijn beste score in Rommelpoker staat op het scorebord!', 'Ken jij de geheime kamer van dit hotel? Ik zoek hem al weken.'] }] },
+    5: { bewoner: 'Mevrouw Pauw', titel: 'Het atelier van een kunstenares', muur: { L: '#F2EDE2', R: '#E6E0D2', patroon: 'vlak', rand: '#C9A24E' }, vloer: ['#C9A36B', '#B8925A'], mat: 'planken',
+      meubels: [{ type: 'ezel', x: 3, y: 2, naam: 'Schildersezel' }, { type: 'ezel', x: 4, y: 4, naam: 'Schildersezel' }, { type: 'bed', x: 5, y: 0, kleur: '#E9B949' }, { type: 'tafel', x: 1, y: 4, kleur: '#C08A55' }, { type: 'kruk', x: 3, y: 3 }, { type: 'plant', x: 0, y: 0, groot: true }],
+      kleed: { x: 1.5, y: 1.5, w: 3, d: 3, kleur: '#E9B949', rand: '#3A8DDE' }, deco: [{ soort: 'schilderij', kant: 'L', t0: 3.6, t1: 5.4, z0: 28, z1: 58, kleur: '#E8577A' }, { soort: 'schilderij', kant: 'R', t0: 0.6, t1: 2.6, z0: 30, z1: 56, kleur: '#2E8B62' }],
+      npcs: [{ id: 'pauw', naam: 'Mevrouw Pauw', look: mens('Mevrouw Pauw', 0, 4, 'knot', '#2E8B62', '#7A4E9A', 'schort'), x: 2, y: 3, r: 'VR', dwaal: true, gebied: [1, 2, 3, 3], zinnen: ['Ik schilder alleen bij daglicht. En soms bij kaarslicht. En soms gewoon.', 'Dit schilderij heet "Vlaai bij zonsondergang".', 'Kunst is overal. Zelfs in een sok.'] }] },
+    6: { bewoner: 'DJ Dex', titel: 'Muziek op elk uur', muur: { L: '#3A2A47', R: '#2E2238', patroon: 'streep', rand: '#E8577A' }, vloer: ['#5C3A21', '#4A2E1C'], mat: 'donkerhout',
+      meubels: [{ type: 'drumstel', x: 2, y: 0, naam: 'Drumstel' }, { type: 'gitaar', x: 1, y: 0, kleur: '#E9B949', naam: 'Gitaar' }, { type: 'speaker', x: 0, y: 4 }, { type: 'speaker', x: 3, y: 0 }, { type: 'bed', x: 5, y: 0, kleur: '#E8577A' }, { type: 'zitzak', x: 3, y: 4, kleur: '#E8577A' }],
+      deco: [{ soort: 'neon', kant: 'L', t: 4.8, z: 60, tekst: 'BEAT', kleur: '#FF7FB0' }],
+      npcs: [{ id: 'dex', naam: 'DJ Dex', look: mens('DJ Dex', 3, 0, 'pet', '#E8577A', '#23252B'), x: 3, y: 2, r: 'VL', dwaal: true, gebied: [1, 1, 4, 3], zinnen: ['Hoor je dat? Dat is de beat van het hotel.', 'Gisteren draaide ik in de spelletjeskamer. De snoepautomaat danste mee.', 'Mijn buren in kamer 5 en 7 zijn heel geduldig.'] }] },
+    7: { bewoner: 'Professor Ster', titel: 'Een sterrenkijker met een plan', muur: { L: '#1E2A5C', R: '#18224C', patroon: 'sterren', rand: '#C9A24E' }, vloer: ['#2F3E6E', '#283460'], mat: 'vloerbedekking',
+      meubels: [{ type: 'telescoop', x: 4, y: 1, naam: 'Telescoop' }, { type: 'globe', x: 1, y: 0, naam: 'Globe' }, { type: 'boekenkast', kant: 'R', x: 2, y: 0, w: 1.8, d: 0.5, h: 44, naam: 'Boekenkast' }, { type: 'bed', x: 5, y: 3, kleur: '#2F3E6E' }, { type: 'plant', x: 0, y: 5 }],
+      npcs: [{ id: 'ster', naam: 'Professor Ster', look: mens('Professor Ster', 0, 5, 'kort', '#7A4E9A', '#3A3D46', 'bril'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [1, 2, 4, 4], zinnen: ['Wist je dat er meer sterren zijn dan zandkorrels op alle stranden?', 'Vanavond staat de maan precies goed. Ongeveer.', 'Mijn telescoop staat op het dakterras als het helder is.'] }] },
+    8: { bewoner: 'Opa en oma Smit', titel: 'Al vijftig jaar elke zomer hier', muur: { L: '#F2DDA0', R: '#E6CF8E', patroon: 'bloem', rand: '#C8507A' }, vloer: ['#8E5A3A', '#86543A'], mat: 'vloerbedekking',
+      meubels: [{ type: 'staandeklok', x: 0, y: 0, naam: 'Staande klok' }, { type: 'bed', x: 2, y: 0, kleur: '#C8507A' }, { type: 'bed', x: 3, y: 0, kleur: '#C8507A' }, { type: 'salontafel', x: 3, y: 2, w: 1, d: 2 }, { type: 'bank', x: 4, y: 2, w: 1, d: 2, r: 'AL', zit: [[4, 2, 'AL'], [4, 3, 'AL']], kleur: '#9E6A7A', naam: 'Bank' }, { type: 'breimand', x: 3, y: 4 }, { type: 'plant', x: 0, y: 5 }],
+      kleed: { x: 2.5, y: 1.8, w: 2.5, d: 2.8, kleur: '#9E2430', rand: '#E9B949' },
+      npcs: [{ id: 'opa', naam: 'Opa Smit', look: mens('Opa Smit', 0, 5, 'kort', '#7A4E2D', '#3A3D46', 'bril'), x: 4, y: 2, r: 'AL', zit: true, zitHoog: 7, zinnen: ['We komen hier al vijftig jaar. Elke zomer.', 'Vroeger was de lift een touw met een mandje. Nou ja, bijna.'] }, { id: 'oma', naam: 'Oma Smit', look: mens('Oma Smit', 0, 5, 'knot', '#C8507A', '#5A3A5A', 'bril'), x: 4, y: 3, r: 'AL', zit: true, zitHoog: 7, zinnen: ['Wil je een koekje? Ik heb er altijd een paar in mijn tas.', 'Ik brei een sjaal voor Harrie. Hij weet het nog niet.'] }] },
+    9: { bewoner: 'Bo', titel: 'Sportief, met bekers op de kast', muur: { L: '#E8EEF2', R: '#D6DEE4', patroon: 'streep', rand: '#2E8B62' }, vloer: ['#5BAE4A', '#4E9E3E'], mat: 'vloerbedekking',
+      meubels: [{ type: 'trofeekast', x: 1, y: 0, naam: 'Bekerkast' }, { type: 'halters', x: 3, y: 3, geenBlok: true }, { type: 'bal', x: 4, y: 4, geenBlok: true }, { type: 'bed', x: 5, y: 0, kleur: '#2E8B62' }, { type: 'plant', x: 0, y: 5 }],
+      npcs: [{ id: 'bo', naam: 'Bo', look: mens('Bo', 2, 3, 'knot', '#2E8B62', '#23252B'), x: 2, y: 3, r: 'VR', dwaal: true, gebied: [1, 1, 4, 4], zinnen: ['Elke ochtend ren ik drie rondjes om het hotel.', 'Deze beker heb ik gewonnen met touwtrekken. Tegen Harrie.', 'Doe je mee met een potje pool? Ik geef je een voorsprong.'] }] },
+    10: { bewoner: 'Gravin Nacht', titel: 'Donker, met kaarsen', muur: { L: '#3A1E3A', R: '#2E182E', patroon: 'lambrisering', rand: '#9E2430' }, vloer: ['#5C3A21', '#4A2E1C'], mat: 'donkerhout',
+      meubels: [{ type: 'bed', x: 4, y: 0, kleur: '#6E1F2A', frame: '#3A3D46' }, { type: 'kandelaar', x: 1, y: 0, naam: 'Kandelaar' }, { type: 'kandelaar', x: 5, y: 5, naam: 'Kandelaar' }, { type: 'kast', x: 0, y: 3, d: 2, naam: 'Kast' }, { type: 'stoel', x: 2, y: 0, r: 'VL', zit: [[2, 0, 'VL']], kleur: '#6E1F2A' }],
+      kleed: { x: 1.5, y: 2, w: 3, d: 3, kleur: '#2A1E2A', rand: '#9E2430' },
+      npcs: [{ id: 'gravin', naam: 'Gravin Nacht', look: mens('Gravin Nacht', 0, 0, 'lang', '#23252B', '#6E1F2A'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [2, 2, 4, 4], zinnen: ['Ik slaap overdag. Doe het licht maar zachtjes aan.', 'Knoflook in de soep? Liever niet, dank je.', 'Mijn lievelingskleur is zwart. Mijn tweede lievelingskleur ook.'] }] },
+    11: { bewoner: 'Chef Paolo', titel: 'Een chef met een eigen fornuis', muur: { L: '#F2F2F2', R: '#E6E6E6', patroon: 'tegels', rand: '#C8323C' }, vloer: ['#F2F2F2', '#3A3D46'], mat: 'marmer',
+      meubels: [{ type: 'fornuis', x: 1, y: 0, naam: 'Fornuis' }, { type: 'fornuis', x: 2, y: 0, naam: 'Fornuis' }, { type: 'tafel', x: 3, y: 3, kleur: '#F2DDA0' }, { type: 'stoel', x: 3, y: 4, r: 'AR', zit: [[3, 4, 'AR']], kleur: '#C8323C' }, { type: 'bed', x: 5, y: 0, kleur: '#C8323C' }, { type: 'plant', x: 0, y: 5 }],
+      npcs: [{ id: 'paolo', naam: 'Chef Paolo', look: mens('Chef Paolo', 1, 0, 'kort', '#F2F2F2', '#23252B', 'schort'), x: 2, y: 1, r: 'AR', dwaal: true, gebied: [1, 1, 3, 2], zinnen: ['Ik kook alleen met verse kruiden. En een beetje liefde.', 'Proef eens! Te zout? Nee, precies goed.', 'Joep in het café maakt goede koffie. Mijn tiramisu is beter.'] }] },
+    13: { bewoner: 'Madame Zora', titel: 'Waarzegster met een glazen bol', muur: { L: '#5A2A6E', R: '#4A225C', patroon: 'sterren', rand: '#E9B949' }, vloer: ['#6E3A7A', '#62346E'], mat: 'vloerbedekking',
+      meubels: [{ type: 'kristalbol', x: 3, y: 3, naam: 'Glazen bol' }, { type: 'zitzak', x: 2, y: 3, kleur: '#E9B949' }, { type: 'zitzak', x: 4, y: 3, kleur: '#C8507A' }, { type: 'kandelaar', x: 1, y: 0, naam: 'Kandelaar' }, { type: 'bed', x: 5, y: 0, kleur: '#7A4E9A' }],
+      kleed: { x: 1.5, y: 2, w: 3, d: 3, kleur: '#7A2E3A', rand: '#E9B949' },
+      npcs: [{ id: 'zora', naam: 'Madame Zora', look: mens('Madame Zora', 3, 0, 'lang', '#7A4E9A', '#5A2A6E'), x: 3, y: 4, r: 'AR', dwaal: true, gebied: [2, 4, 4, 5], zinnen: ['Ik zie... ik zie... een vlaai in jouw toekomst.', 'Kamer 13 brengt geluk. Voor mij in elk geval.', 'Vandaag ga je iets vinden. Misschien een sok.'] }] },
+    14: { bewoner: 'Sven', titel: 'Hout, een haard en ski\'s', muur: { L: '#F2EDE2', R: '#E6E0D2', patroon: 'lambrisering', rand: '#8C5A32' }, vloer: ['#D9BE8A', '#CDB07C'], mat: 'vlonder',
+      meubels: [{ type: 'skirek', x: 0, y: 0, naam: 'Ski\'s' }, { type: 'haard', x: 0, y: 4, d: 2, naam: 'Haard' }, { type: 'bank', x: 2, y: 4, w: 2, d: 1, r: 'AR', zit: [[2, 4, 'AR'], [3, 4, 'AR']], kleur: '#C8323C' }, { type: 'bed', x: 4, y: 0, kleur: '#C8323C', frame: '#C9A36B' }, { type: 'plant', x: 5, y: 5 }],
+      kleed: { x: 1.5, y: 2, w: 3, d: 2, kleur: '#F2F2F2', rand: '#C8323C' },
+      npcs: [{ id: 'sven', naam: 'Sven', look: mens('Sven', 0, 3, 'kort', '#C8323C', '#2F4C8F'), x: 3, y: 2, r: 'VL', dwaal: true, gebied: [1, 1, 3, 3], zinnen: ['Bij ons thuis ligt nu al sneeuw.', 'Een haard in je hotelkamer. Dat is pas gezellig.', 'Wil je mijn ski\'s lenen? Hier heb je er niet veel aan.'] }] },
+    15: { bewoner: 'Lars en Lot', titel: 'Kamperen, maar dan binnen', muur: { L: '#9FC6E8', R: '#8AB6DC', patroon: 'vlak', rand: '#4E8A3E' }, vloer: ['#5BAE4A', '#4E9E3E'], mat: 'gras',
+      meubels: [{ type: 'tent', x: 3, y: 0, w: 2, d: 1.5, kleur: '#E9B949', naam: 'Tent' }, { type: 'ligstoel', x: 1, y: 4, zit: [[1, 4, 'VL']], kleur: '#2E8B62' }, { type: 'plant', x: 0, y: 5, groot: true }, { type: 'plant', x: 5, y: 5, groot: true }, { type: 'plant', x: 5, y: 2 }, { id: 'l1', type: 'lamp', x: 0, y: 0, aan: true, actie: 'lamp', naam: 'Lamp' }],
+      npcs: [{ id: 'lars', naam: 'Lars', look: mens('Lars', 1, 1, 'pet', '#2E8B62', '#7A4E2D'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [2, 2, 4, 4], zinnen: ['We hebben de tent binnen opgezet. Veel droger!', 'Harrie vindt het gras op de vloer niet zo leuk.'] }, { id: 'lot', naam: 'Lot', look: mens('Lot', 2, 2, 'lang', '#E9B949', '#2F4C8F'), x: 1, y: 4, r: 'VL', zit: true, zitHoog: 5, zinnen: ['Vannacht hoorden we een uil. Het was Harrie die floot.', 'Morgen gaan we kamperen op het dakterras.'] }] },
+  };
+  for (const [nr, T] of Object.entries(GASTEN)) {
+    RUIMTES['k' + nr] = {
+      naam: 'Kamer ' + nr, ondertitel: T.titel + ' (' + T.bewoner + ')', w: 6, h: 6, gast: true,
+      tegels: Array(6).fill('......'), vloer: { '.': T.vloer }, mat: { '.': T.mat }, muur: T.muur,
+      deuren: [{ kant: 'L', t: 2, x: 0, y: 2, naar: 'gang', spawn: [2 * nr - 1, 1, 'VL'], naam: 'Naar de gang' }],
+      muurDeco: (T.deco || []).concat(T.meubels.some(m => m.x >= 3 && m.x < 5 && m.y === 0 && m.type !== 'bed' && m.type !== 'tent') ? [] : [{ soort: 'raam', kant: 'R', t0: 3.6, t1: 4.8, z0: 28, z1: 54 }]),
+      meubels: T.meubels, kleden: T.kleed ? [T.kleed] : [], npcs: T.npcs,
+    };
+  }
+  RUIMTES.gang = {
+    naam: 'De gang', ondertitel: 'Kamers 1 tot en met 15', w: 32, h: 3,
+    tegels: Array(3).fill('.'.repeat(32)), vloer: { '.': ['#7A2E3A', '#6E2834'] }, mat: { '.': 'vloerbedekking' },
+    muur: { L: '#E8D5A8', R: '#D6C18E', patroon: 'lambrisering', rand: '#A88B54' },
+    deuren: [{ kant: 'L', t: 1, x: 0, y: 1, naar: 'lobby', spawn: [7, 1, 'VL'], naam: 'Naar de lobby' }],
+    muurDeco: [{ soort: 'bord', kant: 'L', t: 2.8, z: 66, tekst: 'KAMERS', kleur: '#23252B', tekstKleur: '#E9B949' }],
+    meubels: [{ type: 'plant', x: 0, y: 2, groot: true }, { type: 'snoepautomaat', x: 31, y: 0, naam: 'Snoepautomaat' }, { type: 'plant', x: 31, y: 2, groot: true }],
+    kleden: [{ x: 0.4, y: 0.75, w: 31.2, d: 1.5, kleur: '#2F4C8F', rand: '#E9B949' }],
+    npcs: [{ id: 'fenna', naam: 'Fenna', look: mens('Fenna', 1, 2, 'knot', '#2F8BD6', '#3A3D46', 'schort'), x: 10, y: 1, r: 'VR', dwaal: true, gebied: [2, 1, 29, 2], zinnen: ['Ik maak alle vijftien kamers schoon. Kamer 15 is het lastigst: daar groeit gras.', 'Klop gerust aan bij de buren. Ze vinden bezoek leuk.', 'In kamer 13 woont een waarzegster. Ze wist al dat je zou komen.'] }],
+  };
+  for (let nr = 1; nr <= 15; nr++) {
+    const x = 2 * nr - 1, G = RUIMTES.gang;
+    G.deuren.push(nr === 12 ? { kant: 'R', t: x, x, y: 0, naar: 'kamer', spawn: [1, 3, 'VR'], naam: 'Kamer 12 (jouw kamer)', slot: 'incheck' } : { kant: 'R', t: x, x, y: 0, naar: 'k' + nr, spawn: [1, 2, 'VR'], naam: 'Kamer ' + nr + ' (' + GASTEN[nr].bewoner + ')' });
+    G.muurDeco.push({ soort: 'bord', kant: 'R', midden: x + 0.5, t: x, z: 60, tekst: String(nr), kleur: nr === 12 ? '#C8323C' : '#23252B', tekstKleur: nr === 12 ? '#FBF6E9' : '#E9B949' });
+    if (nr % 3 === 1 && nr < 15) G.muurDeco.push({ soort: 'schilderij', kant: 'R', t0: x + 1.18, t1: x + 1.82, z0: 30, z1: 50, kleur: ['#C9873A', '#3A8DDE', '#2E8B62', '#E8577A', '#7A4E9A'][(nr / 3) | 0] });
+    if (nr % 3 === 2 && nr < 15) G.meubels.push({ id: 'g' + nr, type: 'lamp', x: x + 1, y: 0, aan: true, actie: 'lamp', naam: 'Lamp' });
+  }
   for (const [id, r] of Object.entries(RUIMTES)) { r.id = id; r.basis = r.meubels.slice(); }
 
   // winkelwaar en verzamelspullen
@@ -1656,7 +1860,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     bubbels = bubbels.filter(b => { if (nu > b.tot) { b.el.remove(); return false; } return true; });
     for (const b of bubbels) {
       const p = P(b.wie.x + 0.5, b.wie.y + 0.5, 0);
-      const omhoog = 36 + (b.wie.zitHoog || 0) + (b.wie.duif ? -20 : 0);
+      const omhoog = 44 + (b.wie.zitHoog || 0) + (b.wie.duif ? -20 : 0);
       const hoogte = b.el.offsetHeight || 24, schaal = cv.clientHeight / VH;
       let top = (p[1] - Math.round(camY) - omhoog) * schaal - b.op * (hoogte + 6);
       b.el.style.left = Math.max(60, Math.min(cv.clientWidth - 60, (p[0] - Math.round(camX)) * schaal)) + 'px';
@@ -1793,11 +1997,18 @@ dialog { max-height: 90vh; overflow-y: auto; }
   // muurpixel: t loopt langs de muur, z is de hoogte. Patronen volgen de schuine muur.
   function muurPixel(M, basis, t, z, licht) {
     let c;
-    const lambris = M.patroon === 'lambrisering' || M.patroon === 'streep';
+    const lambris = ['lambrisering', 'streep', 'harten', 'bloem', 'sterren'].includes(M.patroon);
     if (z < 3) c = kl(basis, 0.42);
     else if (z > WH - 4) c = z > WH - 2 ? kl(M.rand, 1.25) : M.rand;
     else if (lambris && z < 22) { const veld = t % 1, rand = veld < 0.08 || veld > 0.92 || z < 6 || z > 19; c = rand ? kl(basis, 0.62) : (Math.floor(z) % 6 === 0 ? kl(basis, 0.7) : kl(basis, 0.76)); }
     else if (lambris && z < 24.5) c = z < 23.5 ? kl(M.rand, 1.2) : M.rand;
+    else if (M.patroon === 'harten' || M.patroon === 'bloem' || M.patroon === 'sterren') {
+      const rij = Math.floor((z - 24) / 9), u = (t * 2.5 + (rij % 2) * 0.5) % 1, v = ((z - 24) / 9) % 1;
+      c = basis;
+      if (M.patroon === 'harten') { if (Math.hypot(u - 0.4, (v - 0.6) * 1.2) < 0.12 || Math.hypot(u - 0.6, (v - 0.6) * 1.2) < 0.12 || (v < 0.6 && v > 0.24 && Math.abs(u - 0.5) < (v - 0.24) * 0.62)) c = kl(M.rand, 1.15); }
+      else if (M.patroon === 'bloem') { const d = Math.hypot(u - 0.5, (v - 0.5) * 1.1); if (d < 0.06) c = '#E9B949'; else if ([[0.5, 0.68], [0.5, 0.32], [0.33, 0.5], [0.67, 0.5]].some(([a, b]) => Math.hypot(u - a, (v - b) * 1.1) < 0.1)) c = kl(M.rand, 1.25); else if (Math.abs(u - 0.5) < 0.03 && v < 0.3) c = '#4E8A3E'; }
+      else { const q = ruis(Math.floor(t * 10), Math.floor(z / 2.5)); if (q < 0.012) c = '#FFF3C4'; else if (q < 0.03) c = kl(basis, 1.45); }
+    }
     else if (M.patroon === 'tegels') { const fu = (t * 4) % 1, fv = (z / 5) % 1; if (fu < 0.08 || fv < 0.14) c = kl(basis, 1.18); else c = (z > 16 && z < 26) ? kl(M.rand, 1.1) : (ruis(Math.floor(t * 4), Math.floor(z / 5)) < 0.1 ? kl(basis, 0.92) : basis); }
     else if (M.patroon === 'streep') { const s8 = Math.floor(t * 6) % 2; c = s8 ? basis : kl(basis, 1.08); if ((t * 6) % 1 < 0.08) c = kl(M.rand, 1.3); }
     else if (M.patroon === 'lambrisering') {
@@ -1844,7 +2055,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
         if (R.id === 'zwembad' && tegelType(x - 1, y) !== 'w') poly([P(x, y, 0), P(x, y + 1, 0), P(x, y + 1, -5), P(x, y, -5)], kl(randK, 0.9));
         continue;
       }
-      const mat = (MATERIAAL[R.id] || {})[t];
+      const mat = (R.mat || MATERIAAL[R.id] || {})[t];
       if (mat) vloerTegel(x, y, mat, k); else vlak(x, y, 1, 1, k[(x + y) % 2]);
       if (t === 'g' && (x * 5 + y * 11) % 7 === 0) { const c = P(x + 0.3, y + 0.6); rect(c[0], c[1] - 1, 1, 2, '#6FAE52'); rect(c[0] + 6, c[1] + 1, 1, 2, '#6FAE52'); }
       if (t === 'g' && (x * 3 + y * 7) % 13 === 0) { const c = P(x + 0.6, y + 0.4); rect(c[0], c[1], 2, 2, ['#E9B949', '#FBF6E9', '#E8577A'][(x + y) % 3]); }
@@ -1860,7 +2071,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     // kleden
     (R.kleden || []).forEach(k => {
       poly([P(k.x, k.y), P(k.x + k.w, k.y), P(k.x + k.w, k.y + k.d), P(k.x, k.y + k.d)], (sx, sy) => {
-        const [gx, gy] = naarVloer(sx, sy), u = (gx - k.x) / k.w, v = (gy - k.y) / k.d, rnd = Math.min(u * k.w, (1 - u) * k.w, v * k.d, (1 - v) * k.d);
+        const [gx, gy] = naarVloer(sx, sy), lang = k.w > k.d * 2.5, u0 = (gx - k.x) / k.w, v = (gy - k.y) / k.d, rnd = Math.min(u0 * k.w, (1 - u0) * k.w, v * k.d, (1 - v) * k.d);
+        const u = lang ? ((gx - k.x) % (k.d * 1.2)) / (k.d * 1.2) : u0;
         if (rnd < 0.06) return kl(k.rand, 0.75);
         if (rnd < 0.16) return k.rand;
         if (rnd < 0.22) return kl(k.kleur, 0.82);
@@ -1987,7 +2199,14 @@ dialog { max-height: 90vh; overflow-y: auto; }
       muurVlak(k, (d.t0 + d.t1) / 2 - 0.03, (d.t0 + d.t1) / 2 + 0.03, d.z0, d.z1, '#FBF6E9');
       muurVlak(k, d.t0, d.t1, (d.z0 + d.z1) / 2 - 1, (d.z0 + d.z1) / 2 + 1, '#FBF6E9');
       if (!huidig.buiten) muurVlak(k, d.t0 + 0.1, d.t0 + 0.3, d.z0 + 3, d.z1 - 3, 'rgba(255,255,255,.35)');
-      if (d.gordijn) { muurVlak(k, d.t0 - 0.2, d.t0 + 0.12, d.z0 - 6, d.z1 + 6, d.gordijn); muurVlak(k, d.t1 - 0.12, d.t1 + 0.2, d.z0 - 6, d.z1 + 6, d.gordijn); }
+      if (!huidig.buiten) {
+        const gk = d.gordijn || (huidig.muur && huidig.muur.rand) || '#9E2430';
+        const plooi = (a, b) => { const n = 4; for (let i = 0; i < n; i++) muurVlak(k, a + (b - a) * i / n, a + (b - a) * (i + 1) / n, d.z0 - 8, d.z1 + 6, i % 2 ? kleur(gk, 0.82) : kleur(gk, 1.08)); };
+        plooi(d.t0 - 0.32, d.t0 + 0.08); plooi(d.t1 - 0.08, d.t1 + 0.32);
+        muurVlak(k, d.t0 - 0.42, d.t1 + 0.42, d.z1 + 6, d.z1 + 9, '#C99A2E'); muurVlak(k, d.t0 - 0.42, d.t1 + 0.42, d.z1 + 6, d.z1 + 7, '#8C6A2A');
+        const vb = k === 'L' ? [P(0, d.t0 - 0.05, d.z0 - 3), P(0, d.t1 + 0.05, d.z0 - 3), P(0.25, d.t1 + 0.05, d.z0 - 3), P(0.25, d.t0 - 0.05, d.z0 - 3)] : [P(d.t0 - 0.05, 0, d.z0 - 3), P(d.t1 + 0.05, 0, d.z0 - 3), P(d.t1 + 0.05, 0.25, d.z0 - 3), P(d.t0 - 0.05, 0.25, d.z0 - 3)];
+        poly(vb, '#F2EDE2'); lijnP(vb[3], vb[2], '#B8AC90');
+      }
     } else if (d.soort === 'luifel') {
       const a = P(d.t0, 0, d.z), b = P(d.t1, 0, d.z), c = P(d.t1, 0.55, d.z - 10), e = P(d.t0, 0.55, d.z - 10);
       poly([a, b, c, e], '#C8323C');
@@ -1995,6 +2214,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
       poly([e, c, P(d.t1, 0.55, d.z - 14), P(d.t0, 0.55, d.z - 14)], '#9E2430');
     } else if (d.soort === 'bord') {
       const s = d.s || 2, lengte = tekstTegels(d.tekst, s) + 0.45;
+      if (d.midden !== undefined) d.t = k === 'L' ? d.midden + lengte / 2 : d.midden - lengte / 2;
       const t0 = k === 'L' ? d.t - lengte : d.t, t1 = k === 'L' ? d.t : d.t + lengte;
       muurVlak(k, t0, t1, d.z - 15, d.z + 1, d.kleur);
       muurVlak(k, t0, t1, d.z - 15, d.z - 14, kleur(d.kleur, 0.7));
@@ -2024,6 +2244,14 @@ dialog { max-height: 90vh; overflow-y: auto; }
       muurVlak(k, d.t - 0.26, d.t + 0.26, d.z - 12, d.z - 2, '#C8323C');
       muurVlak(k, d.t - 0.18, d.t + 0.18, d.z - 10, d.z - 4, '#F2DDA0');
       muurVlak(k, d.t - 0.08, d.t + 0.08, d.z - 8, d.z - 6, '#2E8B62');
+    } else if (d.soort === 'wandlamp') {
+      const p = k === 'L' ? P(0, d.t, d.z) : P(d.t, 0, d.z);
+      rect(p[0] - 1, p[1] + 1, 3, 4, '#C99A2E'); rect(p[0], p[1] + 5, 1, 2, '#8C6A2A');
+      rect(p[0] - 3, p[1] - 5, 7, 6, '#231A26'); rect(p[0] - 2, p[1] - 4, 5, 4, '#FFF3C4'); rect(p[0] - 2, p[1] - 4, 5, 1, '#F6D27A');
+    } else if (d.soort === 'krijtbord') {
+      muurVlak(k, d.t0 - 0.06, d.t1 + 0.06, d.z0 - 2, d.z1 + 2, '#7A4E2D');
+      muurVlak(k, d.t0, d.t1, d.z0, d.z1, '#2E4A3A');
+      (d.regels || []).forEach((r, i) => muurTekst(k, k === 'L' ? d.t1 - 0.12 : d.t0 + 0.12, d.z1 - 4 - i * 7, r, i ? '#F2EDE2' : '#E9B949', 1));
     } else if (d.soort === 'flessen') {
       for (const z of [d.z0, d.z0 + 12]) {
         muurVlak(k, d.t0, d.t1, z - 2, z, '#5C2E1E');
@@ -2064,31 +2292,59 @@ dialog { max-height: 90vh; overflow-y: auto; }
     // alles wat diepte heeft, van achter naar voor
     const lijst = [];
     for (const m of huidig.meubels) if (!m.onzichtbaar) lijst.push({ soort: 'm', m, x0: m.x, y0: m.y, x1: m.x + (m.w || 1), y1: m.y + (m.d || 1), z: m.z || 0 });
-    for (const n of npcs) lijst.push({ soort: 'n', n, x0: n.x + 0.1, y0: n.y + 0.1, x1: n.x + 0.9, y1: n.y + 0.9 });
-    lijst.push({ soort: 's', n: speler, x0: speler.x + 0.1, y0: speler.y + 0.1, x1: speler.x + 0.9, y1: speler.y + 0.9 });
+    // wie zit er op welk meubel? Die tekenen we samen met dat meubel: eerst het meubel, dan de zitter, dan een rugleuning die ervoor staat
+    const zitters = new Map();
+    for (const n of npcs.concat([speler])) {
+      n._op = null;
+      if (!n.zit) continue;
+      const tx = Math.round(n.x), ty = Math.round(n.y);
+      const m = huidig.meubels.find(mm => !mm.onzichtbaar && mm.zit && mm.zit.some(([zx, zy]) => zx === tx && zy === ty));
+      if (m) { n._op = m; if (!zitters.has(m)) zitters.set(m, []); zitters.get(m).push(n); }
+    }
+    for (const n of npcs) if (!n._op) lijst.push({ soort: 'n', n, x0: n.x + 0.1, y0: n.y + 0.1, x1: n.x + 0.9, y1: n.y + 0.9 });
+    if (!speler._op) lijst.push({ soort: 's', n: speler, x0: speler.x + 0.1, y0: speler.y + 0.1, x1: speler.x + 0.9, y1: speler.y + 0.9 });
     sorteer(lijst);
     const nu = Date.now(), t = Math.floor(nu / 300);
+    const tekenWie = (n) => {
+      meet = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
+      tekenPersoon(n, nu, t);
+      n._bb = meet;
+    };
     for (const o of lijst) {
       meet = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
-      if (o.soort === 'm') { const f = TEKEN[o.m.type]; if (f) f(o.m); o.m._bb = meet; }
-      else {
-        const n = o.n, p = P(n.x + 0.5, n.y + 0.5, n.zitHoog || 0);
-        if (n.duif) tekenDuif(p[0], p[1], n, t);
-        else if (n.hond) tekenHond(p[0], p[1], n, t);
-        else if (n.eend) tekenEend(p[0], p[1], n, t);
+      if (o.soort === 'm') {
+        const f = TEKEN[o.m.type], wie = zitters.get(o.m);
+        if (!wie) { if (f) f(o.m); o.m._bb = meet; }
         else {
-          if (n.isSpeler && S.fiets) fiets(p[0], p[1] + 1, '#2E8B62', true);
-          poppetje(g, Math.round(p[0]), Math.round(p[1]), n.isSpeler ? S.look : n.look, { richting: n.richting, fase: n.fase, loopt: n.pad && n.pad.length > 0, zit: n.zit, zitHoog: n.zitHoog, zwaai: n.zwaai > nu, dans: n.dans, t, item: n.isSpeler && n.itemTot > nu ? n.item : null, fietst: n.isSpeler && S.fiets });
-          if (n.ballon) tekenBallon(Math.round(p[0]), Math.round(p[1]), n.ballon, t);
+          const rugVoor = wie.some(n => n.richting[0] === 'A') && (o.m.type === 'bank' || o.m.type === 'stoel');
+          o.m._deel = rugVoor ? 'zonderRug' : null; if (f) f(o.m); o.m._bb = meet;
+          wie.slice().sort((a, b) => (a.x + a.y) - (b.x + b.y)).forEach(tekenWie);
+          if (rugVoor) { meet = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 }; o.m._deel = 'rug'; f(o.m); }
+          o.m._deel = null;
         }
-        n._bb = meet;
       }
+      else tekenWie(o.n);
       meet = null;
     }
     tekenDeeltjes();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     lichtPass(nu);
     plaatsBubbels();
+  }
+  function tekenPersoon(n, nu, t) {
+    {
+      {
+        const p = P(n.x + 0.5, n.y + 0.5, n.zitHoog || 0);
+        if (n.duif) tekenDuif(p[0], p[1], n, t);
+        else if (n.hond) tekenHond(p[0], p[1], n, t);
+        else if (n.eend) tekenEend(p[0], p[1], n, t);
+        else {
+          if (n.isSpeler && S.fiets) fiets(p[0], p[1] + 1, '#2E8B62', true);
+          poppetje(g, Math.round(p[0]), Math.round(p[1]), n.isSpeler ? S.look : n.look, { id: n.id ? [...String(n.id)].reduce((a, ch) => a + ch.charCodeAt(0), 0) : 3, praat: bubbels.some(b => b.wie === n && b.tot > nu), richting: n.richting, fase: n.fase, loopt: n.pad && n.pad.length > 0, zit: n.zit, zitHoog: n.zitHoog, zwaai: n.zwaai > nu, dans: n.dans, t, item: n.isSpeler && n.itemTot > nu ? n.item : null, fietst: n.isSpeler && S.fiets });
+          if (n.ballon) tekenBallon(Math.round(p[0]), Math.round(p[1]), n.ballon, t);
+        }
+      }
+    }
   }
   function sorteer(lijst) {
     lijst.sort((a, b) => (a.x0 + a.y0 + a.x1 + a.y1) - (b.x0 + b.y0 + b.x1 + b.y1));
@@ -2268,9 +2524,9 @@ dialog { max-height: 90vh; overflow-y: auto; }
   let voorbeeldDraai = 0;
   function tekenVoorbeeld() {
     const c = $('voorbeeld'), G = c.getContext('2d'); G.imageSmoothingEnabled = false;
-    G.clearRect(0, 0, 30, 40);
+    G.clearRect(0, 0, 30, 44);
     const r = ['VR', 'VL', 'AL', 'AR'][voorbeeldDraai % 4];
-    poppetje(G, 15, 36, Object.assign({}, proef), { richting: r, fase: 0, t: 0 });
+    poppetje(G, 15, 41, Object.assign({}, proef), { richting: r, fase: 0, t: 0 });
   }
   setInterval(() => { if ($('kast').open) { voorbeeldDraai++; tekenVoorbeeld(); } }, 1200);
   $('k-annuleer').addEventListener('click', () => $('kast').close());
@@ -2374,6 +2630,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function openKaart() {
     const ul = $('kamers'); ul.innerHTML = '';
     Object.entries(RUIMTES).forEach(([id, r]) => {
+      if (r.gast) return;
       const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
       const bekend = S.bezocht.includes(id), opSlot = !['plein', 'receptie'].includes(id) && !S.ingecheckt;
       b.innerHTML = '<span></span><small></small>';

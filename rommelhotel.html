@@ -1707,6 +1707,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   const HARRIE_ZINNEN = ['Pas op, de vloer is nat!', 'Die piano is vals, maar zeg het niet tegen hem.', 'Ik dweil hier al sinds 1987. De vloer wordt er niet droger van.', 'Heb jij toevallig sokken gezien? Ik mis er drie.'];
   const TELESCOOP = ['Je ziet de maan, met een klein kratertje dat op een vlaai lijkt.', 'Je ziet een ster die knipoogt. Of is het een vliegtuig?', 'Je ziet in de verte een vlaaienraket. Echt waar!', 'Je ziet de Grote Beer. Hij ziet er wat moe uit.', 'Je ziet... je eigen hotelkamer. Je hebt het lampje laten branden.'];
   function praatMet(n) {
+    if (typeof Verhaal !== 'undefined' && Verhaal.praat(n)) return;
     if (n.duif) { zeg(n, 'Roekoe.'); return; }
     if (n.eend) { zeg(n, 'Kwak?'); return; }
     if (n.hond) { zeg(n, 'Woef!'); zeg(speler, 'Brave hond!'); return; }
@@ -1823,6 +1824,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   }
   function klikMeubel(m) {
     verbergKeuzes();
+    if (typeof Verhaal !== 'undefined') Verhaal.zoek(m);
     if (m.zit && !m.actie) { const plek = m.zit.find(([x, y]) => !npcs.some(n => Math.round(n.x) === x && Math.round(n.y) === y)) || m.zit[0]; loopNaar(plek[0], plek[1]); return; }
     if (m.zit && m.actie === 'bed') { const [x, y] = m.zit[0]; loopNaar(x, y, () => doeActie(m)); return; }
     if (m.zit && m.actie) { const [x, y] = m.zit[0]; loopNaar(x, y); return; }
@@ -1888,6 +1890,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
       const f = (nu - d.start) / (d.tot - d.start), x = Math.round(d.x + Math.sin(f * 6) * 3), y = Math.round(d.y - f * 30);
       g.globalAlpha = 1 - f;
       if (d.soort === 'noot') { rect(x, y, 3, 2, '#FBF6E9'); rect(x + 2, y - 6, 1, 6, '#FBF6E9'); rect(x + 2, y - 6, 3, 1, '#FBF6E9'); }
+      else if (d.soort === 'ster') { rect(x, y - 2, 1, 5, '#FFE76A'); rect(x - 2, y, 5, 1, '#FFE76A'); rect(x, y, 1, 1, '#FFFFFF'); }
       else { rect(x, y, 4, 1, '#FBF6E9'); rect(x + 2, y + 1, 1, 1, '#FBF6E9'); rect(x + 1, y + 2, 1, 1, '#FBF6E9'); rect(x, y + 3, 4, 1, '#FBF6E9'); }
       g.globalAlpha = 1;
     }
@@ -1910,6 +1913,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     else if (wat === 'deur') { noot(392, 0, 0.08, 'square', 0.02); }
     else if (wat === 'pling') { noot(880, 0, 0.12, 'triangle', 0.05); noot(1320, 0.08, 0.18, 'triangle', 0.05); }
     else if (wat === 'klik') { noot(1200, 0, 0.04, 'square', 0.02); }
+    else if (wat === 'fout') { noot(220, 0, 0.22, 'square', 0.03); noot(165, 0.16, 0.32, 'square', 0.03); }
+    else if (wat === 'praat') { noot(660 + Math.random() * 120, 0, 0.05, 'triangle', 0.025); }
   }
   function speelPiano(m) {
     const wijs = [523, 587, 659, 523, 659, 698, 784, 0, 784, 880, 784, 698, 659, 523];
@@ -2342,6 +2347,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
           if (n.isSpeler && S.fiets) fiets(p[0], p[1] + 1, '#2E8B62', true);
           poppetje(g, Math.round(p[0]), Math.round(p[1]), n.isSpeler ? S.look : n.look, { id: n.id ? [...String(n.id)].reduce((a, ch) => a + ch.charCodeAt(0), 0) : 3, praat: bubbels.some(b => b.wie === n && b.tot > nu), richting: n.richting, fase: n.fase, loopt: n.pad && n.pad.length > 0, zit: n.zit, zitHoog: n.zitHoog, zwaai: n.zwaai > nu, dans: n.dans, t, item: n.isSpeler && n.itemTot > nu ? n.item : null, fietst: n.isSpeler && S.fiets });
           if (n.ballon) tekenBallon(Math.round(p[0]), Math.round(p[1]), n.ballon, t);
+          if (typeof Verhaal !== 'undefined' && Verhaal.isDoel(n)) Verhaal.markeer(Math.round(p[0]), Math.round(p[1]) - 42);
         }
       }
     }
@@ -2651,8 +2657,9 @@ dialog { max-height: 90vh; overflow-y: auto; }
     // elke spelpixel wordt een heel aantal schermpixels: zo blijft alles haarscherp
     const dpr = window.devicePixelRatio || 1, beschikbaar = (cv.parentElement.clientWidth || 480) * dpr;
     let schaal, bw = nw, bh = nh;
-    if (smal) { schaal = Math.max(2, Math.round(beschikbaar / 300)); bw = Math.floor(beschikbaar / schaal); bh = Math.round(bw * 250 / 300); }
-    else schaal = Math.max(1, Math.floor(beschikbaar / W));
+    const zoom = Math.max(1, Math.min(3, S.zoom || 1));
+    if (smal) { schaal = Math.max(2, Math.round(beschikbaar / 300)) * zoom; bw = Math.floor(beschikbaar / schaal); bh = Math.round(bw * 250 / 300); }
+    else { const basis = Math.max(1, Math.floor(beschikbaar / W)); schaal = basis * zoom; if (zoom > 1) { bw = Math.floor(W * basis / schaal); bh = Math.floor(H * basis / schaal); } }
     if (bw !== VW || bh !== VH) { VW = bw; VH = bh; cv.width = VW; cv.height = VH; ctx.imageSmoothingEnabled = false; lichtKaart = null; }
     cv.style.width = (VW * schaal / dpr) + 'px'; cv.style.height = (VH * schaal / dpr) + 'px'; cv.style.aspectRatio = 'auto';
     if (huidig) zetCamera(true);
@@ -2665,6 +2672,208 @@ dialog { max-height: 90vh; overflow-y: auto; }
   if (!S.eersteKeer) { S.eersteKeer = true; bewaar(); setTimeout(() => zeg(speler, 'Daar is het Rommelhotel! Ik loop over de brug naar de ingang.'), 900); setTimeout(() => melding('Tip: sleep over het scherm om rond te kijken.'), 2500); }
   window.addEventListener('resize', plaatsBubbels);
   requestAnimationFrame(lus);
+  // ================================================================ HET VERHAAL: Het geheim van de Gouden Sleutel
+  const PUZZELS = {
+    p1: { nr: 1, titel: 'Het sleutelbord', punten: 20, type: 'getal', antwoord: 8, tekst: 'Achter de balie hangen vijftien haakjes, voor de kamers 1 tot en met 15. De sleutels van alle kamers met een even nummer zijn uitgeleend. Hoeveel sleutels hangen er nog aan het bord?', hints: ['Tel eerst hoeveel even kamernummers er zijn tussen 1 en 15.', 'De even nummers zijn 2, 4, 6, 8, 10, 12 en 14. Dat zijn er zeven.', 'Vijftien haakjes min zeven uitgeleende sleutels...'], uitleg: 'Er zijn zeven even kamers, dus er hangen nog 15 min 7 is 8 sleutels.' },
+    p2: { nr: 2, titel: 'Natte voetstappen', punten: 30, type: 'keuze', opties: ['Truus', 'Henk', 'Lotte'], antwoord: 0, tekst: 'Iemand liep over de natte vloer van Harrie. Truus zegt: "Ik was het niet." Henk zegt: "Het was Lotte." Lotte zegt: "Henk liegt." Precies één van de drie spreekt de waarheid. Wie liep er over de vloer?', hints: ['Probeer het per persoon: stel dat zij het was, wie spreekt dan de waarheid?', 'Als Lotte het was, spreken Truus én Henk de waarheid. Dat zijn er twee, dus Lotte was het niet.', 'Als Henk het was, spreken Truus en Lotte de waarheid. Ook twee. Blijft er één over...'], uitleg: 'Alleen als Truus het was, spreekt precies één persoon de waarheid: Lotte.' },
+    p3: { nr: 3, titel: 'De lampjes van de lobby', punten: 40, type: 'lichten', n: 3, druk: [[0, 0], [1, 1], [2, 2], [0, 2]], tekst: 'Als je op een lampje drukt, springt het om, en zijn buren erboven, eronder, links en rechts ook. Zet alle negen lampjes aan.', hints: ['Elk lampje twee keer indrukken is hetzelfde als niet indrukken. Je hoeft elk lampje dus hooguit één keer te kiezen.', 'Begin met de bovenste rij en druk dan in de rij eronder om die bovenste rij aan te krijgen.', 'Werk zo rij voor rij naar beneden. Lukt de laatste rij niet? Probeer dan een ander begin in de bovenste rij.'], uitleg: 'Met een paar goed gekozen drukken gaan ze allemaal tegelijk aan.' },
+    p4: { nr: 4, titel: 'Geheimschrift', punten: 30, type: 'woord', antwoord: ['bieb', 'indebieb', 'debieb', 'bibliotheek', 'indebibliotheek', 'debibliotheek'], tekst: 'Op het briefje staat: JO EF CJFC. Elke letter is één plek in het alfabet opgeschoven. Waar moet je zoeken?', hints: ['Opgeschoven betekent: van een A is een B gemaakt, van een B een C, enzovoort.', 'Schuif elke letter één plek terug. De J wordt een I, de O een N.', 'JO wordt IN, EF wordt DE. En CJFC?'], uitleg: 'JO EF CJFC wordt IN DE BIEB.' },
+    p5: { nr: 5, titel: 'Vlaai voor iedereen', punten: 40, type: 'getal', antwoord: 7, tekst: 'Joep snijdt een ronde vlaai met precies drie rechte sneden. De stukken hoeven niet even groot te zijn. Hoeveel stukken kan hij er hooguit van maken?', hints: ['Met één snede heb je twee stukken. Met twee sneden die kruisen heb je er vier.', 'De derde snede moet de eerste twee allebei kruisen, maar niet op het punt waar zij elkaar kruisen.', 'Elke keer dat de derde snede een stuk doorsnijdt, komt er een stuk bij. Hij gaat door drie stukken heen.'], uitleg: 'Twee kruisende sneden geven vier stukken. Een derde snede die beide kruist, gaat door drie stukken: dat geeft er zeven.' },
+    p6: { nr: 6, titel: 'Het ontbijt', punten: 30, type: 'volgorde', items: ['Sven', 'Kapitein Wout', 'Roos', 'Max'], tekst: 'Fenna weet nog dit van het ontbijt: Max at als laatste. Sven at als eerste. Roos at na Kapitein Wout. Tik de gasten aan in de volgorde waarin ze aten.', hints: ['Begin met wat zeker is: wie at als eerste en wie als laatste?', 'Sven staat vooraan en Max achteraan. Dan blijven Wout en Roos over voor het midden.', 'Roos at ná Wout, dus Wout komt eerst.'], uitleg: 'Sven, Kapitein Wout, Roos en als laatste Max.' },
+    p7: { nr: 7, titel: 'Het verkeerde boek', punten: 30, type: 'keuze', opties: ['Boek 2', 'Boek 8', 'Boek 30', 'Boek 64'], antwoord: 2, tekst: 'Op de plank staan boeken met de nummers 2, 4, 8, 16, 30 en 64. Eén boek hoort niet in deze rij. Welk boek is het?', hints: ['Kijk hoe je van het ene nummer naar het volgende komt.', 'Van 2 naar 4, van 4 naar 8, van 8 naar 16: elke keer het dubbele.', 'Het dubbele van 16 is niet het nummer dat erna komt.'], uitleg: 'Elk nummer is het dubbele van het vorige. Na 16 hoort 32 te staan, niet 30.' },
+    p8: { nr: 8, titel: 'De lift', punten: 40, type: 'keuze', opties: ['Kelder', 'Begane grond', '1e verdieping', 'Dak'], antwoord: 0, tekst: 'De lift begint op de begane grond. Volgens de tekening gaat hij 3 verdiepingen omhoog, 2 omlaag, nog eens 2 omlaag, 1 omhoog en dan 1 omlaag. Van onder naar boven zijn er: kelder, begane grond, 1e, 2e en het dak. Waar eindigt de lift?', hints: ['Geef de verdiepingen een nummer: kelder is -1, begane grond 0, dan 1, 2 en het dak 3.', 'Begin bij 0. Na 3 omhoog ben je op 3, na 2 omlaag op 1.', 'Van 1 nog eens 2 omlaag is -1. Dan 1 omhoog en 1 omlaag...'], uitleg: '0, dan 3, 1, -1, 0 en weer -1: de kelder, waar het zwembad is.' },
+    p9: { nr: 9, titel: 'Zwembanden', punten: 30, type: 'getal', antwoord: 8, tekst: 'In het zwembad drijven rode en gele zwembanden. Er zijn twee keer zoveel rode als gele banden, en samen zijn het er twaalf. Hoeveel rode banden zijn er?', hints: ['Stel dat er één gele band is. Dan zijn er twee rode: samen drie.', 'Elk groepje van één gele en twee rode is drie banden. Hoeveel groepjes passen er in twaalf?', 'Vier groepjes van drie. In elk groepje zitten twee rode.'], uitleg: 'Vier gele en acht rode: acht is het dubbele van vier, en samen twaalf.' },
+    p10: { nr: 10, titel: 'De kaarten van Zora', punten: 30, type: 'keuze', opties: ['Ruit', 'Klaver', 'Harten', 'Schoppen'], antwoord: 0, tekst: 'Madame Zora legt deze kaarten neer: ruit, klaver, ruit, klaver, klaver, ruit, klaver, klaver, klaver. Welke kaart komt nu?', hints: ['Kijk naar de klavers tussen de ruiten.', 'Na de eerste ruit komt één klaver, na de tweede ruit komen er twee.', 'Na de derde ruit kwamen er drie klavers. Wat komt er daarna?'], uitleg: 'Elke keer komt er na een ruit één klaver meer. Na drie klavers is het weer tijd voor een ruit.' },
+    p11: { nr: 11, titel: 'De klok van de professor', punten: 30, type: 'keuze', opties: ['20:45', '21:15', '21:45', '22:15'], antwoord: 1, tekst: 'Professor Ster zegt: "Tot middernacht duurt het nog 2 uur en 45 minuten." Hoe laat is het nu?', hints: ['Middernacht is 24:00. Reken terug.', 'Twee uur voor middernacht is het 22:00.', 'En dan nog 45 minuten eerder dan 22:00...'], uitleg: '24:00 min 2 uur is 22:00, min 45 minuten is 21:15.' },
+    p12: { nr: 12, titel: 'De jubileumkluis', punten: 60, type: 'getal', antwoord: 347, tekst: 'De kluis heeft een code van drie cijfers. Het eerste cijfer is het nummer van jouw kamer gedeeld door vier. Het tweede cijfer is het aantal poten van Bobbie de hond. Het derde cijfer is de eerste twee cijfers bij elkaar opgeteld. Wat is de code?', hints: ['Jouw kamer is kamer 12.', '12 gedeeld door 4 is 3. Bobbie heeft vier poten.', 'Het derde cijfer is 3 plus 4.'], uitleg: '12 gedeeld door 4 is 3, Bobbie heeft 4 poten, en 3 plus 4 is 7: de code is 347.' },
+  };
+  const STAPPEN = [
+    { wie: 'mien', kamer: 'receptie', doel: 'Praat met Mien bij de receptie.', voor: [['mien', 'Psst, {naam}! Fijn dat je er bent. Ik moet je iets vertellen.'], ['mien', 'Over drie dagen bestaat het Rommelhotel honderd jaar. Er komt een groot feest.'], ['mien', 'Maar de Gouden Sleutel is verdwenen! Alleen daarmee gaat de oude jubileumkluis open.'], ['jij', 'Een verdwenen sleutel? Dat klinkt als een raadsel.'], ['mien', 'Precies. En jij lijkt me iemand die van raadsels houdt. Kijk eens naar mijn sleutelbord...']], puzzel: 'p1', na: [['mien', 'Knap! Je bent een echte speurneus.'], ['mien', 'Harrie dweilde gisteravond als laatste in de lobby. Vraag hem eens wat hij gezien heeft.'], ['mien', 'O, en kijk goed om je heen. Overal in het hotel liggen hintmuntjes verstopt.']] },
+    { wie: 'harrie', kamer: 'lobby', doel: 'Vraag Harrie in de lobby wat hij gezien heeft.', voor: [['harrie', 'Of ik iets gezien heb? Voetstappen! Op mijn net gedweilde vloer!'], ['harrie', 'Er waren nog drie gasten in de lobby: Truus, Henk en Lotte. Maar wie van hen was het?']], puzzel: 'p2', na: [['harrie', 'Truus? Onze lieve Truus? Ga het haar maar eens vragen.']] },
+    { wie: 'truus', kamer: 'lobby', doel: 'Vraag Truus wat ze gisteravond deed.', voor: [['truus', 'O jee, betrapt. Ja, ik liep nog even naar het café.'], ['truus', 'Ik had een briefje gevonden, onder de staande klok. Dat heb ik aan Joep gegeven.'], ['truus', 'Maar eerst moest ik Henk helpen met de lampjes. Daar kwam ik niet uit. Misschien kun jij hem helpen?']], na: [] },
+    { wie: 'henk', kamer: 'lobby', doel: 'Help Henk met de lampjes in de lobby.', voor: [['henk', 'Kijk nou, die lampjes. Als je er één indrukt, springen de buren mee.'], ['henk', 'Krijg jij ze allemaal tegelijk aan?']], puzzel: 'p3', na: [['henk', 'Prachtig! Nu kan ik mijn krant weer lezen.'], ['henk', 'Dat briefje van Truus? Joep in het café heeft het. Hij snapt er niks van.']] },
+    { wie: 'joep', kamer: 'cafe', doel: 'Vraag Joep in het café naar het briefje.', voor: [['joep', 'Dit briefje bedoel je? Er staan rare letters op.'], ['joep', 'JO EF CJFC. Is het Spaans? Is het Limburgs?']], puzzel: 'p4', na: [['joep', 'In de bieb! Natuurlijk. Maar help je me eerst even? Ik moet nog een vlaai snijden.']] },
+    { wie: 'joep', kamer: 'cafe', doel: 'Help Joep met de vlaai.', voor: [['joep', 'Ik wil zoveel mogelijk stukken, maar ik heb maar tijd voor drie sneden.']], puzzel: 'p5', na: [['joep', 'Zeven stukken! Je bent een rekenwonder.'], ['joep', 'Weet je wie alles ziet in dit hotel? Fenna van de schoonmaak. Ze is in de gang bij de kamers.']] },
+    { wie: 'fenna', kamer: 'gang', doel: 'Vraag Fenna in de gang wie ze gezien heeft.', voor: [['fenna', 'Wie ik gezien heb? Iedereen, bij het ontbijt. Maar in welke volgorde ook alweer?'], ['fenna', 'Help je me even? Dan weet ik weer wie er als laatste wegging.']], puzzel: 'p6', na: [['fenna', 'Ja, zo was het! En na het ontbijt liep meneer Boekhout met een sleutelbos naar de lift.'], ['fenna', 'Hij zit in de bibliotheek, op de tweede verdieping. Neem de lift bij de receptie.']] },
+    { wie: 'boekhout', kamer: 'bieb', doel: 'Zoek meneer Boekhout in de bibliotheek.', voor: [['boekhout', 'Ssst. Een sleutel? Ik heb alleen boekensleutels.'], ['boekhout', 'Al klopt er vandaag iets niet met mijn kast. Er staat een boek met het verkeerde nummer.']], puzzel: 'p7', na: [['boekhout', 'Boek 30! Dat hoort hier niet. Kijk, er zit een tekening in. Van de lift, met pijltjes.'], ['boekhout', 'Koos snapt alles van liften. Vraag het hem.']] },
+    { wie: 'koos', kamer: 'bieb', doel: 'Laat Koos de tekening van de lift zien.', voor: [['koos', 'Een tekening met pijltjes? Laat eens zien. Waar is mijn bril? O, op mijn neus.'], ['koos', 'Als je de pijltjes volgt, waar eindigt de lift dan?']], puzzel: 'p8', na: [['koos', 'In de kelder! Daar is het zwembad. Bert de badmeester weet vast meer.']] },
+    { wie: 'bert', kamer: 'zwembad', doel: 'Ga met de lift naar het zwembad en praat met Bert.', voor: [['bert', 'Niet rennen! O, jij bent het. Er glinsterde vanochtend iets onder een rode zwemband.'], ['bert', 'Maar hoeveel rode banden zijn er eigenlijk? Ik ben de tel kwijt.']], puzzel: 'p9', na: [['bert', 'Acht! Ik heb ze allemaal bekeken. Onder de laatste zat een briefje in een plastic zakje.'], ['jij', 'Er staat op: "Kamer 13 weet meer." Brr.']] },
+    { wie: 'zora', kamer: 'k13', doel: 'Zoek kamer 13 op in de gang.', voor: [['zora', 'Ik wist dat je zou komen. Ik zag het in mijn glazen bol.'], ['zora', 'De kaarten vertellen waar je moet zijn. Maar welke kaart komt hierna?']], puzzel: 'p10', na: [['zora', 'De ruit. Dat betekent: hoog boven de grond, als de sterren schijnen.'], ['zora', 'Professor Ster in kamer 7 weet wanneer het donker genoeg is.']] },
+    { wie: 'ster', kamer: 'k7', doel: 'Vraag Professor Ster in kamer 7 hoe laat het is.', voor: [['ster', 'Hoog boven de grond, als de sterren schijnen? Dan bedoelt ze het dakterras om middernacht!'], ['ster', 'Maar mijn klok is van slag. Hoe laat is het nu eigenlijk?']], puzzel: 'p11', na: [['ster', 'Kwart over negen. Ga maar alvast naar het dakterras. Neem de lift helemaal naar boven.']] },
+    { wie: '*', kamer: 'dak', doel: 'Ga met de lift naar het dakterras.', voor: [['harrie', 'Daar ben je! Ik wist dat jij het zou vinden.'], ['mien', 'Harrie? Wat doe jij hier? En waar is mijn Gouden Sleutel?'], ['harrie', 'Hier, Mien. Ik had hem even geleend. Voor een verrassing.'], ['harrie', 'De kluis heeft ook nog een code. Die heb ik in een raadsel verstopt, voor de echte speurneus.']], puzzel: 'p12', na: [['mien', 'De kluis is open! Er zit... een taart in. En een foto van het hotel, honderd jaar geleden!'], ['harrie', 'Gefeliciteerd met honderd jaar, Mien. Dit feest is voor jou.'], ['mien', 'Harrie toch! En jij, {naam}: zonder jou had ik dit nooit gevonden.'], ['mien', 'Vanaf nu ben jij officieel de speurneus van het Rommelhotel.']], einde: true },
+  ];
+  const MUNTPLEKKEN = [['receptie', 'paraplubak'], ['receptie', 'bagagekar'], ['lobby', 'staandeklok'], ['lobby', 'boekenkast'], ['cafe', 'kapstok'], ['cafe', 'vitrine'], ['gang', 'snoepautomaat'], ['bieb', 'globe'], ['zwembad', 'handdoeken'], ['k13', 'kristalbol'], ['k2', 'aquarium'], ['k7', 'telescoop']];
+  BADGES.speurneus = 'Speurneus';
+  const V = () => (S.verhaal = S.verhaal || { stap: 0, munten: 3, opgelost: {}, punten: 0, gevonden: {}, gezien: {}, waarde: {} });
+  const Verhaal = (() => {
+    const veld = cv.parentElement;
+    const stijl = document.createElement('style');
+    stijl.textContent = `
+      .vh-balk { position: absolute; left: 6px; right: 6px; bottom: 6px; display: flex; gap: 6px; align-items: flex-end; pointer-events: none; z-index: 4; font-size: 13px; }
+      .vh-doel { pointer-events: auto; background: rgba(35,26,38,.88); color: #FBF6E9; padding: 5px 9px; border-radius: 6px; box-shadow: 0 0 0 2px #E9B949; max-width: 60%; line-height: 1.25; }
+      .vh-doel b { color: #E9B949; margin-right: 4px; }
+      .vh-knop { pointer-events: auto; font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: 5px 9px; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.35); cursor: pointer; }
+      .vh-knop .munt { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #E9B949; box-shadow: inset -2px -2px 0 #B8862F, 0 0 0 1px #8C6A0A; vertical-align: -1px; margin-right: 3px; }
+      .vh-ruimte { flex: 1; }
+      .vh-zoom { display: flex; gap: 3px; pointer-events: auto; }
+      .vh-zoom .vh-knop { width: 28px; padding: 5px 0; }
+      .vh-dialoog { position: absolute; left: 6px; right: 6px; bottom: 6px; z-index: 6; display: flex; gap: 10px; align-items: stretch; background: #FBF6E9; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.35); padding: 8px 12px 8px 8px; cursor: pointer; min-height: 92px; }
+      .vh-dialoog[hidden] { display: none; }
+      .vh-portret { width: 80px; height: 88px; flex: none; image-rendering: pixelated; background: #E2D3B6; border-radius: 6px; box-shadow: inset 0 0 0 2px #C9B590; }
+      .vh-tekst { flex: 1; display: flex; flex-direction: column; color: #231A26; font-size: 15px; line-height: 1.35; }
+      .vh-tekst b { display: inline-block; align-self: flex-start; background: #231A26; color: #E9B949; padding: 1px 8px; border-radius: 4px; font-size: 13px; margin-bottom: 4px; }
+      .vh-tekst span { flex: 1; }
+      .vh-verder { align-self: flex-end; font-size: 12px; color: #8C5A2A; animation: vh-hup 0.8s ease-in-out infinite; }
+      @keyframes vh-hup { 50% { transform: translateY(3px); } }
+      dialog.vh-puzzel { border: 0; padding: 0; border-radius: 12px; width: min(560px, 96vw); background: #F7EBD3; color: #231A26; box-shadow: 0 0 0 4px #5A3A1E, 0 10px 0 4px rgba(0,0,0,.4); }
+      dialog.vh-puzzel::backdrop { background: rgba(20,12,28,.72); }
+      .vh-pkop { display: flex; justify-content: space-between; align-items: center; background: #5A3A1E; color: #F2DDA0; padding: 9px 14px; font-weight: 800; }
+      .vh-pkop small { color: #E9B949; font-weight: 800; }
+      .vh-pbody { padding: 14px 16px 10px; }
+      .vh-pbody p { margin: 0 0 10px; line-height: 1.45; }
+      .vh-antwoord { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
+      .vh-antwoord input { font: inherit; font-size: 18px; padding: 6px 10px; border-radius: 6px; border: 2px solid #C9B590; width: 160px; background: #FFFDF6; }
+      .vh-optie { font: inherit; font-weight: 700; padding: 8px 14px; border-radius: 8px; border: 2px solid #C9B590; background: #FFFDF6; cursor: pointer; }
+      .vh-optie[aria-pressed="true"] { background: #231A26; color: #F2DDA0; border-color: #231A26; }
+      .vh-grid { display: inline-grid; gap: 6px; margin: 4px 0 6px; }
+      .vh-lamp { width: 52px; height: 52px; border-radius: 50%; border: 3px solid #5A3A1E; background: #3A2A2A; cursor: pointer; box-shadow: inset 0 -4px 0 rgba(0,0,0,.35); }
+      .vh-lamp.aan { background: radial-gradient(circle at 40% 35%, #FFFBE8, #FFE76A 45%, #E9B949); box-shadow: 0 0 14px #FFE76A; }
+      .vh-rij { display: flex; gap: 6px; flex-wrap: wrap; min-height: 40px; padding: 6px; border-radius: 8px; background: #EFE0BE; margin-bottom: 8px; }
+      .vh-hints { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+      .vh-hint { background: #FFFDF6; border-left: 4px solid #E9B949; padding: 6px 10px; margin: 6px 0 0; border-radius: 4px; font-size: 14px; }
+      .vh-voet { display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px 14px; flex-wrap: wrap; }
+      .vh-groot { font-size: 18px; padding: 9px 18px; background: #C8323C; color: #fff; }
+      .vh-stempel { text-align: center; font-size: 26px; font-weight: 800; padding: 6px 0; animation: vh-stempel .5s cubic-bezier(.3,1.6,.5,1); }
+      .vh-stempel.goed { color: #2E8B62; } .vh-stempel.fout { color: #C8323C; animation: vh-schud .4s; }
+      @keyframes vh-stempel { from { transform: scale(2.4) rotate(-12deg); opacity: 0; } }
+      @keyframes vh-schud { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+      .vh-boek li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid #E2D3B6; }
+      .vh-boek ul { list-style: none; margin: 0; padding: 0; }`;
+    document.head.appendChild(stijl);
+    const balk = document.createElement('div'); balk.className = 'vh-balk';
+    balk.innerHTML = '<div class="vh-doel" id="vh-doel"></div><span class="vh-ruimte"></span><button class="vh-knop" id="vh-munten" type="button" title="Hintmuntjes"></button><button class="vh-knop" id="vh-boek" type="button">Puzzels</button><span class="vh-zoom"><button class="vh-knop" id="vh-uit" type="button" aria-label="Uitzoomen">−</button><button class="vh-knop" id="vh-in" type="button" aria-label="Inzoomen">+</button></span>';
+    veld.appendChild(balk);
+    const dlg = document.createElement('div'); dlg.className = 'vh-dialoog'; dlg.hidden = true;
+    dlg.innerHTML = '<canvas class="vh-portret" width="20" height="22"></canvas><div class="vh-tekst"><b></b><span></span><i class="vh-verder">verder ▼</i></div>';
+    veld.appendChild(dlg);
+    const pz = document.createElement('dialog'); pz.className = 'vh-puzzel'; document.body.appendChild(pz);
+    const stap = () => STAPPEN[V().stap];
+    const naamVan = id => { if (id === 'jij') return { naam: S.look.naam, look: S.look }; for (const r of Object.values(RUIMTES)) for (const n of r.npcs || []) if (n.id === id) return { naam: n.naam, look: n.look }; return { naam: id, look: null }; };
+    function teken() {
+      const st = stap(), v = V();
+      $('vh-doel').innerHTML = st ? '<b>Doel</b>' + st.doel : '<b>Opgelost!</b>Het geheim van de Gouden Sleutel. Bekijk je puzzels in het puzzelboek.';
+      $('vh-munten').innerHTML = '<span class="munt"></span>' + v.munten;
+      $('vh-boek').textContent = 'Puzzels ' + Object.keys(v.opgelost).length + '/' + Object.keys(PUZZELS).length;
+    }
+    let regels = [], klaar = null, typ = null, volledig = '';
+    function toonRegel() {
+      const [wie, tekst] = regels.shift(), { naam, look } = naamVan(wie);
+      dlg.querySelector('b').textContent = naam;
+      const pc = dlg.querySelector('canvas'), G = pc.getContext('2d'); G.clearRect(0, 0, 20, 22);
+      if (look) { const tmp = document.createElement('canvas'); tmp.width = 20; tmp.height = 40; const tg = tmp.getContext('2d'); poppetje(tg, 10, 39, look, { richting: 'VR', fase: 0, t: 0, praat: false }); G.drawImage(tmp, 0, 1, 20, 22, 0, 0, 20, 22); }
+      volledig = tekst.replace('{naam}', S.look.naam); speel('praat');
+      const span = dlg.querySelector('span'); let i = 0; clearInterval(typ);
+      typ = setInterval(() => { i += 2; span.textContent = volledig.slice(0, i); if (i % 8 === 0) speel('praat'); if (i >= volledig.length) { clearInterval(typ); typ = null; } }, 22);
+    }
+    function dialoog(lijst, af) { regels = lijst.slice(); klaar = af; if (!regels.length) { af && af(); return; } dlg.hidden = false; toonRegel(); }
+    dlg.addEventListener('click', e => {
+      e.stopPropagation();
+      if (typ) { clearInterval(typ); typ = null; dlg.querySelector('span').textContent = volledig; return; }
+      if (regels.length) toonRegel(); else { dlg.hidden = true; const k = klaar; klaar = null; k && k(); }
+    });
+    // ---------------- puzzels
+    function openPuzzel(id, af) {
+      const P0 = PUZZELS[id], v = V();
+      v.gezien[id] = true; if (v.waarde[id] === undefined) v.waarde[id] = P0.punten; bewaar(); teken();
+      let gekozen = null, volgorde = [], lampen = null, hintsOpen = v['h_' + id] || 0;
+      const opgelost = v.opgelost[id] !== undefined;
+      pz.innerHTML = `<div class="vh-pkop"><span>Puzzel ${P0.nr}: ${P0.titel}</span><small>${opgelost ? 'Opgelost' : v.waarde[id] + ' punten'}</small></div><div class="vh-pbody"><p>${P0.tekst}</p><div id="vh-veld"></div><div id="vh-hintlijst"></div><div id="vh-uitslag"></div></div><div class="vh-voet"><div class="vh-hints" id="vh-hintknoppen"></div><div style="display:flex;gap:8px"><button class="vh-knop" id="vh-later" type="button">Later</button><button class="vh-knop vh-groot" id="vh-check" type="button">Klaar!</button></div></div>`;
+      const vak = pz.querySelector('#vh-veld');
+      if (P0.type === 'getal' || P0.type === 'woord') vak.innerHTML = `<div class="vh-antwoord"><input id="vh-inv" ${P0.type === 'getal' ? 'type="number" inputmode="numeric"' : 'type="text" autocomplete="off"'} placeholder="Jouw antwoord"></div>`;
+      if (P0.type === 'keuze') { vak.innerHTML = `<div class="vh-antwoord">${P0.opties.map((o, i) => `<button class="vh-optie" data-i="${i}" type="button" aria-pressed="false">${o}</button>`).join('')}</div>`; vak.querySelectorAll('.vh-optie').forEach(b => b.addEventListener('click', () => { gekozen = +b.dataset.i; vak.querySelectorAll('.vh-optie').forEach(x => x.setAttribute('aria-pressed', String(x === b))); })); }
+      if (P0.type === 'lichten') {
+        const n = P0.n; lampen = Array(n * n).fill(true);
+        const druk = (r, c) => { for (const [dr, dc] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const rr = r + dr, cc = c + dc; if (rr >= 0 && cc >= 0 && rr < n && cc < n) lampen[rr * n + cc] = !lampen[rr * n + cc]; } };
+        P0.druk.forEach(([r, c]) => druk(r, c));
+        const start = lampen.slice();
+        const zet = () => { vak.innerHTML = `<div class="vh-grid" style="grid-template-columns:repeat(${n},52px)">${lampen.map((a, i) => `<button class="vh-lamp ${a ? 'aan' : ''}" data-i="${i}" type="button" aria-label="Lampje ${i + 1}, ${a ? 'aan' : 'uit'}"></button>`).join('')}</div><div><button class="vh-knop" id="vh-reset" type="button">Opnieuw</button></div>`; vak.querySelectorAll('.vh-lamp').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; druk(Math.floor(i / n), i % n); speel('klik'); zet(); })); vak.querySelector('#vh-reset').addEventListener('click', () => { lampen = start.slice(); zet(); }); };
+        zet();
+      }
+      if (P0.type === 'volgorde') {
+        const geschud = P0.items.slice().sort((a, b) => (a.length * 7 + a.charCodeAt(0)) % 5 - (b.length * 7 + b.charCodeAt(0)) % 5);
+        const zet = () => { vak.innerHTML = `<div class="vh-rij" aria-label="Jouw volgorde">${volgorde.map((x, i) => `<span class="vh-optie" style="cursor:default">${i + 1}. ${x}</span>`).join('') || '<span style="opacity:.6;padding:6px">Tik de gasten hieronder aan</span>'}</div><div class="vh-antwoord">${geschud.filter(x => !volgorde.includes(x)).map(x => `<button class="vh-optie" data-x="${x}" type="button">${x}</button>`).join('')}<button class="vh-knop" id="vh-reset" type="button">Opnieuw</button></div>`; vak.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', () => { volgorde.push(b.dataset.x); speel('klik'); zet(); })); vak.querySelector('#vh-reset').addEventListener('click', () => { volgorde = []; zet(); }); };
+        zet();
+      }
+      const hintKnoppen = () => {
+        const lijst = pz.querySelector('#vh-hintlijst'); lijst.innerHTML = P0.hints.slice(0, hintsOpen).map((h, i) => `<p class="vh-hint"><b>Hint ${i + 1}:</b> ${h}</p>`).join('');
+        const k = pz.querySelector('#vh-hintknoppen'); k.innerHTML = hintsOpen < 3 ? `<button class="vh-knop" id="vh-hint" type="button"><span class="munt"></span>Hint ${hintsOpen + 1} (1 muntje)</button>` : '';
+        const b = k.querySelector('#vh-hint'); if (b) b.addEventListener('click', () => { if (V().munten < 1) { b.textContent = 'Geen hintmuntjes meer. Zoek ze in het hotel!'; return; } V().munten--; hintsOpen++; V()['h_' + id] = hintsOpen; bewaar(); teken(); speel('pling'); hintKnoppen(); });
+      };
+      hintKnoppen();
+      const sluit = () => { pz.close(); };
+      pz.querySelector('#vh-later').addEventListener('click', () => { sluit(); });
+      pz.querySelector('#vh-check').addEventListener('click', () => {
+        let goed = false;
+        if (P0.type === 'getal') goed = +pz.querySelector('#vh-inv').value === P0.antwoord;
+        if (P0.type === 'woord') { const a = (pz.querySelector('#vh-inv').value || '').toLowerCase().replace(/[^a-z]/g, ''); goed = P0.antwoord.includes(a); }
+        if (P0.type === 'keuze') goed = gekozen === P0.antwoord;
+        if (P0.type === 'lichten') goed = lampen.every(Boolean);
+        if (P0.type === 'volgorde') goed = volgorde.length === P0.items.length && volgorde.every((x, i) => x === P0.items[i]);
+        const uit = pz.querySelector('#vh-uitslag');
+        if (goed) {
+          const al = V().opgelost[id] !== undefined;
+          if (!al) { V().opgelost[id] = V().waarde[id]; V().punten += V().waarde[id]; bewaar(); }
+          uit.innerHTML = `<div class="vh-stempel goed">Goed zo!</div><p style="text-align:center;margin:0 0 6px">${P0.uitleg}${al ? '' : '<br><b>+' + V().waarde[id] + ' punten</b>'}</p>`;
+          speel('bel'); teken();
+          const k = pz.querySelector('#vh-check'); k.textContent = 'Verder'; pz.querySelector('#vh-later').hidden = true;
+          k.replaceWith(k.cloneNode(true)); pz.querySelector('#vh-check').addEventListener('click', () => { sluit(); af && af(); });
+        } else {
+          if (V().opgelost[id] === undefined) { V().waarde[id] = Math.max(Math.round(P0.punten * 0.4), Math.round(V().waarde[id] * 0.9)); bewaar(); pz.querySelector('.vh-pkop small').textContent = V().waarde[id] + ' punten'; }
+          uit.innerHTML = '<div class="vh-stempel fout">Helaas!</div><p style="text-align:center;margin:0">Probeer het nog eens. Een hint kan helpen.</p>';
+          speel('fout');
+        }
+      });
+      pz.showModal();
+    }
+    function speelStap() {
+      const st = stap(); if (!st) return;
+      const verder = () => dialoog(st.na, () => {
+        V().stap++; bewaar(); teken();
+        if (st.einde) { badge('speurneus'); krijg(100, 'het geheim opgelost'); for (let i = 0; i < 14; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 120); setTimeout(() => dialoog([['mien', 'Einde van het verhaal. Bedankt voor het spelen, speurneus! Je kunt je puzzels altijd terugvinden in het puzzelboek.']]), 900); }
+      });
+      dialoog(st.voor, () => { if (st.puzzel && V().opgelost[st.puzzel] === undefined) openPuzzel(st.puzzel, verder); else verder(); });
+    }
+    function praat(n) {
+      const st = stap(); if (!st || !S.ingecheckt) return false;
+      if (st.wie === n.id && st.kamer === huidig.id) { speelStap(); return true; }
+      return false;
+    }
+    let vorigeKamer = null;
+    setInterval(() => { if (!huidig || huidig.id === vorigeKamer) return; vorigeKamer = huidig.id; const st = stap(); teken(); if (st && st.wie === '*' && st.kamer === huidig.id && S.ingecheckt) setTimeout(speelStap, 700); }, 400);
+    function zoek(m) {
+      const plek = MUNTPLEKKEN.find(([k, t]) => k === huidig.id && t === m.type), v = V();
+      if (!plek || v.gevonden[plek.join(':')]) return;
+      v.gevonden[plek.join(':')] = true; v.munten++; bewaar(); teken(); speel('pling'); melding('Je vond een hintmuntje!');
+      for (let i = 0; i < 6; i++) setTimeout(() => deeltje('ster', m), i * 90);
+    }
+    const isDoel = n => { const st = stap(); return !!st && S.ingecheckt && st.wie === n.id && st.kamer === huidig.id; };
+    function markeer(x, y) { const op = Math.round(Math.sin(Date.now() / 220) * 2); g.fillStyle = '#231A26'; g.fillRect(x - 4, y - 12 + op, 9, 11); g.fillStyle = '#E9B949'; g.fillRect(x - 3, y - 11 + op, 7, 9); g.fillStyle = '#231A26'; g.fillRect(x, y - 10 + op, 1, 4); g.fillRect(x, y - 5 + op, 1, 1); }
+    function boek() {
+      const v = V();
+      pz.innerHTML = `<div class="vh-pkop"><span>Puzzelboek</span><small>${v.punten} punten</small></div><div class="vh-pbody vh-boek"><p>Je hebt ${Object.keys(v.opgelost).length} van de ${Object.keys(PUZZELS).length} puzzels opgelost en nog ${v.munten} hintmuntjes. Er liggen er ${MUNTPLEKKEN.length - Object.keys(v.gevonden).length} verstopt in het hotel.</p><ul>${Object.entries(PUZZELS).map(([id, p]) => `<li><span>${p.nr}. ${v.gezien[id] ? p.titel : '???'}</span><span>${v.opgelost[id] !== undefined ? v.opgelost[id] + ' punten' : v.gezien[id] ? '<button class="vh-knop" data-p="' + id + '" type="button">Verder puzzelen</button>' : ''}</span></li>`).join('')}</ul></div><div class="vh-voet"><span></span><button class="vh-knop" id="vh-dicht" type="button">Sluiten</button></div>`;
+      pz.querySelector('#vh-dicht').addEventListener('click', () => pz.close());
+      pz.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { pz.close(); const id = b.dataset.p, st = stap(); openPuzzel(id, st && st.puzzel === id ? () => dialoog(st.na, () => { V().stap++; bewaar(); teken(); }) : null); }));
+      pz.showModal();
+    }
+    $('vh-boek').addEventListener('click', e => { e.stopPropagation(); boek(); });
+    $('vh-munten').addEventListener('click', e => { e.stopPropagation(); melding('Je hebt ' + V().munten + ' hintmuntjes. Klik op voorwerpen in het hotel om er meer te vinden.'); });
+    const zoomZet = d => { S.zoom = Math.max(1, Math.min(3, (S.zoom || 1) + d)); bewaar(); zetMaat(); melding('Zoom: ' + S.zoom + '×'); };
+    $('vh-in').addEventListener('click', e => { e.stopPropagation(); zoomZet(1); });
+    $('vh-uit').addEventListener('click', e => { e.stopPropagation(); zoomZet(-1); });
+    document.addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input, textarea, dialog')) return; if (e.key === '+' || e.key === '=') zoomZet(1); if (e.key === '-') zoomZet(-1); });
+    teken();
+    return { praat, zoek, isDoel, markeer, teken, openPuzzel, dialoog };
+  })();
 
 })();
 

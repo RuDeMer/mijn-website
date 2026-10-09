@@ -90,6 +90,15 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Behangpatronen in `muurPixel`: lambrisering, streep, harten, bloem, sterren, tegels en vlak. Themameubels: kaptafel, aquarium, ezel, bureau, drumstel, gitaar, speaker, trofeekast, halters, bal, kandelaar, fornuis, kristalbol, tent, skirek, knuffel en breimand. De lift (`LIFTSTOP`) gaat naar zwembad, receptie, spelletjeskamer, bibliotheek en dak.
 - Licht: `lichtPass` legt elk beeld een lichtkaart over het scherm. Overdag (7 tot 18 uur) is het licht, 's avonds dimt het en geven lampen, de haard, lantaarns, arcadekasten en neon licht. Kleuren in `GLOEIT` (ramen, lampen, vuur, neon) blijven 's avonds fel.
 
+## Rommelhotel: het verhaal
+
+- Het hotel is een verhalend puzzelspel: "Het geheim van de Gouden Sleutel". Eigen verhaal en eigen puzzels; neem geen personages, puzzels of vormgeving van bestaande puzzelgames over.
+- `STAPPEN`: de hoofdstukken van het verhaal, elk met `wie` (id van een bewoner, of '*' voor een scène die start als je de kamer binnenkomt), `kamer`, `doel` (tekst in de doelbalk), `voor` en `na` (dialoog: [spreker-id of 'jij', tekst], {naam} wordt de naam van de speler) en optioneel `puzzel`. `einde: true` sluit het verhaal af (badge Speurneus en 100 munten).
+- `PUZZELS`: 12 puzzels met `type` getal, woord, keuze, lichten (lampjes-puzzel, `druk` bepaalt de beginstand) of volgorde. Elke puzzel heeft drie hints (elk 1 hintmuntje) en een uitleg. Een fout antwoord kost 10% van de punten (nooit minder dan 40%).
+- `MUNTPLEKKEN`: [kamer, meubeltype] waar een hintmuntje verstopt zit; je vindt het door op dat voorwerp te klikken. Je begint met 3 muntjes.
+- Voortgang staat in `S.verhaal` (stap, munten, opgelost, punten, gevonden, gezien, waarde). Een uitroepteken staat boven de bewoner die je moet spreken. Het puzzelboek toont alle puzzels en punten.
+- Zoomen: de knoppen − en + onder in beeld, of de toetsen - en +. `S.zoom` is 1, 2 of 3; bij inzoomen volgt de camera de speler.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

@@ -78,6 +78,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - `poly(punten, kleur)` accepteert ook een functie `(sx, sy) => kleur`: zo worden texturen getekend. Bereken texturen altijd in vloer- of muurcoördinaten (`naarVloer` voor vloeren; t en z voor muren), nooit in schermcoördinaten, anders lopen ze niet mee met het perspectief.
 - Vloeren: `MATERIAAL` per ruimte en tegelsoort (planken, marmer, tapijt, vlonder, kassei, gras, water, enzovoort) in `vloerPixel`. Muren: `muurPixel` met lambrisering, strepen of een motief.
 - `blok()` tekent automatisch een donkere omlijning en lichte randen. Poppetjes komen uit `maakSprite` en worden per uiterlijk en houding bewaard.
+- Meubels in de nieuwe stijl staan in `Object.assign(TEKEN, {...})`: gelaagde banken met kussens en armleuningen, stoelen met spijlen, tafels met poten, balie, bar, piano, arcadekasten met bewegend scherm, pooltafel, jukebox, snoepautomaat, bed, kast, boekenkast (`kant: 'L'` of `'R'`), globe, staande klok en zwembadspullen. Hulpjes: `stof(kleur)` en `hout(kleur)` voor textuur, `voorX`/`voorY` voor tekeningen op een voorvlak, en `lagen()` tekent onderdelen in de goede volgorde.
+- Ruimtes: plein, receptie, lobby, café, spelletjeskamer (1e), bibliotheek (2e), dakterras, kamer 12 en het zwembad in de kelder. De lift (`LIFTSTOP`) gaat naar zwembad, receptie, spelletjeskamer, bibliotheek en dak.
 - Licht: `lichtPass` legt elk beeld een lichtkaart over het scherm. Overdag (7 tot 18 uur) is het licht, 's avonds dimt het en geven lampen, de haard, lantaarns, arcadekasten en neon licht. Kleuren in `GLOEIT` (ramen, lampen, vuur, neon) blijven 's avonds fel.
 
 ## Scorebord en bezoekersteller
@@ -90,6 +92,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 ## Sticker en coulissen op de homepage
 
+- Het gereedschap op de homepage hangt grotendeels los verspreid over de pagina (een `.rek.verspreid` over de hele pagina, gemaakt door `hebbedingen.js`); alleen zaag, hamer en tang hangen in het rek bij de titel. In de coulissen hangt geen gereedschap.
 - `hebbedingen.js` (herkenbaar aan HEBBEDINGEN) bouwt op de homepage de sticker (`ruben-sticker.webp` in de map van de site), die net achter het eind van de onderste tape van het logo plakt en zo groot wordt als er ruimte is en de sectie Uit de coulissen: props van Rubens personages aan haakjes op het gaatjesbord, elk met een kaartje (naam, rol, voorstelling), plus een rek voor extra gereedschap (`#rek-plank`). De werkplaats zet dit script op de homepage en houdt het bij.
 - Personages staan in `PROPS`, tekeningen in `SVG`, wat ze doen bij een klik in `DOEN`: Juan Martinez (schedelstaf, Fiesta de los Muertos bij Toverland Halloween Nights: gloeiende ogen, klapperende kaak, goudsbloemblaadjes), Caspian Darius (kroon, groene chaosvonken), Erik Jacobs (wandelstok, draait en tikt), Roeter (kaarten en pailletten, waaieren uit), Hans Herzschlag (hoedje met krullen, schlagerdeuntje) en Callum (brilletje, glinstering).
 - Alle tekeningen zijn eigen ontwerpen. Teken geen herkenbare spullen, figuren of logo's uit films, series, games of merken na.

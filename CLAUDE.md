@@ -118,6 +118,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - De server is `scorebord-worker.js` (Cloudflare Worker met D1-database als binding `DB` en een geheim `BEHEER` voor beheer). Dat bestand hoort niet op de site, maar in Cloudflare. Endpoints: GET /scores, POST /score, POST /naam, POST /verwijder, DELETE /score (met beheerwachtwoord).
 - Een nieuw spel op het scorebord? Voeg het toe aan `SPELLEN` in de worker en in `scorebord_template.html`.
 
+## Homepage-onderdelen (belangrijk)
+
+- Alles wat de homepage aan gedeelde onderdelen heeft (gereedschap uit `muur.js`, animaties uit `beweging2.js`, de label-iconen, `scorebord.js`, `hebbedingen.js` en de bijbehorende CSS) zit in één bestand: `homepage-onderdelen.js`. `index.html` laadt dat met `<script src="homepage-onderdelen.js"></script>` onderaan de body.
+- `index.html` bevat alleen nog Rubens eigen inhoud (labels, teksten, versienummer). Stuur nooit een nieuwe index.html mee: wijzigingen aan de onderdelen gaan via een nieuwe versie van `homepage-onderdelen.js`, die Ruben gewoon uploadt. De knop "Werk mijn homepage bij" is daarvoor niet meer nodig.
+- De werkplaats haalt eventuele oude, ingeplakte onderdelen uit de homepage en zet `homepage-onderdelen.js` alleen neer als dat bestand nog ontbreekt (of bij die eenmalige verhuizing). Een nieuwer bestand dat Ruben heeft geüpload, wordt nooit door de werkplaats overschreven.
+- Het bouwscript maakt `homepage-onderdelen.js` uit losse stukken, die elk in een eigen functie verpakt worden: eerst de stijl, dan de iconen, het scorebord, het gereedschap, de animaties en als laatste de hebbedingen.
+
 ## Sticker en coulissen op de homepage
 
 - Het gereedschap op de homepage hangt grotendeels los verspreid over de pagina (een `.rek.verspreid` over de hele pagina, gemaakt door `hebbedingen.js`); alleen zaag, hamer en tang hangen in het rek bij de titel. In de coulissen hangt geen gereedschap.

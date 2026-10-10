@@ -56,7 +56,7 @@ button { font: inherit; }
 .rij-tussen { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
 
 /* winkel */
-.pakjes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem; margin-top: .4rem; }
+.pakjes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.4rem; margin-top: .4rem; }
 .aanbod { background: var(--papier); border-radius: 10px; padding: 1rem 1rem 1.1rem; display: flex; flex-direction: column; align-items: center; gap: .7rem; box-shadow: 0 3px 0 rgba(0,0,0,.18); text-align: center; }
 .aanbod h3 { margin: 0; font-size: 1.15rem; }
 .aanbod p { margin: 0; font-size: .88rem; color: var(--zacht); }
@@ -90,7 +90,7 @@ button { font: inherit; }
 .k-stad { font-size: 2.9cqw; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; background: var(--ed); color: #fff; padding: .7cqw 1.6cqw .5cqw; border-radius: 1.2cqw; white-space: nowrap; }
 .k-uit { font-size: 3cqw; font-style: italic; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .k-kop { display: flex; align-items: center; gap: 1.6cqw; line-height: 1; }
-.k-naam.l1 { font-size: 7cqw !important; } .k-naam.l2 { font-size: 6.2cqw !important; } .k-naam.l3 { font-size: 5.4cqw !important; }
+.k-naam.l1 { font-size: 7cqw !important; } .k-naam.l2 { font-size: 6.2cqw !important; } .k-naam.l3 { font-size: 5.4cqw !important; } .k-naam.l4 { font-size: 4.7cqw !important; letter-spacing: -.02em; }
 .k-naam { flex: 1; min-width: 0; font-size: 8cqw; font-weight: 800; letter-spacing: -.01em; font-stretch: 75%; font-variation-settings: "wdth" 75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--inkt); }
 .k-kr { font-size: 6cqw; font-weight: 800; color: var(--rood-d); white-space: nowrap; }
 .k-kr small { font-size: 3.6cqw; margin-right: .4cqw; }
@@ -344,7 +344,7 @@ dialog p { margin: .4rem 0 .8rem; }
     <section class="sectie" id="s-album" role="tabpanel" aria-labelledby="t-album" hidden>
       <div class="paneel">
         <div class="album-kop">
-          <h2 style="margin:0">Album: Zolderset</h2>
+          <h2 style="margin:0" id="album-titel">Album: Zolderset</h2>
           <div class="voortgang"><div class="balkje"><i id="voortgang-balk"></i></div><small id="voortgang-tekst"></small></div>
         </div>
         <div class="filters" id="filters"></div>
@@ -364,7 +364,7 @@ dialog p { margin: .4rem 0 .8rem; }
       <ul>
         <li>Koop pakjes met je muntjes. Scheur een pakje open door over de bovenrand te slepen, of tik twee keer op het pakje.</li>
         <li>Tik op de stapel om de kaarten één voor één om te draaien. De laatste kaart is altijd de zeldzame. Let op de gloed!</li>
-        <li>Er zijn 120 kaarten in de Zolderset, plus 10 geheime kaarten. Zeldzaamheid: gewoon, ongewoon, zeldzaam, holo zeldzaam, ultra zeldzaam en geheim. Elke kaart kan ook glimmend zijn.</li>
+        <li>Er zijn 120 kaarten in de Zolderset, plus 10 geheime kaarten. De Heldenset heeft 30 superhelden met capes en maskers; die zitten alleen in een Heldenpakje. Zeldzaamheid: gewoon, ongewoon, zeldzaam, holo zeldzaam, ultra zeldzaam en geheim. Elke kaart kan ook glimmend zijn.</li>
         <li>Kaarten die je dubbel hebt, kun je verkopen voor muntjes. Hoe zeldzamer, hoe meer ze waard zijn.</li>
         <li>Haal elke dag je dagbonus op. Kom je meerdere dagen achter elkaar, dan groeit je bonus.</li>
         <li>Alles wordt in je browser bewaard. De muntjes zijn alleen voor dit spel; je kunt ze niet kopen.</li>
@@ -607,7 +607,7 @@ const BT = (function () {
     const p = plek === 'staart' ? A.staart : plek === 'rug' ? A.rug : plek === 'vrij' ? [x0, y0] : A.kop;
     if (!p) return '';
     const [x, y] = p, s = s0 || A.s || 1;
-    const achter = ['vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
+    const achter = ['cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
     if ((laag === 'achter') !== achter.includes(soort)) return '';
     switch (soort) {
       case 'vlam': return vlam(x, y + 4, s, k);
@@ -650,6 +650,9 @@ const BT = (function () {
       case 'sintels': return ci(x - 12 * s, y - 4, 2.4 * s, '#FFB347', 'stroke="none"') + ci(x + 10 * s, y - 12 * s, 2 * s, '#FFE76A', 'stroke="none"') + ci(x + 2 * s, y - 20 * s, 1.6 * s, '#FF7043', 'stroke="none"');
       case 'paddohoedje': return pa(`M${x - 12 * s} ${y + 2}q${0} ${-16 * s} ${12 * s} ${-16 * s}q${12 * s} ${0} ${12 * s} ${16 * s}z`, '#C8323C') + ci(x - 4 * s, y - 8 * s, 2.4 * s, '#fff', 'stroke="none"') + ci(x + 5 * s, y - 5 * s, 2 * s, '#fff', 'stroke="none"');
       case 'strik': return pa(`M${x} ${y}l${-12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + pa(`M${x} ${y}l${12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + ci(x, y, 3.5 * s, licht(k.strik || '#E8577A', 0.2));
+      case 'cape': { const kc = k.cape || '#C8323C', y0 = y + 14 * s; return pa(`M${x - 14 * s} ${y0}Q${x - 46 * s} ${y0 + 40 * s} ${x - 44 * s} ${y0 + 80 * s}Q${x - 30 * s} ${y0 + 72 * s} ${x - 16 * s} ${y0 + 82 * s}Q${x - 2 * s} ${y0 + 72 * s} ${x + 14 * s} ${y0 + 82 * s}Q${x + 30 * s} ${y0 + 72 * s} ${x + 46 * s} ${y0 + 80 * s}Q${x + 48 * s} ${y0 + 40 * s} ${x + 14 * s} ${y0}z`, kc) + st(`M${x - 8 * s} ${y0 + 12 * s}Q${x - 22 * s} ${y0 + 44 * s} ${x - 26 * s} ${y0 + 72 * s}M${x + 10 * s} ${y0 + 12 * s}Q${x + 24 * s} ${y0 + 44 * s} ${x + 30 * s} ${y0 + 72 * s}`, licht(kc, 0.25), 2, 'opacity=".55"'); }
+      case 'masker': { const G = A.gezicht; if (!G) return ''; const km = k.masker || '#23252B', bx = G.a * 1 + G.m * 1.9, hy = G.m * 1.15; const gat = (cx) => `M${f1(cx - G.m * 1.15)} ${f1(G.y)}a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(G.m * 2.3)} 0a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(-G.m * 2.3)} 0z`; const gaten = G.a ? gat(G.x - G.a) + gat(G.x + G.a) : gat(G.x); return `<path d="M${f1(G.x - bx)} ${f1(G.y - hy * 0.6)}Q${f1(G.x)} ${f1(G.y - hy * 1.5)} ${f1(G.x + bx)} ${f1(G.y - hy * 0.6)}L${f1(G.x + bx + 3)} ${f1(G.y + hy * 0.5)}Q${f1(G.x)} ${f1(G.y + hy * 1.6)} ${f1(G.x - bx - 3)} ${f1(G.y + hy * 0.5)}z${gaten}" fill="${km}" fill-rule="evenodd" stroke="${lijnK(km)}" stroke-width="1.6"/>` + st(`M${f1(G.x + bx + 2)} ${f1(G.y)}q8 2 12 10M${f1(G.x + bx + 2)} ${f1(G.y + 2)}q6 6 7 14`, km, 3); }
+      case 'embleem': { const ke = k.embleem || '#F6CB2F'; return ci(x, y, 7 * s, ke) + ci(x, y, 5 * s, licht(ke, 0.35), 'stroke="none"') + (k.symbool === 'bliksem' ? bliksemschicht(x - 2 * s, y + 4 * s, 0.45 * s, lijnK(ke)) : ster(x, y, 3.6 * s, lijnK(ke))); }
       case 'hoedje': return el(x, y + 2, 16 * s, 4 * s, k.hoed || '#23252B') + pa(`M${x - 10 * s} ${y + 2}v${-14 * s}q${10 * s} ${-4 * s} ${20 * s} 0v${14 * s}z`, k.hoed || '#23252B') + `<rect x="${f1(x - 10 * s)}" y="${f1(y - 3 * s)}" width="${f1(20 * s)}" height="${f1(3 * s)}" fill="${k.lint || '#C8323C'}"/>`;
       default: return '';
     }
@@ -884,8 +887,14 @@ const BT = (function () {
     schaduw: ['#6E5A9A', '#241634', () => `<circle cx="160" cy="34" r="16" fill="#FFE9A8" opacity=".85"/><circle cx="166" cy="30" r="14" fill="#3A2852"/>` + [[20, 20], [50, 50], [130, 20], [100, 40], [180, 80], [30, 90]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 1 : 1.6}" fill="#fff" opacity=".8"/>`).join('') + `<path d="M0 150q40-30 80-10t70-10t50 4v16z" fill="#120A1C" opacity=".5"/>`],
     rommel: ['#F2DDA0', '#C9A35B', () => { let d = ''; for (let x = 10; x < 200; x += 16) for (let y = 10; y < 150; y += 16) d += `<circle cx="${x}" cy="${y}" r="2" fill="#7A5A2A" opacity=".35"/>`; return d + `<rect x="0" y="128" width="200" height="22" fill="#9A6438" opacity=".55"/>`; }],
   };
-  function achtergrond(e, fullArt) {
+  function achtergrond(e, fullArt, set) {
     const a = ACHTER[e] || ACHTER.rommel, id = 'bg' + (++uid);
+    if (set === 'helden') {
+      const h = fullArt ? 280 : 150; let stralen = '';
+      for (let i = 0; i < 18; i++) { const a0 = i * Math.PI / 9, a1 = a0 + Math.PI / 18; stralen += `<path d="M100 ${h * 0.45}L${f1(100 + Math.cos(a0) * 320)} ${f1(h * 0.45 + Math.sin(a0) * 320)}L${f1(100 + Math.cos(a1) * 320)} ${f1(h * 0.45 + Math.sin(a1) * 320)}z" fill="#fff" opacity=".16"/>`; }
+      let stip = ''; for (let x = 6; x < 200; x += 12) for (let y = 6; y < h; y += 12) if ((x + y) % 24 === 12) stip += `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff" opacity=".22"/>`;
+      return `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="${a[0]}"/><stop offset="1" stop-color="${a[1]}"/></radialGradient></defs><rect width="200" height="${h}" fill="url(#${id})"/>` + stralen + stip;
+    }
     return `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="${a[0]}"/><stop offset="1" stop-color="${a[1]}"/></radialGradient></defs><rect width="200" height="${fullArt ? 280 : 150}" fill="url(#${id})"/>` + a[2]();
   }
 
@@ -933,7 +942,7 @@ const BT = (function () {
     const P = spec.p || {};
     const vb = opties.vol ? '0 0 200 280' : '0 0 200 150';
     const verschuif = opties.vol ? `<g transform="translate(-10 38) scale(1.1)">` : '<g>';
-    return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${opties.silhouet ? '' : achtergrond(spec.e, opties.vol)}${verschuif}${opties.silhouet ? '' : schaduwGrond(P)}${beest(spec, opties)}</g></svg>`;
+    return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${opties.silhouet ? '' : achtergrond(spec.e, opties.vol, spec.set)}${verschuif}${opties.silhouet ? '' : schaduwGrond(P)}${beest(spec, opties)}</g></svg>`;
   }
   return { kunst, beest, achtergrond, meng, donker, licht, VORMEN: Object.keys(V) };
 })();
@@ -1095,6 +1104,42 @@ const KAARTEN = [
   { n: 'Regenboogwolkje', e: 'wind', z: 'x', st: 0, kr: 220, v: 'wolk', p: sch(S2), k: { c1: '#F7D8E4', c2: '#D8F2FF', c3: '#9C7BEA', iris: '#9C4AEA', aura: '#B8F0D0' }, a: [['aura', 'kop', 0, 0, 1.3], ['halo', 'kop', 0, 0, 1.2], ['vonken', 'kop', 0, 0, 1.4]], pat: 'sterretjes', o: 'glim', m: 'lach', aan: [['Regenboog', 4, 140], ['Pot met Goud', 6, 220]], t: 'Waar hij gaat zitten, begint de regenboog.' },
 ];
 KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3, '0'); });
+// ---------------- HELDENSET: 30 eigen superhelden met capes, maskers en emblemen
+const HC = (cape, masker, embleem, symbool) => ({ cape, masker, embleem, symbool });
+const HELDEN = [
+  { n: 'Kapitein Kruimel', e: 'rommel', z: 'g', v: 'bol', p: sch(S0), k: Object.assign({ c1: '#E0B07A', c2: '#F6E2B8', c3: '#8C5A2A', iris: '#2A1D14' }, HC('#C8323C', '#2F4C8F', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.72], ['masker', 'kop']], o: 'rond', m: 'lach', aan: [['Kruimelstorm', 1, 20]], t: 'Ruimt elke kruimel op voordat hij de vloer raakt.' },
+  { n: 'Sokkenvrouw', e: 'rommel', z: 'g', v: 'sok', p: sch(S0), k: Object.assign({ c1: '#7A4E9A', c2: '#F6CB2F', c3: '#3E2A6E', iris: '#2A1D14' }, HC('#E8577A', '#23252B', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.7], ['masker', 'kop'], ['embleem', 'vrij', 100, 104, 0.8]], o: 'glim', m: 'lach', aan: [['Verdwijntruc', 1, 20]], t: 'Vindt elke sok terug. Ook die uit 1998.' },
+  { n: 'De Stofdoek', e: 'wind', z: 'g', v: 'spook', p: sch(S0), k: Object.assign({ c1: '#F2EDE2', c2: '#FFFFFF', c3: '#9AA6C2', iris: '#2A1D14' }, HC('#2F8BD6', '#3A3D46', '#E9B949')), a: [['cape', 'kop', 0, 0, 0.72], ['masker', 'kop'], ['embleem', 'vrij', 100, 104, 0.8]], o: 'rond', m: 'o', aan: [['Wervelpoets', 1, 20]], t: 'Waar hij langs zweeft, is het daarna stofvrij.' },
+  { n: 'Bliksembel', e: 'bliksem', z: 'g', v: 'kever', p: sch(S0), k: Object.assign({ c1: '#F6CB2F', c2: '#FFF6C2', c3: '#8C6A0A', iris: '#2A1D14' }, HC('#2F4C8F', '#23252B', '#C8323C', 'bliksem')), a: [['cape', 'kop', 0, 0, 0.66], ['masker', 'kop'], ['antennes', 'kop']], o: 'kraal', m: 'lach', aan: [['Tring!', 1, 20]], t: 'Waarschuwt met een belletje als er gevaar dreigt.' },
+  { n: 'Mosman', e: 'blad', z: 'g', v: 'beer', p: sch(S0), k: Object.assign({ c1: '#6E9E4A', c2: '#D7F0B5', c3: '#2E5A2A', iris: '#2A1D14' }, HC('#7A4E2D', '#2E5A2A', '#B5D33D')), a: [['cape', 'kop', 0, 0, 0.72], ['masker', 'kop'], ['embleem', 'vrij', 100, 110, 0.8]], o: 'rond', m: 'lach', aan: [['Groene Knuffel', 1, 20]], t: 'Groeit sterker van elke regenbui.' },
+  { n: 'Kiezelkid', e: 'steen', z: 'g', v: 'ei', p: sch(S0), k: Object.assign({ c1: '#9A8F84', c2: '#D9D2C5', c3: '#5C544B', iris: '#2A1D14' }, HC('#C8323C', '#2F4C8F', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.66], ['masker', 'kop'], ['embleem', 'vrij', 100, 104, 0.8]], o: 'boos', m: 'lach', aan: [['Keiharde Kop', 1, 20]], t: 'Klein, maar je krijgt hem echt niet stuk.' },
+  { n: 'Druppeldaad', e: 'water', z: 'g', v: 'druppel', p: sch(S0), k: Object.assign({ c1: '#5BB5F0', c2: '#D8F2FF', c3: '#1E5FA8', iris: '#1E4F8C' }, HC('#F6CB2F', '#1E4F8C', '#FFFFFF')), a: [['cape', 'kop', 0, 0, 0.60], ['masker', 'kop']], o: 'glim', m: 'lach', aan: [['Spetterreddingsactie', 1, 20]], t: 'Blust elk brandje. Ook de kaarsjes op je taart.' },
+  { n: 'Vonkje Vlug', e: 'vuur', z: 'g', v: 'vos', p: sch(S0, { oor: 'punt', staart: 'dun' }), k: Object.assign({ c1: '#F2A93B', c2: '#FFF0C2', c3: '#C8323C', iris: '#5C1A08' }, HC('#C8323C', '#23252B', '#FFF0C2')), a: [['cape', 'kop', 0, 0, 0.66], ['masker', 'kop'], ['vlam', 'staart', 0, 0, 0.6]], o: 'glim', m: 'lach', aan: [['Supersprint', 1, 20]], t: 'Zo snel dat hij zijn eigen staart inhaalt.' },
+  { n: 'Theelichtje', e: 'vuur', z: 'g', v: 'kaars', p: sch(S0), k: Object.assign({ c1: '#F2EDE2', c2: '#FFFFFF', c3: '#C99A2E', iris: '#2A1D14', vlam: '#FF8A3B' }, HC('#7A4E9A', '#C8323C', '#F6CB2F')), a: [['vlam', 'kop', 0, 0, 0.8], ['cape', 'kop', 0, 0, 0.60], ['masker', 'kop']], o: 'lief', m: 'lach', aan: [['Lichtpuntje', 1, 10]], t: 'Brengt licht in elke donkere gang.' },
+  { n: 'Pluimpiet', e: 'wind', z: 'g', v: 'vogel', p: sch(S0), k: Object.assign({ c1: '#9FC6E8', c2: '#EAF5FF', c3: '#3E6E9E', iris: '#2A1D14', kuif: '#F6CB2F' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.66], ['masker', 'kop'], ['kuif', 'kop', 0, 0, 0.7]], o: 'glim', m: 'snavel', aan: [['Duikvlucht', 1, 20]], t: 'Vliegt sneller dan de wind. Behalve bij tegenwind.' },
+  { n: 'Professor Paraplu', e: 'rommel', z: 'o', v: 'paraplu', p: sch(S1), k: Object.assign({ c1: '#2F4C8F', c2: '#DCE6F7', c3: '#F6CB2F', iris: '#2A1D14' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['masker', 'kop'], ['bliksem', 'vrij', 160, 40, 0.8]], o: 'boos', m: 'lach', aan: [['Schuilkelder', 1, 30], ['Stormschild', 2, 50]], t: 'Houdt de hele stad droog met één klap van zijn scherm.' },
+  { n: 'De Wekkerwachter', e: 'rommel', z: 'o', v: 'klok', p: sch(S1), k: Object.assign({ c1: '#2E8B62', c2: '#E9B949', c3: '#1E4D30', iris: '#2A1D14' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.84]], o: 'boos', m: 'open', aan: [['Tijdstop', 2, 40], ['Wekalarm', 2, 50]], t: 'Zet de tijd stil als iemand te laat dreigt te komen.' },
+  { n: 'De Vliegende Vlaai', e: 'rommel', z: 'o', v: 'bol', p: sch(S1), k: Object.assign({ c1: '#C98A43', c2: '#A8162B', c3: '#7A4E2D', iris: '#2A1D14', patroon: '#E0B07A' }, HC('#2F8BD6', '#23252B', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.90], ['masker', 'kop']], pat: 'ruit', o: 'glim', m: 'lach', aan: [['Kersenkanon', 2, 40], ['Taartgooi', 2, 50]], t: 'Vliegt van huis naar huis met een stukje vlaai voor iedereen.' },
+  { n: 'Nachtschim', e: 'schaduw', z: 'o', v: 'vleermuis', p: sch(S1), k: Object.assign({ c1: '#3A3D5C', c2: '#B9A3D6', c3: '#14162A', iris: '#FFE76A', vleugel: '#23252B' }, HC('#6A4A9A', '#C8323C', '#FFE76A')), a: [['masker', 'kop'], ['embleem', 'vrij', 100, 104, 0.8]], o: 'gloed', m: 'tand', aan: [['Schaduwsprong', 2, 40], ['Nachtwacht', 2, 50]], t: 'Waakt elke nacht over het hotel. Overdag slaapt hij uit.' },
+  { n: 'Golfgarde', e: 'water', z: 'o', v: 'vis', p: sch(S1), k: Object.assign({ c1: '#2BB5C9', c2: '#D8F6F9', c3: '#1F6E7A', iris: '#2A1D14' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['masker', 'kop'], ['vinnen', 'rug', 0, 0, 0.7]], pat: 'strepen', o: 'boos', m: 'o', aan: [['Golfslag', 2, 40], ['Reddingsboei', 2, 50]], t: 'Patrouilleert in de gracht. Er is nog nooit iemand verdronken.' },
+  { n: 'Rotsridder', e: 'steen', z: 'o', v: 'golem', p: sch(S1), k: Object.assign({ c1: '#8A8478', c2: '#C9C2B4', c3: '#4A443C', iris: '#FFE76A' }, HC('#2F4C8F', '#C8323C', '#E9B949')), a: [['cape', 'kop', 0, 0, 0.96], ['masker', 'kop'], ['embleem', 'vrij', 100, 104, 0.9]], o: 'gloed', m: 'streep', aan: [['Rotsvuist', 2, 50], ['Steenschild', 3, 60]], t: 'Zijn cape is zwaarder dan jouw fiets.' },
+  { n: 'Stroomstorm', e: 'bliksem', z: 'o', v: 'slang', p: sch(S1), k: Object.assign({ c1: '#26C6A6', c2: '#D0FFF4', c3: '#0E6B58', iris: '#FFE76A', bliksem: '#FFE76A' }, HC('#7A4E9A', '#23252B', '#F6CB2F', 'bliksem')), a: [['masker', 'kop'], ['bliksems', 'kop', 0, 0, 0.8]], pat: 'ringen', o: 'boos', m: 'tand', aan: [['Kortsluiting', 2, 40], ['Stroomstoot', 3, 60]], t: 'Laadt in één seconde alle telefoons van het hotel op.' },
+  { n: 'Bladbeschermer', e: 'blad', z: 'o', v: 'plant', p: sch(S1, { pot: true }), k: Object.assign({ c1: '#8BC34A', c2: '#E8F5C8', c3: '#4E7A22', iris: '#2A1D14', blad: '#3E8E3A' }, HC('#C8323C', '#2E5A2A', '#F6CB2F')), a: [['bladeren', 'kop'], ['masker', 'kop']], o: 'rond', m: 'lach', aan: [['Wortelgreep', 2, 40], ['Lenteschild', 2, 50]], t: 'Beschermt elk plantje in het hotel. Fred de varen is fan.' },
+  { n: 'Vuurvogel Vera', e: 'vuur', z: 'o', v: 'vogel', p: sch(S1), k: Object.assign({ c1: '#E8402A', c2: '#FFD08A', c3: '#FFB347', iris: '#FFE76A', vleugel: '#FF7043', kuif: '#FFB347' }, HC('#F6CB2F', '#23252B', '#FFF0C2')), a: [['vleugels', 'rug', 0, 0, 0.8], ['masker', 'kop'], ['vlam', 'kop', 0, 0, 0.7]], o: 'glim', m: 'snavel', aan: [['Vuurduik', 2, 50], ['Vlammenvlucht', 3, 60]], t: 'Warmt in de winter de hele gang op.' },
+  { n: 'Superkrab', e: 'water', z: 'z', v: 'krab', p: sch(S2), k: Object.assign({ c1: '#C8323C', c2: '#FFD0C0', c3: '#5C1418', iris: '#2A1D14' }, HC('#2F8BD6', '#23252B', '#F6CB2F')), a: [['cape', 'kop', 0, 0, 0.96], ['embleem', 'vrij', 100, 108, 1]], o: 'boos', m: 'zigzag', aan: [['Scharenslag', 2, 60], ['Zijwaartse Supersprint', 3, 90]], t: 'Rent zijwaarts naar elk gevaar. Komt altijd net op tijd.' },
+  { n: 'Uil van de Nacht', e: 'schaduw', z: 'z', v: 'uil', p: sch(S2), k: Object.assign({ c1: '#4A2E6A', c2: '#E0D8FF', c3: '#2A1E5C', iris: '#FFE76A' }, HC('#23252B', '#C8323C', '#FFE76A')), a: [['cape', 'kop', 0, 0, 0.96], ['masker', 'kop'], ['maan', 'kop', 0, 0, 0.7]], o: 'gloed', m: 'snavel', aan: [['Nachtzicht', 2, 60], ['Stille Vlucht', 3, 90]], t: 'Ziet in het donker elke boef. Er zijn er niet zo veel.' },
+  { n: 'Turbo-Rups', e: 'blad', z: 'z', v: 'rups', p: sch(S2), k: Object.assign({ c1: '#3E8E5A', c2: '#B7E4C3', c3: '#1E4D30', iris: '#2A1D14', antenne: '#F6CB2F' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['antennes', 'kop'], ['masker', 'kop'], ['cape', 'kop', 0, 0, 0.84]], pat: 'strepen', o: 'boos', m: 'lach', aan: [['Honderd Pootjes', 2, 60], ['Turbokruip', 3, 90]], t: 'De snelste rups van de stad. Hij heeft er ook honderd poten voor.' },
+  { n: 'Lampenlicht', e: 'bliksem', z: 'z', v: 'lamp', p: sch(S2), k: Object.assign({ c1: '#FFF3B0', c2: '#FFFFFF', c3: '#9AA6C2', iris: '#2A1D14', gloed: '#FFE76A' }, HC('#2F4C8F', '#23252B', '#C8323C')), a: [['masker', 'kop'], ['vonken', 'kop']], o: 'glim', m: 'lach', aan: [['Lichtflits', 2, 60], ['Stralend Plan', 3, 90]], t: 'Krijgt het beste idee, precies op het juiste moment.' },
+  { n: 'De Molenmeester', e: 'wind', z: 'z', v: 'molen', p: sch(S2), k: Object.assign({ c1: '#2F4C8F', c2: '#F7F4E8', c3: '#C8323C', iris: '#2A1D14' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['masker', 'kop'], ['wolken', 'kop', 0, 0, 0.8]], o: 'boos', m: 'lach', aan: [['Wiekenwind', 2, 60], ['Polderstorm', 3, 90]], t: 'Blaast elke onweerswolk in één keer weg.' },
+  { n: 'Kristalkapitein', e: 'steen', z: 'h', v: 'kristal', p: sch(S2), k: Object.assign({ c1: '#6EC6E8', c2: '#E0F7FF', c3: '#1E6E8C', iris: '#1E4F8C', aura: '#9FE0F0' }, HC('#C8323C', '#23252B', '#F6CB2F')), a: [['aura', 'kop', 0, 0, 0.9], ['cape', 'kop', 0, 0, 0.96], ['masker', 'kop']], o: 'boos', m: 'streep', aan: [['Prismaschild', 3, 80], ['Kristalkracht', 4, 130]], t: 'Weerkaatst elke aanval in alle kleuren van de regenboog.' },
+  { n: 'Heldenhaas', e: 'wind', z: 'h', v: 'konijn', p: sch(S2), k: Object.assign({ c1: '#F2F2F6', c2: '#F7D8E4', c3: '#9AA6C2', iris: '#3E6E9E', aura: '#EAF5FF' }, HC('#2F8BD6', '#C8323C', '#F6CB2F')), a: [['aura', 'kop', 0, 0, 0.9], ['cape', 'kop', 0, 0, 0.90], ['masker', 'kop'], ['embleem', 'vrij', 100, 114, 0.9]], o: 'glim', m: 'kat', aan: [['Supersprong', 3, 80], ['Oorwind', 4, 130]], t: 'Springt in één keer over het hele hotel. Met de lift was sneller geweest.' },
+  { n: 'De Gouden Theepot', e: 'rommel', z: 'h', v: 'theepot', p: sch(S2), k: Object.assign({ c1: '#E9B949', c2: '#C8323C', c3: '#7A5A10', iris: '#2A1D14', aura: '#FFE76A' }, HC('#C8323C', '#23252B', '#FFF3C4')), a: [['aura', 'kop', 0, 0, 0.9], ['cape', 'kop', 0, 0, 0.96], ['masker', 'kop']], o: 'glim', m: 'lach', aan: [['Kopje Kracht', 3, 80], ['Stoomstraal', 4, 130]], t: 'Na een kopje thee van hem voel je je zelf een held.' },
+  { n: 'Kapitein Kosmos', e: 'bliksem', z: 'u', v: 'draak', p: sch(S2), k: Object.assign({ c1: '#2F4C8F', c2: '#9FD8FF', c3: '#14213F', iris: '#FFE76A', vleugel: '#C8323C', aura: '#9FD8FF', bliksem: '#FFE76A' }, HC('#C8323C', '#23252B', '#F6CB2F', 'bliksem')), a: [['aura', 'kop', 0, 0, 1.1], ['cape', 'kop', 0, 0, 1.15], ['masker', 'kop'], ['embleem', 'vrij', 100, 108, 1.1], ['bliksems', 'kop', 0, 0, 0.9]], pat: 'sterretjes', o: 'boos', m: 'tand', aan: [['Sterrenstoot', 3, 100], ['Kosmische Donder', 5, 200]], t: 'Komt van een andere planeet. Daar hebben ze ook vlaai.' },
+  { n: 'De Grote Golf', e: 'water', z: 'u', v: 'walvis', p: sch(S2), k: Object.assign({ c1: '#1E5FA8', c2: '#BFE6FF', c3: '#0F2E5C', iris: '#2A1D14', aura: '#6EE8F0' }, HC('#F6CB2F', '#23252B', '#C8323C')), a: [['aura', 'kop', 0, 0, 1.2], ['cape', 'kop', 0, 0, 1.08], ['masker', 'kop'], ['bubbels', 'kop', 0, 0, 1.2]], o: 'lief', m: 'lach', aan: [['Reddingsgolf', 3, 100], ['Oceaankracht', 5, 200]], t: 'De grootste held van de zee, met het kleinste masker.' },
+  { n: 'De Rommelheld', e: 'rommel', z: 'x', v: 'golem', p: sch(S2), k: Object.assign({ c1: '#E9B949', c2: '#FFF3C4', c3: '#7A5A10', iris: '#C8323C', aura: '#FFE76A', metaal: '#C9CED6' }, HC('#C8323C', '#23252B', '#FFFFFF')), a: [['aura', 'kop', 0, 0, 1.3], ['cape', 'kop', 0, 0, 1.15], ['masker', 'kop'], ['embleem', 'vrij', 100, 104, 1.2], ['tandwiel', 'vrij', 46, 100, 0.8], ['tandwiel', 'vrij', 154, 104, 0.7]], pat: 'ruit', o: 'glim', m: 'lach', aan: [['Alles Kan Nog', 4, 150], ['Rommelkracht', 6, 240]], t: 'Gebouwd van alles wat ooit is weggegooid. Juist daarom de sterkste.' },
+];
+const HELD_KR = { g: 50, o: 80, z: 120, h: 150, u: 200, x: 250 };
+HELDEN.forEach((k, i) => { k.set = 'helden'; k.st = 0; k.kr = HELD_KR[k.z] + (i % 3) * 10; k.nr = i + 1; k.id = 'hs' + String(i + 1).padStart(3, '0'); KAARTEN.push(k); });
 
 (function () {
   'use strict';
@@ -1102,7 +1147,10 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wacht = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : ms));
   const KAART = Object.fromEntries(KAARTEN.map(k => [k.id, k]));
-  const PER_Z = {}; KAARTEN.forEach(k => (PER_Z[k.z] = PER_Z[k.z] || []).push(k));
+  const SETS = { zolder: { naam: 'Zolderset', aantal: 120 }, helden: { naam: 'Heldenset', aantal: 30 } };
+  KAARTEN.forEach(k => { if (!k.set) k.set = 'zolder'; });
+  const PER_SET = {}; KAARTEN.forEach(k => { const p = PER_SET[k.set] = PER_SET[k.set] || {}; (p[k.z] = p[k.z] || []).push(k); });
+  const PER_Z = PER_SET.zolder;
   const ZNAAM = { g: 'Gewoon', o: 'Ongewoon', z: 'Zeldzaam', h: 'Holo zeldzaam', u: 'Ultra zeldzaam', x: 'Geheim' };
   const ZRANG = { g: 0, o: 1, z: 2, h: 3, u: 4, x: 5 };
   const WAARDE = { g: 2, o: 5, z: 20, h: 50, u: 160, x: 500 };
@@ -1110,6 +1158,7 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
   const PAKJES = {
     gewoon: { naam: 'Zolderpakje', prijs: 100, tekst: '7 kaarten, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.70, h: 0.21, u: 0.065, x: 0.025 }, glim: 0.2, kleur: ['#2F8BD6', '#6EE8F0', '#1E4F8C', '#9FD3F4'], hoes: 'zs001' },
     premium: { naam: 'Gouden pakje', prijs: 250, tekst: '7 kaarten met 2 zeldzame plekken en veel betere kansen.', slots: ['g', 'g', 'g', 'o', 'o', 'R', 'R'], kans: { z: 0.48, h: 0.32, u: 0.14, x: 0.06 }, glim: 0.5, kleur: ['#B8862F', '#FFF0B0', '#7A5A10', '#F6D27A'], hoes: 'zs015' },
+    helden: { naam: 'Heldenpakje', prijs: 150, set: 'helden', tekst: '6 kaarten uit de Heldenset, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, kleur: ['#C8323C', '#F6CB2F', '#2F4C8F', '#FFE76A'], hoes: 'hs028' },
     doos: { naam: 'Doos met 10 pakjes', prijs: 900, tekst: '10 Zolderpakjes voor de prijs van 9.', doos: true, kleur: ['#C8323C', '#FFB0B8', '#7A1E26', '#F2DDA0'], hoes: 'zs120' },
   };
 
@@ -1119,7 +1168,7 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
   try { const r = localStorage.getItem(KEY); if (r) S = Object.assign(S, JSON.parse(r)); } catch (e) {}
   const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const heb = id => S.bezit[id] || [0, 0];
-  const uniek = () => KAARTEN.filter(k => { const b = heb(k.id); return b[0] + b[1] > 0; }).length;
+  const uniek = (set) => KAARTEN.filter(k => (!set || k.set === set) && heb(k.id)[0] + heb(k.id)[1] > 0).length;
   const totaalKaarten = () => Object.values(S.bezit).reduce((a, b) => a + b[0] + b[1], 0);
 
   // ---------------- geluid
@@ -1214,11 +1263,12 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
   function kaartHTML(k, o) {
     o = o || {};
     const E = ELEMENTEN[k.e], vol = k.z === 'u' || k.z === 'x';
-    const stad = k.z === 'x' ? 'Legende' : ['Basis', 'Stadium 1', 'Stadium 2'][k.st];
-    const lengte = k.n.length > 13 ? 'l3' : k.n.length > 11 ? 'l2' : k.n.length > 9 ? 'l1' : '';
+    const stad = k.set === 'helden' ? (k.z === 'x' ? 'Superheld' : 'Held') : k.z === 'x' ? 'Legende' : ['Basis', 'Stadium 1', 'Stadium 2'][k.st];
+    const lengte = k.n.length > 15 ? 'l4' : k.n.length > 13 ? 'l3' : k.n.length > 11 ? 'l2' : k.n.length > 9 ? 'l1' : '';
     const kop = `<div class="k-boven"><span class="k-stad">${stad}</span>${k.van ? `<span class="k-uit">uit ${esc(k.van)}</span>` : ''}</div><div class="k-kop"><b class="k-naam ${lengte}">${esc(k.n)}</b><span class="k-kr"><small>KR</small>${k.kr}</span><span class="k-el">${elIcoon(k.e)}</span></div>`;
     const aan = `<div class="k-aanvallen">${k.aan.map(([n, c, s]) => `<div class="k-aanval"><span class="k-kosten">${kosten(k.e, c)}</span><b class="${n.length > 13 ? 'lang' : ''}">${esc(n)}</b><span>${s}</span></div>`).join('')}</div>`;
-    const voet = `<div class="k-voet"><span>${k.nr > 120 ? k.nr : String(k.nr).padStart(3, '0')}/120</span><span class="k-zz" title="${ZNAAM[k.z]}">${zIcoon(k.z)}</span><span>Zolderset</span></div>`;
+    const SET = SETS[k.set] || SETS.zolder;
+    const voet = `<div class="k-voet"><span>${k.nr > SET.aantal ? k.nr : String(k.nr).padStart(3, '0')}/${String(SET.aantal).padStart(3, '0')}</span><span class="k-zz" title="${ZNAAM[k.z]}">${zIcoon(k.z)}</span><span>${SET.naam}</span></div>`;
     const binnen = vol
       ? `<div class="k-kunst-vol">${kunst(k, true)}</div>${kop}<div class="k-onder">${aan}<p class="k-tekst">${esc(k.t)}</p>${voet}</div>`
       : `${kop}<div class="k-kunst">${kunst(k)}</div>${aan}<p class="k-tekst">${esc(k.t)}</p>${voet}`;
@@ -1254,9 +1304,9 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
       <rect x="14" y="60" width="172" height="24" rx="4" fill="#23252B"/>
       <text x="100" y="78" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="17" letter-spacing="1.5" fill="#FBF6E9">ROMMELBEESTEN</text>
       <rect x="20" y="84" width="160" height="154" rx="12" fill="#fff" stroke="${k3}" stroke-width="3"/>
-      <g clip-path="url(#${id}r)"><g transform="translate(0 86)">${BT.achtergrond(hoes.e)}<g transform="translate(0 -4)">${BT.beest(hoes)}</g></g></g>
+      <g clip-path="url(#${id}r)"><g transform="translate(0 86)">${BT.achtergrond(hoes.e, false, hoes.set)}<g transform="translate(0 -4)">${BT.beest(hoes)}</g></g></g>
       <rect x="40" y="248" width="120" height="22" rx="11" fill="${k3}"/>
-      <text x="100" y="263" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="12" fill="#fff">${type === 'premium' ? 'GOUDEN EDITIE' : 'ZOLDERSET'} · 7 KAARTEN</text>
+      <text x="100" y="263" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="12" fill="#fff">${type === 'premium' ? 'GOUDEN EDITIE · 7 KAARTEN' : type === 'helden' ? 'HELDENSET · 6 KAARTEN' : 'ZOLDERSET · 7 KAARTEN'}</text>
       <rect class="glimstreep" x="-60" y="0" width="60" height="320" fill="url(#${id}s)" transform="skewX(-18)" opacity=".8"/>
     </svg>`;
   }
@@ -1330,8 +1380,9 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
   const willekeurig = arr => arr[Math.floor(Math.random() * arr.length)];
   function trekPakje(type) {
     const P = PAKJES[type];
-    const kaarten = P.slots.map(s => ({ k: willekeurig(PER_Z[s === 'R' ? kiesZ(P.kans) : s]), glim: false }));
-    if (Math.random() < P.glim) { const i = Math.floor(Math.random() * 4); const r = Math.random(); kaarten[i] = { k: willekeurig(PER_Z[r < 0.6 ? 'g' : r < 0.9 ? 'o' : 'z']), glim: true }; }
+    const PZ = PER_SET[P.set || 'zolder'];
+    const kaarten = P.slots.map(s => ({ k: willekeurig(PZ[s === 'R' ? kiesZ(P.kans) : s]), glim: false }));
+    if (Math.random() < P.glim) { const i = Math.floor(Math.random() * 3); const r = Math.random(); kaarten[i] = { k: willekeurig(PZ[r < 0.6 ? 'g' : r < 0.9 ? 'o' : 'z']), glim: true }; }
     // de beste komt als laatste
     const rare = kaarten.slice(P.slots.indexOf('R'));
     rare.sort((a, b) => ZRANG[a.k.z] - ZRANG[b.k.z]);
@@ -1347,7 +1398,7 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
     }
     S.stats.pakjes++; S.stats.kaarten += volgorde.length;
     bewaar();
-    if (window.Scorebord) Scorebord.stuur('beest', uniek(), totaalKaarten());
+    if (window.Scorebord) Scorebord.stuur('beest', uniek('zolder'), totaalKaarten());
     return volgorde;
   }
 
@@ -1494,17 +1545,20 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
   }
 
   // ---------------- album
-  let filterE = 'alle', filterZ = 'alle', filterBezit = 'alle', blad = 0;
+  let filterE = 'alle', filterZ = 'alle', filterBezit = 'alle', filterSet = 'zolder', blad = 0;
   const FILTERS = () => [['alle', 'Alles'], ...Object.entries(ELEMENTEN).map(([e, E]) => [e, E.naam])];
   function gefilterd() {
-    return KAARTEN.filter(k => (filterE === 'alle' || k.e === filterE) && (filterZ === 'alle' || k.z === filterZ) && (filterBezit === 'alle' || (filterBezit === 'mis' ? heb(k.id)[0] + heb(k.id)[1] === 0 : heb(k.id)[0] > 1)));
+    return KAARTEN.filter(k => k.set === filterSet && (filterE === 'alle' || k.e === filterE) && (filterZ === 'alle' || k.z === filterZ) && (filterBezit === 'alle' || (filterBezit === 'mis' ? heb(k.id)[0] + heb(k.id)[1] === 0 : heb(k.id)[0] > 1)));
   }
   const perSpreiding = () => (matchMedia('(max-width: 860px)').matches ? 9 : 18);
   function tekenAlbum() {
-    const u = uniek(); $('voortgang-balk').style.width = (u / KAARTEN.length * 100) + '%';
+    const inSet = KAARTEN.filter(k => k.set === filterSet), u = uniek(filterSet);
+    $('album-titel').textContent = 'Album: ' + SETS[filterSet].naam;
+    $('voortgang-balk').style.width = (u / inSet.length * 100) + '%';
     const geheim = PER_Z.x.filter(k => heb(k.id)[0] + heb(k.id)[1]).length;
-    $('voortgang-tekst').textContent = `${u} van de ${KAARTEN.length} kaarten (${Math.round(u / KAARTEN.length * 100)}%), waarvan ${geheim} van de 10 geheime. In totaal ${totaalKaarten()} kaarten.`;
-    $('filters').innerHTML = FILTERS().map(([e, n]) => `<button class="chip" data-fe="${e}" aria-pressed="${filterE === e}" type="button">${e !== 'alle' ? elIcoon(e) : ''}${n}</button>`).join('') +
+    const geheimSet = inSet.filter(k => k.z === 'x'), geheimHeb = geheimSet.filter(k => heb(k.id)[0] + heb(k.id)[1]).length;
+    $('voortgang-tekst').textContent = `${SETS[filterSet].naam}: ${u} van de ${inSet.length} kaarten (${Math.round(u / inSet.length * 100)}%), waarvan ${geheimHeb} van de ${geheimSet.length} geheime. In totaal ${totaalKaarten()} kaarten.`;
+    $('filters').innerHTML = Object.entries(SETS).map(([id, S0]) => `<button class="chip" data-fs="${id}" aria-pressed="${filterSet === id}" type="button">${S0.naam}</button>`).join('') + '<span style="width:.6rem"></span>' + FILTERS().map(([e, n]) => `<button class="chip" data-fe="${e}" aria-pressed="${filterE === e}" type="button">${e !== 'alle' ? elIcoon(e) : ''}${n}</button>`).join('') +
       '<span style="width:.6rem"></span>' + [['alle', 'Alle zeldzaamheid'], ...Object.entries(ZNAAM)].map(([z, n]) => `<button class="chip" data-fz="${z}" aria-pressed="${filterZ === z}" type="button">${z !== 'alle' ? zIcoon(z) : ''}${n}</button>`).join('') +
       '<span style="width:.6rem"></span>' + [['alle', 'Alles tonen'], ['mis', 'Wat ik mis'], ['dubbel', 'Mijn dubbele']].map(([b, n]) => `<button class="chip" data-fb="${b}" aria-pressed="${filterBezit === b}" type="button">${n}</button>`).join('');
     const lijst = gefilterd(), per = perSpreiding(), pagina = Math.max(0, Math.min(blad, Math.ceil(lijst.length / per) - 1));
@@ -1518,7 +1572,7 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
     $('b-terug').disabled = pagina === 0; $('b-verder').disabled = pagina >= totaal - 1;
     const dub = dubbele(); $('b-verkoop-dubbel').textContent = dub.aantal ? `Verkoop ${dub.aantal} dubbele (${dub.waarde} munten)` : 'Geen dubbele kaarten'; $('b-verkoop-dubbel').disabled = !dub.aantal;
   }
-  $('filters').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; if (b.dataset.fe) filterE = b.dataset.fe; if (b.dataset.fz) filterZ = b.dataset.fz; if (b.dataset.fb) filterBezit = b.dataset.fb; blad = 0; tekenAlbum(); });
+  $('filters').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; if (b.dataset.fs) filterSet = b.dataset.fs; if (b.dataset.fe) filterE = b.dataset.fe; if (b.dataset.fz) filterZ = b.dataset.fz; if (b.dataset.fb) filterBezit = b.dataset.fb; blad = 0; tekenAlbum(); });
   const bladDraai = d => { blad += d; GELUID.flip(); tekenAlbum(); const m = $('map'); if (!reduce && m.animate) m.animate([{ transform: `translateX(${d * 30}px)`, opacity: 0.4 }, { transform: 'none', opacity: 1 }], { duration: 260 }); };
   $('b-terug').addEventListener('click', () => bladDraai(-1));
   $('b-verder').addEventListener('click', () => bladDraai(1));
@@ -1549,7 +1603,7 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
       ev.stopPropagation();
       const w = knop.dataset.v; if (w === 'dicht') { d.hidden = true; return; }
       const glim = w === '1', prijs = WAARDE[k.z] * (glim ? 3 : 1), laatste = b[0] + b[1] === 1;
-      const doe = () => { const bb = heb(id); bb[glim ? 1 : 0]--; S.bezit[id] = bb; S.stats.verkocht = (S.stats.verkocht || 0) + prijs; krijg(prijs); bewaar(); tekenAlbum(); toonDetail(id); if (window.Scorebord) Scorebord.stuur('beest', uniek(), totaalKaarten()); };
+      const doe = () => { const bb = heb(id); bb[glim ? 1 : 0]--; S.bezit[id] = bb; S.stats.verkocht = (S.stats.verkocht || 0) + prijs; krijg(prijs); bewaar(); tekenAlbum(); toonDetail(id); if (window.Scorebord) Scorebord.stuur('beest', uniek('zolder'), totaalKaarten()); };
       if (laatste || ZRANG[k.z] >= 3) dialoog(`<h2>Weet je het zeker?</h2><p>${laatste ? 'Dit is je enige exemplaar van ' + esc(k.n) + '. Daarna mist hij weer in je album.' : 'Dit is een ' + ZNAAM[k.z].toLowerCase() + ' kaart.'}</p>`, [{ tekst: 'Houden' }, { tekst: `Verkoop voor ${prijs}`, hoofd: true, doe }]);
       else doe();
     }));
@@ -1583,7 +1637,7 @@ KAARTEN.forEach((k, i) => { k.nr = i + 1; k.id = 'zs' + String(i + 1).padStart(3
 
   // ---------------- start
   zetGeluid(); zetMunten(false); tekenBonus(); tekenWinkel();
-  if (window.Scorebord) { Scorebord.blokje($('sb-beest'), 'je verzameling'); if (uniek()) Scorebord.stuur('beest', uniek(), totaalKaarten()); }
+  if (window.Scorebord) { Scorebord.blokje($('sb-beest'), 'je verzameling'); if (uniek()) Scorebord.stuur('beest', uniek('zolder'), totaalKaarten()); }
   if (bonusKlaar()) setTimeout(haalBonus, 700);
 
 })();

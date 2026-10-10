@@ -72,6 +72,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Opslag in localStorage onder `rommelbeesten-v1` (`munten`, `bezit` als {id: [normaal, glimmend]}, `dag`, `stats`, `beste`).
 - Het geheime muntenluik: drie keer op de titel tikken en dan twee keer op de muntjes (binnen 6 seconden), of 'rommelrijk' typen. Zet dit nergens op de site.
 
+- **Heldenset**: 30 superhelden (`HELDEN` in `beesten_data.js`, ids hs001 tot hs030): 10 gewoon, 9 ongewoon, 5 zeldzaam, 3 holo, 2 ultra en 1 geheim (De Rommelheld). Eigen ontwerpen met cape, masker en embleem (`cape`, `masker`, `embleem` in de tekenaar) en een stripachtergrond met stralen en stippen. Alleen te krijgen in het Heldenpakje (150 munten, 6 kaarten, 1 zeldzaam of beter). Op de kaart staat "Held" of "Superheld" en het nummer van de 30. Het album wisselt tussen de sets; het scorebord telt alleen de Zolderset (van de 130).
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

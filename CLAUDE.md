@@ -196,6 +196,15 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Sterren: elke 5 sterren in een vlucht geven een extra vouw (maximaal 3). Gevangen sterren gaan in de spaarpot (`spaar`) en zijn te besteden in de sterrenwinkel: uiterlijken voor het vliegtuigje (`SKINS`: wit, krant, kraanvogel, neon, bladgoud, regenboog) en voordelen (`UPG`: start met een extra vouw, sterrenmagneet, dubbele sterren).
 - Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, spaar, skins, skin, upg, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
 
+## Rommelritme (ritmespel)
+
+- `rommelritme.html` (bronnen: `rr_motor.js` voor natuurkunde en levelbouw, zonder DOM en te testen met `node rr_test.js`; `rr_spel.js` voor muziek, tekenen en schermen; samengevoegd via `ritme_template.html`). Eigen spel in de stijl van een ritme-platformer: geen namen, plaatjes of muziek van Geometry Dash.
+- **Levels worden gebouwd vanuit de sprongen**: elk deel heeft een choreografie per achtste noot ('j' springen, '^' springen en een trede omhoog, 'v' trede omlaag, 'o' springring, 'p' springkussen) of is een raketstuk (`schip`, met tunnelmidden per tel en een gatgrootte). De bouwer rekent de bedoelde route uit en zet spijkers alleen waar je er bij de bedoelde sprong met speling (`marge`, per level) overheen gaat (`spijkers`: enkel, dubbel, drie of vol). Daardoor is elk level gegarandeerd te halen. Een tel is 4 blokken; de sprong duurt ongeveer één tel.
+- `rr_test.js` laat een robot elk level spelen met de bedoelde invoer, controleert dat je zonder drukken snel af bent, en probeert 40 ms te vroeg en te laat. Zoldertrap (130 BPM) en Neonnacht (140 BPM) vergeven dat; Rommelstorm (150 BPM) vraagt halverwege echte precisie.
+- **Muziek** per level (`LIEDJES`): zelf gemaakt met de Web Audio API (kick, clap, hihats, bas, arpeggio, akkoorden, melodie), per deel steeds voller en in raketstukken het zwaarst. De speltijd volgt de klok van de geluidskaart, zodat springen en muziek gelijk blijven; zonder geluid loopt het spel op de gewone klok.
+- **Oefenen**: checkpoints aan het begin van elk deel; na een val begin je daar, inclusief de muziek. Telt niet mee voor je beste score.
+- Opslag: localStorage `rommelritme-v1` (best per level in procenten, pogingen, gehaald, geluid). Scorebord: spel `ritme` (score = de beste procenten van de drie levels bij elkaar, maximaal 300; extra = alle pogingen). Testhaak: `window.__rr`.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

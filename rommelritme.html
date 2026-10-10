@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Rommelritme – Ruben's rommelhoekje</title>
+<meta name="description" content="Spring op de maat van de muziek over spijkers, door tunnels en langs springringen. Drie levels, van pittig tot echt lastig.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%228%22%20y%3D%2222%22%20width%3D%2226%22%20height%3D%2226%22%20rx%3D%223%22%20fill%3D%22%238AFF6A%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22/%3E%3Crect%20x%3D%2214%22%20y%3D%2230%22%20width%3D%224%22%20height%3D%225%22%20fill%3D%22%231F2333%22/%3E%3Crect%20x%3D%2224%22%20y%3D%2230%22%20width%3D%224%22%20height%3D%225%22%20fill%3D%22%231F2333%22/%3E%3Crect%20x%3D%2215%22%20y%3D%2239%22%20width%3D%2212%22%20height%3D%222.6%22%20fill%3D%22%231F2333%22/%3E%3Cpath%20d%3D%22M44%2010v24%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2010l12%204v7l-12-4%22%20fill%3D%22%23FF5AA8%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22/%3E%3Cellipse%20cx%3D%2240%22%20cy%3D%2235%22%20rx%3D%225.5%22%20ry%3D%224.2%22%20fill%3D%22%23FF5AA8%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Cpath%20d%3D%22M4%2056h56%22%20stroke%3D%22%235EE6FF%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2056l6-8%206%208z%22%20fill%3D%22%231F2333%22/%3E%3C/svg%3E">
+<style>
+:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { background: #06060E; color: var(--papier); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
+.rr-kop { display: flex; align-items: center; gap: .8rem; padding: .45rem .8rem; background: var(--nacht); box-shadow: 0 3px 0 rgba(0,0,0,.3); z-index: 3; flex-wrap: wrap; }
+.rr-kop a { color: var(--manila); font-weight: 700; font-size: .9rem; }
+.rr-titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; font-size: 1.1rem; } .rr-titel svg { width: 28px; height: 28px; }
+.rr-kop .rechts { margin-left: auto; display: flex; gap: .35rem; }
+.rr-knop { font: inherit; font-weight: 800; font-size: .88rem; border: 0; border-radius: 6px; padding: .4rem .8rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.rr-knop.hoofd { background: var(--rood); color: #fff; }
+.rr-veld { position: relative; flex: 1; overflow: hidden; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.rr-veld canvas { display: block; width: 100%; height: 100%; }
+.rr-scherm { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 1rem; background: rgba(4,4,12,.62); overflow: auto; }
+.rr-scherm[hidden] { display: none; }
+.rr-kaart { background: var(--manila); color: var(--inkt); border-radius: 14px; padding: 1.2rem 1.4rem; max-width: 52rem; width: 100%; box-shadow: 0 6px 0 rgba(0,0,0,.4); cursor: default; }
+.rr-kaart h2 { margin: 0 0 .3rem; font-size: 1.6rem; } .rr-kaart p { margin: .3rem 0; }
+.rr-levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .8rem; margin: .9rem 0 .4rem; }
+.rr-level { border-radius: 12px; padding: .9rem; color: #fff; background: linear-gradient(150deg, var(--k0), #06060E); box-shadow: inset 0 0 0 3px var(--k1), 0 4px 0 rgba(0,0,0,.35); display: flex; flex-direction: column; gap: .35rem; }
+.rr-lkop { display: flex; justify-content: space-between; align-items: baseline; gap: .4rem; } .rr-lkop b { font-size: 1.2rem; color: var(--k2); } .rr-lkop span { color: #FFE76A; letter-spacing: .05em; }
+.rr-info { font-size: .82rem; opacity: .9; }
+.rr-balk { height: .55rem; background: rgba(255,255,255,.18); border-radius: 999px; overflow: hidden; } .rr-balk i { display: block; height: 100%; background: var(--k2); }
+.rr-knoppen { display: flex; gap: .4rem; margin-top: .3rem; }
+.rr-tip { font-size: .85rem; color: #5E5643; }
+#rr-melding { position: absolute; left: 50%; top: 3.4rem; transform: translateX(-50%); background: var(--papier); color: var(--inkt); font-weight: 800; padding: .35rem .8rem; border-radius: 8px; z-index: 5; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+#sb-ritme { margin-top: .8rem; }
+</style>
+</head>
+<body data-pagina="rommelritme">
+<div class="rr-kop">
+  <a href="./">Terug naar het rommelhoekje</a>
+  <span class="rr-titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="8" y="22" width="26" height="26" rx="3" fill="#8AFF6A" stroke="#1F2333" stroke-width="3"/><rect x="14" y="30" width="4" height="5" fill="#1F2333"/><rect x="24" y="30" width="4" height="5" fill="#1F2333"/><rect x="15" y="39" width="12" height="2.6" fill="#1F2333"/><path d="M44 10v24" stroke="#1F2333" stroke-width="3.4" stroke-linecap="round"/><path d="M44 10l12 4v7l-12-4" fill="#FF5AA8" stroke="#1F2333" stroke-width="2.6" stroke-linejoin="round"/><ellipse cx="40" cy="35" rx="5.5" ry="4.2" fill="#FF5AA8" stroke="#1F2333" stroke-width="2.6"/><path d="M4 56h56" stroke="#5EE6FF" stroke-width="3" stroke-linecap="round"/><path d="M44 56l6-8 6 8z" fill="#1F2333"/></svg></span><span>Rommelritme</span></span>
+  <div class="rechts"><button class="rr-knop" id="rr-geluid" type="button" aria-pressed="true">Muziek aan</button><button class="rr-knop" id="rr-pauzeknop" type="button">Pauze</button></div>
+</div>
+<div class="rr-veld" id="rr-veld">
+  <canvas id="rr-doek" aria-label="Een blokje dat op de maat van de muziek over spijkers springt"></canvas>
+  <div id="rr-melding" hidden role="status"></div>
+  <div class="rr-scherm" id="rr-menu">
+    <div class="rr-kaart">
+      <h2>Rommelritme</h2>
+      <p>Je blokje rent vanzelf vooruit, op de maat van de muziek. Spring precies op de beat over de spijkers! Druk op <b>spatie</b>, klik, of tik op het scherm. Ingedrukt houden laat je blijven springen.</p>
+      <p class="rr-tip">Gele ringen: druk als je erdoorheen vliegt voor een extra sprong. Gele kussens: die lanceren je vanzelf. Roze poort: je wordt een raketje; houd ingedrukt om omhoog te gaan. Met oefenen krijg je checkpoints, maar dan telt je score niet mee. Esc of P is pauze, R begint opnieuw.</p>
+      <div class="rr-levels" id="rr-levels"></div>
+      <div id="sb-ritme"></div>
+    </div>
+  </div>
+  <div class="rr-scherm" id="rr-pauze" hidden><div class="rr-kaart" style="max-width:22rem;text-align:center"><h2>Pauze</h2><p>Even op adem komen.</p><div class="rr-knoppen" style="justify-content:center;flex-wrap:wrap"><button class="rr-knop hoofd" id="rr-verder" type="button">Verder</button><button class="rr-knop" id="rr-opnieuw" type="button">Opnieuw</button><button class="rr-knop" type="button" data-naarmenu="1">Naar de levels</button></div></div></div>
+  <div class="rr-scherm" id="rr-einde" hidden><div class="rr-kaart" style="max-width:26rem;text-align:center"><h2 id="rr-einde-kop">Level gehaald!</h2><p id="rr-einde-tekst"></p><div class="rr-knoppen" style="justify-content:center"><button class="rr-knop hoofd" type="button" data-naarmenu="1">Naar de levels</button></div></div></div>
+</div>
+<script>
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+  // ---------- alle spellen bijwerken, vanaf elke pagina van de site
+  // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
+  // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
+  const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const BRONNEN = {
+    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
+    poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
+    beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
+  };
+  const VKEY = 'rommelhoekje-verstuurd';
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  let bezig = false;
+  async function synchroniseer() {
+    if (bezig || !speler || !speler.naam) return; bezig = true;
+    try {
+      const inst = await klaar; if (!adres(inst)) return;
+      const v = lees(VKEY) || {};
+      for (const [spel, bron] of Object.entries(BRONNEN)) {
+        let w = null; try { w = bron(); } catch (e) {}
+        if (!w) continue;
+        const o = v[spel];
+        if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
+        await API.stuur(spel, w[0], w[1]);
+      }
+    } finally { bezig = false; }
+  }
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      await synchroniseer();
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) onthoud(spel, score, extra || 0);
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+  API.synchroniseer = synchroniseer;
+  window.Scorebord = API;
+  // bij elk bezoek, en als je even naar een ander tabblad gaat
+  klaar.then(() => setTimeout(synchroniseer, 1500));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) synchroniseer(); });
+})();
+
+</script>
+<script>
+// Rommelritme: de motor. Geen tekenwerk, zodat hij ook zonder browser te testen is.
+const RRM = (function () {
+  const G = 88, V0 = 19.3, V0_ORB = 18.6, V0_PAD = 26.5, SCHIP_A = 55, SCHIP_MAX = 11, DT = 1 / 240;
+  const BW = 0.42, BH = 0.86; // halve breedte en hoogte van het blokje
+
+  // ---------------- een level bouwen uit een choreografie
+  // invoer per achtste noot: '.' niets, 'j' springen, '^' springen en een trede omhoog, 'v' een trede omlaag, 'o' springring in de lucht, 'p' springkussen
+  function bouw(spec) {
+    const bpm = spec.bpm, slag = 60 / bpm, v = 4 / slag; // een tel is 4 blokken
+    let tot = 8; for (const s of spec.delen) tot += s.tellen; tot += 8;
+    const lengte = Math.ceil(tot * 4) + 20;
+    const T = new Float32Array(lengte).fill(0);      // hoogte van de grond per blok
+    const F = new Float32Array(lengte).fill(-99), C = new Float32Array(lengte).fill(99); // vloer en plafond in raketstukken
+    const L = { bpm, slag, v, lengte, T, F, C, spijkers: [], ringen: [], kussens: [], poorten: [], blokken: [], checks: [], eind: Infinity, invoer: [], schip: [] };
+    // eerst rekenen we de bedoelde route uit, en passen we het terrein onderweg aan
+    const st = { x: 2, y: 0, vy: 0, modus: 'kubus', grond: true, dood: false, klaar: false };
+    let tijd = 0, tel = 8; // 8 tellen aanloop
+    const pad = [];
+    const loop = (tot, invoer) => { while (tijd < tot) { stap(st, L, invoer(tijd), DT); tijd += DT; pad.push([st.x, st.y, st.grond, st.modus]); if (st.dood) throw new Error('Bouwfout: de route botst bij x=' + st.x.toFixed(1) + ' (tel ' + (tijd / slag).toFixed(1) + ')'); } };
+    loop(tel * slag, () => false);
+    for (const deel of spec.delen) {
+      const begin = tel * slag; L.checks.push({ x: st.x, tel });
+      if (deel.schip) {
+        L.poorten.push({ x: st.x + 1.5, soort: 'schip' });
+        const x0 = st.x + 1.5, x1 = x0 + deel.tellen * 4, gat = deel.gat, pts = deel.punten;
+        const midden = x => { const f = Math.max(0, Math.min(pts.length - 1, (x - x0) / 4)), i = Math.floor(f), t = f - i, a = pts[i], b = pts[Math.min(pts.length - 1, i + 1)]; return a + (b - a) * (1 - Math.cos(t * Math.PI)) / 2; };
+        for (let i = Math.floor(x0); i < Math.ceil(x1); i++) { const m = midden(i + 0.5); F[i] = Math.round((m - gat / 2) * 2) / 2; C[i] = Math.round((m + gat / 2) * 2) / 2; if (i - x0 < 7) F[i] = Math.min(F[i], Math.max(0, (i - x0 - 3) * 0.5)); T[i] = Math.max(0, F[i]); }
+        L.schip.push({ x0, x1, midden });
+        // de automatische piloot volgt het midden van de tunnel
+        loop(begin + deel.tellen * slag, () => { const m = midden(st.x + 1.2) - BH / 2; return st.y + st.vy * 0.11 < m; });
+        L.poorten.push({ x: x1, soort: 'kubus' });
+        for (let i = Math.ceil(x1); i < lengte; i++) T[i] = 0;
+        loop(begin + deel.tellen * slag + slag * 0.01, () => false);
+        tel += deel.tellen; continue;
+      }
+      const tekens = deel.invoer.padEnd(deel.tellen * 2, '.');
+      for (let k = 0; k < deel.tellen * 2; k++) {
+        const t0 = begin + k * slag / 2, c = tekens[k];
+        loop(t0, () => false);
+        if (c === '^') { const tApex = V0 / G, xa = st.x + v * tApex * 0.9, h = T[Math.floor(st.x)] + 1; for (let i = Math.ceil(xa); i < lengte; i++) T[i] = h; }
+        if (c === 'v') { const h = Math.max(0, T[Math.floor(st.x)] - 1); for (let i = Math.ceil(st.x + 1.2); i < lengte; i++) T[i] = h; }
+        if (c === 'p') { const xp = st.x + 1.6, h = T[Math.floor(xp)]; L.kussens.push({ x: xp, y: h }); }
+        if (c === 'o') { L.ringen.push({ x: st.x + 0.25, y: st.y + BH / 2 }); }
+        if (c === 'j' || c === '^' || c === 'o') { L.invoer.push(t0); loop(t0 + 0.06, () => true); }
+      }
+      loop(begin + deel.tellen * slag, () => false);
+      L.spijkerPlan = L.spijkerPlan || []; L.spijkerPlan.push({ van: L.checks[L.checks.length - 1].x, tot: st.x, soort: deel.spijkers || 'enkel' });
+      tel += deel.tellen;
+    }
+    loop(tijd + 8 * slag, () => false);
+    L.eind = st.x - 4;
+    // spijkers onder de bedoelde sprongen: alleen waar de route er met speling (iets te vroeg of te laat) overheen gaat
+    const marge = spec.marge === undefined ? 0.28 : spec.marge, vrij = new Float32Array(lengte).fill(99);
+    for (const [x, y, , modus] of pad) { if (modus !== 'kubus') continue; for (let i = Math.floor(x - 1.2); i <= Math.floor(x + 1.2); i++) if (i >= 0 && i < lengte && Math.abs(x - (i + 0.5)) < BW + 0.12 + marge) vrij[i] = Math.min(vrij[i], y - T[i]); }
+    for (const p of L.spijkerPlan) {
+      let boog = [];
+      const midden = (lijst, n) => { const m = Math.max(0, Math.floor((lijst.length - n) / 2)); return lijst.slice(m, m + Math.min(n, lijst.length)); };
+      const sluit = () => { if (!boog.length) return; const kies = p.soort === 'vol' ? boog : midden(boog, p.soort === 'drie' ? 3 : p.soort === 'dubbel' ? 2 : 1); for (const b of kies) L.spijkers.push({ x: b + 0.5, y: T[b] }); boog = []; };
+      for (let i = Math.ceil(p.van) + 2; i < p.tot - 1; i++) {
+        const goed = vrij[i] > 0.62 && vrij[i] < 90 && T[i - 1] === T[i] && T[i + 1] === T[i] && !L.kussens.some(k => Math.abs(k.x - i - 0.5) < 1.5) && !L.poorten.some(q => Math.abs(q.x - i) < 2);
+        if (goed) boog.push(i); else sluit();
+      }
+      sluit();
+    }
+    // het terrein als blokken, voor het tekenen
+    let b0 = 0; for (let i = 1; i <= lengte; i++) if (i === lengte || T[i] !== T[b0] || (F[i] > -99) !== (F[b0] > -99)) { if (T[b0] > 0) L.blokken.push({ x: b0, w: i - b0, h: T[b0] }); b0 = i; }
+    return L;
+  }
+
+  // ---------------- één stapje natuurkunde
+  function hoogte(L, x) { const i = Math.floor(x); return i < 0 || i >= L.lengte ? 0 : L.T[i]; }
+  function stap(st, L, druk, dt) {
+    if (st.dood || st.klaar) return;
+    // een nieuwe druk telt 0,1 seconde mee voor springringen
+    if (druk && !st.vorig) st.buffer = 0.1; st.vorig = druk; st.buffer = Math.max(0, (st.buffer || 0) - dt);
+    st.gebruikt = st.gebruikt || new Set();
+    const xOud = st.x; st.x += L.v * dt;
+    for (const p of L.poorten) if (xOud < p.x && st.x >= p.x) { st.modus = p.soort; if (p.soort === 'schip') st.vy = Math.min(st.vy, 4); }
+    const i0 = Math.floor(st.x - BW), i1 = Math.floor(st.x + BW);
+    if (st.modus === 'schip') {
+      st.vy += (druk ? SCHIP_A : -SCHIP_A) * dt; st.vy = Math.max(-SCHIP_MAX, Math.min(SCHIP_MAX, st.vy)); st.y += st.vy * dt;
+      for (let i = i0; i <= i1; i++) {
+        if (i < 0 || i >= L.lengte) continue;
+        const f = L.F[i] > -99 ? L.F[i] : L.T[i], c = L.C[i];
+        if (st.y < f) { if (i === i1 && st.y < f - 0.12 && (L.F[i - 1] > -99 ? L.F[i - 1] : L.T[i - 1]) < f - 0.01) st.dood = true; else { st.y = f; st.vy = Math.max(0, st.vy); } }
+        if (st.y + BH > c) st.dood = true;
+      }
+      st.grond = false;
+    } else {
+      const vorigY = st.y;
+      if (st.grond && druk) { st.vy = V0; st.grond = false; }
+      for (const k of L.kussens) if (Math.abs(k.x - st.x) < 0.7 && st.y <= k.y + 0.2 && st.vy <= 0.01) { st.vy = V0_PAD; st.grond = false; }
+      if (st.buffer > 0) L.ringen.forEach((r, n) => { if (!st.gebruikt.has(n) && Math.abs(r.x - st.x) < 0.85 && Math.abs(r.y - (st.y + BH / 2)) < 0.95) { st.vy = V0_ORB; st.gebruikt.add(n); st.buffer = 0; st.grond = false; st.ring = n; } });
+      st.vy -= G * dt; st.y += st.vy * dt;
+      const hA = hoogte(L, st.x - BW), hV = hoogte(L, st.x + BW), h = Math.max(hA, hV);
+      if (st.y < h) { if (vorigY >= h - 0.06 || hA >= h) { st.y = h; st.vy = 0; st.grond = true; } else st.dood = true; }
+      else st.grond = st.y <= h + 1e-4 && st.vy <= 0;
+      if (hV > st.y + 0.08) st.dood = true;
+    }
+    for (const s of L.spijkers) if (Math.abs(s.x - st.x) < BW + 0.12 && st.y < s.y + 0.5 && st.y + BH > s.y + 0.08) st.dood = true;
+    if (st.x >= L.eind) st.klaar = true;
+  }
+  // ---------------- de drie levels
+  const LEVELS = [
+    { id: 'zolder', naam: 'Zoldertrap', bpm: 130, sterren: 2, marge: 0.3, kleuren: ['#2A1E5C', '#E9577A', '#F6CB2F'],
+      delen: [
+        { tellen: 16, invoer: '........j.......j.......j...j...', spijkers: 'enkel' },
+        { tellen: 16, invoer: 'j.......^.......^.......v...j...', spijkers: 'enkel' },
+        { tellen: 16, invoer: '....j...j...v...j...j...j...j...', spijkers: 'dubbel' },
+        { tellen: 12, schip: true, gat: 5, punten: [2.5, 3, 4, 4.5, 3.5, 2.5, 2.5, 3.5, 4.5, 4, 3, 2.5, 2.5] },
+        { tellen: 16, invoer: '........j.......p.......j...j...', spijkers: 'dubbel' },
+        { tellen: 16, invoer: 'j...j...o.......j...j...j.......', spijkers: 'dubbel' },
+      ] },
+    { id: 'neon', naam: 'Neonnacht', bpm: 140, sterren: 3, marge: 0.22, kleuren: ['#0B1A3A', '#5EE6FF', '#FF5AA8'],
+      delen: [
+        { tellen: 16, invoer: '....j...j...j...j.j.....j...j...', spijkers: 'dubbel' },
+        { tellen: 16, invoer: '^.......^.......j...v...j...j...', spijkers: 'dubbel' },
+        { tellen: 16, invoer: 'j...o.......j...p.......j...j...', spijkers: 'drie' },
+        { tellen: 16, schip: true, gat: 4.5, punten: [2.5, 3.5, 5, 5, 3, 2, 2, 4, 5.5, 5.5, 3.5, 2.5, 2.5, 4, 4, 3, 2.5] },
+        { tellen: 16, invoer: 'j...j...j...j...^...j...v...j...', spijkers: 'drie' },
+        { tellen: 16, invoer: 'j...o...o.......j.j.j...j...j...', spijkers: 'drie' },
+      ] },
+    { id: 'storm', naam: 'Rommelstorm', bpm: 150, sterren: 5, marge: 0.18, kleuren: ['#1A0A1E', '#FF7A3A', '#8AFF6A'],
+      delen: [
+        { tellen: 16, invoer: 'j...j...j...j...j...j...j...j...', spijkers: 'drie' },
+        { tellen: 16, invoer: '^...^...^...v...j...v...j...j...', spijkers: 'drie' },
+        { tellen: 16, invoer: 'j...o...o...o.......p.......j...', spijkers: 'vol' },
+        { tellen: 16, schip: true, gat: 3.8, punten: [2.5, 4, 5.5, 3.5, 2, 4.5, 6, 3.5, 2, 2, 5, 5.5, 2.5, 4.5, 3, 2.5, 2.5] },
+        { tellen: 16, invoer: 'j.j.j...j.j.j...^...^...v...v...', spijkers: 'drie' },
+        { tellen: 16, invoer: 'j...o...j...o...p.......j.j.j...', spijkers: 'vol' },
+        { tellen: 12, schip: true, gat: 3.6, punten: [2.5, 3.5, 4.5, 3.2, 4.6, 3.2, 4.6, 3.4, 4.4, 3.2, 2.6, 2.5, 2.5] },
+        { tellen: 16, invoer: 'j...j.j.j...o...o...j...j.j.j...', spijkers: 'vol' },
+      ] },
+  ];
+  return { bouw, stap, LEVELS, DT, BW, BH, G, V0 };
+})();
+if (typeof module !== 'undefined') module.exports = RRM;
+
+(function () {
+  const $ = id => document.getElementById(id);
+  const cv = $('rr-doek'), ctx = cv.getContext('2d'), veld = $('rr-veld');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const KEY = 'rommelritme-v1';
+  let opslag = { best: {}, pogingen: {}, gehaald: {}, geluid: true };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  const LEVELS = RRM.LEVELS.map(spec => ({ spec, L: RRM.bouw(spec) }));
+
+  // ---------------- muziek: per level een eigen nummer, gespeeld op de klok van de geluidskaart
+  let ac = null, master = null;
+  const audio = () => { if (!opslag.geluid) return null; try { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.55; const comp = ac.createDynamicsCompressor(); master.connect(comp); comp.connect(ac.destination); } if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } };
+  let ruisBuf = null; const ruis = () => { if (!ruisBuf) { ruisBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = ruisBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return ruisBuf; };
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  function kick(t, vol) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.32); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.34); }
+  function geruis(t, duur, freq, type, vol) { const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = ruis(); f.type = type; f.frequency.value = freq; f.Q.value = 0.9; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + duur); s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 0.5); s.stop(t + duur + 0.02); }
+  function toon(t, m, duur, type, vol, filter, glij) { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(mtof(m), t); if (glij) o.frequency.exponentialRampToValueAtTime(mtof(m + glij), t + duur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + duur); let uit = o; if (filter) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(filter, t); f.frequency.exponentialRampToValueAtTime(filter * 0.35, t + duur); o.connect(f); uit = f; } uit.connect(g); g.connect(master); o.start(t); o.stop(t + duur + 0.03); }
+  // nummers: grondtoon, akkoorden (stappen in de mineurtoonladder), en een melodie per maat
+  const MINEUR = [0, 2, 3, 5, 7, 8, 10];
+  const LIEDJES = {
+    zolder: { grond: 57, akk: [0, 5, 2, 6], melodie: [[4, 3, 2, 0, 2, -1, 4, 2], [5, 4, 2, 4, 7, -1, 6, 4]], lead: 'square' },
+    neon: { grond: 50, akk: [0, 5, 3, 4], melodie: [[7, -1, 4, 5, 7, 9, 7, 4], [8, 7, 4, 2, 4, -1, 2, 0]], lead: 'sawtooth' },
+    storm: { grond: 52, akk: [0, 5, 2, 6], melodie: [[7, 7, 6, 4, 7, 7, 9, 11], [9, 7, 6, 4, 2, 4, 6, 4]], lead: 'sawtooth' },
+  };
+  const graad = (L0, d) => L0.grond + MINEUR[((d % 7) + 7) % 7] + 12 * Math.floor(d / 7);
+  let muziek = null;
+  function startMuziek(lev, vanaf) {
+    stopMuziek(); const a = audio(); if (!a) return null;
+    const L = lev.L, slag = L.slag, zestiende = slag / 4, liedje = LIEDJES[lev.spec.id];
+    const begin = a.currentTime + 0.08 - vanaf;
+    const delen = []; let tel = 8; delen.push({ van: 0, tot: 8, soort: 'intro', n: -1 }); lev.spec.delen.forEach((d, n) => { delen.push({ van: tel, tot: tel + d.tellen, soort: d.schip ? 'schip' : 'kubus', n }); tel += d.tellen; }); delen.push({ van: tel, tot: tel + 16, soort: 'eind', n: 99 });
+    const m = { begin, volgende: Math.max(0, Math.floor(vanaf / zestiende)), timer: null };
+    function speel(i, t) {
+      const tel = i / 4, maat = Math.floor(tel / 4), inMaat = i % 16, deel = delen.find(d => tel >= d.van && tel < d.tot) || delen[delen.length - 1];
+      const kracht = deel.soort === 'intro' ? 0 : deel.soort === 'eind' ? 1 : deel.soort === 'schip' ? 3 : Math.min(2, 1 + (deel.n % 2));
+      const akk = liedje.akk[maat % 4], wortel = graad(liedje, akk) - 12;
+      if (inMaat % 4 === 0) kick(t, 0.9);
+      if (kracht >= 1 && (inMaat === 4 || inMaat === 12)) geruis(t, 0.16, 1700, 'bandpass', 0.55);
+      if (kracht >= 3 && inMaat === 14) geruis(t, 0.1, 1700, 'bandpass', 0.35);
+      if (i % 2 === 0 || kracht >= 2) geruis(t, 0.035, 8000, 'highpass', i % 4 === 2 ? 0.22 : 0.1);
+      if (kracht >= 1 && i % 2 === 0) toon(t, wortel + (i % 4 === 2 ? 12 : 0), zestiende * 1.8, 'sawtooth', 0.16, kracht >= 3 ? 1600 : 900);
+      if (kracht >= 2) { const arp = [0, 2, 4, 7][i % 4]; toon(t, graad(liedje, akk + arp), zestiende * 0.9, 'square', 0.035, 3000); }
+      if (inMaat === 0 && kracht >= 1) for (const d of [0, 2, 4]) toon(t, graad(liedje, akk + d), slag * 3.8, 'triangle', 0.03);
+      if ((kracht === 2 || kracht === 3) && i % 2 === 0) { const mel = liedje.melodie[maat % 2][(i / 2) % 8]; if (mel >= 0) toon(t, graad(liedje, mel) + 12, zestiende * 1.7, liedje.lead, 0.06, 4200); }
+      if (deel.soort !== 'intro' && tel >= deel.tot - 1 && deel.tot - deel.van >= 8) geruis(t, 0.06, 2400, 'bandpass', 0.25); // roffel naar het volgende deel
+    }
+    m.timer = setInterval(() => { while (m.begin + m.volgende * zestiende < a.currentTime + 0.15) { const t = m.begin + m.volgende * zestiende; if (t >= a.currentTime - 0.02) speel(m.volgende, t); m.volgende++; } }, 25);
+    muziek = m; return m;
+  }
+  function stopMuziek() { if (muziek) { clearInterval(muziek.timer); muziek = null; } }
+  const fx = { dood: () => { const a = audio(); if (!a) return; geruis(a.currentTime, 0.4, 600, 'lowpass', 0.6); toon(a.currentTime, 40, 0.3, 'sawtooth', 0.12, 800, -12); }, klaar: () => { const a = audio(); if (!a) return; [0, 4, 7, 12].forEach((d, i) => toon(a.currentTime + i * 0.09, 64 + d, 0.4, 'triangle', 0.1)); } };
+
+  // ---------------- het spel
+  const S = { scherm: 'menu', lev: null, st: null, tijd: 0, sim: 0, druk: false, oefen: false, check: null, poging: 1, deeltjes: [], camY: 2, rot: 0, klok0: 0, flits: 0, eindT: 0, spoor: [] };
+  function nieuweStaat() { return { x: 2, y: 0, vy: 0, modus: 'kubus', grond: true, dood: false, klaar: false }; }
+  function begin(levIndex, oefen) {
+    const a = audio();
+    S.lev = LEVELS[levIndex]; S.oefen = oefen; S.check = null; S.poging = 1; S.scherm = 'spel';
+    $('rr-menu').hidden = true; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; void a;
+    herstart();
+  }
+  function herstart() {
+    const c = S.oefen && S.check;
+    S.st = c ? Object.assign({}, c.st, { gebruikt: new Set(c.st.gebruikt) }) : nieuweStaat();
+    S.sim = S.tijd = c ? c.tijd : 0; S.deeltjes = []; S.spoor = []; S.rot = 0; S.camY = Math.max(2, S.st.y);
+    const m = startMuziek(S.lev, S.tijd); S.klok0 = m ? null : performance.now() / 1000 - S.tijd;
+    if (!S.oefen) { const id = S.lev.spec.id; opslag.pogingen[id] = (opslag.pogingen[id] || 0) + 1; bewaar(); }
+  }
+  function nu() { if (muziek && ac) return ac.currentTime - muziek.begin; return performance.now() / 1000 - S.klok0; }
+  function sterf() {
+    S.st.dood = true; fx.dood(); stopMuziek(); S.flits = 0.25;
+    for (let i = 0; i < 26; i++) S.deeltjes.push({ x: S.st.x, y: S.st.y + 0.45, vx: (Math.random() - 0.5) * 16, vy: Math.random() * 14 - 3, t: 0.9, k: i % 2 ? S.lev.spec.kleuren[2] : '#FFFFFF', r: 0.12 + Math.random() * 0.18 });
+    const pct = Math.min(100, Math.floor(S.st.x / S.lev.L.eind * 100));
+    if (!S.oefen) { const id = S.lev.spec.id; if (pct > (opslag.best[id] || 0)) { opslag.best[id] = pct; bewaar(); melding('Nieuw record: ' + pct + '%!'); } }
+    S.poging++;
+    const dezeDood = S.st; setTimeout(() => { if (S.scherm === 'spel' && S.st === dezeDood) herstart(); }, 750);
+  }
+  function gehaald() {
+    S.st.klaar = true; fx.klaar(); S.eindT = 0;
+    const id = S.lev.spec.id;
+    if (!S.oefen) { opslag.best[id] = 100; opslag.gehaald[id] = true; bewaar(); stuurScore(); }
+    for (let i = 0; i < 120; i++) S.deeltjes.push({ x: S.st.x + (Math.random() - 0.3) * 10, y: S.st.y + 8 + Math.random() * 4, vx: (Math.random() - 0.5) * 6, vy: -Math.random() * 4, t: 3, k: ['#FF5AA8', '#5EE6FF', '#FFE76A', '#8AFF6A', '#FF7A3A'][i % 5], r: 0.12, confetti: true });
+    const dezeRonde = S.st;
+    setTimeout(() => { if (S.st !== dezeRonde || S.scherm !== 'spel') return; $('rr-einde-kop').textContent = S.oefen ? 'Oefenronde gehaald!' : 'Level gehaald!'; $('rr-einde-tekst').textContent = S.oefen ? 'Knap! Probeer het nu zonder checkpoints.' : `${S.lev.spec.naam} in ${S.poging} ${S.poging === 1 ? 'poging' : 'pogingen'}. Wat een ritmegevoel!`; $('rr-einde').hidden = false; S.scherm = 'einde'; }, 1600);
+  }
+  function stuurScore() { if (!window.Scorebord) return; const som = RRM.LEVELS.reduce((a, s) => a + (opslag.best[s.id] || 0), 0), pog = Object.values(opslag.pogingen).reduce((a, b) => a + b, 0); if (som > 0) Scorebord.stuur('ritme', som, pog); }
+  function update() {
+    if (S.scherm !== 'spel' || !S.st || S.st.dood) return;
+    const L = S.lev.L, doel = nu();
+    let stappen = 0;
+    while (S.sim + RRM.DT <= doel && stappen < 400) {
+      RRM.stap(S.st, L, S.druk, RRM.DT); S.sim += RRM.DT; stappen++;
+      if (S.oefen) for (const c of L.checks) if (S.st.x >= c.x && (!S.check || S.check.x < c.x) && (S.st.grond || S.st.modus === 'schip')) { S.check = { x: c.x, tijd: S.sim, st: Object.assign({}, S.st, { gebruikt: new Set(S.st.gebruikt) }) }; melding('Checkpoint!'); }
+      if (S.st.dood) { sterf(); return; }
+      if (S.st.klaar) { gehaald(); return; }
+    }
+    if (S.st.ring !== undefined) { const r = L.ringen[S.st.ring]; for (let i = 0; i < 10; i++) S.deeltjes.push({ x: r.x, y: r.y, vx: Math.cos(i) * 5, vy: Math.sin(i) * 5, t: 0.4, k: '#FFE76A', r: 0.1 }); S.st.ring = undefined; }
+  }
+
+  // ---------------- tekenen
+  let B = 40, W = 0, H = 0;
+  function maat() { const r = veld.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); W = cv.width; H = cv.height; B = H / 11; }
+  addEventListener('resize', maat);
+  const hexMix = (a, b, f) => { const p = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; const x = p(a), y = p(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * f)).join(',')})`; };
+  function teken(dt) {
+    const lev = S.lev || LEVELS[0], L = lev.L, K = lev.spec.kleuren, st = S.st || nieuweStaat();
+    const tel = S.st ? S.sim / L.slag : performance.now() / 1000 / 0.46, fase = tel - Math.floor(tel), puls = reduce ? 0 : Math.pow(1 - fase, 3);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const lucht = ctx.createLinearGradient(0, 0, 0, H); lucht.addColorStop(0, hexMix(K[0], '#000000', 0.35)); lucht.addColorStop(1, hexMix(K[0], K[1], 0.18 + puls * 0.12)); ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, H);
+    // camera
+    const doelY = st.modus === 'schip' ? 3 : Math.max(2.5, st.y - 1); S.camY += (doelY - S.camY) * Math.min(1, dt * 4);
+    const camX = st.x - 7, sx = x => (x - camX) * B, sy = y => H - (y - S.camY + 4.2) * B;
+    // achtergrondvormen die langzaam meeschuiven
+    ctx.save(); ctx.globalAlpha = 0.16; ctx.strokeStyle = K[1]; ctx.lineWidth = 3;
+    for (let i = 0; i < 12; i++) { const px = ((i * 260 - camX * B * 0.2) % (W + 300) + W + 300) % (W + 300) - 150, py = H * (0.15 + (i * 37 % 50) / 100), s = B * (1.2 + (i % 3)); ctx.save(); ctx.translate(px, py); ctx.rotate(tel * 0.08 * (i % 2 ? 1 : -1) + i); ctx.strokeRect(-s / 2, -s / 2, s, s); ctx.restore(); }
+    ctx.restore();
+    // grond
+    const gy = sy(0); ctx.fillStyle = hexMix(K[0], '#000000', 0.5); ctx.fillRect(0, gy, W, H - gy);
+    ctx.strokeStyle = K[1]; ctx.lineWidth = 2 + puls * 3; ctx.shadowColor = K[1]; ctx.shadowBlur = 10 + puls * 18; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.globalAlpha = 0.25; for (let x = Math.floor(camX); x < camX + W / B + 1; x += 2) { ctx.beginPath(); ctx.moveTo(sx(x), gy); ctx.lineTo(sx(x) - B * 2, H); ctx.stroke(); } ctx.globalAlpha = 1;
+    const x0 = Math.max(0, Math.floor(camX) - 1), x1 = Math.min(L.lengte - 1, Math.ceil(camX + W / B) + 1);
+    // terrein en tunnels
+    const blokVul = hexMix(K[0], '#000000', 0.25);
+    for (let i = x0; i <= x1; i++) {
+      const h = L.T[i];
+      if (L.F[i] > -99) { ctx.fillStyle = blokVul; ctx.fillRect(sx(i), sy(L.F[i]), B + 1, gy - sy(L.F[i]) + 1); ctx.fillRect(sx(i), 0, B + 1, sy(L.C[i])); ctx.strokeStyle = K[2]; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx(i), sy(L.F[i])); ctx.lineTo(sx(i + 1), sy(L.F[i])); ctx.moveTo(sx(i), sy(L.C[i])); ctx.lineTo(sx(i + 1), sy(L.C[i])); ctx.stroke(); if (L.F[i - 1] !== undefined && L.F[i - 1] !== L.F[i] && L.F[i - 1] > -99) { ctx.beginPath(); ctx.moveTo(sx(i), sy(L.F[i - 1])); ctx.lineTo(sx(i), sy(L.F[i])); ctx.moveTo(sx(i), sy(L.C[i - 1])); ctx.lineTo(sx(i), sy(L.C[i])); ctx.stroke(); } continue; }
+      if (h > 0) { ctx.fillStyle = blokVul; ctx.fillRect(sx(i), sy(h), B + 1, h * B + 1); ctx.strokeStyle = K[1]; ctx.lineWidth = 2; ctx.strokeRect(sx(i) + 3, sy(h) + 3, B - 6, B - 6); }
+    }
+    for (const b of L.blokken) { if (b.x + b.w < x0 || b.x > x1) continue; ctx.strokeStyle = K[1]; ctx.lineWidth = 3; ctx.shadowColor = K[1]; ctx.shadowBlur = 8 + puls * 10; ctx.strokeRect(sx(b.x), sy(b.h), b.w * B, b.h * B); ctx.shadowBlur = 0; }
+    // spijkers, ringen, kussens, poorten
+    for (const s of L.spijkers) { if (s.x < x0 - 1 || s.x > x1 + 1) continue; const px = sx(s.x), py = sy(s.y); ctx.fillStyle = '#0A0A12'; ctx.strokeStyle = K[2]; ctx.lineWidth = 2; ctx.shadowColor = K[2]; ctx.shadowBlur = 6 + puls * 8; ctx.beginPath(); ctx.moveTo(px - B * 0.48, py); ctx.lineTo(px, py - B * 0.95); ctx.lineTo(px + B * 0.48, py); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; }
+    L.ringen.forEach((r, n) => { if (r.x < x0 - 1 || r.x > x1 + 1) return; const op = st.gebruikt && st.gebruikt.has(n); ctx.save(); ctx.globalAlpha = op ? 0.3 : 1; ctx.strokeStyle = '#FFE76A'; ctx.shadowColor = '#FFE76A'; ctx.shadowBlur = 16; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx(r.x), sy(r.y), B * (0.38 + puls * 0.08), 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(255,231,106,.35)'; ctx.fill(); ctx.restore(); });
+    for (const k of L.kussens) { if (k.x < x0 - 1 || k.x > x1 + 1) continue; ctx.save(); ctx.fillStyle = '#FFE76A'; ctx.shadowColor = '#FFE76A'; ctx.shadowBlur = 14; ctx.beginPath(); ctx.ellipse(sx(k.x), sy(k.y), B * 0.48, B * 0.2, 0, Math.PI, 0); ctx.fill(); ctx.restore(); }
+    for (const p of L.poorten) { if (p.x < x0 - 2 || p.x > x1 + 2) continue; const k = p.soort === 'schip' ? '#FF5AA8' : '#8AFF6A'; ctx.save(); ctx.strokeStyle = k; ctx.shadowColor = k; ctx.shadowBlur = 18; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(sx(p.x), sy(2.2), B * 0.45, B * 1.7, 0, 0, 7); ctx.stroke(); ctx.restore(); }
+    if (S.oefen) for (const c of L.checks) if (c.x > x0 && c.x < x1) { ctx.fillStyle = S.check && S.check.x >= c.x ? '#8AFF6A' : 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.moveTo(sx(c.x), sy(L.T[Math.floor(c.x)]) - B * 1.6); ctx.lineTo(sx(c.x) + B * 0.4, sy(L.T[Math.floor(c.x)]) - B * 1.3); ctx.lineTo(sx(c.x), sy(L.T[Math.floor(c.x)]) - B); ctx.closePath(); ctx.fill(); ctx.fillRect(sx(c.x) - 2, sy(L.T[Math.floor(c.x)]) - B * 1.6, 3, B * 1.6); }
+    // poging-tekst aan het begin
+    if (S.st && st.x < 30) { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = `800 ${Math.round(B * 0.7)}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'left'; ctx.fillText((S.oefen ? 'Oefenen · ' : '') + 'Poging ' + S.poging, sx(6), sy(5)); }
+    // speler
+    if (S.st && !st.dood) {
+      if (st.modus === 'kubus') { if (st.grond) S.rot = Math.round(S.rot / (Math.PI / 2)) * (Math.PI / 2); else S.rot += dt * 7.6; }
+      else S.rot = -Math.atan2(st.vy, L.v) * 0.8;
+      if (st.modus === 'schip') { S.spoor.push({ x: st.x - 0.3, y: st.y + 0.35, t: 0.35 }); }
+      for (const p of S.spoor) { p.t -= dt; if (p.t <= 0) continue; ctx.fillStyle = `rgba(255,${120 + Math.round(p.t * 300)},80,${Math.max(0, p.t * 2.4)})`; ctx.beginPath(); ctx.arc(sx(p.x), sy(p.y), Math.max(0.5, B * 0.14 * (p.t * 3)), 0, 7); ctx.fill(); } S.spoor = S.spoor.filter(p => p.t > 0);
+      ctx.save(); ctx.translate(sx(st.x), sy(st.y + RRM.BH / 2)); ctx.rotate(S.rot);
+      const s = B * 0.92;
+      if (st.modus === 'schip') { ctx.fillStyle = K[1]; ctx.strokeStyle = '#0A0A12'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(s * 0.7, 0); ctx.quadraticCurveTo(s * 0.2, -s * 0.5, -s * 0.6, -s * 0.35); ctx.lineTo(-s * 0.45, 0); ctx.lineTo(-s * 0.6, s * 0.35); ctx.quadraticCurveTo(s * 0.2, s * 0.5, s * 0.7, 0); ctx.fill(); ctx.stroke(); ctx.translate(-s * 0.05, -s * 0.12); ctx.scale(0.5, 0.5); }
+      ctx.fillStyle = K[2]; ctx.strokeStyle = '#0A0A12'; ctx.lineWidth = 3; ctx.shadowColor = K[2]; ctx.shadowBlur = 10; ctx.fillRect(-s / 2, -s / 2, s, s); ctx.shadowBlur = 0; ctx.strokeRect(-s / 2, -s / 2, s, s);
+      ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(-s / 2 + 4, -s / 2 + 4, s * 0.35, s * 0.35);
+      ctx.fillStyle = '#0A0A12'; ctx.fillRect(-s * 0.26, -s * 0.18, s * 0.15, s * 0.2); ctx.fillRect(s * 0.1, -s * 0.18, s * 0.15, s * 0.2); ctx.fillRect(-s * 0.22, s * 0.14, s * 0.44, s * 0.08);
+      ctx.restore();
+    }
+    for (const d of S.deeltjes) { d.t -= dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy -= (d.confetti ? 4 : 22) * dt; ctx.globalAlpha = Math.max(0, Math.min(1, d.t * 2)); ctx.fillStyle = d.k; ctx.fillRect(sx(d.x) - d.r * B / 2, sy(d.y) - d.r * B / 2, d.r * B, d.r * B * (d.confetti ? 0.5 : 1)); } ctx.globalAlpha = 1; S.deeltjes = S.deeltjes.filter(d => d.t > 0);
+    if (S.flits > 0) { S.flits -= dt; ctx.fillStyle = `rgba(255,255,255,${S.flits * 2})`; ctx.fillRect(0, 0, W, H); }
+    // voortgangsbalk
+    if (S.st) { const pct = Math.min(1, st.x / L.eind); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(W * 0.25, 14, W * 0.5, 12); ctx.fillStyle = K[2]; ctx.fillRect(W * 0.25, 14, W * 0.5 * pct, 12); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2; ctx.strokeRect(W * 0.25, 14, W * 0.5, 12); ctx.fillStyle = '#fff'; ctx.font = `800 ${Math.round(B * 0.42)}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.fillText(Math.floor(pct * 100) + '%', W / 2, 14 + 12 + B * 0.5); }
+  }
+  let vorig = performance.now();
+  function lus(t) { const dt = Math.min(0.05, (t - vorig) / 1000); vorig = t; requestAnimationFrame(lus); update(); try { teken(dt); } catch (e) { console.error(e); } }
+
+  // ---------------- schermen
+  function tekenMenu() {
+    $('rr-levels').innerHTML = LEVELS.map((l, i) => { const id = l.spec.id, b = opslag.best[id] || 0, K = l.spec.kleuren; return `<div class="rr-level" style="--k0:${K[0]};--k1:${K[1]};--k2:${K[2]}"><div class="rr-lkop"><b>${l.spec.naam}</b><span>${'★'.repeat(l.spec.sterren)}${'☆'.repeat(5 - l.spec.sterren)}</span></div><span class="rr-info">${l.spec.bpm} BPM · ${Math.round(l.L.eind / l.L.v)} seconden</span><div class="rr-balk"><i style="width:${b}%"></i></div><span class="rr-info">${opslag.gehaald[id] ? 'Gehaald! ' : ''}Beste: ${b}% · ${opslag.pogingen[id] || 0} pogingen</span><div class="rr-knoppen"><button class="rr-knop hoofd" type="button" data-speel="${i}">Spelen</button><button class="rr-knop" type="button" data-oefen="${i}">Oefenen</button></div></div>`; }).join('');
+  }
+  document.addEventListener('click', e => {
+    const s = e.target.closest('[data-speel]'); if (s) { begin(+s.dataset.speel, false); return; }
+    const o = e.target.closest('[data-oefen]'); if (o) { begin(+o.dataset.oefen, true); return; }
+    if (e.target.closest('[data-naarmenu]')) naarMenu();
+    if (e.target.closest('#rr-verder')) pauze(false);
+    if (e.target.closest('#rr-opnieuw')) { const i = LEVELS.indexOf(S.lev); begin(i, S.oefen); }
+  });
+  function naarMenu() { stopMuziek(); S.scherm = 'menu'; S.st = null; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; tekenMenu(); $('rr-menu').hidden = false; }
+  function pauze(aan) { if (aan && S.scherm === 'spel' && S.st && !S.st.dood) { S.scherm = 'pauze'; S.pauzeT = nu(); stopMuziek(); $('rr-pauze').hidden = false; } else if (!aan && S.scherm === 'pauze') { $('rr-pauze').hidden = true; S.scherm = 'spel'; const m = startMuziek(S.lev, S.sim); S.klok0 = m ? null : performance.now() / 1000 - S.sim; } }
+  const druk = aan => { if (aan) audio(); S.druk = aan; };
+  addEventListener('keydown', e => { if (e.repeat) { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) e.preventDefault(); return; } if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) { e.preventDefault(); if (S.scherm === 'spel') druk(true); } if (e.code === 'Escape' || e.code === 'KeyP') pauze(S.scherm === 'spel'); if (e.code === 'KeyR' && S.scherm === 'spel') { S.poging++; herstart(); } });
+  addEventListener('keyup', e => { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) druk(false); });
+  veld.addEventListener('pointerdown', e => { if (e.target.closest('.rr-kaart')) return; e.preventDefault(); if (S.scherm === 'spel') druk(true); });
+  addEventListener('pointerup', () => druk(false)); addEventListener('pointercancel', () => druk(false));
+  addEventListener('blur', () => { druk(false); pauze(true); });
+  $('rr-pauzeknop').addEventListener('click', e => { e.stopPropagation(); pauze(S.scherm === 'spel'); });
+  $('rr-geluid').addEventListener('click', e => { e.stopPropagation(); opslag.geluid = !opslag.geluid; bewaar(); zetGeluid(); if (!opslag.geluid) stopMuziek(); else if (S.scherm === 'spel') startMuziek(S.lev, S.sim); });
+  const zetGeluid = () => { $('rr-geluid').textContent = opslag.geluid ? 'Muziek aan' : 'Muziek uit'; $('rr-geluid').setAttribute('aria-pressed', String(opslag.geluid)); };
+  const meld = $('rr-melding'); let meldT = null;
+  function melding(t) { meld.textContent = t; meld.hidden = false; clearTimeout(meldT); meldT = setTimeout(() => { meld.hidden = true; }, 1400); }
+  zetGeluid(); maat(); tekenMenu(); requestAnimationFrame(lus);
+  if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-ritme'), 'je beste procenten bij elkaar'); }
+  window.__rr = { S, LEVELS, begin, druk, nu, opslag };
+})();
+
+</script>
+<script>
+(function () {
+  // GRAPJES: verborgen grapjes op het rommelhoekje. Geen teller, geen hints: wie ze vindt, vindt ze.
+  if (window.Grapjes) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const opHome = !!document.querySelector('.haak-rij');
+
+  const stijl = document.createElement('style');
+  stijl.textContent = `
+    .gr-vallen { position: fixed; top: -40px; z-index: 9998; pointer-events: none; }
+    .gr-groot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9998; pointer-events: none; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(3rem, 14vw, 9rem); color: #F6CB2F; text-shadow: 0 6px 0 #C8323C, 0 12px 0 #2E8B62; }
+    dialog.gr-boek { border: 0; border-radius: 12px; padding: 1.2rem 1.3rem; background: #F2DDA0; color: #1F2333; max-width: min(28rem, 94vw); font-family: "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+    dialog.gr-boek::backdrop { background: rgba(10,14,30,.7); }
+    .gr-boek h2 { margin: 0 0 .4rem; } .gr-boek ul { list-style: none; padding: 0; margin: .6rem 0; }
+    .gr-boek li { display: flex; gap: .6rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid #D9BE78; }
+    .gr-boek li small { display: block; color: #5E5643; }
+    .gr-boek button { font: inherit; font-weight: 700; border: 0; border-radius: 6px; padding: .5rem 1rem; background: #C8323C; color: #fff; cursor: pointer; }
+    .gr-gat { position: absolute; width: 34px; height: 20px; border-radius: 17px 17px 0 0; background: #0E1630; box-shadow: inset 0 4px 0 #070B18; z-index: 2; cursor: pointer; }
+    .gr-muis { position: absolute; left: 6px; bottom: 0; width: 22px; height: 14px; transform: translateY(14px); transition: transform .35s ease; }
+    .gr-gat.uit .gr-muis { transform: translateY(2px); }
+    .gr-gat { overflow: hidden; }
+    .gr-uil { position: absolute; z-index: 3; width: 56px; cursor: pointer; }
+    .gr-ballon { position: absolute; z-index: 4; background: #FBF6E9; color: #1F2333; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: .9rem; padding: .3rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; pointer-events: none; }
+    .gr-vlaggen { position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 50; pointer-events: none; }
+    @keyframes gr-schud { 10%, 50%, 90% { transform: translate(-6px, 2px); } 30%, 70% { transform: translate(6px, -2px); } }
+  `;
+  document.head.appendChild(stijl);
+
+  // ---------- geluidje
+  let ac = null;
+  function toon(f, t0, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0); o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(v || 0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {} }
+  
+  const boek = document.createElement('dialog'); boek.className = 'gr-boek';
+  document.body.appendChild(boek);
+  const vind = () => {};
+
+  // ---------- vlaaienregen
+  const VLAAI = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C98A43" stroke="#7A4E2D" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="#A8162B"/><path d="M8 20h24M20 8v24M11 11l18 18M29 11L11 29" stroke="#E0B07A" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#E0B07A"/></svg>';
+  function regen(html, n) {
+    for (let i = 0; i < (reduce ? 6 : n); i++) {
+      const v = document.createElement('div'); v.className = 'gr-vallen'; v.innerHTML = html;
+      v.style.left = (Math.random() * 96) + 'vw'; document.body.appendChild(v);
+      const duur = 2200 + Math.random() * 1600, draai = (Math.random() - 0.5) * 720;
+      if (v.animate) v.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(${innerHeight + 80}px) rotate(${draai}deg)` }], { duration: duur, delay: Math.random() * 900, easing: 'ease-in', fill: 'both' }).onfinish = () => v.remove();
+      else setTimeout(() => v.remove(), 3000);
+    }
+  }
+  function confetti() {
+    const kl = ['#C8323C', '#F6CB2F', '#2E8B62'];
+    for (let i = 0; i < (reduce ? 10 : 90); i++) regen(`<span style="display:block;width:9px;height:14px;background:${kl[i % 3]};border-radius:2px"></span>`, 1);
+  }
+  function grootWoord(t) { const g = document.createElement('div'); g.className = 'gr-groot'; g.textContent = t; document.body.appendChild(g); if (g.animate) g.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .35 }, { transform: 'scale(1)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2000 }).onfinish = () => g.remove(); else setTimeout(() => g.remove(), 1800); }
+
+  // ---------- typen
+  let getypt = '';
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key.length !== 1) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-14);
+    if (getypt.endsWith('vlaai')) { regen(VLAAI, 34); [523, 659, 784].forEach((f, i) => toon(f, i * 0.12, 0.25)); vind('vlaai'); getypt = ''; }
+    else if (getypt.endsWith('alaaf')) { confetti(); grootWoord('Alaaf!'); [392, 523, 659, 784, 659, 784].forEach((f, i) => toon(f, i * 0.13, 0.22, 'square', 0.03)); vind('alaaf'); getypt = ''; }
+    else if (getypt.endsWith('ejkeohlemmor')) {
+      getypt = ''; vind('spiegel');
+      document.documentElement.style.transition = 'transform .6s ease'; document.documentElement.style.transform = 'scaleX(-1)';
+      setTimeout(() => { document.documentElement.style.transform = ''; setTimeout(() => { document.documentElement.style.transition = ''; }, 700); }, 3500);
+    }
+  });
+
+  // ---------- klik-reeksen
+  const tellers = {};
+  function tel(id, nodig, venster) { const nu = Date.now(), t = (tellers[id] || []).filter(x => nu - x < venster); t.push(nu); tellers[id] = t; if (t.length >= nodig) { tellers[id] = []; return true; } return false; }
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('.sticker');
+    if (st && tel('sticker', 10, 8000)) {
+      vind('sticker');
+      if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
+      const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
+    }
+    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    if (ham && tel('hamer', 6, 3500)) {
+      vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
+      if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
+      grootWoord('Au!');
+    }
+    const ver = e.target.closest && e.target.closest('.versie');
+    if (ver && tel('versie', 5, 3000)) {
+      vind('bouwplaats');
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
+    }
+  });
+
+  // ---------- alleen op de homepage: het muisje, de nachtuil en de elfde van de elfde
+  function homepage() {
+    if (!opHome) return;
+    const main = document.querySelector('main') || document.body;
+    // muizengat onder aan de pagina
+    const gat = document.createElement('div'); gat.className = 'gr-gat'; gat.setAttribute('aria-label', 'Een muizengaatje'); gat.setAttribute('role', 'button'); gat.tabIndex = 0;
+    gat.innerHTML = '<svg class="gr-muis" viewBox="0 0 22 14" aria-hidden="true"><ellipse cx="11" cy="10" rx="9" ry="6" fill="#9AA0A6"/><circle cx="5" cy="5" r="3" fill="#C9CED6"/><circle cx="17" cy="5" r="3" fill="#C9CED6"/><circle cx="8" cy="9" r="1.2" fill="#1F2333"/><circle cx="14" cy="9" r="1.2" fill="#1F2333"/><circle cx="11" cy="12" r="1.3" fill="#E8577A"/></svg>';
+    const zetGat = () => { const voet = document.querySelector('footer') || main; const r = voet.getBoundingClientRect(); gat.style.left = Math.max(10, r.right + scrollX - 70) + 'px'; gat.style.top = (r.top + scrollY - 20) + 'px'; };
+    document.body.appendChild(gat); zetGat(); addEventListener('resize', zetGat); setTimeout(zetGat, 1500);
+    let uit = false;
+    const kijk = () => { uit = true; gat.classList.add('uit'); setTimeout(() => { uit = false; gat.classList.remove('uit'); }, 2600); setTimeout(kijk, 9000 + Math.random() * 12000); };
+    setTimeout(kijk, 5000 + Math.random() * 6000);
+    const pak = () => { if (!uit) return; vind('muis'); toon(2200, 0, 0.08, 'sine', 0.05); toon(2600, 0.08, 0.08, 'sine', 0.05); gat.classList.remove('uit'); uit = false; const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Piep!'; b.style.left = (parseFloat(gat.style.left) - 40) + 'px'; b.style.top = (parseFloat(gat.style.top) - 30) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2000); };
+    gat.addEventListener('click', pak); gat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pak(); });
+    // nachtuil tussen middernacht en vijf uur
+    const uur = new Date().getHours();
+    if (uur < 5) {
+      const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
+      uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
+      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
+      document.body.appendChild(uil);
+      const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
+      uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
+    }
+    // de elfde van de elfde: vlaggetjes in rood, geel en groen
+    const d = new Date();
+    if (d.getMonth() === 10 && d.getDate() === 11) {
+      const v = document.createElement('div'); v.className = 'gr-vlaggen';
+      let svg = '<svg width="100%" height="34" preserveAspectRatio="none" viewBox="0 0 1000 34" aria-hidden="true"><path d="M0 4Q500 22 1000 4" stroke="#F2DDA0" stroke-width="2" fill="none"/>';
+      for (let i = 0; i < 40; i++) { const x = i * 25 + 5, y = 4 + Math.sin(Math.PI * x / 1000) * 14; svg += `<path d="M${x} ${y.toFixed(1)}l14 0l-7 16z" fill="${['#C8323C', '#F6CB2F', '#2E8B62'][i % 3]}"/>`; }
+      v.innerHTML = svg + '</svg>'; document.body.appendChild(v);
+      setTimeout(() => { grootWoord('Alaaf!'); vind('elfelf'); }, 1200);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', homepage); else homepage();
+
+  // ---------- voor wie in de console kijkt
+  try { console.log('%cHé, nieuwsgierig aagje!', 'font: 800 20px sans-serif; color: #C8323C'); console.log('%cHier valt niks te zien. Of toch wel?', 'font: 600 13px sans-serif; color: #2F4C8F'); } catch (e) {}
+  window.Grapjes = true;
+})();
+
+</script>
+</body>
+</html>

@@ -74,6 +74,10 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - **Heldenset**: 30 superhelden (`HELDEN` in `beesten_data.js`, ids hs001 tot hs030): 10 gewoon, 9 ongewoon, 5 zeldzaam, 3 holo, 2 ultra en 1 geheim (De Rommelheld). Eigen ontwerpen met cape, masker en embleem (`cape`, `masker`, `embleem` in de tekenaar) en een stripachtergrond met stralen en stippen. Alleen te krijgen in het Heldenpakje (150 munten, 6 kaarten, 1 zeldzaam of beter). Op de kaart staat "Held" of "Superheld" en het nummer van de 30. Het album wisselt tussen de sets; het scorebord telt alleen de Zolderset (van de 130).
 
+- **Pakjes**: brons (50, 5 kaarten, 15% kans op een zeldzame plek), zilver (100, id `gewoon`), goud (250, id `premium`), regenboog (650, met een gegarandeerde holo-plek `H`), het elementpakje van de dag (180, alleen kaarten van `dagElement()`), het heldenpakje en de doos. Elk pakje heeft een `tier` voor zijn folie-ontwerp in `pakSVG` (`TIERS`). Bij het openscheuren komt er licht uit de scheur in de kleur van de beste kaart.
+- **Grote onthulling**: is de laatste kaart holo of beter, dan volgt eerst `FUT.onthulling`: element, silhouet en zeldzaamheid één voor één, dan pas de kaart.
+- **Pakjesjager** (`FUT`, opgeslagen in `S.fut`): verzamelaarsniveau met XP (pakjes, nieuwe en zeldzame kaarten, opdrachten), een niveau omhoog geeft munten en elke 3 niveaus een pakje in **Mijn pakjes** (`F.voorraad`). Drie **opdrachten van vandaag** (`POOL`), de **aanbieding van de dag** (30% korting, één keer per dag) en de **ruilbalie** (`RUILEN`): dubbele kaarten inleveren voor pakjes of munten; je houdt altijd minstens één exemplaar.
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

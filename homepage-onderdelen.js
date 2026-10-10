@@ -524,16 +524,20 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       <path d="M66 16q0-8 8-8t6 8q-2 6-10 12" fill="none" stroke="#C9CED6" stroke-width="3.5" stroke-linecap="round"/>
       <path d="M66 28L14 52q-6 3 0 6h104q6-3 0-6z" fill="#8C5530" stroke="#3A2414" stroke-width="2.5" stroke-linejoin="round"/>
       <g class="jas-lijf">
-        <path d="M30 56q-14 6-18 26l-6 74q0 6 6 6h14l4-70" fill="#1E3A2E" stroke="#0E1E16" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M102 56q14 6 18 26l6 74q0 6-6 6h-14l-4-70" fill="#1E3A2E" stroke="#0E1E16" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M30 56q16-6 36-6t36 6l4 128q0 8-8 10l-32 6-32-6q-8-2-8-10z" fill="#24463A" stroke="#0E1E16" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M54 52l12 30 12-30q-6 6-12 6t-12-6z" fill="#9E1F2A" stroke="#4A0A12" stroke-width="1.8"/>
-        <path d="M56 58l10 70 10-70" fill="#B82E3A" stroke="#4A0A12" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M60 64q4 20 6 46M72 64q-2 16-4 34" stroke="#E8577A" stroke-width="1.6" opacity=".55" fill="none"/>
-        <path d="M54 52q-12 4-14 24l14 26 12-20zM78 52q12 4 14 24l-14 26-12-20z" fill="#2E5A4A" stroke="#0E1E16" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M60 46q6 8 12 0l2 8q-8 6-16 0z" fill="#1E3A2E" stroke="#0E1E16" stroke-width="2"/>
+        <path d="M30 56q-14 6-18 26l-6 74q0 6 6 6h14l4-70" fill="#26262E" stroke="#0A0A0E" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M102 56q14 6 18 26l6 74q0 6-6 6h-14l-4-70" fill="#26262E" stroke="#0A0A0E" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M30 56q16-6 36-6t36 6l4 128q0 8-8 10l-32 6-32-6q-8-2-8-10z" fill="#2E2E38" stroke="#0A0A0E" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M30 70q4 40 2 112M102 70q-4 40-2 112" stroke="#3E3E4A" stroke-width="2" fill="none" opacity=".7"/>
+        <path d="M54 52l12 34 12-34q-6 6-12 6t-12-6z" fill="#F2EDE2" stroke="#8C826C" stroke-width="1.6"/>
+        <path d="M58 50q8 10 16 0" fill="none" stroke="#8C826C" stroke-width="1.4"/>
+        <path d="M54 52q-12 4-14 24l14 26 12-20zM78 52q12 4 14 24l-14 26-12-20z" fill="#383844" stroke="#0A0A0E" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M60 46q6 8 12 0l2 8q-8 6-16 0z" fill="#26262E" stroke="#0A0A0E" stroke-width="2"/>
         ${[96, 116, 136, 156].map(y => `<circle cx="56" cy="${y}" r="3.4" fill="#C9CED6" stroke="#5F6470" stroke-width="1.2"/><circle cx="76" cy="${y}" r="3.4" fill="#C9CED6" stroke="#5F6470" stroke-width="1.2"/>`).join('')}
-        <path d="M44 190l22 4 22-4" fill="none" stroke="#0E1E16" stroke-width="2"/>
+        <path d="M32 60L104 150l-2 20L28 82z" fill="#B82E3A" stroke="#4A0A12" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M34 70l68 86M31 77l69 87" stroke="#E0505C" stroke-width="1.6" opacity=".7"/>
+        <path d="M96 150q10 10 6 30l-8-4q4-12-4-20zM104 156q12 6 12 26l-8-2q0-12-8-18z" fill="#9E2430" stroke="#4A0A12" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M44 190l22 4 22-4" fill="none" stroke="#0A0A0E" stroke-width="2"/>
+        <g class="das"><g transform="rotate(-22 64 56)"><path d="M61 52q2 6 1 12M69 52q-1 6 0 12" stroke="#6E1F2A" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M58 64q6 5 12 0l2 7q-7 6-15 1z" fill="#6E1F2A" stroke="#2A0A10" stroke-width="1.6"/><path d="M61 71q-5 12 0 26l5 7 4-9q-1-15-4-24z" fill="#8E2F3A" stroke="#2A0A10" stroke-width="1.6" stroke-linejoin="round"/><path d="M63 77q0 10 3 19" stroke="#B85A64" stroke-width="1.2" fill="none"/><path d="M70 70q8 6 6 16" stroke="#8E2F3A" stroke-width="3" fill="none" stroke-linecap="round"/></g></g>
         <g class="broche" transform="translate(88 98)">
           <path d="M0-14v28M-9-5h18" stroke="#DDE3EA" stroke-width="4.2" stroke-linecap="round"/>
           <path d="M0-14v28M-9-5h18" stroke="#8C939E" stroke-width="1.4" stroke-linecap="round"/>
@@ -620,7 +624,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     { id: 'kaarten', b: 124, naam: 'Roeter', rol: '', show: 'Wonderland', zin: 'Ruiten troef!' },
     { id: 'hoed', b: 140, naam: 'Hans Herzschlag', rol: 'Schlagerzanger', show: 'Voor feesten en partijen', zin: 'Prost!' },
     { id: 'bril', b: 124, naam: 'Callum', rol: '', show: 'Moonside', zin: 'Nog eentje aan de bar?' },
-    { id: 'jas', b: 120, naam: 'Dorian Verstronden', rol: '', show: 'De Zonden van Groenhorst', zin: 'Zonden? Ik? Nooit.' },
+    { id: 'jas', b: 120, naam: 'Dorian Verstronden', rol: 'De zonde van luiheid', show: 'De Zonden van Groenhorst', zin: 'Vijf minuutjes nog...' },
   ];
 
   // ---------- stijl
@@ -686,6 +690,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   .kaartje b { display: block; margin-top: .45rem; font-size: 1rem; }
   .kaartje span { display: block; font-size: .78rem; color: var(--zacht, #5E5643); }
   .prop-ballon { position: absolute; left: 50%; top: -1.6rem; transform: translateX(-50%); background: var(--papier, #FBF6E9); color: var(--inkt, #1F2333); font-weight: 800; font-size: .9rem; padding: .2rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.28); white-space: nowrap; pointer-events: none; z-index: 6; }
+  .zzz { position: absolute; z-index: 30; pointer-events: none; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; color: #DCE4F5; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
   .vonk { position: fixed; width: 6px; height: 6px; border-radius: 50%; background: #6CF2A3; box-shadow: 0 0 8px #4BE38A; pointer-events: none; z-index: 30; }
   @media (max-width: 640px) { .props { --s: .72; gap: 1.6rem .6rem; } .kaartje { max-width: 9.5rem; padding: .35rem .5rem; } .kaartje b { font-size: .88rem; } .sticker-ballon { font-size: .82rem; } }
   `;
@@ -752,18 +757,21 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     setTimeout(() => s.remove(), 1700);
   }
   const DOEN = {
-    // Dorian: de jas zwaait aan zijn hanger, de broche glinstert en een donker orgelakkoord
+    // Dorian: de zonde van luiheid. De jas zakt langzaam in slaap, en er komen Zzz'jes uit
     jas: async () => {
       if (bezig.has('jas')) return; bezig.add('jas');
-      [[73.4, 0], [87.3, 0], [110, 0], [146.8, 0.02]].forEach(([f, t]) => toon(f, t, 1.6, 'sawtooth', 0.018));
-      toon(587, 0.35, 0.5, 'sine', 0.025, 1174);
-      const k = $p('jas');
-      anim(binnen('jas'), [{ transform: 'rotate(0)' }, { transform: 'rotate(-9deg)', offset: .25 }, { transform: 'rotate(6deg)', offset: .55 }, { transform: 'rotate(-3deg)', offset: .8 }, { transform: 'rotate(0)' }], { duration: 1600, easing: 'ease-in-out' });
-      const g = k.querySelector('.glinster'); g.style.transformBox = 'fill-box'; g.style.transformOrigin = 'center';
-      anim(g, [{ opacity: 0, transform: 'scale(.4) rotate(0)' }, { opacity: 1, transform: 'scale(1.5) rotate(45deg)', offset: .4 }, { opacity: 0, transform: 'scale(.4) rotate(90deg)' }], { duration: 900, delay: 350 });
-      anim(k.querySelector('.broche'), [{ filter: 'none' }, { filter: 'drop-shadow(0 0 6px #3EC6A8)', offset: .4 }, { filter: 'none' }], { duration: 1200, delay: 250 });
-      ballon('jas', 'Zonden? Ik? Nooit.');
-      await wacht(1600); bezig.delete('jas');
+      for (let i = 0; i < 3; i++) { toon(110, i * 1.1, 0.8, 'sine', 0.05, 82); toon(165, i * 1.1 + 0.55, 0.45, 'triangle', 0.025, 220); }
+      const k = $p('jas'), r = k.getBoundingClientRect();
+      anim(binnen('jas'), [{ transform: 'rotate(0)' }, { transform: 'rotate(7deg)', offset: .25 }, { transform: 'rotate(5deg)', offset: .5 }, { transform: 'rotate(8deg)', offset: .75 }, { transform: 'rotate(0)' }], { duration: 3400, easing: 'ease-in-out' });
+      const das = k.querySelector('.das'); das.style.transformBox = 'fill-box'; das.style.transformOrigin = '50% 0';
+      anim(das, [{ transform: 'rotate(0)' }, { transform: 'rotate(14deg)', offset: .5 }, { transform: 'rotate(0)' }], { duration: 3400, easing: 'ease-in-out' });
+      if (!reduce) for (let i = 0; i < 4; i++) {
+        const z = document.createElement('span'); z.className = 'zzz'; z.textContent = 'Z'; z.style.left = (r.left + r.width * 0.62) + 'px'; z.style.top = (r.top + r.height * 0.18 + scrollY) + 'px'; z.style.fontSize = (14 + i * 5) + 'px';
+        document.body.appendChild(z);
+        z.animate([{ transform: 'translate(0,0) rotate(-10deg)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${30 + i * 12}px, ${-60 - i * 14}px) rotate(12deg)`, opacity: 0 }], { duration: 2000, delay: i * 650, easing: 'ease-out', fill: 'both' }).onfinish = () => z.remove();
+      }
+      ballon('jas', 'Vijf minuutjes nog...');
+      await wacht(3400); bezig.delete('jas');
     },
     // Caspian: groene chaosvonken
     kroon: async () => {

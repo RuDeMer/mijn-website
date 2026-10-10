@@ -388,7 +388,7 @@ dialog p { margin: .4rem 0 .8rem; }
 @media (max-width: 1000px) { .winkel-paneel { grid-template-columns: 1fr; } .winkel-zij { position: static; margin-top: 1rem; } }
 #fut-top .fut-aanbieding { margin-bottom: 1.1rem; grid-template-columns: 6.5rem 1fr; position: relative; overflow: hidden; }
 #fut-top .fut-aanbieding::after { content: ""; position: absolute; right: -2.5rem; top: .9rem; width: 9rem; padding: .2rem 0; transform: rotate(35deg); background: #C8323C; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
-.planken { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; } .planken .plank:first-child { grid-column: 1 / -1; }
+.planken { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
 @media (max-width: 640px) { .planken { grid-template-columns: 1fr; } .plank-rij { flex-wrap: nowrap !important; } }
 .plank-rij { flex-wrap: wrap; }
 .plank { background: linear-gradient(#3A2A4A, #2C2038); border-radius: 12px; padding: .8rem .9rem 0; box-shadow: inset 0 0 0 2px rgba(255,255,255,.06); }
@@ -440,6 +440,21 @@ dialog p { margin: .4rem 0 .8rem; }
 .bh-chip i { font-style: normal; color: #C99A2E; font-weight: 800; } .bh-chip button { border: 0; background: none; cursor: pointer; font-weight: 800; color: #C8323C; }
 .bh-chip.z-h, .bh-chip.z-u, .bh-chip.z-x { background: #FFF3C4; } .beheer details summary { cursor: pointer; margin: .3rem 0; }
 .beheer select, .beheer #bh-ckaart { font: inherit; padding: .4rem .55rem; border-radius: 6px; border: 2px solid #D9BE78; background: #fff; } .beheer #bh-ckaart { flex: 1 1 14rem; }
+
+/* ---------- beloningspad */
+.niveau { cursor: pointer; } .niveau:hover { background: rgba(0,0,0,.4); } .niveau em { font-style: normal; font-size: .72rem; font-weight: 800; color: #FFE76A; }
+dialog.pad-dlg { max-width: min(36rem, 94vw); }
+.pad-balk { height: .8rem; background: #E2D8BE; border-radius: 999px; overflow: hidden; margin: .3rem 0 .2rem; } .pad-balk i { display: block; height: 100%; background: linear-gradient(90deg, #E9B949, #FFE76A); }
+.pad-uitleg { font-size: .85rem; color: #5E5643; margin: .3rem 0 .6rem; }
+.pad-voordelen { background: #FFFDF6; border-radius: 8px; padding: .5rem .7rem; font-size: .85rem; margin-bottom: .7rem; }
+.pad { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; max-height: 46vh; overflow: auto; }
+.pad li { display: grid; grid-template-columns: 2.2rem 1fr auto; gap: .55rem; align-items: center; background: #FFFDF6; border-radius: 8px; padding: .4rem .6rem; font-size: .85rem; }
+.pad li.groot { background: linear-gradient(90deg, #FFF3C4, #FFFDF6); box-shadow: inset 4px 0 0 #E9B949; }
+.pad li.klaar { opacity: .55; } .pad li.volgende { box-shadow: 0 0 0 2px #C8323C; }
+.pad-nr { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: #231A26; color: #FFE76A; font-weight: 800; }
+.pad-bel b { display: block; font-size: .82rem; color: #7A1E26; } .pad-v { color: #2E8B62; font-weight: 800; font-size: 1.1rem; } .pad-xp { font-size: .75rem; font-weight: 800; color: #C8323C; white-space: nowrap; }
+.voordeel-nieuw { background: #FFFDF6; border-radius: 8px; padding: .5rem .7rem; box-shadow: 0 0 0 2px #E9B949; }
+.xp-melding { font-weight: 800; color: #FFE76A; margin: 0 0 .2rem; }
 </style>
 </head>
 <body data-gat="26" data-pagina="rommelbeesten">
@@ -1577,12 +1592,19 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     coulissen: { naam: 'Coulissenpakje', tier: 'coulissen', prijs: 175, set: 'coulissen', tekst: '6 kaarten uit de nieuwe Coulissenset, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, hoes: 'cs023' },
     helden: { naam: 'Heldenpakje', tier: 'helden', prijs: 150, set: 'helden', tekst: '6 kaarten uit de Heldenset, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, hoes: 'hs028' },
     wonder: { naam: 'Wonderpakje', tier: 'wonder', verborgen: true, prijs: 0, tekst: '', slots: ['W', 'W', 'W', 'W', 'W', 'W', 'W'], hoes: 'zs130' },
-    doos: { naam: 'Doos met 10 pakjes', prijs: 900, tekst: '10 Zilveren pakjes voor de prijs van 9.', doos: true, kleur: ['#C8323C', '#FFB0B8', '#7A1E26', '#F2DDA0'], hoes: 'zs120' },
+    doos: { naam: 'Zolderdoos', prijs: 900, tekst: '10 Zilveren pakjes voor de prijs van 9.', doos: true, doosVan: 'gewoon', slots: Array(7), kleur: ['#C8323C', '#FFB0B8', '#7A1E26', '#F2DDA0'], hoes: 'zs120' },
+    coulelement: { naam: 'Elementpakje', tier: 'element', prijs: 210, set: 'coulissen', tekst: '6 Coulissenkaarten van het element van vandaag, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, alleenElement: true },
+    couldoos: { naam: 'Coulissendoos', prijs: 1575, set: 'coulissen', tekst: '10 Coulissenpakjes voor de prijs van 9.', doos: true, doosVan: 'coulissen', slots: Array(6), kleur: ['#8E1F28', '#FFD8A0', '#3A0E14', '#E9B949'], hoes: 'cs023' },
+    heldenelement: { naam: 'Elementpakje', tier: 'element', prijs: 180, set: 'helden', tekst: '6 Heldenkaarten van het element van vandaag, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, alleenElement: true },
+    heldendoos: { naam: 'Heldendoos', prijs: 1350, set: 'helden', tekst: '10 Heldenpakjes voor de prijs van 9.', doos: true, doosVan: 'helden', slots: Array(6), kleur: ['#2F4C8F', '#9FD8FF', '#14213F', '#F6CB2F'], hoes: 'hs028' },
   };
   const WONDER_KANS = 1 / 400;
   const elNaam = () => ELEMENTEN[dagElement()].naam;
-  Object.defineProperty(PAKJES.element, 'naam', { get: () => elNaam() + 'pakje' });
-  Object.defineProperty(PAKJES.element, 'hoes', { get: () => { const lijst = KAARTEN.filter(k => k.set === 'zolder' && k.e === dagElement() && 'zh'.includes(k.z)); return (lijst[0] || KAARTEN[0]).id; } });
+  const prijsVan = t => { const P = PAKJES[t], k = typeof FUT !== 'undefined' && FUT.perk ? FUT.perk('korting') : 0; return k ? Math.round(P.prijs * (1 - k / 100) / 5) * 5 : P.prijs; };
+  for (const [t, st] of [['element', 'zolder'], ['coulelement', 'coulissen'], ['heldenelement', 'helden']]) {
+    Object.defineProperty(PAKJES[t], 'naam', { get: () => elNaam() + 'pakje' });
+    Object.defineProperty(PAKJES[t], 'hoes', { get: () => { const lijst = KAARTEN.filter(k => k.set === st && k.e === dagElement()); const goed = lijst.filter(k => 'zh'.includes(k.z)); return (goed[0] || lijst[0] || KAARTEN.find(k => k.set === st)).id; } });
+  }
 
 
   // ---------------- opslag
@@ -1597,6 +1619,31 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
   const FUT = (() => {
     const F = S.fut = Object.assign({ xp: 0, niveau: 1, voorraad: {}, opdr: null, korting: null, ruilen: 0, gratisVanaf: 0, mijl: {} }, S.fut || {});
     const nodig = n => 120 + (n - 1) * 70;
+    // het beloningspad: titels en blijvende voordelen
+    const VOORDELEN = {
+      3: { tekst: 'Je eerste gratis pakje van het pad' },
+      5: { titel: 'Verzamelaar', korting: 5, tekst: '5% korting op alle pakjes' },
+      8: { dagbonus: 25, tekst: 'Je dagbonus is 25% hoger' },
+      10: { titel: 'Kenner', gratisUur: 3, tekst: 'Elke 3 uur een gratis pakje in plaats van elke 4' },
+      12: { opdrachten: 4, tekst: 'Een vierde opdracht per dag' },
+      15: { titel: 'Speurneus', korting: 10, tekst: '10% korting op alle pakjes' },
+      18: { dagbonus: 50, tekst: 'Je dagbonus is 50% hoger' },
+      20: { titel: 'Meesterverzamelaar', gratisUur: 2, tekst: 'Elke 2 uur een gratis pakje' },
+      25: { titel: 'Rommelkoning', korting: 15, tekst: '15% korting op alle pakjes' },
+      30: { titel: 'Legende', wonder: 300, tekst: 'Meer kans op een wonderpakje (1 op 300)' },
+    };
+    function perk(naam) { let w = { korting: 0, dagbonus: 0, gratisUur: 4, opdrachten: 3, wonder: 400 }[naam]; for (const [n, v] of Object.entries(VOORDELEN)) if (F.niveau >= +n && v[naam] !== undefined) w = v[naam]; return w; }
+    function titel() { let t = 'Beginner'; for (const [n, v] of Object.entries(VOORDELEN)) if (F.niveau >= +n && v.titel) t = v.titel; return t; }
+    const padPak = n => n % 3 === 0 ? ['gewoon', 'premium', 'regenboog'][(n / 3 - 1) % 3] : null;
+    const padMunt = n => 40 + n * 15;
+    function toonPad() {
+      const van = Math.max(2, F.niveau - 1), tot = F.niveau + 12;
+      let rij = ''; for (let n = van; n <= tot; n++) { const v = VOORDELEN[n], pak = padPak(n), klaar = F.niveau >= n; rij += `<li class="${klaar ? 'klaar' : ''}${n === F.niveau + 1 ? ' volgende' : ''}${v && v.titel ? ' groot' : ''}"><span class="pad-nr">${n}</span><span class="pad-bel">${padMunt(n)} munten${pak ? ' · ' + PAKJES[pak].naam : ''}${v ? `<b>${v.titel ? 'Titel: ' + v.titel + '. ' : ''}${v.tekst}</b>` : ''}</span>${klaar ? '<span class="pad-v">✓</span>' : n === F.niveau + 1 ? `<span class="pad-xp">nog ${nodig(F.niveau) - F.xp} XP</span>` : ''}</li>`; }
+      const actief = Object.entries(VOORDELEN).filter(([n, v]) => F.niveau >= +n && v.tekst && !v.titel || (F.niveau >= +n && v.korting)).map(([, v]) => v.tekst);
+      dialoog(`<h2>Niveau ${F.niveau}: ${titel()}</h2><div class="pad-balk"><i style="width:${Math.round(F.xp / nodig(F.niveau) * 100)}%"></i></div><p class="pad-uitleg">${F.xp} van ${nodig(F.niveau)} XP naar niveau ${F.niveau + 1}. Je krijgt XP voor pakjes, nieuwe en zeldzame kaarten, opdrachten, ruilen, mijlpalen en je dagbonus.</p>
+        <div class="pad-voordelen"><b>Jouw voordelen nu:</b> ${[perk('korting') ? perk('korting') + '% korting' : '', perk('dagbonus') ? 'dagbonus +' + perk('dagbonus') + '%' : '', 'elke ' + perk('gratisUur') + ' uur een gratis pakje', perk('opdrachten') + ' opdrachten per dag', perk('wonder') < 400 ? 'wonderkans 1 op ' + perk('wonder') : ''].filter(Boolean).join(' · ')}</div>
+        <ol class="pad">${rij}</ol>`, [{ tekst: 'Sluiten', hoofd: true }], 'pad-dlg');
+    }
     const KLEUR = { g: ['#FFF3C4', '#FFE76A', '#fff'], o: ['#FFF3C4', '#8AFFA8', '#fff'], z: ['#5EC2E8', '#9FD3FF', '#fff'], h: ['#C8A2FF', '#FF9AE6', '#8AD8FF', '#fff'], u: ['#FFD34A', '#FFF3C4', '#F6B23B', '#fff'], x: ['#FF5A5A', '#FFDC5A', '#78FF8C', '#5ABEFF', '#C878FF', '#fff'] };
     const zaad = n => () => (n = (n * 16807 + 11) % 2147483647) / 2147483647;
     // ---------- opdrachten van vandaag
@@ -1611,28 +1658,29 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
       { id: 'ruil', n: [1, 1], munt: 100, tekst: () => 'Doe een ruil aan de ruilbalie' },
     ];
     function opdrachten() {
-      if (F.opdr && F.opdr.dag === dagNr()) return F.opdr.lijst;
+      if (F.opdr && F.opdr.dag === dagNr()) { while (F.opdr.lijst.length < perk('opdrachten')) { const vrij = POOL.filter(p => !F.opdr.lijst.some(o => o.id === p.id)); if (!vrij.length) break; const o = vrij[F.opdr.lijst.length % vrij.length]; F.opdr.lijst.push({ id: o.id, n: o.n[0], stand: 0, opgehaald: false }); } return F.opdr.lijst; }
       const r = zaad(dagNr() * 7 + 3), pool = POOL.slice(), lijst = [];
-      while (lijst.length < 3) { const o = pool.splice(Math.floor(r() * pool.length), 1)[0]; const n = o.n[0] + Math.floor(r() * (o.n[1] - o.n[0] + 1)); lijst.push({ id: o.id, n, stand: 0, opgehaald: false }); }
+      while (lijst.length < perk('opdrachten')) { const o = pool.splice(Math.floor(r() * pool.length), 1)[0]; const n = o.n[0] + Math.floor(r() * (o.n[1] - o.n[0] + 1)); lijst.push({ id: o.id, n, stand: 0, opgehaald: false }); }
       F.opdr = { dag: dagNr(), lijst }; bewaar(); return lijst;
     }
     function tel(id, aantal) { for (const o of opdrachten()) if (o.id === id && !o.opgehaald) o.stand = Math.min(o.n, o.stand + aantal); bewaar(); }
     // ---------- niveau
     function xp(n) {
       F.xp += n; let omhoog = false;
-      while (F.xp >= nodig(F.niveau)) { F.xp -= nodig(F.niveau); F.niveau++; omhoog = true; const munt = 40 + F.niveau * 15, pak = F.niveau % 3 === 0 ? ['gewoon', 'premium', 'regenboog'][(F.niveau / 3 - 1) % 3] : null; S.munten += munt; if (pak) F.voorraad[pak] = (F.voorraad[pak] || 0) + 1; F.laatsteBeloning = { niveau: F.niveau, munt, pak }; }
+      while (F.xp >= nodig(F.niveau)) { F.xp -= nodig(F.niveau); F.niveau++; omhoog = true; const munt = padMunt(F.niveau), pak = padPak(F.niveau); S.munten += munt; if (pak) F.voorraad[pak] = (F.voorraad[pak] || 0) + 1; F.laatsteBeloning = { niveau: F.niveau, munt, pak, voordeel: VOORDELEN[F.niveau] }; F.laatsteXPTotaal = (F.laatsteXPTotaal || 0); }
       bewaar(); tekenNiveau();
       if (omhoog) { if (bankOpen()) { wachtend = true; return; } toonNiveau(); }
     }
     let wachtend = false;
+    const VOLGEND = () => { const n = Object.keys(VOORDELEN).map(Number).find(n => n > F.niveau); return n ? `<p class="pad-uitleg">Volgende voordeel op niveau ${n}: ${VOORDELEN[n].tekst.toLowerCase()}.</p>` : ''; };
     function toonWachtend() { if (wachtend) { wachtend = false; toonNiveau(); } }
-    function toonNiveau() { setTimeout(() => { const b = F.laatsteBeloning; dialoog(`<div class="niveau-op"><span>Niveau</span><b>${b.niveau}</b></div><h2>Je bent een niveau hoger!</h2><p>Je krijgt <b>${b.munt} muntjes</b>${b.pak ? ` en een gratis <b>${PAKJES[b.pak].naam}</b> in Mijn pakjes` : ''}.</p>`, [{ tekst: 'Top!', hoofd: true }], 'feest'); if (GELUID.u) GELUID.u(); zetMunten(true); tekenWinkel(); }, 250); }
+    function toonNiveau() { setTimeout(() => { const b = F.laatsteBeloning; dialoog(`<div class="niveau-op"><span>Niveau</span><b>${b.niveau}</b></div><h2>Je bent een niveau hoger!</h2><p>Je krijgt <b>${b.munt} muntjes</b>${b.pak ? ` en een gratis <b>${PAKJES[b.pak].naam}</b> in Mijn pakjes` : ''}.</p>${b.voordeel ? `<p class="voordeel-nieuw">${b.voordeel.titel ? `Nieuwe titel: <b>${b.voordeel.titel}</b><br>` : ''}Vrijgespeeld: <b>${b.voordeel.tekst}</b></p>` : ''}${VOLGEND()}`, [{ tekst: 'Bekijk het pad' , doe: () => setTimeout(toonPad, 50) }, { tekst: 'Top!', hoofd: true }], 'feest'); if (GELUID.u) GELUID.u(); zetMunten(true); tekenWinkel(); }, 250); }
     const bankOpen = () => !$('bank').hidden;
     function naTrek(type, kaarten) {
       let x = 10;
       tel('pakjes', 1); if (type === 'helden') tel('helden', 1);
       for (const c of kaarten) { x += c.nieuw ? 6 : 1; x += { z: 5, h: 15, u: 40, x: 100 }[c.k.z] || 0; if (c.glim) { x += 4; tel('glim', 1); } if (ZRANG[c.k.z] >= 2) tel('zeldzaam', 1); if (c.nieuw) tel('nieuw', 1); if (c.k.e === dagElement()) tel('element', 1); }
-      xp(x);
+      F.laatsteXP = x; xp(x);
     }
     // ---------- eigen pakjes
     function neemUitVoorraad(t) { if (!F.voorraad[t]) return false; F.voorraad[t]--; if (!F.voorraad[t]) delete F.voorraad[t]; bewaar(); return true; }
@@ -1668,15 +1716,17 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     // ---------- tekenen in de winkel
     function tekenNiveau() {
       let el = $('niveau'); if (!el) { el = document.createElement('div'); el.id = 'niveau'; el.className = 'niveau'; $('munten').insertAdjacentElement('afterend', el); }
-      el.innerHTML = `<b>Niveau ${F.niveau}</b><i><span style="width:${Math.round(F.xp / nodig(F.niveau) * 100)}%"></span></i><small>${F.xp}/${nodig(F.niveau)} XP</small>`;
+      el.innerHTML = `<b>Niveau ${F.niveau}</b><em>${titel()}</em><i><span style="width:${Math.round(F.xp / nodig(F.niveau) * 100)}%"></span></i><small>${F.xp}/${nodig(F.niveau)} XP</small>`;
+      if (!el.dataset.klik) { el.dataset.klik = '1'; el.setAttribute('role', 'button'); el.tabIndex = 0; el.title = 'Bekijk je beloningspad'; el.addEventListener('click', toonPad); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toonPad(); } }); }
     }
     function tekenWinkelFut() {
+      tekenNiveau();
       let box = $('fut'); if (!box) { box = document.createElement('div'); box.id = 'fut'; box.className = 'fut'; $('pakjes').insertAdjacentElement('afterend', box); }
       const a = aanbieding(), P = PAKJES[a], lijst = opdrachten(), voorraad = Object.entries(F.voorraad).filter(([, n]) => n > 0);
       const nu = new Date(), morgen = new Date(nu); morgen.setHours(24, 0, 0, 0); const ms = morgen - nu, u = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
       box.innerHTML = `
         <section class="fut-blok fut-aanbieding"><div class="pak-wrap klein" data-koop="${a}" ${kortingOp() ? '' : 'data-korting="1"'}>${pakSVG(a)}</div><div><span class="fut-label">Aanbieding van de dag</span><h3>${P.naam}</h3><p>${P.tekst}</p><p class="fut-timer">Nog ${u} uur en ${m} minuten</p>${kortingOp() ? '<p><b>Vandaag al gekocht.</b> Morgen is er een nieuwe aanbieding.</p>' : `<button class="knop hoofd" data-koop="${a}" data-korting="1" type="button"><s>${P.prijs}</s> ${kortingPrijs(a)} ${MUNT}</button>`}</div></section>
-        <section class="fut-blok"><h3>Mijn pakjes</h3>${voorraad.length ? `<div class="voorraad">${voorraad.map(([t, n]) => `<div class="voorraad-pak"><div class="pak-wrap mini" data-koop="${t}" data-voorraad="1">${pakSVG(t)}</div><span>${PAKJES[t].naam}${n > 1 ? ' × ' + n : ''}</span><button class="knop" data-koop="${t}" data-voorraad="1" type="button">Openen</button></div>`).join('')}</div>` : '<p class="fut-leeg">Nog geen pakjes. Je krijgt ze door een niveau hoger te gaan en door te ruilen.</p>'}</section>
+        <section class="fut-blok"><h3>Mijn pakjes</h3>${voorraad.length ? `<div class="voorraad">${voorraad.map(([t, n]) => `<div class="voorraad-pak"><div class="pak-wrap mini" data-koop="${t}" data-voorraad="1">${pakSVG(t)}</div><span>${PAKJES[t].naam}${PAKJES[t].set && PAKJES[t].alleenElement ? ' (' + SETS[PAKJES[t].set].naam + ')' : ''}${n > 1 ? ' × ' + n : ''}</span><button class="knop" data-koop="${t}" data-voorraad="1" type="button">Openen</button></div>`).join('')}</div>` : '<p class="fut-leeg">Nog geen pakjes. Je krijgt ze door een niveau hoger te gaan en door te ruilen.</p>'}</section>
         <section class="fut-blok"><h3>Opdrachten van vandaag</h3><ul class="opdrachten">${lijst.map((o, i) => { const def = POOL.find(p => p.id === o.id), klaar = o.stand >= o.n; return `<li class="${o.opgehaald ? 'gedaan' : ''}"><div><b>${def.tekst(o.n)}</b><i><span style="width:${Math.round(o.stand / o.n * 100)}%"></span></i><small>${o.stand} van ${o.n} · ${def.munt} muntjes en 50 XP</small></div>${o.opgehaald ? '<span class="vinkje">✓</span>' : `<button class="knop ${klaar ? 'hoofd' : ''}" data-opdracht="${i}" type="button" ${klaar ? '' : 'disabled'}>Ophalen</button>`}</li>`; }).join('')}</ul><p class="fut-timer">Nieuwe opdrachten over ${u} uur en ${m} minuten</p></section>
         <section class="fut-blok fut-ruil"><details ${RUILEN.some(r => reserve(r).length >= r.n) ? 'open' : ''}><summary><h3>Ruilbalie</h3><span class="ruil-teller">${RUILEN.filter(r => reserve(r).length >= r.n).length} klaar om te ruilen</span></summary><p class="fut-leeg">Lever dubbele kaarten in voor iets beters. Je houdt altijd minstens één van elke kaart.</p><div class="ruilen">${RUILEN.map(r => { const heb0 = reserve(r).length, ok = heb0 >= r.n; return `<div class="ruil ${ok ? 'kan' : ''}"><b>${r.naam}</b><span>${typeof r.tekst === 'function' ? r.tekst() : r.tekst}</span><i><span style="width:${Math.min(100, Math.round(heb0 / r.n * 100))}%"></span></i><small>${Math.min(heb0, r.n)} van ${r.n} · ${r.beloning.pak ? PAKJES[r.beloning.pak].naam : ''}${r.beloning.pak && r.beloning.munt ? ' + ' : ''}${r.beloning.munt ? r.beloning.munt + ' muntjes' : ''}</small><button class="knop ${ok ? 'hoofd' : ''}" data-ruil="${r.id}" type="button" ${ok ? '' : 'disabled'}>Ruilen</button></div>`; }).join('')}</div></details></section>`;
     }
@@ -1702,14 +1752,14 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
       lg.remove();
     }
     tekenNiveau();
-    const GRATIS_MS = 4 * 3600000, GRATIS = ['brons', 'kaartjes', 'heldenmini'];
+    const GRATIS_MS = () => perk('gratisUur') * 3600000, GRATIS = ['brons', 'kaartjes', 'heldenmini'];
     const gratisKlaar = () => Date.now() >= (F.gratisVanaf || 0);
-    function haalGratis() { if (!gratisKlaar()) return; const t = GRATIS[Math.floor(Date.now() / GRATIS_MS) % GRATIS.length]; F.gratisVanaf = Date.now() + GRATIS_MS; bewaar(); openReeks(t, 1); }
+    function haalGratis() { if (!gratisKlaar()) return; const t = GRATIS[Math.floor(Date.now() / 3600000 / 4) % GRATIS.length]; F.gratisVanaf = Date.now() + GRATIS_MS(); bewaar(); openReeks(t, 1); }
     const MIJL = [0.25, 0.5, 0.75, 1];
     const MIJL_BEL = { zolder: [{ munt: 150 }, { pak: 'premium' }, { pak: 'regenboog' }, { munt: 1500, pak: 'wonder' }], coulissen: [{ munt: 150 }, { pak: 'premiere' }, { pak: 'loge' }, { munt: 1500, pak: 'wonder' }], helden: [{ munt: 150 }, { pak: 'superhelden' }, { pak: 'heldenlegende' }, { munt: 1500, pak: 'wonder' }] };
     function mijlpaal(set) { const inSet = KAARTEN.filter(k => k.set === set), heb0 = inSet.filter(k => heb(k.id)[0] + heb(k.id)[1] > 0).length, f = heb0 / Math.max(1, inSet.length), gehaald = F.mijl[set] || []; const open = MIJL.findIndex((m, i) => f >= m && !gehaald.includes(i)); return { f, open, gehaald }; }
     function haalMijlpaal(set) { const m = mijlpaal(set); if (m.open < 0) return; const b = MIJL_BEL[set][m.open]; (F.mijl[set] = F.mijl[set] || []).push(m.open); if (b.munt) S.munten += b.munt; if (b.pak) geefPak(b.pak); xp(60); bewaar(); GELUID.munt(); zetMunten(true); dialoog(`<div class="niveau-op"><span>${SETS[set].naam}</span><b>${Math.round(MIJL[m.open] * 100)}%</b></div><h2>Mijlpaal gehaald!</h2><p>Je krijgt ${b.munt ? `<b>${b.munt} muntjes</b>` : ''}${b.munt && b.pak ? ' en ' : ''}${b.pak ? `een <b>${PAKJES[b.pak].naam}</b> in Mijn pakjes` : ''}.</p>`, [{ tekst: 'Top!', hoofd: true }], 'feest'); tekenWinkel(); }
-    return { gratisKlaar, haalGratis, gratisVanaf: () => F.gratisVanaf, mijlpaal, haalMijlpaal, MIJL, toonWachtend, naTrek, tel, xp, neemUitVoorraad, kortingPrijs, kortingGebruikt, tekenWinkel: tekenWinkelFut, onthulling, kleur: z => KLEUR[z], geefPak, opdrachten };
+    return { laatsteXP: () => F.laatsteXP || 0, perk, titel, toonPad, gratisKlaar, haalGratis, gratisVanaf: () => F.gratisVanaf, mijlpaal, haalMijlpaal, MIJL, toonWachtend, naTrek, tel, xp, neemUitVoorraad, kortingPrijs, kortingGebruikt, tekenWinkel: tekenWinkelFut, onthulling, kleur: z => KLEUR[z], geefPak, opdrachten };
   })();
 
   // ---------------- geluid
@@ -1894,9 +1944,9 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
   }
   function haalBonus() {
     if (!bonusKlaar()) { dialoog(`<h2>Dagbonus</h2><p>Je hebt je bonus voor vandaag al opgehaald. Kom morgen terug voor dag ${Math.min(7, S.dag.reeks + 1)} van je reeks!</p>`, [{ tekst: 'Oké' }]); return; }
-    const reeks = volgendeReeks(), bedrag = BONUS[reeks - 1];
+    const reeks = volgendeReeks(), bedrag = Math.round(BONUS[reeks - 1] * (1 + FUT.perk('dagbonus') / 100));
     const chips = BONUS.map((b, i) => `<span class="${i + 1 < reeks ? 'gehad' : ''} ${i + 1 === reeks ? 'nu' : ''}">Dag ${i + 1}<b>${b}</b></span>`).join('');
-    dialoog(`<div class="bonus-dlg"><h2>Dagbonus!</h2><div class="bonus-munt">${MUNT}<b>+${bedrag}</b></div><div class="dag-reeks">${chips}</div><p>${reeks === 1 && S.dag.reeks > 1 ? 'Je reeks begint opnieuw, maar je krijgt toch een mooie bonus.' : reeks === 7 ? 'Je zit op de hoogste bonus. Blijf elke dag komen!' : `Dag ${reeks} van je reeks. Kom morgen terug, dan krijg je ${BONUS[reeks]}.`}</p></div>`, [{ tekst: 'Ophalen!', hoofd: true, doe: () => { S.dag = { laatst: vandaag(), reeks }; krijg(bedrag); bewaar(); tekenBonus(); const r = $('munten').getBoundingClientRect(); barst(r.left + r.width / 2, r.top + r.height / 2, 30, ['#F6D27A', '#E9B949', '#FFF3C4'], 6, 'ster'); } }]);
+    dialoog(`<div class="bonus-dlg"><h2>Dagbonus!</h2><div class="bonus-munt">${MUNT}<b>+${bedrag}</b></div><div class="dag-reeks">${chips}</div><p>${reeks === 1 && S.dag.reeks > 1 ? 'Je reeks begint opnieuw, maar je krijgt toch een mooie bonus.' : reeks === 7 ? 'Je zit op de hoogste bonus. Blijf elke dag komen!' : `Dag ${reeks} van je reeks. Kom morgen terug, dan krijg je ${BONUS[reeks]}.`}</p></div>`, [{ tekst: 'Ophalen!', hoofd: true, doe: () => { S.dag = { laatst: vandaag(), reeks }; krijg(bedrag); FUT.xp(20); bewaar(); tekenBonus(); const r = $('munten').getBoundingClientRect(); barst(r.left + r.width / 2, r.top + r.height / 2, 30, ['#F6D27A', '#E9B949', '#FFF3C4'], 6, 'ster'); } }]);
   }
 
   // ---------------- dialoog
@@ -1911,7 +1961,7 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     const r = (p, z) => `<tr><td>${zIcoon(z).replace('<svg', '<svg style="width:1em;height:1em;vertical-align:-.1em"')} ${ZNAAM[z]}</td><td>${(PAKJES.gewoon.kans[z] * 100).toLocaleString('nl-NL')}%</td><td>${(PAKJES.premium.kans[z] * 100).toLocaleString('nl-NL')}%</td></tr>`;
     dialoog(`<h2>Kansen</h2><p>Elk Zilveren pakje heeft 4 gewone, 2 ongewone en 1 zeldzame plek. Een Gouden pakje heeft 3 gewone, 2 ongewone en 2 zeldzame plekken. Op een zeldzame plek kun je dit trekken:</p>
       <table class="kansen"><tr><th>Zeldzaamheid</th><th>Zilveren pakje</th><th>Gouden pakje</th></tr>${['z', 'h', 'u', 'x'].map(z => r(0, z)).join('')}</table>
-      <p>Heel soms is een pakje een <b>wonderpakje</b>: alle kaarten zijn dan holo of beter. De kans is 1 op ${Math.round(1 / WONDER_KANS)}.</p>
+      <p>Heel soms is een pakje een <b>wonderpakje</b>: alle kaarten zijn dan holo of beter. De kans is 1 op ${FUT.perk('wonder')}, en wordt groter als je een hoger niveau haalt.</p>
       <p>Kans op een glimmende kaart: ${PAKJES.gewoon.glim * 100}% per Zilveren pakje en ${PAKJES.premium.glim * 100}% per Gouden pakje.</p>
       <h3 style="margin:.8rem 0 .3rem">Verkoopwaarde</h3><table class="kansen">${Object.keys(WAARDE).map(z => `<tr><td>${ZNAAM[z]}</td><td>${WAARDE[z]} munten</td></tr>`).join('')}<tr><td>Glimmend</td><td>3× zoveel</td></tr></table>`, [{ tekst: 'Sluiten' }]);
   }
@@ -1919,8 +1969,8 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
   // ---------------- winkel
   function tekenWinkel() {
     // ---------- de etalage: een plank per set, met de aanbieding bovenaan en de rest aan de zijkant
-    const KORT = { brons: '5 kaarten · soms iets moois', gewoon: '7 kaarten · 1 zeldzaam+', premium: '7 kaarten · 2 zeldzaam+', regenboog: '7 kaarten · holo gegarandeerd', element: () => '6 kaarten · alleen ' + ELEMENTEN[dagElement()].naam, doos: '10 zilveren pakjes · 1 gratis', coulissen: '6 kaarten · 1 zeldzaam+', helden: '6 kaarten · 1 zeldzaam+', kaartjes: '3 kaarten · goedkoop', premiere: '6 kaarten · 2 zeldzaam+', loge: '7 kaarten · holo gegarandeerd', heldenmini: '3 kaarten · goedkoop', superhelden: '6 kaarten · 2 zeldzaam+', heldenlegende: '6 kaarten · holo gegarandeerd' };
-    const PLANKEN = [{ set: 'zolder', pakjes: ['brons', 'gewoon', 'premium', 'regenboog', 'element', 'doos'] }, { set: 'coulissen', nieuw: true, pakjes: ['kaartjes', 'coulissen', 'premiere', 'loge'] }, { set: 'helden', pakjes: ['heldenmini', 'helden', 'superhelden', 'heldenlegende'] }];
+    const KORT = { brons: '5 kaarten · soms iets moois', gewoon: '7 kaarten · 1 zeldzaam+', premium: '7 kaarten · 2 zeldzaam+', regenboog: '7 kaarten · holo gegarandeerd', element: () => '6 kaarten · alleen ' + ELEMENTEN[dagElement()].naam, doos: '10 zilveren pakjes · 1 gratis', coulissen: '6 kaarten · 1 zeldzaam+', helden: '6 kaarten · 1 zeldzaam+', kaartjes: '3 kaarten · goedkoop', premiere: '6 kaarten · 2 zeldzaam+', loge: '7 kaarten · holo gegarandeerd', heldenmini: '3 kaarten · goedkoop', superhelden: '6 kaarten · 2 zeldzaam+', heldenlegende: '6 kaarten · holo gegarandeerd', coulelement: () => '6 kaarten · alleen ' + ELEMENTEN[dagElement()].naam, heldenelement: () => '6 kaarten · alleen ' + ELEMENTEN[dagElement()].naam, couldoos: '10 Coulissenpakjes · 1 gratis', heldendoos: '10 Heldenpakjes · 1 gratis' };
+    const PLANKEN = [{ set: 'zolder', pakjes: ['brons', 'gewoon', 'premium', 'regenboog', 'element', 'doos'] }, { set: 'coulissen', nieuw: true, pakjes: ['kaartjes', 'coulissen', 'premiere', 'loge', 'coulelement', 'couldoos'] }, { set: 'helden', pakjes: ['heldenmini', 'helden', 'superhelden', 'heldenlegende', 'heldenelement', 'heldendoos'] }];
     const paneel = $('pakjes').closest('.paneel');
     if (!$('fut-top')) {
       paneel.classList.add('winkel-paneel');
@@ -1933,7 +1983,7 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     $('pakjes').innerHTML = PLANKEN.map(pl => {
       const inSet = KAARTEN.filter(k => k.set === pl.set), heb0 = inSet.filter(k => heb(k.id)[0] + heb(k.id)[1] > 0).length, pct = Math.round(heb0 / Math.max(1, inSet.length) * 100);
       return `<section class="plank" aria-labelledby="pl-${pl.set}"><div class="plank-kop"><h3 id="pl-${pl.set}">${SETS[pl.set].naam}</h3>${pl.nieuw ? '<span class="plank-nieuw">Nieuw</span>' : ''}<span class="plank-stand"><i><b style="width:${pct}%"></b>${FUT.MIJL.map((m, mi) => `<em class="${(FUT.mijlpaal(pl.set).gehaald || []).includes(mi) ? 'gehaald' : ''}" style="left:${m * 100}%"></em>`).join('')}</i>${heb0} van ${inSet.length}</span>${FUT.mijlpaal(pl.set).open >= 0 ? `<button class="knop goud plank-mijl" data-mijl="${pl.set}" type="button">Beloning: ${Math.round(FUT.MIJL[FUT.mijlpaal(pl.set).open] * 100)}%</button>` : ''}</div>
-        <div class="plank-rij">${pl.pakjes.map(t => { const P = PAKJES[t], k0 = typeof KORT[t] === 'function' ? KORT[t]() : KORT[t]; return `<div class="pak-tegel${P.tier === 'regenboog' ? ' bijzonder' : ''}"><div class="pak-wrap" data-koop="${t}" title="${esc(P.tekst)}">${pakSVG(t)}</div><b>${P.naam}</b><small>${k0}</small><button class="knop ${['premium', 'regenboog', 'premiere', 'loge', 'superhelden', 'heldenlegende'].includes(t) ? 'goud' : 'hoofd'}" data-koop="${t}" type="button">${MUNT} ${P.prijs}</button></div>`; }).join('')}</div></section>`;
+        <div class="plank-rij">${pl.pakjes.map(t => { const P = PAKJES[t], k0 = typeof KORT[t] === 'function' ? KORT[t]() : KORT[t]; return `<div class="pak-tegel${P.tier === 'regenboog' ? ' bijzonder' : ''}"><div class="pak-wrap" data-koop="${t}" title="${esc(P.tekst)}">${pakSVG(t)}</div><b>${P.naam}</b><small>${k0}</small><button class="knop ${['premium', 'regenboog', 'premiere', 'loge', 'superhelden', 'heldenlegende'].includes(t) ? 'goud' : 'hoofd'}" data-koop="${t}" type="button">${MUNT} ${prijsVan(t) !== P.prijs ? `<s>${P.prijs}</s> ` : ''}${prijsVan(t)}</button></div>`; }).join('')}</div></section>`;
     }).join('');
     const u = uniek();
     $('w-stand').textContent = `${u} van de ${KAARTEN.length} kaarten verzameld`;
@@ -1960,9 +2010,10 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     const prijs = k.dataset.korting ? FUT.kortingPrijs(t) : P.prijs;
     if (S.munten < prijs) { dialoog(`<h2>Te weinig muntjes</h2><p>Je hebt ${S.munten} muntjes en dit kost er ${prijs}. Haal je dagbonus op, doe een opdracht of verkoop een paar dubbele kaarten.</p>`, [{ tekst: 'Oké' }]); return; }
     if (k.dataset.korting) { S.munten -= prijs; S.stats.uitgegeven += prijs; FUT.kortingGebruikt(); bewaar(); GELUID.koop(); zetMunten(true); openReeks(t, 1); return; }
-    if (S.munten < P.prijs) { dialoog(`<h2>Te weinig muntjes</h2><p>Je hebt ${S.munten} muntjes en dit kost er ${P.prijs}. Haal je dagbonus op of verkoop een paar dubbele kaarten.</p>`, [{ tekst: 'Oké' }]); return; }
-    S.munten -= P.prijs; S.stats.uitgegeven += P.prijs; bewaar(); GELUID.koop(); zetMunten(true);
-    openReeks(P.doos ? 'gewoon' : t, P.doos ? 10 : 1);
+    const echt = prijsVan(t);
+    if (S.munten < echt) { dialoog(`<h2>Te weinig muntjes</h2><p>Je hebt ${S.munten} muntjes en dit kost er ${echt}. Haal je dagbonus op of verkoop een paar dubbele kaarten.</p>`, [{ tekst: 'Oké' }]); return; }
+    S.munten -= echt; S.stats.uitgegeven += echt; bewaar(); GELUID.koop(); zetMunten(true);
+    openReeks(P.doos ? P.doosVan : t, P.doos ? 10 : 1);
   });
 
   // ---------------- trekken
@@ -2000,12 +2051,12 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     bank.hidden = false; document.body.style.overflow = 'hidden';
     for (let i = 0; i < aantal; i++) {
       $('bank-titel').textContent = aantal > 1 ? `Pakje ${i + 1} van ${aantal}` : PAKJES[type].naam;
-      const wonder = BEHEER.wonderVolgende || Math.random() < WONDER_KANS; BEHEER.wonderVolgende = false;
+      const wonder = BEHEER.wonderVolgende || Math.random() < 1 / FUT.perk('wonder'); BEHEER.wonderVolgende = false;
       const kaarten = trekPakje(type, wonder);
       if (wonder) $('bank-titel').textContent = 'Wonderpakje!';
       const keuze = await toonPakje(type, kaarten, aantal - i - 1);
       if (keuze === 'stop') { for (let j = i + 1; j < aantal; j++) trekPakje(type); break; }
-      if (keuze === 'opnieuw') { const P = PAKJES[type]; S.munten -= P.prijs; S.stats.uitgegeven += P.prijs; bewaar(); GELUID.koop(); zetMunten(true); aantal++; }
+      if (keuze === 'opnieuw') { const pr = prijsVan(type); S.munten -= pr; S.stats.uitgegeven += pr; bewaar(); GELUID.koop(); zetMunten(true); aantal++; }
     }
     sluitBank();
   }
@@ -2129,9 +2180,9 @@ COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; 
     if (!reduce) $('verdeel').querySelectorAll('.kaart').forEach((el, j) => el.animate && el.animate([{ transform: 'scale(.6) translateY(40px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, delay: j * 60, easing: 'cubic-bezier(.2,1.4,.4,1)', fill: 'backwards' }));
     $('verdeel').addEventListener('click', e => { const k = e.target.closest('.kaart'); if (k) toonDetail(k.dataset.id); });
     const P = PAKJES[type], balk = document.createElement('div'); balk.className = 'samenvatting';
-    balk.innerHTML = (kaarten.wonder ? '<p class="wonder-melding">Een wonderpakje! Dat gebeurt maar 1 op de 400 keer.</p>' : '') + `<p>${nieuw ? nieuw + ' nieuwe kaart' + (nieuw === 1 ? '' : 'en') + '! ' : ''}Waarde: ${waarde} munten</p>` +
+    balk.innerHTML = `<p class="xp-melding">+${FUT.laatsteXP()} XP</p>` + (kaarten.wonder ? `<p class="wonder-melding">Een wonderpakje! Dat gebeurt maar 1 op de ${FUT.perk('wonder')} keer.</p>` : '') + `<p>${nieuw ? nieuw + ' nieuwe kaart' + (nieuw === 1 ? '' : 'en') + '! ' : ''}Waarde: ${waarde} munten</p>` +
       (nogTeGaan > 0 ? `<button class="knop hoofd" data-k="verder" type="button">Volgend pakje (${nogTeGaan} over)</button><button class="knop" data-k="stop" type="button">Rest snel openen</button>`
-        : `<button class="knop hoofd" data-k="opnieuw" type="button" ${S.munten < P.prijs ? 'disabled' : ''}>Nog een ${P.naam.toLowerCase()} (${P.prijs})</button><button class="knop" data-k="album" type="button">Naar het album</button><button class="knop" data-k="klaar" type="button">Klaar</button>`);
+        : `<button class="knop hoofd" data-k="opnieuw" type="button" ${S.munten < prijsVan(type) ? 'disabled' : ''}>Nog een ${P.naam.toLowerCase()} (${prijsVan(type)})</button><button class="knop" data-k="album" type="button">Naar het album</button><button class="knop" data-k="klaar" type="button">Klaar</button>`);
     bank.appendChild(balk);
     balk.addEventListener('click', e => {
       const b = e.target.closest('[data-k]'); if (!b || b.disabled) return;

@@ -4,96 +4,112 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Rommelblok – Ruben's rommelhoekje</title>
-<meta name="description" content="Bouw je eigen wereld van blokken: graven, bouwen, zwemmen en vliegen.">
+<meta name="description" content="Een eindeloze wereld van blokken: overleven of creatief bouwen, met grotten, ertsen, gereedschap en echt licht.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M32%206L56%2018%2032%2030%208%2018z%22%20fill%3D%22%235FA83E%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M8%2018l24%2012v28L8%2046z%22%20fill%3D%22%238A5A36%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M56%2018L32%2030v28l24-12z%22%20fill%3D%22%236E4426%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M8%2018l24%2012%2024-12%22%20fill%3D%22none%22%20stroke%3D%22%237CC452%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M14%2024v6M22%2028v8M42%2030v6M50%2026v8%22%20stroke%3D%22%235FA83E%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
 <style>
 :root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 *, *::before, *::after { box-sizing: inherit; }
 html, body { margin: 0; height: 100%; overflow: hidden; }
-body { background: #10162E; color: var(--papier); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
-.rb-kop { display: flex; align-items: center; gap: .8rem; padding: .45rem .8rem; background: var(--nacht); box-shadow: 0 3px 0 rgba(0,0,0,.3); z-index: 3; flex-wrap: wrap; }
+body { background: #05060c; color: var(--papier); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
+.rb-kop { display: flex; align-items: center; gap: .7rem; padding: .4rem .8rem; background: var(--nacht); box-shadow: 0 3px 0 rgba(0,0,0,.3); z-index: 3; flex-wrap: wrap; }
 .rb-kop a { color: var(--manila); font-weight: 700; font-size: .9rem; }
-.rb-titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; font-size: 1.1rem; } .rb-titel svg { width: 28px; height: 28px; }
+.rb-titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; font-size: 1.1rem; } .rb-titel svg { width: 26px; height: 26px; }
+.rb-label { font-size: .75rem; font-weight: 800; background: rgba(255,255,255,.14); padding: .1rem .5rem; border-radius: 999px; }
 .rb-kop .rechts { margin-left: auto; display: flex; gap: .35rem; }
-.rb-knop { font: inherit; font-weight: 800; font-size: .88rem; border: 0; border-radius: 6px; padding: .4rem .75rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
-.rb-knop[aria-pressed="true"] { background: var(--goud); }
+.rb-knop { font: inherit; font-weight: 800; font-size: .86rem; border: 0; border-radius: 6px; padding: .4rem .75rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.rb-knop[aria-pressed="true"] { background: var(--goud); } .rb-knop[disabled] { opacity: .45; cursor: not-allowed; }
 .rb-veld { position: relative; flex: 1; overflow: hidden; touch-action: none; }
 .rb-veld canvas { display: block; width: 100% !important; height: 100% !important; }
-.rb-veld.onderwater::after { content: ""; position: absolute; inset: 0; background: rgba(30,90,180,.35); pointer-events: none; }
+.rb-veld.onderwater::after { content: ""; position: absolute; inset: 0; background: rgba(20,70,160,.4); pointer-events: none; }
+.rb-veld.rb-au::before { content: ""; position: absolute; inset: 0; background: rgba(200,30,40,.35); pointer-events: none; z-index: 2; animation: rb-au .35s ease-out forwards; }
+@keyframes rb-au { to { opacity: 0; } }
 .rb-kruis { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); pointer-events: none; }
 .rb-kruis::before, .rb-kruis::after { content: ""; position: absolute; background: #fff; mix-blend-mode: difference; }
 .rb-kruis::before { left: 10px; top: 0; width: 2px; height: 22px; } .rb-kruis::after { top: 10px; left: 0; height: 2px; width: 22px; }
-.rb-onder { position: absolute; left: 50%; bottom: .7rem; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: .3rem; z-index: 2; }
-#rb-bloknaam { font-weight: 800; font-size: .9rem; text-shadow: 0 2px 0 rgba(0,0,0,.6); }
-.rb-balk { display: flex; gap: 3px; background: rgba(20,20,26,.6); padding: 4px; border-radius: 8px; }
-.rb-vak { position: relative; width: 48px; height: 48px; border: 2px solid rgba(255,255,255,.25); border-radius: 6px; background: rgba(0,0,0,.25); padding: 0; cursor: pointer; }
-.rb-vak img { width: 40px; height: 40px; image-rendering: pixelated; display: block; margin: auto; }
-.rb-vak span { position: absolute; left: 3px; top: 1px; font-size: .62rem; font-weight: 800; color: #fff; text-shadow: 0 1px 0 #000; }
-.rb-vak.gekozen { border-color: #FFE76A; box-shadow: 0 0 0 2px #FFE76A; background: rgba(255,231,106,.18); }
-.rb-scherm { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(10,14,30,.72); padding: 1rem; }
+.rb-onder { position: absolute; left: 50%; bottom: .6rem; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: .25rem; z-index: 2; }
+#rb-bloknaam { font-weight: 800; font-size: .88rem; text-shadow: 0 2px 0 rgba(0,0,0,.7); min-height: 1.2em; }
+.rb-balk { display: flex; gap: 3px; background: rgba(10,10,16,.6); padding: 4px; border-radius: 8px; }
+.rb-vak { position: relative; width: 48px; height: 48px; border: 2px solid rgba(255,255,255,.22); border-radius: 6px; background: rgba(0,0,0,.3); padding: 0; cursor: pointer; color: #fff; }
+.rb-vak img { width: 38px; height: 38px; image-rendering: pixelated; display: block; margin: auto; }
+.rb-vak span { position: absolute; left: 3px; top: 1px; font-size: .6rem; font-weight: 800; text-shadow: 0 1px 0 #000; }
+.rb-vak b { position: absolute; right: 3px; bottom: 1px; font-size: .78rem; font-weight: 800; text-shadow: 0 1px 0 #000, 1px 0 0 #000; }
+.rb-vak i { position: absolute; left: 5px; bottom: 3px; height: 3px; border-radius: 2px; background: #5FD35F; }
+.rb-vak.gekozen { border-color: #FFE76A; box-shadow: 0 0 0 2px #FFE76A; background: rgba(255,231,106,.16); }
+#rb-status { display: flex; gap: 1rem; align-items: center; }
+#rb-status > span { display: flex; gap: 2px; } #rb-status i { width: 14px; height: 13px; display: block; opacity: .25; }
+#rb-status i.vol, #rb-status i.half { opacity: 1; } #rb-status i.half { opacity: .65; }
+.rb-hart i { background: radial-gradient(circle at 30% 30%, #FF7A7A, #C8323C 70%); clip-path: path('M7 13 L1 6 A3.4 3.4 0 0 1 7 2 A3.4 3.4 0 0 1 13 6 Z'); }
+.rb-vlaai i { border-radius: 50%; background: radial-gradient(circle, #A8162B 0 45%, #C98A43 48%); box-shadow: 0 0 0 1px #5C3A21; }
+.rb-adem i { border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #7FC8FF 60%); }
+#rb-hand { position: absolute; right: 7%; bottom: 3%; width: 22vmin; height: 22vmin; pointer-events: none; z-index: 1; transform: rotate(-18deg); transform-origin: 80% 100%; filter: drop-shadow(0 6px 8px rgba(0,0,0,.4)); }
+#rb-hand img { width: 100%; height: 100%; image-rendering: pixelated; }
+#rb-hand.zwaai { animation: rb-zwaai .25s ease-out; } @keyframes rb-zwaai { 40% { transform: rotate(-48deg) translate(-8%, -6%); } }
+.rb-scherm { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(5,6,14,.74); padding: 1rem; }
 .rb-scherm[hidden] { display: none; }
-.rb-kaart { background: var(--manila); color: var(--inkt); border-radius: 12px; padding: 1.2rem 1.4rem; max-width: 34rem; box-shadow: 0 6px 0 rgba(0,0,0,.4); max-height: 100%; overflow: auto; }
+.rb-kaart { background: var(--manila); color: var(--inkt); border-radius: 12px; padding: 1.1rem 1.3rem; max-width: 40rem; width: 100%; box-shadow: 0 6px 0 rgba(0,0,0,.4); max-height: 100%; overflow: auto; }
+.rb-kaart.breed { max-width: 64rem; }
 .rb-kaart h2 { margin: 0 0 .4rem; } .rb-kaart ul { margin: .4rem 0 .8rem; padding-left: 1.2rem; } .rb-kaart li { margin: .2rem 0; }
 .rb-kaart kbd { background: var(--papier); border-radius: 4px; padding: 0 .35rem; font: inherit; font-weight: 800; box-shadow: 0 1px 0 rgba(0,0,0,.3); }
-.rb-groot { font: inherit; font-weight: 800; font-size: 1.1rem; border: 0; border-radius: 8px; padding: .7rem 1.4rem; background: var(--rood); color: #fff; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.35); }
-.rb-alleen-touch { display: none; } body.rb-aanraak .rb-toets { display: none; } body.rb-aanraak .rb-alleen-touch { display: block; } body.rb-aanraak .rb-alleen-muis { display: none; }
-.rb-menu-blokken { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: .4rem; margin: .6rem 0 .8rem; }
-.rb-menu-blokken button { font: inherit; font-size: .72rem; font-weight: 700; border: 0; border-radius: 8px; background: var(--papier); padding: .4rem .2rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .15rem; }
-.rb-menu-blokken img { width: 44px; height: 44px; image-rendering: pixelated; }
-.rb-menu-blokken button:hover { box-shadow: 0 0 0 2px var(--rood); }
-#rb-melding { position: absolute; left: 50%; top: .8rem; transform: translateX(-50%); background: var(--papier); color: var(--inkt); font-weight: 700; padding: .4rem .8rem; border-radius: 8px; z-index: 4; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.rb-groot { font: inherit; font-weight: 800; font-size: 1.05rem; border: 0; border-radius: 8px; padding: .65rem 1.2rem; background: var(--rood); color: #fff; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.35); }
+.rb-groot.groen { background: #2E8B62; } .rb-groot.blauw { background: #2F5BB8; }
+.rb-keuze { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .8rem; } .rb-keuze button { text-align: left; } .rb-keuze small { display: block; font-weight: 600; font-size: .8rem; opacity: .9; }
+.rb-alleen-touch { display: none; } body.rb-aanraak .rb-alleen-touch { display: block; } body.rb-aanraak .rb-alleen-muis, body.rb-aanraak .rb-toets { display: none; }
+.rb-klein { font-size: .82rem; color: #5E5643; margin: 0 0 .5rem; }
+.rb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr)); gap: .4rem; margin: .6rem 0 .8rem; }
+.rb-grid button { font: inherit; font-size: .7rem; font-weight: 700; border: 0; border-radius: 8px; background: var(--papier); padding: .4rem .2rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .15rem; }
+.rb-grid img { width: 40px; height: 40px; image-rendering: pixelated; } .rb-grid button:hover { box-shadow: 0 0 0 2px var(--rood); }
+.rb-rugzak { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 1.2rem; } @media (max-width: 760px) { .rb-rugzak { grid-template-columns: 1fr; } }
+.rb-inv { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; margin-bottom: .5rem; background: #3A2E26; padding: 4px; border-radius: 8px; }
+.rb-inv .rb-vak { width: auto; height: auto; aspect-ratio: 1; } .rb-inv .rb-vak img { width: 80%; height: 80%; } .rb-inv .balkvak { border-color: rgba(255,231,106,.45); }
+.rb-recepten { display: flex; flex-direction: column; gap: .3rem; max-height: 58vh; overflow: auto; padding-right: .2rem; }
+.rb-recept { display: grid; grid-template-columns: 40px 1fr auto; gap: .5rem; align-items: center; background: var(--papier); border-radius: 8px; padding: .35rem .5rem; opacity: .7; }
+.rb-recept.kan { opacity: 1; box-shadow: 0 0 0 2px #2E8B62; } .rb-recept > img { width: 36px; height: 36px; image-rendering: pixelated; }
+.rb-recept b { display: block; font-size: .88rem; } .rb-recept span { display: flex; flex-wrap: wrap; gap: .25rem .55rem; font-size: .75rem; }
+.rb-recept em { font-style: normal; display: inline-flex; align-items: center; gap: .15rem; } .rb-recept em img { width: 16px; height: 16px; image-rendering: pixelated; } .rb-recept em.mist { color: #C8323C; font-weight: 800; }
+#rb-melding { position: absolute; left: 50%; top: .8rem; transform: translateX(-50%); background: var(--papier); color: var(--inkt); font-weight: 700; padding: .4rem .8rem; border-radius: 8px; z-index: 4; box-shadow: 0 3px 0 rgba(0,0,0,.3); max-width: 90%; text-align: center; }
+#rb-melding.klein { top: auto; bottom: 7.4rem; font-size: .85rem; padding: .25rem .6rem; background: rgba(251,246,233,.9); }
 #rb-joy { display: none; position: absolute; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; background: rgba(255,255,255,.15); box-shadow: inset 0 0 0 2px rgba(255,255,255,.4); pointer-events: none; z-index: 3; }
 #rb-joyknop { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(255,255,255,.55); }
-.rb-touch-knoppen { position: absolute; right: .8rem; bottom: 5.4rem; display: none; grid-template-columns: repeat(2, 64px); gap: 8px; z-index: 3; }
+.rb-touch-knoppen { position: absolute; right: .8rem; bottom: 6rem; display: none; grid-template-columns: repeat(2, 62px); gap: 8px; z-index: 3; }
 body.rb-aanraak .rb-touch-knoppen { display: grid; }
-.rb-touch-knoppen button { width: 64px; height: 64px; border-radius: 50%; border: 0; font: inherit; font-weight: 800; font-size: .8rem; background: rgba(251,246,233,.85); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.35); touch-action: none; user-select: none; -webkit-user-select: none; }
+.rb-touch-knoppen button { width: 62px; height: 62px; border-radius: 50%; border: 0; font: inherit; font-weight: 800; font-size: .78rem; background: rgba(251,246,233,.85); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.35); touch-action: none; user-select: none; -webkit-user-select: none; }
 #rb-hak { background: rgba(200,50,60,.9); color: #fff; } #rb-bouw { background: rgba(46,139,98,.9); color: #fff; }
-.rb-touch-tip { position: absolute; left: .8rem; bottom: 5.4rem; font-size: .78rem; color: rgba(255,255,255,.75); max-width: 10rem; display: none; z-index: 2; pointer-events: none; }
-body.rb-aanraak .rb-touch-tip { display: block; }
-@media (max-width: 560px) { .rb-vak { width: 36px; height: 36px; } .rb-vak img { width: 30px; height: 30px; } .rb-kop .rb-titel span:last-child { display: none; } }
+@media (max-width: 560px) { .rb-vak { width: 36px; height: 36px; } .rb-vak img { width: 28px; height: 28px; } .rb-kop .rb-titel span:last-child { display: none; } #rb-status i { width: 10px; height: 10px; } }
 </style>
 </head>
 <body data-pagina="rommelblok">
 <div class="rb-kop">
   <a href="./">Terug naar het rommelhoekje</a>
-  <span class="rb-titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><path d="M32 6L56 18 32 30 8 18z" fill="#5FA83E" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M8 18l24 12v28L8 46z" fill="#8A5A36" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M56 18L32 30v28l24-12z" fill="#6E4426" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M8 18l24 12 24-12" fill="none" stroke="#7CC452" stroke-width="2"/><path d="M14 24v6M22 28v8M42 30v6M50 26v8" stroke="#5FA83E" stroke-width="3" stroke-linecap="round"/></svg></span><span>Rommelblok</span></span>
-  <div class="rechts"><button class="rb-knop" id="rb-blokknop" type="button">Blokken<span class="rb-toets"> (E)</span></button><button class="rb-knop" id="rb-vlieg" type="button" aria-pressed="false">Vliegen<span class="rb-toets"> (F)</span></button></div>
+  <span class="rb-titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><path d="M32 6L56 18 32 30 8 18z" fill="#5FA83E" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M8 18l24 12v28L8 46z" fill="#8A5A36" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M56 18L32 30v28l24-12z" fill="#6E4426" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M8 18l24 12 24-12" fill="none" stroke="#7CC452" stroke-width="2"/><path d="M14 24v6M22 28v8M42 30v6M50 26v8" stroke="#5FA83E" stroke-width="3" stroke-linecap="round"/></svg></span><span>Rommelblok</span></span><span class="rb-label" id="rb-modus"></span><span class="rb-label" id="rb-tijd"></span>
+  <div class="rechts"><button class="rb-knop" id="rb-blokknop" type="button">Rugzak<span class="rb-toets"> (E)</span></button><button class="rb-knop" id="rb-vlieg" type="button" aria-pressed="false" hidden>Vliegen<span class="rb-toets"> (F)</span></button></div>
 </div>
 <div class="rb-veld" id="rb-veld">
   <div class="rb-kruis" aria-hidden="true"></div>
+  <div id="rb-hand" aria-hidden="true"></div>
   <div id="rb-melding" hidden role="status"></div>
-  <div class="rb-onder"><span id="rb-bloknaam"></span><div class="rb-balk" id="rb-balk" role="toolbar" aria-label="Blokken om te bouwen"></div></div>
+  <div class="rb-onder"><div id="rb-status" hidden></div><span id="rb-bloknaam"></span><div class="rb-balk" id="rb-balk" role="toolbar" aria-label="Je balk"></div></div>
   <div id="rb-joy" aria-hidden="true"><div id="rb-joyknop"></div></div>
-  <p class="rb-touch-tip">Links: sleep om te lopen. Rechts: sleep om te kijken, tik om te bouwen.</p>
   <div class="rb-touch-knoppen" aria-label="Knoppen"><button id="rb-hak" type="button">Hak</button><button id="rb-bouw" type="button">Bouw</button><button id="rb-spring" type="button">Spring</button><button id="rb-omlaag" type="button">Omlaag</button></div>
   <div class="rb-scherm" id="rb-start">
     <div class="rb-kaart">
       <h2>Rommelblok</h2>
-      <p>Een hele wereld van blokken, alleen voor jou. Graaf, bouw, zwem en vlieg. Je wereld wordt vanzelf bewaard.</p>
+      <p>Een eindeloze wereld van blokken. Ga op ontdekking, graaf in donkere grotten naar kolen, ijzer, goud en robijn, maak je eigen gereedschap en bouw wat je wilt.</p>
       <ul class="rb-alleen-muis">
-        <li><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> om te lopen, de muis om rond te kijken</li>
-        <li><kbd>Spatie</kbd> om te springen, twee keer snel om te gaan vliegen. <kbd>Shift</kbd> om te rennen</li>
-        <li>Linkermuisknop: blok weghalen. Rechtermuisknop: blok neerzetten</li>
-        <li><kbd>1</kbd> tot <kbd>9</kbd> of het muiswiel om een blok te kiezen, <kbd>E</kbd> voor alle blokken</li>
-        <li><kbd>Esc</kbd> om even te pauzeren</li>
+        <li><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> lopen, muis kijken, <kbd>Spatie</kbd> springen, <kbd>Shift</kbd> rennen</li>
+        <li>Linkermuisknop <b>ingedrukt houden</b>: hakken. Rechtermuisknop: bouwen of eten</li>
+        <li><kbd>1</kbd> tot <kbd>9</kbd> of het muiswiel: kiezen. <kbd>E</kbd>: rugzak en maken</li>
       </ul>
       <ul class="rb-alleen-touch">
-        <li>Sleep met je linkerduim om te lopen</li>
-        <li>Sleep rechts om rond te kijken, en tik om een blok neer te zetten</li>
-        <li>Hak haalt het blok in het midden weg, Spring laat je springen</li>
-        <li>Tik onderaan op een blok om het te kiezen</li>
+        <li>Links slepen om te lopen, rechts slepen om te kijken, tikken om te bouwen</li>
+        <li>Houd <b>Hak</b> ingedrukt om een blok weg te hakken</li>
       </ul>
-      <button class="rb-groot" id="rb-speel" type="button">Speel!</button>
+      <button class="rb-groot" id="rb-verder" type="button" hidden>Ga verder</button>
+      <div class="rb-keuze"><button class="rb-groot groen" id="rb-nieuw-over" type="button">Nieuwe wereld: overleven<small>Verzamel hout, maak gereedschap, let op je levens en je honger.</small></button><button class="rb-groot blauw" id="rb-nieuw-crea" type="button">Nieuwe wereld: creatief<small>Alle blokken, niets kan kapot, en je kunt vliegen.</small></button></div>
     </div>
   </div>
-  <div class="rb-scherm" id="rb-menu" hidden>
-    <div class="rb-kaart">
-      <h2>Alle blokken</h2>
-      <p>Kies een blok voor het vakje dat nu geselecteerd is.</p>
-      <div class="rb-menu-blokken" id="rb-menu-blokken"></div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="rb-groot" type="button" data-sluit="1">Terug naar je wereld</button><button class="rb-knop" id="rb-nieuw" type="button">Nieuwe wereld maken</button></div>
-    </div>
-  </div>
+  <div class="rb-scherm" id="rb-menu" hidden><div class="rb-kaart breed"><div id="rb-menu-inhoud"></div><div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem"><button class="rb-groot" type="button" data-sluit="1">Terug naar je wereld</button><button class="rb-knop" id="rb-naarstart" type="button">Naar het startscherm</button></div></div></div>
+  <div class="rb-scherm" id="rb-pauze" hidden><div class="rb-kaart" style="text-align:center;max-width:22rem"><h2>Pauze</h2><p>Klik om verder te spelen.</p></div></div>
+  <div class="rb-scherm" id="rb-dood" hidden><div class="rb-kaart" style="text-align:center;max-width:24rem"><h2>Je bent flauwgevallen!</h2><p>Geen zorgen: je wordt wakker bij je startplek, en je rugzak heb je nog.</p><button class="rb-groot" id="rb-opstaan" type="button">Opstaan</button></div></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -136,6 +152,7 @@ body.rb-aanraak .rb-touch-tip { display: block; }
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
   };
   const VKEY = 'rommelhoekje-verstuurd';
@@ -242,48 +259,55 @@ body.rb-aanraak .rb-touch-tip { display: block; }
 
 </script>
 <script>
-// Rommelblok: de wereld. Blokken, textuur, wereldmaker en het tekenen per stuk wereld.
+// Rommelblok: de wereld. Eindeloos, in stukken van 16 x 16, met echt licht per blok.
 const RBW = (function () {
-  // ---------------- blokken
-  // id: [naam, doorzichtig?, vast?, textuur boven, zijkant, onder]
-  const BLOK = [
-    null,
-    ['Gras', 0, 1, 'gras', 'graszij', 'aarde'],
-    ['Aarde', 0, 1, 'aarde', 'aarde', 'aarde'],
-    ['Steen', 0, 1, 'steen', 'steen', 'steen'],
-    ['Kei', 0, 1, 'kei', 'kei', 'kei'],
-    ['Zand', 0, 1, 'zand', 'zand', 'zand'],
-    ['Water', 2, 0, 'water', 'water', 'water'],
-    ['Boomstam', 0, 1, 'stamring', 'stam', 'stamring'],
-    ['Bladeren', 1, 1, 'blad', 'blad', 'blad'],
-    ['Planken', 0, 1, 'plank', 'plank', 'plank'],
-    ['Glas', 1, 1, 'glas', 'glas', 'glas'],
-    ['Baksteen', 0, 1, 'baksteen', 'baksteen', 'baksteen'],
-    ['Sneeuw', 0, 1, 'sneeuw', 'sneeuwzij', 'aarde'],
-    ['Goudader', 0, 1, 'goud', 'goud', 'goud'],
-    ['Kolenader', 0, 1, 'kolen', 'kolen', 'kolen'],
-    ['Rode wol', 0, 1, 'wolrood', 'wolrood', 'wolrood'],
-    ['Blauwe wol', 0, 1, 'wolblauw', 'wolblauw', 'wolblauw'],
-    ['Gele wol', 0, 1, 'wolgeel', 'wolgeel', 'wolgeel'],
-    ['Groene wol', 0, 1, 'wolgroen', 'wolgroen', 'wolgroen'],
-    ['Paarse wol', 0, 1, 'wolpaars', 'wolpaars', 'wolpaars'],
-    ['Witte wol', 0, 1, 'wolwit', 'wolwit', 'wolwit'],
-    ['Vlaaiblok', 0, 1, 'vlaaitop', 'vlaaizij', 'vlaaionder'],
-    ['Rommelkist', 0, 1, 'kisttop', 'kistzij', 'kisttop'],
-    ['Lamp', 0, 1, 'lamp', 'lamp', 'lamp'],
-    ['Grind', 0, 1, 'grind', 'grind', 'grind'],
-    ['Bodemsteen', 0, 1, 'bodem', 'bodem', 'bodem'],
+  // blokken: naam, soort (0 dicht, 1 doorkijk, 2 water, 3 fakkel), vast, textuur boven/zij/onder, hardheid, gereedschap, minimale klasse, wat je krijgt, licht
+  const BLOK = [null,
+    ['Gras', 0, 1, 'gras', 'graszij', 'aarde', 0.6, 'schep', 0, 2, 0],
+    ['Aarde', 0, 1, 'aarde', 'aarde', 'aarde', 0.5, 'schep', 0, 2, 0],
+    ['Steen', 0, 1, 'steen', 'steen', 'steen', 1.5, 'houweel', 1, 4, 0],
+    ['Kei', 0, 1, 'kei', 'kei', 'kei', 2, 'houweel', 1, 4, 0],
+    ['Zand', 0, 1, 'zand', 'zand', 'zand', 0.5, 'schep', 0, 5, 0],
+    ['Water', 2, 0, 'water', 'water', 'water', 0, null, 0, 0, 0],
+    ['Boomstam', 0, 1, 'stamring', 'stam', 'stamring', 2, 'bijl', 0, 7, 0],
+    ['Bladeren', 1, 1, 'blad', 'blad', 'blad', 0.2, null, 0, -1, 0],
+    ['Planken', 0, 1, 'plank', 'plank', 'plank', 2, 'bijl', 0, 9, 0],
+    ['Glas', 1, 1, 'glas', 'glas', 'glas', 0.3, null, 0, 0, 0],
+    ['Baksteen', 0, 1, 'baksteen', 'baksteen', 'baksteen', 2, 'houweel', 1, 11, 0],
+    ['Sneeuw', 0, 1, 'sneeuw', 'sneeuwzij', 'aarde', 0.5, 'schep', 0, 2, 0],
+    ['Gouderts', 0, 1, 'goud', 'goud', 'goud', 3, 'houweel', 3, 13, 0],
+    ['Kolenerts', 0, 1, 'kolen', 'kolen', 'kolen', 3, 'houweel', 1, 101, 0],
+    ['Rode wol', 0, 1, 'wolrood', 'wolrood', 'wolrood', 0.8, null, 0, 15, 0],
+    ['Blauwe wol', 0, 1, 'wolblauw', 'wolblauw', 'wolblauw', 0.8, null, 0, 16, 0],
+    ['Gele wol', 0, 1, 'wolgeel', 'wolgeel', 'wolgeel', 0.8, null, 0, 17, 0],
+    ['Groene wol', 0, 1, 'wolgroen', 'wolgroen', 'wolgroen', 0.8, null, 0, 18, 0],
+    ['Paarse wol', 0, 1, 'wolpaars', 'wolpaars', 'wolpaars', 0.8, null, 0, 19, 0],
+    ['Witte wol', 0, 1, 'wolwit', 'wolwit', 'wolwit', 0.8, null, 0, 20, 0],
+    ['Vlaaiblok', 0, 1, 'vlaaitop', 'vlaaizij', 'vlaaionder', 0.5, null, 0, 21, 0],
+    ['Rommelkist', 0, 1, 'kisttop', 'kistzij', 'kisttop', 2, 'bijl', 0, 22, 0],
+    ['Lamp', 0, 1, 'lamp', 'lamp', 'lamp', 0.4, null, 0, 23, 15],
+    ['Grind', 0, 1, 'grind', 'grind', 'grind', 0.6, 'schep', 0, 24, 0],
+    ['Bodemsteen', 0, 1, 'bodem', 'bodem', 'bodem', 1e9, null, 9, 0, 0],
+    ['IJzererts', 0, 1, 'ijzer', 'ijzer', 'ijzer', 3, 'houweel', 2, 26, 0],
+    ['Robijnerts', 0, 1, 'robijn', 'robijn', 'robijn', 4, 'houweel', 3, 104, 0],
+    ['Fakkel', 3, 0, 'fakkel', 'fakkel', 'fakkel', 0.05, null, 0, 28, 14],
+    ['Werkbank', 0, 1, 'werkbanktop', 'werkbankzij', 'plank', 2, 'bijl', 0, 29, 0],
+    ['Oven', 0, 1, 'oventop', 'ovenzij', 'oventop', 3, 'houweel', 1, 30, 0],
+    ['Zandsteen', 0, 1, 'zandsteentop', 'zandsteen', 'zandsteentop', 1.2, 'houweel', 1, 31, 0],
+    ['Cactus', 1, 1, 'cactustop', 'cactus', 'cactustop', 0.4, null, 0, 32, 0],
   ];
-  const LUCHT = 0, WATER = 6, BLAD = 8, GLAS = 10, LAMP = 23, BODEM = 25;
-  const vast = id => id && BLOK[id][2] === 1;
-  const doorzicht = id => !id || BLOK[id][1] > 0;
+  const WATER = 6, BLAD = 8, BODEM = 25, FAKKEL = 28;
+  const vast = id => !!id && !!BLOK[id] && BLOK[id][2] === 1;
+  const dicht = id => !!id && !!BLOK[id] && BLOK[id][1] === 0;
+  const LICHT = new Uint8Array(256); BLOK.forEach((b, i) => { if (b) LICHT[i] = b[10]; });
+  const DICHT = new Uint8Array(256); BLOK.forEach((b, i) => { if (b && b[1] === 0) DICHT[i] = 1; });
 
-  // ---------------- textuur: alle blokken in één atlas van 8 x 8 vakjes, elk 16 x 16 pixels
+  // ---------------- textuur: één atlas van 8 x 8 vakjes van 16 pixels
   const TEX = {}, N = 16, A = 8;
   const atlas = document.createElement('canvas'); atlas.width = atlas.height = N * A; const g = atlas.getContext('2d');
   let vak = 0;
   const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(91);
-  const hex = (c, f) => { const n = parseInt(c.slice(1), 16); const r = Math.min(255, Math.max(0, Math.round((n >> 16) * f))), gg = Math.min(255, Math.max(0, Math.round(((n >> 8) & 255) * f))), b = Math.min(255, Math.max(0, Math.round((n & 255) * f))); return `rgb(${r},${gg},${b})`; };
+  const hex = (c, f) => { const n = parseInt(c.slice(1), 16); const k = v => Math.min(255, Math.max(0, Math.round(v * f))); return `rgb(${k(n >> 16)},${k((n >> 8) & 255)},${k(n & 255)})`; };
   function maak(naam, teken) { const x = (vak % A) * N, y = Math.floor(vak / A) * N; g.save(); g.translate(x, y); teken((px, py, c) => { g.fillStyle = c; g.fillRect(px, py, 1, 1); }); g.restore(); TEX[naam] = vak++; }
   const ruis = (basis, spreid) => p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, hex(basis, 1 - spreid / 2 + rnd() * spreid)); };
   maak('gras', p => { ruis('#5FA83E', 0.35)(p); for (let i = 0; i < 18; i++) p(Math.floor(rnd() * 16), Math.floor(rnd() * 16), '#7CC452'); });
@@ -301,8 +325,8 @@ const RBW = (function () {
   maak('baksteen', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const voeg = y % 4 === 3 || (x + (Math.floor(y / 4) % 2) * 4) % 8 === 7; p(x, y, voeg ? '#C9BFB2' : hex('#A8432E', 0.85 + rnd() * 0.3)); } });
   maak('sneeuw', p => ruis('#F4F8FC', 0.08)(p));
   maak('sneeuwzij', p => { ruis('#8A5A36', 0.35)(p); for (let x = 0; x < 16; x++) { const d = 3 + Math.floor(rnd() * 3); for (let y = 0; y < d; y++) p(x, y, hex('#F4F8FC', 0.95 + rnd() * 0.05)); } });
-  const ader = (kleur) => p => { ruis('#8C8F96', 0.25)(p); for (let i = 0; i < 7; i++) { const x = 1 + Math.floor(rnd() * 13), y = 1 + Math.floor(rnd() * 13); p(x, y, kleur); p(x + 1, y, hex(kleur, 1.15)); p(x, y + 1, hex(kleur, 0.8)); } };
-  maak('goud', ader('#F2C230')); maak('kolen', ader('#2A2A30'));
+  const ader = kleur => p => { ruis('#8C8F96', 0.25)(p); for (let i = 0; i < 7; i++) { const x = 1 + Math.floor(rnd() * 13), y = 1 + Math.floor(rnd() * 13); p(x, y, kleur); p(x + 1, y, hex(kleur, 1.15)); p(x, y + 1, hex(kleur, 0.8)); } };
+  maak('goud', ader('#F2C230')); maak('kolen', ader('#2A2A30')); maak('ijzer', ader('#D8A27A')); maak('robijn', ader('#E8304A'));
   for (const [n, c] of [['wolrood', '#C8323C'], ['wolblauw', '#2F5BB8'], ['wolgeel', '#E9C13A'], ['wolgroen', '#3E9A4E'], ['wolpaars', '#7A4E9A'], ['wolwit', '#ECEAE4']]) maak(n, p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, hex(c, ((x + y) % 3 === 0 ? 0.88 : 1) * (0.94 + rnd() * 0.1))); });
   maak('vlaaitop', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const rand = x < 2 || y < 2 || x > 13 || y > 13; const rooster = !rand && ((x - y + 32) % 5 === 0 || (x + y) % 5 === 0); p(x, y, rand ? hex('#C98A43', 0.95 + rnd() * 0.1) : rooster ? '#D9A05A' : hex('#A8162B', 0.85 + rnd() * 0.25)); } });
   maak('vlaaizij', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, y < 4 ? hex('#A8162B', 0.85 + rnd() * 0.2) : hex('#C98A43', 0.88 + rnd() * 0.2)); });
@@ -312,111 +336,208 @@ const RBW = (function () {
   maak('lamp', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const rand = x < 2 || x > 13 || y < 2 || y > 13; p(x, y, rand ? '#5C3A21' : hex('#FFE7A0', 0.92 + 0.12 * Math.sin(x * 0.9) * Math.sin(y * 0.9))); } });
   maak('grind', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, ['#8C8378', '#A69D92', '#6E665C', '#BDB4A8'][Math.floor(rnd() * 4)]); });
   maak('bodem', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, ['#2A2A30', '#4A4A52', '#16161A'][Math.floor(rnd() * 3)]); });
+  maak('fakkel', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, 'rgba(0,0,0,0)'); for (let y = 6; y < 16; y++) for (let x = 7; x < 9; x++) p(x, y, hex('#8C5A30', 0.9 + rnd() * 0.2)); for (let y = 3; y < 7; y++) for (let x = 7; x < 9; x++) p(x, y, y < 5 ? '#FFF3A0' : '#FFA040'); p(7, 2, '#FFE060'); p(8, 2, '#FFD040'); });
+  maak('werkbanktop', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, x === 0 || y === 0 || x === 15 || y === 15 || x === 7 || y === 7 ? '#5C3A21' : hex('#B9874F', 0.9 + rnd() * 0.15)); });
+  maak('werkbankzij', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, y < 3 ? '#7A5230' : hex('#9A6A3A', 0.9 + rnd() * 0.15)); for (let y = 6; y < 13; y++) { p(4, y, '#5F6470'); p(11, y, '#9AA0A6'); } for (let x = 3; x < 6; x++) p(x, 5, '#5F6470'); p(10, 6, '#C99A2E'); p(12, 6, '#C99A2E'); });
+  maak('ovenzij', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const opening = x > 3 && x < 12 && y > 7 && y < 14; p(x, y, opening ? (y > 11 ? '#FF8A30' : '#1A1A20') : hex('#7A7D84', 0.85 + rnd() * 0.3)); } });
+  maak('oventop', p => ruis('#7A7D84', 0.3)(p));
+  maak('zandsteen', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, y % 5 === 4 ? '#C9B07A' : hex('#E2CB8E', 0.92 + rnd() * 0.12)); });
+  maak('zandsteentop', p => ruis('#E2CB8E', 0.12)(p));
+  maak('cactus', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, x === 0 || x === 15 ? 'rgba(0,0,0,0)' : x % 4 === 2 ? '#2E7A36' : hex('#3E9A46', 0.9 + rnd() * 0.15)); for (let i = 0; i < 6; i++) p(2 + (i * 5) % 12, (i * 7) % 16, '#F4F0D0'); });
+  maak('cactustop', p => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) p(x, y, x < 1 || x > 14 || y < 1 || y > 14 ? 'rgba(0,0,0,0)' : hex('#4EAA56', 0.9 + rnd() * 0.15)); });
+  for (let st = 0; st < 8; st++) maak('barst' + st, p => { const r2 = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(77); for (let i = 0; i < (st + 1) * 9; i++) { let x = 8, y = 8; const a = r2() * 6.283; for (let k = 0; k < 2 + st; k++) { x += Math.round(Math.cos(a + r2() - 0.5)); y += Math.round(Math.sin(a + r2() - 0.5)); if (x >= 0 && y >= 0 && x < 16 && y < 16) p(x, y, 'rgba(10,10,14,.75)'); } } });
   const tex = new THREE.CanvasTexture(atlas); tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.generateMipmaps = false;
-  const uv = (naam) => { const i = TEX[naam], x = (i % A) / A, y = 1 - (Math.floor(i / A) + 1) / A, s = 1 / A, e = 0.002; return [x + e, y + e, x + s - e, y + s - e]; };
+  const uv = naam => { const i = TEX[naam], x = (i % A) / A, y = 1 - (Math.floor(i / A) + 1) / A, s = 1 / A, e = 0.0015; return [x + e, y + e, x + s - e, y + s - e]; };
+  const UVS = BLOK.map(b => b && [uv(b[3]), uv(b[4]), uv(b[5])]);
 
-  // ---------------- de wereld: 8 x 8 stukken van 16 x 16, 48 hoog
-  const CH = 16, CW = 8, HOOG = 48, B = CH * CW, ZEE = 14;
-  const data = new Uint8Array(B * B * HOOG);
-  const ix = (x, y, z) => (y * B + z) * B + x;
-  const binnen = (x, y, z) => x >= 0 && z >= 0 && y >= 0 && x < B && z < B && y < HOOG;
-  const get = (x, y, z) => (binnen(x, y, z) ? data[ix(x, y, z)] : (y < 0 ? BODEM : LUCHT));
-  // ruis met een zaadje
-  function maakRuis(zaad) {
-    const p = new Uint8Array(512); const r = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(zaad);
-    for (let i = 0; i < 256; i++) p[i] = i; for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 256; i++) p[i + 256] = p[i];
-    const f = t => t * t * (3 - 2 * t), h = (i, j) => p[(p[i & 255] + j) & 255] / 255;
-    return (x, z) => { const xi = Math.floor(x), zi = Math.floor(z), xf = f(x - xi), zf = f(z - zi); const a = h(xi, zi), b = h(xi + 1, zi), c = h(xi, zi + 1), d = h(xi + 1, zi + 1); return a + (b - a) * xf + (c - a) * zf + (a - b - c + d) * xf * zf; };
+  // ---------------- ruis met een zaadje
+  let ZAAD = 1;
+  const hash3 = (x, y, z) => { let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(z, 1274126177) + Math.imul(ZAAD, 1442695041)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967295; };
+  const glad = t => t * t * (3 - 2 * t);
+  function ruis2(x, z, k) { const xi = Math.floor(x), zi = Math.floor(z), xf = glad(x - xi), zf = glad(z - zi); const a = hash3(xi, k, zi), b = hash3(xi + 1, k, zi), c = hash3(xi, k, zi + 1), d = hash3(xi + 1, k, zi + 1); return a + (b - a) * xf + (c - a) * zf + (a - b - c + d) * xf * zf; }
+  function ruis3(x, y, z, k) { const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = glad(x - xi), yf = glad(y - yi), zf = glad(z - zi); const l = (a, b, t) => a + (b - a) * t; const h = (i, j, m) => hash3(xi + i + k * 1013, yi + j, zi + m); return l(l(l(h(0, 0, 0), h(1, 0, 0), xf), l(h(0, 1, 0), h(1, 1, 0), xf), yf), l(l(h(0, 0, 1), h(1, 0, 1), xf), l(h(0, 1, 1), h(1, 1, 1), xf), yf), zf); }
+  const fbm = (x, z, k) => ruis2(x, z, k) * 0.55 + ruis2(x * 2.1, z * 2.1, k + 1) * 0.3 + ruis2(x * 4.3, z * 4.3, k + 2) * 0.15;
+
+  // ---------------- de wereld in stukken
+  const CH = 16, HOOG = 80, ZEE = 30;
+  const stukken = new Map(), wijzig = {};
+  const sleutel = (cx, cz) => cx + ',' + cz;
+  const li = (x, y, z) => (y * CH + z) * CH + x;
+  function terrein(X, Z) {
+    const land = fbm(X / 180, Z / 180, 3), berg = fbm(X / 90, Z / 90, 7), heuvel = fbm(X / 40, Z / 40, 11), warm = fbm(X / 260, Z / 260, 17);
+    const h = 16 + land * 30 + heuvel * 8 + Math.max(0, berg - 0.56) * 110;
+    return { h: Math.max(4, Math.min(HOOG - 8, Math.floor(h))), woestijn: warm > 0.58 && land > 0.42, bos: fbm(X / 60, Z / 60, 23) > 0.52 };
   }
-  let zaad = 1;
-  function genereer(z0) {
-    zaad = z0; data.fill(0);
-    const n1 = maakRuis(z0), n2 = maakRuis(z0 + 7), n3 = maakRuis(z0 + 13);
-    const r = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(z0 * 31 + 5);
-    const hoogte = new Int16Array(B * B);
-    for (let z = 0; z < B; z++) for (let x = 0; x < B; x++) {
-      const berg = n3(x / 40, z / 40);
-      let h = 10 + n1(x / 32, z / 32) * 12 + n2(x / 12, z / 12) * 4 + Math.max(0, berg - 0.55) * 46;
-      // de rand van de wereld loopt af naar zee
-      const rand = Math.min(x, z, B - 1 - x, B - 1 - z); if (rand < 10) h = h * (rand / 10) + (ZEE - 4) * (1 - rand / 10);
-      h = Math.max(2, Math.min(HOOG - 6, Math.floor(h))); hoogte[z * B + x] = h;
+  function vulStuk(cx, cz) {
+    const d = new Uint8Array(CH * CH * HOOG), X0 = cx * CH, Z0 = cz * CH;
+    for (let z = 0; z < CH; z++) for (let x = 0; x < CH; x++) {
+      const X = X0 + x, Z = Z0 + z, t = terrein(X, Z), h = t.h;
       for (let y = 0; y <= h; y++) {
         let id = y === 0 ? BODEM : y < h - 3 ? 3 : y < h ? 2 : 1;
-        if (h <= ZEE + 1 && y >= h - 2) id = 5;
-        if (h > 30 && y === h) id = 12;
-        if (id === 3 && r() < 0.012) id = 14; else if (id === 3 && y < 10 && r() < 0.005) id = 13;
-        if (id === 3 && r() < 0.01) id = 24;
-        data[ix(x, y, z)] = id;
+        if (t.woestijn && y >= h - 3) id = y < h - 1 ? 31 : 5;
+        else if (h <= ZEE + 1 && y >= h - 3) id = y < h - 2 ? 24 : 5;
+        if (h > 60 && y === h) id = 12; else if (h > 54 && y >= h - 1 && !t.woestijn) id = 3;
+        if (id === 3) { const r = hash3(X, y, Z); if (r < 0.011) id = 14; else if (y < 46 && r < 0.017) id = 26; else if (y < 24 && r < 0.0205) id = 13; else if (y < 14 && r < 0.0218) id = 27; else if (r > 0.992) id = 24; }
+        // grotten: twee golvende ruizen die elkaar kruisen, niet vlak onder zee of meer
+        if (y > 2 && y < h - 3 && id !== BODEM) { const a = ruis3(X / 22, y / 14, Z / 22, 1) - 0.5, b = ruis3(X / 22, y / 14, Z / 22, 2) - 0.5; if (Math.abs(a) < 0.055 && Math.abs(b) < 0.075 && !(h <= ZEE + 2 && y > h - 8)) id = 0; }
+        d[li(x, y, z)] = id;
       }
-      for (let y = h + 1; y <= ZEE; y++) data[ix(x, y, z)] = WATER;
+      for (let y = h + 1; y <= ZEE; y++) d[li(x, y, z)] = WATER;
     }
-    // bomen
-    for (let i = 0; i < 260; i++) {
-      const x = 3 + Math.floor(r() * (B - 6)), z = 3 + Math.floor(r() * (B - 6)), h = hoogte[z * B + x];
-      if (data[ix(x, h, z)] !== 1 || h > 28) continue;
-      const stam = 4 + Math.floor(r() * 3);
-      for (let y = 1; y <= stam; y++) data[ix(x, h + y, z)] = 7;
-      for (let dy = stam - 2; dy <= stam + 1; dy++) { const rr = dy > stam ? 1 : 2; for (let dx = -rr; dx <= rr; dx++) for (let dz = -rr; dz <= rr; dz++) { if (Math.abs(dx) === rr && Math.abs(dz) === rr && r() < 0.6) continue; const X = x + dx, Y = h + dy, Z = z + dz; if (binnen(X, Y, Z) && !data[ix(X, Y, Z)]) data[ix(X, Y, Z)] = BLAD; } }
+    // bomen en cactussen, ook die van de buren als ze hierin uitsteken
+    for (let bz = -1; bz <= 1; bz++) for (let bx = -1; bx <= 1; bx++) {
+      const ax = cx + bx, az = cz + bz;
+      for (let i = 0; i < 6; i++) {
+        const tx = ax * CH + Math.floor(hash3(ax, i, az) * CH), tz = az * CH + Math.floor(hash3(az, i + 50, ax) * CH), t = terrein(tx, tz);
+        if (hash3(tx, 7, tz) > (t.bos ? 0.95 : 0.3) || t.h <= ZEE + 1 || t.h > 54) continue;
+        const zet = (x, y, z, id, over) => { const lx = x - X0, lz = z - Z0; if (lx < 0 || lz < 0 || lx >= CH || lz >= CH || y >= HOOG) return; if (over || !d[li(lx, y, lz)]) d[li(lx, y, lz)] = id; };
+        if (t.woestijn) { for (let y = 1; y <= 2 + (i % 2); y++) zet(tx, t.h + y, tz, 32, true); continue; }
+        const stam = 4 + Math.floor(hash3(tx, 9, tz) * 3);
+        for (let dy = stam - 2; dy <= stam + 1; dy++) { const rr = dy > stam ? 1 : 2; for (let dx = -rr; dx <= rr; dx++) for (let dz = -rr; dz <= rr; dz++) { if (Math.abs(dx) === rr && Math.abs(dz) === rr && hash3(tx + dx, dy, tz + dz) < 0.6) continue; zet(tx + dx, t.h + dy, tz + dz, BLAD); } }
+        for (let y = 1; y <= stam; y++) zet(tx, t.h + y, tz, 7, true);
+      }
     }
-    return hoogte;
+    const w = wijzig[sleutel(cx, cz)]; if (w) for (const i in w) d[+i] = w[i];
+    return { cx, cz, d, licht: null, meshes: [], vies: true };
   }
+  const haalStuk = (cx, cz) => stukken.get(sleutel(cx, cz));
+  function zorgStuk(cx, cz) { let s = haalStuk(cx, cz); if (!s) { s = vulStuk(cx, cz); stukken.set(sleutel(cx, cz), s); } return s; }
+  function get(X, Y, Z) { if (Y < 0) return BODEM; if (Y >= HOOG) return 0; const cx = Math.floor(X / CH), cz = Math.floor(Z / CH), s = haalStuk(cx, cz); if (!s) return 0; return s.d[li(X - cx * CH, Y, Z - cz * CH)]; }
 
-  // ---------------- tekenen per stuk wereld
-  const FACES = [
-    { n: [1, 0, 0], v: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], kant: 1, licht: 0.8 },
-    { n: [-1, 0, 0], v: [[0, 0, 1], [0, 1, 1], [0, 1, 0], [0, 0, 0]], kant: 1, licht: 0.8 },
-    { n: [0, 1, 0], v: [[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]], kant: 0, licht: 1.0 },
-    { n: [0, -1, 0], v: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]], kant: 2, licht: 0.5 },
-    { n: [0, 0, 1], v: [[1, 0, 1], [1, 1, 1], [0, 1, 1], [0, 0, 1]], kant: 1, licht: 0.68 },
-    { n: [0, 0, -1], v: [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0]], kant: 1, licht: 0.68 },
-  ];
-  const UVS = BLOK.map(b => b && [uv(b[3]), uv(b[4]), uv(b[5])]);
-  const matVast = new THREE.MeshLambertMaterial({ map: tex, vertexColors: true });
-  const matDoor = new THREE.MeshLambertMaterial({ map: tex, vertexColors: true, transparent: true, alphaTest: 0.1, side: THREE.DoubleSide });
-  const matWater = new THREE.MeshLambertMaterial({ map: tex, vertexColors: true, transparent: true, opacity: 0.72, depthWrite: false });
-  const stukken = new Map();
-  let scene = null;
-  function bouwStuk(cx, cz) {
-    const lagen = { vast: [], door: [], water: [] };
-    for (const k in lagen) lagen[k] = { p: [], n: [], u: [], c: [], i: [] };
-    for (let y = 0; y < HOOG; y++) for (let z = cz * CH; z < cz * CH + CH; z++) for (let x = cx * CH; x < cx * CH + CH; x++) {
-      const id = data[ix(x, y, z)]; if (!id) continue;
-      const laag = id === WATER ? lagen.water : BLOK[id][1] ? lagen.door : lagen.vast;
-      for (const f of FACES) {
-        const nb = get(x + f.n[0], y + f.n[1], z + f.n[2]);
-        if (id === WATER) { if (nb === WATER || (vast(nb) && !doorzicht(nb))) continue; }
-        else if (nb === id && BLOK[id][1]) continue;
-        else if (!doorzicht(nb)) continue;
-        const L = laag, s = L.p.length / 3, t = UVS[id][f.kant];
-        const hw = id === WATER && f.n[1] === 1 && get(x, y + 1, z) !== WATER ? 0.88 : 1;
-        for (const v of f.v) { L.p.push(x + v[0], y + (v[1] === 1 ? hw : 0), z + v[2]); L.n.push(...f.n); }
-        L.u.push(t[0], t[1], t[0], t[3], t[2], t[3], t[2], t[1]);
-        const l = id === LAMP ? 1.25 : f.licht; for (let k = 0; k < 4; k++) L.c.push(l, l, l);
-        L.i.push(s, s + 1, s + 2, s, s + 2, s + 3);
+  // ---------------- licht: zon en fakkels, 0 tot 15, met een rand van 16 zodat het over grenzen klopt
+  const RW = CH * 3, RV = RW * RW * HOOG;
+  const rZon = new Uint8Array(RV), rFak = new Uint8Array(RV), rBlok = new Uint8Array(RV), rij = new Int32Array(RV);
+  const ri = (x, y, z) => (y * RW + z) * RW + x;
+  function verspreid(veld, k) {
+    let kop = 0;
+    while (kop < k) {
+      const i = rij[kop++], l = veld[i]; if (l <= 1) continue;
+      const x = i % RW, z = ((i / RW) | 0) % RW, y = (i / (RW * RW)) | 0;
+      for (let r = 0; r < 6; r++) {
+        const nx = x + (r === 0 ? 1 : r === 1 ? -1 : 0), ny = y + (r === 2 ? 1 : r === 3 ? -1 : 0), nz = z + (r === 4 ? 1 : r === 5 ? -1 : 0);
+        if (nx < 0 || nz < 0 || nx >= RW || nz >= RW || ny < 0 || ny >= HOOG) continue;
+        const j = ri(nx, ny, nz), id = rBlok[j]; if (DICHT[id]) continue;
+        const nl = l - (id === WATER || id === BLAD ? 2 : 1); if (nl > veld[j]) { veld[j] = nl; if (k < RV) rij[k++] = j; }
       }
     }
-    const oud = stukken.get(cx + ',' + cz); if (oud) for (const m of oud) { scene.remove(m); m.geometry.dispose(); }
-    const meshes = [];
+  }
+  function berekenLicht(s) {
+    for (let bz = -1; bz <= 1; bz++) for (let bx = -1; bx <= 1; bx++) {
+      const n = haalStuk(s.cx + bx, s.cz + bz);
+      for (let y = 0; y < HOOG; y++) for (let z = 0; z < CH; z++) { const o = ri((bx + 1) * CH, y, (bz + 1) * CH + z), q = (y * CH + z) * CH; for (let x = 0; x < CH; x++) rBlok[o + x] = n ? n.d[q + x] : 3; }
+    }
+    rZon.fill(0); rFak.fill(0);
+    // eerst recht naar beneden; daarna alleen verspreiden vanaf de randen van het zonlicht (veel sneller)
+    let top = 0; for (let i = RV - 1; i >= 0; i--) if (rBlok[i]) { top = (i / (RW * RW)) | 0; break; }
+    for (let z = 0; z < RW; z++) for (let x = 0; x < RW; x++) { let l = 15; for (let y = HOOG - 1; y >= 0; y--) { const i = ri(x, y, z), id = rBlok[i]; if (DICHT[id]) break; if (id === BLAD || id === WATER) l -= 2; if (l <= 0) break; rZon[i] = l; } }
+    let k = 0; const vlak = RW * RW;
+    for (let y = 0; y <= Math.min(HOOG - 1, top + 1); y++) for (let z = 0; z < RW; z++) for (let x = 0; x < RW; x++) {
+      const i = ri(x, y, z), l = rZon[i]; if (l < 2) continue;
+      if ((x > 0 && rZon[i - 1] < l - 1 && !DICHT[rBlok[i - 1]]) || (x < RW - 1 && rZon[i + 1] < l - 1 && !DICHT[rBlok[i + 1]]) || (z > 0 && rZon[i - RW] < l - 1 && !DICHT[rBlok[i - RW]]) || (z < RW - 1 && rZon[i + RW] < l - 1 && !DICHT[rBlok[i + RW]]) || (y > 0 && rZon[i - vlak] < l - 1 && !DICHT[rBlok[i - vlak]])) rij[k++] = i;
+    }
+    verspreid(rZon, k);
+    k = 0; for (let i = 0; i < RV; i++) { const l = LICHT[rBlok[i]]; if (l) { rFak[i] = l; rij[k++] = i; } }
+    if (k) verspreid(rFak, k);
+    const W2 = CH + 2, L = s.licht || (s.licht = new Uint8Array(W2 * W2 * HOOG));
+    for (let y = 0; y < HOOG; y++) for (let z = -1; z <= CH; z++) for (let x = -1; x <= CH; x++) { const i = ri(CH + x, y, CH + z); L[(y * W2 + z + 1) * W2 + x + 1] = (rZon[i] << 4) | rFak[i]; }
+  }
+  const lichtOp = (s, x, y, z) => (y >= HOOG ? 0xF0 : y < 0 ? 0 : s.licht[(y * (CH + 2) + Math.max(-1, Math.min(CH, z)) + 1) * (CH + 2) + Math.max(-1, Math.min(CH, x)) + 1]);
+
+  // ---------------- tekenen: elk vlak met licht per hoek en zachte schaduw in de hoeken
+  const FACES = [
+    { n: [1, 0, 0], v: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], a: [1, 2], kant: 1, d: 0.82 },
+    { n: [-1, 0, 0], v: [[0, 0, 1], [0, 1, 1], [0, 1, 0], [0, 0, 0]], a: [1, 2], kant: 1, d: 0.82 },
+    { n: [0, 1, 0], v: [[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]], a: [0, 2], kant: 0, d: 1.0 },
+    { n: [0, -1, 0], v: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]], a: [0, 2], kant: 2, d: 0.55 },
+    { n: [0, 0, 1], v: [[1, 0, 1], [1, 1, 1], [0, 1, 1], [0, 0, 1]], a: [0, 1], kant: 1, d: 0.7 },
+    { n: [0, 0, -1], v: [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0]], a: [0, 1], kant: 1, d: 0.7 },
+  ];
+  const VERT = `attribute vec4 lichtA; varying vec2 vUv; varying vec4 vL; varying float vD; void main() { vUv = uv; vL = lichtA; vec4 mv = modelViewMatrix * vec4(position, 1.0); vD = -mv.z; gl_Position = projectionMatrix * mv; }`;
+  const FRAG = `uniform sampler2D map; uniform float dag; uniform vec3 mist; uniform float mistBegin; uniform float mistEind; uniform float alfa; varying vec2 vUv; varying vec4 vL; varying float vD;
+    void main() { vec4 t = texture2D(map, vUv); if (t.a < 0.1) discard;
+      float zon = pow(0.8, 15.0 - vL.x * 15.0) * dag, fak = pow(0.8, 15.0 - vL.y * 15.0);
+      vec3 l = max(vec3(zon) * vec3(0.96, 0.98, 1.0), vec3(fak) * vec3(1.0, 0.8, 0.55)); l = max(l, vec3(0.02, 0.02, 0.035));
+      vec3 c = t.rgb * l * vL.z * vL.w; c = mix(c, mist, smoothstep(mistBegin, mistEind, vD)); gl_FragColor = vec4(c, t.a * alfa); }`;
+  const uni = { map: { value: tex }, dag: { value: 1 }, mist: { value: new THREE.Color(0x9fd0f5) }, mistBegin: { value: 60 }, mistEind: { value: 110 }, alfa: { value: 1 } };
+  const matVast = new THREE.ShaderMaterial({ uniforms: uni, vertexShader: VERT, fragmentShader: FRAG });
+  const matDoor = new THREE.ShaderMaterial({ uniforms: uni, vertexShader: VERT, fragmentShader: FRAG, side: THREE.DoubleSide });
+  const uniW = Object.assign({}, uni, { alfa: { value: 0.72 } });
+  const matWater = new THREE.ShaderMaterial({ uniforms: uniW, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false });
+  let scene = null;
+  function meshStuk(s) {
+    const lagen = { vast: { p: [], u: [], l: [], i: [] }, door: { p: [], u: [], l: [], i: [] }, water: { p: [], u: [], l: [], i: [] } };
+    const X0 = s.cx * CH, Z0 = s.cz * CH;
+    const buur = (x, y, z) => { if (y < 0) return BODEM; if (y >= HOOG) return 0; if (x >= 0 && z >= 0 && x < CH && z < CH) return s.d[li(x, y, z)]; return get(X0 + x, y, Z0 + z); };
+    for (let y = 0; y < HOOG; y++) for (let z = 0; z < CH; z++) for (let x = 0; x < CH; x++) {
+      const id = s.d[li(x, y, z)]; if (!id) continue;
+      const soort = BLOK[id][1], L = id === WATER ? lagen.water : soort ? lagen.door : lagen.vast;
+      if (soort === 3) { // fakkel: een dun stokje dat zelf licht geeft
+        const t = UVS[id][1], x0 = X0 + x + 0.44, x1 = X0 + x + 0.56, z0 = Z0 + z + 0.44, z1 = Z0 + z + 0.56, y1 = y + 0.66;
+        const kanten = [[[x0, y, z1], [x0, y1, z1], [x1, y1, z1], [x1, y, z1]], [[x1, y, z0], [x1, y1, z0], [x0, y1, z0], [x0, y, z0]], [[x0, y, z0], [x0, y1, z0], [x0, y1, z1], [x0, y, z1]], [[x1, y, z1], [x1, y1, z1], [x1, y1, z0], [x1, y, z0]], [[x0, y1, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1]]];
+        for (const q of kanten) { const s0 = L.p.length / 3; for (const v of q) { L.p.push(v[0], v[1], v[2]); L.l.push(1, 1, 1, 1); } L.u.push(t[0] + 0.44 / 8, t[1], t[0] + 0.44 / 8, t[1] + 0.66 / 8, t[0] + 0.56 / 8, t[1] + 0.66 / 8, t[0] + 0.56 / 8, t[1]); L.i.push(s0, s0 + 1, s0 + 2, s0, s0 + 2, s0 + 3); }
+        continue;
+      }
+      for (const f of FACES) {
+        const nx = x + f.n[0], ny = y + f.n[1], nz = z + f.n[2], nb = buur(nx, ny, nz);
+        if (id === WATER) { if (nb === WATER || DICHT[nb]) continue; }
+        else if (nb === id && soort) continue;
+        else if (DICHT[nb]) continue;
+        const t = UVS[id][f.kant], s0 = L.p.length / 3;
+        const hw = id === WATER && f.n[1] === 1 && buur(x, y + 1, z) !== WATER ? 0.88 : 1;
+        for (const v of f.v) {
+          L.p.push(X0 + x + v[0], y + (v[1] === 1 ? hw : 0), Z0 + z + v[2]);
+          // de twee buren langs deze hoek en het hoekvakje, aan de buitenkant van het vlak
+          const da = [0, 0, 0], db = [0, 0, 0]; da[f.a[0]] = v[f.a[0]] ? 1 : -1; db[f.a[1]] = v[f.a[1]] ? 1 : -1;
+          const pa = [nx + da[0], ny + da[1], nz + da[2]], pb = [nx + db[0], ny + db[1], nz + db[2]], pc = [nx + da[0] + db[0], ny + da[1] + db[1], nz + da[2] + db[2]];
+          const ka = DICHT[buur(...pa)], kb = DICHT[buur(...pb)], kc = DICHT[buur(...pc)];
+          let zs = 0, fs = 0, n = 0;
+          const tel = (p, dichtVak) => { if (dichtVak) return; const l = lichtOp(s, p[0], p[1], p[2]); zs += l >> 4; fs += l & 15; n++; };
+          tel([nx, ny, nz], 0); tel(pa, ka); tel(pb, kb); if (!(ka && kb)) tel(pc, kc);
+          const ao = ka && kb ? 0.5 : 1 - (ka + kb + kc) * 0.16;
+          L.l.push(zs / n / 15, fs / n / 15, ao, f.d);
+        }
+        L.u.push(t[0], t[1], t[0], t[3], t[2], t[3], t[2], t[1]);
+        L.i.push(s0, s0 + 1, s0 + 2, s0, s0 + 2, s0 + 3);
+      }
+    }
+    for (const m of s.meshes) { scene.remove(m); m.geometry.dispose(); }
+    s.meshes = [];
     for (const [k, mat] of [['vast', matVast], ['door', matDoor], ['water', matWater]]) {
       const L = lagen[k]; if (!L.i.length) continue;
       const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(L.p, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(L.n, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(L.u, 2)); geo.setAttribute('color', new THREE.Float32BufferAttribute(L.c, 3)); geo.setIndex(L.i);
-      geo.computeBoundingSphere();
-      const m = new THREE.Mesh(geo, mat); if (k === 'water') m.renderOrder = 2; scene.add(m); meshes.push(m);
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(L.p, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(L.u, 2)); geo.setAttribute('lichtA', new THREE.Float32BufferAttribute(L.l, 4)); geo.setIndex(L.i); geo.computeBoundingSphere();
+      const m = new THREE.Mesh(geo, mat); if (k === 'water') m.renderOrder = 2; m.matrixAutoUpdate = false; scene.add(m); s.meshes.push(m);
     }
-    stukken.set(cx + ',' + cz, meshes);
+    s.vies = false;
   }
-  function bouwAlles(sc) { scene = sc; for (let cz = 0; cz < CW; cz++) for (let cx = 0; cx < CW; cx++) bouwStuk(cx, cz); }
-  function zet(x, y, z, id) {
-    if (!binnen(x, y, z) || (y === 0)) return false;
-    data[ix(x, y, z)] = id;
-    const cx = Math.floor(x / CH), cz = Math.floor(z / CH), lx = x % CH, lz = z % CH;
-    bouwStuk(cx, cz);
-    if (lx === 0 && cx > 0) bouwStuk(cx - 1, cz); if (lx === CH - 1 && cx < CW - 1) bouwStuk(cx + 1, cz);
-    if (lz === 0 && cz > 0) bouwStuk(cx, cz - 1); if (lz === CH - 1 && cz < CW - 1) bouwStuk(cx, cz + 1);
+  // ---------------- laden rond de speler, een paar stukken per beeldje
+  let straal = 7;
+  function rondom(px, pz, budget) {
+    const pcx = Math.floor(px / CH), pcz = Math.floor(pz / CH), lijst = [];
+    for (let dz = -straal; dz <= straal; dz++) for (let dx = -straal; dx <= straal; dx++) if (dx * dx + dz * dz <= straal * straal + 1) lijst.push([dx * dx + dz * dz, pcx + dx, pcz + dz]);
+    lijst.sort((a, b) => a[0] - b[0]);
+    let gedaan = 0;
+    for (const [, cx, cz] of lijst) {
+      const s = haalStuk(cx, cz); if (s && !s.vies) continue;
+      for (let bz = -1; bz <= 1; bz++) for (let bx = -1; bx <= 1; bx++) zorgStuk(cx + bx, cz + bz);
+      const t = haalStuk(cx, cz); berekenLicht(t); meshStuk(t);
+      if (++gedaan >= budget) break;
+    }
+    for (const [k, s] of stukken) if (Math.abs(s.cx - pcx) > straal + 3 || Math.abs(s.cz - pcz) > straal + 3) { for (const m of s.meshes) { scene.remove(m); m.geometry.dispose(); } stukken.delete(k); }
+    return gedaan;
+  }
+  function zet(X, Y, Z, id) {
+    if (Y <= 0 || Y >= HOOG) return false;
+    const cx = Math.floor(X / CH), cz = Math.floor(Z / CH), s = haalStuk(cx, cz); if (!s) return false;
+    const i = li(X - cx * CH, Y, Z - cz * CH); s.d[i] = id;
+    (wijzig[sleutel(cx, cz)] = wijzig[sleutel(cx, cz)] || {})[i] = id;
+    for (let bz = -1; bz <= 1; bz++) for (let bx = -1; bx <= 1; bx++) { const n = haalStuk(cx + bx, cz + bz); if (n && (bx || bz)) n.vies = true; }
+    berekenLicht(s); meshStuk(s);
     return true;
   }
-  return { BLOK, TEX, atlas, uv, data, ix, get, zet, genereer, bouwAlles, binnen, vast, doorzicht, B, HOOG, ZEE, WATER, BLAD, LAMP, BODEM, zaad: () => zaad };
+  function lichtBij(X, Y, Z) { const cx = Math.floor(X / CH), cz = Math.floor(Z / CH), s = haalStuk(cx, cz); if (!s || !s.licht) return [15, 0]; const l = lichtOp(s, X - cx * CH, Y, Z - cz * CH); return [l >> 4, l & 15]; }
+  const klaar = (X, Z) => { const s = haalStuk(Math.floor(X / CH), Math.floor(Z / CH)); return !!(s && !s.vies && s.licht); };
+  return { BLOK, TEX, atlas, uv, get, zet, rondom, zorgStuk, lichtBij, klaar, wijzig, uni, uniW, vast, dicht, terrein, CH, HOOG, ZEE, WATER, BLAD, BODEM, FAKKEL, zetScene: s => { scene = s; }, zetZaad: z => { ZAAD = z; }, zetStraal: r => { straal = r; }, stukken };
 })();
 
 (function () {
@@ -425,194 +546,332 @@ const RBW = (function () {
   const renderer = new THREE.WebGLRenderer({ antialias: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   houder.prepend(renderer.domElement);
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(72, 16 / 9, 0.08, 400);
-  camera.rotation.order = 'YXZ';
-  const hemi = new THREE.HemisphereLight(0xdfefff, 0x6a5a40, 0.75); scene.add(hemi);
-  const zon = new THREE.DirectionalLight(0xfff4dc, 0.6); scene.add(zon);
-  scene.fog = new THREE.Fog(0x9fd0f5, 40, 110);
-  const zonBol = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({ color: 0xfff3b0, fog: false })); scene.add(zonBol);
-  const maanBol = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ color: 0xe8eef8, fog: false })); scene.add(maanBol);
-  const sterren = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 1800 }, () => (Math.random() - 0.5) * 600), 3)), new THREE.PointsMaterial({ color: 0xffffff, size: 1.2, fog: false })); scene.add(sterren);
+  const scene = new THREE.Scene(); W.zetScene(scene);
+  const camera = new THREE.PerspectiveCamera(72, 16 / 9, 0.08, 500); camera.rotation.order = 'YXZ';
+  const zonBol = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.MeshBasicMaterial({ color: 0xfff3b0, fog: false })); scene.add(zonBol);
+  const maanBol = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ color: 0xe8eef8, fog: false })); scene.add(maanBol);
+  const sterren = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 2400 }, () => (Math.random() - 0.5) * 700), 3)), new THREE.PointsMaterial({ color: 0xffffff, size: 1.3, fog: false, transparent: true })); scene.add(sterren);
   const wolken = new THREE.Group(); scene.add(wolken);
-  const wolkMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
-  for (let i = 0; i < 22; i++) { const w = new THREE.Mesh(new THREE.BoxGeometry(8 + Math.random() * 16, 1.5, 6 + Math.random() * 10), wolkMat); w.position.set(Math.random() * 200 - 36, 58 + Math.random() * 6, Math.random() * 200 - 36); wolken.add(w); }
+  const wolkMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, fog: false });
+  for (let i = 0; i < 40; i++) { const w = new THREE.Mesh(new THREE.BoxGeometry(10 + Math.random() * 20, 2, 8 + Math.random() * 14), wolkMat); w.position.set((Math.random() - 0.5) * 360, 92 + Math.random() * 6, (Math.random() - 0.5) * 360); wolken.add(w); }
+  const aanraak = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+  document.body.classList.toggle('rb-aanraak', aanraak);
+  const STRAAL = aanraak ? 5 : 7; W.zetStraal(STRAAL);
+  W.uni.mistBegin.value = W.uniW.mistBegin.value = (STRAAL - 2.5) * 16; W.uni.mistEind.value = W.uniW.mistEind.value = (STRAAL - 0.6) * 16;
 
-  // ---------------- opslaan: het zaadje van de wereld en alles wat je veranderd hebt
-  const OPSLAG = 'rommelblok-v1';
-  let wijzig = {}, S = { zaad: 0, pos: null, kijk: [0, 0], balk: [1, 2, 3, 4, 9, 11, 10, 21, 22], kies: 0, tijd: 0.3, vlieg: false };
-  try { const d = JSON.parse(localStorage.getItem(OPSLAG) || 'null'); if (d && d.zaad) { S = Object.assign(S, d); wijzig = d.wijzig || {}; } } catch (e) {}
-  if (!S.zaad) S.zaad = 1 + Math.floor(Math.random() * 99999);
-  const hoogte = W.genereer(S.zaad);
-  for (const [i, id] of Object.entries(wijzig)) W.data[+i] = id;
-  W.bouwAlles(scene);
-  const zetBlok = (x, y, z, id) => { if (W.zet(x, y, z, id)) { wijzig[W.ix(x, y, z)] = id; bewaarLater(); return true; } return false; };
-  let tLater = null; const bewaarLater = () => { clearTimeout(tLater); tLater = setTimeout(bewaar, 1500); };
-  function bewaar() { try { localStorage.setItem(OPSLAG, JSON.stringify({ zaad: S.zaad, wijzig, pos: [speler.x, speler.y, speler.z], kijk: [yaw, pitch], balk: S.balk, kies: S.kies, tijd: S.tijd, vlieg: speler.vlieg })); } catch (e) {} }
-  setInterval(bewaar, 20000); addEventListener('pagehide', bewaar);
+  // ---------------- voorwerpen: blokken (1 tot 32), grondstoffen (100+) en gereedschap (110+)
+  const SOORT = ['houweel', 'bijl', 'schep', 'zwaard'], SNAAM = ['houweel', 'bijl', 'schep', 'zwaard'];
+  const KLASSE = [['Houten', '#B9874F', 2, 60, 1], ['Stenen', '#9A9DA4', 4, 130, 2], ['IJzeren', '#DCE0E6', 6, 250, 3], ['Gouden', '#F2C230', 10, 40, 2], ['Robijnen', '#E8304A', 9, 1000, 4]];
+  const ITEM = {};
+  for (let i = 1; i < W.BLOK.length; i++) if (W.BLOK[i] && i !== W.WATER && i !== W.BODEM) ITEM[i] = { naam: W.BLOK[i][0], blok: true };
+  Object.assign(ITEM, { 100: { naam: 'Stok' }, 101: { naam: 'Kolen' }, 102: { naam: 'IJzerstaaf' }, 103: { naam: 'Goudstaaf' }, 104: { naam: 'Robijn' }, 105: { naam: 'Appel', eten: 4 }, 106: { naam: 'Vlaai', eten: 10 } });
+  for (let s = 0; s < 4; s++) for (let k = 0; k < 5; k++) ITEM[110 + s * 5 + k] = { naam: KLASSE[k][0] + ' ' + SNAAM[s], gereed: SOORT[s], klasse: k, snel: KLASSE[k][2], dur: KLASSE[k][3], tier: KLASSE[k][4] };
+  const gid = (s, k) => 110 + SOORT.indexOf(s) * 5 + k;
+  // ---------------- recepten
+  const REC = [
+    [9, 4, { 7: 1 }], [100, 4, { 9: 2 }], [29, 1, { 9: 4 }], [28, 4, { 100: 1, 101: 1 }],
+    [30, 1, { 4: 8 }, 29], [102, 1, { 26: 1, 101: 1 }, 30], [103, 1, { 13: 1, 101: 1 }, 30], [10, 1, { 5: 1, 101: 1 }, 30], [11, 2, { 4: 2, 101: 1 }, 30], [106, 1, { 105: 3 }, 30],
+    [23, 1, { 10: 1, 28: 1 }, 29], [22, 1, { 9: 8 }, 29], [31, 1, { 5: 4 }, 29], [21, 1, { 106: 4 }, 29],
+  ];
+  for (let k = 0; k < 5; k++) { const m = [9, 4, 102, 103, 104][k]; REC.push([gid('houweel', k), 1, { [m]: 3, 100: 2 }, 29], [gid('bijl', k), 1, { [m]: 3, 100: 2 }, 29], [gid('schep', k), 1, { [m]: 1, 100: 2 }, 29], [gid('zwaard', k), 1, { [m]: 2, 100: 1 }, 29]); }
+
+  // ---------------- plaatjes van voorwerpen
+  function icoon(id, maat) {
+    const c = document.createElement('canvas'); c.width = c.height = maat; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    if (ITEM[id] && ITEM[id].blok) {
+      const b = W.BLOK[id], tile = n => { const i = W.TEX[n]; return [(i % 8) * 16, Math.floor(i / 8) * 16]; };
+      if (b[1] === 3) { const [tx, ty] = tile(b[4]); g.drawImage(W.atlas, tx, ty, 16, 16, 0, 0, maat, maat); return c.toDataURL(); }
+      const s = maat / 2, h = s * 0.58;
+      const vlak = (naam, a, bb, cc, d, e, f, donker) => { const [tx, ty] = tile(naam); g.save(); g.setTransform(a, bb, cc, d, e, f); g.drawImage(W.atlas, tx, ty, 16, 16, 0, 0, 16, 16); if (donker) { g.fillStyle = `rgba(0,0,0,${donker})`; g.fillRect(0, 0, 16, 16); } g.restore(); };
+      vlak(b[3], s / 16, h / 16, -s / 16, h / 16, s, maat * 0.08, 0); vlak(b[4], s / 16, h / 16, 0, (maat * 0.5) / 16, 0, maat * 0.08 + h, 0.18); vlak(b[4], s / 16, -h / 16, 0, (maat * 0.5) / 16, s, maat * 0.08 + 2 * h, 0.32);
+      return c.toDataURL();
+    }
+    const p = maat / 16, px = (x, y, k) => { g.fillStyle = k; g.fillRect(Math.round(x * p), Math.round(y * p), Math.ceil(p), Math.ceil(p)); };
+    const lijn = (x0, y0, x1, y1, k, dik) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) for (let d = 0; d < (dik || 1); d++) px(Math.round(x0 + (x1 - x0) * i / n) + d, Math.round(y0 + (y1 - y0) * i / n), k); };
+    const I = ITEM[id];
+    if (I.gereed) {
+      const k = KLASSE[I.klasse][1], kd = '#3A2414';
+      lijn(3, 13, 11, 5, '#8C5A30', 2);
+      if (I.gereed === 'houweel') { lijn(5, 3, 13, 11, kd, 2); lijn(6, 3, 13, 10, k, 1); lijn(4, 4, 12, 12, k, 1); }
+      else if (I.gereed === 'bijl') { for (let y = 2; y < 8; y++) for (let x = 9; x < 14 - Math.abs(y - 5) * 0.4; x++) px(x, y, k); lijn(9, 2, 9, 7, kd); }
+      else if (I.gereed === 'schep') { for (let y = 2; y < 7; y++) for (let x = 9; x < 14; x++) if (Math.hypot(x - 11.5, y - 4) < 3) px(x, y, k); }
+      else { lijn(6, 10, 13, 3, k, 2); lijn(4, 9, 7, 12, '#5C3A21', 1); lijn(5, 8, 8, 11, '#C99A2E', 1); }
+      return c.toDataURL();
+    }
+    if (id === 100) lijn(4, 13, 12, 3, '#8C5A30', 2);
+    else if (id === 101) { for (let y = 5; y < 12; y++) for (let x = 4; x < 12; x++) if (Math.hypot(x - 8, y - 8.5) < 4) px(x, y, (x + y) % 3 ? '#2A2A30' : '#4A4A52'); }
+    else if (id === 102 || id === 103) { const k = id === 102 ? '#DCE0E6' : '#F2C230'; for (let y = 6; y < 11; y++) for (let x = 3; x < 13; x++) px(x, y, y === 6 ? '#ffffff' : k); for (let x = 3; x < 13; x++) px(x, 10, id === 102 ? '#9AA0A6' : '#C99A2E'); }
+    else if (id === 104) { for (let y = 3; y < 13; y++) for (let x = 3; x < 13; x++) if (Math.abs(x - 8) + Math.abs(y - 8) < 5) px(x, y, (x < 8 && y < 8) ? '#FF8A9A' : '#E8304A'); }
+    else if (id === 105) { for (let y = 4; y < 14; y++) for (let x = 3; x < 13; x++) if (Math.hypot(x - 8, y - 9) < 4.6) px(x, y, x < 7 && y < 8 ? '#FF7A6A' : '#D8322A'); lijn(8, 2, 9, 4, '#5C3A21'); px(10, 3, '#3E9A46'); }
+    else if (id === 106) { for (let y = 5; y < 13; y++) for (let x = 2; x < 14; x++) if (y > 12 - (x - 2) * 0.7 || true) { if (x + y > 9 && x - y < 9) px(x, y, y < 8 ? '#A8162B' : '#C98A43'); } }
+    return c.toDataURL();
+  }
+  const ICO = {}; const ico = id => ICO[id] || (ICO[id] = icoon(id, 48));
+
+  // ---------------- toestand en opslaan
+  const OPSLAG = 'rommelblok-v2';
+  let S = null;
+  try { S = JSON.parse(localStorage.getItem(OPSLAG) || 'null'); } catch (e) {}
+  const nieuwInv = () => Array.from({ length: 36 }, () => null);
+  function maakWereld(modus) { S = { zaad: 1 + Math.floor(Math.random() * 999999), modus, pos: null, kijk: [0, 0], inv: nieuwInv(), kies: 0, hp: 20, honger: 20, tijd: 0.28, spawn: null, wijzig: {} }; if (modus === 'creatief') S.inv = [1, 2, 3, 4, 9, 11, 10, 28, 21].map(id => ({ id, n: 1 })).concat(Array(27).fill(null)); }
+  function bewaar() { if (!S) return; try { S.wijzig = W.wijzig; S.pos = [speler.x, speler.y, speler.z]; S.kijk = [yaw, pitch]; localStorage.setItem(OPSLAG, JSON.stringify(S)); } catch (e) { melding('Opslaan lukt niet: je wereld is te groot geworden voor deze browser.'); } }
+  let tLater = null; const bewaarLater = () => { clearTimeout(tLater); tLater = setTimeout(bewaar, 2000); };
+  setInterval(() => { if (S) bewaar(); }, 25000); addEventListener('pagehide', () => { if (S) bewaar(); });
+  const creatief = () => S && S.modus === 'creatief';
+
+  // ---------------- rugzak
+  function geef(id, n) {
+    if (creatief()) return true;
+    const I = ITEM[id]; if (!I) return false;
+    if (!I.gereed) for (const s of S.inv) if (s && s.id === id && s.n < 64) { const m = Math.min(n, 64 - s.n); s.n += m; n -= m; if (!n) break; }
+    while (n > 0) { const i = S.inv.findIndex(s => !s); if (i < 0) { melding('Je rugzak is vol.'); return false; } S.inv[i] = I.gereed ? { id, n: 1, dur: I.dur } : { id, n: Math.min(64, n) }; n -= I.gereed ? 1 : Math.min(64, n); }
+    tekenBalk(); return true;
+  }
+  const telIn = id => S.inv.reduce((a, s) => a + (s && s.id === id ? s.n : 0), 0);
+  function neem(id, n) { for (let i = 0; i < S.inv.length && n; i++) { const s = S.inv[i]; if (s && s.id === id) { const m = Math.min(n, s.n); s.n -= m; n -= m; if (!s.n) S.inv[i] = null; } } }
+  const inHand = () => S.inv[S.kies];
 
   // ---------------- speler
-  function startPlek() { const m = W.B / 2; for (let r = 0; r < W.B / 2; r++) for (let a = 0; a < 16; a++) { const x = Math.round(m + Math.cos(a / 16 * 6.283) * r), z = Math.round(m + Math.sin(a / 16 * 6.283) * r); if (!W.binnen(x, 1, z)) continue; let y = W.HOOG - 1; while (y > 0 && !W.get(x, y, z)) y--; const id = W.get(x, y, z); if (y > W.ZEE && (id === 1 || id === 5 || id === 12) && !W.get(x, y + 1, z) && !W.get(x, y + 2, z)) return [x + 0.5, y + 1.01, z + 0.5]; } return [m, 40, m]; }
-  const sp = S.pos || startPlek();
-  const speler = { x: sp[0], y: sp[1], z: sp[2], vx: 0, vy: 0, vz: 0, opGrond: false, vlieg: !!S.vlieg, inWater: false };
-  let yaw = S.kijk[0] || 0, pitch = S.kijk[1] || 0;
+  const speler = { x: 0.5, y: 60, z: 0.5, vx: 0, vy: 0, vz: 0, opGrond: false, vlieg: false, inWater: false, valMax: 0 };
+  let yaw = 0, pitch = 0;
   const BR = 0.3, HO = 1.8, OOG = 1.62;
   function botst(x, y, z) { for (let X = Math.floor(x - BR); X <= Math.floor(x + BR); X++) for (let Y = Math.floor(y); Y <= Math.floor(y + HO - 0.01); Y++) for (let Z = Math.floor(z - BR); Z <= Math.floor(z + BR); Z++) if (W.vast(W.get(X, Y, Z))) return true; return false; }
-  const toets = {};
-  let joy = { x: 0, y: 0 }, springKnop = false, omlaagKnop = false;
+  function zoekStart() { for (let r = 0; r < 400; r += 4) for (let a = 0; a < 12; a++) { const X = Math.round(Math.cos(a / 12 * 6.283) * r), Z = Math.round(Math.sin(a / 12 * 6.283) * r), t = W.terrein(X, Z); if (t.h > W.ZEE + 1 && t.h < 56) return [X + 0.5, Z + 0.5]; } return [0.5, 0.5]; }
+  function landOp(x, z) { const X = Math.floor(x), Z = Math.floor(z); for (let y = W.HOOG - 2; y > 0; y--) { const id = W.get(X, y, Z); if (W.vast(id) && id !== W.BLAD) return y + 1.01; } return 60; }
+  const toets = {}; let joy = { x: 0, y: 0 }, springKnop = false, omlaagKnop = false;
   function beweeg(dt) {
+    if (!W.klaar(Math.floor(speler.x), Math.floor(speler.z))) return;
     const voor = (toets.KeyW || toets.ArrowUp ? 1 : 0) - (toets.KeyS || toets.ArrowDown ? 1 : 0) - joy.y;
     const opzij = (toets.KeyD || toets.ArrowRight ? 1 : 0) - (toets.KeyA || toets.ArrowLeft ? 1 : 0) + joy.x;
     const len = Math.hypot(voor, opzij) || 1, f = Math.min(1, Math.hypot(voor, opzij));
     speler.inWater = W.get(Math.floor(speler.x), Math.floor(speler.y + 0.4), Math.floor(speler.z)) === W.WATER;
-    const snel = speler.vlieg ? (toets.ShiftLeft || toets.ShiftRight ? 16 : 10) : speler.inWater ? 2.6 : (toets.ShiftLeft || toets.ShiftRight ? 6.4 : 4.4);
-    const dx = (opzij * Math.cos(yaw) - voor * Math.sin(yaw)) / len * snel * f, dz = (-opzij * Math.sin(yaw) - voor * Math.cos(yaw)) / len * snel * f;
-    speler.vx = dx; speler.vz = dz;
+    const rent = toets.ShiftLeft || toets.ShiftRight;
+    const snel = speler.vlieg ? (rent ? 18 : 11) : speler.inWater ? 2.6 : (rent ? 6.2 : 4.3);
+    speler.vx = (opzij * Math.cos(yaw) - voor * Math.sin(yaw)) / len * snel * f; speler.vz = (-opzij * Math.sin(yaw) - voor * Math.cos(yaw)) / len * snel * f;
     const spring = toets.Space || springKnop;
-    if (speler.vlieg) speler.vy = (spring ? 8 : 0) - (toets.ControlLeft || toets.KeyC || omlaagKnop ? 8 : 0);
-    else if (speler.inWater) { speler.vy = Math.max(-2.5, speler.vy - 9 * dt); if (spring) speler.vy = 3.2; }
-    else { speler.vy -= 26 * dt; if (spring && speler.opGrond) speler.vy = 8.2; speler.vy = Math.max(-40, speler.vy); }
-    // botsen per richting
+    if (speler.vlieg) speler.vy = (spring ? 9 : 0) - (toets.KeyC || toets.ControlLeft || omlaagKnop ? 9 : 0);
+    else if (speler.inWater) { speler.vy = Math.max(-2.5, speler.vy - 9 * dt); if (spring) speler.vy = 3.4; speler.valMax = 0; }
+    else { speler.vy = Math.max(-42, speler.vy - 27 * dt); if (spring && speler.opGrond) speler.vy = 8.4; }
+    if (!speler.vlieg && !speler.inWater) speler.valMax = Math.min(speler.valMax, speler.vy);
     for (const as of ['x', 'z', 'y']) {
-      const stap = speler['v' + as] * dt, oud = speler[as]; speler[as] += stap;
-      if (botst(speler.x, speler.y, speler.z)) { speler[as] = oud; if (as === 'y') { if (speler.vy < 0) speler.opGrond = true; speler.vy = 0; } else speler['v' + as] = 0; }
+      const oud = speler[as]; speler[as] += speler['v' + as] * dt;
+      if (botst(speler.x, speler.y, speler.z)) { speler[as] = oud; if (as === 'y') { if (speler.vy < 0) { speler.opGrond = true; if (!creatief() && speler.valMax < -15) schade(Math.round((-speler.valMax - 14) * 0.85), 'Au! Een harde val.'); speler.valMax = 0; } speler.vy = 0; } else speler['v' + as] = 0; }
       else if (as === 'y') speler.opGrond = false;
     }
-    if (speler.opGrond && !speler.vlieg && speler.vy === 0 && !botst(speler.x, speler.y - 0.05, speler.z)) speler.opGrond = false;
-    speler.x = Math.max(0.4, Math.min(W.B - 0.4, speler.x)); speler.z = Math.max(0.4, Math.min(W.B - 0.4, speler.z));
-    if (speler.y < -5) { const p = startPlek(); speler.x = p[0]; speler.y = p[1]; speler.z = p[2]; speler.vy = 0; }
+    if (speler.y < -10) { speler.y = landOp(speler.x, speler.z); speler.vy = 0; }
+    if (!creatief() && (rent && f > 0)) S.honger = Math.max(0, S.honger - dt * 0.05);
   }
 
-  // ---------------- welk blok kijk je aan (stap voor stap door het raster)
+  // ---------------- welk blok kijk je aan
   function richt() {
     const o = camera.position, d = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
     let x = Math.floor(o.x), y = Math.floor(o.y), z = Math.floor(o.z);
-    const sx = Math.sign(d.x), sy = Math.sign(d.y), sz = Math.sign(d.z);
-    const tdx = Math.abs(1 / d.x), tdy = Math.abs(1 / d.y), tdz = Math.abs(1 / d.z);
-    let tx = (sx > 0 ? x + 1 - o.x : o.x - x) * tdx, ty = (sy > 0 ? y + 1 - o.y : o.y - y) * tdy, tz = (sz > 0 ? z + 1 - o.z : o.z - z) * tdz;
-    let n = [0, 0, 0], t = 0;
-    while (t < 6) {
-      const id = W.get(x, y, z);
-      if (id && id !== W.WATER) return { x, y, z, n, id };
-      if (tx < ty && tx < tz) { x += sx; t = tx; tx += tdx; n = [-sx, 0, 0]; } else if (ty < tz) { y += sy; t = ty; ty += tdy; n = [0, -sy, 0]; } else { z += sz; t = tz; tz += tdz; n = [0, 0, -sz]; }
-    }
+    const sx = Math.sign(d.x), sy = Math.sign(d.y), sz = Math.sign(d.z), tdx = Math.abs(1 / d.x), tdy = Math.abs(1 / d.y), tdz = Math.abs(1 / d.z);
+    let tx = (sx > 0 ? x + 1 - o.x : o.x - x) * tdx, ty = (sy > 0 ? y + 1 - o.y : o.y - y) * tdy, tz = (sz > 0 ? z + 1 - o.z : o.z - z) * tdz, n = [0, 0, 0], t = 0;
+    while (t < 5.5) { const id = W.get(x, y, z); if (id && id !== W.WATER) return { x, y, z, n, id }; if (tx < ty && tx < tz) { x += sx; t = tx; tx += tdx; n = [-sx, 0, 0]; } else if (ty < tz) { y += sy; t = ty; ty += tdy; n = [0, -sy, 0]; } else { z += sz; t = tz; tz += tdz; n = [0, 0, -sz]; } }
     return null;
   }
-  const kader = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.004, 1.004, 1.004)), new THREE.LineBasicMaterial({ color: 0x14141a })); scene.add(kader);
-  function hak() { const r = richt(); if (!r || r.id === W.BODEM) return; zetBlok(r.x, r.y, r.z, 0); geluid('hak', r.id); }
-  function bouw() {
-    const r = richt(); if (!r) return; const x = r.x + r.n[0], y = r.y + r.n[1], z = r.z + r.n[2], id = S.balk[S.kies];
-    if (!W.binnen(x, y, z) || (W.get(x, y, z) && W.get(x, y, z) !== W.WATER)) return;
-    if (W.vast(id) && x === Math.floor(speler.x) && z === Math.floor(speler.z) && (y === Math.floor(speler.y) || y === Math.floor(speler.y + 1))) return;
-    const oud = W.data[W.ix(x, y, z)]; W.data[W.ix(x, y, z)] = id; const raak = W.vast(id) && botst(speler.x, speler.y, speler.z); W.data[W.ix(x, y, z)] = oud;
-    if (raak) return;
-    zetBlok(x, y, z, id); geluid('bouw', id);
+  const kader = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.004, 1.004, 1.004)), new THREE.LineBasicMaterial({ color: 0x14141a, transparent: true, opacity: 0.7 })); scene.add(kader);
+  const barstTex = new THREE.CanvasTexture(W.atlas); barstTex.magFilter = barstTex.minFilter = THREE.NearestFilter; barstTex.generateMipmaps = false;
+  const barstGeo = new THREE.BoxGeometry(1.01, 1.01, 1.01), barst = new THREE.Mesh(barstGeo, new THREE.MeshBasicMaterial({ map: barstTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 })); barst.visible = false; scene.add(barst);
+  function zetBarst(stap) { const t = W.uv('barst' + stap), a = barstGeo.attributes.uv; for (let i = 0; i < a.count; i += 4) { a.setXY(i, t[0], t[3]); a.setXY(i + 1, t[2], t[3]); a.setXY(i + 2, t[0], t[1]); a.setXY(i + 3, t[2], t[1]); } a.needsUpdate = true; }
+
+  // ---------------- hakken (ingedrukt houden) en bouwen
+  let hakken = false, hakDoel = null, hakTijd = 0, hakKlaar = 0, slag = 0;
+  function hakDuur(id) {
+    const B = W.BLOK[id], h = B[6]; if (h > 1e8) return Infinity; if (creatief()) return 0.12;
+    const t = inHand(), I = t && ITEM[t.id], past = I && I.gereed === B[7] && B[7], magOogst = !B[8] || (I && I.gereed === 'houweel' && I.tier >= B[8]);
+    let snel = past ? I.snel : 1; if (I && I.gereed === 'zwaard' && (id === W.BLAD || id === 32)) snel = 6;
+    return h * (magOogst ? 1.5 : 5) / snel;
   }
+  function breek(r) {
+    const B = W.BLOK[r.id]; W.zet(r.x, r.y, r.z, 0); geluid('hak', r.id); bewaarLater();
+    if (creatief()) return;
+    const t = inHand(), I = t && ITEM[t.id], magOogst = !B[8] || (I && I.gereed === 'houweel' && I.tier >= B[8]);
+    let drop = B[9]; if (drop === -1) drop = Math.random() < 0.08 ? 105 : Math.random() < 0.06 ? 100 : 0;
+    if (magOogst && drop) { geef(drop, 1); melding('+1 ' + ITEM[drop].naam, true); }
+    else if (!magOogst) melding('Daar heb je een beter houweel voor nodig.');
+    if (I && I.gereed) { t.dur--; if (t.dur <= 0) { S.inv[S.kies] = null; melding('Je ' + I.naam.toLowerCase() + ' is kapot.'); geluid('kapot'); } tekenBalk(); }
+    S.honger = Math.max(0, S.honger - 0.03);
+  }
+  function hakStap(dt) {
+    if (!hakken) { hakDoel = null; barst.visible = false; return; }
+    const r = richt(); if (!r) { hakDoel = null; barst.visible = false; return; }
+    if (!hakDoel || hakDoel.x !== r.x || hakDoel.y !== r.y || hakDoel.z !== r.z) { hakDoel = r; hakTijd = 0; hakKlaar = hakDuur(r.id); }
+    if (creatief()) { slag -= dt; if (slag <= 0) { breek(r); slag = 0.22; } return; }
+    hakTijd += dt; zwaai();
+    if (hakKlaar === Infinity) { barst.visible = false; return; }
+    const f = hakTijd / hakKlaar; barst.visible = true; barst.position.set(r.x + 0.5, r.y + 0.5, r.z + 0.5); zetBarst(Math.min(7, Math.floor(f * 8)));
+    if (f >= 1) { breek(r); hakDoel = null; barst.visible = false; }
+  }
+  function gebruik() {
+    const t = inHand(), I = t && ITEM[t.id];
+    if (I && I.eten && !creatief()) { if (S.honger >= 20) { melding('Je hebt geen honger.'); return; } S.honger = Math.min(20, S.honger + I.eten); t.n--; if (!t.n) S.inv[S.kies] = null; tekenBalk(); geluid('eet'); melding('Mmm, ' + I.naam.toLowerCase() + '!'); return; }
+    if (!I || !I.blok) return;
+    const r = richt(); if (!r) return;
+    const x = r.x + r.n[0], y = r.y + r.n[1], z = r.z + r.n[2], id = t.id;
+    const hier = W.get(x, y, z); if (hier && hier !== W.WATER) return;
+    if (id === W.FAKKEL && !W.vast(W.get(x, y - 1, z))) { melding('Een fakkel moet op een blok staan.'); return; }
+    if (W.vast(id)) { const oud = W.get(x, y, z); W.zet(x, y, z, id); const raak = botst(speler.x, speler.y, speler.z); if (raak) { W.zet(x, y, z, oud); return; } }
+    else W.zet(x, y, z, id);
+    if (!creatief()) { t.n--; if (!t.n) S.inv[S.kies] = null; tekenBalk(); }
+    geluid('bouw', id); zwaai(); bewaarLater();
+  }
+
+  // ---------------- levens, honger en adem
+  let adem = 10, hongerKlok = 0, herstelKlok = 0, cactusKlok = 0, verdrinkKlok = 0;
+  function schade(n, waarom) {
+    if (creatief() || n <= 0 || $('rb-dood').hidden === false) return;
+    S.hp = Math.max(0, S.hp - n); geluid('au'); houder.classList.remove('rb-au'); void houder.offsetWidth; houder.classList.add('rb-au'); if (waarom) melding(waarom);
+    if (S.hp <= 0) { $('rb-dood').hidden = false; if (document.pointerLockElement) document.exitPointerLock(); }
+  }
+  function lijf(dt) {
+    if (creatief()) return;
+    const oog = W.get(Math.floor(camera.position.x), Math.floor(camera.position.y), Math.floor(camera.position.z)) === W.WATER;
+    if (oog) { adem -= dt; if (adem <= 0) { verdrinkKlok += dt; if (verdrinkKlok > 1) { verdrinkKlok = 0; schade(2, 'Je hebt lucht nodig!'); } } } else adem = Math.min(10, adem + dt * 3);
+    S.honger = Math.max(0, S.honger - dt * 0.022);
+    if (S.honger <= 0) { hongerKlok += dt; if (hongerKlok > 4 && S.hp > 2) { hongerKlok = 0; schade(1, 'Je hebt honger. Eet een appel of een vlaai.'); } }
+    if (S.honger >= 15 && S.hp < 20) { herstelKlok += dt; if (herstelKlok > 3) { herstelKlok = 0; S.hp++; S.honger -= 0.5; } }
+    cactusKlok -= dt; if (cactusKlok <= 0) for (const [dx, dz] of [[0.4, 0], [-0.4, 0], [0, 0.4], [0, -0.4]]) if (W.get(Math.floor(speler.x + dx), Math.floor(speler.y + 0.5), Math.floor(speler.z + dz)) === 32) { schade(1, 'Au, een cactus!'); cactusKlok = 0.8; break; }
+  }
+  $('rb-opstaan').addEventListener('click', () => { S.hp = 20; S.honger = Math.max(S.honger, 12); adem = 10; const sp = S.spawn || zoekStart(); speler.x = sp[0]; speler.z = sp[1]; speler.y = landOp(sp[0], sp[1]); speler.vy = 0; speler.valMax = 0; $('rb-dood').hidden = true; tekenBalk(); speel(); });
 
   // ---------------- geluid
   let ac = null;
-  function geluid(wat, id) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); const toon = { 1: 180, 2: 150, 3: 260, 4: 240, 5: 320, 7: 200, 8: 420, 9: 220, 10: 900, 11: 230, 21: 300, 23: 600 }[id] || 220; o.type = wat === 'hak' ? 'square' : 'triangle'; o.frequency.setValueAtTime(toon * (wat === 'hak' ? 1 : 1.4), t); o.frequency.exponentialRampToValueAtTime(toon * 0.5, t + 0.12); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.16); } catch (e) {} }
+  function geluid(wat, id) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); const toon = { hak: 200, bouw: 300, kapot: 120, eet: 500, au: 160, maak: 700 }[wat] || 220; o.type = wat === 'hak' || wat === 'au' ? 'square' : 'triangle'; o.frequency.setValueAtTime(toon * (1 + ((id || 0) % 5) * 0.08), t); o.frequency.exponentialRampToValueAtTime(toon * 0.5, t + 0.13); g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.17); } catch (e) {} }
 
-  // ---------------- de balk en het blokkenmenu, met getekende blokjes
-  function icoon(id, maat) {
-    const c = document.createElement('canvas'); c.width = c.height = maat; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
-    const b = W.BLOK[id], tile = n => { const i = W.TEX[n]; return [(i % 8) * 16, Math.floor(i / 8) * 16]; };
-    const s = maat / 2, h = s * 0.58;
-    const vlak = (naam, a, bb, cc, d, e, f, donker) => { const [tx, ty] = tile(naam); g.save(); g.setTransform(a, bb, cc, d, e, f); g.drawImage(W.atlas, tx, ty, 16, 16, 0, 0, 16, 16); if (donker) { g.fillStyle = `rgba(0,0,0,${donker})`; g.fillRect(0, 0, 16, 16); } g.restore(); };
-    vlak(b[3], s / 16, h / 16, -s / 16, h / 16, s, maat * 0.08, 0);
-    vlak(b[4], s / 16, h / 16, 0, (maat * 0.5) / 16, 0, maat * 0.08 + h, 0.18);
-    vlak(b[4], s / 16, -h / 16, 0, (maat * 0.5) / 16, s, maat * 0.08 + 2 * h, 0.32);
-    return c.toDataURL();
+  // ---------------- balk, hand, levens en honger
+  function tekenBalk() {
+    $('rb-balk').innerHTML = S.inv.slice(0, 9).map((s, i) => { const I = s && ITEM[s.id]; return `<button type="button" class="rb-vak${i === S.kies ? ' gekozen' : ''}" data-vak="${i}" aria-label="${I ? I.naam : 'Leeg vakje'}" title="${I ? I.naam : ''}">${I ? `<img src="${ico(s.id)}" alt="">` : ''}<span>${i + 1}</span>${s && s.n > 1 && !creatief() ? `<b>${s.n}</b>` : ''}${s && I.gereed ? `<i style="width:${Math.round(s.dur / I.dur * 100)}%;background:${s.dur / I.dur > 0.5 ? '#5FD35F' : s.dur / I.dur > 0.2 ? '#FFD34A' : '#FF5A5A'}"></i>` : ''}</button>`; }).join('');
+    const h = inHand(); $('rb-bloknaam').textContent = h ? ITEM[h.id].naam : ''; $('rb-hand').innerHTML = h ? `<img src="${ico(h.id)}" alt="">` : '';
+    $('rb-status').hidden = creatief();
+    if (!creatief()) $('rb-status').innerHTML = `<span class="rb-hart">${Array.from({ length: 10 }, (_, i) => `<i class="${S.hp >= (i + 1) * 2 ? 'vol' : S.hp >= i * 2 + 1 ? 'half' : ''}"></i>`).join('')}</span><span class="rb-vlaai">${Array.from({ length: 10 }, (_, i) => `<i class="${S.honger >= (i + 1) * 2 ? 'vol' : S.honger >= i * 2 + 1 ? 'half' : ''}"></i>`).join('')}</span>${adem < 10 ? `<span class="rb-adem">${Array.from({ length: 10 }, (_, i) => `<i class="${adem > i ? 'vol' : ''}"></i>`).join('')}</span>` : ''}`;
   }
-  const ICO = {}; for (let i = 1; i < W.BLOK.length; i++) if (i !== W.BODEM && i !== W.WATER) ICO[i] = icoon(i, 48);
-  function tekenBalk() { $('rb-balk').innerHTML = S.balk.map((id, i) => `<button type="button" class="rb-vak${i === S.kies ? ' gekozen' : ''}" data-vak="${i}" aria-label="${W.BLOK[id][0]}" title="${W.BLOK[id][0]}"><img src="${ICO[id]}" alt=""><span>${i + 1}</span></button>`).join(''); $('rb-bloknaam').textContent = W.BLOK[S.balk[S.kies]][0]; }
+  function zwaai() { const h = $('rb-hand'); if (h.classList.contains('zwaai')) return; h.classList.add('zwaai'); setTimeout(() => h.classList.remove('zwaai'), 250); }
   $('rb-balk').addEventListener('click', e => { const b = e.target.closest('[data-vak]'); if (b) { S.kies = +b.dataset.vak; tekenBalk(); } });
-  function toonMenu(aan) {
-    $('rb-menu').hidden = !aan;
-    if (aan) { if (document.pointerLockElement) document.exitPointerLock(); $('rb-menu-blokken').innerHTML = Object.keys(ICO).map(id => `<button type="button" data-blok="${id}" title="${W.BLOK[id][0]}"><img src="${ICO[id]}" alt=""><span>${W.BLOK[id][0]}</span></button>`).join(''); }
-  }
-  $('rb-menu').addEventListener('click', e => { const b = e.target.closest('[data-blok]'); if (b) { S.balk[S.kies] = +b.dataset.blok; tekenBalk(); bewaarLater(); toonMenu(false); } if (e.target.closest('[data-sluit]')) toonMenu(false); });
-  tekenBalk();
 
-  // ---------------- besturing: computer
+  // ---------------- rugzak en maken (overleven), of alle blokken (creatief)
+  let gekozenVak = null;
+  const inBuurt = id => { const X = Math.floor(speler.x), Y = Math.floor(speler.y), Z = Math.floor(speler.z); for (let dy = -2; dy <= 3; dy++) for (let dz = -4; dz <= 4; dz++) for (let dx = -4; dx <= 4; dx++) if (W.get(X + dx, Y + dy, Z + dz) === id) return true; return false; };
+  function tekenMenu() {
+    if (creatief()) {
+      $('rb-menu-inhoud').innerHTML = `<h2>Alle blokken en gereedschap</h2><p>Kies iets voor het vakje dat nu geselecteerd is (vakje ${S.kies + 1}).</p><div class="rb-grid">${Object.keys(ITEM).map(id => `<button type="button" data-geef="${id}" title="${ITEM[id].naam}"><img src="${ico(+id)}" alt=""><span>${ITEM[id].naam}</span></button>`).join('')}</div>`;
+      return;
+    }
+    const werk = inBuurt(29), oven = inBuurt(30);
+    const vakje = (s, i) => { const I = s && ITEM[s.id]; return `<button type="button" class="rb-vak${gekozenVak === i ? ' gekozen' : ''}${i < 9 ? ' balkvak' : ''}" data-inv="${i}" title="${I ? I.naam : 'Leeg'}">${I ? `<img src="${ico(s.id)}" alt="">` : ''}${s && s.n > 1 ? `<b>${s.n}</b>` : ''}${s && I.gereed ? `<i style="width:${Math.round(s.dur / I.dur * 100)}%"></i>` : ''}</button>`; };
+    const recepten = REC.map((r, n) => { const [uit, aantal, nodig, station] = r; const heb = Object.entries(nodig).every(([id, k]) => telIn(+id) >= k), stationOk = !station || inBuurt(station); return { n, uit, aantal, nodig, station, kan: heb && stationOk, heb, stationOk }; }).sort((a, b) => (b.kan - a.kan) || (b.heb - a.heb));
+    $('rb-menu-inhoud').innerHTML = `<div class="rb-rugzak"><div><h2>Rugzak</h2><p class="rb-klein">Klik een vakje en daarna een ander vakje om ze te wisselen. De bovenste rij is je balk.</p><div class="rb-inv">${S.inv.slice(0, 9).map((s, i) => vakje(s, i)).join('')}</div><div class="rb-inv">${S.inv.slice(9).map((s, i) => vakje(s, i + 9)).join('')}</div></div>
+      <div><h2>Maken</h2><p class="rb-klein">${werk ? 'Je staat bij een werkbank.' : 'Voor gereedschap heb je een werkbank in de buurt nodig.'} ${oven ? 'Je staat bij een oven.' : 'Smelten doe je bij een oven.'}</p><div class="rb-recepten">${recepten.map(r => `<div class="rb-recept${r.kan ? ' kan' : ''}"><img src="${ico(r.uit)}" alt=""><div><b>${ITEM[r.uit].naam}${r.aantal > 1 ? ' ×' + r.aantal : ''}</b><span>${Object.entries(r.nodig).map(([id, k]) => `<em class="${telIn(+id) >= k ? '' : 'mist'}"><img src="${ico(+id)}" alt="">${k} ${ITEM[id].naam.toLowerCase()}</em>`).join('')}${r.station ? `<em class="${r.stationOk ? '' : 'mist'}">bij ${r.station === 29 ? 'werkbank' : 'oven'}</em>` : ''}</span></div><button type="button" class="rb-knop" data-maak="${r.n}" ${r.kan ? '' : 'disabled'}>Maak</button></div>`).join('')}</div></div></div>`;
+  }
+  function toonMenu(aan) { $('rb-menu').hidden = !aan; if (aan) { if (document.pointerLockElement) document.exitPointerLock(); gekozenVak = null; tekenMenu(); } }
+  $('rb-menu').addEventListener('click', e => {
+    const g0 = e.target.closest('[data-geef]'); if (g0) { const id = +g0.dataset.geef, I = ITEM[id]; S.inv[S.kies] = I.gereed ? { id, n: 1, dur: I.dur } : { id, n: 1 }; tekenBalk(); bewaarLater(); toonMenu(false); speel(); return; }
+    const v = e.target.closest('[data-inv]'); if (v) { const i = +v.dataset.inv; if (gekozenVak === null) gekozenVak = i; else { const a = S.inv[gekozenVak], b = S.inv[i]; if (a && b && a.id === b.id && !ITEM[a.id].gereed && gekozenVak !== i) { const m = Math.min(64 - b.n, a.n); b.n += m; a.n -= m; if (!a.n) S.inv[gekozenVak] = null; } else { S.inv[gekozenVak] = b; S.inv[i] = a; } gekozenVak = null; tekenBalk(); } tekenMenu(); return; }
+    const m = e.target.closest('[data-maak]'); if (m && !m.disabled) { const [uit, aantal, nodig] = REC[+m.dataset.maak]; for (const [id, k] of Object.entries(nodig)) neem(+id, k); geef(uit, aantal); geluid('maak'); melding('Gemaakt: ' + ITEM[uit].naam + (aantal > 1 ? ' ×' + aantal : ''), true); tekenMenu(); bewaarLater(); return; }
+    if (e.target.closest('[data-sluit]')) { toonMenu(false); speel(); }
+  });
+
+  // ---------------- besturing
   const cv = renderer.domElement;
-  const aanraak = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-  document.body.classList.toggle('rb-aanraak', aanraak);
-  function speel() { $('rb-start').hidden = true; if (!aanraak && cv.requestPointerLock) cv.requestPointerLock(); }
-  $('rb-speel').addEventListener('click', speel);
-  document.addEventListener('pointerlockchange', () => { if (!document.pointerLockElement && !aanraak && $('rb-menu').hidden) $('rb-start').hidden = false; });
+  function speel() { $('rb-start').hidden = true; if (!aanraak && cv.requestPointerLock && $('rb-menu').hidden && $('rb-dood').hidden) cv.requestPointerLock(); }
+  document.addEventListener('pointerlockchange', () => { if (!document.pointerLockElement && !aanraak && $('rb-menu').hidden && $('rb-dood').hidden && S) $('rb-pauze').hidden = false; else $('rb-pauze').hidden = true; });
+  $('rb-pauze').addEventListener('click', speel);
   document.addEventListener('mousemove', e => { if (document.pointerLockElement !== cv) return; yaw -= e.movementX * 0.0024; pitch = Math.max(-1.55, Math.min(1.55, pitch - e.movementY * 0.0024)); });
-  cv.addEventListener('mousedown', e => { if (aanraak) return; if (document.pointerLockElement !== cv) { speel(); return; } if (e.button === 0) hak(); if (e.button === 2) bouw(); if (e.button === 1) { const r = richt(); if (r && ICO[r.id]) { S.balk[S.kies] = r.id; tekenBalk(); } } });
+  cv.addEventListener('mousedown', e => { if (aanraak || !S) return; if (document.pointerLockElement !== cv) { speel(); return; } if (e.button === 0) { hakken = true; zwaai(); } if (e.button === 2) gebruik(); if (e.button === 1 && creatief()) { const r = richt(); if (r && ITEM[r.id]) { S.inv[S.kies] = { id: r.id, n: 1 }; tekenBalk(); } } });
+  addEventListener('mouseup', e => { if (e.button === 0) hakken = false; });
   cv.addEventListener('contextmenu', e => e.preventDefault());
   addEventListener('wheel', e => { if (document.pointerLockElement !== cv) return; S.kies = (S.kies + (e.deltaY > 0 ? 1 : 8)) % 9; tekenBalk(); }, { passive: true });
   let laatsteSpatie = 0;
   addEventListener('keydown', e => {
-    if (e.target.closest && e.target.closest('input')) return;
+    if (!S || (e.target.closest && e.target.closest('input'))) return;
     toets[e.code] = true;
     if (/^Digit[1-9]$/.test(e.code)) { S.kies = +e.code.slice(5) - 1; tekenBalk(); }
-    if (e.code === 'KeyE' || e.code === 'KeyB') toonMenu($('rb-menu').hidden);
-    if (e.code === 'KeyF') wisselVlieg();
-    if (e.code === 'Space') { const nu = performance.now(); if (nu - laatsteSpatie < 280) wisselVlieg(); laatsteSpatie = nu; }
+    if (e.code === 'KeyE') { toonMenu($('rb-menu').hidden); if ($('rb-menu').hidden) speel(); }
+    if (e.code === 'KeyF' && creatief()) wisselVlieg();
+    if (e.code === 'Space' && creatief()) { const nu = performance.now(); if (nu - laatsteSpatie < 280) wisselVlieg(); laatsteSpatie = nu; }
     if (['Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
   });
   addEventListener('keyup', e => { toets[e.code] = false; });
-  addEventListener('blur', () => { for (const k in toets) toets[k] = false; });
+  addEventListener('blur', () => { for (const k in toets) toets[k] = false; hakken = false; });
   function wisselVlieg() { speler.vlieg = !speler.vlieg; speler.vy = 0; $('rb-vlieg').setAttribute('aria-pressed', String(speler.vlieg)); melding(speler.vlieg ? 'Je vliegt. Spatie is omhoog, C is omlaag.' : 'Je loopt weer.'); }
-  $('rb-vlieg').addEventListener('click', wisselVlieg);
+  $('rb-vlieg').addEventListener('click', () => { if (creatief()) wisselVlieg(); });
   $('rb-blokknop').addEventListener('click', () => toonMenu(true));
-
-  // ---------------- besturing: aanraken
+  // aanraken
   let kijkVinger = null, joyVinger = null, joyStart = null;
-  cv.addEventListener('touchstart', e => { for (const t of e.changedTouches) { if (t.clientX < innerWidth * 0.4 && joyVinger === null) { joyVinger = t.identifier; joyStart = [t.clientX, t.clientY]; $('rb-joy').style.cssText = `display:block;left:${t.clientX}px;top:${t.clientY}px`; } else if (kijkVinger === null) kijkVinger = { id: t.identifier, x: t.clientX, y: t.clientY, t0: performance.now(), x0: t.clientX, y0: t.clientY }; } e.preventDefault(); }, { passive: false });
+  cv.addEventListener('touchstart', e => { for (const t of e.changedTouches) { if (t.clientX < innerWidth * 0.4 && joyVinger === null) { joyVinger = t.identifier; joyStart = [t.clientX, t.clientY]; $('rb-joy').style.cssText = `display:block;left:${t.clientX}px;top:${t.clientY - houder.getBoundingClientRect().top}px`; } else if (kijkVinger === null) kijkVinger = { id: t.identifier, x: t.clientX, y: t.clientY, t0: performance.now(), x0: t.clientX, y0: t.clientY }; } e.preventDefault(); }, { passive: false });
   cv.addEventListener('touchmove', e => { for (const t of e.changedTouches) { if (t.identifier === joyVinger) { const dx = t.clientX - joyStart[0], dy = t.clientY - joyStart[1], l = Math.min(1, Math.hypot(dx, dy) / 50), a = Math.atan2(dy, dx); joy = { x: Math.cos(a) * l, y: Math.sin(a) * l }; $('rb-joyknop').style.transform = `translate(${Math.cos(a) * l * 34}px, ${Math.sin(a) * l * 34}px)`; } else if (kijkVinger && t.identifier === kijkVinger.id) { yaw -= (t.clientX - kijkVinger.x) * 0.005; pitch = Math.max(-1.55, Math.min(1.55, pitch - (t.clientY - kijkVinger.y) * 0.005)); kijkVinger.x = t.clientX; kijkVinger.y = t.clientY; } } e.preventDefault(); }, { passive: false });
-  const eind = e => { for (const t of e.changedTouches) { if (t.identifier === joyVinger) { joyVinger = null; joy = { x: 0, y: 0 }; $('rb-joy').style.display = 'none'; $('rb-joyknop').style.transform = ''; } else if (kijkVinger && t.identifier === kijkVinger.id) { const kort = performance.now() - kijkVinger.t0 < 250 && Math.hypot(t.clientX - kijkVinger.x0, t.clientY - kijkVinger.y0) < 10; kijkVinger = null; if (kort) bouw(); } } };
+  const eind = e => { for (const t of e.changedTouches) { if (t.identifier === joyVinger) { joyVinger = null; joy = { x: 0, y: 0 }; $('rb-joy').style.display = 'none'; $('rb-joyknop').style.transform = ''; } else if (kijkVinger && t.identifier === kijkVinger.id) { const kort = performance.now() - kijkVinger.t0 < 250 && Math.hypot(t.clientX - kijkVinger.x0, t.clientY - kijkVinger.y0) < 10; kijkVinger = null; if (kort) gebruik(); } } };
   cv.addEventListener('touchend', eind); cv.addEventListener('touchcancel', eind);
   const houdKnop = (id, aan, uit) => { const b = $(id); b.addEventListener('touchstart', e => { e.preventDefault(); aan(); }, { passive: false }); b.addEventListener('touchend', e => { e.preventDefault(); uit && uit(); }); b.addEventListener('mousedown', aan); b.addEventListener('mouseup', () => uit && uit()); };
   houdKnop('rb-spring', () => { springKnop = true; }, () => { springKnop = false; });
   houdKnop('rb-omlaag', () => { omlaagKnop = true; }, () => { omlaagKnop = false; });
-  houdKnop('rb-hak', hak); houdKnop('rb-bouw', bouw);
-
-  // ---------------- menu: nieuwe wereld en hulp
-  $('rb-nieuw').addEventListener('click', () => { if (!confirm('Een nieuwe wereld maken? Je huidige wereld is dan weg.')) return; try { localStorage.removeItem(OPSLAG); } catch (e) {} location.reload(); });
+  houdKnop('rb-hak', () => { hakken = true; }, () => { hakken = false; });
+  houdKnop('rb-bouw', gebruik);
   const meld = $('rb-melding'); let meldT = null;
-  function melding(t) { meld.textContent = t; meld.hidden = false; clearTimeout(meldT); meldT = setTimeout(() => { meld.hidden = true; }, 2600); }
+  function melding(t, klein) { meld.textContent = t; meld.className = klein ? 'klein' : ''; meld.hidden = false; clearTimeout(meldT); meldT = setTimeout(() => { meld.hidden = true; }, klein ? 1300 : 2600); }
+
+  // ---------------- startscherm
+  function start(nieuw, modus) {
+    if (nieuw) { Object.keys(W.wijzig).forEach(k => delete W.wijzig[k]); W.stukken.forEach(s => s.meshes.forEach(m => scene.remove(m))); W.stukken.clear(); maakWereld(modus); }
+    Object.assign(W.wijzig, S.wijzig || {}); W.zetZaad(S.zaad);
+    const sp = S.pos ? [S.pos[0], S.pos[2]] : (S.spawn || zoekStart()); if (!S.spawn) S.spawn = S.pos ? zoekStart() : sp;
+    speler.x = sp[0]; speler.z = sp[1]; yaw = S.kijk[0] || 0; pitch = S.kijk[1] || 0; speler.vlieg = false;
+    W.zetStraal(2); for (let k = 0; k < 6; k++) W.rondom(speler.x, speler.z, 6); W.zetStraal(STRAAL);
+    speler.y = S.pos ? S.pos[1] : landOp(speler.x, speler.z);
+    if (botst(speler.x, speler.y, speler.z)) speler.y = landOp(speler.x, speler.z);
+    $('rb-modus').textContent = creatief() ? 'Creatief' : 'Overleven'; $('rb-vlieg').hidden = !creatief();
+    speler.valMax = 0; speler.vy = 0; tekenBalk(); speel(); bewaarLater();
+    if (!creatief() && nieuw) melding('Hak een boom met je hand voor hout, en maak planken en een werkbank (E).');
+  }
+  function tekenStart() { $('rb-verder').hidden = !S; if (S) $('rb-verder').textContent = 'Ga verder (' + (S.modus === 'creatief' ? 'creatief' : 'overleven') + ')'; }
+  $('rb-verder').addEventListener('click', () => start(false));
+  $('rb-nieuw-over').addEventListener('click', () => { if (S && !confirm('Een nieuwe wereld maken? Je huidige wereld is dan weg.')) return; start(true, 'overleven'); });
+  $('rb-nieuw-crea').addEventListener('click', () => { if (S && !confirm('Een nieuwe wereld maken? Je huidige wereld is dan weg.')) return; start(true, 'creatief'); });
+  $('rb-naarstart').addEventListener('click', () => { bewaar(); toonMenu(false); $('rb-start').hidden = false; tekenStart(); });
+  tekenStart();
 
   // ---------------- dag en nacht
-  const DAG = 600;
-  const kl = new THREE.Color(), dagLucht = new THREE.Color(0x9fd0f5), avondLucht = new THREE.Color(0xf2a86a), nachtLucht = new THREE.Color(0x0e1430);
+  const DAG = 720, kl = new THREE.Color(), dagLucht = new THREE.Color(0x9fd0f5), avondLucht = new THREE.Color(0xf2a86a), nachtLucht = new THREE.Color(0x080c22), grotLucht = new THREE.Color(0x05060c);
   function zetLicht() {
-    const t = S.tijd, hoek = t * Math.PI * 2, hoog = Math.sin(hoek);
-    const dag = Math.max(0, Math.min(1, hoog * 3 + 0.4));
+    const t = S.tijd, hoek = t * Math.PI * 2, hoog = Math.sin(hoek), dag = Math.max(0, Math.min(1, hoog * 3 + 0.35));
+    W.uni.dag.value = W.uniW.dag.value = 0.13 + dag * 0.87;
     kl.copy(nachtLucht).lerp(dagLucht, dag); if (hoog > -0.2 && hoog < 0.25) kl.lerp(avondLucht, 0.45 * (1 - Math.abs(hoog - 0.02) / 0.25));
-    scene.background = kl; scene.fog.color.copy(kl);
-    hemi.intensity = 0.25 + dag * 0.6; zon.intensity = 0.1 + dag * 0.55;
-    const c = new THREE.Vector3(speler.x, speler.y, speler.z);
-    zon.position.set(c.x + Math.cos(hoek) * 100, c.y + hoog * 100, c.z + 20);
-    zonBol.position.set(c.x + Math.cos(hoek) * 160, c.y + hoog * 160, c.z); zonBol.lookAt(camera.position);
-    maanBol.position.set(c.x - Math.cos(hoek) * 160, c.y - hoog * 160, c.z); maanBol.lookAt(camera.position);
-    sterren.position.copy(c); sterren.material.opacity = 1 - dag; sterren.visible = dag < 0.6; sterren.material.transparent = true;
-    wolkMat.color.setScalar(0.35 + dag * 0.65);
+    // diep onder de grond kleurt de mist donker
+    const [zon] = W.lichtBij(Math.floor(speler.x), Math.floor(speler.y + 1), Math.floor(speler.z)); const ondergrond = zon < 4 && speler.y < W.ZEE + 4 ? 1 - zon / 4 : 0;
+    kl.lerp(grotLucht, ondergrond * 0.9);
+    scene.background = kl; W.uni.mist.value.copy(kl);
+    const c = camera.position;
+    zonBol.position.set(c.x + Math.cos(hoek) * 200, c.y + hoog * 200, c.z); zonBol.lookAt(c); maanBol.position.set(c.x - Math.cos(hoek) * 200, c.y - hoog * 200, c.z); maanBol.lookAt(c);
+    zonBol.visible = maanBol.visible = ondergrond < 0.5;
+    sterren.position.copy(c); sterren.material.opacity = (1 - dag) * (1 - ondergrond); wolkMat.color.setScalar(0.3 + dag * 0.7); wolkMat.opacity = 0.8 * (1 - ondergrond);
+    wolken.position.x = c.x - ((performance.now() / 1000 * 0.8) % 360) + 180; wolken.position.z = c.z;
+    $('rb-tijd').textContent = (hoog > 0 ? 'Dag' : 'Nacht');
   }
 
-  // ---------------- lus
+  // ---------------- de lus
   function maat() { const w = houder.clientWidth, h = houder.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
   addEventListener('resize', maat); maat();
-  const klok = new THREE.Clock(); let fpsT = 0, fpsN = 0;
+  const klok = new THREE.Clock(); let uiT = 0, fpsN = 0, fpsT = 0;
   function lus() {
     const dt = Math.min(0.05, klok.getDelta());
-    if (document.pointerLockElement === cv || aanraak) beweeg(dt);
-    S.tijd = (S.tijd + dt / DAG) % 1;
-    camera.position.set(speler.x, speler.y + OOG, speler.z); camera.rotation.set(pitch, yaw, 0);
-    const r = richt(); kader.visible = !!r; if (r) kader.position.set(r.x + 0.5, r.y + 0.5, r.z + 0.5);
-    $('rb-veld').classList.toggle('onderwater', W.get(Math.floor(camera.position.x), Math.floor(camera.position.y), Math.floor(camera.position.z)) === W.WATER);
-    wolken.position.x = (wolken.position.x + dt * 0.6) % 60;
-    zetLicht();
+    if (S) {
+      const actief = (document.pointerLockElement === cv || aanraak) && $('rb-menu').hidden && $('rb-dood').hidden && $('rb-start').hidden;
+      if (actief) { beweeg(dt); hakStap(dt); lijf(dt); } else { hakken = hakken && aanraak; barst.visible = false; }
+      { const t0 = performance.now(); let n = 0; while (performance.now() - t0 < 9 && n < 4) { if (!W.rondom(speler.x, speler.z, 1)) break; n++; } }
+      S.tijd = (S.tijd + dt / DAG) % 1;
+      camera.position.set(speler.x, speler.y + OOG, speler.z); camera.rotation.set(pitch, yaw, 0);
+      const r = actief ? richt() : null; kader.visible = !!r; if (r) kader.position.set(r.x + 0.5, r.y + 0.5, r.z + 0.5);
+      houder.classList.toggle('onderwater', W.get(Math.floor(camera.position.x), Math.floor(camera.position.y), Math.floor(camera.position.z)) === W.WATER);
+      zetLicht();
+      uiT += dt; if (uiT > 0.5) { uiT = 0; if (!creatief()) tekenBalk(); }
+    }
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { window.__rbFps = fpsN / fpsT; fpsN = 0; fpsT = 0; }
     requestAnimationFrame(lus);
   }
   lus();
-  window.__rb = { W, speler, zetBlok, hak, bouw, richt, kijk: (y, p) => { yaw = y; pitch = p; }, S, wijzig, bewaar };
+  window.__rb = { W, speler, get S() { return S; }, richt, breek, gebruik, geef, kijk: (y, p) => { yaw = y; pitch = p; }, start, ITEM, REC, bewaar, telIn, hakDuur, schade, zetTijd: t => { S.tijd = t; } };
 })();
 
 </script>

@@ -943,6 +943,17 @@ dialog { max-height: 90vh; overflow-y: auto; }
     duikplank: m => { blok(m.x + 0.1, m.y + 0.2, 0.3, 0.6, 6, '#9AA6C2'); blok(m.x + 0.1, m.y + 0.3, (m.w || 2) - 0.1, 0.4, 2, { top: '#F6F1E6', links: '#E3DCCB', rechts: '#C9C2B4', lijn: '#6F7785', licht: '#FFFFFF' }, 6); },
     trapje: m => { for (const b of [0.25, 0.75]) { const a = P(m.x + 0.95, m.y + b, -10), c = P(m.x + 0.95, m.y + b, 16); g.fillStyle = '#C9CED6'; g.fillRect(Math.round(a[0]), Math.round(c[1]), 1, Math.round(a[1] - c[1])); const k = P(m.x + 0.7, m.y + b, 16); lijnP(c, k, '#C9CED6'); } for (let i = 0; i < 3; i++) { const a = P(m.x + 0.95, m.y + 0.25, -6 + i * 5), b = P(m.x + 0.95, m.y + 0.75, -6 + i * 5); lijnP(a, b, '#9AA6C2'); } },
     zwemband: m => { const c = P(m.x + 0.5, m.y + 0.5, -4 + Math.sin(Date.now() / 600 + m.x) * 1.2); ovaal(c[0], c[1], 8, 4, kleur(m.kleur || '#E8577A', 0.6)); ovaal(c[0], c[1] - 1, 8, 4, m.kleur || '#E8577A'); ovaal(c[0], c[1] - 1, 4, 2, '#3A8DDE'); for (const a of [-6, 0, 5]) rect(c[0] + a, c[1] - 3, 2, 1, '#FBF6E9'); },
+    tijdmachine: m => {
+      const t = Date.now(), Y = m.y + 1.75;
+      blok(m.x + 0.2, m.y + 0.3, 1.6, 1.45, 30, { top: '#C9CED6', links: voorY(Y, 0, (tt, z) => { const u = (tt - m.x - 0.2) / 1.6; const d0 = Math.hypot((u - 0.5) * 2.4, (z - 15) / 9.5); if (d0 < 1) { if (d0 > 0.82) return '#5F6470'; const hoek = Math.atan2(z - 15, (u - 0.5) * 24) + t / 300; const ring = Math.floor((d0 * 6 + hoek) % 3); return ['#C8A2FF', '#7FF0FF', '#5A2A9A'][(ring + 3) % 3]; } if (z < 3) return '#3E465A'; return (Math.floor(tt * 10) % 4 === 0) ? '#9AA6C2' : '#B8C0CE'; }), rechts: '#8C95A8', lijn: '#3E465A', licht: '#E6EAF0' });
+      for (let i = 0; i < 5; i++) { const p = P(m.x + 0.35 + i * 0.32, m.y + 0.5, 30); const aan = Math.floor(t / 250 + i) % 3 === 0; rect(p[0] - 1, p[1] - 3, 3, 3, aan ? '#FFE76A' : '#7A6A2A'); }
+      for (const [a, b] of [[0.5, 0.6], [1.5, 0.6]]) { const v = P(m.x + a, m.y + b, 30), top = P(m.x + a, m.y + b, 52); lijnP(v, top, '#5F6470'); ovaal(top[0], top[1], 2, 2, '#C8323C'); if (Math.sin(t / 90 + a * 5) > 0.6) { rect(top[0] - 4, top[1] - 3, 1, 1, '#7FF0FF'); rect(top[0] + 3, top[1] - 1, 1, 1, '#FFE76A'); } }
+      const d1 = P(m.x + 1.6, Y, 24); ovaal(d1[0], d1[1], 3, 3, '#23252B'); lijnP(d1, [d1[0] + Math.cos(t / 400) * 2.5, d1[1] + Math.sin(t / 400) * 2.5], '#E9B949');
+      const k0 = P(m.x + 0.2, m.y + 0.6, 4); lijnP(k0, P(0.1, m.y + 0.6, 40), '#23252B'); lijnP([k0[0], k0[1] + 1], P(0.1, m.y + 0.9, 30), '#C8323C');
+    },
+    microscoop: m => { const z = m.z || 12; blok(m.x + 0.3, m.y + 0.35, 0.36, 0.3, 2, '#3A3D46', z); blok(m.x + 0.42, m.y + 0.42, 0.1, 0.1, 9, '#5F6470', z + 2); blok(m.x + 0.3, m.y + 0.38, 0.32, 0.24, 1, '#9AA6C2', z + 6); const t = P(m.x + 0.47, m.y + 0.47, z + 11), o = P(m.x + 0.58, m.y + 0.5, z + 17); lijnP(t, o, '#23252B'); lijnP([t[0] + 1, t[1]], [o[0] + 1, o[1]], '#3A3D46'); rect(o[0] - 1, o[1] - 2, 3, 2, '#23252B'); },
+    vergrootglas: m => { const c = P(m.x + 0.5, m.y + 0.5, (m.z || 12) + 1); ovaal(c[0], c[1], 6, 3, '#C99A2E'); ovaal(c[0], c[1], 5, 2, '#BFE6FF'); rect(c[0] + 4, c[1] + 1, 6, 2, '#5C3A21'); rect(c[0] - 2, c[1] - 1, 2, 1, '#FFFFFF'); },
+    archiefkast: m => { blok(m.x + 0.12, m.y + 0.15, 0.55, 0.7, 30, { top: '#9AA6C2', links: '#7A8396', rechts: voorX(m.x + 0.67, 0, (t, z) => { const u = (t - m.y - 0.15) / 0.7; if (z % 10 < 1.2 || u < 0.06 || u > 0.94) return '#5F6470'; if (Math.abs(u - 0.5) < 0.12 && z % 10 > 4.5 && z % 10 < 6) return '#E9B949'; return '#8C95A8'; }), lijn: '#3E465A', licht: '#C9CED6' }); },
     hanglamp: m => {
       const top = P(m.x + 0.5, m.y + 0.5, WH + 10), lamp = P(m.x + 0.5, m.y + 0.5, m.hoog || 46), aan = m.id ? aanUit(m) : true;
       g.fillStyle = '#23252B'; g.fillRect(Math.round(top[0]), Math.round(top[1]), 1, Math.round(lamp[1] - top[1]));
@@ -1060,6 +1071,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
       else if (m.type === 'jukebox' && jukeboxAan) voeg(P(m.x + 0.5, m.y + 0.6, 16), 60, [1, 0.5, 0.9], amb ? 0.75 : 0.2);
       else if (m.type === 'snoepautomaat') voeg(P(m.x + 0.5, m.y + 0.6, 18), 40, [1, 0.9, 0.6], amb ? 0.5 : 0.1);
       else if (m.type === 'hanglamp' && (!m.id || aanUit(m))) voeg(P(m.x + 0.5, m.y + 0.5, (m.hoog || 46) - 2), 66, [1, 0.82, 0.5], amb ? 0.75 : 0.12);
+      else if (m.type === 'tijdmachine') voeg(P(m.x + 1, m.y + 1.6, 16), 90, [0.7, 0.5, 1], (amb ? 0.9 : 0.3) * fl);
       else if (m.type === 'kandelaar') voeg(P(m.x + 0.5, m.y + 0.5, (m.z || 0) + 18), 56, [1, 0.72, 0.4], (amb ? 0.85 : 0.15) * fl);
       else if (m.type === 'kristalbol') voeg(P(m.x + 0.5, m.y + 0.5, 17), 50, [0.75, 0.55, 1], amb ? 0.8 : 0.25);
       else if (m.type === 'bureau') voeg(P(m.x + (m.w || 1.5) / 2, m.y + 0.4, 22), 50, [0.55, 0.8, 1], amb ? 0.7 : 0.15);
@@ -1074,6 +1086,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
       if (d.soort === 'neon') voeg(d.kant === 'L' ? P(0.3, tm, zm) : P(tm, 0.3, zm), 56, [1, 0.45, 0.85], amb ? 0.7 : 0.2);
       if (d.soort === 'raam' && dagNu && !Rm.buiten) voeg(d.kant === 'L' ? P(1.6, tm, 0) : P(tm, 1.6, 0), 70, [1, 0.95, 0.78], 0.3);
     }
+    if (Rm.sepia && !amb) amb = [1, 1, 1];
     if (!amb && !L.length) return;
     const n = VW * VH;
     if (!lichtKaart || lichtKaart.length !== n * 3) lichtKaart = new Float32Array(n * 3);
@@ -1088,6 +1101,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
       if (amb && GLOEIT.has((d[j] << 16) | (d[j + 1] << 8) | d[j + 2])) continue;
       d[j] = d[j] * lichtKaart[i * 3]; d[j + 1] = d[j + 1] * lichtKaart[i * 3 + 1]; d[j + 2] = d[j + 2] * lichtKaart[i * 3 + 2];
     }
+    if (Rm.sepia) for (let j = 0; j < d.length; j += 4) { const r = d[j], g2 = d[j + 1], b = d[j + 2]; d[j] = Math.min(255, r * 0.393 + g2 * 0.769 + b * 0.189); d[j + 1] = Math.min(255, r * 0.349 + g2 * 0.686 + b * 0.168); d[j + 2] = Math.min(255, r * 0.272 + g2 * 0.534 + b * 0.131); }
     ctx.putImageData(img, 0, 0);
     if (amb) for (const [lx, ly, rad, k, sterk] of L) { if (sterk < 0.5 || rad < 50) continue; ctx.fillStyle = 'rgba(255,240,200,.55)'; ctx.fillRect(Math.round(lx) - 1, Math.round(ly) - 1, 2, 2); }
   }
@@ -1470,6 +1484,63 @@ dialog { max-height: 90vh; overflow-y: auto; }
       meubels: [{ type: 'tent', x: 3, y: 0, w: 2, d: 1.5, kleur: '#E9B949', naam: 'Tent' }, { type: 'ligstoel', x: 1, y: 4, zit: [[1, 4, 'VL']], kleur: '#2E8B62' }, { type: 'plant', x: 0, y: 5, groot: true }, { type: 'plant', x: 5, y: 5, groot: true }, { type: 'plant', x: 5, y: 2 }, { id: 'l1', type: 'lamp', x: 0, y: 0, aan: true, actie: 'lamp', naam: 'Lamp' }],
       npcs: [{ id: 'lars', naam: 'Lars', look: mens('Lars', 1, 1, 'pet', '#2E8B62', '#7A4E2D'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [2, 2, 4, 4], zinnen: ['We hebben de tent binnen opgezet. Veel droger!', 'Harrie vindt het gras op de vloer niet zo leuk.'] }, { id: 'lot', naam: 'Lot', look: mens('Lot', 2, 2, 'lang', '#E9B949', '#2F4C8F'), x: 1, y: 4, r: 'VL', zit: true, zitHoog: 5, zinnen: ['Vannacht hoorden we een uil. Het was Harrie die floot.', 'Morgen gaan we kamperen op het dakterras.'] }] },
   };
+  RUIMTES.machine = {
+    naam: 'Machinekamer', ondertitel: 'Achter het zwembad: iets zoemt hier', w: 7, h: 6,
+    tegels: Array(6).fill('.......'), vloer: { '.': ['#8C8F96', '#7E8188'] }, mat: { '.': 'stoep' },
+    muur: { L: '#5A4A44', R: '#4E403A', patroon: 'tegels', rand: '#2A2A30' },
+    deuren: [{ kant: 'L', t: 2, x: 0, y: 2, naar: 'zwembad', spawn: [1, 7, 'VR'], naam: 'Terug naar het zwembad' }],
+    muurDeco: [{ soort: 'bord', kant: 'R', t: 0.6, z: 66, tekst: 'R. ROMMEL 1926', kleur: '#C99A2E', tekstKleur: '#23252B', s: 1 }, { soort: 'wandlamp', kant: 'L', t: 4.4, z: 50 }, { soort: 'wandlamp', kant: 'R', t: 5.8, z: 50 }],
+    meubels: [
+      { type: 'tijdmachine', x: 3, y: 0, w: 2, d: 2, naam: 'Tijdmachine' },
+      { type: 'tafel', x: 0, y: 4, w: 1, d: 2, h: 12, kleur: '#7A4E2D' }, { type: 'microscoop', x: 0, y: 4, z: 12, geenBlok: true },
+      { type: 'archiefkast', x: 0, y: 0, naam: 'Archiefkast' },
+      { id: 'mk1', type: 'hanglamp', x: 3, y: 3, hoog: 50, kleur: '#3E465A', geenBlok: true, aan: true },
+    ],
+    npcs: [],
+  };
+  RUIMTES.zwembad.deuren.push({ kant: 'L', t: 7, x: 0, y: 7, naar: 'machine', spawn: [1, 2, 'VR'], naam: 'Oude deur: verboden toegang' });
+  const kloon = o => JSON.parse(JSON.stringify(o));
+  const in1926 = (bron, naam, npcs, buren) => {
+    const r = kloon(bron); r.naam = naam; r.ondertitel = '10 juli 1926: een dag voor de opening'; r.sepia = true; r.jaar = 1926;
+    r.deuren = r.deuren.filter(d => !d.lift).map(d => buren[d.naar] ? Object.assign(d, { naar: buren[d.naar], slot: undefined }) : Object.assign(d, { slot: 'tijd' }));
+    r.npcs = npcs; return r;
+  };
+  const posMien = RUIMTES.receptie.npcs.find(n => n.id === 'mien') || { x: 3, y: 1, r: 'VL' };
+  RUIMTES.receptie1926 = in1926(RUIMTES.receptie, 'Receptie, 1926', [
+    { id: 'kleinemien', naam: 'Kleine Mien', look: mens('Kleine Mien', 0, 1, 'knot', '#E8577A', '#7A4E9A', 'schort'), x: posMien.x, y: posMien.y, r: posMien.r, zinnen: ['Morgen gaat het hotel open!', 'Opa zegt dat er ooit honderd mensen tegelijk logeren. Dat geloof ik niet.'] },
+    { id: 'piet', naam: 'Piet', look: mens('Piet', 1, 0, 'pet', '#2F4C8F', '#23252B'), x: 6, y: 5, r: 'VL', dwaal: true, gebied: [5, 4, 7, 6], zinnen: ['Ik ben de eerste conciërge van dit hotel. Mijn kleinzoon wordt later vast ook conciërge.', 'Dweilen? Nee hoor, ik veeg alleen.'] },
+  ], { lobby: 'lobby1926' });
+  RUIMTES.lobby1926 = in1926(RUIMTES.lobby, 'Lobby, 1926', [
+    { id: 'rommel', naam: 'Meneer Rommel', look: mens('Meneer Rommel', 0, 5, 'kort', '#23252B', '#3A3D46', 'vest'), x: 6, y: 2, r: 'VL', dwaal: true, gebied: [5, 1, 8, 3], zinnen: ['Een hotel vol rommel en vol mensen. Dat is mijn droom.', 'Mijn machine? Ach, een hobby.'] },
+    { id: 'mevrouwrommel', naam: 'Mevrouw Rommel', look: mens('Mevrouw Rommel', 0, 2, 'knot', '#7A4E9A', '#3A3D46'), x: 3, y: 5, r: 'VR', zit: true, zitHoog: 7, zinnen: ['Mijn man bouwt de hele dag aan die wasmachine van hem.', 'Morgen staat hier het hele dorp.'] },
+    { id: 'jacob', naam: 'Kok Jacob', look: mens('Kok Jacob', 1, 6, 'kort', '#FBF6E9', '#23252B', 'schort'), x: 7, y: 7, r: 'VL', dwaal: true, gebied: [6, 6, 9, 8], zinnen: ['Honderd gasten! Honderd!', 'Mijn vlaai wordt ooit beroemd. Let maar op.'] },
+    { id: 'lena', naam: 'Lena', look: mens('Lena', 2, 4, 'lang', '#7A4E2D', '#23252B'), x: 8, y: 4, r: 'VL', dwaal: true, gebied: [7, 3, 9, 5], zinnen: ['Stilstaan graag! Deze camera is erg langzaam.', 'Over honderd jaar kijkt iemand naar mijn foto. Wedden?'] },
+  ], { receptie: 'receptie1926' });
+  RUIMTES.lab = {
+    naam: 'Speurneuslab', ondertitel: 'Op de zolder: het oude lab van Opa Smit', w: 8, h: 7,
+    tegels: Array(7).fill('........'), vloer: { '.': ['#7A4E2D', '#6E4626'] }, mat: { '.': 'visgraat' },
+    muur: { L: '#3E5A4A', R: '#344E40', patroon: 'lambrisering', rand: '#C9A24E' },
+    deuren: [{ kant: 'L', t: 3, x: 0, y: 3, lift: true, naam: 'Lift' }],
+    muurDeco: [
+      { soort: 'speurbord', kant: 'R', t0: 2.4, t1: 5.4, z0: 26, z1: 60 },
+      { soort: 'bord', kant: 'R', t: 5.9, z: 68, tekst: 'LAB', kleur: '#23252B', tekstKleur: '#E9B949' },
+      { soort: 'raam', kant: 'R', t0: 6.3, t1: 7.4, z0: 28, z1: 54, gordijn: '#5A3A1E' },
+      { soort: 'wandlamp', kant: 'L', t: 1.6, z: 50 }, { soort: 'wandlamp', kant: 'L', t: 5.2, z: 50 },
+    ],
+    meubels: [
+      { type: 'boekenkast', kant: 'R', x: 0.4, y: 0, w: 1.8, d: 0.5, h: 50, naam: 'Boekenkast' },
+      { type: 'archiefkast', x: 0, y: 5, naam: 'Archiefkast' },
+      { type: 'tafel', x: 3, y: 3, w: 2, d: 1, h: 12, kleur: '#7A4E2D' },
+      { type: 'microscoop', x: 3, y: 3, z: 12, geenBlok: true, naam: 'Microscoop' },
+      { type: 'vergrootglas', x: 4, y: 3, z: 12, geenBlok: true, naam: 'Vergrootglas' },
+      { type: 'stoel', x: 3, y: 4, r: 'AR', zit: [[3, 4, 'AR']], kleur: '#3E5A4A' },
+      { type: 'kapstok', x: 7, y: 0, naam: 'Kapstok' },
+      { id: 'lb1', type: 'hanglamp', x: 4, y: 3, hoog: 46, kleur: '#2E6E4A', geenBlok: true, aan: true },
+      { type: 'globe', x: 6, y: 5, naam: 'Globe' }, { type: 'plant', x: 7, y: 6 },
+    ],
+    kleden: [{ x: 2.5, y: 2.4, w: 3, d: 2.4, kleur: '#2E4A3A', rand: '#C9A24E' }],
+    npcs: [],
+  };
   for (const [nr, T] of Object.entries(GASTEN)) {
     RUIMTES['k' + nr] = {
       naam: 'Kamer ' + nr, ondertitel: T.titel + ' (' + T.bewoner + ')', w: 6, h: 6, gast: true,
@@ -1660,8 +1731,9 @@ dialog { max-height: 90vh; overflow-y: auto; }
   }
   function gaZitten(r, hoog) { speler.zit = true; speler.zitHoog = hoog || 0; speler.richting = r || speler.richting; speler.dans = false; $('b-dans').setAttribute('aria-pressed', 'false'); $('b-zit').setAttribute('aria-pressed', 'true'); }
 
-  const LIFTSTOP = { zwembad: { naam: 'Kelder: zwembad', spawn: [1, 1, 'VR'] }, receptie: { naam: 'Begane grond: receptie', spawn: [1, 2, 'VR'] }, spel: { naam: '1e verdieping: spelletjeskamer', spawn: [1, 4, 'VR'] }, bieb: { naam: '2e verdieping: bibliotheek', spawn: [1, 3, 'VR'] }, dak: { naam: 'Dak: dakterras', spawn: [1, 1, 'VL'] } };
+  const LIFTSTOP = { zwembad: { naam: 'Kelder: zwembad', spawn: [1, 1, 'VR'] }, receptie: { naam: 'Begane grond: receptie', spawn: [1, 2, 'VR'] }, spel: { naam: '1e verdieping: spelletjeskamer', spawn: [1, 4, 'VR'] }, bieb: { naam: '2e verdieping: bibliotheek', spawn: [1, 3, 'VR'] }, lab: { naam: 'Zolder: speurneuslab', spawn: [1, 3, 'VR'] }, dak: { naam: 'Dak: dakterras', spawn: [1, 1, 'VL'] } };
   function gebruikDeur(deur) {
+    if (deur.slot === 'tijd') { zeg(speler, 'Die deur gaat in 1926 nog niet open.'); return; }
     if (deur.slot === 'incheck' && !S.ingecheckt) {
       const mien = npcs.find(n => n.id === 'mien');
       if (mien) zeg(mien, 'Ho, even wachten! Kom eerst bij mij inchecken, dan krijg je je sleutel.');
@@ -2094,7 +2166,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     // deuren
     for (const d of R.deuren) {
       if (d.gevel) continue;
-      const t0 = d.t + 0.2, t1 = d.t + 0.8, hoog = 36, dicht = d.slot && !S.ingecheckt;
+      const t0 = d.t + 0.2, t1 = d.t + 0.8, hoog = 36, dicht = d.slot === 'tijd' || (d.slot && !S.ingecheckt);
       meet = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
       if (d.lift) {
         muurVlak(d.kant, t0 - 0.08, t1 + 0.08, 0, hoog + 8, '#6F7785');
@@ -2249,6 +2321,12 @@ dialog { max-height: 90vh; overflow-y: auto; }
       muurVlak(k, d.t - 0.26, d.t + 0.26, d.z - 12, d.z - 2, '#C8323C');
       muurVlak(k, d.t - 0.18, d.t + 0.18, d.z - 10, d.z - 4, '#F2DDA0');
       muurVlak(k, d.t - 0.08, d.t + 0.08, d.z - 8, d.z - 6, '#2E8B62');
+    } else if (d.soort === 'speurbord') {
+      muurVlak(k, d.t0 - 0.06, d.t1 + 0.06, d.z0 - 2, d.z1 + 2, '#7A4E2D'); muurVlak(k, d.t0, d.t1, d.z0, d.z1, '#C9A36B');
+      const fotos = [[0.12, 0.62, '#9FD3E8'], [0.42, 0.78, '#E8577A'], [0.72, 0.6, '#B5D33D'], [0.28, 0.25, '#F6CB2F'], [0.62, 0.22, '#C8A2FF']], pt = [];
+      for (const [u, v, kk] of fotos) { const t = d.t0 + (d.t1 - d.t0) * u, z = d.z0 + (d.z1 - d.z0) * v; muurVlak(k, t - 0.18, t + 0.18, z - 6, z + 5, '#FBF6E9'); muurVlak(k, t - 0.14, t + 0.14, z - 3, z + 3.5, kk); pt.push(k === 'L' ? P(0, t, z + 5) : P(t, 0, z + 5)); }
+      [[0, 1], [1, 2], [0, 3], [3, 4], [4, 2], [1, 3]].forEach(([a, b]) => lijnP(pt[a], pt[b], '#C8323C'));
+      pt.forEach(p => { rect(p[0], p[1], 2, 2, '#C8323C'); });
     } else if (d.soort === 'wandlamp') {
       const p = k === 'L' ? P(0, d.t, d.z) : P(d.t, 0, d.z);
       rect(p[0] - 1, p[1] + 1, 3, 4, '#C99A2E'); rect(p[0], p[1] + 5, 1, 2, '#8C6A2A');
@@ -2636,7 +2714,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function openKaart() {
     const ul = $('kamers'); ul.innerHTML = '';
     Object.entries(RUIMTES).forEach(([id, r]) => {
-      if (r.gast) return;
+      if (r.gast || r.jaar || id === 'machine') return;
       const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
       const bekend = S.bezocht.includes(id), opSlot = !['plein', 'receptie'].includes(id) && !S.ingecheckt;
       b.innerHTML = '<span></span><small></small>';
@@ -2702,8 +2780,143 @@ dialog { max-height: 90vh; overflow-y: auto; }
     { wie: 'ster', kamer: 'k7', doel: 'Vraag Professor Ster in kamer 7 hoe laat het is.', voor: [['ster', 'Hoog boven de grond, als de sterren schijnen? Dan bedoelt ze het dakterras om middernacht!'], ['ster', 'Maar mijn klok is van slag. Hoe laat is het nu eigenlijk?']], puzzel: 'p11', na: [['ster', 'Kwart over negen. Ga maar alvast naar het dakterras. Neem de lift helemaal naar boven.']] },
     { wie: '*', kamer: 'dak', doel: 'Ga met de lift naar het dakterras.', voor: [['harrie', 'Daar ben je! Ik wist dat jij het zou vinden.'], ['mien', 'Harrie? Wat doe jij hier? En waar is mijn Gouden Sleutel?'], ['harrie', 'Hier, Mien. Ik had hem even geleend. Voor een verrassing.'], ['harrie', 'De kluis heeft ook nog een code. Die heb ik in een raadsel verstopt, voor de echte speurneus.']], puzzel: 'p12', na: [['mien', 'De kluis is open! Er zit... een taart in. En een foto van het hotel, honderd jaar geleden!'], ['harrie', 'Gefeliciteerd met honderd jaar, Mien. Dit feest is voor jou.'], ['mien', 'Harrie toch! En jij, {naam}: zonder jou had ik dit nooit gevonden.'], ['mien', 'Vanaf nu ben jij officieel de speurneus van het Rommelhotel.']], einde: true },
   ];
-  const MUNTPLEKKEN = [['receptie', 'paraplubak'], ['receptie', 'bagagekar'], ['lobby', 'staandeklok'], ['lobby', 'boekenkast'], ['cafe', 'kapstok'], ['cafe', 'vitrine'], ['gang', 'snoepautomaat'], ['bieb', 'globe'], ['zwembad', 'handdoeken'], ['k13', 'kristalbol'], ['k2', 'aquarium'], ['k7', 'telescoop']];
-  BADGES.speurneus = 'Speurneus';
+  // ================================================================ HOOFDSTUK 2: Wie heeft de vlaai opgegeten?
+  // vingerafdrukken en pootafdrukken, getekend uit een getal (zelfde getal = zelfde afdruk)
+  function afdrukSVG(soort, zaad, kleur) {
+    const r = (n => () => (n = (n * 16807) % 2147483647) / 2147483647)(zaad * 7919 + 13);
+    kleur = kleur || '#3A2A4A';
+    if (soort === 'poot') {
+      const g = 0.75 + r() * 0.5;
+      let s = `<ellipse cx="50" cy="66" rx="${18 * g}" ry="${15 * g}" fill="${kleur}"/>`;
+      [[-22, -6], [-9, -20], [9, -20], [22, -6]].forEach(([dx, dy]) => { s += `<ellipse cx="${50 + dx * g}" cy="${62 + dy * g}" rx="${7 * g}" ry="${9 * g}" fill="${kleur}"/>`; });
+      return `<svg viewBox="0 0 100 100" width="100" height="100" aria-hidden="true"><rect width="100" height="100" rx="10" fill="#FFFDF6"/>${s}</svg>`;
+    }
+    const type = ['boog', 'lus', 'krul'][zaad % 3];
+    let lijnen = '';
+    for (let i = 0; i < 9; i++) {
+      const rr = 6 + i * 4.4;
+      if (type === 'krul') lijnen += `<ellipse cx="50" cy="52" rx="${rr}" ry="${rr * 1.25}" fill="none" stroke="${kleur}" stroke-width="2.2" stroke-dasharray="${(20 + r() * 40).toFixed(0)} ${(3 + r() * 5).toFixed(0)}"/>`;
+      else if (type === 'lus') lijnen += `<path d="M${50 - rr} 90 L${50 - rr} 54 A${rr} ${rr * 1.2} 0 0 1 ${50 + rr} 54 L${50 + rr} ${70 + i * 2}" fill="none" stroke="${kleur}" stroke-width="2.2" stroke-dasharray="${(30 + r() * 40).toFixed(0)} ${(3 + r() * 4).toFixed(0)}"/>`;
+      else lijnen += `<path d="M8 ${88 - i * 7} Q50 ${60 - i * 9} 92 ${88 - i * 7}" fill="none" stroke="${kleur}" stroke-width="2.2" stroke-dasharray="${(30 + r() * 40).toFixed(0)} ${(3 + r() * 4).toFixed(0)}"/>`;
+    }
+    const kx = 30 + r() * 40, ky = 34 + r() * 40;
+    return `<svg viewBox="0 0 100 100" width="100" height="100" aria-hidden="true"><defs><clipPath id="vk${zaad}"><ellipse cx="50" cy="52" rx="36" ry="44"/></clipPath></defs><rect width="100" height="100" rx="10" fill="#FFFDF6"/><g clip-path="url(#vk${zaad})">${lijnen}<circle cx="${kx.toFixed(0)}" cy="${ky.toFixed(0)}" r="3.2" fill="#FFFDF6"/></g></svg>`;
+  }
+  // het bureau van Max: gisteren en vandaag (vandaag met vijf verschillen)
+  function bureauSVG(vandaag) {
+    let s = `<rect width="240" height="160" fill="#2A2440"/><rect x="0" y="112" width="240" height="48" fill="#3A3D46"/><rect x="20" y="96" width="200" height="10" rx="2" fill="#5C3A21"/><rect x="40" y="106" width="8" height="40" fill="#4A2E1C"/><rect x="192" y="106" width="8" height="40" fill="#4A2E1C"/>`;
+    s += `<rect x="70" y="40" width="80" height="50" rx="4" fill="#14141A"/><rect x="75" y="45" width="70" height="40" fill="${vandaag ? '#1E5A3A' : '#1E2A5C'}"/><rect x="104" y="90" width="12" height="6" fill="#14141A"/>`;
+    s += `<rect x="16" y="20" width="30" height="40" fill="#5EC2E8" opacity=".8"/><text x="31" y="45" font-size="14" text-anchor="middle" fill="#1F2333" font-family="sans-serif">${vandaag ? 'GO' : 'GG'}</text>`;
+    s += vandaag ? `<circle cx="196" cy="34" r="14" fill="#FBF6E9" stroke="#C99A2E" stroke-width="3"/><path d="M196 34 L196 24 M196 34 L203 37" stroke="#1F2333" stroke-width="2"/>` : `<circle cx="196" cy="34" r="14" fill="#FBF6E9" stroke="#C99A2E" stroke-width="3"/><path d="M196 34 L196 24 M196 34 L188 38" stroke="#1F2333" stroke-width="2"/>`;
+    s += `<rect x="160" y="78" width="16" height="18" rx="3" fill="${vandaag ? '#C8323C' : '#2F8BD6'}"/>`;
+    s += `<rect x="96" y="${vandaag ? 92 : 92}" width="30" height="5" rx="2" fill="#23252B"/>`;
+    if (vandaag) { s += `<ellipse cx="54" cy="94" rx="18" ry="5" fill="#F2F2F2" stroke="#9AA0A6"/><circle cx="48" cy="92" r="1.6" fill="#C98A43"/><circle cx="56" cy="93" r="1.4" fill="#C98A43"/><circle cx="61" cy="91" r="1.2" fill="#C98A43"/>`; s += `<circle cx="134" cy="94" r="4" fill="#A8162B" opacity=".9"/>`; s += `<rect x="186" y="84" width="22" height="12" rx="5" fill="#23252B"/><circle cx="191" cy="90" r="2" fill="#C8323C"/><circle cx="203" cy="90" r="2" fill="#2E8B62"/>`; }
+    return `<svg viewBox="0 0 240 160" aria-hidden="true">${s}</svg>`;
+  }
+  const VERSCHILLEN = [[54, 93, 20], [134, 94, 10], [197, 90, 16], [168, 87, 12], [110, 65, 30], [198, 32, 14], [31, 40, 14]];
+  const kruimelSVG = () => {
+    let s = '<rect width="240" height="160" rx="8" fill="#7A2E3A"/>';
+    const deuren = [['A', 20, 6, 'Lobby'], ['B', 100, 6, 'Gang'], ['C', 180, 6, 'Receptie'], ['D', 214, 120, 'Keuken']];
+    deuren.forEach(([l, x, y]) => { s += `<rect x="${x}" y="${y}" width="${l === 'D' ? 20 : 36}" height="${l === 'D' ? 30 : 20}" rx="3" fill="#3A2416"/><text x="${x + (l === 'D' ? 10 : 18)}" y="${y + (l === 'D' ? 20 : 15)}" font-size="13" font-weight="800" text-anchor="middle" fill="#E9B949" font-family="sans-serif">${l}</text>`; });
+    s += '<rect x="96" y="120" width="44" height="28" rx="4" fill="#5C2E1E"/><text x="118" y="139" font-size="10" text-anchor="middle" fill="#F2DDA0" font-family="sans-serif">vitrine</text>';
+    const spoor = [[118, 116], [112, 104], [104, 94], [96, 84], [90, 72], [96, 60], [106, 50], [114, 40], [118, 30]];
+    const nep = [[140, 116], [156, 110], [170, 100], [176, 88], [168, 78], [60, 110], [46, 98], [38, 84], [128, 108], [120, 96], [104, 80], [86, 66], [70, 54], [58, 44], [150, 70], [160, 56], [172, 46]];
+    spoor.forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="2.6" fill="#E0B07A"/>`; });
+    nep.forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="2.6" fill="#E0B07A"/>`; });
+    s += '<path d="M170 100 L188 120 M60 110 L80 116 M52 40 L44 30 M176 42 L186 34" stroke="#3A3D46" stroke-width="6" stroke-linecap="round"/>';
+    return `<svg viewBox="0 0 240 160" aria-hidden="true">${s}</svg>`;
+  };
+  Object.assign(PUZZELS, {
+    p13: { nr: 13, titel: 'De lege schaal', punten: 30, type: 'getal', antwoord: 9, tekst: 'De jubileumvlaai was in 12 stukken gesneden. Mien gaf er 3 aan het personeel. Joep legde er 2 in de vitrine. Nu zijn de schaal én de vitrine leeg. Hoeveel stukken heeft de vlaaidief meegenomen?', hints: ['Tel eerst hoeveel stukken er nog over waren nadat Mien uitdeelde.', 'Na het uitdelen waren er nog 9 stukken: 7 op de schaal en 2 in de vitrine.', 'De schaal en de vitrine zijn allebei leeg.'], uitleg: '12 min de 3 stukken van het personeel is 9. Die 9 zijn allemaal weg.' },
+    p14: { nr: 14, titel: 'Het kluisje van opa', punten: 30, type: 'getal', antwoord: 1963, tekst: 'Opa Smit bewaart de sleutel van zijn lab in een kluisje. De code is het jaar waarin hij rechercheur werd: 19 en dan nog twee cijfers. Die twee cijfers zijn samen 9, en het eerste cijfer is twee keer zo groot als het tweede. Wat is de code?', hints: ['Zoek twee cijfers die samen 9 zijn.', 'Het eerste cijfer is het dubbele van het tweede. Probeer 2 en 4, of 4 en 8... of kleiner.', '6 is het dubbele van 3, en 6 plus 3 is 9.'], uitleg: 'De cijfers zijn 6 en 3: de code is 1963.' },
+    p15: { nr: 15, titel: 'Een vingerafdruk', punten: 40, type: 'vingers', gevonden: 22, keuzes: [['Harrie', 21], ['Joep', 22], ['Max', 24], ['Paolo', 26]], antwoord: 1, tekst: 'Op de rand van de vlaaischaal zit een vingerafdruk. Bekijk hem goed onder het vergrootglas. Van wie is hij?', hints: ['Kijk eerst naar de vorm van de lijntjes: in bogen, in een lus of in een krul?', 'Kijk daarna naar het witte vlekje: waar zit dat precies?', 'Er is maar één afdruk met dezelfde vorm én het witte vlekje op dezelfde plek.'], uitleg: 'Het is de afdruk van Joep. Logisch: hij sneed de vlaai. Er moet dus nog een ander spoor zijn.' },
+    p16: { nr: 16, titel: 'Het kruimelspoor', punten: 40, type: 'keuze', svg: kruimelSVG, opties: ['A: de lobby', 'B: de gang', 'C: de receptie', 'D: de keuken'], antwoord: 1, tekst: 'Vanaf de vitrine lopen kruimels door het café. Twee sporen lopen dood bij een tafelpoot. Naar welke deur loopt het echte kruimelspoor?', hints: ['Begin bij de vitrine onderaan en volg de kruimels één voor één.', 'Het spoor naar rechts en het spoor naar links houden op bij een tafelpoot.', 'Het spoor door het midden loopt helemaal door tot aan een deur.'], uitleg: 'Het kruimelspoor door het midden loopt naar deur B: de gang met de kamers.' },
+    p17: { nr: 17, titel: 'Voor welke deur?', punten: 30, type: 'keuze', opties: ['Kamer 4', 'Kamer 6', 'Kamer 15'], antwoord: 0, tekst: 'Fenna veegde kruimels op voor drie deuren: 4, 6 en 15. Ze weet nog: de grootste hoop lag voor een kamer met een even nummer. Het was niet de kamer naast kamer 5. En er stond geen tent in. Voor welke kamer lag de grootste hoop?', hints: ['Welke van de drie nummers zijn even?', '4 en 6 zijn even. Welke van die twee ligt naast kamer 5?', 'Kamer 6 ligt naast kamer 5, dus die valt af.'], uitleg: 'Kamer 15 is oneven en heeft een tent. Kamer 6 ligt naast kamer 5. Blijft over: kamer 4, de kamer van Max.' },
+    p18: { nr: 18, titel: 'Zoek de verschillen', punten: 50, type: 'verschil', tekst: 'Fenna maakte gisteren een foto van het bureau van Max. Vandaag maak jij er een. Tik op de vijf verschillen in de foto van vandaag.', hints: ['Kijk eens goed naar het bureaublad, links en rechts.', 'Wat staat er naast het toetsenbord dat er gisteren niet stond? En welke kleur heeft het bekertje?', 'Let ook op het scherm en op de klok aan de muur.'], uitleg: 'Een bord met kruimels, een kersenvlek, een controller, een ander bekertje en een ander scherm. En de klok staat later. Verdacht!' },
+    p19: { nr: 19, titel: 'Het alibi', punten: 40, type: 'keuze', opties: ['Max', 'DJ Dex', 'Lars'], antwoord: 0, tekst: 'Max zegt: "Ik lag om tien uur al te slapen." DJ Dex zegt: "Om middernacht speelde ik nog een spelletje met Max." Lars zegt: "Om één uur hoorde ik nog muziek uit kamer 6." Dex en Lars vertellen allebei de waarheid. Wie liegt er?', hints: ['Als Dex de waarheid spreekt, wat deed Max dan om middernacht?', 'Max speelde om middernacht een spelletje.', 'Kan je om middernacht spelen als je om tien uur al sliep?'], uitleg: 'Max zat om middernacht nog te spelen met Dex, dus hij sliep niet om tien uur. Max liegt.' },
+    p20: { nr: 20, titel: 'De hoogste score', punten: 40, type: 'keuze', opties: ['00:43', '00:58', '01:13', '01:28'], antwoord: 1, tekst: 'Op het scorebord staat het record van Max: 02:13 uur. Hij speelde drie potjes van 25 minuten, en begon daar meteen mee nadat hij de vlaai had opgegeten. Hoe laat at hij de vlaai?', hints: ['Drie potjes van 25 minuten is samen hoeveel minuten?', 'Dat is 75 minuten: een uur en een kwartier.', 'Reken een uur en een kwartier terug vanaf 02:13.'], uitleg: '02:13 min een uur is 01:13, min nog een kwartier is 00:58.' },
+    p21: { nr: 21, titel: 'Pootjes', punten: 40, type: 'vingers', soort: 'poot', gevonden: 41, keuzes: [['Bobbie', 41], ['De kat van Fenna', 43], ['Een duif', 47]], antwoord: 0, tekst: 'Naast de schaal staan ook kleine pootafdrukken. Lars en Lot zagen een dier rondsnuffelen. Welk dier liet deze afdrukken achter?', hints: ['Kijk naar de grootte van de afdrukken.', 'Vergelijk ook de afstand tussen de teentjes.', 'Er is er maar één precies even groot.'], uitleg: 'Het zijn de pootjes van Bobbie. Hij likte de schaal schoon, maar zo\'n hele vlaai krijgt een hondje niet op.' },
+    p22: { nr: 22, titel: 'Kersensap', punten: 50, type: 'vingers', gevonden: 24, kleur: '#A8162B', keuzes: [['Lars', 25], ['Max', 24], ['DJ Dex', 30], ['Lot', 27]], antwoord: 1, tekst: 'Op de controller van Max zit een vingerafdruk van kersensap. Onder de microscoop zie je hem haarscherp. Van wie is hij?', hints: ['Kijk weer naar de vorm van de lijntjes.', 'Zoek daarna het witte vlekje.', 'Vorm en vlekje moeten allebei kloppen.'], uitleg: 'Het kersensap zit op de vinger van Max. Het bewijs is rond!' },
+    p23: { nr: 23, titel: 'Wat gebeurde er die nacht?', punten: 50, type: 'volgorde', items: ['Max pakt de vlaai', 'Max eet de vlaai op', 'Bobbie likt de schaal', 'Max speelt met Dex', 'Max haalt zijn record'], tekst: 'Zet de gebeurtenissen van die nacht in de goede volgorde. Bobbie kwam pas toen Max al gegeten had, maar nog voordat de spelletjes begonnen.', hints: ['Wat moet er eerst gebeuren voordat iemand een vlaai kan opeten?', 'Pakken, dan eten. Daarna kwam Bobbie.', 'Het record kwam aan het eind van de spelletjes.'], uitleg: 'Max pakte de vlaai, at hem op, Bobbie likte de schaal, en daarna speelde Max met Dex tot zijn record.' },
+    p24: { nr: 24, titel: 'Het nieuwe recept', punten: 60, type: 'getal', antwoord: 875, tekst: 'Max en Joep bakken als goedmaker nieuwe vlaaien. Voor één vlaai heb je 250 gram kersen nodig. Ze bakken er drie. Maar Max eet onderweg al een bakje van 125 gram leeg. Hoeveel gram kersen moeten ze in totaal kopen?', hints: ['Hoeveel kersen zijn er nodig voor drie vlaaien?', 'Drie keer 250 gram is 750 gram.', 'En dan nog het bakje dat Max opeet.'], uitleg: '750 gram voor de vlaaien plus 125 gram die Max opsnoept: 875 gram.' },
+  });
+  STAPPEN.push(
+    { hoofdstuk: 2, wie: 'mien', kamer: 'receptie', doel: 'Nieuw hoofdstuk! Praat met Mien bij de receptie.', voor: [['mien', '{naam}! Ramp! De jubileumvlaai is weg!'], ['mien', 'Joep en Paolo hebben er de hele dag aan gewerkt. En nu staat er alleen nog een lege schaal.'], ['jij', 'Een vlaaidief in het Rommelhotel? Dit is een zaak voor de speurneus.'], ['mien', 'Laten we eerst tellen hoeveel er precies weg is.']], puzzel: 'p13', na: [['mien', 'Negen stukken! Dat is geen hapje meer.'], ['mien', 'Opa Smit uit kamer 8 was vroeger rechercheur. Vraag hem om hulp.']] },
+    { wie: 'opa', kamer: 'k8', doel: 'Vraag Opa Smit in kamer 8 om hulp.', voor: [['opa', 'Een vlaaidief? Dat ik dat nog mag meemaken!'], ['opa', 'Mijn oude speurneuslab staat op de zolder. De sleutel zit in mijn kluisje.'], ['opa', 'De code? Die weet ik zelf ook niet meer precies...']], puzzel: 'p14', na: [['opa', '1963! Het jaar dat ik mijn eerste zaak oploste: de verdwenen kroonluchter.'], ['opa', 'Hier is de sleutel. Neem de lift naar de zolder.']] },
+    { wie: '*', kamer: 'lab', doel: 'Ga met de lift naar het speurneuslab op de zolder.', voor: [['opa', 'Welkom in mijn lab! Een vergrootglas, een microscoop en een prikbord met touwtjes.'], ['opa', 'Ik heb de vlaaischaal al meegenomen. Er zit een vingerafdruk op de rand.']], puzzel: 'p15', na: [['opa', 'Joep. Maar die sneed de vlaai natuurlijk zelf.'], ['opa', 'Ga naar het café en vraag Joep wat hij nog meer weet.']] },
+    { wie: 'joep', kamer: 'cafe', doel: 'Vraag Joep in het café wat hij weet.', voor: [['joep', 'Ja, ik sneed de vlaai. Daarna ging ik even afwassen.'], ['joep', 'Toen ik terugkwam: kruimels! Overal kruimels.']], puzzel: 'p16', na: [['joep', 'Naar de gang? Dan is de dief naar de kamers gegaan.'], ['joep', 'Fenna veegt daar elke ochtend. Misschien zag zij iets.']] },
+    { wie: 'fenna', kamer: 'gang', doel: 'Vraag Fenna in de gang naar de kruimels.', voor: [['fenna', 'Kruimels? O jee, die heb ik vanochtend opgeveegd. Sorry!'], ['fenna', 'Ze lagen voor drie deuren. Maar voor welke lag de grootste hoop?']], puzzel: 'p17', na: [['fenna', 'Kamer 4. Daar slaapt Max.'], ['fenna', 'Gisteren maakte ik nog een foto van zijn bureau, voor het schoonmaakrooster.']] },
+    { wie: 'max', kamer: 'k4', doel: 'Breng een bezoekje aan Max in kamer 4.', voor: [['max', 'Vlaai? Welke vlaai? Ik lag om tien uur al te slapen.'], ['jij', 'Mag ik even naar je bureau kijken?'], ['max', 'Eh... tuurlijk. Er is niks te zien.']], puzzel: 'p18', na: [['jij', 'Een bord met kruimels. En een kersenvlek!'], ['max', 'Dat... dat is van een ander bord. Van een andere dag. Vraag Dex maar.']] },
+    { wie: 'dex', kamer: 'k6', doel: 'Check het verhaal van Max bij DJ Dex in kamer 6.', voor: [['dex', 'Max? Om middernacht zaten we nog samen te gamen.'], ['dex', 'En Lars uit kamer 15 klaagde dat hij om één uur nog muziek hoorde. Sorry, Lars.']], puzzel: 'p19', na: [['jij', 'Max sliep dus helemaal niet om tien uur.'], ['dex', 'Kijk maar op het scorebord. Max haalde die nacht een record.']] },
+    { wie: 'koos', kamer: 'bieb', doel: 'Vraag Koos in de bibliotheek om het scorebord te bekijken.', voor: [['koos', 'Het scorebord? Ik heb het hier voor me. Waar is mijn bril? O, op mijn neus.'], ['koos', 'Max haalde zijn record om 02:13. Maar hoe laat at hij dan die vlaai?']], puzzel: 'p20', na: [['koos', 'Om twee voor één. Midden in de nacht!'], ['koos', 'Maar wacht: Lars en Lot zeiden dat er ook een dier rondsnuffelde.']] },
+    { wie: 'lot', kamer: 'k15', doel: 'Vraag Lars en Lot in kamer 15 naar het dier.', voor: [['lot', 'Ja! Er snuffelde iets langs onze tent. Het liet kleine pootafdrukken achter.'], ['lot', 'Kijk, op deze foto van de vloer.']], puzzel: 'p21', na: [['lot', 'Bobbie! Dat hondje likt alles schoon.'], ['jij', 'Maar een hele vlaai krijgt Bobbie niet op. Ik moet terug naar het lab.']] },
+    { wie: '*', kamer: 'lab', doel: 'Breng de controller van Max naar het lab op de zolder.', voor: [['opa', 'Een controller met een vlek kersensap? Leg hem maar onder de microscoop.']], puzzel: 'p22', na: [['opa', 'Max! Het bewijs is rond.'], ['opa', 'Ga hem er maar rustig mee confronteren. Rustig, hè. Het is een goeie jongen.']] },
+    { wie: 'max', kamer: 'k4', doel: 'Confronteer Max in kamer 4 met het bewijs.', voor: [['jij', 'Max, de vingerafdruk van kersensap is van jou.'], ['max', '...'], ['max', 'Oké. Ik had zo\'n honger tijdens het gamen. Ik wilde één stukje.'], ['max', 'En toen nog één. En toen... Help je me vertellen hoe het ging?']], puzzel: 'p23', na: [['max', 'Het spijt me echt. Ik wil het goedmaken.'], ['max', 'Joep zei dat ik mag helpen met nieuwe vlaaien bakken.']] },
+    { wie: 'joep', kamer: 'cafe', doel: 'Help Max en Joep in het café met nieuwe vlaaien.', voor: [['joep', 'Daar is onze vlaaidief! Kom, schort voor.'], ['max', 'Hoeveel kersen hebben we eigenlijk nodig?']], puzzel: 'p24', na: [['joep', 'Drie nieuwe vlaaien. En deze keer blijven ze heel.'], ['mien', 'Wat ruikt het hier lekker! Speurneus, je hebt het weer opgelost.'], ['max', 'Sorry, iedereen. Het eerste stuk is voor jou, {naam}.'], ['mien', 'Vanaf nu ben je meesterspeurneus van het Rommelhotel.']], einde: 2 },
+  );
+
+  // ---------------- moeilijkere puzzels (nagerekend: elk heeft precies één goed antwoord)
+  const MOEILIJK = {
+    p1: { punten: 40, antwoord: 6, tekst: 'Achter de balie hangen vijftien haakjes, voor de kamers 1 tot en met 15. Uitgeleend zijn de sleutels van alle kamers met een priemgetal als nummer, en van alle kamers met een nummer dat een veelvoud van 4 is. Hoeveel sleutels hangen er nog?', hints: ['Een priemgetal kun je alleen delen door 1 en door zichzelf. Het getal 1 is geen priemgetal.', 'De priemgetallen tot en met 15 zijn 2, 3, 5, 7, 11 en 13. De veelvouden van 4 zijn 4, 8 en 12.', 'Dat zijn samen negen uitgeleende sleutels.'], uitleg: 'Zes priemgetallen en drie veelvouden van 4: negen sleutels weg, dus er hangen er nog 6: van de kamers 1, 6, 9, 10, 14 en 15.' },
+    p2: { punten: 50, opties: ['Truus', 'Henk', 'Lotte', 'Daan'], antwoord: 0, tekst: 'Iemand liep over de natte vloer. Truus zegt: "Het was Henk of Lotte." Henk zegt: "Daan was het niet." Lotte zegt: "Truus liegt." Daan zegt: "Truus spreekt de waarheid." Precies twee van de vier spreken de waarheid. Wie liep er over de vloer?', hints: ['Probeer elke verdachte als dader en tel hoeveel mensen dan de waarheid spreken.', 'Let op: Lotte en Daan zeggen precies het tegenovergestelde over Truus. Een van hen spreekt dus altijd de waarheid.', 'Als Henk of Lotte de dader is, spreken er drie de waarheid. Als Daan het is, maar één.'], uitleg: 'Alleen als Truus het was, spreken er precies twee de waarheid: Henk en Lotte.' },
+    p3: { punten: 60, n: 4, druk: [[0, 1], [1, 3], [2, 0], [3, 2], [1, 1], [2, 2], [3, 0]], tekst: 'Een groter paneel: zestien lampjes. Als je op een lampje drukt, springt het om, en zijn buren erboven, eronder, links en rechts ook. Zet alle zestien lampjes aan.', hints: ['Twee keer op hetzelfde lampje drukken heft elkaar op. Elk lampje druk je dus hooguit één keer in.', 'Werk van boven naar onder: druk in de rij eronder om een lampje in de rij erboven aan te krijgen.', 'Klopt de onderste rij niet? Kijk welke lampjes uit blijven en probeer een ander begin in de bovenste rij.'], uitleg: 'Gelukt! Met rij voor rij werken krijg je ze allemaal aan.' },
+    p4: { punten: 50, tekst: 'Op het briefje staat: LQ GH ELHE. Elke letter is een vast aantal plekken in het alfabet opgeschoven, maar hoeveel staat er niet bij. Waar moet je zoeken?', hints: ['In het Nederlands komen korte woordjes als DE, IN en EN vaak voor.', 'Probeer GH: welk woordje van twee letters past, als je beide letters evenveel terugschuift?', 'GH wordt DE als je drie plekken terugschuift.'], uitleg: 'Drie plekken terug: LQ GH ELHE wordt IN DE BIEB.' },
+    p5: { punten: 60, antwoord: 11, tekst: 'Joep heeft weinig tijd. Hij snijdt een ronde vlaai met precies vier rechte sneden. De stukken hoeven niet even groot te zijn. Hoeveel stukken kan hij er hooguit van maken?', hints: ['Met één snede heb je 2 stukken, met twee kruisende sneden 4, en met drie goed gekozen sneden 7.', 'Elke nieuwe snede levert zoveel extra stukken op als het aantal stukken dat hij doorsnijdt.', 'Een vierde snede kan de andere drie kruisen en gaat dan door vier stukken heen.'], uitleg: '2, 4, 7 en dan 7 plus 4 is 11 stukken.' },
+    p6: { punten: 50, items: ['Kapitein Wout', 'Roos', 'Bo', 'Max', 'Jade', 'Sven'], tekst: 'Fenna weet nog dit van het ontbijt van zes gasten. Max at na Roos, maar niet als laatste. Sven at direct na Jade. Roos at direct na Kapitein Wout. Precies twee gasten aten vóór Bo. Tik de gasten aan in de volgorde waarin ze aten.', hints: ['Zoek eerst de vaste duo\'s: wie zitten er altijd direct achter elkaar?', 'Wout en Roos vormen een duo, en Jade en Sven ook. Bo staat op plek 3.', 'Als Bo op plek 3 staat, passen de twee duo\'s alleen nog op plek 1-2 en 4-5 of 5-6. Waar moet Max dan staan?'], uitleg: 'Kapitein Wout, Roos, Bo, Max, Jade en Sven.' },
+    p7: { punten: 50, opties: ['Boek 5', 'Boek 13', 'Boek 22', 'Boek 34'], antwoord: 2, tekst: 'Op de plank staan boeken met de nummers 1, 1, 2, 3, 5, 8, 13, 22 en 34. Eén boek hoort niet in deze rij. Welk boek is het?', hints: ['Het is geen verdubbeling en ook geen vaste stap. Kijk naar twee nummers tegelijk.', 'Tel steeds de twee nummers ervoor bij elkaar op.', '8 plus 13 is niet 22.'], uitleg: 'Elk nummer is de som van de twee ervoor. Na 8 en 13 hoort 21 te staan, niet 22.' },
+    p8: { punten: 60, tekst: 'De lift begint op de begane grond. Van onder naar boven: kelder, begane grond, 1e, 2e en het dak. Volgens de tekening gaat hij 2 omhoog, 3 omhoog, 5 omlaag, 2 omhoog, 1 omlaag, 4 omhoog en dan 6 omlaag. Maar: als de lift voorbij het dak of onder de kelder zou gaan, stopt hij gewoon op het dak of in de kelder. Waar eindigt de lift?', hints: ['Geef de verdiepingen nummers: kelder -1, begane grond 0, dan 1, 2 en dak 3.', 'Na 2 omhoog ben je op 2. Na 3 omhoog zou je op 5 komen, maar je stopt op het dak (3).', 'Vanaf 3 is 5 omlaag -2, maar dan stop je in de kelder (-1). Reken zo verder.'], uitleg: '0, 2, 3 (dak), -1 (kelder), 1, 0, 3 (dak) en dan weer naar de kelder.' },
+    p9: { punten: 50, antwoord: 10, tekst: 'In het zwembad drijven rode, gele en blauwe zwembanden. Er zijn twee keer zoveel rode als gele banden. Er zijn drie blauwe banden minder dan rode. Samen zijn het er 22. Hoeveel rode banden zijn er?', hints: ['Noem het aantal gele banden G. Hoeveel rode en blauwe zijn er dan?', 'Rood is 2 keer G, blauw is 2 keer G min 3. Samen: G + 2G + 2G - 3.', 'Dat is 5 keer G min 3, en dat moet 22 zijn.'], uitleg: '5 keer G min 3 is 22, dus G is 5. Dan zijn er 10 rode en 7 blauwe banden.' },
+    p10: { punten: 50, opties: ['Ruit', 'Klaver', 'Harten', 'Schoppen'], antwoord: 0, tekst: 'Madame Zora legt deze kaarten neer: ruit, harten, klaver, ruit, ruit, harten, klaver, klaver, ruit, ruit, ruit, harten, klaver, klaver, klaver. Welke kaart komt nu?', hints: ['Zoek de harten: die staan steeds tussen twee groepjes.', 'Voor elke harten staan ruiten, erna klavers. Hoeveel?', 'Eerst 1 ruit en 1 klaver, dan 2 en 2, dan 3 en 3. Hoe begint de volgende groep?'], uitleg: 'Elke groep is ruiten, een harten en evenveel klavers, en elke groep is één groter. Na drie klavers begint de groep van vier ruiten.' },
+    p11: { punten: 60, opties: ['20:58', '21:15', '21:37', '22:15'], antwoord: 1, tekst: 'Professor Ster zette zijn klok om 12:00 \'s middags precies gelijk. Maar de klok loopt elk uur 4 minuten voor. Nu wijst de klok 21:52 aan. Hoe laat is het echt?', hints: ['Elk echt uur schuift de klok 64 minuten op in plaats van 60.', 'Van 12:00 tot 21:52 is op de klok 592 minuten. Elke 64 klokminuten is één echt uur.', '9 echte uren zijn 576 klokminuten. Er blijven 16 klokminuten over: dat is een echt kwartier.'], uitleg: '592 klokminuten is 9 echte uren (576) en nog een kwartier (16). Het is echt 21:15.' },
+    p12: { punten: 80, antwoord: 347, tekst: 'De kluis heeft een code van drie verschillende cijfers. Harrie heeft vier pogingen opgeschreven. 297: één cijfer goed, op de goede plek. 306: één cijfer goed, op de goede plek. 241: één cijfer goed, op de goede plek. 243: één cijfer goed op de goede plek, en één cijfer goed maar op de verkeerde plek. Wat is de code?', hints: ['Vergelijk 241 en 243: ze verschillen alleen in het laatste cijfer.', 'Bij 241 klopt maar één cijfer, op de goede plek. Bij 243 is er één extra goed cijfer: de 3, maar die staat niet achteraan.', 'De 3 staat niet achteraan, en volgens 306 ook niet in het midden. De 3 staat dus vooraan.'], uitleg: 'De 3 staat vooraan (306). Dan is in 241 en 243 de 4 in het midden goed. En uit 297 blijft de 7 achteraan over: 347.' },
+    p13: { punten: 50, antwoord: 7, tekst: 'De jubileumvlaai was in 12 stukken gesneden. Mien gaf een derde aan het personeel. Van wat er overbleef legde Joep de helft in de vitrine, de rest bleef op de schaal. Paolo at één stuk van de schaal en legde daarna één stuk uit de vitrine op de schaal. Nu zijn schaal en vitrine leeg. Hoeveel stukken nam de dief mee?', hints: ['Een derde van 12 is 4. Hoeveel stukken blijven er dan over?', 'Er blijven 8 over: 4 in de vitrine en 4 op de schaal. Wat doet Paolo daarmee?', 'Paolo eet er één op. Het stuk dat hij verplaatst, is niet verdwenen.'], uitleg: '12 min 4 is 8. Paolo eet er 1 op, dus er waren nog 7 stukken toen de dief kwam.' },
+    p14: { punten: 50, tekst: 'Opa Smit werd rechercheur in een jaar tussen 1950 en 1999. Dat jaartal is deelbaar door 13, en alle cijfers van het jaartal opgeteld zijn samen 19. Wat is de code van zijn kluisje?', hints: ['Zoek eerst de veelvouden van 13 tussen 1950 en 1999.', 'Het zijn er vier: 1950, 1963, 1976 en 1989.', 'Tel bij elk jaartal de cijfers op.'], uitleg: '1963 is 151 keer 13, en 1 + 9 + 6 + 3 is 19.' },
+    p15: { punten: 60, keuzes: [['Harrie', 25], ['Joep', 22], ['Max', 28], ['Paolo', 31], ['Daan', 34], ['Mien', 37]], antwoord: 1, tekst: 'Op de rand van de vlaaischaal zit een vingerafdruk. Alle zes de verdachten hebben dezelfde soort afdruk. Kijk heel goed: van wie is hij?', hints: ['De vorm is bij iedereen gelijk. Kijk dus naar de kleine dingen.', 'Let op het witte vlekje: waar zit het precies?', 'Kijk ook naar de onderbrekingen in de lijntjes: zijn ze even lang?'], uitleg: 'Alleen de afdruk van Joep heeft het witte vlekje en de onderbrekingen op precies dezelfde plek. Hij sneed de vlaai, dus er moet nog een ander spoor zijn.' },
+    p16: { punten: 60, tekst: 'Vanaf de vitrine lopen kruimels door het café. Sommige sporen lopen dood bij een tafelpoot, en één spoor kruist een ander. Naar welke deur loopt het echte kruimelspoor?', hints: ['Begin bij de vitrine en volg één kruimel tegelijk.', 'Een spoor dat bij een tafelpoot ophoudt, kan het niet zijn.', 'Bij de kruising loopt het echte spoor gewoon rechtdoor.'], uitleg: 'Het spoor door het midden loopt rechtdoor over de kruising naar deur B: de gang.' },
+    p17: { punten: 60, opties: ['Kamer 2', 'Kamer 4', 'Kamer 6', 'Kamer 9', 'Kamer 11', 'Kamer 15'], antwoord: 1, tekst: 'Fenna veegde kruimels op voor zes deuren: 2, 4, 6, 9, 11 en 15. Ze weet nog: het nummer van de kamer met de grootste hoop was geen priemgetal. Het was kleiner dan het aantal letters in het woord KERSENVLAAI. En het was niet deelbaar door 3. Welke kamer was het?', hints: ['Welke nummers zijn priemgetallen? Die vallen af.', 'KERSENVLAAI heeft 11 letters.', 'Van de nummers die overblijven: welke zijn deelbaar door 3?'], uitleg: '2 en 11 zijn priemgetallen, 15 is niet kleiner dan 11, en 6 en 9 zijn deelbaar door 3. Blijft over: kamer 4, de kamer van Max.' },
+    p18: { punten: 70, tekst: 'Fenna maakte gisteren een foto van het bureau van Max. Vandaag maak jij er een. Er zijn zeven verschillen, en sommige zijn heel klein. Tik ze aan in de foto van vandaag.', hints: ['Kijk eerst naar het bureaublad, van links naar rechts.', 'Let op kleuren: het bekertje en het scherm.', 'Kijk ook heel goed naar de poster en de klok.'], uitleg: 'Een bord met kruimels, een kersenvlek, een controller, een ander bekertje, een ander scherm, een andere tijd op de klok, en op de poster staat iets anders.' },
+    p19: { punten: 60, opties: ['Max', 'DJ Dex', 'Lars', 'Bo'], antwoord: 0, tekst: 'Max zegt: "Ik lag om tien uur al te slapen." DJ Dex zegt: "Om middernacht gamede ik samen met Max." Lars zegt: "Dex liegt niet." Bo zegt: "Max of Dex liegt, maar niet allebei." Precies één van de vier liegt. Wie?', hints: ['Als Lars liegt, liegt Dex ook. Dan zijn er twee leugenaars.', 'Als Dex liegt, liegt Lars ook. Dat kan dus niet.', 'Kunnen Max en Dex allebei de waarheid spreken?'], uitleg: 'Max en Dex kunnen niet allebei gelijk hebben. Lars en Dex staan of vallen samen. Dus liegt Max, en spreken de andere drie de waarheid.' },
+    p20: { punten: 60, opties: ['00:28', '00:43', '00:58', '01:13'], antwoord: 1, tekst: 'Op het scorebord staat het record van Max: 02:13. Voor het eerste potje moest de game eerst 7 minuten laden. Daarna speelde hij drie potjes van 25 minuten, met telkens 4 minuten pauze tussen twee potjes. Het record viel aan het eind van het laatste potje. Hij begon met laden meteen nadat hij de vlaai op had. Hoe laat at hij de vlaai?', hints: ['Tel alles bij elkaar op: laden, drie potjes en de pauzes.', 'Tussen drie potjes zitten maar twee pauzes.', '7 + 75 + 8 is 90 minuten. Reken anderhalf uur terug vanaf 02:13.'], uitleg: 'Laden 7, spelen 75 en pauzes 8 minuten: samen 90 minuten. 02:13 min anderhalf uur is 00:43.' },
+    p21: { punten: 60, keuzes: [['Bobbie', 41], ['De kat van Fenna', 44], ['Een duif', 47], ['Een eekhoorn', 50]], tekst: 'Naast de schaal staan ook kleine pootafdrukken. Er liepen vier dieren rond in het hotel. Welk dier liet deze afdrukken achter?', hints: ['Kijk naar de grootte van de hele afdruk.', 'Vergelijk de afstand tussen de teentjes en het kussentje.', 'Er is er maar één die precies even groot is.'], uitleg: 'Het zijn de pootjes van Bobbie. Hij likte de schaal schoon, maar zo\'n hele vlaai krijgt een hondje niet op.' },
+    p22: { punten: 70, keuzes: [['Lars', 27], ['Max', 24], ['DJ Dex', 30], ['Lot', 33], ['Bo', 36], ['Sven', 39]], antwoord: 1, tekst: 'Op de controller van Max zit een vingerafdruk van kersensap. Zes gasten hebben die controller weleens vastgehad, en ze hebben allemaal dezelfde soort afdruk. Van wie is deze?', hints: ['De vorm is bij iedereen gelijk. Kijk naar de details.', 'Zoek het witte vlekje en vergelijk de plek heel precies.', 'Kijk ook naar waar de lijntjes onderbroken zijn.'], uitleg: 'Het vlekje en de onderbrekingen passen alleen bij Max. Het bewijs is rond!' },
+    p23: { punten: 70, items: ['Max pakt de vlaai', 'Max eet de vlaai op', 'Bobbie likt de schaal', 'Max speelt met Dex', 'Lars hoort muziek', 'Max haalt zijn record', 'Fenna veegt de kruimels'], tekst: 'Zet de gebeurtenissen van die nacht in de goede volgorde. Bobbie kwam nadat Max had gegeten. Max begon pas met spelen toen Bobbie weg was. Lars hoorde de muziek terwijl er al gespeeld werd, maar vóór het record. Fenna veegde als laatste, direct na het record.', hints: ['Wat moet er gebeuren voordat iemand iets kan opeten?', 'Pakken, eten, Bobbie, en dan pas spelen.', 'Tijdens het spelen hoorde Lars de muziek. Daarna kwam het record, en direct daarna Fenna.'], uitleg: 'Pakken, eten, Bobbie, spelen, Lars hoort muziek, het record en als laatste Fenna met de bezem.' },
+    p24: { punten: 80, antwoord: 25, tekst: 'Max en Joep bakken drie nieuwe vlaaien. Voor één vlaai heb je 250 gram kersen nodig. Max eet onderweg al 125 gram kersen op. De winkel verkoopt alleen bakjes van 300 gram, en ze kopen zo weinig mogelijk bakjes. Hoeveel gram kersen houden ze aan het eind over?', hints: ['Hoeveel kersen hebben ze in totaal nodig, het snoepen van Max meegeteld?', 'Dat is 750 plus 125, samen 875 gram. Hoeveel bakjes van 300 gram moet je dan kopen?', 'Twee bakjes is te weinig. Drie bakjes is 900 gram.'], uitleg: 'Ze hebben 875 gram nodig en kopen 3 bakjes: 900 gram. Er blijft 25 gram over.' },
+  };
+  for (const [id, m] of Object.entries(MOEILIJK)) Object.assign(PUZZELS[id], m);
+  // in de dialogen kloppen de antwoorden nu ook weer
+  const VERVANG = [['Zeven stukken! Je bent een rekenwonder.', 'Elf stukken! Je bent een rekenwonder.'], ['Boek 30! Dat hoort hier niet.', 'Boek 22! Dat hoort hier niet.'], ['Acht! Ik heb ze allemaal bekeken.', 'Tien! Ik heb ze allemaal bekeken.'], ['Negen stukken! Dat is geen hapje meer.', 'Zeven stukken! Dat is geen hapje meer.'], ['Om twee voor één. Midden in de nacht!', 'Om zeventien voor één. Midden in de nacht!']];
+  STAPPEN.forEach(st => ['voor', 'na'].forEach(w => (st[w] || []).forEach(r => { for (const [a, b] of VERVANG) if (r[1].startsWith(a)) r[1] = r[1].replace(a, b); })));
+
+  const MUNTPLEKKEN = [['receptie', 'paraplubak'], ['receptie', 'bagagekar'], ['lobby', 'staandeklok'], ['lobby', 'boekenkast'], ['cafe', 'kapstok'], ['cafe', 'vitrine'], ['gang', 'snoepautomaat'], ['bieb', 'globe'], ['zwembad', 'handdoeken'], ['k13', 'kristalbol'], ['k2', 'aquarium'], ['k7', 'telescoop'], ['lab', 'microscoop'], ['lab', 'archiefkast']];
+  BADGES.speurneus = 'Speurneus'; BADGES.meesterspeurneus = 'Meesterspeurneus';
+  const HOOFDSTUKKEN = { 1: 'Het geheim van de Gouden Sleutel', 2: 'Wie heeft de vlaai opgegeten?' };
+  // ================================================================ HOOFDSTUK 3: Terug naar 1926
+  Object.assign(PUZZELS, {
+    p25: { nr: 25, titel: 'De zoemende deur', punten: 60, type: 'getal', antwoord: 42, tekst: 'Op de deur zit een slot met getallen: 2, 6, 12, 20, 30, ?, 56. Het slot gaat open met het getal dat op de plek van het vraagteken hoort. Welk getal is het?', hints: ['Kijk naar de verschillen tussen de getallen.', 'De verschillen zijn 4, 6, 8, 10... Wat komt er daarna?', 'Je kunt ook kijken naar 1×2, 2×3, 3×4...'], uitleg: 'Elk getal is n keer n+1: 1×2, 2×3, 3×4, 4×5, 5×6, 6×7 = 42 en 7×8 = 56.' },
+    p26: { nr: 26, titel: 'Het bedieningspaneel', punten: 90, type: 'lichten', n: 5, druk: [[0, 0], [0, 4], [1, 2], [2, 1], [2, 3], [3, 0], [3, 4], [4, 2], [2, 2]], tekst: 'Het paneel van de tijdmachine heeft vijfentwintig lampjes. Als je er een indrukt, springen het lampje en zijn buren erboven, eronder, links en rechts om. De machine start pas als ze allemaal aan zijn.', hints: ['Elk lampje druk je hooguit één keer in. De volgorde maakt niet uit.', 'Werk rij voor rij naar beneden: maak een rij helemaal aan door in de rij eronder te drukken.', 'Gaat het mis in de onderste rij? Probeer dan bovenaan een paar andere lampjes als begin.'], uitleg: 'De machine zoemt harder: alle vijfentwintig lampjes branden.' },
+    p27: { nr: 27, titel: 'Letters op de grond', punten: 60, type: 'woord', antwoord: ['rommelhotel', 'hetrommelhotel'], tekst: 'De letters van het bord boven de deur liggen door elkaar op de grond: L, O, T, M, E, H, O, L, M, E, R. Het is één woord, en het is de naam van wat morgen opengaat. Welk woord staat er?', hints: ['Het zijn elf letters, met twee keer de L, de O, de M en de E.', 'Het woord bestaat uit twee delen. Het tweede deel is waar je slaapt als je op reis bent.', 'Het tweede deel is HOTEL. Welke letters blijven er dan over?'], uitleg: 'Het zijn de letters van ROMMELHOTEL.' },
+    p28: { nr: 28, titel: 'Drie kluisjes', punten: 70, type: 'keuze', opties: ['Kluisje A', 'Kluisje B', 'Kluisje C'], antwoord: 0, tekst: 'De bouwtekening zit in één van de drie kluisjes. Op kluisje A staat: "De tekening zit in B." Op kluisje B staat: "De tekening zit niet in mij." Op kluisje C staat: "De tekening zit niet in A." Op precies één kluisje staat de waarheid. In welk kluisje zit de tekening?', hints: ['Probeer elk kluisje en tel hoeveel zinnen dan waar zijn.', 'Als de tekening in B zit, zijn de zinnen op A en C waar. Dat zijn er twee.', 'Als de tekening in C zit, zijn B en C waar. Ook twee.'], uitleg: 'Alleen als de tekening in A zit, is er precies één ware zin: die op kluisje B.' },
+    p29: { nr: 29, titel: 'Het openingsdiner', punten: 70, type: 'getal', antwoord: 300, tekst: 'Kok Jacob weegt zijn inkopen. Drie kazen en twee broden wegen samen 1700 gram. Twee kazen en drie broden wegen samen 1800 gram. Alle kazen zijn even zwaar, en alle broden ook. Hoeveel gram weegt één kaas?', hints: ['Vergelijk de twee weegschalen: wat is het verschil tussen de twee?', 'Rechts staat één kaas minder en één brood meer, en het is 100 gram zwaarder. Een brood is dus 100 gram zwaarder dan een kaas.', 'Vervang in de eerste weging de twee broden door twee kazen plus 200 gram.'], uitleg: 'Een brood is 100 gram zwaarder dan een kaas. Dan zijn vijf kazen plus 200 gram samen 1700 gram: één kaas weegt 300 gram en een brood 400.' },
+    p30: { nr: 30, titel: 'De openingsfoto', punten: 80, type: 'volgorde', items: ['Piet', 'Mevrouw Rommel', 'Meneer Rommel', 'Kok Jacob', 'Jij', 'Kleine Mien'], tekst: 'Zes mensen staan op een rij voor de foto, van links naar rechts. Kleine Mien staat direct naast jou. Meneer Rommel staat op plek 3. Kok Jacob staat direct rechts van Meneer Rommel. Jij staat niet aan een uiteinde. Er staan precies twee mensen tussen Piet en Kok Jacob. Tik ze aan van links naar rechts.', hints: ['Begin met de vaste plekken: Meneer Rommel op 3, Kok Jacob dus op 4.', 'Twee mensen tussen Piet en Jacob: Piet staat dan op plek 1, want plek 7 bestaat niet.', 'Jij staat niet op plek 6, maar wel naast Mien. Welke plekken zijn er nog over?'], uitleg: 'Piet, Mevrouw Rommel, Meneer Rommel, Kok Jacob, jij en Kleine Mien.' },
+    p31: { nr: 31, titel: 'Tandwielen', punten: 70, type: 'getal', antwoord: 9, tekst: 'Met de Gouden Sleutel draai je tandwiel A. Dat grijpt in tandwiel B, en B grijpt in tandwiel C. A heeft 12 tanden, B heeft 18 tanden en C heeft 8 tanden. Je draait A precies 6 rondjes. Hoeveel rondjes draait tandwiel C?', hints: ['Tel hoeveel tanden er langs komen als A 6 rondjes draait.', 'Dat zijn 6 × 12 = 72 tanden. Elke tand die langs B gaat, gaat ook langs C.', 'Het aantal tanden van B maakt voor C dus niets uit.'], uitleg: 'Er gaan 72 tanden langs. Tandwiel C heeft er 8, dus C draait 72 / 8 = 9 rondjes. B is alleen een tussenstap.' },
+    p32: { nr: 32, titel: 'Honderd jaar later', punten: 90, type: 'keuze', opties: ['Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'], antwoord: 1, tekst: 'Het hotel opent op zaterdag 10 juli 1926. Op welke dag van de week valt 10 juli 2026, precies honderd jaar later?', hints: ['Een gewoon jaar heeft 365 dagen: dat is 52 weken en 1 dag. Een schrikkeljaar schuift 2 dagen op.', 'Tussen juli 1926 en juli 2026 zitten 25 schrikkeldagen: in 1928, 1932, ... tot en met 2024.', '100 jaar schuift dus 100 + 25 = 125 dagen op. Hoeveel is dat na hele weken?'], uitleg: '125 dagen is 17 weken en 6 dagen. Zes dagen na zaterdag is het vrijdag.' },
+    p33: { nr: 33, titel: 'Het raadsel van opa Rommel', punten: 60, type: 'woord', antwoord: ['gat', 'eengat', 'hetgat', 'gaten'], tekst: 'Op de achterkant van de oude foto staat: "Hoe meer je ervan weghaalt, hoe groter het wordt. Wat is het?"', hints: ['Het is iets wat je niet kunt vastpakken.', 'Denk aan een schep en een zandbak.', 'Als je zand weghaalt, wat wordt er dan groter?'], uitleg: 'Een gat: hoe meer je weghaalt, hoe groter het wordt.' },
+  });
+  HOOFDSTUKKEN[3] = 'Terug naar 1926';
+  STAPPEN.push(
+    { hoofdstuk: 3, wie: 'bert', kamer: 'zwembad', doel: 'Nieuw hoofdstuk! Ga naar Bert bij het zwembad in de kelder.', voor: [['bert', 'Hoor je dat? Al de hele week zoemt er iets achter die oude deur.'], ['bert', 'Er zit een slot op met getallen. Ik krijg hem niet open.']], puzzel: 'p25', na: [['bert', 'Hij is open! Ga jij maar eerst. Ik moet op het water letten.']] },
+    { wie: '*', kamer: 'machine', doel: 'Ga door de nieuwe deur bij het zwembad.', voor: [['jij', 'Een wasmachine... met antennes?'], ['ster', 'Ik hoorde het zoemen tot in kamer 7! Dit is geen wasmachine. Dit is een tijdmachine!'], ['ster', 'Op het plaatje staat: gebouwd door R. Rommel, 1926. De oprichter van het hotel!'], ['ster', 'Om hem te starten moeten alle lampjes op het paneel aan.']], puzzel: 'p26', na: [['ster', 'Hij zoemt! De wijzer staat op 10 juli 1926: de dag voor de opening.'], ['ster', 'Stap maar in. Ik let op de knoppen. Tot zo! Of tot honderd jaar geleden.']], actie: 'naar1926' },
+    { wie: 'kleinemien', kamer: 'receptie1926', doel: 'Je bent in 1926! Praat met het meisje bij de balie.', voor: [['kleinemien', 'Wie ben jij? Je hebt rare kleren aan.'], ['jij', 'Ik ben een gast. Van heel ver weg. Hoe heet jij?'], ['kleinemien', 'Mien! Mijn opa heeft dit hotel gebouwd. Morgen gaat het open.'], ['kleinemien', 'Maar de letters van het bord boven de deur zijn eraf gevallen.']], puzzel: 'p27', na: [['kleinemien', 'ROMMELHOTEL! Dat klinkt mooi. Opa is in de lobby. Hij heeft ook een probleem.']] },
+    { wie: 'rommel', kamer: 'lobby1926', doel: 'Zoek meneer Rommel in de lobby van 1926.', voor: [['rommel', 'Goedendag! U komt uit de toekomst, zegt Mien? Dan werkt mijn machine!'], ['rommel', 'Maar ik ben de bouwtekening kwijt. Die zit in een van mijn drie kluisjes, en ik weet niet meer welk.']], puzzel: 'p28', na: [['rommel', 'In kluisje A! U bent slimmer dan ik.'], ['rommel', 'Kijkt u ook even bij kok Jacob? Hij is in paniek over het openingsdiner.']] },
+    { wie: 'jacob', kamer: 'lobby1926', doel: 'Help kok Jacob met het openingsdiner.', voor: [['jacob', 'Morgen komen er honderd gasten, en mijn weegschaal is half kapot!'], ['jacob', 'Ik kan alleen nog dingen samen wegen.']], puzzel: 'p29', na: [['jacob', 'Driehonderd gram per kaas. Dan heb ik genoeg voor iedereen.'], ['jacob', 'Lena de fotograaf zoekt jou. Ze wil iedereen op de openingsfoto.']] },
+    { wie: 'lena', kamer: 'lobby1926', doel: 'Help Lena de fotograaf met de openingsfoto.', voor: [['lena', 'Ik maak morgen de openingsfoto. Maar iedereen wil op een andere plek staan.'], ['lena', 'En jij moet er ook op, zegt Mien.']], puzzel: 'p30', na: [['lena', 'Perfect. Zo komt hij in het archief. Voor altijd.'], ['lena', 'Piet de conciërge zei dat je machine moet worden opgewonden.']] },
+    { wie: 'piet', kamer: 'receptie1926', doel: 'Vraag Piet bij de receptie hoe je terugkomt.', voor: [['piet', 'Ik ben Piet, de conciërge. De machine moet worden opgewonden met de Gouden Sleutel.'], ['piet', 'Maar het zit allemaal via tandwielen. Hoeveel rondjes draait het laatste wiel?']], puzzel: 'p31', na: [['piet', 'Negen rondjes. Ik draai wel.'], ['piet', 'En de sleutel geef ik straks terug aan meneer Rommel. Die moet nog honderd jaar mee.']] },
+    { wie: 'kleinemien', kamer: 'receptie1926', doel: 'Neem afscheid van Kleine Mien.', voor: [['kleinemien', 'Ga je al weg? Kom je ooit terug?'], ['jij', 'Over honderd jaar. Precies op dezelfde dag.'], ['kleinemien', 'Op welke dag van de week is dat dan?']], puzzel: 'p32', na: [['kleinemien', 'Vrijdag! Dan maak ik een vlaai. Beloofd.'], ['rommel', 'De machine staat klaar. Goede reis, tijdreiziger!']], actie: 'naar2026' },
+    { wie: 'mien', kamer: 'receptie', doel: 'Terug in het heden! Ga naar Mien bij de receptie.', voor: [['mien', 'Daar ben je! Ik vond net deze oude foto, van de opening in 1926.'], ['mien', 'Kijk: dat kleine meisje ben ik. En wie staat daar naast me? Dat ben... jij?!'], ['mien', 'Op de achterkant staat een raadsel, in het handschrift van mijn opa.']], puzzel: 'p33', na: [['mien', 'Een gat! Ha, opa hield van grapjes.'], ['mien', 'En weet je wat? Ik had je een vlaai beloofd. Honderd jaar geleden.'], ['mien', 'Hij staat in de keuken. Op vrijdag, zoals afgesproken. Welkom terug, tijdreiziger.']], einde: 3 },
+  );
+  BADGES.tijdreiziger = 'Tijdreiziger';
+  MUNTPLEKKEN.push(['machine', 'tijdmachine'], ['lobby1926', 'staandeklok'], ['receptie1926', 'paraplubak']);
+
   const V = () => (S.verhaal = S.verhaal || { stap: 0, munten: 3, opgelost: {}, punten: 0, gevonden: {}, gezien: {}, waarde: {} });
   const Verhaal = (() => {
     const veld = cv.parentElement;
@@ -2748,7 +2961,15 @@ dialog { max-height: 90vh; overflow-y: auto; }
       @keyframes vh-stempel { from { transform: scale(2.4) rotate(-12deg); opacity: 0; } }
       @keyframes vh-schud { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
       .vh-boek li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid #E2D3B6; }
-      .vh-boek ul { list-style: none; margin: 0; padding: 0; }`;
+      .vh-boek ul { list-style: none; margin: 0; padding: 0; }
+      .vh-boek h3 { margin: .8rem 0 .2rem; font-size: 1rem; color: #5A3A1E; }
+      .vh-plaat svg { width: 100%; max-width: 360px; height: auto; display: block; margin: 0 auto 8px; border-radius: 8px; }
+      .vh-afdruk { display: flex; justify-content: center; margin-bottom: 6px; } .vh-afdruk div { text-align: center; } .vh-afdruk svg { width: 120px; height: 120px; display: block; border-radius: 10px; box-shadow: 0 0 0 3px #5A3A1E; }
+      .vh-afdrukknop { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; } .vh-afdrukknop svg { width: 78px; height: 78px; } .vh-afdrukknop[aria-pressed="true"] { background: #FFFDF6; color: #231A26; border-color: #C8323C; box-shadow: 0 0 0 3px #C8323C; }
+      .vh-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .vh-twee figure { margin: 0; } .vh-twee figcaption { font-size: 13px; font-weight: 700; margin-bottom: 3px; } .vh-twee svg { width: 100%; height: auto; display: block; border-radius: 6px; }
+      .vh-tikvlak { position: relative; cursor: crosshair; } .vh-cirkel { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 3px solid #E9B949; border-radius: 50%; box-shadow: 0 0 0 2px #231A26; pointer-events: none; }
+      .vh-hoofdstuk { text-align: center; padding: 34px 20px 28px; background: radial-gradient(circle, #FBF0D6, #F2DDA0); } .vh-hoofdstuk small { font-weight: 800; letter-spacing: .15em; text-transform: uppercase; color: #8C5A2A; } .vh-hoofdstuk h2 { font-size: 28px; margin: 6px 0 18px; }
+      @media (max-width: 520px) { .vh-twee { grid-template-columns: 1fr; } }`;
     document.head.appendChild(stijl);
     const balk = document.createElement('div'); balk.className = 'vh-balk';
     balk.innerHTML = '<div class="vh-doel" id="vh-doel"></div><span class="vh-ruimte"></span><button class="vh-knop" id="vh-munten" type="button" title="Hintmuntjes"></button><button class="vh-knop" id="vh-boek" type="button">Puzzels</button><span class="vh-zoom"><button class="vh-knop" id="vh-uit" type="button" aria-label="Uitzoomen">−</button><button class="vh-knop" id="vh-in" type="button" aria-label="Inzoomen">+</button></span>';
@@ -2799,8 +3020,27 @@ dialog { max-height: 90vh; overflow-y: auto; }
         const zet = () => { vak.innerHTML = `<div class="vh-grid" style="grid-template-columns:repeat(${n},52px)">${lampen.map((a, i) => `<button class="vh-lamp ${a ? 'aan' : ''}" data-i="${i}" type="button" aria-label="Lampje ${i + 1}, ${a ? 'aan' : 'uit'}"></button>`).join('')}</div><div><button class="vh-knop" id="vh-reset" type="button">Opnieuw</button></div>`; vak.querySelectorAll('.vh-lamp').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; druk(Math.floor(i / n), i % n); speel('klik'); zet(); })); vak.querySelector('#vh-reset').addEventListener('click', () => { lampen = start.slice(); zet(); }); };
         zet();
       }
+      if (P0.svg) vak.insertAdjacentHTML('beforebegin', '<div class="vh-plaat">' + P0.svg() + '</div>');
+      if (P0.type === 'vingers') {
+        vak.innerHTML = `<div class="vh-afdruk"><div><b>Gevonden afdruk</b>${afdrukSVG(P0.soort, P0.gevonden, P0.kleur)}</div></div><div class="vh-antwoord">${P0.keuzes.map(([naam, z], i) => `<button class="vh-optie vh-afdrukknop" data-i="${i}" type="button" aria-pressed="false">${afdrukSVG(P0.soort, z)}<span>${naam}</span></button>`).join('')}</div>`;
+        vak.querySelectorAll('.vh-optie').forEach(b => b.addEventListener('click', () => { gekozen = +b.dataset.i; vak.querySelectorAll('.vh-optie').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }));
+      }
+      if (P0.type === 'verschil') {
+        lampen = [];
+        vak.innerHTML = `<div class="vh-twee"><figure><figcaption>Gisteren</figcaption>${bureauSVG(false)}</figure><figure><figcaption>Vandaag: tik op de verschillen</figcaption><div class="vh-tikvlak">${bureauSVG(true)}</div></figure></div><p id="vh-teller" style="margin:.4rem 0 0">0 van de 7 gevonden</p>`;
+        const tik = vak.querySelector('.vh-tikvlak');
+        tik.addEventListener('click', e => {
+          const r = tik.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 240, y = (e.clientY - r.top) / r.height * 160;
+          const i = VERSCHILLEN.findIndex(([vx, vy, vr], j) => !lampen.includes(j) && Math.hypot(x - vx, y - vy) < vr + 6);
+          if (i < 0) { speel('klik'); return; }
+          lampen.push(i); speel('pling');
+          tik.insertAdjacentHTML('beforeend', `<span class="vh-cirkel" style="left:${VERSCHILLEN[i][0] / 2.4}%;top:${VERSCHILLEN[i][1] / 1.6}%"></span>`);
+          vak.querySelector('#vh-teller').textContent = Math.min(7, lampen.length) + ' van de 7 gevonden';
+        });
+      }
       if (P0.type === 'volgorde') {
-        const geschud = P0.items.slice().sort((a, b) => (a.length * 7 + a.charCodeAt(0)) % 5 - (b.length * 7 + b.charCodeAt(0)) % 5);
+        let geschud = P0.items.slice().sort((a, b) => (a.length * 7 + a.charCodeAt(0)) % 5 - (b.length * 7 + b.charCodeAt(0)) % 5);
+        if (geschud.every((x, i) => x === P0.items[i])) geschud = geschud.slice().reverse();
         const zet = () => { vak.innerHTML = `<div class="vh-rij" aria-label="Jouw volgorde">${volgorde.map((x, i) => `<span class="vh-optie" style="cursor:default">${i + 1}. ${x}</span>`).join('') || '<span style="opacity:.6;padding:6px">Tik de gasten hieronder aan</span>'}</div><div class="vh-antwoord">${geschud.filter(x => !volgorde.includes(x)).map(x => `<button class="vh-optie" data-x="${x}" type="button">${x}</button>`).join('')}<button class="vh-knop" id="vh-reset" type="button">Opnieuw</button></div>`; vak.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', () => { volgorde.push(b.dataset.x); speel('klik'); zet(); })); vak.querySelector('#vh-reset').addEventListener('click', () => { volgorde = []; zet(); }); };
         zet();
       }
@@ -2818,6 +3058,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
         if (P0.type === 'woord') { const a = (pz.querySelector('#vh-inv').value || '').toLowerCase().replace(/[^a-z]/g, ''); goed = P0.antwoord.includes(a); }
         if (P0.type === 'keuze') goed = gekozen === P0.antwoord;
         if (P0.type === 'lichten') goed = lampen.every(Boolean);
+        if (P0.type === 'vingers') goed = gekozen === P0.antwoord;
+        if (P0.type === 'verschil') goed = lampen.length >= 7;
         if (P0.type === 'volgorde') goed = volgorde.length === P0.items.length && volgorde.every((x, i) => x === P0.items[i]);
         const uit = pz.querySelector('#vh-uitslag');
         if (goed) {
@@ -2839,9 +3081,24 @@ dialog { max-height: 90vh; overflow-y: auto; }
       const st = stap(); if (!st) return;
       const verder = () => dialoog(st.na, () => {
         V().stap++; bewaar(); teken();
-        if (st.einde) { badge('speurneus'); krijg(100, 'het geheim opgelost'); for (let i = 0; i < 14; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 120); setTimeout(() => dialoog([['mien', 'Einde van het verhaal. Bedankt voor het spelen, speurneus! Je kunt je puzzels altijd terugvinden in het puzzelboek.']]), 900); }
+        if (st.actie) tijdreis(st.actie === 'naar1926');
+        if (st.einde === 3) { badge('tijdreiziger'); krijg(200, 'terug uit 1926'); for (let i = 0; i < 18; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 110); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 3. Bedankt, tijdreiziger! Je kunt je puzzels altijd terugvinden in het puzzelboek.']]), 900); }
+        else if (st.einde === 2) { badge('meesterspeurneus'); krijg(150, 'de vlaaidief ontmaskerd'); for (let i = 0; i < 14; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 120); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 2. Goed gespeurd! In de kelder staat iets vreemds te zoemen... maar dat is voor een volgende keer.']]), 900); }
+        else if (st.einde) { badge('speurneus'); krijg(100, 'het geheim opgelost'); for (let i = 0; i < 14; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 120); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 1. Bedankt voor het spelen, speurneus! Er wacht nog een nieuw mysterie: praat straks nog eens met Mien.']]), 900); }
       });
-      dialoog(st.voor, () => { if (st.puzzel && V().opgelost[st.puzzel] === undefined) openPuzzel(st.puzzel, verder); else verder(); });
+      const start = () => dialoog(st.voor, () => { if (st.puzzel && V().opgelost[st.puzzel] === undefined) openPuzzel(st.puzzel, verder); else verder(); });
+      if (st.hoofdstuk && !V()['hk' + st.hoofdstuk]) {
+        V()['hk' + st.hoofdstuk] = true; bewaar();
+        pz.innerHTML = `<div class="vh-hoofdstuk"><small>Hoofdstuk ${st.hoofdstuk}</small><h2>${HOOFDSTUKKEN[st.hoofdstuk]}</h2><button class="vh-knop vh-groot" type="button">Begin</button></div>`;
+        pz.querySelector('button').addEventListener('click', () => { pz.close(); start(); }); pz.showModal(); speel('bel');
+      } else start();
+    }
+    function tijdreis(heen) {
+      const f = document.createElement('div'); f.style.cssText = 'position:absolute;inset:0;z-index:7;pointer-events:none;background:radial-gradient(circle,#fff,#C8A2FF 60%,#5A2A9A);opacity:0';
+      veld.appendChild(f); speel('bel');
+      const fade = (o, ms) => f.animate ? f.animate([{ opacity: f.style.opacity }, { opacity: o }], { duration: ms, fill: 'forwards' }) : null;
+      fade(1, 600); f.style.opacity = 1;
+      setTimeout(() => { if (heen) gaNaar('receptie1926', [4, 5, 'AR']); else gaNaar('machine', [3, 4, 'VL']); setTimeout(() => { fade(0, 900); setTimeout(() => f.remove(), 950); }, 250); }, 650);
     }
     function praat(n) {
       const st = stap(); if (!st || !S.ingecheckt) return false;
@@ -2860,7 +3117,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     function markeer(x, y) { const op = Math.round(Math.sin(Date.now() / 220) * 2); g.fillStyle = '#231A26'; g.fillRect(x - 4, y - 12 + op, 9, 11); g.fillStyle = '#E9B949'; g.fillRect(x - 3, y - 11 + op, 7, 9); g.fillStyle = '#231A26'; g.fillRect(x, y - 10 + op, 1, 4); g.fillRect(x, y - 5 + op, 1, 1); }
     function boek() {
       const v = V();
-      pz.innerHTML = `<div class="vh-pkop"><span>Puzzelboek</span><small>${v.punten} punten</small></div><div class="vh-pbody vh-boek"><p>Je hebt ${Object.keys(v.opgelost).length} van de ${Object.keys(PUZZELS).length} puzzels opgelost en nog ${v.munten} hintmuntjes. Er liggen er ${MUNTPLEKKEN.length - Object.keys(v.gevonden).length} verstopt in het hotel.</p><ul>${Object.entries(PUZZELS).map(([id, p]) => `<li><span>${p.nr}. ${v.gezien[id] ? p.titel : '???'}</span><span>${v.opgelost[id] !== undefined ? v.opgelost[id] + ' punten' : v.gezien[id] ? '<button class="vh-knop" data-p="' + id + '" type="button">Verder puzzelen</button>' : ''}</span></li>`).join('')}</ul></div><div class="vh-voet"><span></span><button class="vh-knop" id="vh-dicht" type="button">Sluiten</button></div>`;
+      pz.innerHTML = `<div class="vh-pkop"><span>Puzzelboek</span><small>${v.punten} punten</small></div><div class="vh-pbody vh-boek"><p>Je hebt ${Object.keys(v.opgelost).length} van de ${Object.keys(PUZZELS).length} puzzels opgelost en nog ${v.munten} hintmuntjes. Er liggen er ${MUNTPLEKKEN.length - Object.keys(v.gevonden).length} verstopt in het hotel.</p><ul>${Object.entries(PUZZELS).map(([id, p]) => (p.nr === 1 || p.nr === 13 ? `</ul><h3>Hoofdstuk ${p.nr === 1 ? 1 : 2}: ${HOOFDSTUKKEN[p.nr === 1 ? 1 : 2]}</h3><ul>` : '') + `<li><span>${p.nr}. ${v.gezien[id] ? p.titel : '???'}</span><span>${v.opgelost[id] !== undefined ? v.opgelost[id] + ' punten' : v.gezien[id] ? '<button class="vh-knop" data-p="' + id + '" type="button">Verder puzzelen</button>' : ''}</span></li>`).join('')}</ul></div><div class="vh-voet"><span></span><button class="vh-knop" id="vh-dicht" type="button">Sluiten</button></div>`;
       pz.querySelector('#vh-dicht').addEventListener('click', () => pz.close());
       pz.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { pz.close(); const id = b.dataset.p, st = stap(); openPuzzel(id, st && st.puzzel === id ? () => dialoog(st.na, () => { V().stap++; bewaar(); teken(); }) : null); }));
       pz.showModal();

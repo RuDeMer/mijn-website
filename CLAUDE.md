@@ -179,13 +179,22 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - **Overleven**: 10 hartjes, honger als 10 vlaaitjes, adem onder water, valschade, cactusschade, flauwvallen en wakker worden bij de startplek met je rugzak. Hakken kost tijd (barsten in het blok), afhankelijk van de hardheid, het juiste gereedschap en de klasse; voor erts heb je een goed genoeg houweel nodig. Wat je krijgt staat in `BLOK` (kolen en robijn als voorwerp, uit bladeren soms een appel of stok).
 - **Voorwerpen** (`ITEM`): blokken 1 tot 32, grondstoffen 100 tot 106 (stok, kolen, ijzerstaaf, goudstaaf, robijn, appel, vlaai) en 20 gereedschappen 110 tot 129: houweel, bijl, schep en zwaard in hout, steen, ijzer, goud en robijn, met snelheid, klasse en slijtage. **Recepten** (`REC`) met werkbank of oven in de buurt (binnen 4 blokken).
 - **Creatief**: alle blokken en gereedschap, alles meteen kapot, vliegen (F of twee keer spatie).
+- **Talen**: Nederlands en Engels. Knop NL/EN in de kop; de keuze staat in localStorage `rommelblok-taal`, en zonder keuze volgt het spel de browsertaal. Zinnen in het spel lopen via `t()` met het woordenboek `EN` (de Nederlandse zin is de sleutel), namen via `naam(id)` (gereedschap heeft een eigen `en`-naam), en vaste teksten op de pagina via `data-t` met `EN_HTML`. Nieuwe tekst: zet hem in `EN` of `EN_HTML`.
 - Opslag: localStorage `rommelblok-v2` (de oude `rommelblok-v1` wordt niet meer gebruikt). Testhaak: `window.__rb`.
+
+## Vlaaienbakker: lange termijn
+
+- 15 bakkers (tot "Rubens rommelhoekje" voor 3 biljard), 15 smaken (tot de Rommelvlaai), en per bakker 5 verbeteringen (bij 10, 40, 80, 150 en 250 in dienst: ×2, ×2, ×2, ×3, ×3). Twee extra klikverbeteringen (zilveren garde, klikrobot).
+- **Het Bakkersgilde**: je verkoopt je bakkerij voor gildesterren. Hoeveel er in totaal te verdienen zijn, hangt af van alles wat je ooit hebt gebakken (`S.ooit`): de wortel van ooit gedeeld door 100 miljard. Elke verdiende ster geeft voor altijd +3% (`gildeBonus`). Sterren zijn ook te besteden aan tien gildevoordelen (`PERKS`): vliegende start, gouden vingers, nachtploeg (offline volle kracht tot 24 uur), geluksvogel, gildekorting, lange kermis, smaakgeheugen, receptenboek, meesterbakker (×2) en grootmeester (×3).
+- **Bestellingen van vandaag**: drie per dag, vast per datum (`dagboek`), elk 20 minuten productie waard; alle drie geleverd geeft 1 gildester.
+- 51 prestaties, waaronder bakken tot een quadriljoen, per bakker, gilde, sterren, bestellingen en een week of maand spelen.
 
 ## Vouwvlieger
 
 - `vouwvlieger.html` (bron: `vlieger_template.html`, één bestand met canvas, zonder bibliotheken): een papieren vliegtuigje zweeft 's nachts door een stad met neonlicht. Tikken, klikken of spatie geeft lift. Obstakels: boven hangende hijskraanhaken of neonborden (`NEON`), onder schoorstenen, watertorens of antennes. Het gat wordt kleiner en de snelheid hoger naarmate de score stijgt. Windvlagen duwen je omhoog of omlaag, sterren tellen mee, en een extra vouw vangt één botsing op. Bij een botsing kreukt het vliegtuigje tot een propje.
 - Bewust geen hoge torens of gebouwen om tegenaan te vliegen, en geen ontploffingen: het spel mag op geen enkele manier aan een aanslag doen denken.
-- Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
+- Sterren: elke 5 sterren in een vlucht geven een extra vouw (maximaal 3). Gevangen sterren gaan in de spaarpot (`spaar`) en zijn te besteden in de sterrenwinkel: uiterlijken voor het vliegtuigje (`SKINS`: wit, krant, kraanvogel, neon, bladgoud, regenboog) en voordelen (`UPG`: start met een extra vouw, sterrenmagneet, dubbele sterren).
+- Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, spaar, skins, skin, upg, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
 
 ## Scorebord en bezoekersteller
 

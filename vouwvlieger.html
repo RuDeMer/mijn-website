@@ -31,6 +31,12 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
 .vk-nieuw { display: inline-block; background: var(--rood); color: #fff; font-weight: 800; font-size: .75rem; padding: .15rem .55rem; border-radius: 999px; }
 .vk-tip { font-size: .85rem; color: #5E5643; }
 #sb-vlieger { margin-top: .8rem; text-align: left; }
+.vk-breed { max-width: 34rem; } .vk-kaart h3 { margin: .8rem 0 .4rem; font-size: 1rem; text-align: left; }
+.vk-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .4rem; text-align: left; }
+.vk-item { background: var(--papier); border-radius: 8px; padding: .45rem .55rem; display: flex; flex-direction: column; gap: .2rem; font-size: .82rem; }
+.vk-item b { font-size: .9rem; } .vk-item.gekozen { box-shadow: 0 0 0 3px #E9B949; } .vk-item .vk-knop { align-self: flex-start; margin-top: .15rem; }
+.vk-item canvas { width: 100%; height: 34px; background: #1E1A3A; border-radius: 4px; }
+.vk-winkelknop { margin-top: .2rem; }
 @media (prefers-reduced-motion: reduce) { .vk-groot { transition: none; } }
 </style>
 </head>
@@ -46,8 +52,18 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
     <div class="vk-kaart">
       <h2>Vouwvlieger</h2>
       <p>Vouw je vliegtuigje en zweef door de stad. Tik, klik of druk op spatie om omhoog te gaan.</p>
-      <p class="vk-tip">Pas op voor de hijskranen, reclameborden, schoorstenen en antennes. Vang sterren, en pak een extra vouw: die vangt één botsing op. Let op de windvlagen!</p>
+      <p class="vk-tip">Pas op voor de hijskranen, reclameborden, schoorstenen en antennes, en let op de windvlagen. Elke 5 sterren geven een extra vouw, die één botsing opvangt. Gespaarde sterren besteed je in de sterrenwinkel.</p>
       <button class="vk-groot" id="vk-go" type="button">Vliegen!</button>
+      <p><button class="vk-knop vk-winkelknop" type="button" data-winkel="1">Sterrenwinkel</button></p>
+    </div>
+  </div>
+  <div class="vk-scherm" id="vk-winkel" hidden>
+    <div class="vk-kaart vk-breed">
+      <h2>Sterrenwinkel</h2>
+      <p>Je hebt <b id="vk-spaar">0</b> sterren gespaard. Elke ster die je vangt, komt in je spaarpot.</p>
+      <h3>Je vliegtuigje</h3><div class="vk-items" id="vk-skins"></div>
+      <h3>Voordelen</h3><div class="vk-items" id="vk-upg"></div>
+      <button class="vk-groot" id="vk-winkel-dicht" type="button">Klaar</button>
     </div>
   </div>
   <div class="vk-scherm" id="vk-einde" hidden>
@@ -57,6 +73,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
       <div class="vk-uitslag"><div><b id="vk-score">0</b><span>punten</span></div><div><b id="vk-ster">0</b><span>sterren</span></div><div><b id="vk-best">0</b><span>beste</span></div></div>
       <p id="vk-volgend" class="vk-tip"></p>
       <button class="vk-groot" id="vk-weer" type="button">Nog een keer</button>
+      <p><button class="vk-knop vk-winkelknop" type="button" data-winkel="1">Sterrenwinkel</button></p>
       <div id="sb-vlieger"></div>
     </div>
   </div>
@@ -210,7 +227,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
 <script>
 (function () {
   const $ = id => document.getElementById(id);
-  const cv = $('vk-doek'), ctx = cv.getContext('2d'), veld = $('vk-veld');
+  const cv = $('vk-doek'), veld = $('vk-veld'); let ctx = cv.getContext('2d');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const H = 600; let W = 900, schaal = 1;
   function maat() { const r = veld.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); schaal = cv.height / H; W = cv.width / schaal; skyline = null; }
@@ -218,6 +235,10 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
   const KEY = 'vouwvlieger-v1';
   let opslag = { best: 0, sterren: 0, gespeeld: 0, geluid: true };
   try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  if (opslag.spaar === undefined) opslag.spaar = opslag.sterren; opslag.skins = opslag.skins || ['wit']; opslag.skin = opslag.skin || 'wit'; opslag.upg = opslag.upg || [];
+  // uiterlijk van je vliegtuigje en blijvende voordelen, te koop met gespaarde sterren
+  const SKINS = { wit: { naam: 'Wit papier', prijs: 0, boven: '#FBF6E9', onder: '#DCE4F5', lijn: '#8C939E' }, krant: { naam: 'Krantenpapier', prijs: 25, boven: '#E8E4D8', onder: '#C9C4B4', lijn: '#5F5A50', print: true }, kraan: { naam: 'Kraanvogel', prijs: 50, boven: '#FBF6E9', onder: '#C8323C', lijn: '#7A1E26' }, neon: { naam: 'Neon', prijs: 90, boven: '#1E1A30', onder: '#2A2448', lijn: '#5EE6FF', gloed: '#5EE6FF' }, goud: { naam: 'Bladgoud', prijs: 150, boven: '#FFE07A', onder: '#C99A2E', lijn: '#7A5A10', gloed: '#FFE76A' }, regenboog: { naam: 'Regenboog', prijs: 300, boven: 'regenboog', onder: '#B98AFF', lijn: '#3A1E5C', gloed: '#FF9AD0' } };
+  const UPG = { startvouw: { naam: 'Start met een extra vouw', tekst: 'Elke vlucht begint met één extra vouw.', prijs: 40 }, magneet: { naam: 'Sterrenmagneet', tekst: 'Sterren in de buurt vliegen vanzelf naar je toe.', prijs: 70 }, dubbel: { naam: 'Dubbele sterren', tekst: 'Elke ster telt dubbel, voor je spaarpot en voor de extra vouwen.', prijs: 140 } };
   const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
   $('vk-beste').textContent = opslag.best;
 
@@ -243,7 +264,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
   // ---------------- het spel
   const S = { staat: 'start', y: 300, vy: 0, hoek: 0, score: 0, sterren: 0, snel: 190, obstakels: [], wind: null, tijd: 0, schild: 0, onkw: 0, schud: 0, deeltjes: [], volgendWind: 7, volgendVouw: 12, afstand: 0, achter: 0, kreuk: 0 };
   const PX = 160, G = 1350, FLAP = -420, MAXVAL = 560;
-  function nieuw() { Object.assign(S, { staat: 'spel', y: 300, vy: FLAP * 0.6, hoek: 0, score: 0, sterren: 0, snel: 190, obstakels: [], wind: null, schild: 0, onkw: 0, schud: 0, deeltjes: [], volgendWind: 7, volgendVouw: 12, afstand: 0, kreuk: 0 }); for (let i = 0; i < 3; i++) voegObstakel(W + 140 + i * 280); $('vk-start').hidden = true; $('vk-einde').hidden = true; }
+  function nieuw() { $('vk-winkel').hidden = true; Object.assign(S, { staat: 'spel', y: 300, vy: FLAP * 0.6, hoek: 0, score: 0, sterren: 0, snel: 190, obstakels: [], wind: null, melding: null, schild: opslag.upg.includes('startvouw') ? 1 : 0, onkw: 0, schud: 0, deeltjes: [], volgendWind: 7, volgendVouw: 12, afstand: 0, kreuk: 0 }); for (let i = 0; i < 3; i++) voegObstakel(W + 140 + i * 280); $('vk-start').hidden = true; $('vk-einde').hidden = true; }
   function voegObstakel(x) {
     const n = S.obstakels.length ? S.obstakels[S.obstakels.length - 1].nr + 1 : 0;
     const gat = Math.max(140, 200 - S.score * 1.6), midden = 130 + gat / 2 + Math.random() * (H - 210 - gat);
@@ -273,7 +294,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
     if (S.onkw > 0) return;
     S.staat = 'neer'; S.kreuk = 0; S.schud = 0.45; GELUID.kreuk();
     for (let i = 0; i < 14; i++) S.deeltjes.push({ x: PX, y: S.y, vx: (Math.random() - 0.5) * 220, vy: (Math.random() - 1) * 220, t: 1.2, k: '#FBF6E9', r: 2.5, papier: true });
-    opslag.gespeeld++; opslag.sterren += S.sterren;
+    opslag.gespeeld++; opslag.sterren += S.sterren; opslag.spaar += S.sterren;
     const record = S.score > opslag.best; if (record) opslag.best = S.score; bewaar(); $('vk-beste').textContent = opslag.best;
     if (window.Scorebord && (record || S.score > 0)) Scorebord.stuur('vlieger', opslag.best, opslag.sterren);
     setTimeout(() => toonEinde(record), 1100);
@@ -291,8 +312,23 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
     if (window.Scorebord && !toonEinde.blok) { toonEinde.blok = true; Scorebord.blokje($('sb-vlieger'), 'je beste score'); }
   }
   $('vk-go').addEventListener('click', e => { e.stopPropagation(); nieuw(); });
+  function tekenWinkel() {
+    $('vk-spaar').textContent = opslag.spaar;
+    $('vk-skins').innerHTML = Object.entries(SKINS).map(([id, k]) => { const heb = opslag.skins.includes(id); return `<div class="vk-item${opslag.skin === id ? ' gekozen' : ''}"><canvas width="160" height="34" data-voorbeeld="${id}"></canvas><b>${k.naam}</b>${heb ? (opslag.skin === id ? '<span>Gekozen</span>' : `<button class="vk-knop" type="button" data-kies="${id}">Kiezen</button>`) : `<button class="vk-knop" type="button" data-koop="${id}" ${opslag.spaar >= k.prijs ? '' : 'disabled'}>★ ${k.prijs}</button>`}</div>`; }).join('');
+    $('vk-upg').innerHTML = Object.entries(UPG).map(([id, u]) => { const heb = opslag.upg.includes(id); return `<div class="vk-item${heb ? ' gekozen' : ''}"><b>${u.naam}</b><span>${u.tekst}</span>${heb ? '<span>✓ In bezit</span>' : `<button class="vk-knop" type="button" data-upg="${id}" ${opslag.spaar >= u.prijs ? '' : 'disabled'}>★ ${u.prijs}</button>`}</div>`; }).join('');
+    document.querySelectorAll('[data-voorbeeld]').forEach(c => { const g = c.getContext('2d'), oud = ctx, oudS = opslag.skin; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 160, 34); opslag.skin = c.dataset.voorbeeld; tekenOp(g, 80, 17); opslag.skin = oudS; void oud; });
+  }
+  // het vliegtuigje op een ander doekje tekenen (voor de winkel)
+  function tekenOp(g, x, y) { const echt = ctx, sS = Object.assign({}, S); ctx = g; S.y = y; S.hoek = -0.15; S.staat = 'start'; S.kreuk = 0; S.onkw = 0; S.schild = 0; const px = PX; ctx.save(); ctx.translate(x - px, 0); tekenVliegtuig(); ctx.restore(); ctx = echt; Object.assign(S, sS); }
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-winkel]')) { e.stopPropagation(); tekenWinkel(); $('vk-winkel').hidden = false; return; }
+    if (e.target.closest('#vk-winkel-dicht')) { e.stopPropagation(); $('vk-winkel').hidden = true; return; }
+    const k = e.target.closest('[data-koop]'); if (k && !k.disabled) { const id = k.dataset.koop; if (opslag.spaar >= SKINS[id].prijs) { opslag.spaar -= SKINS[id].prijs; opslag.skins.push(id); opslag.skin = id; bewaar(); GELUID.ster(); tekenWinkel(); } return; }
+    const c = e.target.closest('[data-kies]'); if (c) { opslag.skin = c.dataset.kies; bewaar(); tekenWinkel(); return; }
+    const u = e.target.closest('[data-upg]'); if (u && !u.disabled) { const id = u.dataset.upg; if (opslag.spaar >= UPG[id].prijs) { opslag.spaar -= UPG[id].prijs; opslag.upg.push(id); bewaar(); GELUID.vouw(); tekenWinkel(); } return; }
+  });
   $('vk-weer').addEventListener('click', e => { e.stopPropagation(); nieuw(); });
-  veld.addEventListener('pointerdown', e => { if (e.target.closest('.vk-kaart')) return; e.preventDefault(); flap(); });
+  veld.addEventListener('pointerdown', e => { if (e.target.closest('.vk-kaart') || !$('vk-winkel').hidden) return; e.preventDefault(); flap(); });
   addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input')) return; if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); if (S.staat === 'neer' && !$('vk-einde').hidden) nieuw(); else flap(); } });
 
   function update(dt) {
@@ -312,7 +348,8 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
       // punten, sterren en vouwen
       for (const o of S.obstakels) {
         if (!o.voorbij && o.x < PX - 20) { o.voorbij = true; S.score++; GELUID.punt(); if (S.score >= S.volgendWind) { S.volgendWind = S.score + 6 + Math.floor(Math.random() * 6); const omhoog = Math.random() < 0.5; S.wind = { x: W + 320, w: 260, kracht: omhoog ? -900 : 700, omhoog }; GELUID.wind(); } }
-        if (o.ster && !o.ster.gepakt && Math.hypot(o.x - PX, o.ster.y - S.y) < 26) { o.ster.gepakt = true; S.sterren++; GELUID.ster(); for (let i = 0; i < 10; i++) S.deeltjes.push({ x: o.x, y: o.ster.y, vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200, t: 0.6, k: '#FFE76A', r: 2.5 }); }
+        if (o.ster && !o.ster.gepakt && opslag.upg.includes('magneet') && Math.hypot(o.x - PX, o.ster.y - S.y) < 150) o.ster.y += (S.y - o.ster.y) * Math.min(1, dt * 5);
+        if (o.ster && !o.ster.gepakt && Math.hypot(o.x - PX, o.ster.y - S.y) < (opslag.upg.includes('magneet') ? 34 : 26)) { o.ster.gepakt = true; const voor = S.sterren; S.sterren += opslag.upg.includes('dubbel') ? 2 : 1; GELUID.ster(); if (Math.floor(S.sterren / 5) > Math.floor(voor / 5)) { S.schild = Math.min(3, S.schild + 1); S.melding = { tekst: '5 sterren: extra vouw!', t: 1.6 }; GELUID.vouw(); } for (let i = 0; i < 10; i++) S.deeltjes.push({ x: o.x, y: o.ster.y, vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200, t: 0.6, k: '#FFE76A', r: 2.5 }); }
         if (o.vouw && !o.vouw.gepakt && Math.hypot(o.x - PX, o.vouw.y - S.y) < 28) { o.vouw.gepakt = true; S.schild = Math.min(2, S.schild + 1); GELUID.vouw(); }
       }
       // botsen: het vliegtuigje als een paar puntjes
@@ -322,6 +359,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
       for (const o of S.obstakels) { if (Math.abs(o.x - PX) > 70) continue; for (const [vx, vy, vw, vh] of vakken(o)) for (const [px, py] of pts) if (px > vx && px < vx + vw && py > vy && py < vy + vh) raak = true; }
       if (raak) neer();
     }
+    if (S.melding) { S.melding.t -= dt; if (S.melding.t <= 0) S.melding = null; }
     for (let i = S.deeltjes.length - 1; i >= 0; i--) { const d = S.deeltjes[i]; d.t -= dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy += (d.papier ? 120 : 200) * dt; if (d.t <= 0) S.deeltjes.splice(i, 1); }
   }
 
@@ -375,9 +413,14 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
     } else {
       const k = 1 - S.kreuk * 0.5;
       ctx.scale(1, k);
-      ctx.fillStyle = '#DCE4F5'; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-18, 10); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#FBF6E9'; ctx.strokeStyle = '#8C939E'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-18, -12); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-10, 0); ctx.lineTo(-16, 5); ctx.stroke();
+      const K = SKINS[opslag.skin] || SKINS.wit;
+      if (K.gloed) { ctx.shadowColor = K.gloed; ctx.shadowBlur = 12; }
+      ctx.fillStyle = K.onder; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-18, 10); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill();
+      let boven = K.boven; if (boven === 'regenboog') { boven = ctx.createLinearGradient(-18, -12, 22, 0); ['#FF6A6A', '#FFD36A', '#7AF09A', '#6AC8FF', '#B98AFF'].forEach((c, i) => boven.addColorStop(i / 4, c)); }
+      ctx.fillStyle = boven; ctx.strokeStyle = K.lijn; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-18, -12); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.shadowBlur = 0;
+      if (K.print) { ctx.strokeStyle = 'rgba(60,55,45,.5)'; ctx.lineWidth = 0.8; for (const yy of [-8, -5, -2]) { ctx.beginPath(); ctx.moveTo(-14, yy); ctx.lineTo(6, yy * 0.4); ctx.stroke(); } }
+      ctx.strokeStyle = K.lijn; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-10, 0); ctx.lineTo(-16, 5); ctx.stroke();
       ctx.fillStyle = 'rgba(200,50,60,.85)'; ctx.fillRect(-12, -6, 6, 2);
     }
     ctx.restore();
@@ -398,7 +441,8 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
     ctx.fillStyle = '#0E1028'; ctx.fillRect(0, H - 40, W, 40); ctx.fillStyle = '#1E2246'; const r0 = (S.achter % 60); for (let x = -r0; x < W; x += 60) { ctx.fillRect(x, H - 44, 50, 6); ctx.fillStyle = '#FFE7A0'; ctx.fillRect(x + 8, H - 30, 6, 6); ctx.fillRect(x + 30, H - 22, 6, 6); ctx.fillStyle = '#1E2246'; }
     for (const d of S.deeltjes) { ctx.globalAlpha = Math.max(0, Math.min(1, d.t * 2)); ctx.fillStyle = d.k; if (d.papier) { ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.t * 8); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); } else { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill(); } } ctx.globalAlpha = 1;
     tekenVliegtuig();
-    if (S.staat !== 'start') { ctx.save(); ctx.font = '800 56px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(11,14,42,.85)'; ctx.strokeText(S.score, W / 2, 76); ctx.fillStyle = '#FBF6E9'; ctx.fillText(S.score, W / 2, 76); ctx.font = '800 18px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#FFE76A'; ctx.fillText('★ ' + S.sterren, 16, 32); if (S.schild) { ctx.fillStyle = '#9FD3FF'; ctx.fillText('Extra vouw ×' + S.schild, 16, 56); } ctx.restore(); }
+    if (S.staat !== 'start') { ctx.save(); ctx.font = '800 56px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(11,14,42,.85)'; ctx.strokeText(S.score, W / 2, 76); ctx.fillStyle = '#FBF6E9'; ctx.fillText(S.score, W / 2, 76); ctx.font = '800 18px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#FFE76A'; ctx.fillText('★ ' + S.sterren + '   (' + (S.sterren % 5) + '/5 tot een extra vouw)', 16, 32);
+      if (S.melding) { ctx.save(); ctx.globalAlpha = Math.min(1, S.melding.t * 2); ctx.font = '800 26px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(11,14,42,.85)'; ctx.strokeText(S.melding.tekst, W / 2, 130); ctx.fillStyle = '#9FD3FF'; ctx.fillText(S.melding.tekst, W / 2, 130); ctx.restore(); } if (S.schild) { ctx.fillStyle = '#9FD3FF'; ctx.fillText('Extra vouw ×' + S.schild, 16, 56); } ctx.restore(); }
   }
   let vorig = 0;
   function lus(nu) { const dt = Math.min(0.033, (nu - (vorig || nu)) / 1000); vorig = nu; if (!document.hidden) update(dt); teken(); requestAnimationFrame(lus); }

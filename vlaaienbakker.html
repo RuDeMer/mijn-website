@@ -181,6 +181,18 @@ details.stats summary { cursor: pointer; font-weight: 700; }
 .dag b { display: inline-block; }
 .label-icoon svg { transform-origin: 50% 80%; }
 
+
+.bestel-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.bestel-lijst li { background: var(--papier); border-radius: 6px; padding: .45rem .6rem; font-size: .9rem; }
+.bestel-lijst li.klaar { opacity: .6; text-decoration: line-through; }
+.bestel-lijst i { display: block; height: .45rem; background: #E2D8BE; border-radius: 999px; overflow: hidden; margin-top: .3rem; } .bestel-lijst i b { display: block; height: 100%; background: #2E8B62; }
+.bestel-uitleg, .gilde-uitleg { font-size: .85rem; color: #5E5643; margin: .5rem 0 0; }
+.gilde-paneel { background: linear-gradient(135deg, #F2DDA0, #E9C77A); }
+.gilde-stand { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: .6rem; }
+.gilde-stand div { background: var(--papier); border-radius: 8px; padding: .4rem .7rem; } .gilde-stand b { display: block; font-size: 1.3rem; } .gilde-stand span { font-size: .78rem; color: #5E5643; }
+.perks { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: .4rem; }
+.perks li { background: var(--papier); border-radius: 6px; padding: .45rem .6rem; display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; }
+.perks li.heb { box-shadow: 0 0 0 2px #2E8B62; } .perks li b { font-size: .92rem; } .perks .knop { align-self: flex-start; padding: .3rem .7rem; font-size: .82rem; }
 </style>
 </head>
 <body data-gat="26" data-pagina="vlaaienbakker">
@@ -220,6 +232,8 @@ details.stats summary { cursor: pointer; font-weight: 700; }
         <div class="paneel-kop"><h2>Verbeteringen</h2></div>
         <div class="upgrades" id="upgrades"></div>
       </div>
+      <div class="paneel"><div class="paneel-kop"><h2>Bestellingen van vandaag</h2></div><div id="bestel"></div></div>
+      <div class="paneel gilde-paneel"><div class="paneel-kop"><h2>Het Bakkersgilde</h2></div><div id="gilde"></div></div>
       <div class="paneel">
         <div class="paneel-kop"><h2 id="prestatie-kop">Prestaties</h2></div>
         <ul class="prestaties" id="prestaties"></ul>
@@ -289,6 +303,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
   };
   const VKEY = 'rommelhoekje-verstuurd';
@@ -420,6 +435,14 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     { id: 'rijst', naam: 'Rijstevlaai', vulling: '#F4E7C5', prijs: 600000 },
     { id: 'bosbessen', naam: 'Bosbessenvlaai', vulling: '#2B3468', prijs: 8000000 },
     { id: 'appel', naam: 'Appelvlaai', vulling: '#E3C27A', prijs: 120000000 },
+    { id: 'perzik', naam: 'Perzikvlaai', vulling: '#F7A65A', prijs: 2e9, top: ['schijf', '#FFB870', '#E07A30', 14] },
+    { id: 'aardbei', naam: 'Aardbeienvlaai', vulling: '#D8323C', prijs: 3e10, top: ['bes', '#E8303A', '#FFE0A0', 30] },
+    { id: 'rabarber', naam: 'Rabarbervlaai', vulling: '#E8708A', prijs: 5e11, top: ['stok', '#E85A7A', '#8EC85A', 22] },
+    { id: 'chocolade', naam: 'Chocoladevlaai', vulling: '#5C3A21', prijs: 8e12, top: ['krul', '#3A2414', '#8C5A30', 34] },
+    { id: 'citroen', naam: 'Citroenvlaai', vulling: '#F6E65A', prijs: 1.2e14, top: ['schijf', '#FFF07A', '#E9C13A', 12] },
+    { id: 'kokos', naam: 'Kokosvlaai', vulling: '#F4F0E4', prijs: 2e15, top: ['vlok', '#FFFFFF', '#D9CFB8', 90] },
+    { id: 'bramen', naam: 'Bramenvlaai', vulling: '#3A1E4A', prijs: 3e16, top: ['bes', '#2A1438', '#7A4E9A', 34] },
+    { id: 'rommel', naam: 'Rommelvlaai', vulling: '#C8323C', prijs: 5e17, top: ['mix', '#F6CB2F', '#2E8B62', 40] },
   ];
   function topping(smaak) {
     const r = rng(7 + smaak.length * 31);
@@ -450,6 +473,18 @@ details.stats summary { cursor: pointer; font-weight: 700; }
       const schijf = (x, y, a) => `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(a * 57.3).toFixed(0)})" d="M-15 0A15 8 0 0 1 15 0A15 4 0 0 0 -15 0Z" fill="#F1DDA6" stroke="#C9A55A" stroke-width="1.5"/>`;
       ring(9, 24, schijf); ring(17, 49, schijf);
       h += '<circle cx="100" cy="100" r="9" fill="#C9772E" opacity=".55"/>';
+    } else {
+      // de nieuwe smaken: een paar vormen met eigen kleuren
+      const S0 = SMAKEN.find(x => x.id === smaak), [vorm, k1, k2, n] = (S0 && S0.top) || ['bes', '#E8303A', '#FFE0A0', 20];
+      for (let i = 0; i < n; i++) {
+        const a = r() * 6.28, d = Math.sqrt(r()) * 62, x = (100 + Math.cos(a) * d).toFixed(1), y = (100 + Math.sin(a) * d).toFixed(1), rot = (r() * 360).toFixed(0);
+        const v = vorm === 'mix' ? ['bes', 'schijf', 'stok', 'krul'][i % 4] : vorm, kk = vorm === 'mix' ? ['#E8303A', '#F7B84B', '#E85A7A', '#5C3A21'][i % 4] : k1;
+        if (v === 'bes') h += `<circle cx="${x}" cy="${y}" r="5.5" fill="${kk}" stroke="#1F2333" stroke-width=".8" opacity=".95"/><circle cx="${(+x - 1.6).toFixed(1)}" cy="${(+y - 1.6).toFixed(1)}" r="1.6" fill="${k2}" opacity=".8"/>`;
+        else if (v === 'schijf') h += `<g transform="translate(${x} ${y}) rotate(${rot})"><path d="M-12 0A12 12 0 0 1 12 0Z" fill="${kk}" stroke="${k2}" stroke-width="1.6"/><path d="M0 0L-7 -9M0 0L0 -11M0 0L7 -9" stroke="${k2}" stroke-width="1" opacity=".7"/></g>`;
+        else if (v === 'stok') h += `<rect x="${(+x - 3).toFixed(1)}" y="${(+y - 12).toFixed(1)}" width="6" height="24" rx="3" fill="${kk}" stroke="${k2}" stroke-width="1.4" transform="rotate(${rot} ${x} ${y})"/>`;
+        else if (v === 'krul') h += `<path d="M${x} ${y}q6 -8 12 0t12 0" fill="none" stroke="${kk}" stroke-width="3.4" stroke-linecap="round" transform="rotate(${rot} ${x} ${y})"/>`;
+        else h += `<rect x="${x}" y="${y}" width="5" height="2.4" rx="1" fill="${kk}" stroke="${k2}" stroke-width=".5" transform="rotate(${rot} ${x} ${y})"/>`;
+      }
     }
     return h;
   }
@@ -467,6 +502,12 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   const GOUD_SVG = '<svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><circle cx="100" cy="100" r="89" fill="#E9B949" stroke="#9A6A0B" stroke-width="4"/><circle cx="100" cy="100" r="80" fill="none" stroke="#FFE7A0" stroke-width="9" stroke-dasharray="9 5"/><circle cx="100" cy="100" r="66" fill="#F6CB4F"/><path d="M100 52l13 28 31 4-23 21 6 31-27-15-27 15 6-31-23-21 31-4z" fill="#FFF3C4" stroke="#B8860B" stroke-width="3" stroke-linejoin="round"/></svg>';
 
   const ICO = {
+    kasteel: '<path d="M8 42V18h6v5h6v-5h8v5h6v-5h6v24z" fill="#F2DDA0" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M20 42v-9a4 4 0 0 1 8 0v9z" fill="#7A4E2D" stroke="#1F2333" stroke-width="1.6"/><path d="M8 18l3-8 3 8M34 18l3-8 3 8" fill="#C8323C" stroke="#1F2333" stroke-width="1.6" stroke-linejoin="round"/><circle cx="24" cy="15" r="3" fill="#A8162B"/>',
+    tijd: '<circle cx="24" cy="24" r="17" fill="#FBF6E9" stroke="#1F2333" stroke-width="2.4"/><path d="M24 12v12l8 5" stroke="#C8323C" stroke-width="2.6" stroke-linecap="round"/><path d="M8 10l5 4M40 10l-5 4" stroke="#1F2333" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="#1F2333"/>',
+    portaal: '<ellipse cx="24" cy="24" rx="15" ry="19" fill="#7A4E9A" stroke="#1F2333" stroke-width="2.2"/><ellipse cx="24" cy="24" rx="10" ry="13" fill="#B88AFF"/><ellipse cx="24" cy="24" rx="5" ry="7" fill="#FBF6E9"/><circle cx="24" cy="24" r="3" fill="#A8162B"/>',
+    kosmos: '<circle cx="24" cy="24" r="11" fill="#F6CB2F" stroke="#1F2333" stroke-width="2"/><ellipse cx="24" cy="24" rx="21" ry="7" fill="none" stroke="#5EC2E8" stroke-width="2.4" transform="rotate(-20 24 24)"/><circle cx="9" cy="12" r="2" fill="#FBF6E9"/><circle cx="40" cy="38" r="1.6" fill="#FBF6E9"/>',
+    multi: '<circle cx="17" cy="20" r="10" fill="#E8577A" stroke="#1F2333" stroke-width="2" opacity=".9"/><circle cx="31" cy="20" r="10" fill="#5EC2E8" stroke="#1F2333" stroke-width="2" opacity=".9"/><circle cx="24" cy="31" r="10" fill="#8AFF8A" stroke="#1F2333" stroke-width="2" opacity=".9"/>',
+    rommel: '<rect x="6" y="22" width="16" height="18" fill="#C98A43" stroke="#1F2333" stroke-width="2"/><rect x="24" y="14" width="18" height="26" fill="#2F4C8F" stroke="#1F2333" stroke-width="2"/><path d="M10 22l4-12 4 12" fill="#F6CB2F" stroke="#1F2333" stroke-width="1.6"/><circle cx="33" cy="24" r="4" fill="#E9B949" stroke="#1F2333" stroke-width="1.4"/><path d="M28 34h10" stroke="#FBF6E9" stroke-width="2"/>',
     oma: '<rect x="9" y="19" width="30" height="11" rx="5.5" fill="#E0AE66" stroke="#7A4E2D" stroke-width="2"/><rect x="2" y="21.5" width="8" height="6" rx="3" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.6"/><rect x="38" y="21.5" width="8" height="6" rx="3" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.6"/><path d="M14 24h20" stroke="#F3D49A" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="38" r="3" fill="#F2DDA0"/><circle cx="20" cy="41" r="2" fill="#F2DDA0"/>',
     leerling: '<path d="M12 28a8 8 0 0 1 4-14 9 9 0 0 1 16 0 8 8 0 0 1 4 14z" fill="#FBF6E9" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><rect x="13" y="27" width="22" height="9" rx="2" fill="#FBF6E9" stroke="#1F2333" stroke-width="2"/><path d="M19 30v4M24 30v4M29 30v4" stroke="#D9BE78" stroke-width="2"/>',
     oven: '<path d="M6 40V26a18 18 0 0 1 36 0v14z" fill="#B5543A" stroke="#1F2333" stroke-width="2"/><path d="M10 26h28M8 33h32M18 19v7M30 19v7M14 26v7M24 26v7M34 26v7" stroke="#8E3A28" stroke-width="1.4"/><path d="M15 40v-6a9 9 0 0 1 18 0v6z" fill="#2B1A12"/><path d="M20 40c0-4 2-5 2-8 2 2 3 4 2 6 1-1 2-2 2-4 2 2 2 4 2 6z" fill="#E9B949"/><rect x="3" y="40" width="42" height="4" rx="1" fill="#7A4E2D"/>',
@@ -494,17 +535,29 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     { id: 'optocht', naam: 'Carnavalsoptocht', prijs: 6e6, vps: 18000, tekst: 'Praalwagens die vlaaien uitdelen. Alaaf!', t: ['Extra praalwagen', 'Een hele fanfare'] },
     { id: 'boot', naam: 'Vlaaienboot', prijs: 55e6, vps: 120000, tekst: 'Vaart over de Maas met een ruim vol vlaaien.', t: ['Tweede laadruim', 'Turbo-schoepenrad'] },
     { id: 'raket', naam: 'Vlaaienraket', prijs: 5e8, vps: 900000, tekst: 'Bakt vlaaien in een baan om de aarde. Niemand weet hoe.', t: ['Gewichtloze kruimels', 'Bakkerij op de maan'] },
+    { id: 'kasteel', naam: 'Vlaaienkasteel', prijs: 5e9, vps: 6.5e6, tekst: 'Met een slotgracht vol slagroom.', t: ['Torens van marsepein', 'Ophaalbrug van deeg'] },
+    { id: 'tijd', naam: 'Tijdoven', prijs: 7e10, vps: 5e7, tekst: 'Bakt de vlaaien van morgen alvast vandaag.', t: ['Gisteren-knop', 'Overmorgen-stand'] },
+    { id: 'portaal', naam: 'Vlaaienportaal', prijs: 1e12, vps: 4e8, tekst: 'Haalt vlaaien uit een wereld waar alles van vlaai is.', t: ['Groter portaal', 'Portaal met een strik'] },
+    { id: 'kosmos', naam: 'Kosmische bakkerij', prijs: 1.4e13, vps: 3e9, tekst: 'Een oven zo groot als een zon.', t: ['Sterrenstofsuiker', 'Melkwegmixer'] },
+    { id: 'multi', naam: 'Multiversummixer', prijs: 2e14, vps: 2.4e10, tekst: 'Mixt het deeg van duizend werelden tegelijk.', t: ['Duizend en één werelden', 'Oneindige garde'] },
+    { id: 'rommel', naam: 'Rubens rommelhoekje', prijs: 3e15, vps: 2e11, tekst: 'Niemand weet wat er gebeurt, maar er komen heel veel vlaaien uit.', t: ['Extra rommel', 'Een hoekje erbij'] },
   ];
+  BAKKERS.forEach(b => { b.t.push(b.naam + ': turbostand', b.naam + ': gouden editie', b.naam + ': legendarisch'); });
   const GROEI = 1.14;
   const UPGRADES = [];
   SMAKEN.slice(1).forEach((s, i) => UPGRADES.push({ id: 'smaak-' + s.id, soort: 'smaak', smaak: s.id, naam: s.naam, effect: 'Klik ×2 en alles +10%', prijs: s.prijs, eis: S => S.smaken.length >= i + 1 }));
   BAKKERS.forEach(b => {
     UPGRADES.push({ id: b.id + '-1', soort: 'bakker', bakker: b.id, naam: b.t[0], effect: b.naam + ' ×2', prijs: b.prijs * 25, eis: S => (S.bakkers[b.id] || 0) >= 10 });
     UPGRADES.push({ id: b.id + '-2', soort: 'bakker', bakker: b.id, naam: b.t[1], effect: b.naam + ' nog eens ×2', prijs: b.prijs * 1500, eis: S => (S.bakkers[b.id] || 0) >= 40 });
+    UPGRADES.push({ id: b.id + '-3', soort: 'bakker', bakker: b.id, naam: b.t[2], effect: b.naam + ' ×2', prijs: b.prijs * 1e5, eis: S => (S.bakkers[b.id] || 0) >= 80 });
+    UPGRADES.push({ id: b.id + '-4', soort: 'bakker', bakker: b.id, naam: b.t[3], effect: b.naam + ' ×3', prijs: b.prijs * 1e7, eis: S => (S.bakkers[b.id] || 0) >= 150 });
+    UPGRADES.push({ id: b.id + '-5', soort: 'bakker', bakker: b.id, naam: b.t[4], effect: b.naam + ' ×3', prijs: b.prijs * 1e9, eis: S => (S.bakkers[b.id] || 0) >= 250 });
   });
   UPGRADES.push({ id: 'mixer', soort: 'klik', icoon: 'mixer', naam: 'Keukenmixer', effect: 'Klik ×2', prijs: 600, eis: S => S.kliks >= 30 });
   UPGRADES.push({ id: 'want', soort: 'klik', icoon: 'want', naam: 'Ovenwant', effect: 'Elke klik +2% van je productie', prijs: 50000, eis: S => S.kliks >= 200 });
   UPGRADES.push({ id: 'deegroller', soort: 'klik', icoon: 'deegroller', naam: 'Gouden deegroller', effect: 'Elke klik nog eens +4%', prijs: 5e6, eis: S => S.upg.includes('want') });
+  UPGRADES.push({ id: 'garde', soort: 'klik', icoon: 'mixer', naam: 'Zilveren garde', effect: 'Elke klik nog eens +8%', prijs: 5e10, eis: S => S.kliks >= 3000 });
+  UPGRADES.push({ id: 'klikrobot', soort: 'klik', icoon: 'want', naam: 'Klikrobot', effect: 'Elke klik nog eens +16%', prijs: 5e13, eis: S => S.kliks >= 10000 });
 
   const totaalBakkers = S => Object.values(S.bakkers).reduce((a, b) => a + b, 0);
   // [id, naam, uitleg, hoe meet je het, doel, eenheid]
@@ -525,20 +578,57 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     ['goud10', 'Goud\u00ADzoeker', 'Vang 10 gouden vlaaien.', S => S.goud, 10, 'gouden vlaaien gevangen'],
     ['proeverij', 'Proeverij', 'Ontdek alle zeven smaken.', S => S.smaken.length, SMAKEN.length, 'smaken ontdekt'],
     ['raket', 'Raket\u00ADwetenschap', 'Neem je eerste vlaaienraket in dienst.', S => S.bakkers.raket || 0, 1, 'vlaaienraketten'],
+    ['biljard', 'Vlaaien\u00ADmelkweg', 'Bak ooit 1 biljard vlaaien.', S => S.ooit, 1e15, 'vlaaien ooit gebakken'],
+    ['triljoen', 'Vlaaien\u00ADuniversum', 'Bak ooit 1 triljoen vlaaien.', S => S.ooit, 1e18, 'vlaaien ooit gebakken'],
+    ['triljard', 'Oneindig veel vlaai', 'Bak ooit 1 triljard vlaaien.', S => S.ooit, 1e21, 'vlaaien ooit gebakken'],
+    ['quadriljoen', 'De laatste kruimel', 'Bak ooit 1 quadriljoen vlaaien.', S => S.ooit, 1e24, 'vlaaien ooit gebakken'],
+    ['klik10k', 'IJzeren vinger', 'Klik 10.000 keer op de vlaai.', S => S.kliks, 1e4, 'keer geklikt'],
+    ['klik100k', 'Klikkampioen', 'Klik 100.000 keer op de vlaai.', S => S.kliks, 1e5, 'keer geklikt'],
+    ['leger', 'Bakkersleger', 'Heb 600 bakkers tegelijk in dienst.', S => totaalBakkers(S), 600, 'bakkers in dienst'],
+    ['volk', 'Een heel bakkersvolk', 'Heb 1.000 bakkers tegelijk in dienst.', S => totaalBakkers(S), 1000, 'bakkers in dienst'],
+    ['oma100', 'Honderd oma\'s', 'Heb 100 oma\'s in dienst.', S => S.bakkers.oma || 0, 100, "oma's"],
+    ['fabriek100', 'Industrie', 'Heb 100 vlaaienfabrieken.', S => S.bakkers.fabriek || 0, 100, 'fabrieken'],
+    ['kasteel', 'Kasteelheer', 'Bouw je eerste vlaaienkasteel.', S => S.bakkers.kasteel || 0, 1, 'kastelen'],
+    ['tijd', 'Tijdreiziger', 'Neem je eerste tijdoven in dienst.', S => S.bakkers.tijd || 0, 1, 'tijdovens'],
+    ['portaal', 'Door het portaal', 'Open je eerste vlaaienportaal.', S => S.bakkers.portaal || 0, 1, 'portalen'],
+    ['kosmos', 'Sterrenbakker', 'Bouw je eerste kosmische bakkerij.', S => S.bakkers.kosmos || 0, 1, 'kosmische bakkerijen'],
+    ['multi', 'Duizend werelden', 'Neem je eerste multiversummixer in dienst.', S => S.bakkers.multi || 0, 1, 'mixers'],
+    ['rommelhoek', 'Het rommelhoekje', 'Neem Rubens rommelhoekje in dienst.', S => S.bakkers.rommel || 0, 1, 'rommelhoekjes'],
+    ['rommel10', 'Hoekje na hoekje', 'Heb 10 rommelhoekjes.', S => S.bakkers.rommel || 0, 10, 'rommelhoekjes'],
+    ['goud50', 'Goudkoorts', 'Vang 50 gouden vlaaien.', S => S.goud, 50, 'gouden vlaaien gevangen'],
+    ['goud250', 'Schatkamer', 'Vang 250 gouden vlaaien.', S => S.goud, 250, 'gouden vlaaien gevangen'],
+    ['tien', 'Fijnproever', 'Ontdek tien smaken.', S => S.smaken.length, 10, 'smaken ontdekt'],
+    ['vps1m', 'Miljoen per seconde', 'Bak 1 miljoen vlaaien per seconde.', S => vps(true), 1e6, 'vlaaien per seconde'],
+    ['vps1b', 'Miljard per seconde', 'Bak 1 miljard vlaaien per seconde.', S => vps(true), 1e9, 'vlaaien per seconde'],
+    ['vps1t', 'Biljoen per seconde', 'Bak 1 biljoen vlaaien per seconde.', S => vps(true), 1e12, 'vlaaien per seconde'],
+    ['gilde1', 'Lid van het gilde', 'Verkoop je bakkerij voor het eerst aan het gilde.', S => S.gilde.resets, 1, 'keer opnieuw begonnen'],
+    ['gilde5', 'Vaste klant', 'Begin vijf keer opnieuw via het gilde.', S => S.gilde.resets, 5, 'keer opnieuw begonnen'],
+    ['gilde25', 'Gildemeester', 'Begin 25 keer opnieuw via het gilde.', S => S.gilde.resets, 25, 'keer opnieuw begonnen'],
+    ['ster10', 'Tien sterren', 'Verdien 10 gildesterren.', S => S.gilde.verdiend, 10, 'gildesterren'],
+    ['ster100', 'Sterrenhemel', 'Verdien 100 gildesterren.', S => S.gilde.verdiend, 100, 'gildesterren'],
+    ['ster1000', 'Melkweg vol sterren', 'Verdien 1.000 gildesterren.', S => S.gilde.verdiend, 1000, 'gildesterren'],
+    ['perks', 'Alle voordelen', 'Koop alle tien gildevoordelen.', S => S.gilde.perks.length, 10, 'gildevoordelen'],
+    ['bestel10', 'Betrouwbare bakker', 'Lever 10 bestellingen.', S => S.besteld, 10, 'bestellingen geleverd'],
+    ['bestel100', 'Bakker van het jaar', 'Lever 100 bestellingen.', S => S.besteld, 100, 'bestellingen geleverd'],
+    ['week', 'Een week bakken', 'Bak al een week lang vlaaien.', S => (Date.now() - S.gestart) / 86400000, 7, 'dagen'],
+    ['maand', 'Een maand bakken', 'Bak al een maand lang vlaaien.', S => (Date.now() - S.gestart) / 86400000, 30, 'dagen'],
   ].map(([id, naam, tekst, meet, doel, eenheid]) => ({ id, naam, tekst, meet, doel, eenheid, test: S => meet(S) >= doel }));
 
   // ---------- staat
   const KEY = 'vlaaienbakker-v1';
-  const nieuweStaat = () => ({ v: 1, vlaaien: 0, totaal: 0, kliks: 0, goud: 0, bakkers: {}, upg: [], smaken: ['kersen'], smaak: 'kersen', pres: [], gestart: Date.now(), tijd: Date.now() });
+  const nieuweStaat = () => ({ v: 1, vlaaien: 0, totaal: 0, ooit: 0, kliks: 0, goud: 0, bakkers: {}, upg: [], smaken: ['kersen'], smaak: 'kersen', pres: [], gestart: Date.now(), tijd: Date.now(), gilde: { sterren: 0, verdiend: 0, resets: 0, perks: [] }, dag: null, besteld: 0 });
   let S = nieuweStaat();
   try { const r = localStorage.getItem(KEY); if (r) { const o = JSON.parse(r); if (o && o.v === 1) S = Object.assign(nieuweStaat(), o); } } catch (e) {}
+  if (!S.ooit) S.ooit = S.totaal; S.gilde = Object.assign({ sterren: 0, verdiend: 0, resets: 0, perks: [] }, S.gilde || {});
   const bewaar = () => { S.tijd = Date.now(); try { S.vpsNu = Math.floor(vps(true)); } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   let buffs = [];
   let stuks = 1;
 
   // ---------- rekenen
-  function vermenigvuldiger(bid) { let m = 1; if (S.upg.includes(bid + '-1')) m *= 2; if (S.upg.includes(bid + '-2')) m *= 2; return m; }
-  function algemeen() { return (1 + 0.1 * (S.smaken.length - 1)) * (1 + 0.02 * S.pres.length); }
+  function vermenigvuldiger(bid) { let m = 1; for (const [n, f] of [[1, 2], [2, 2], [3, 2], [4, 3], [5, 3]]) if (S.upg.includes(bid + '-' + n)) m *= f; return m; }
+  const heeftPerk = p => S.gilde.perks.includes(p);
+  function gildeBonus() { return (1 + 0.03 * S.gilde.verdiend) * (heeftPerk('meester') ? 2 : 1) * (heeftPerk('groot') ? 3 : 1); }
+  function algemeen() { return (1 + 0.1 * (S.smaken.length - 1)) * (1 + 0.02 * S.pres.length) * gildeBonus(); }
   function vpsVan(b) { return (S.bakkers[b.id] || 0) * b.vps * vermenigvuldiger(b.id) * algemeen(); }
   function vps(zonderBuff) {
     let t = 0; for (const b of BAKKERS) t += vpsVan(b);
@@ -547,11 +637,12 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   }
   function klikWaarde() {
     let k = Math.pow(2, S.smaken.length - 1) * (S.upg.includes('mixer') ? 2 : 1);
-    k += vps(true) * ((S.upg.includes('want') ? 0.02 : 0) + (S.upg.includes('deegroller') ? 0.04 : 0));
+    k += vps(true) * ((S.upg.includes('want') ? 0.02 : 0) + (S.upg.includes('deegroller') ? 0.04 : 0) + (S.upg.includes('garde') ? 0.08 : 0) + (S.upg.includes('klikrobot') ? 0.16 : 0));
+    if (heeftPerk('klik')) k *= 10;
     if (buffs.some(x => x.id === 'alaaf')) k *= 40;
     return k;
   }
-  const prijsVan = (b, n) => { const k = S.bakkers[b.id] || 0; return Math.ceil(b.prijs * Math.pow(GROEI, k) * (Math.pow(GROEI, n) - 1) / (GROEI - 1) - 1e-6); };
+  const prijsVan = (b, n) => { const k = S.bakkers[b.id] || 0; return Math.ceil(b.prijs * (heeftPerk('korting') ? 0.9 : 1) * Math.pow(GROEI, k) * (Math.pow(GROEI, n) - 1) / (GROEI - 1) - 1e-6); };
 
   // ---------- vlaai en klikken
   function zetVlaai() {
@@ -563,7 +654,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   let zwevers = 0;
   function klik(x, y) {
     const k = klikWaarde();
-    S.vlaaien += k; S.totaal += k; S.kliks++;
+    S.vlaaien += k; S.totaal += k; S.ooit += k; S.kliks++; telDag('klik', 1);
     const knop = $('vlaai');
     if (!reduce && knop.animate) knop.animate([{ transform: 'translate(-50%, -50%) scale(.94)' }, { transform: 'translate(-50%, -50%) scale(1)' }], { duration: 170, easing: 'cubic-bezier(.3, 1.6, .5, 1)' });
     const pod = $('podium').getBoundingClientRect();
@@ -617,7 +708,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     const b = BAKKERS.find(x => x.id === id); if (!b) return;
     const p = prijsVan(b, stuks);
     if (S.vlaaien < p || (S.totaal < b.prijs * 0.5 && !(S.bakkers[id] > 0))) return;
-    S.vlaaien -= p; S.bakkers[id] = (S.bakkers[id] || 0) + stuks;
+    S.vlaaien -= p; S.bakkers[id] = (S.bakkers[id] || 0) + stuks; telDag('koop', stuks);
     alles();
     toonUitleg($('bakkers').querySelector(`[data-b="${id}"]`));
   }
@@ -723,13 +814,13 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     goudWeg = Date.now() + 13000;
     meld('Er is een gouden vlaai verschenen!');
   }
-  function haalGoudWeg() { if (goudEl) { goudEl.remove(); goudEl = null; } goudVolgende = Date.now() + (70 + Math.random() * 110) * 1000; }
+  function haalGoudWeg() { if (goudEl) { goudEl.remove(); goudEl = null; } goudVolgende = Date.now() + (70 + Math.random() * 110) * 1000 * (heeftPerk('goud') ? 0.5 : 1); }
   function vangGoud() {
-    S.goud++;
+    S.goud++; telDag('goud', 1);
     const r = Math.random();
-    if (r < 0.45) { buffs = buffs.filter(b => b.id !== 'kermis'); buffs.push({ id: 'kermis', naam: 'Kermis: productie ×5', tot: Date.now() + 30000, duur: 30000 }); meld('Kermis! Je bakkers bakken 30 seconden lang vijf keer zo snel.'); }
-    else if (r < 0.8) { const x = Math.max(25, Math.min(S.vlaaien * 0.2, vps(true) * 900)); S.vlaaien += x; S.totaal += x; meld('De buurvrouw koopt een hele stapel: +' + fmt(x) + ' vlaaien!'); }
-    else { buffs = buffs.filter(b => b.id !== 'alaaf'); buffs.push({ id: 'alaaf', naam: 'Alaaf: klik ×40', tot: Date.now() + 15000, duur: 15000 }); meld('Alaaf! 15 seconden lang levert elke klik veertig keer zoveel op.'); }
+    if (r < 0.45) { buffs = buffs.filter(b => b.id !== 'kermis'); buffs.push({ id: 'kermis', naam: 'Kermis: productie ×5', tot: Date.now() + 30000 * (heeftPerk('buff') ? 2 : 1), duur: 30000 * (heeftPerk('buff') ? 2 : 1) }); meld('Kermis! Je bakkers bakken 30 seconden lang vijf keer zo snel.'); }
+    else if (r < 0.8) { const x = Math.max(25, Math.min(S.vlaaien * 0.2, vps(true) * 900)); S.vlaaien += x; S.totaal += x; S.ooit += x; meld('De buurvrouw koopt een hele stapel: +' + fmt(x) + ' vlaaien!'); }
+    else { buffs = buffs.filter(b => b.id !== 'alaaf'); buffs.push({ id: 'alaaf', naam: 'Alaaf: klik ×40', tot: Date.now() + 15000 * (heeftPerk('buff') ? 2 : 1), duur: 15000 * (heeftPerk('buff') ? 2 : 1) }); meld('Alaaf! 15 seconden lang levert elke klik veertig keer zoveel op.'); }
     haalGoudWeg(); alles();
   }
   function tekenBuffs() {
@@ -745,17 +836,74 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   }
   function tekenStats() {
     const min = Math.floor((Date.now() - S.gestart) / 60000);
-    const rijen = [['Totaal gebakken', fmt(S.totaal)], ['Per klik', fmtD(klikWaarde())], ['Keer geklikt', fmt(S.kliks)], ['Bakkers in dienst', fmt(totaalBakkers(S))], ['Gouden vlaaien', fmt(S.goud)], ['Smaken', S.smaken.length + ' van ' + SMAKEN.length], ['Bezig sinds', min < 60 ? min + ' minuten' : Math.floor(min / 60) + ' uur ' + (min % 60) + ' min']];
+    const rijen = [['Ooit gebakken', fmt(S.ooit)], ['Gildesterren verdiend', fmt(S.gilde.verdiend)], ['Bestellingen geleverd', fmt(S.besteld)], ['Totaal gebakken', fmt(S.totaal)], ['Per klik', fmtD(klikWaarde())], ['Keer geklikt', fmt(S.kliks)], ['Bakkers in dienst', fmt(totaalBakkers(S))], ['Gouden vlaaien', fmt(S.goud)], ['Smaken', S.smaken.length + ' van ' + SMAKEN.length], ['Bezig sinds', min < 60 ? min + ' minuten' : Math.floor(min / 60) + ' uur ' + (min % 60) + ' min']];
     $('stats').innerHTML = rijen.map(r => `<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('');
   }
-  function alles() { tekenTeller(); tekenBakkers(); tekenUpgrades(); controleerPrestaties(); tekenStats(); }
+
+  // ---------- bestellingen van vandaag: drie per dag, en een gildester als je ze alle drie levert
+  const vandaagNr = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+  const BESTEL_TEKST = { klik: n => `Klik ${fmt(n)} keer op de vlaai`, koop: n => `Neem ${n} bakkers in dienst`, goud: n => `Vang ${n} gouden vlaai${n > 1 ? 'en' : ''}`, bak: n => `Bak ${fmt(n)} vlaaien` };
+  function dagboek() {
+    if (S.dag && S.dag.d === vandaagNr()) return S.dag;
+    const r = rng(vandaagNr() * 13 + 5), v0 = Math.max(1, vps(true)), soorten = ['klik', 'koop', 'goud', 'bak'];
+    soorten.splice(Math.floor(r() * 4), 1);
+    S.dag = { d: vandaagNr(), bonus: false, orders: soorten.map(soort => ({ soort, n: soort === 'klik' ? 200 + Math.floor(r() * 8) * 100 : soort === 'koop' ? 10 + Math.floor(r() * 5) * 5 : soort === 'goud' ? 1 + Math.floor(r() * 3) : Math.ceil(v0 * (1200 + r() * 1800)), stand: 0, klaar: false })) };
+    return S.dag;
+  }
+  function telDag(soort, n) {
+    const D = dagboek();
+    for (const o of D.orders) if (o.soort === soort && !o.klaar) { o.stand = Math.min(o.n, o.stand + n); if (o.stand >= o.n) { o.klaar = true; S.besteld++; const x = Math.max(50, vps(true) * 1200); S.vlaaien += x; S.totaal += x; S.ooit += x; meld('Bestelling geleverd! Je krijgt ' + fmt(x) + ' vlaaien.'); } }
+    if (!D.bonus && D.orders.every(o => o.klaar)) { D.bonus = true; S.gilde.sterren++; meld('Alle bestellingen van vandaag geleverd: +1 gildester!'); }
+  }
+  function tekenBestel() {
+    const D = dagboek();
+    $('bestel').innerHTML = `<ul class="bestel-lijst">${D.orders.map(o => `<li class="${o.klaar ? 'klaar' : ''}">${BESTEL_TEKST[o.soort](o.n)}<i><b style="width:${Math.round(o.stand / o.n * 100)}%"></b></i></li>`).join('')}</ul><p class="bestel-uitleg">${D.bonus ? 'Alles geleverd! Morgen zijn er nieuwe bestellingen.' : 'Elke bestelling levert 20 minuten productie op. Lever ze alle drie, dan krijg je een gildester.'}</p>`;
+  }
+  // ---------- het Bakkersgilde: verkoop je bakkerij voor gildesterren
+  const PERKS = [
+    { id: 'start', naam: 'Vliegende start', tekst: 'Begin elke keer met 10 oma\'s en 5 bakkersleerlingen.', prijs: 5 },
+    { id: 'klik', naam: 'Gouden vingers', tekst: 'Elke klik is tien keer zoveel waard.', prijs: 10 },
+    { id: 'offline', naam: 'Nachtploeg', tekst: 'Als je weg bent, bakken je bakkers op volle kracht door, tot 24 uur lang.', prijs: 10 },
+    { id: 'goud', naam: 'Geluksvogel', tekst: 'Gouden vlaaien komen twee keer zo vaak.', prijs: 15 },
+    { id: 'korting', naam: 'Gildekorting', tekst: 'Alle bakkers zijn 10% goedkoper.', prijs: 25 },
+    { id: 'buff', naam: 'Lange kermis', tekst: 'Effecten van gouden vlaaien duren twee keer zo lang.', prijs: 30 },
+    { id: 'smaak', naam: 'Smaakgeheugen', tekst: 'Je smaken blijven bewaard als je opnieuw begint.', prijs: 40 },
+    { id: 'upg', naam: 'Receptenboek', tekst: 'De eerste twee verbeteringen van elke bakker blijven bewaard.', prijs: 60 },
+    { id: 'meester', naam: 'Meesterbakker', tekst: 'Alles bakt twee keer zoveel.', prijs: 100 },
+    { id: 'groot', naam: 'Grootmeester', tekst: 'Alles bakt nog eens drie keer zoveel.', prijs: 500 },
+  ];
+  const potentieel = () => Math.floor(Math.sqrt(S.ooit / 1e11));
+  const nieuweSterren = () => Math.max(0, potentieel() - S.gilde.verdiend);
+  function volgendeSter() { const p = potentieel() + 1; return p * p * 1e11 - S.ooit; }
+  function verkoop() {
+    const n = nieuweSterren(); if (!n) return;
+    if (!confirm(`Je verkoopt je bakkerij aan het Bakkersgilde en begint opnieuw. Je krijgt ${n} gildester${n > 1 ? 'ren' : ''}, en elke gildester laat je voor altijd 3% meer bakken. Je prestaties blijven bewaard. Doorgaan?`)) return;
+    S.gilde.verdiend += n; S.gilde.sterren += n; S.gilde.resets++;
+    S.vlaaien = 0; S.totaal = 0; S.bakkers = heeftPerk('start') ? { oma: 10, leerling: 5 } : {};
+    S.upg = heeftPerk('upg') ? S.upg.filter(u => /-(1|2)$/.test(u)) : [];
+    if (!heeftPerk('smaak')) { S.smaken = ['kersen']; S.smaak = 'kersen'; }
+    buffs = []; bewaar(); zetVlaai(); bouwBakkers(); alles();
+    meld(`Welkom terug in de bakkerij! Je hebt nu ${S.gilde.verdiend} gildesterren: alles bakt ${Math.round((gildeBonus() - 1) * 100)}% meer.`);
+  }
+  function tekenGilde() {
+    const n = nieuweSterren();
+    $('gilde').innerHTML = `<div class="gilde-stand"><div><b>${S.gilde.sterren}</b><span>gildesterren om te besteden</span></div><div><b>+${Math.round((gildeBonus() - 1) * 100)}%</b><span>meer bakken door het gilde</span></div><div><b>${S.gilde.resets}</b><span>keer opnieuw begonnen</span></div></div>
+      <button class="knop hoofd" id="b-gilde" type="button" ${n ? '' : 'disabled'}>${n ? `Verkoop aan het gilde: +${n} gildester${n > 1 ? 'ren' : ''}` : 'Nog geen gildesterren te verdienen'}</button>
+      <p class="gilde-uitleg">Gildesterren verdien je met alles wat je ooit hebt gebakken. ${potentieel() < 1 ? 'Je eerste gildester krijg je bij 100 miljard vlaaien in totaal.' : `Nog ${fmt(volgendeSter())} vlaaien tot de volgende.`} Elke gildester laat je voor altijd 3% meer bakken, en je kunt ze uitgeven aan gildevoordelen.</p>
+      <ul class="perks">${PERKS.map(p => `<li class="${heeftPerk(p.id) ? 'heb' : ''}"><b>${p.naam}</b><span>${p.tekst}</span>${heeftPerk(p.id) ? '<span>✓ In bezit</span>' : `<button class="knop" type="button" data-perk="${p.id}" ${S.gilde.sterren >= p.prijs ? '' : 'disabled'}>${p.prijs} gildesterren</button>`}</li>`).join('')}</ul>`;
+  }
+  document.addEventListener('click', e => {
+    if (e.target.closest('#b-gilde')) verkoop();
+    const p = e.target.closest('[data-perk]'); if (p && !p.disabled) { const P = PERKS.find(x => x.id === p.dataset.perk); if (S.gilde.sterren >= P.prijs) { S.gilde.sterren -= P.prijs; S.gilde.perks.push(P.id); bewaar(); meld('Gildevoordeel gekocht: ' + P.naam + '!'); alles(); } }
+  });
+  function alles() { tekenTeller(); tekenBakkers(); tekenUpgrades(); controleerPrestaties(); tekenStats(); tekenBestel(); tekenGilde(); }
 
   // ---------- welkom terug
   (function welkomTerug() {
     const weg = (Date.now() - (S.tijd || Date.now())) / 1000;
     if (weg < 60 || vps(true) <= 0) return;
-    const sec = Math.min(weg, 8 * 3600), x = vps(true) * sec * 0.5;
-    S.vlaaien += x; S.totaal += x;
+    const sec = Math.min(weg, (heeftPerk('offline') ? 24 : 8) * 3600), x = vps(true) * sec * (heeftPerk('offline') ? 1 : 0.5);
+    S.vlaaien += x; S.totaal += x; S.ooit += x;
     const tijd = sec >= 3600 ? (sec / 3600).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' uur' : Math.round(sec / 60) + ' minuten';
     $('welkom').innerHTML = `<div class="welkom" role="status"><p><b>Welkom terug!</b> Je was ${tijd} weg. Je bakkers hebben intussen ${fmt(x)} vlaaien gebakken.</p><button class="knop hoofd" id="b-welkom">Lekker!</button></div>`;
     $('b-welkom').addEventListener('click', () => { $('welkom').innerHTML = ''; $('vlaai').focus(); });
@@ -766,7 +914,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   function lus() {
     const nu = Date.now(), dt = Math.min(5, (nu - laatste) / 1000); laatste = nu;
     buffs = buffs.filter(b => b.tot > nu);
-    const p = vps() * dt; S.vlaaien += p; S.totaal += p;
+    const p = vps() * dt; S.vlaaien += p; S.totaal += p; S.ooit += p; telDag('bak', p);
     tekenTeller();
     if (++tik % 3 === 0) { tekenBakkers(); tekenUpgrades(); tekenBuffs(); controleerPrestaties(); }
     if (tik % 10 === 0) { tekenStats(); if (gekozenPres) toonPrestatie(gekozenPres); document.title = fmt(S.vlaaien) + ' vlaaien – Vlaaienbakker'; }

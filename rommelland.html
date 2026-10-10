@@ -1246,6 +1246,7 @@ const RL3 = (function () {
   function startShow() { if (S.geld < 800) { melding('Een vuurwerkshow kost €800.', 'fout'); return; } if (S.tijd < 0.62) { melding('Vuurwerk is pas mooi als het donker wordt. Wacht tot de avond.', 'fout'); return; } S.geld -= 800; S.vandaag.uit += 800; showTijd = 22; S.vuurwerkGehad = true; for (const g of gasten) { g.plezier = Math.min(100, g.plezier + 18); g.denk = 'Ooooh! Aaaah! Vuurwerk!'; } melding('De vuurwerkshow begint!', 'goed'); }
 
   // ================= LICHT VAN DE DAG
+  const zonBasis = new THREE.Vector3(-30, 50, 25);
   function zetLicht() {
     const t = S.tijd, avond = Math.max(0, Math.min(1, (t - 0.62) / 0.16)), ochtend = Math.max(0, 1 - t / 0.08);
     const donker = Math.max(avond, ochtend * 0.6);
@@ -1253,7 +1254,7 @@ const RL3 = (function () {
     if (S.regen) lucht.lerp(new THREE.Color(0x7a8396), 0.5 * (1 - donker));
     scene.background = lucht; scene.fog = scene.fog || new THREE.Fog(lucht, 90, 220); scene.fog.color = lucht;
     hemi.intensity = 0.75 - donker * 0.45 - (S.regen ? 0.15 : 0); zon.intensity = 0.95 - donker * 0.75 - (S.regen ? 0.4 : 0);
-    const hoek = 0.3 + t * 2.6; zon.position.set(Math.cos(hoek) * -50, 30 + Math.sin(t * Math.PI) * 30, 25); zon.color.set(donker > 0.5 ? 0xaab8ff : t > 0.55 ? 0xffc890 : 0xfff4dc);
+    const hoek = 0.3 + t * 2.6; zonBasis.set(Math.cos(hoek) * -50, 30 + Math.sin(t * Math.PI) * 30, 25); zon.color.set(donker > 0.5 ? 0xaab8ff : t > 0.55 ? 0xffc890 : 0xfff4dc);
     sterren.visible = donker > 0.5; regen.visible = !!S.regen;
     const aan = donker > 0.35; for (const l of lichtjes) l.material.color.setHex(aan ? 0xfff3c4 : 0xc9a24e);
   }
@@ -1261,10 +1262,15 @@ const RL3 = (function () {
   // ================= CAMERA
   let az = 0.6, el = 0.85, afstand = 70, doelAz = az, doelEl = el, doelAf = afstand;
   const doel = new THREE.Vector3(0, 0, 4), doelDoel = doel.clone();
-  function zetCamera() { az += (doelAz - az) * 0.18; el += (doelEl - el) * 0.18; afstand += (doelAf - afstand) * 0.18; doel.lerp(doelDoel, 0.2); camera.position.set(doel.x + Math.sin(az) * Math.cos(el) * afstand, doel.y + Math.sin(el) * afstand, doel.z + Math.cos(az) * Math.cos(el) * afstand); camera.lookAt(doel); zon.target.position.copy(doel); zon.position.add(doel); }
+  function zetCameraDirect() { camera.position.set(doel.x + Math.sin(az) * Math.cos(el) * afstand, doel.y + Math.sin(el) * afstand, doel.z + Math.cos(az) * Math.cos(el) * afstand); camera.lookAt(doel); camera.updateMatrixWorld(); }
+  function zetCamera() { az += (doelAz - az) * 0.18; el += (doelEl - el) * 0.18; afstand += (doelAf - afstand) * 0.18; doel.lerp(doelDoel, 0.2); camera.position.set(doel.x + Math.sin(az) * Math.cos(el) * afstand, doel.y + Math.sin(el) * afstand, doel.z + Math.cos(az) * Math.cos(el) * afstand); camera.lookAt(doel); zon.target.position.copy(doel); zon.position.copy(zonBasis).add(doel); }
   const ray = new THREE.Raycaster(), muis = new THREE.Vector2(), VLAK = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   function opGrond(e) { const r = renderer.domElement.getBoundingClientRect(); muis.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(muis, camera); const p = new THREE.Vector3(); if (!ray.ray.intersectPlane(VLAK, p)) return null; return { p, i: Math.floor(p.x / T + GW / 2), j: Math.floor(p.z / T + GD / 2) }; }
-  function pan(dx, dy) { const s = afstand * 0.0016; const vx = Math.cos(az), vz = -Math.sin(az); doelDoel.x -= (dx * vx - dy * Math.sin(az)) * s; doelDoel.z -= (dx * vz - dy * Math.cos(az)) * s; doelDoel.x = Math.max(-GW, Math.min(GW, doelDoel.x)); doelDoel.z = Math.max(-GD, Math.min(GD + 6, doelDoel.z)); }
+  const grens = () => { doelDoel.x = Math.max(-GW, Math.min(GW, doelDoel.x)); doelDoel.z = Math.max(-GD, Math.min(GD + 6, doelDoel.z)); };
+  // pijltjes en WASD: een vast stukje vooruit, achteruit, links of rechts, gezien vanuit de camera
+  function stap(rechtsom, vooruit) { const st = afstand * 0.12; doelDoel.x += (Math.cos(az) * rechtsom - Math.sin(az) * vooruit) * st; doelDoel.z += (-Math.sin(az) * rechtsom - Math.cos(az) * vooruit) * st; grens(); }
+  let sleepPunt = null;
+  function sleep(e) { const g = opGrond(e); if (!g) return; if (!sleepPunt) { sleepPunt = g.p.clone(); return; } doel.x += sleepPunt.x - g.p.x; doel.z += sleepPunt.z - g.p.z; doelDoel.copy(doel); grens(); doel.copy(doelDoel); zetCameraDirect(); }
 
   // ================= GEREEDSCHAP EN INVOER
   let gereedschap = 'kijk', bouwType = null, draaiing = 0, spook = null, schilder = null;
@@ -1272,7 +1278,7 @@ const RL3 = (function () {
   const cv = renderer.domElement; cv.style.touchAction = 'none';
   cv.addEventListener('contextmenu', e => e.preventDefault());
   cv.addEventListener('pointerdown', e => {
-    wijzers.set(e.pointerId, [e.clientX, e.clientY]); cv.setPointerCapture(e.pointerId); bewogen = 0; rechts = e.button === 2 || e.button === 1;
+    wijzers.set(e.pointerId, [e.clientX, e.clientY]); cv.setPointerCapture(e.pointerId); bewogen = 0; rechts = e.button === 2 || e.button === 1; sleepPunt = null;
     if (wijzers.size === 1 && !rechts && (gereedschap === 'pad' || gereedschap === 'padweg')) { const g = opGrond(e); if (g) { schilder = gereedschap; verfPad(g); } }
   });
   cv.addEventListener('pointermove', e => {
@@ -1280,17 +1286,17 @@ const RL3 = (function () {
     if (!wijzers.has(e.pointerId)) return;
     const [ox, oy] = wijzers.get(e.pointerId); wijzers.set(e.pointerId, [e.clientX, e.clientY]);
     const dx = e.clientX - ox, dy = e.clientY - oy;
-    if (wijzers.size === 2) { const [a, b] = [...wijzers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), hoek = Math.atan2(b[1] - a[1], b[0] - a[0]); if (knijp) { doelAf = Math.max(18, Math.min(120, doelAf * knijp / d)); doelAz -= (hoek - hoekStart); } knijp = d; hoekStart = hoek; bewogen = 99; return; }
+    if (wijzers.size === 2) { sleepPunt = null; const [a, b] = [...wijzers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), hoek = Math.atan2(b[1] - a[1], b[0] - a[0]); if (knijp) { doelAf = Math.max(18, Math.min(120, doelAf * knijp / d)); doelAz -= (hoek - hoekStart); } knijp = d; hoekStart = hoek; bewogen = 99; return; }
     bewogen += Math.abs(dx) + Math.abs(dy);
     if (schilder && g) { verfPad(g); return; }
     if (rechts) { doelAz -= dx * 0.008; doelEl = Math.max(0.35, Math.min(1.35, doelEl + dy * 0.006)); }
-    else if (bewogen > 5) pan(dx, dy);
+    else if (bewogen > 5) sleep(e);
   });
-  const los = e => { wijzers.delete(e.pointerId); if (wijzers.size < 2) knijp = 0; };
+  const los = e => { wijzers.delete(e.pointerId); if (wijzers.size < 2) knijp = 0; sleepPunt = null; };
   cv.addEventListener('pointerup', e => { const was = schilder; schilder = null; if (bewogen < 6 && !rechts && !was) tik(e); if (was) bewaarLater(); los(e); });
   cv.addEventListener('pointercancel', e => { schilder = null; los(e); });
   cv.addEventListener('wheel', e => { e.preventDefault(); doelAf = Math.max(18, Math.min(120, doelAf * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive: false });
-  addEventListener('keydown', e => { if (e.target.closest('input, textarea')) return; if (e.key === 'r' || e.key === 'R') { draaiing = (draaiing + 1) % 4; if (spook) maakSpook(); } if (e.key === 'Escape') kiesGereedschap('kijk'); const st = 2.4; if (e.key === 'ArrowLeft' || e.key === 'a') pan(60, 0); if (e.key === 'ArrowRight' || e.key === 'd') pan(-60, 0); if (e.key === 'ArrowUp' || e.key === 'w') pan(0, 60); if (e.key === 'ArrowDown' || e.key === 's') pan(0, -60); if (e.key === 'q') doelAz += 0.4; if (e.key === 'e') doelAz -= 0.4; });
+  addEventListener('keydown', e => { if (e.target.closest('input, textarea')) return; if (e.key === 'r' || e.key === 'R') { draaiing = (draaiing + 1) % 4; if (spook) maakSpook(); } if (e.key === 'Escape') kiesGereedschap('kijk'); if (e.key === 'ArrowLeft' || e.key === 'a') { stap(-1, 0); e.preventDefault(); } if (e.key === 'ArrowRight' || e.key === 'd') { stap(1, 0); e.preventDefault(); } if (e.key === 'ArrowUp' || e.key === 'w') { stap(0, 1); e.preventDefault(); } if (e.key === 'ArrowDown' || e.key === 's') { stap(0, -1); e.preventDefault(); } if (e.key === 'q') doelAz += 0.4; if (e.key === 'e') doelAz -= 0.4; });
   function verfPad(g) { if (!binnen(g.i, g.j)) return; if (schilder === 'pad') { if (S.geld < 20) { melding('Niet genoeg geld voor een pad.', 'fout'); schilder = null; return; } if (zetPad(g.i, g.j, true)) { S.geld -= 20; } } else if (zetPad(g.i, g.j, false)) S.geld += 10; }
   function maakSpook() {
     if (spook) scene.remove(spook.groep);
@@ -1462,7 +1468,7 @@ const RL3 = (function () {
   if (nieuw) setTimeout(toonHelp, 400);
   lus();
   // voor tests
-  window.__rl = { S, gasten, rommel, CAT, plaats, zetPad: (i, j) => zetPad(i, j, true), sim: (sec) => { for (let k = 0; k < sec * 10; k++) { update(0.1); updatePersoneel(0.1); } S.waard = waardering(); checkDoelen(); }, neemAan, waardering, kijk: (a, e, d, x, z) => { doelAz = az = a; doelEl = el = e; doelAf = afstand = d; doelDoel.set(x || 0, 0, z || 0); doel.copy(doelDoel); }, ingangen, startShow, vrij };
+  window.__rl = { zon: () => zon.position.toArray(), doel: () => doel.toArray(), scherm: (x, z) => { const v = new THREE.Vector3(x, 0, z).project(camera), r = renderer.domElement.getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, grond: (px, py) => { const g = opGrond({ clientX: px, clientY: py }); return g ? [g.p.x, g.p.z] : null; }, S, gasten, rommel, CAT, plaats, zetPad: (i, j) => zetPad(i, j, true), sim: (sec) => { for (let k = 0; k < sec * 10; k++) { update(0.1); updatePersoneel(0.1); } S.waard = waardering(); checkDoelen(); }, neemAan, waardering, kijk: (a, e, d, x, z) => { doelAz = az = a; doelEl = el = e; doelAf = afstand = d; doelDoel.set(x || 0, 0, z || 0); doel.copy(doelDoel); }, ingangen, startShow, vrij };
 })();
 
 </script>

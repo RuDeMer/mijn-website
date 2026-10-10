@@ -282,7 +282,7 @@ body { position: relative; }
   (async () => { try { const r = await fetch(location.origin + '/homepage-onderdelen.js?' + Date.now(), { cache: 'no-store' }); if (r.ok) { const t = await r.text(); if (t.includes('homepage-onderdelen.js')) onderdelenLive = t; } } catch (e) {} })();
   function voorbeeldHtml(html) {
     const code = (onderdelenLive || HOME_ONDERDELEN).replace(/<\/(script)/gi, '<\\/$1');
-    html = html.replace(/<script src="homepage-onderdelen\.js"><\/script>/, () => '<script>' + code + '<\/script>');
+    html = html.replace(/<script src="homepage-onderdelen\.js(\?v=[0-9]+)?"><\/script>/, () => '<script>' + code + '<\/script>');
     return html.replace('<head>', '<head><base href="' + location.origin + '/">').replace('</head>', '<style>.label { animation: none !important; }</style></head>');
   }
   async function onderdelenItem(p, oudeTekst, alInUpload) {
@@ -508,6 +508,7 @@ body { position: relative; }
         if (VERSIE_RE.test(indexTekst)) { indexTekst = indexTekst.replace(VERSIE_RE, nieuweVersieTekst); indexAangepast = true; logRegel('Versienummer verhoogd naar ' + fmtVersie(basisVersie + 1), 'ok'); }
         else { nieuweVersieTekst = null; logRegel('Geen versienummer gevonden op de homepage', 'fout'); }
       }
+      if (indexTekst != null && bestanden.some(b => b.naam === 'homepage-onderdelen.js')) { indexTekst = indexTekst.replace(/homepage-onderdelen\.js(\?v=[0-9]+)?/, 'homepage-onderdelen.js?v=' + Date.now()); indexAangepast = true; logRegel('Homepage laadt meteen de nieuwe onderdelen', 'ok'); }
       if (indexAangepast) {
         const voorOnderdelen = indexTekst;
         indexTekst = werkIconenBij(indexTekst);

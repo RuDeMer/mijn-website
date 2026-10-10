@@ -146,6 +146,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - Alles wat de homepage aan gedeelde onderdelen heeft (gereedschap uit `muur.js`, animaties uit `beweging2.js`, de label-iconen, `scorebord.js`, `hebbedingen.js` en de bijbehorende CSS) zit in één bestand: `homepage-onderdelen.js`. `index.html` laadt dat met `<script src="homepage-onderdelen.js"></script>` onderaan de body.
 - `index.html` bevat alleen nog Rubens eigen inhoud (labels, teksten, versienummer). Stuur nooit een nieuwe index.html mee: wijzigingen aan de onderdelen gaan via een nieuwe versie van `homepage-onderdelen.js`, die Ruben gewoon uploadt. De knop "Werk mijn homepage bij" is daarvoor niet meer nodig.
+- Uploadt Ruben een nieuwe `homepage-onderdelen.js`, dan zet de werkplaats in index.html een versienummer achter de verwijzing (`homepage-onderdelen.js?v=...`), zodat browsers meteen de nieuwe versie laden in plaats van een bewaarde oude.
 - De werkplaats haalt eventuele oude, ingeplakte onderdelen uit de homepage en zet `homepage-onderdelen.js` alleen neer als dat bestand nog ontbreekt (of bij die eenmalige verhuizing). Een nieuwer bestand dat Ruben heeft geüpload, wordt nooit door de werkplaats overschreven.
 - Het bouwscript maakt `homepage-onderdelen.js` uit losse stukken, die elk in een eigen functie verpakt worden: eerst de stijl, dan de iconen, het scorebord, het gereedschap, de animaties en als laatste de hebbedingen.
 

@@ -520,6 +520,28 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   // ---------- props van Rubens personages (eigen tekeningen, geïnspireerd op zijn kostuums)
   const PEG = '<circle cx="0" cy="0" r="5" fill="#1E3263"/><path d="M0 0v10" stroke="#8C939E" stroke-width="3" stroke-linecap="round"/>';
   const SVG = {
+    jas: `<svg viewBox="0 0 132 206" aria-hidden="true" focusable="false"><g transform="translate(66 8)">${PEG}</g>
+      <path d="M66 16q0-8 8-8t6 8q-2 6-10 12" fill="none" stroke="#C9CED6" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M66 28L14 52q-6 3 0 6h104q6-3 0-6z" fill="#8C5530" stroke="#3A2414" stroke-width="2.5" stroke-linejoin="round"/>
+      <g class="jas-lijf">
+        <path d="M30 56q-14 6-18 26l-6 74q0 6 6 6h14l4-70" fill="#1E3A2E" stroke="#0E1E16" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M102 56q14 6 18 26l6 74q0 6-6 6h-14l-4-70" fill="#1E3A2E" stroke="#0E1E16" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M30 56q16-6 36-6t36 6l4 128q0 8-8 10l-32 6-32-6q-8-2-8-10z" fill="#24463A" stroke="#0E1E16" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M54 52l12 30 12-30q-6 6-12 6t-12-6z" fill="#9E1F2A" stroke="#4A0A12" stroke-width="1.8"/>
+        <path d="M56 58l10 70 10-70" fill="#B82E3A" stroke="#4A0A12" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M60 64q4 20 6 46M72 64q-2 16-4 34" stroke="#E8577A" stroke-width="1.6" opacity=".55" fill="none"/>
+        <path d="M54 52q-12 4-14 24l14 26 12-20zM78 52q12 4 14 24l-14 26-12-20z" fill="#2E5A4A" stroke="#0E1E16" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M60 46q6 8 12 0l2 8q-8 6-16 0z" fill="#1E3A2E" stroke="#0E1E16" stroke-width="2"/>
+        ${[96, 116, 136, 156].map(y => `<circle cx="56" cy="${y}" r="3.4" fill="#C9CED6" stroke="#5F6470" stroke-width="1.2"/><circle cx="76" cy="${y}" r="3.4" fill="#C9CED6" stroke="#5F6470" stroke-width="1.2"/>`).join('')}
+        <path d="M44 190l22 4 22-4" fill="none" stroke="#0E1E16" stroke-width="2"/>
+        <g class="broche" transform="translate(88 98)">
+          <path d="M0-14v28M-9-5h18" stroke="#DDE3EA" stroke-width="4.2" stroke-linecap="round"/>
+          <path d="M0-14v28M-9-5h18" stroke="#8C939E" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cy="-14" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cy="14" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cx="-9" cy="-5" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cx="9" cy="-5" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cy="-5" r="3.2" fill="#2E8B62" stroke="#DDE3EA" stroke-width="1.2"/>
+          <path class="glinster" d="M7-15l1.4 3.6L12-10l-3.6 1.4L7-5l-1.4-3.6L2-10l3.6-1.4z" fill="#fff" opacity="0"/>
+        </g>
+      </g>
+    </svg>`,
     kroon: `<svg viewBox="0 0 150 128" aria-hidden="true" focusable="false"><g transform="translate(75 8)">${PEG}</g>
       <g class="gloed" opacity="0"><ellipse cx="75" cy="78" rx="70" ry="44" fill="#4BE38A" opacity=".25"/></g>
       <g stroke="#3E3112" stroke-width="1.6" stroke-linejoin="round">
@@ -598,6 +620,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     { id: 'kaarten', b: 124, naam: 'Roeter', rol: '', show: 'Wonderland', zin: 'Ruiten troef!' },
     { id: 'hoed', b: 140, naam: 'Hans Herzschlag', rol: 'Schlagerzanger', show: 'Voor feesten en partijen', zin: 'Prost!' },
     { id: 'bril', b: 124, naam: 'Callum', rol: '', show: 'Moonside', zin: 'Nog eentje aan de bar?' },
+    { id: 'jas', b: 120, naam: 'Dorian Verstronden', rol: '', show: 'De Zonden van Groenhorst', zin: 'Zonden? Ik? Nooit.' },
   ];
 
   // ---------- stijl
@@ -634,7 +657,22 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   .haak-rij .label:not(.leeg) .label-kaart:focus-visible { outline: 3px solid var(--munt, #E9B949); outline-offset: -6px; }
   .haak-rij .label .stempel { background: #FBF6E9; }
   @media (prefers-reduced-motion: reduce) { .haak-rij .label:not(.leeg) .label-kaart:hover .label-icoon { animation: none; } }
-  .coulissen-rij { display: block; }
+  .coulissen-rij { display: block; position: relative; border-radius: 14px; padding: 2.2rem 3.6rem 2.4rem; overflow: hidden;
+    background: radial-gradient(ellipse 80% 55% at 50% -8%, rgba(255,214,150,.22), transparent 70%), linear-gradient(to bottom, transparent 88%, #6E4626 88%, #5C3A21 94%, #4A2E1C 100%), linear-gradient(#2C1838, #170D20);
+    box-shadow: inset 0 0 0 4px #4A0E16, inset 0 14px 0 #8E1F28, inset 0 18px 0 #E9B949, 0 8px 0 rgba(0,0,0,.35); }
+  .coulissen-rij::before, .coulissen-rij::after { content: ""; position: absolute; top: 0; bottom: 0; width: 3.2rem; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(90deg, #6E1018 0 6px, #B82E3A 6px 14px, #8E1F28 14px 20px, #6E1018 20px 24px); }
+  .coulissen-rij::before { left: 0; box-shadow: inset -10px 0 14px rgba(0,0,0,.45); border-radius: 14px 0 60% 14px / 14px 0 12% 14px; }
+  .coulissen-rij::after { right: 0; box-shadow: inset 10px 0 14px rgba(0,0,0,.45); border-radius: 0 14px 14px 60% / 0 14px 14px 12%; }
+  .coulissen .props { position: relative; z-index: 1; }
+  .coulissen .prop-plek { position: relative; }
+  .coulissen .prop-plek::before { content: ""; position: absolute; left: 50%; top: -2.2rem; width: 15rem; height: calc(100% + 2.6rem); transform: translateX(-50%); pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse 42% 58% at 50% 34%, rgba(255,236,180,.32), rgba(255,220,150,.12) 55%, transparent 72%); }
+  .coulissen .prop, .coulissen .kaartje { z-index: 1; }
+  .coulissen .prop svg { filter: drop-shadow(0 0 1.5px rgba(255,243,196,.9)) drop-shadow(0 0 12px rgba(255,214,150,.35)) drop-shadow(0 6px 0 rgba(0,0,0,.5)); }
+  .coulissen .kaartje { box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 4px 0 rgba(0,0,0,.45), 0 0 18px rgba(255,214,150,.25); }
+  .coulissen .kaartje::after { background: #2C1838; }
+  @media (max-width: 640px) { .coulissen-rij { padding: 1.8rem 1.8rem 2rem; } .coulissen-rij::before, .coulissen-rij::after { width: 1.4rem; } .coulissen .prop-plek::before { width: 10rem; } }
   .rek.verspreid { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 0; }
   .props { display: flex; flex-wrap: wrap; justify-content: space-around; align-items: flex-start; gap: 2.2rem 1.2rem; padding-top: 1.4rem; --s: 1; }
   .prop-plek { margin: 0; display: flex; flex-direction: column; align-items: center; }
@@ -714,6 +752,19 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     setTimeout(() => s.remove(), 1700);
   }
   const DOEN = {
+    // Dorian: de jas zwaait aan zijn hanger, de broche glinstert en een donker orgelakkoord
+    jas: async () => {
+      if (bezig.has('jas')) return; bezig.add('jas');
+      [[73.4, 0], [87.3, 0], [110, 0], [146.8, 0.02]].forEach(([f, t]) => toon(f, t, 1.6, 'sawtooth', 0.018));
+      toon(587, 0.35, 0.5, 'sine', 0.025, 1174);
+      const k = $p('jas');
+      anim(binnen('jas'), [{ transform: 'rotate(0)' }, { transform: 'rotate(-9deg)', offset: .25 }, { transform: 'rotate(6deg)', offset: .55 }, { transform: 'rotate(-3deg)', offset: .8 }, { transform: 'rotate(0)' }], { duration: 1600, easing: 'ease-in-out' });
+      const g = k.querySelector('.glinster'); g.style.transformBox = 'fill-box'; g.style.transformOrigin = 'center';
+      anim(g, [{ opacity: 0, transform: 'scale(.4) rotate(0)' }, { opacity: 1, transform: 'scale(1.5) rotate(45deg)', offset: .4 }, { opacity: 0, transform: 'scale(.4) rotate(90deg)' }], { duration: 900, delay: 350 });
+      anim(k.querySelector('.broche'), [{ filter: 'none' }, { filter: 'drop-shadow(0 0 6px #3EC6A8)', offset: .4 }, { filter: 'none' }], { duration: 1200, delay: 250 });
+      ballon('jas', 'Zonden? Ik? Nooit.');
+      await wacht(1600); bezig.delete('jas');
+    },
     // Caspian: groene chaosvonken
     kroon: async () => {
       const k = $p('kroon'), r = k.getBoundingClientRect();

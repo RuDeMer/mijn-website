@@ -110,6 +110,11 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Het speurneuslab (`RUIMTES.lab`) staat op de zolder en is met de lift bereikbaar. Het heeft een speurbord met foto's en rode touwtjes, een microscoop, een vergrootglas en een archiefkast.
 - Zoomen: de knoppen − en + onder in beeld, of de toetsen - en +. `S.zoom` is 1, 2 of 3; bij inzoomen volgt de camera de speler.
 
+## Coulissen en scorebord (vormgeving)
+
+- De coulissen zijn een klein podium: donker achterdoek, rode fluwelen gordijnen links en rechts, een houten vloertje en een warm spotlicht achter elke prop (`.coulissen-rij`, `.prop-plek::before`). Nieuwe props krijgen dat vanzelf.
+- Het scorebord is een erehal: per spel een donker bord met een gestreepte kop en lopende lampjes, een podium voor de top drie (beginletter in een gekleurd rondje, kroon voor nummer 1, volledige naam, score die optelt) en daaronder plek 4 en verder. Namen worden niet meer afgekapt. Bovenaan staat "Jouw plekken" als je meedoet.
+
 ## Ideeënbox
 
 - `ideeenbox.html`: bezoekers sturen een idee in (10 tot 500 tekens, een soort en een optionele voornaam). Ideeën met links of scheldwoorden worden geweigerd, en per bezoeker kunnen er hooguit 5 per uur bij.
@@ -136,6 +141,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Bezoekers worden met InstancedMesh getekend (tot 180 tegelijk). Ze hebben honger, dorst, wc, energie, plezier, geld en een voorkeur voor spanning; ze kiezen attracties en kraampjes, staan in de rij, laten rommel vallen als er geen prullenbak in de buurt is, en hebben gedachten (klik op een bezoeker). Soms komt er een gast uit het Rommelhotel langs.
 - Een dag duurt 6 minuten (08:00 tot 24:00) met dag- en nachtlicht. Aan het eind van de dag: onderhoud en lonen, een dagrapport, en soms regen de volgende dag. Vuurwerkshow: €800, alleen 's avonds.
 - `DOELEN` (13 stuks) leveren geld op en spelen attracties vrij (zweefmolen, spookhuis, achtbaan, wildwaterbaan, schommelschip, gouden standbeeld). Waardering 0 tot 1000 bepaalt hoeveel bezoekers er komen.
+- 's Nachts is er maanlicht (blauw hemellicht) en een vaste set van 8 warme lampen die steeds bij de dichtstbijzijnde lantaarns, attracties, kraampjes en de poort gaan staan (`zetLampen`). Karretjes en bootjes richten zich met `richt()` binnen de attractie, zodat ze ook bij een gedraaide attractie langs de baan rijden.
 - Opslag: localStorage `rommelland-v1` (elke 30 seconden en bij weggaan). Testhaak: `window.__rl` (o.a. `sim(seconden)`).
 
 ## Scorebord en bezoekersteller
@@ -161,6 +167,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Het gereedschap op de homepage hangt grotendeels los verspreid over de pagina (een `.rek.verspreid` over de hele pagina, gemaakt door `hebbedingen.js`); alleen zaag, hamer en tang hangen in het rek bij de titel. In de coulissen hangt geen gereedschap.
 - `hebbedingen.js` (herkenbaar aan HEBBEDINGEN) bouwt op de homepage de sticker (`ruben-sticker.webp` in de map van de site), die net achter het eind van de onderste tape van het logo plakt en zo groot wordt als er ruimte is en de sectie Uit de coulissen: props van Rubens personages aan haakjes op het gaatjesbord, elk met een kaartje (naam, rol, voorstelling), plus een rek voor extra gereedschap (`#rek-plank`). De werkplaats zet dit script op de homepage en houdt het bij.
 - Personages staan in `PROPS`, tekeningen in `SVG`, wat ze doen bij een klik in `DOEN`: Juan Martinez (schedelstaf, Fiesta de los Muertos bij Toverland Halloween Nights: gloeiende ogen, klapperende kaak, goudsbloemblaadjes), Caspian Darius (kroon, groene chaosvonken), Erik Jacobs (wandelstok, draait en tikt), Roeter (kaarten en pailletten, waaieren uit), Hans Herzschlag (hoedje met krullen, schlagerdeuntje) en Callum (brilletje, glinstering).
+- Dorian Verstronden (De Zonden van Groenhorst): zijn geklede jas aan een kleerhanger, donkergroen met zilveren knopen, rood fluweel en een zilveren kruisbroche. Bij een klik zwaait de jas, glinstert de broche en klinkt een orgelakkoord. Eigen tekening; de foto staat niet op de site.
 - Alle tekeningen zijn eigen ontwerpen. Teken geen herkenbare spullen, figuren of logo's uit films, series, games of merken na.
 - Gereedschap bijgekomen: boor, verfroller, klem, beitel, rolmaat en ijzerzaag (in `muur.js`). Het gereedschap ontwijkt ook de sticker en de props. Met `window.gereedschapBouw()` hang je alles opnieuw op.
 

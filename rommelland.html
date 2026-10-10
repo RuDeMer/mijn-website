@@ -719,6 +719,8 @@ const RL3 = (function () {
   }
   const at = (o, x, y, z) => { o.position.set(x, y, z); return o; };
   const R = 0.03;
+  const RICHT = new THREE.Matrix4(), OMHOOG = new THREE.Vector3(0, 1, 0);
+  function richt(obj, p, tg) { RICHT.lookAt(p.clone().add(tg), p, OMHOOG); obj.quaternion.setFromRotationMatrix(RICHT); }
   const lichtjes = [];
   function lampje(g, x, y, z, k) { const l = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), new THREE.MeshBasicMaterial({ color: k || 0xfff3c4 })); at(l, x, y, z); g.add(l); lichtjes.push(l); return l; }
   function streepTex(a, b, n) { const c = document.createElement('canvas'); c.width = 512; c.height = 32; const g = c.getContext('2d'); for (let i = 0; i < n; i++) { g.fillStyle = i % 2 ? a : b; g.fillRect(i * 512 / n, 0, 512 / n + 1, 32); } return new THREE.CanvasTexture(c); }
@@ -826,7 +828,7 @@ const RL3 = (function () {
     const karren = [];
     for (let i = 0; i < 3; i++) { const k = new THREE.Group(); k.add(at(mesh(new THREE.BoxGeometry(0.9, 0.5, 1.2), [0x2f8bd6, 0xf6cb2f, 0xe8577a][i], R), 0, 0.35, 0)); k.add(at(mesh(new THREE.BoxGeometry(0.9, 0.35, 0.12), 0x23252b), 0, 0.75, -0.5)); g.add(k); karren.push(k); }
     for (let i = 0; i < 30; i++) lampje(g, naast(i / 30, 0.6).x, naast(i / 30, 0.6).y + 0.15, naast(i / 30, 0.6).z, [0xfff3c4, 0xff7fb0, 0x5ec2e8][i % 3]);
-    return { groep: g, anim(t, actief, s, dt) { const p0 = baan.getPointAt(((s.u || 0) % 1 + 1) % 1); const v = actief ? Math.max(0.035, 0.11 - p0.y * 0.009) : 0; s.u = (s.u || 0) + v * dt * (s.snel || 1); karren.forEach((k, i) => { const u = (((s.u || 0) - i * 0.022) % 1 + 1) % 1, p = baan.getPointAt(u), tg = baan.getTangentAt(u); k.position.copy(p).y += 0.1; k.lookAt(p.clone().add(tg)); }); } };
+    return { groep: g, anim(t, actief, s, dt) { const p0 = baan.getPointAt(((s.u || 0) % 1 + 1) % 1); const v = actief ? Math.max(0.035, 0.11 - p0.y * 0.009) : 0; s.u = (s.u || 0) + v * dt * (s.snel || 1); karren.forEach((k, i) => { const u = (((s.u || 0) - i * 0.022) % 1 + 1) % 1, p = baan.getPointAt(u), tg = baan.getTangentAt(u); k.position.copy(p).y += 0.1; richt(k, p, tg); }); } };
   }
   function wildwater() {
     const g = new THREE.Group();
@@ -839,7 +841,7 @@ const RL3 = (function () {
     for (let i = 0; i < 3; i++) g.add(at(mesh(new THREE.ConeGeometry(0.7, 1.8, 6), 0x9a8f84, R), 4 - i * 2.2, 0.9, 0.2 - i * 0.4));
     const boten = []; for (let i = 0; i < 2; i++) { const b = new THREE.Group(); b.add(at(mesh(new THREE.BoxGeometry(0.9, 0.5, 1.8), 0x7a4e2d, R), 0, 0.15, 0)); b.add(at(mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.5, 8, 1, false, 0, Math.PI).rotateX(Math.PI / 2), 0x7a4e2d), 0, 0.15, 0.9)); g.add(b); boten.push(b); }
     const spat = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(60 * 3), 3)), new THREE.PointsMaterial({ color: 0xdff4ff, size: 0.25 })); g.add(spat);
-    return { groep: g, anim(t, actief, s, dt) { s.u = (s.u || 0) + (actief ? 0.06 : 0.008) * dt; let plons = 0; boten.forEach((b, i) => { const u = ((s.u + i * 0.5) % 1 + 1) % 1, p = goot.getPointAt(u), tg = goot.getTangentAt(u); b.position.copy(p); b.position.y -= 0.35; b.lookAt(p.clone().add(tg)); if (u > 0.68 && u < 0.78) plons = 1; }); const pos = spat.geometry.attributes.position; const bp = goot.getPointAt(0.76); for (let i = 0; i < 60; i++) { const f = (t * 1.5 + i / 60) % 1, a = i * 2.4; pos.setXYZ(i, bp.x + Math.cos(a) * f * 1.6, plons ? 0.6 + Math.sin(f * Math.PI) * 1.8 : -5, bp.z + Math.sin(a) * f * 1.6); } pos.needsUpdate = true; } };
+    return { groep: g, anim(t, actief, s, dt) { s.u = (s.u || 0) + (actief ? 0.06 : 0.008) * dt; let plons = 0; boten.forEach((b, i) => { const u = ((s.u + i * 0.5) % 1 + 1) % 1, p = goot.getPointAt(u), tg = goot.getTangentAt(u); b.position.copy(p); b.position.y -= 0.35; richt(b, p, tg); if (u > 0.68 && u < 0.78) plons = 1; }); const pos = spat.geometry.attributes.position; const bp = goot.getPointAt(0.76); for (let i = 0; i < 60; i++) { const f = (t * 1.5 + i / 60) % 1, a = i * 2.4; pos.setXYZ(i, bp.x + Math.cos(a) * f * 1.6, plons ? 0.6 + Math.sin(f * Math.PI) * 1.8 : -5, bp.z + Math.sin(a) * f * 1.6); } pos.needsUpdate = true; } };
   }
 
   // ======================= KRAAMPJES
@@ -1278,6 +1280,22 @@ const RL3 = (function () {
   let showTijd = 0;
   function startShow() { if (S.geld < 800) { melding('Een vuurwerkshow kost €800.', 'fout'); return; } if (S.tijd < 0.62) { melding('Vuurwerk is pas mooi als het donker wordt. Wacht tot de avond.', 'fout'); return; } S.geld -= 800; S.vandaag.uit += 800; showTijd = 22; S.vuurwerkGehad = true; for (const g of gasten) { g.plezier = Math.min(100, g.plezier + 18); g.denk = 'Ooooh! Aaaah! Vuurwerk!'; } melding('De vuurwerkshow begint!', 'goed'); }
 
+  // ================= LAMPEN IN HET DONKER: een vaste set warme lampen, steeds bij de dichtstbijzijnde lichtbronnen
+  const LAMPEN = Array.from({ length: 8 }, () => { const l = new THREE.PointLight(0xffcf8a, 0, 18, 2); scene.add(l); return l; });
+  function zetLampen(donker) {
+    const aan = donker > 0.3;
+    if (!aan) { for (const l of LAMPEN) l.intensity = 0; return; }
+    const bronnen = [];
+    for (const it of S.items) {
+      const c = CAT[it.t], p = it.groep.position;
+      if (it.t === 'lantaarn') bronnen.push([p.x, 3.4, p.z, 1.6, 0xffcf8a]);
+      else if (c.soort === 'attractie') bronnen.push([p.x, 4, p.z, 2.4, ({ spookhuis: 0x9fe870, botsautos: 0xff9ad0, reuzenrad: 0xffb8e0, zweefmolen: 0x9ff0ff })[it.t] || 0xffd08a]);
+      else if (c.soort === 'kraam') bronnen.push([p.x, 2.2, p.z, 1.1, 0xffd8a0]);
+    }
+    bronnen.push([poortObj.groep.position.x, 4.4, poortObj.groep.position.z + 1, 1.6, 0xffcf8a]);
+    bronnen.sort((a, b) => Math.hypot(a[0] - doel.x, a[2] - doel.z) - Math.hypot(b[0] - doel.x, b[2] - doel.z));
+    LAMPEN.forEach((l, n) => { const b = bronnen[n]; if (!b) { l.intensity = 0; return; } l.position.set(b[0], b[1], b[2]); l.intensity = b[3] * 0.42 * Math.min(1, (donker - 0.3) / 0.4); l.color.setHex(b[4]); l.distance = b[3] > 2 ? 20 : 13; });
+  }
   // ================= LICHT VAN DE DAG
   const zonBasis = new THREE.Vector3(-30, 50, 25);
   function zetLicht() {
@@ -1285,8 +1303,10 @@ const RL3 = (function () {
     const donker = Math.max(avond, ochtend * 0.6);
     const lucht = new THREE.Color(0x8ec9f0).lerp(new THREE.Color(0xf2a86a), Math.max(0, Math.min(1, (t - 0.55) / 0.1)) * (1 - avond)).lerp(new THREE.Color(0x1a2248), donker);
     if (S.regen) lucht.lerp(new THREE.Color(0x7a8396), 0.5 * (1 - donker));
-    scene.background = lucht; scene.fog = scene.fog || new THREE.Fog(lucht, 90, 220); scene.fog.color = lucht;
-    hemi.intensity = 0.75 - donker * 0.45 - (S.regen ? 0.15 : 0); zon.intensity = 0.95 - donker * 0.75 - (S.regen ? 0.4 : 0);
+    scene.background = lucht; scene.fog = scene.fog || new THREE.Fog(lucht, 90, 220); scene.fog.color = lucht; scene.fog.near = 90 + donker * 60; scene.fog.far = 220 + donker * 80;
+    hemi.intensity = 0.75 - donker * 0.33 - (S.regen ? 0.12 : 0); zon.intensity = 0.95 - donker * 0.62 - (S.regen ? 0.3 : 0);
+    hemi.color.setHex(donker > 0.5 ? 0xa8b8ff : 0xdff2ff); hemi.groundColor.setHex(donker > 0.5 ? 0x2a3a5a : 0x5e9e44);
+    zetLampen(donker);
     const hoek = 0.3 + t * 2.6; zonBasis.set(Math.cos(hoek) * -50, 30 + Math.sin(t * Math.PI) * 30, 25); zon.color.set(donker > 0.5 ? 0xaab8ff : t > 0.55 ? 0xffc890 : 0xfff4dc);
     sterren.visible = donker > 0.5; regen.visible = !!S.regen;
     const aan = donker > 0.35; for (const l of lichtjes) l.material.color.setHex(aan ? 0xfff3c4 : 0xc9a24e);

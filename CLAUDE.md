@@ -171,6 +171,14 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - 's Nachts is er maanlicht (blauw hemellicht) en een vaste set van 8 warme lampen die steeds bij de dichtstbijzijnde lantaarns, attracties, kraampjes en de poort gaan staan (`zetLampen`). Karretjes en bootjes richten zich met `richt()` binnen de attractie, zodat ze ook bij een gedraaide attractie langs de baan rijden.
 - Opslag: localStorage `rommelland-v1` (elke 30 seconden en bij weggaan). Testhaak: `window.__rl` (o.a. `sim(seconden)`).
 
+## Rommelblok (blokkenwereld)
+
+- `rommelblok.html` is een eigen blokkenwereld in 3D (three.js r128 van cdnjs). Bronbestanden: `rb_wereld.js` (blokken, getekende textuur, wereldmaker, tekenen per stuk wereld) en `rb_spel.js` (speler, besturing, menu's, dag en nacht, opslaan), samengevoegd via `rommelblok_template.html`. Geen namen, plaatjes, figuren of geluiden van Minecraft: alle blokken zijn zelf getekend (16 x 16 pixels, in code), met eigen blokken zoals het vlaaiblok en de rommelkist.
+- De wereld is 128 x 128 blokken en 48 hoog (8 x 8 stukken van 16 x 16), gemaakt uit een zaadje: heuvels, bergen met sneeuw, stranden, meren, bossen, kolen en goud, en een zee aan de rand. Elk stuk wordt opnieuw getekend als er iets verandert. Water, glas en bladeren hebben een eigen doorzichtige laag.
+- Blokken staan in `BLOK` (naam, doorzichtig, vast, textuur boven/zijkant/onder). Een nieuw blok: voeg een regel toe aan `BLOK`, teken de textuur met `maak()`, en het verschijnt vanzelf in het blokkenmenu.
+- Besturing: computer met muis (pointer lock), WASD, spatie, shift, F of twee keer spatie om te vliegen, 1 tot 9 of het muiswiel, E voor het blokkenmenu, middelste muisknop om een blok over te nemen. Telefoon: joystick links, rechts slepen om te kijken, tikken om te bouwen, knoppen Hak, Bouw, Spring en Omlaag.
+- Opslag: localStorage `rommelblok-v1` met het zaadje en alleen de veranderde blokken, plus plek, kijkrichting en de blokkenbalk. "Nieuwe wereld maken" in het blokkenmenu. Testhaak: `window.__rb`.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

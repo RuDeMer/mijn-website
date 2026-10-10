@@ -179,6 +179,12 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Besturing: computer met muis (pointer lock), WASD, spatie, shift, F of twee keer spatie om te vliegen, 1 tot 9 of het muiswiel, E voor het blokkenmenu, middelste muisknop om een blok over te nemen. Telefoon: joystick links, rechts slepen om te kijken, tikken om te bouwen, knoppen Hak, Bouw, Spring en Omlaag.
 - Opslag: localStorage `rommelblok-v1` met het zaadje en alleen de veranderde blokken, plus plek, kijkrichting en de blokkenbalk. "Nieuwe wereld maken" in het blokkenmenu. Testhaak: `window.__rb`.
 
+## Vouwvlieger
+
+- `vouwvlieger.html` (bron: `vlieger_template.html`, één bestand met canvas, zonder bibliotheken): een papieren vliegtuigje zweeft 's nachts door een stad met neonlicht. Tikken, klikken of spatie geeft lift. Obstakels: boven hangende hijskraanhaken of neonborden (`NEON`), onder schoorstenen, watertorens of antennes. Het gat wordt kleiner en de snelheid hoger naarmate de score stijgt. Windvlagen duwen je omhoog of omlaag, sterren tellen mee, en een extra vouw vangt één botsing op. Bij een botsing kreukt het vliegtuigje tot een propje.
+- Bewust geen hoge torens of gebouwen om tegenaan te vliegen, en geen ontploffingen: het spel mag op geen enkele manier aan een aanslag doen denken.
+- Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

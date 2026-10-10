@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Vouwvlieger – Ruben's rommelhoekje</title>
+<meta name="description" content="Vlieg met een papieren vliegtuigje door een stad vol neonlicht.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M6%2034L58%208%2034%2056l-6-16z%22%20fill%3D%22%23FBF6E9%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M58%208L28%2040l-22-6z%22%20fill%3D%22%23DCE4F5%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M58%208L28%2040l6%2016%22%20fill%3D%22none%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4%2050q8-4%2014%200M10%2058q6-3%2012%200%22%20fill%3D%22none%22%20stroke%3D%22%235EC2E8%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
+<style>
+:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
+.vk-kop { display: flex; align-items: center; gap: .8rem; padding: .45rem .8rem; background: var(--nacht); box-shadow: 0 3px 0 rgba(0,0,0,.3); z-index: 3; flex-wrap: wrap; }
+.vk-kop a { color: var(--manila); font-weight: 700; font-size: .9rem; }
+.vk-titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; font-size: 1.1rem; } .vk-titel svg { width: 28px; height: 28px; }
+.vk-kop .rechts { margin-left: auto; display: flex; gap: .35rem; align-items: center; font-weight: 800; font-size: .9rem; }
+.vk-knop { font: inherit; font-weight: 800; font-size: .88rem; border: 0; border-radius: 6px; padding: .35rem .7rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.vk-veld { position: relative; flex: 1; overflow: hidden; touch-action: manipulation; cursor: pointer; }
+.vk-veld canvas { display: block; width: 100%; height: 100%; }
+.vk-scherm { position: absolute; inset: 0; display: grid; place-items: center; z-index: 4; padding: 1rem; }
+.vk-scherm[hidden] { display: none; }
+.vk-kaart { background: var(--manila); color: var(--inkt); border-radius: 14px; padding: 1.2rem 1.4rem 1.3rem; max-width: 24rem; width: 100%; text-align: center; box-shadow: 0 6px 0 rgba(0,0,0,.4); cursor: default; }
+.vk-kaart h2 { margin: 0 0 .3rem; font-size: 1.6rem; } .vk-kaart p { margin: .3rem 0; }
+.vk-groot { font: inherit; font-weight: 800; font-size: 1.1rem; border: 0; border-radius: 8px; padding: .7rem 1.4rem; background: var(--rood); color: #fff; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.35); margin-top: .6rem; }
+.vk-uitslag { display: flex; justify-content: center; gap: 1.4rem; margin: .5rem 0; }
+.vk-uitslag div { display: flex; flex-direction: column; } .vk-uitslag b { font-size: 2rem; line-height: 1.1; } .vk-uitslag span { font-size: .8rem; font-weight: 700; color: #5E5643; }
+.vk-medaille { width: 5.5rem; height: 5.5rem; margin: .2rem auto .3rem; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .8rem; box-shadow: 0 0 0 4px #231A26, 0 4px 0 4px rgba(0,0,0,.3); }
+.vk-medaille.brons { background: radial-gradient(circle at 35% 30%, #F0B47A, #9A5E2A); } .vk-medaille.zilver { background: radial-gradient(circle at 35% 30%, #FFFFFF, #8C939E); } .vk-medaille.goud { background: radial-gradient(circle at 35% 30%, #FFF4BE, #C99A2E); }
+.vk-medaille.regenboog { background: conic-gradient(#FF6A6A, #FFD36A, #7AF09A, #6AC8FF, #B98AFF, #FF6AD0, #FF6A6A); }
+.vk-nieuw { display: inline-block; background: var(--rood); color: #fff; font-weight: 800; font-size: .75rem; padding: .15rem .55rem; border-radius: 999px; }
+.vk-tip { font-size: .85rem; color: #5E5643; }
+#sb-vlieger { margin-top: .8rem; text-align: left; }
+@media (prefers-reduced-motion: reduce) { .vk-groot { transition: none; } }
+</style>
+</head>
+<body data-pagina="vouwvlieger">
+<div class="vk-kop">
+  <a href="./">Terug naar het rommelhoekje</a>
+  <span class="vk-titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><path d="M6 34L58 8 34 56l-6-16z" fill="#FBF6E9" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M58 8L28 40l-22-6z" fill="#DCE4F5" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M58 8L28 40l6 16" fill="none" stroke="#1F2333" stroke-width="3" stroke-linejoin="round"/><path d="M4 50q8-4 14 0M10 58q6-3 12 0" fill="none" stroke="#5EC2E8" stroke-width="3" stroke-linecap="round"/></svg></span><span>Vouwvlieger</span></span>
+  <div class="rechts"><span>Beste: <b id="vk-beste">0</b></span><button class="vk-knop" id="vk-geluid" type="button" aria-pressed="true">Geluid aan</button></div>
+</div>
+<div class="vk-veld" id="vk-veld">
+  <canvas id="vk-doek" aria-label="Een papieren vliegtuigje vliegt 's nachts door een stad"></canvas>
+  <div class="vk-scherm" id="vk-start">
+    <div class="vk-kaart">
+      <h2>Vouwvlieger</h2>
+      <p>Vouw je vliegtuigje en zweef door de stad. Tik, klik of druk op spatie om omhoog te gaan.</p>
+      <p class="vk-tip">Pas op voor de hijskranen, reclameborden, schoorstenen en antennes. Vang sterren, en pak een extra vouw: die vangt één botsing op. Let op de windvlagen!</p>
+      <button class="vk-groot" id="vk-go" type="button">Vliegen!</button>
+    </div>
+  </div>
+  <div class="vk-scherm" id="vk-einde" hidden>
+    <div class="vk-kaart">
+      <h2 id="vk-kop">Gekreukt!</h2>
+      <div id="vk-medaille"></div>
+      <div class="vk-uitslag"><div><b id="vk-score">0</b><span>punten</span></div><div><b id="vk-ster">0</b><span>sterren</span></div><div><b id="vk-best">0</b><span>beste</span></div></div>
+      <p id="vk-volgend" class="vk-tip"></p>
+      <button class="vk-groot" id="vk-weer" type="button">Nog een keer</button>
+      <div id="sb-vlieger"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+  // ---------- alle spellen bijwerken, vanaf elke pagina van de site
+  // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
+  // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
+  const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const BRONNEN = {
+    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
+    poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
+    beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
+  };
+  const VKEY = 'rommelhoekje-verstuurd';
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  let bezig = false;
+  async function synchroniseer() {
+    if (bezig || !speler || !speler.naam) return; bezig = true;
+    try {
+      const inst = await klaar; if (!adres(inst)) return;
+      const v = lees(VKEY) || {};
+      for (const [spel, bron] of Object.entries(BRONNEN)) {
+        let w = null; try { w = bron(); } catch (e) {}
+        if (!w) continue;
+        const o = v[spel];
+        if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
+        await API.stuur(spel, w[0], w[1]);
+      }
+    } finally { bezig = false; }
+  }
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      await synchroniseer();
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) onthoud(spel, score, extra || 0);
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+  API.synchroniseer = synchroniseer;
+  window.Scorebord = API;
+  // bij elk bezoek, en als je even naar een ander tabblad gaat
+  klaar.then(() => setTimeout(synchroniseer, 1500));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) synchroniseer(); });
+})();
+
+</script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const cv = $('vk-doek'), ctx = cv.getContext('2d'), veld = $('vk-veld');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const H = 600; let W = 900, schaal = 1;
+  function maat() { const r = veld.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); schaal = cv.height / H; W = cv.width / schaal; skyline = null; }
+  addEventListener('resize', maat);
+  const KEY = 'vouwvlieger-v1';
+  let opslag = { best: 0, sterren: 0, gespeeld: 0, geluid: true };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  $('vk-beste').textContent = opslag.best;
+
+  // ---------------- geluid
+  let ac = null;
+  const audio = () => { if (!opslag.geluid) return null; try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } };
+  function ruisGeluid(duur, freq, vol) { const a = audio(); if (!a) return; const n = a.sampleRate * duur, buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n); const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8; g.gain.value = vol; s.connect(f); f.connect(g); g.connect(a.destination); s.start(); }
+  function toon(f, duur, vol, type) { const a = audio(); if (!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime; o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + duur); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + duur + 0.02); }
+  const GELUID = { flap: () => ruisGeluid(0.12, 1800, 0.12), ster: () => { toon(988, 0.12, 0.06, 'triangle'); setTimeout(() => toon(1318, 0.18, 0.06, 'triangle'), 70); }, punt: () => toon(660, 0.08, 0.035, 'triangle'), kreuk: () => { ruisGeluid(0.35, 900, 0.25); setTimeout(() => ruisGeluid(0.25, 600, 0.2), 120); }, vouw: () => { toon(523, 0.1, 0.06, 'triangle'); setTimeout(() => toon(784, 0.2, 0.06, 'triangle'), 90); }, wind: () => ruisGeluid(0.6, 400, 0.08) };
+  $('vk-geluid').addEventListener('click', e => { e.stopPropagation(); opslag.geluid = !opslag.geluid; bewaar(); zetGeluid(); });
+  const zetGeluid = () => { $('vk-geluid').textContent = opslag.geluid ? 'Geluid aan' : 'Geluid uit'; $('vk-geluid').setAttribute('aria-pressed', String(opslag.geluid)); };
+  zetGeluid();
+
+  // ---------------- de stad op de achtergrond, twee lagen die langzamer meeschuiven
+  let skyline = null;
+  const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);
+  function maakLaag(kleur, raamKans, hMin, hMax, breed) { const c = document.createElement('canvas'), w = Math.ceil(W * 2), s = schaal; c.width = Math.ceil(w * s); c.height = Math.ceil(H * s); const g = c.getContext('2d'); g.scale(s, s); let x = 0; while (x < w) { const bw = breed[0] + rnd() * breed[1], bh = hMin + rnd() * (hMax - hMin); g.fillStyle = kleur; g.fillRect(x, H - bh, bw, bh); if (rnd() < 0.3) g.fillRect(x + bw / 2 - 2, H - bh - 18, 4, 18); for (let y = H - bh + 10; y < H - 6; y += 12) for (let rx = x + 6; rx < x + bw - 8; rx += 10) if (rnd() < raamKans) { g.fillStyle = ['#FFE7A0', '#FFD27A', '#9FD3FF', '#FF9AD0'][Math.floor(rnd() * 4)]; g.globalAlpha = 0.55 + rnd() * 0.45; g.fillRect(rx, y, 5, 6); g.globalAlpha = 1; g.fillStyle = kleur; } x += bw + 2 + rnd() * 6; } return { c, w }; }
+  function maakSkyline() { skyline = { ver: maakLaag('#1A1E46', 0.18, 120, 300, [40, 70]), dicht: maakLaag('#121433', 0.3, 80, 220, [60, 90]) }; }
+  const sterrenLucht = Array.from({ length: 120 }, () => [Math.random(), Math.random() * 0.6, Math.random() * 1.6 + 0.4, Math.random() * 6]);
+  const NEON = ['VLAAI', 'OPEN', 'HOTEL', '24/7', 'ROMMEL', 'BAR', 'KAAS', 'THEATER'];
+  const NEONKLEUR = ['#FF5AA8', '#5EE6FF', '#FFE76A', '#8AFF8A', '#FF8A5A', '#C89AFF'];
+
+  // ---------------- het spel
+  const S = { staat: 'start', y: 300, vy: 0, hoek: 0, score: 0, sterren: 0, snel: 190, obstakels: [], wind: null, tijd: 0, schild: 0, onkw: 0, schud: 0, deeltjes: [], volgendWind: 7, volgendVouw: 12, afstand: 0, achter: 0, kreuk: 0 };
+  const PX = 160, G = 1350, FLAP = -420, MAXVAL = 560;
+  function nieuw() { Object.assign(S, { staat: 'spel', y: 300, vy: FLAP * 0.6, hoek: 0, score: 0, sterren: 0, snel: 190, obstakels: [], wind: null, schild: 0, onkw: 0, schud: 0, deeltjes: [], volgendWind: 7, volgendVouw: 12, afstand: 0, kreuk: 0 }); for (let i = 0; i < 3; i++) voegObstakel(W + 140 + i * 280); $('vk-start').hidden = true; $('vk-einde').hidden = true; }
+  function voegObstakel(x) {
+    const n = S.obstakels.length ? S.obstakels[S.obstakels.length - 1].nr + 1 : 0;
+    const gat = Math.max(140, 200 - S.score * 1.6), midden = 130 + gat / 2 + Math.random() * (H - 210 - gat);
+    const o = { x, nr: n, top: midden - gat / 2, onder: midden + gat / 2, boven: Math.random() < 0.55 ? 'kraan' : 'bord', beneden: ['schoorsteen', 'watertoren', 'antenne'][Math.floor(Math.random() * 3)], tekst: NEON[Math.floor(Math.random() * NEON.length)], kleur: NEONKLEUR[Math.floor(Math.random() * NEONKLEUR.length)], voorbij: false, ster: Math.random() < 0.6 ? { y: midden + (Math.random() - 0.5) * gat * 0.4, gepakt: false } : null, vouw: false };
+    if (n >= S.volgendVouw) { o.vouw = { y: midden, gepakt: false }; o.ster = null; S.volgendVouw = n + 10 + Math.floor(Math.random() * 6); }
+    S.obstakels.push(o);
+  }
+  // botsvakken van een obstakel
+  function vakken(o) {
+    const v = [], x = o.x;
+    if (o.boven === 'kraan') { v.push([x - 3, 0, 6, o.top - 24], [x - 16, o.top - 26, 32, 26]); }
+    else { v.push([x - 30, 0, 4, o.top - 56], [x + 26, 0, 4, o.top - 56], [x - 46, o.top - 56, 92, 56]); }
+    const dak = H - 40;
+    if (o.beneden === 'schoorsteen') v.push([x - 22, o.onder, 44, dak - o.onder], [x - 27, o.onder, 54, 14]);
+    else if (o.beneden === 'watertoren') v.push([x - 28, o.onder, 56, 54], [x - 24, o.onder + 54, 48, dak - o.onder - 54]);
+    else v.push([x - 4, o.onder, 8, dak - o.onder - 30], [x - 34, dak - 30, 68, 30]);
+    return v;
+  }
+  function flap() {
+    if (S.staat === 'start') { nieuw(); }
+    if (S.staat !== 'spel') return;
+    S.vy = FLAP; GELUID.flap();
+    for (let i = 0; i < 4; i++) S.deeltjes.push({ x: PX - 14, y: S.y + 6, vx: -60 - Math.random() * 60, vy: 20 + Math.random() * 40, t: 0.45, k: 'rgba(220,235,255,.8)', r: 2 });
+  }
+  function neer() {
+    if (S.schild > 0 && S.onkw <= 0) { S.schild--; S.onkw = 1.3; S.schud = 0.3; GELUID.vouw(); for (let i = 0; i < 18; i++) S.deeltjes.push({ x: PX, y: S.y, vx: (Math.random() - 0.5) * 300, vy: (Math.random() - 0.5) * 300, t: 0.7, k: '#FBF6E9', r: 3 }); return; }
+    if (S.onkw > 0) return;
+    S.staat = 'neer'; S.kreuk = 0; S.schud = 0.45; GELUID.kreuk();
+    for (let i = 0; i < 14; i++) S.deeltjes.push({ x: PX, y: S.y, vx: (Math.random() - 0.5) * 220, vy: (Math.random() - 1) * 220, t: 1.2, k: '#FBF6E9', r: 2.5, papier: true });
+    opslag.gespeeld++; opslag.sterren += S.sterren;
+    const record = S.score > opslag.best; if (record) opslag.best = S.score; bewaar(); $('vk-beste').textContent = opslag.best;
+    if (window.Scorebord && (record || S.score > 0)) Scorebord.stuur('vlieger', opslag.best, opslag.sterren);
+    setTimeout(() => toonEinde(record), 1100);
+  }
+  const MEDAIL = [[100, 'regenboog', 'Regenboog'], [50, 'goud', 'Goud'], [25, 'zilver', 'Zilver'], [10, 'brons', 'Brons']];
+  function toonEinde(record) {
+    $('vk-score').textContent = S.score; $('vk-ster').textContent = S.sterren; $('vk-best').textContent = opslag.best;
+    const m = MEDAIL.find(([n]) => S.score >= n);
+    $('vk-medaille').innerHTML = m ? `<div class="vk-medaille ${m[1]}">${m[2]}</div>` : '';
+    $('vk-kop').innerHTML = record && S.score > 0 ? 'Nieuw record! <span class="vk-nieuw">Beste ooit</span>' : ['Gekreukt!', 'Oeps, propje!', 'Vouwfoutje!', 'Neergedwarreld!'][Math.floor(Math.random() * 4)];
+    const volgende = MEDAIL.slice().reverse().find(([n]) => S.score < n);
+    const MNAAM = { brons: 'bronzen medaille', zilver: 'zilveren medaille', goud: 'gouden medaille', regenboog: 'regenboogmedaille' };
+    $('vk-volgend').textContent = volgende ? `Nog ${volgende[0] - S.score} punten tot de ${MNAAM[volgende[1]]}.` : 'Je hebt de hoogste medaille. Wauw!';
+    $('vk-einde').hidden = false;
+    if (window.Scorebord && !toonEinde.blok) { toonEinde.blok = true; Scorebord.blokje($('sb-vlieger'), 'je beste score'); }
+  }
+  $('vk-go').addEventListener('click', e => { e.stopPropagation(); nieuw(); });
+  $('vk-weer').addEventListener('click', e => { e.stopPropagation(); nieuw(); });
+  veld.addEventListener('pointerdown', e => { if (e.target.closest('.vk-kaart')) return; e.preventDefault(); flap(); });
+  addEventListener('keydown', e => { if (e.target.closest && e.target.closest('input')) return; if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); if (S.staat === 'neer' && !$('vk-einde').hidden) nieuw(); else flap(); } });
+
+  function update(dt) {
+    S.tijd += dt; S.schud = Math.max(0, S.schud - dt); S.onkw = Math.max(0, S.onkw - dt);
+    if (S.staat === 'start') { S.y = 300 + Math.sin(S.tijd * 2) * 14; S.hoek = Math.sin(S.tijd * 2) * 0.08; S.achter += 40 * dt; return; }
+    if (S.staat === 'neer') { S.vy = Math.min(260, S.vy + 700 * dt); S.y = Math.min(H - 52, S.y + S.vy * dt); S.hoek += dt * 5; S.kreuk = Math.min(1, S.kreuk + dt * 3); }
+    else {
+      S.vy = Math.min(MAXVAL, S.vy + G * dt);
+      if (S.wind && Math.abs(S.wind.x - PX) < S.wind.w / 2) S.vy += S.wind.kracht * dt;
+      S.y += S.vy * dt; S.hoek = Math.max(-0.5, Math.min(0.9, S.vy / 700));
+      S.snel = Math.min(300, 190 + S.score * 2.2);
+      const dx = S.snel * dt; S.afstand += dx; S.achter += dx;
+      for (const o of S.obstakels) o.x -= dx;
+      if (S.wind) { S.wind.x -= dx; if (S.wind.x < -S.wind.w) S.wind = null; }
+      if (S.obstakels.length && S.obstakels[0].x < -120) S.obstakels.shift();
+      const laatste = S.obstakels[S.obstakels.length - 1]; if (laatste && laatste.x < W + 140 - 280) voegObstakel(laatste.x + Math.max(220, 280 - S.score));
+      // punten, sterren en vouwen
+      for (const o of S.obstakels) {
+        if (!o.voorbij && o.x < PX - 20) { o.voorbij = true; S.score++; GELUID.punt(); if (S.score >= S.volgendWind) { S.volgendWind = S.score + 6 + Math.floor(Math.random() * 6); const omhoog = Math.random() < 0.5; S.wind = { x: W + 320, w: 260, kracht: omhoog ? -900 : 700, omhoog }; GELUID.wind(); } }
+        if (o.ster && !o.ster.gepakt && Math.hypot(o.x - PX, o.ster.y - S.y) < 26) { o.ster.gepakt = true; S.sterren++; GELUID.ster(); for (let i = 0; i < 10; i++) S.deeltjes.push({ x: o.x, y: o.ster.y, vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200, t: 0.6, k: '#FFE76A', r: 2.5 }); }
+        if (o.vouw && !o.vouw.gepakt && Math.hypot(o.x - PX, o.vouw.y - S.y) < 28) { o.vouw.gepakt = true; S.schild = Math.min(2, S.schild + 1); GELUID.vouw(); }
+      }
+      // botsen: het vliegtuigje als een paar puntjes
+      const pts = [[PX + 18, S.y], [PX - 16, S.y - 7], [PX - 16, S.y + 7], [PX, S.y + 3]].map(([x, y]) => { const c = Math.cos(S.hoek), s = Math.sin(S.hoek); return [PX + (x - PX) * c - (y - S.y) * s, S.y + (x - PX) * s + (y - S.y) * c]; });
+      if (S.y < 8) { S.y = 8; S.vy = 0; }
+      let raak = S.y > H - 48;
+      for (const o of S.obstakels) { if (Math.abs(o.x - PX) > 70) continue; for (const [vx, vy, vw, vh] of vakken(o)) for (const [px, py] of pts) if (px > vx && px < vx + vw && py > vy && py < vy + vh) raak = true; }
+      if (raak) neer();
+    }
+    for (let i = S.deeltjes.length - 1; i >= 0; i--) { const d = S.deeltjes[i]; d.t -= dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy += (d.papier ? 120 : 200) * dt; if (d.t <= 0) S.deeltjes.splice(i, 1); }
+  }
+
+  // ---------------- tekenen
+  function rondRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function tekenObstakel(o) {
+    const x = o.x, t = S.tijd;
+    // boven: hijskraan met haak, of een hangend neonbord
+    if (o.boven === 'kraan') {
+      ctx.fillStyle = '#E9B949'; ctx.fillRect(x - 70, 0, 140, 16); ctx.strokeStyle = '#8C6A0A'; ctx.lineWidth = 2; for (let i = -70; i < 70; i += 14) { ctx.beginPath(); ctx.moveTo(x + i, 0); ctx.lineTo(x + i + 14, 16); ctx.stroke(); }
+      ctx.fillStyle = '#3A3D46'; ctx.fillRect(x - 10, 14, 20, 10);
+      ctx.strokeStyle = '#9AA6C2'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x, 24); ctx.lineTo(x, o.top - 24); ctx.stroke();
+      ctx.fillStyle = '#E9B949'; rondRect(x - 16, o.top - 26, 32, 16, 3); ctx.fill(); ctx.fillStyle = '#23252B'; ctx.fillRect(x - 16, o.top - 18, 32, 3);
+      ctx.strokeStyle = '#C9CED6'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, o.top - 6, 6, -0.2, Math.PI + 0.4); ctx.stroke();
+      ctx.fillStyle = Math.sin(t * 4) > 0 ? '#FF4A4A' : '#5A1414'; ctx.beginPath(); ctx.arc(x + 64, 8, 3, 0, 7); ctx.fill();
+    } else {
+      ctx.strokeStyle = '#5F6470'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 28, 0); ctx.lineTo(x - 28, o.top - 56); ctx.moveTo(x + 28, 0); ctx.lineTo(x + 28, o.top - 56); ctx.stroke();
+      ctx.fillStyle = '#1E1A30'; rondRect(x - 46, o.top - 56, 92, 56, 6); ctx.fill();
+      ctx.save(); const flikker = Math.sin(t * 7 + o.nr) > -0.85 ? 1 : 0.35; ctx.shadowColor = o.kleur; ctx.shadowBlur = 16 * flikker; ctx.strokeStyle = o.kleur; ctx.globalAlpha = flikker; ctx.lineWidth = 3; rondRect(x - 40, o.top - 50, 80, 44, 6); ctx.stroke();
+      ctx.fillStyle = o.kleur; ctx.font = '800 17px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(o.tekst, x, o.top - 28); ctx.restore();
+    }
+    // onder: schoorsteen, watertoren of antenne op een dak
+    const dak = H - 40;
+    if (o.beneden === 'schoorsteen') {
+      const g = ctx.createLinearGradient(x - 22, 0, x + 22, 0); g.addColorStop(0, '#5A2E24'); g.addColorStop(0.5, '#8C4A36'); g.addColorStop(1, '#4A241C'); ctx.fillStyle = g; ctx.fillRect(x - 22, o.onder, 44, dak - o.onder);
+      ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; for (let y = o.onder + 16; y < dak; y += 10) { ctx.beginPath(); ctx.moveTo(x - 22, y); ctx.lineTo(x + 22, y); ctx.stroke(); }
+      ctx.fillStyle = '#3A2018'; ctx.fillRect(x - 27, o.onder, 54, 14);
+      if (!reduce) for (let i = 0; i < 4; i++) { const f = (t * 0.6 + i / 4) % 1; ctx.fillStyle = `rgba(200,205,220,${0.25 * (1 - f)})`; ctx.beginPath(); ctx.arc(x + Math.sin(t + i) * 8 - f * 30, o.onder - 10 - f * 60, 10 + f * 16, 0, 7); ctx.fill(); }
+    } else if (o.beneden === 'watertoren') {
+      ctx.strokeStyle = '#5C3A21'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x - 22, o.onder + 54); ctx.lineTo(x - 26, dak); ctx.moveTo(x + 22, o.onder + 54); ctx.lineTo(x + 26, dak); ctx.moveTo(x - 24, dak - 20); ctx.lineTo(x + 24, o.onder + 70); ctx.moveTo(x + 24, dak - 20); ctx.lineTo(x - 24, o.onder + 70); ctx.stroke();
+      const g = ctx.createLinearGradient(x - 28, 0, x + 28, 0); g.addColorStop(0, '#5C3A21'); g.addColorStop(0.5, '#9A6A3A'); g.addColorStop(1, '#4A2E1C'); ctx.fillStyle = g; rondRect(x - 28, o.onder + 10, 56, 44, 4); ctx.fill();
+      ctx.fillStyle = '#3A2414'; ctx.beginPath(); ctx.moveTo(x - 30, o.onder + 12); ctx.lineTo(x, o.onder - 2); ctx.lineTo(x + 30, o.onder + 12); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1.5; for (const dy of [22, 34, 46]) { ctx.beginPath(); ctx.moveTo(x - 28, o.onder + dy); ctx.lineTo(x + 28, o.onder + dy); ctx.stroke(); }
+    } else {
+      ctx.fillStyle = '#2A2E44'; ctx.fillRect(x - 34, dak - 30, 68, 30); ctx.fillStyle = '#FFE7A0'; for (const rx of [-24, -8, 8]) ctx.fillRect(x + rx, dak - 22, 10, 8);
+      ctx.strokeStyle = '#9AA6C2'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x, dak - 30); ctx.lineTo(x, o.onder + 6); ctx.stroke();
+      ctx.lineWidth = 2; for (let y = o.onder + 20; y < dak - 40; y += 26) { ctx.beginPath(); ctx.moveTo(x - 10, y + 10); ctx.lineTo(x + 10, y); ctx.stroke(); }
+      ctx.save(); ctx.fillStyle = Math.sin(t * 3 + o.nr) > 0 ? '#FF4A4A' : '#5A1414'; ctx.shadowColor = '#FF4A4A'; ctx.shadowBlur = Math.sin(t * 3 + o.nr) > 0 ? 14 : 0; ctx.beginPath(); ctx.arc(x, o.onder + 4, 5, 0, 7); ctx.fill(); ctx.restore();
+    }
+    // ster of vouw in het gat
+    if (o.ster && !o.ster.gepakt) { ctx.save(); ctx.translate(x, o.ster.y + Math.sin(t * 3 + o.nr) * 4); ctx.rotate(t * 1.5); ctx.shadowColor = '#FFE76A'; ctx.shadowBlur = 14; ctx.fillStyle = '#FFE76A'; ctx.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 5 : 12, a = i / 10 * Math.PI * 2 - Math.PI / 2; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.restore(); }
+    if (o.vouw && !o.vouw.gepakt) { ctx.save(); ctx.translate(x, o.vouw.y + Math.sin(t * 2.4) * 5); ctx.rotate(Math.sin(t * 2) * 0.2); ctx.shadowColor = '#9FD3FF'; ctx.shadowBlur = 18; ctx.fillStyle = '#E8F4FF'; ctx.strokeStyle = '#5EC2E8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-14, -14); ctx.lineTo(14, -14); ctx.lineTo(14, 14); ctx.lineTo(-14, 14); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-14, -14); ctx.lineTo(14, 14); ctx.moveTo(14, -14); ctx.lineTo(0, 0); ctx.stroke(); ctx.restore(); }
+  }
+  function tekenVliegtuig() {
+    ctx.save(); ctx.translate(PX, S.y); ctx.rotate(S.hoek);
+    if (S.onkw > 0 && Math.floor(S.tijd * 12) % 2) ctx.globalAlpha = 0.45;
+    if (S.staat === 'neer' && S.kreuk > 0.5) {
+      // een gekreukt propje
+      ctx.fillStyle = '#FBF6E9'; ctx.strokeStyle = '#8C939E'; ctx.lineWidth = 1.5; ctx.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, r = 11 + (i % 2) * 4; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-6, -4); ctx.lineTo(4, 2); ctx.moveTo(-2, 6); ctx.lineTo(6, -6); ctx.stroke();
+    } else {
+      const k = 1 - S.kreuk * 0.5;
+      ctx.scale(1, k);
+      ctx.fillStyle = '#DCE4F5'; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-18, 10); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FBF6E9'; ctx.strokeStyle = '#8C939E'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-18, -12); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-10, 0); ctx.lineTo(-16, 5); ctx.stroke();
+      ctx.fillStyle = 'rgba(200,50,60,.85)'; ctx.fillRect(-12, -6, 6, 2);
+    }
+    ctx.restore();
+    if (S.schild > 0 && S.staat === 'spel') { ctx.save(); ctx.strokeStyle = 'rgba(159,211,255,.8)'; ctx.lineWidth = 2; ctx.shadowColor = '#9FD3FF'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(PX, S.y, 28 + Math.sin(S.tijd * 5) * 2, 0, 7); ctx.stroke(); if (S.schild > 1) { ctx.beginPath(); ctx.arc(PX, S.y, 34, 0, 7); ctx.stroke(); } ctx.restore(); }
+  }
+  function teken() {
+    if (!skyline) maakSkyline();
+    ctx.setTransform(schaal, 0, 0, schaal, 0, 0);
+    if (S.schud > 0 && !reduce) ctx.translate((Math.random() - 0.5) * 10 * S.schud, (Math.random() - 0.5) * 10 * S.schud);
+    const lucht = ctx.createLinearGradient(0, 0, 0, H); lucht.addColorStop(0, '#0B0E2A'); lucht.addColorStop(0.55, '#2A1E5A'); lucht.addColorStop(1, '#5A2E6E'); ctx.fillStyle = lucht; ctx.fillRect(-20, -20, W + 40, H + 40);
+    for (const [sx, sy, r, f] of sterrenLucht) { ctx.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(S.tijd * 0.8 + f)); ctx.fillStyle = '#FFF3C4'; ctx.fillRect(sx * W, sy * H, r, r); } ctx.globalAlpha = 1;
+    ctx.save(); ctx.shadowColor = '#FFF3C4'; ctx.shadowBlur = 40; ctx.fillStyle = '#FFF6D8'; ctx.beginPath(); ctx.arc(W * 0.78, 110, 38, 0, 7); ctx.fill(); ctx.restore(); ctx.fillStyle = 'rgba(230,220,190,.5)'; ctx.beginPath(); ctx.arc(W * 0.78 - 12, 100, 7, 0, 7); ctx.arc(W * 0.78 + 10, 122, 5, 0, 7); ctx.fill();
+    for (const [laag, f] of [[skyline.ver, 0.15], [skyline.dicht, 0.4]]) { const off = (S.achter * f) % laag.w; ctx.drawImage(laag.c, 0, 0, laag.c.width, laag.c.height, -off, 0, laag.w, H); ctx.drawImage(laag.c, 0, 0, laag.c.width, laag.c.height, laag.w - off, 0, laag.w, H); }
+    const gloed = ctx.createLinearGradient(0, H - 160, 0, H); gloed.addColorStop(0, 'rgba(255,120,180,0)'); gloed.addColorStop(1, 'rgba(255,120,180,.18)'); ctx.fillStyle = gloed; ctx.fillRect(0, H - 160, W, 160);
+    if (S.wind) { ctx.save(); ctx.strokeStyle = S.wind.omhoog ? 'rgba(159,230,255,.45)' : 'rgba(255,200,150,.45)'; ctx.lineWidth = 2; for (let i = 0; i < 14; i++) { const lx = S.wind.x - S.wind.w / 2 + ((i * 53) % S.wind.w), ly = ((i * 97 + S.tijd * (S.wind.omhoog ? -260 : 260)) % H + H) % H; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly + (S.wind.omhoog ? -30 : 30)); ctx.stroke(); } ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '800 16px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(S.wind.omhoog ? 'Windvlaag omhoog!' : 'Windvlaag omlaag!', Math.max(110, Math.min(W - 110, S.wind.x)), 110); ctx.restore(); }
+    for (const o of S.obstakels) tekenObstakel(o);
+    // de daken onderaan
+    ctx.fillStyle = '#0E1028'; ctx.fillRect(0, H - 40, W, 40); ctx.fillStyle = '#1E2246'; const r0 = (S.achter % 60); for (let x = -r0; x < W; x += 60) { ctx.fillRect(x, H - 44, 50, 6); ctx.fillStyle = '#FFE7A0'; ctx.fillRect(x + 8, H - 30, 6, 6); ctx.fillRect(x + 30, H - 22, 6, 6); ctx.fillStyle = '#1E2246'; }
+    for (const d of S.deeltjes) { ctx.globalAlpha = Math.max(0, Math.min(1, d.t * 2)); ctx.fillStyle = d.k; if (d.papier) { ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.t * 8); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); } else { ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill(); } } ctx.globalAlpha = 1;
+    tekenVliegtuig();
+    if (S.staat !== 'start') { ctx.save(); ctx.font = '800 56px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(11,14,42,.85)'; ctx.strokeText(S.score, W / 2, 76); ctx.fillStyle = '#FBF6E9'; ctx.fillText(S.score, W / 2, 76); ctx.font = '800 18px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#FFE76A'; ctx.fillText('★ ' + S.sterren, 16, 32); if (S.schild) { ctx.fillStyle = '#9FD3FF'; ctx.fillText('Extra vouw ×' + S.schild, 16, 56); } ctx.restore(); }
+  }
+  let vorig = 0;
+  function lus(nu) { const dt = Math.min(0.033, (nu - (vorig || nu)) / 1000); vorig = nu; if (!document.hidden) update(dt); teken(); requestAnimationFrame(lus); }
+  maat(); requestAnimationFrame(lus);
+  window.__vk = { S, flap, nieuw, vakken, opslag };
+})();
+</script>
+<script>
+(function () {
+  // GRAPJES: verborgen grapjes op het rommelhoekje. Geen teller, geen hints: wie ze vindt, vindt ze.
+  if (window.Grapjes) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const opHome = !!document.querySelector('.haak-rij');
+
+  const stijl = document.createElement('style');
+  stijl.textContent = `
+    .gr-vallen { position: fixed; top: -40px; z-index: 9998; pointer-events: none; }
+    .gr-groot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9998; pointer-events: none; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(3rem, 14vw, 9rem); color: #F6CB2F; text-shadow: 0 6px 0 #C8323C, 0 12px 0 #2E8B62; }
+    dialog.gr-boek { border: 0; border-radius: 12px; padding: 1.2rem 1.3rem; background: #F2DDA0; color: #1F2333; max-width: min(28rem, 94vw); font-family: "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+    dialog.gr-boek::backdrop { background: rgba(10,14,30,.7); }
+    .gr-boek h2 { margin: 0 0 .4rem; } .gr-boek ul { list-style: none; padding: 0; margin: .6rem 0; }
+    .gr-boek li { display: flex; gap: .6rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid #D9BE78; }
+    .gr-boek li small { display: block; color: #5E5643; }
+    .gr-boek button { font: inherit; font-weight: 700; border: 0; border-radius: 6px; padding: .5rem 1rem; background: #C8323C; color: #fff; cursor: pointer; }
+    .gr-gat { position: absolute; width: 34px; height: 20px; border-radius: 17px 17px 0 0; background: #0E1630; box-shadow: inset 0 4px 0 #070B18; z-index: 2; cursor: pointer; }
+    .gr-muis { position: absolute; left: 6px; bottom: 0; width: 22px; height: 14px; transform: translateY(14px); transition: transform .35s ease; }
+    .gr-gat.uit .gr-muis { transform: translateY(2px); }
+    .gr-gat { overflow: hidden; }
+    .gr-uil { position: absolute; z-index: 3; width: 56px; cursor: pointer; }
+    .gr-ballon { position: absolute; z-index: 4; background: #FBF6E9; color: #1F2333; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: .9rem; padding: .3rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; pointer-events: none; }
+    .gr-vlaggen { position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 50; pointer-events: none; }
+    @keyframes gr-schud { 10%, 50%, 90% { transform: translate(-6px, 2px); } 30%, 70% { transform: translate(6px, -2px); } }
+  `;
+  document.head.appendChild(stijl);
+
+  // ---------- geluidje
+  let ac = null;
+  function toon(f, t0, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0); o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(v || 0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {} }
+  
+  const boek = document.createElement('dialog'); boek.className = 'gr-boek';
+  document.body.appendChild(boek);
+  const vind = () => {};
+
+  // ---------- vlaaienregen
+  const VLAAI = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C98A43" stroke="#7A4E2D" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="#A8162B"/><path d="M8 20h24M20 8v24M11 11l18 18M29 11L11 29" stroke="#E0B07A" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#E0B07A"/></svg>';
+  function regen(html, n) {
+    for (let i = 0; i < (reduce ? 6 : n); i++) {
+      const v = document.createElement('div'); v.className = 'gr-vallen'; v.innerHTML = html;
+      v.style.left = (Math.random() * 96) + 'vw'; document.body.appendChild(v);
+      const duur = 2200 + Math.random() * 1600, draai = (Math.random() - 0.5) * 720;
+      if (v.animate) v.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(${innerHeight + 80}px) rotate(${draai}deg)` }], { duration: duur, delay: Math.random() * 900, easing: 'ease-in', fill: 'both' }).onfinish = () => v.remove();
+      else setTimeout(() => v.remove(), 3000);
+    }
+  }
+  function confetti() {
+    const kl = ['#C8323C', '#F6CB2F', '#2E8B62'];
+    for (let i = 0; i < (reduce ? 10 : 90); i++) regen(`<span style="display:block;width:9px;height:14px;background:${kl[i % 3]};border-radius:2px"></span>`, 1);
+  }
+  function grootWoord(t) { const g = document.createElement('div'); g.className = 'gr-groot'; g.textContent = t; document.body.appendChild(g); if (g.animate) g.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .35 }, { transform: 'scale(1)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2000 }).onfinish = () => g.remove(); else setTimeout(() => g.remove(), 1800); }
+
+  // ---------- typen
+  let getypt = '';
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key.length !== 1) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-14);
+    if (getypt.endsWith('vlaai')) { regen(VLAAI, 34); [523, 659, 784].forEach((f, i) => toon(f, i * 0.12, 0.25)); vind('vlaai'); getypt = ''; }
+    else if (getypt.endsWith('alaaf')) { confetti(); grootWoord('Alaaf!'); [392, 523, 659, 784, 659, 784].forEach((f, i) => toon(f, i * 0.13, 0.22, 'square', 0.03)); vind('alaaf'); getypt = ''; }
+    else if (getypt.endsWith('ejkeohlemmor')) {
+      getypt = ''; vind('spiegel');
+      document.documentElement.style.transition = 'transform .6s ease'; document.documentElement.style.transform = 'scaleX(-1)';
+      setTimeout(() => { document.documentElement.style.transform = ''; setTimeout(() => { document.documentElement.style.transition = ''; }, 700); }, 3500);
+    }
+  });
+
+  // ---------- klik-reeksen
+  const tellers = {};
+  function tel(id, nodig, venster) { const nu = Date.now(), t = (tellers[id] || []).filter(x => nu - x < venster); t.push(nu); tellers[id] = t; if (t.length >= nodig) { tellers[id] = []; return true; } return false; }
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('.sticker');
+    if (st && tel('sticker', 10, 8000)) {
+      vind('sticker');
+      if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
+      const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
+    }
+    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    if (ham && tel('hamer', 6, 3500)) {
+      vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
+      if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
+      grootWoord('Au!');
+    }
+    const ver = e.target.closest && e.target.closest('.versie');
+    if (ver && tel('versie', 5, 3000)) {
+      vind('bouwplaats');
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
+    }
+  });
+
+  // ---------- alleen op de homepage: het muisje, de nachtuil en de elfde van de elfde
+  function homepage() {
+    if (!opHome) return;
+    const main = document.querySelector('main') || document.body;
+    // muizengat onder aan de pagina
+    const gat = document.createElement('div'); gat.className = 'gr-gat'; gat.setAttribute('aria-label', 'Een muizengaatje'); gat.setAttribute('role', 'button'); gat.tabIndex = 0;
+    gat.innerHTML = '<svg class="gr-muis" viewBox="0 0 22 14" aria-hidden="true"><ellipse cx="11" cy="10" rx="9" ry="6" fill="#9AA0A6"/><circle cx="5" cy="5" r="3" fill="#C9CED6"/><circle cx="17" cy="5" r="3" fill="#C9CED6"/><circle cx="8" cy="9" r="1.2" fill="#1F2333"/><circle cx="14" cy="9" r="1.2" fill="#1F2333"/><circle cx="11" cy="12" r="1.3" fill="#E8577A"/></svg>';
+    const zetGat = () => { const voet = document.querySelector('footer') || main; const r = voet.getBoundingClientRect(); gat.style.left = Math.max(10, r.right + scrollX - 70) + 'px'; gat.style.top = (r.top + scrollY - 20) + 'px'; };
+    document.body.appendChild(gat); zetGat(); addEventListener('resize', zetGat); setTimeout(zetGat, 1500);
+    let uit = false;
+    const kijk = () => { uit = true; gat.classList.add('uit'); setTimeout(() => { uit = false; gat.classList.remove('uit'); }, 2600); setTimeout(kijk, 9000 + Math.random() * 12000); };
+    setTimeout(kijk, 5000 + Math.random() * 6000);
+    const pak = () => { if (!uit) return; vind('muis'); toon(2200, 0, 0.08, 'sine', 0.05); toon(2600, 0.08, 0.08, 'sine', 0.05); gat.classList.remove('uit'); uit = false; const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Piep!'; b.style.left = (parseFloat(gat.style.left) - 40) + 'px'; b.style.top = (parseFloat(gat.style.top) - 30) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2000); };
+    gat.addEventListener('click', pak); gat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pak(); });
+    // nachtuil tussen middernacht en vijf uur
+    const uur = new Date().getHours();
+    if (uur < 5) {
+      const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
+      uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
+      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
+      document.body.appendChild(uil);
+      const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
+      uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
+    }
+    // de elfde van de elfde: vlaggetjes in rood, geel en groen
+    const d = new Date();
+    if (d.getMonth() === 10 && d.getDate() === 11) {
+      const v = document.createElement('div'); v.className = 'gr-vlaggen';
+      let svg = '<svg width="100%" height="34" preserveAspectRatio="none" viewBox="0 0 1000 34" aria-hidden="true"><path d="M0 4Q500 22 1000 4" stroke="#F2DDA0" stroke-width="2" fill="none"/>';
+      for (let i = 0; i < 40; i++) { const x = i * 25 + 5, y = 4 + Math.sin(Math.PI * x / 1000) * 14; svg += `<path d="M${x} ${y.toFixed(1)}l14 0l-7 16z" fill="${['#C8323C', '#F6CB2F', '#2E8B62'][i % 3]}"/>`; }
+      v.innerHTML = svg + '</svg>'; document.body.appendChild(v);
+      setTimeout(() => { grootWoord('Alaaf!'); vind('elfelf'); }, 1200);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', homepage); else homepage();
+
+  // ---------- voor wie in de console kijkt
+  try { console.log('%cHé, nieuwsgierig aagje!', 'font: 800 20px sans-serif; color: #C8323C'); console.log('%cHier valt niks te zien. Of toch wel?', 'font: 600 13px sans-serif; color: #2F4C8F'); } catch (e) {}
+  window.Grapjes = true;
+})();
+
+</script>
+</body>
+</html>

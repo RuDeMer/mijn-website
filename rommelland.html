@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rommelland – Ruben's rommelhoekje</title>
+<meta name="description" content="Bouw je eigen pretpark in 3D, met attracties, kraampjes, bezoekers en Rommelbeesten als mascotte.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2226%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22%23C8323C%22%20stroke-width%3D%224%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2226%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%221.5%22%20opacity%3D%22.6%22/%3E%3Cpath%20d%3D%22M32%206v40M12%2026h40M18%2012l28%2028M46%2012L18%2040%22%20stroke%3D%22%23E9B949%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2226%22%20r%3D%224%22%20fill%3D%22%231F2333%22/%3E%3Cpath%20d%3D%22M20%2058l12-32%2012%2032%22%20fill%3D%22none%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22/%3E%3Crect%20x%3D%226%22%20y%3D%2256%22%20width%3D%2252%22%20height%3D%225%22%20rx%3D%222%22%20fill%3D%22%232E8B62%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%2227%22%20y%3D%222%22%20width%3D%2210%22%20height%3D%227%22%20rx%3D%222%22%20fill%3D%22%232F8BD6%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%2247%22%20y%3D%2222%22%20width%3D%2210%22%20height%3D%227%22%20rx%3D%222%22%20fill%3D%22%23F6CB2F%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%227%22%20y%3D%2222%22%20width%3D%2210%22%20height%3D%227%22%20rx%3D%222%22%20fill%3D%22%23E8577A%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3C/svg%3E">
+<style>
+:root { --bord: #2B3B6E; --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; --groen: #2E8B62; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bord); color: var(--papier); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; min-height: 100%; }
+.rl-kop { display: flex; align-items: center; gap: .6rem 1rem; flex-wrap: wrap; padding: .5rem .8rem; background: var(--nacht); box-shadow: 0 3px 0 rgba(0,0,0,.3); position: relative; z-index: 3; }
+.rl-kop a { color: var(--manila); font-weight: 700; font-size: .9rem; }
+.rl-titel { display: flex; align-items: center; gap: .45rem; font-weight: 800; font-size: 1.1rem; }
+.rl-titel svg { width: 30px; height: 30px; }
+.rl-stats { display: flex; gap: .4rem; flex-wrap: wrap; margin-left: auto; }
+.rl-stat { background: rgba(255,255,255,.1); border-radius: 6px; padding: .2rem .55rem; font-weight: 700; font-size: .9rem; white-space: nowrap; }
+.rl-stat small { color: #B9C4DE; font-weight: 600; margin-right: .25rem; }
+.rl-stat .rood { color: #FF9A9A; }
+.rl-snel { display: flex; gap: 2px; }
+.rl-snel button, .rl-tab, .rl-cam button { font: inherit; font-weight: 800; border: 0; border-radius: 6px; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.rl-snel button { padding: .2rem .5rem; font-size: .85rem; }
+.rl-snel button[aria-pressed="true"], .rl-tab[aria-pressed="true"] { background: var(--goud); }
+.rl-veld { position: relative; flex: 1; min-height: 340px; overflow: hidden; }
+.rl-veld canvas { display: block; position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+.rl-cam { position: absolute; right: .6rem; top: .6rem; display: grid; grid-template-columns: repeat(2, 2.2rem); gap: 4px; z-index: 2; }
+.rl-cam button { height: 2.2rem; font-size: 1.05rem; }
+#rl-draai { grid-column: span 2; font-size: .85rem; }
+.rl-hint { position: absolute; left: .6rem; top: .6rem; max-width: min(28rem, 60%); background: rgba(26,34,72,.85); color: var(--papier); padding: .35rem .6rem; border-radius: 6px; font-size: .85rem; z-index: 2; pointer-events: none; }
+.rl-toasts { position: absolute; left: 50%; bottom: .6rem; transform: translateX(-50%); display: flex; flex-direction: column; gap: 4px; align-items: center; z-index: 4; pointer-events: none; width: min(92%, 34rem); }
+.rl-toast { background: var(--papier); color: var(--inkt); padding: .45rem .8rem; border-radius: 8px; font-weight: 700; font-size: .9rem; box-shadow: 0 3px 0 rgba(0,0,0,.3); text-align: center; animation: rl-in .3s ease; }
+.rl-toast.goed { background: #CDEBD8; } .rl-toast.fout { background: #F6D0D2; }
+@keyframes rl-in { from { transform: translateY(10px); opacity: 0; } }
+.rl-info { position: absolute; right: .6rem; top: 6.6rem; width: min(19rem, 80%); max-height: calc(100% - 7.5rem); overflow: auto; background: var(--papier); color: var(--inkt); border-radius: 10px; padding: .7rem .8rem .8rem; box-shadow: 0 4px 0 rgba(0,0,0,.3); z-index: 3; font-size: .92rem; }
+.rl-info h3 { margin: 0 1.6rem .4rem 0; font-size: 1.1rem; }
+.rl-info p { margin: .35rem 0; line-height: 1.4; }
+.rl-sluit { position: absolute; right: .4rem; top: .3rem; border: 0; background: none; font-size: 1.4rem; cursor: pointer; color: var(--inkt); }
+.rl-status { font-size: .72rem; font-weight: 800; padding: .1rem .45rem; border-radius: 999px; background: #C9CED6; vertical-align: middle; }
+.rl-status.goed { background: #CDEBD8; } .rl-status.fout { background: #F6D0D2; }
+.rl-sterren { color: #8C6A0A; }
+.rl-denk { font-style: italic; background: #EFE6CF; padding: .4rem .6rem; border-radius: 8px; }
+.rl-balk { display: grid; grid-template-columns: 4.5rem 1fr; align-items: center; gap: .4rem; font-size: .82rem; margin: .2rem 0; }
+.rl-balk i { height: .55rem; background: #E2D8BE; border-radius: 999px; overflow: hidden; } .rl-balk b { display: block; height: 100%; }
+.rl-prijs { display: flex; align-items: center; gap: .4rem; margin: .5rem 0; font-weight: 700; }
+.rl-prijs button { width: 1.9rem; height: 1.9rem; border: 0; border-radius: 6px; background: var(--manila); font: inherit; font-weight: 800; cursor: pointer; }
+.rl-knoppen { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+.rl-knoppen button { font: inherit; font-weight: 700; font-size: .85rem; border: 0; border-radius: 6px; padding: .4rem .7rem; cursor: pointer; background: var(--manila); }
+.rl-naam input { font: inherit; width: 100%; padding: .35rem .5rem; border-radius: 6px; border: 2px solid #D9BE78; margin-top: .2rem; }
+.rl-tip { font-size: .82rem; color: #5E5643; }
+.rl-onder { background: var(--nacht); position: relative; z-index: 3; }
+.rl-tabs { display: flex; gap: .3rem; padding: .45rem .6rem; overflow-x: auto; }
+.rl-tab { padding: .45rem .75rem; font-size: .9rem; white-space: nowrap; }
+.rl-lade { display: flex; gap: .45rem; padding: 0 .6rem .55rem; overflow-x: auto; }
+.rl-lade[hidden] { display: none; }
+.rl-kaart { flex: 0 0 10.5rem; text-align: left; font: inherit; border: 0; border-radius: 8px; background: var(--papier); color: var(--inkt); padding: .5rem .6rem; cursor: pointer; display: flex; flex-direction: column; gap: .15rem; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.rl-kaart b { font-size: .92rem; } .rl-kaart span { font-size: .76rem; color: #5E5643; line-height: 1.25; flex: 1; } .rl-kaart em { font-style: normal; font-weight: 800; font-size: .82rem; color: var(--groen); } .rl-kaart i { font-style: normal; font-size: .72rem; color: #8C6A0A; }
+.rl-kaart.actief { box-shadow: 0 0 0 3px var(--goud), 0 3px 0 rgba(0,0,0,.3); }
+.rl-kaart.slot { opacity: .6; } .rl-kaart.slot em { color: #8C8F96; }
+.rl-info-kaart { cursor: default; background: var(--manila); }
+.rl-doelen { background: var(--papier); color: var(--inkt); border-radius: 8px; padding: .5rem .8rem; min-width: min(34rem, 100%); }
+.rl-doelen h3 { margin: 0 0 .3rem; } .rl-doelen ul { list-style: none; margin: 0; padding: 0; columns: 2 16rem; }
+.rl-doelen li { padding: .2rem 0; font-size: .85rem; break-inside: avoid; } .rl-doelen li span { display: inline-block; width: 1.2rem; font-weight: 800; color: var(--groen); } .rl-doelen li em { display: block; font-style: normal; font-size: .75rem; color: #8C6A0A; margin-left: 1.2rem; }
+.rl-doelen li.klaar { color: #5E7A5E; text-decoration: line-through; }
+dialog#rl-dialoog { border: 0; border-radius: 12px; padding: 1.1rem 1.3rem 1.2rem; max-width: min(32rem, 94vw); background: var(--manila); color: var(--inkt); box-shadow: 0 6px 0 rgba(0,0,0,.35); font-family: inherit; }
+dialog#rl-dialoog::backdrop { background: rgba(10,14,30,.6); }
+dialog#rl-dialoog h2 { margin: 0 0 .4rem; } dialog#rl-dialoog li { margin: .25rem 0; }
+.rl-groot { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem 1.2rem; background: var(--rood); color: #fff; cursor: pointer; margin-top: .4rem; }
+@media (max-width: 640px) { .rl-stats { margin-left: 0; } .rl-hint { display: none; } .rl-info { top: auto; bottom: .6rem; right: .6rem; left: .6rem; width: auto; max-height: 45%; } }
+</style>
+</head>
+<body data-pagina="rommelland">
+<div class="rl-kop">
+  <a href="./">Terug naar het rommelhoekje</a>
+  <span class="rl-titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><circle cx="32" cy="26" r="20" fill="none" stroke="#C8323C" stroke-width="4"/><circle cx="32" cy="26" r="20" fill="none" stroke="#1F2333" stroke-width="1.5" opacity=".6"/><path d="M32 6v40M12 26h40M18 12l28 28M46 12L18 40" stroke="#E9B949" stroke-width="2.5"/><circle cx="32" cy="26" r="4" fill="#1F2333"/><path d="M20 58l12-32 12 32" fill="none" stroke="#1F2333" stroke-width="4" stroke-linejoin="round"/><rect x="6" y="56" width="52" height="5" rx="2" fill="#2E8B62" stroke="#1F2333" stroke-width="2"/><rect x="27" y="2" width="10" height="7" rx="2" fill="#2F8BD6" stroke="#1F2333" stroke-width="2"/><rect x="47" y="22" width="10" height="7" rx="2" fill="#F6CB2F" stroke="#1F2333" stroke-width="2"/><rect x="7" y="22" width="10" height="7" rx="2" fill="#E8577A" stroke="#1F2333" stroke-width="2"/></svg></span><span id="rl-parknaam">Rommelland</span></span>
+  <div class="rl-stats">
+    <span class="rl-stat"><small>Geld</small><span id="rl-geld">€0</span></span>
+    <span class="rl-stat"><small>Bezoekers</small><span id="rl-gasten">0</span></span>
+    <span class="rl-stat"><small>Waardering</small><span id="rl-waard">0</span></span>
+    <span class="rl-stat"><span id="rl-tijd">Dag 1</span></span>
+    <span class="rl-stat"><span id="rl-weer">Zonnig</span></span>
+    <span class="rl-snel" role="group" aria-label="Snelheid"><button type="button" data-snel="0" aria-pressed="false" aria-label="Pauze">II</button><button type="button" data-snel="1" aria-pressed="true">1×</button><button type="button" data-snel="2" aria-pressed="false">2×</button><button type="button" data-snel="4" aria-pressed="false">4×</button></span>
+  </div>
+</div>
+<div class="rl-veld" id="rl-veld">
+  <div class="rl-hint" id="rl-hint"></div>
+  <div class="rl-cam"><button id="rl-camL" type="button" aria-label="Camera naar links draaien">⟲</button><button id="rl-camR" type="button" aria-label="Camera naar rechts draaien">⟳</button><button id="rl-zoomIn" type="button" aria-label="Inzoomen">+</button><button id="rl-zoomUit" type="button" aria-label="Uitzoomen">−</button><button id="rl-draai" type="button">Draai (R)</button></div>
+  <div class="rl-info" id="rl-info" hidden></div>
+  <div class="rl-toasts" id="rl-toasts" aria-live="polite"></div>
+</div>
+<div class="rl-onder">
+  <div class="rl-lade" id="rl-lade" hidden></div>
+  <div class="rl-tabs" role="toolbar" aria-label="Gereedschap">
+    <button class="rl-tab" data-tab="kijk" type="button" aria-pressed="true">Kijken</button>
+    <button class="rl-tab" data-tab="paden" type="button" aria-pressed="false">Paden</button>
+    <button class="rl-tab" data-tab="attracties" type="button" aria-pressed="false">Attracties</button>
+    <button class="rl-tab" data-tab="kraampjes" type="button" aria-pressed="false">Kraampjes</button>
+    <button class="rl-tab" data-tab="decor" type="button" aria-pressed="false">Versiering</button>
+    <button class="rl-tab" data-tab="personeel" type="button" aria-pressed="false">Personeel</button>
+    <button class="rl-tab" data-tab="sloop" type="button" aria-pressed="false">Slopen</button>
+    <button class="rl-tab" data-tab="doelen" type="button" aria-pressed="false">Doelen</button>
+    <button class="rl-tab" data-tab="menu" type="button" aria-pressed="false">Menu</button>
+  </div>
+</div>
+<dialog id="rl-dialoog"></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+  window.Scorebord = API;
+})();
+
+</script>
+<script>
+// Rommelbeesten: tekenmachine. Elk beest wordt opgebouwd uit een lichaamsvorm met onderdelen.
+const BT = (function () {
+  // ---------- kleuren
+  const naarRgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  const naarHex = a => '#' + a.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+  const meng = (a, b, t) => { const x = naarRgb(a), y = naarRgb(b); return naarHex(x.map((v, i) => v + (y[i] - v) * t)); };
+  const donker = (c, f) => meng(c, '#000000', f);
+  const licht = (c, f) => meng(c, '#ffffff', f);
+  const lijnK = c => meng(donker(c, 0.5), '#1F1430', 0.25);
+  const SW = 2.4;
+  let uid = 0;
+  const f1 = v => (Math.round(v * 10) / 10);
+
+  // ---------- basisvormen met omlijning
+  const el = (cx, cy, rx, ry, f, ex) => `<ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}" fill="${f}" stroke="${lijnK(f)}" stroke-width="${SW}" ${ex || ''}/>`;
+  const ci = (cx, cy, r, f, ex) => el(cx, cy, r, r, f, ex);
+  const pa = (d, f, ex) => { ex = ex || ''; const st = /(^|\s)stroke="/.test(ex) ? '' : ` stroke="${lijnK(f === 'none' ? '#555555' : f)}"`, sw = /stroke-width=/.test(ex) ? '' : ` stroke-width="${SW}"`; return `<path d="${d}" fill="${f}"${st}${sw} stroke-linejoin="round" stroke-linecap="round" ${ex}/>`; };
+  const pl = (d, f, ex) => `<path d="${d}" fill="${f}" ${ex || ''}/>`;
+  const st = (d, c, w, ex) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${ex || ''}/>`;
+  const glim = (cx, cy, rx, ry, rot) => `<ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}" fill="#fff" opacity=".45" transform="rotate(${rot || -25} ${f1(cx)} ${f1(cy)})"/>`;
+
+  // ---------- gezicht
+  function ogen(g, type, iris) {
+    if (!g) return '';
+    const { x, y, a, m } = g, irisK = iris || '#2A1D14';
+    const posities = type === 'cycloop' ? [x] : [x - a, x + a];
+    return posities.map((px, i) => {
+      const r = type === 'cycloop' ? m * 1.6 : m;
+      switch (type) {
+        case 'slaap': return st(`M${px - r} ${y}q${r} ${r * 0.8} ${r * 2} 0`, '#2A1D14', 2.4);
+        case 'lief': return st(`M${px - r} ${y + r * 0.3}q${r} ${-r * 1.2} ${r * 2} 0`, '#2A1D14', 2.6);
+        case 'kraal': return `<circle cx="${f1(px)}" cy="${f1(y)}" r="${f1(r * 0.55)}" fill="#2A1D14"/><circle cx="${f1(px - r * 0.18)}" cy="${f1(y - r * 0.2)}" r="${f1(r * 0.18)}" fill="#fff"/>`;
+        case 'boos': {
+          const kant = i === 0 ? 1 : -1;
+          return `<ellipse cx="${f1(px)}" cy="${f1(y)}" rx="${f1(r * 0.85)}" ry="${f1(r)}" fill="#fff" stroke="#2A1D14" stroke-width="1.6"/><circle cx="${f1(px + kant * r * 0.15)}" cy="${f1(y + r * 0.15)}" r="${f1(r * 0.55)}" fill="${irisK}"/><circle cx="${f1(px + kant * r * 0.15)}" cy="${f1(y + r * 0.15)}" r="${f1(r * 0.28)}" fill="#120A08"/><circle cx="${f1(px - r * 0.1)}" cy="${f1(y - r * 0.1)}" r="${f1(r * 0.18)}" fill="#fff"/>` + st(`M${px - r * 1.1} ${y - r * (kant > 0 ? 1.3 : 0.7)}L${px + r * 1.1} ${y - r * (kant > 0 ? 0.7 : 1.3)}`, '#2A1D14', 2.6);
+        }
+        case 'gloed': return `<ellipse cx="${f1(px)}" cy="${f1(y)}" rx="${f1(r * 0.9)}" ry="${f1(r * 0.75)}" fill="${iris || '#FFE76A'}" stroke="#2A1D14" stroke-width="1.4"/><ellipse cx="${f1(px)}" cy="${f1(y)}" rx="${f1(r * 0.3)}" ry="${f1(r * 0.6)}" fill="#2A1D14"/>`;
+        case 'knoop': return `<circle cx="${f1(px)}" cy="${f1(y)}" r="${f1(r * 0.85)}" fill="${iris || '#2A1D14'}" stroke="#120A08" stroke-width="1.4"/><circle cx="${f1(px - r * 0.25)}" cy="${f1(y - r * 0.25)}" r="${f1(r * 0.14)}" fill="#fff" opacity=".8"/><circle cx="${f1(px + r * 0.25)}" cy="${f1(y + r * 0.25)}" r="${f1(r * 0.14)}" fill="#fff" opacity=".5"/>`;
+        case 'glim':
+        default: {
+          const groot = type === 'glim' ? 1.15 : 1;
+          return `<ellipse cx="${f1(px)}" cy="${f1(y)}" rx="${f1(r * 0.85 * groot)}" ry="${f1(r * groot)}" fill="#fff" stroke="#2A1D14" stroke-width="1.5"/><ellipse cx="${f1(px)}" cy="${f1(y + r * 0.12)}" rx="${f1(r * 0.62 * groot)}" ry="${f1(r * 0.75 * groot)}" fill="${irisK}"/><ellipse cx="${f1(px)}" cy="${f1(y + r * 0.2)}" rx="${f1(r * 0.32 * groot)}" ry="${f1(r * 0.42 * groot)}" fill="#120A08"/><circle cx="${f1(px - r * 0.28)}" cy="${f1(y - r * 0.3)}" r="${f1(r * 0.26 * groot)}" fill="#fff"/>${type === 'glim' ? `<circle cx="${f1(px + r * 0.3)}" cy="${f1(y + r * 0.42)}" r="${f1(r * 0.13)}" fill="#fff"/>` : ''}`;
+        }
+      }
+    }).join('');
+  }
+  function mond(g, type) {
+    if (!g || !type || type === 'geen') return '';
+    const x = g.x, y = g.my, m = g.mm;
+    switch (type) {
+      case 'open': return pa(`M${x - m} ${y}q${m} ${m * 1.5} ${m * 2} 0z`, '#7A1E2A') + pl(`M${x - m * 0.5} ${y + m * 0.55}q${m * 0.5} ${m * 0.5} ${m} 0z`, '#E8577A');
+      case 'tand': return st(`M${x - m} ${y}q${m} ${m * 0.9} ${m * 2} 0`, '#2A1D14', 2.2) + pl(`M${x - m * 0.6} ${y + m * 0.25}l${m * 0.25} ${m * 0.55}l${m * 0.2} ${-m * 0.45}z`, '#fff') + pl(`M${x + m * 0.6} ${y + m * 0.25}l${-m * 0.25} ${m * 0.55}l${-m * 0.2} ${-m * 0.45}z`, '#fff');
+      case 'snavel': return pa(`M${x - m} ${y - m * 0.3}L${x + m} ${y - m * 0.3}L${x} ${y + m * 1.1}z`, '#F2A93B');
+      case 'o': return el(x, y + m * 0.2, m * 0.45, m * 0.55, '#7A1E2A');
+      case 'kat': return st(`M${x - m} ${y}q${m * 0.5} ${m * 0.6} ${m} 0q${m * 0.5} ${m * 0.6} ${m} 0`, '#2A1D14', 2.2);
+      case 'streep': return st(`M${x - m * 0.8} ${y + m * 0.2}h${m * 1.6}`, '#2A1D14', 2.4);
+      case 'zigzag': return st(`M${x - m} ${y}l${m * 0.5} ${m * 0.4}l${m * 0.5} ${-m * 0.4}l${m * 0.5} ${m * 0.4}l${m * 0.5} ${-m * 0.4}`, '#2A1D14', 2);
+      case 'lach':
+      default: return st(`M${x - m} ${y}q${m} ${m * 1.1} ${m * 2} 0`, '#2A1D14', 2.4);
+    }
+  }
+  const wangen = (g, k) => (g && g.w !== false ? `<ellipse cx="${f1(g.x - g.a * 1.55)}" cy="${f1(g.y + g.m * 1.25)}" rx="${f1(g.m * 0.7)}" ry="${f1(g.m * 0.42)}" fill="${k || '#F28C9A'}" opacity=".55"/><ellipse cx="${f1(g.x + g.a * 1.55)}" cy="${f1(g.y + g.m * 1.25)}" rx="${f1(g.m * 0.7)}" ry="${f1(g.m * 0.42)}" fill="${k || '#F28C9A'}" opacity=".55"/>` : '');
+
+  // ---------- onderdelen
+  function oor(x, y, type, k, kant, grootte) {
+    const s = grootte || 1, d = kant;
+    switch (type) {
+      case 'rond': return ci(x, y, 9 * s, k.c1) + ci(x, y, 4.5 * s, k.c2, 'stroke="none"');
+      case 'lang': return pa(`M${x - 6 * s} ${y + 4}q${-6 * d * s} ${-34 * s} ${4 * d * s} ${-40 * s}q${10 * d * s} ${8 * s} ${4 * s} ${40 * s}z`, k.c1) + pl(`M${x - 2 * s} ${y}q${-2 * d * s} ${-24 * s} ${3 * d * s} ${-30 * s}q${4 * d * s} ${8 * s} ${1 * s} ${30 * s}z`, k.c2);
+      case 'hoorn': return pa(`M${x - 5 * s} ${y + 2}q${2 * d} ${-20 * s} ${10 * d * s} ${-26 * s}q${-2 * d * s} ${14 * s} ${4 * d * s} ${26 * s}z`, k.c3 && k.hoorn ? k.hoorn : licht(k.c2, 0.3));
+      case 'vin': return pa(`M${x - 6 * s} ${y + 4}q${-4 * d * s} ${-18 * s} ${14 * d * s} ${-20 * s}q${-4 * d * s} ${10 * s} ${4 * d * s} ${20 * s}z`, k.c2);
+      case 'pluim': return pa(`M${x - 4 * s} ${y + 4}q${-2 * d * s} ${-20 * s} ${8 * d * s} ${-26 * s}q${0} ${12 * s} ${6 * d * s} ${18 * s}q${-6 * d * s} ${2 * s} ${-6 * d * s} ${8 * s}z`, k.c1);
+      case 'punt':
+      default: return pa(`M${x - 9 * s} ${y + 6}L${x + 2 * d * s} ${y - 22 * s}L${x + 11 * s} ${y + 4}z`, k.c1) + pl(`M${x - 4 * s} ${y + 3}L${x + 2 * d * s} ${y - 12 * s}L${x + 6 * s} ${y + 2}z`, k.c2);
+    }
+  }
+  function staart(x, y, type, k, schaal) {
+    const s = schaal || 1;
+    switch (type) {
+      case 'pluim': return pa(`M${x} ${y}q${26 * s} ${-6 * s} ${24 * s} ${-36 * s}q${-2 * s} ${-12 * s} ${10 * s} ${-16 * s}q${4 * s} ${16 * s} ${-2 * s} ${28 * s}q${-6 * s} ${26 * s} ${-28 * s} ${32 * s}z`, k.c1) + pl(`M${x + 20 * s} ${y - 40 * s}q${10 * s} ${-6 * s} ${12 * s} ${-12 * s}q${4 * s} ${12 * s} ${-6 * s} ${22 * s}z`, k.c2);
+      case 'krul': return st(`M${x} ${y}q${30 * s} ${4 * s} ${26 * s} ${-26 * s}q${-4 * s} ${-14 * s} ${-14 * s} ${-6 * s}q${-6 * s} ${8 * s} ${4 * s} ${10 * s}`, lijnK(k.c1), 11 * s) + st(`M${x} ${y}q${30 * s} ${4 * s} ${26 * s} ${-26 * s}q${-4 * s} ${-14 * s} ${-14 * s} ${-6 * s}q${-6 * s} ${8 * s} ${4 * s} ${10 * s}`, k.c1, 7 * s);
+      case 'bliksem': return pa(`M${x} ${y}l${14 * s} ${-6 * s}l${-4 * s} ${-12 * s}l${16 * s} ${-4 * s}l${-6 * s} ${-14 * s}l${20 * s} ${-2 * s}l${-14 * s} ${26 * s}l${4 * s} ${10 * s}l${-14 * s} ${6 * s}l${2 * s} ${8 * s}z`, k.c1);
+      case 'blad': return st(`M${x} ${y}q${16 * s} ${-2 * s} ${22 * s} ${-14 * s}`, lijnK(k.c1), 5 * s) + pa(`M${x + 20 * s} ${y - 12 * s}q${4 * s} ${-22 * s} ${24 * s} ${-26 * s}q${2 * s} ${22 * s} ${-24 * s} ${26 * s}z`, k.blad || '#5BAE4A');
+      case 'vis': return pa(`M${x} ${y}l${20 * s} ${-16 * s}q${-4 * s} ${16 * s} 0 ${32 * s}z`, k.c2);
+      case 'dun':
+      default: return st(`M${x} ${y}q${24 * s} ${-2 * s} ${28 * s} ${-26 * s}`, lijnK(k.c1), 8 * s) + st(`M${x} ${y}q${24 * s} ${-2 * s} ${28 * s} ${-26 * s}`, k.c1, 5 * s) + ci(x + 28 * s, y - 26 * s, 5 * s, k.c2);
+    }
+  }
+  const vleugel = (x, y, k, kant, s, type) => {
+    s = s || 1; const d = kant;
+    if (type === 'vleermuis') return pa(`M${x} ${y}q${30 * d * s} ${-34 * s} ${54 * d * s} ${-18 * s}q${-6 * d * s} ${10 * s} ${-2 * d * s} ${20 * s}q${-10 * d * s} ${-4 * s} ${-14 * d * s} ${8 * s}q${-8 * d * s} ${-6 * s} ${-14 * d * s} ${4 * s}q${-8 * d * s} ${-6 * s} ${-24 * d * s} ${4 * s}z`, k.vleugel || donker(k.c1, 0.15));
+    if (type === 'insect') return pa(`M${x} ${y}q${20 * d * s} ${-40 * s} ${44 * d * s} ${-22 * s}q${8 * d * s} ${16 * s} ${-14 * d * s} ${28 * s}z`, k.vleugel || licht(k.c2, 0.4), 'fill-opacity=".85"');
+    if (type === 'draak') return pa(`M${x} ${y}l${16 * d * s} ${-40 * s}l${36 * d * s} ${8 * s}l${-6 * d * s} ${14 * s}l${-10 * d * s} ${-2 * s}l${-4 * d * s} ${12 * s}l${-10 * d * s} ${-4 * s}l${-6 * d * s} ${12 * s}z`, k.vleugel || donker(k.c1, 0.1));
+    return pa(`M${x} ${y}q${26 * d * s} ${-30 * s} ${44 * d * s} ${-20 * s}q${-6 * d * s} ${8 * s} ${-4 * d * s} ${14 * s}q${-6 * d * s} ${0} ${-8 * d * s} ${8 * s}q${-8 * d * s} ${-2 * s} ${-10 * d * s} ${8 * s}q${-12 * d * s} ${-4 * s} ${-22 * d * s} ${2 * s}z`, k.vleugel || licht(k.c1, 0.2));
+  };
+  const vlam = (x, y, s, k) => { s = s || 1; return pa(`M${x} ${y}q${-12 * s} ${-10 * s} ${-6 * s} ${-26 * s}q${4 * s} ${8 * s} ${8 * s} ${8 * s}q${-2 * s} ${-14 * s} ${8 * s} ${-24 * s}q${0} ${14 * s} ${8 * s} ${20 * s}q${4 * s} ${-4 * s} ${4 * s} ${-10 * s}q${8 * s} ${14 * s} ${-2 * s} ${32 * s}z`, (k && k.vlam) || '#F07B3F') + pl(`M${x + 1 * s} ${y - 4 * s}q${-6 * s} ${-6 * s} ${-2 * s} ${-14 * s}q${3 * s} ${4 * s} ${5 * s} ${4 * s}q${0} ${-8 * s} ${5 * s} ${-12 * s}q${0} ${10 * s} ${2 * s} ${22 * s}z`, '#FFE76A'); };
+  const blad = (x, y, s, rot, kl) => `<g transform="rotate(${rot || 0} ${f1(x)} ${f1(y)})">` + pa(`M${x} ${y}q${-12 * s} ${-14 * s} 0 ${-30 * s}q${12 * s} ${16 * s} 0 ${30 * s}z`, kl || '#5BAE4A') + st(`M${x} ${y}v${-26 * s}`, donker(kl || '#5BAE4A', 0.35), 1.4) + '</g>';
+  const kristal = (x, y, s, kl, rot) => `<g transform="rotate(${rot || 0} ${f1(x)} ${f1(y)})">` + pa(`M${x - 7 * s} ${y}l${2 * s} ${-18 * s}l${5 * s} ${-8 * s}l${5 * s} ${8 * s}l${2 * s} ${18 * s}z`, kl) + pl(`M${x} ${y - 26 * s}l${-2 * s} ${10 * s}l${2 * s} ${14 * s}l${3 * s} ${-14 * s}z`, '#fff', 'opacity=".45"') + '</g>';
+  const bliksemschicht = (x, y, s, kl) => pa(`M${x} ${y}l${8 * s} ${-14 * s}h${-6 * s}l${8 * s} ${-14 * s}l${-14 * s} ${16 * s}h${6 * s}z`, kl || '#FFE76A');
+  const ster = (x, y, r, kl) => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; d += (i ? 'L' : 'M') + f1(x + Math.cos(a) * rr) + ' ' + f1(y + Math.sin(a) * rr); } return pa(d + 'z', kl || '#FFE76A'); };
+  const tandwiel = (x, y, r, kl) => { let d = ''; for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8, rr = i % 2 ? r * 0.78 : r; d += (i ? 'L' : 'M') + f1(x + Math.cos(a) * rr) + ' ' + f1(y + Math.sin(a) * rr); } return pa(d + 'z', kl || '#9AA6C2') + ci(x, y, r * 0.3, licht(kl || '#9AA6C2', 0.4)); };
+  const kroon = (x, y, s, kl) => pa(`M${x - 16 * s} ${y}l${-4 * s} ${-18 * s}l${10 * s} ${8 * s}l${10 * s} ${-14 * s}l${10 * s} ${14 * s}l${10 * s} ${-8 * s}l${-4 * s} ${18 * s}z`, kl || '#F6CB2F') + ci(x, y - 6 * s, 3 * s, '#C8323C') + ci(x - 10 * s, y - 4 * s, 2 * s, '#2F8BD6') + ci(x + 10 * s, y - 4 * s, 2 * s, '#2E8B62');
+  const wolkje = (x, y, s, kl) => pl(`M${x - 14 * s} ${y}a${8 * s} ${8 * s} 0 0 1 ${4 * s} ${-14 * s}a${10 * s} ${10 * s} 0 0 1 ${18 * s} ${-4 * s}a${8 * s} ${8 * s} 0 0 1 ${10 * s} ${14 * s}a${5 * s} ${5 * s} 0 0 1 0 ${4 * s}z`, kl || '#fff', `stroke="${lijnK('#9FC6E8')}" stroke-width="2"`);
+
+  // accessoires: [soort, plek, parameter]
+  function accessoire(a, A, k, laag) {
+    const [soort, plek, x0, y0, s0] = a;
+    const p = plek === 'staart' ? A.staart : plek === 'rug' ? A.rug : plek === 'vrij' ? [x0, y0] : A.kop;
+    if (!p) return '';
+    const [x, y] = p, s = s0 || A.s || 1;
+    const achter = ['cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
+    if ((laag === 'achter') !== achter.includes(soort)) return '';
+    switch (soort) {
+      case 'vlam': return vlam(x, y + 4, s, k);
+      case 'vlammen': return vlam(x - 14 * s, y + 8, 0.8 * s, k) + vlam(x, y + 2, 1.1 * s, k) + vlam(x + 14 * s, y + 8, 0.8 * s, k);
+      case 'rugvlammen': return vlam(x - 12 * s, y + 6, 0.9 * s, k) + vlam(x + 4 * s, y, 1.1 * s, k) + vlam(x + 18 * s, y + 8, 0.8 * s, k);
+      case 'blad': return blad(x, y + 4, s, 18, k.blad);
+      case 'bladeren': return blad(x - 4, y + 4, 0.9 * s, -30, k.blad) + blad(x + 4, y + 4, 0.9 * s, 30, k.blad) + blad(x, y + 2, 0.7 * s, 0, licht(k.blad || '#5BAE4A', 0.2));
+      case 'bloem': { let r = ''; for (let i = 0; i < 6; i++) { const ang = i * Math.PI / 3; r += ci(x + Math.cos(ang) * 8 * s, y - 8 * s + Math.sin(ang) * 8 * s, 6 * s, k.bloem || '#F28CB4'); } return st(`M${x} ${y + 4}v${-8 * s}`, '#2E6B2A', 3) + r + ci(x, y - 8 * s, 5 * s, '#F6CB2F'); }
+      case 'takken': return st(`M${x - 6} ${y + 2}l${-8 * s} ${-18 * s}l${-8 * s} ${-4 * s}M${x - 14 * s} ${y - 16 * s}l${2 * s} ${-12 * s}M${x + 6} ${y + 2}l${8 * s} ${-18 * s}l${8 * s} ${-4 * s}M${x + 14 * s} ${y - 16 * s}l${-2 * s} ${-12 * s}`, '#7A4E2D', 5) + blad(x - 22 * s, y - 20 * s, 0.4 * s, -60, k.blad) + blad(x + 22 * s, y - 20 * s, 0.4 * s, 60, k.blad);
+      case 'kristallen': return kristal(x - 10 * s, y + 6, 0.8 * s, k.kristal || licht(k.c3, 0.5), -20) + kristal(x, y + 4, 1.1 * s, k.kristal || licht(k.c3, 0.5)) + kristal(x + 10 * s, y + 6, 0.8 * s, k.kristal || licht(k.c3, 0.5), 20);
+      case 'rugkristallen': return kristal(x - 14 * s, y + 8, 0.9 * s, k.kristal || '#B9A3F0', -25) + kristal(x, y + 4, 1.2 * s, k.kristal || '#B9A3F0', 0) + kristal(x + 14 * s, y + 8, 0.9 * s, k.kristal || '#B9A3F0', 25);
+      case 'hoorns': return pa(`M${x - 10 * s} ${y + 6}q${-4 * s} ${-16 * s} ${-12 * s} ${-20 * s}q${12 * s} ${2 * s} ${18 * s} ${18 * s}z`, k.hoorn || '#F2E8D0') + pa(`M${x + 10 * s} ${y + 6}q${4 * s} ${-16 * s} ${12 * s} ${-20 * s}q${-12 * s} ${2 * s} ${-18 * s} ${18 * s}z`, k.hoorn || '#F2E8D0');
+      case 'hoorn': return pa(`M${x - 6 * s} ${y + 6}l${6 * s} ${-26 * s}l${6 * s} ${26 * s}z`, k.hoorn || '#F2E8D0');
+      case 'ramhoorns': return st(`M${x - 8 * s} ${y + 4}q${-24 * s} ${-10 * s} ${-16 * s} ${10 * s}q${6 * s} ${8 * s} ${10 * s} ${0}`, lijnK(k.hoorn || '#C9B58A'), 9 * s) + st(`M${x - 8 * s} ${y + 4}q${-24 * s} ${-10 * s} ${-16 * s} ${10 * s}q${6 * s} ${8 * s} ${10 * s} ${0}`, k.hoorn || '#C9B58A', 6 * s) + st(`M${x + 8 * s} ${y + 4}q${24 * s} ${-10 * s} ${16 * s} ${10 * s}q${-6 * s} ${8 * s} ${-10 * s} ${0}`, lijnK(k.hoorn || '#C9B58A'), 9 * s) + st(`M${x + 8 * s} ${y + 4}q${24 * s} ${-10 * s} ${16 * s} ${10 * s}q${-6 * s} ${8 * s} ${-10 * s} ${0}`, k.hoorn || '#C9B58A', 6 * s);
+      case 'antennes': return st(`M${x - 6} ${y + 4}q${-6 * s} ${-16 * s} ${-14 * s} ${-22 * s}M${x + 6} ${y + 4}q${6 * s} ${-16 * s} ${14 * s} ${-22 * s}`, lijnK(k.c1), 2.6) + ci(x - 14 * s - 6, y - 18 * s, 4 * s, k.antenne || k.c3) + ci(x + 14 * s + 6, y - 18 * s, 4 * s, k.antenne || k.c3);
+      case 'kuif': return pa(`M${x - 8 * s} ${y + 6}q${-4 * s} ${-22 * s} ${10 * s} ${-26 * s}q${-6 * s} ${10 * s} ${2 * s} ${10 * s}q${4 * s} ${-12 * s} ${14 * s} ${-10 * s}q${-12 * s} ${8 * s} ${-6 * s} ${26 * s}z`, k.kuif || k.c3);
+      case 'veren': return pa(`M${x - 6 * s} ${y + 6}q${-14 * s} ${-18 * s} ${-6 * s} ${-30 * s}q${4 * s} ${16 * s} ${10 * s} ${22 * s}z`, k.kuif || k.c2) + pa(`M${x + 2 * s} ${y + 4}q${-2 * s} ${-22 * s} ${10 * s} ${-30 * s}q${-2 * s} ${16 * s} ${-2 * s} ${28 * s}z`, k.kuif || k.c3);
+      case 'bliksem': return bliksemschicht(x - 2, y + 4, 1.1 * s, k.bliksem);
+      case 'bliksems': return bliksemschicht(x - 16 * s, y + 8, 0.8 * s, k.bliksem) + bliksemschicht(x + 4 * s, y + 4, 1.0 * s, k.bliksem);
+      case 'kroon': return kroon(x, y + 6, s, k.kroon);
+      case 'halo': return `<ellipse cx="${f1(x)}" cy="${f1(y - 6)}" rx="${f1(18 * s)}" ry="${f1(5 * s)}" fill="none" stroke="#FFE76A" stroke-width="4"/><ellipse cx="${f1(x)}" cy="${f1(y - 6)}" rx="${f1(18 * s)}" ry="${f1(5 * s)}" fill="none" stroke="#fff" stroke-width="1.4" opacity=".8"/>`;
+      case 'maan': return pl(`M${x + 6 * s} ${y - 2}a${10 * s} ${10 * s} 0 1 1 ${-14 * s} ${-12 * s}a${8 * s} ${8 * s} 0 1 0 ${14 * s} ${12 * s}z`, '#FFE9A8', `stroke="${lijnK('#FFE9A8')}" stroke-width="1.8"`);
+      case 'ster': return ster(x, y - 6 * s, 9 * s, k.ster || '#FFE76A');
+      case 'tandwiel': return tandwiel(x, y - 4 * s, 10 * s, k.metaal);
+      case 'schroef': return st(`M${x} ${y + 4}v${-14 * s}`, '#6F7785', 4) + `<rect x="${f1(x - 7 * s)}" y="${f1(y - 16 * s)}" width="${f1(14 * s)}" height="${f1(5 * s)}" rx="2" fill="#9AA6C2" stroke="#3E465A" stroke-width="1.6"/>`;
+      case 'pleister': return `<g transform="rotate(-25 ${f1(x)} ${f1(y)})"><rect x="${f1(x - 10 * s)}" y="${f1(y - 4 * s)}" width="${f1(20 * s)}" height="${f1(8 * s)}" rx="3" fill="#F2C9A0" stroke="#B5793F" stroke-width="1.4"/><rect x="${f1(x - 3 * s)}" y="${f1(y - 3 * s)}" width="${f1(6 * s)}" height="${f1(6 * s)}" fill="#E8B48E"/></g>`;
+      case 'knoop': return ci(x, y, 6 * s, k.knoop || '#C8323C') + ci(x - 2 * s, y - 2 * s, 1.2 * s, '#fff', 'stroke="none"') + ci(x + 2 * s, y + 2 * s, 1.2 * s, '#fff', 'stroke="none"');
+      case 'druppel': return pa(`M${x} ${y - 18 * s}q${10 * s} ${14 * s} ${6 * s} ${20 * s}q${-6 * s} ${6 * s} ${-12 * s} 0q${-4 * s} ${-6 * s} ${6 * s} ${-20 * s}z`, k.druppel || '#8FD3F4');
+      case 'bubbels': return ci(x - 10 * s, y - 6 * s, 5 * s, 'rgba(220,245,255,.7)') + ci(x + 4 * s, y - 16 * s, 3.5 * s, 'rgba(220,245,255,.7)') + ci(x + 12 * s, y - 4 * s, 2.5 * s, 'rgba(220,245,255,.7)');
+      case 'vinnen': return pa(`M${x - 16 * s} ${y + 8}q${4 * s} ${-26 * s} ${18 * s} ${-28 * s}q${-4 * s} ${14 * s} ${4 * s} ${26 * s}z`, k.vin || k.c2) + pa(`M${x + 6 * s} ${y + 8}q${6 * s} ${-18 * s} ${18 * s} ${-18 * s}q${-6 * s} ${8 * s} ${-2 * s} ${18 * s}z`, k.vin || k.c2);
+      case 'rugstekels': { let r = ''; for (let i = -2; i <= 2; i++) r += pa(`M${x + i * 10 * s - 6 * s} ${y + 8 - Math.abs(i) * 3}l${6 * s} ${-18 * s + Math.abs(i) * 4 * s}l${6 * s} ${18 * s - Math.abs(i) * 4 * s}z`, k.stekel || k.c3); return r; }
+      case 'vleugels': return vleugel(x - 6, y, k, -1, s) + vleugel(x + 6, y, k, 1, s);
+      case 'vleermuisvleugels': return vleugel(x - 6, y, k, -1, s, 'vleermuis') + vleugel(x + 6, y, k, 1, s, 'vleermuis');
+      case 'insectvleugels': return vleugel(x - 4, y, k, -1, s, 'insect') + vleugel(x + 4, y, k, 1, s, 'insect');
+      case 'drakenvleugels': return vleugel(x - 6, y, k, -1, s, 'draak') + vleugel(x + 6, y, k, 1, s, 'draak');
+      case 'aura': return `<ellipse cx="100" cy="88" rx="${f1(70 * s)}" ry="${f1(56 * s)}" fill="${k.aura || '#FFE76A'}" opacity=".22"/><ellipse cx="100" cy="88" rx="${f1(56 * s)}" ry="${f1(44 * s)}" fill="${k.aura || '#FFE76A'}" opacity=".22"/>`;
+      case 'schaduwsliert': return st(`M${x - 20} ${y + 10}q-10 -20 6 -30q12 -8 4 -24`, k.sliert || '#B9A3D6', 6, 'opacity=".55"') + st(`M${x + 20} ${y + 10}q10 -20 -6 -30q-12 -8 -4 -24`, k.sliert || '#B9A3D6', 5, 'opacity=".45"');
+      case 'wolken': return wolkje(x - 30 * s, y + 20, 0.9 * s) + wolkje(x + 30 * s, y + 24, 0.8 * s);
+      case 'vonken': return ster(x - 18 * s, y - 2, 4 * s, '#FFE76A') + ster(x + 18 * s, y - 8, 5 * s, '#FFE76A') + ster(x + 4 * s, y - 18 * s, 3 * s, '#fff');
+      case 'sintels': return ci(x - 12 * s, y - 4, 2.4 * s, '#FFB347', 'stroke="none"') + ci(x + 10 * s, y - 12 * s, 2 * s, '#FFE76A', 'stroke="none"') + ci(x + 2 * s, y - 20 * s, 1.6 * s, '#FF7043', 'stroke="none"');
+      case 'paddohoedje': return pa(`M${x - 12 * s} ${y + 2}q${0} ${-16 * s} ${12 * s} ${-16 * s}q${12 * s} ${0} ${12 * s} ${16 * s}z`, '#C8323C') + ci(x - 4 * s, y - 8 * s, 2.4 * s, '#fff', 'stroke="none"') + ci(x + 5 * s, y - 5 * s, 2 * s, '#fff', 'stroke="none"');
+      case 'strik': return pa(`M${x} ${y}l${-12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + pa(`M${x} ${y}l${12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + ci(x, y, 3.5 * s, licht(k.strik || '#E8577A', 0.2));
+      case 'cape': { const kc = k.cape || '#C8323C', y0 = y + 14 * s; return pa(`M${x - 14 * s} ${y0}Q${x - 46 * s} ${y0 + 40 * s} ${x - 44 * s} ${y0 + 80 * s}Q${x - 30 * s} ${y0 + 72 * s} ${x - 16 * s} ${y0 + 82 * s}Q${x - 2 * s} ${y0 + 72 * s} ${x + 14 * s} ${y0 + 82 * s}Q${x + 30 * s} ${y0 + 72 * s} ${x + 46 * s} ${y0 + 80 * s}Q${x + 48 * s} ${y0 + 40 * s} ${x + 14 * s} ${y0}z`, kc) + st(`M${x - 8 * s} ${y0 + 12 * s}Q${x - 22 * s} ${y0 + 44 * s} ${x - 26 * s} ${y0 + 72 * s}M${x + 10 * s} ${y0 + 12 * s}Q${x + 24 * s} ${y0 + 44 * s} ${x + 30 * s} ${y0 + 72 * s}`, licht(kc, 0.25), 2, 'opacity=".55"'); }
+      case 'masker': { const G = A.gezicht; if (!G) return ''; const km = k.masker || '#23252B', bx = G.a * 1 + G.m * 1.9, hy = G.m * 1.15; const gat = (cx) => `M${f1(cx - G.m * 1.15)} ${f1(G.y)}a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(G.m * 2.3)} 0a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(-G.m * 2.3)} 0z`; const gaten = G.a ? gat(G.x - G.a) + gat(G.x + G.a) : gat(G.x); return `<path d="M${f1(G.x - bx)} ${f1(G.y - hy * 0.6)}Q${f1(G.x)} ${f1(G.y - hy * 1.5)} ${f1(G.x + bx)} ${f1(G.y - hy * 0.6)}L${f1(G.x + bx + 3)} ${f1(G.y + hy * 0.5)}Q${f1(G.x)} ${f1(G.y + hy * 1.6)} ${f1(G.x - bx - 3)} ${f1(G.y + hy * 0.5)}z${gaten}" fill="${km}" fill-rule="evenodd" stroke="${lijnK(km)}" stroke-width="1.6"/>` + st(`M${f1(G.x + bx + 2)} ${f1(G.y)}q8 2 12 10M${f1(G.x + bx + 2)} ${f1(G.y + 2)}q6 6 7 14`, km, 3); }
+      case 'embleem': { const ke = k.embleem || '#F6CB2F'; return ci(x, y, 7 * s, ke) + ci(x, y, 5 * s, licht(ke, 0.35), 'stroke="none"') + (k.symbool === 'bliksem' ? bliksemschicht(x - 2 * s, y + 4 * s, 0.45 * s, lijnK(ke)) : ster(x, y, 3.6 * s, lijnK(ke))); }
+      case 'hoedje': return el(x, y + 2, 16 * s, 4 * s, k.hoed || '#23252B') + pa(`M${x - 10 * s} ${y + 2}v${-14 * s}q${10 * s} ${-4 * s} ${20 * s} 0v${14 * s}z`, k.hoed || '#23252B') + `<rect x="${f1(x - 10 * s)}" y="${f1(y - 3 * s)}" width="${f1(20 * s)}" height="${f1(3 * s)}" fill="${k.lint || '#C8323C'}"/>`;
+      default: return '';
+    }
+  }
+
+  // ---------- patronen (binnen de romp)
+  function patroon(type, k, A) {
+    const kl = k.patroon || donker(k.c1, 0.18);
+    switch (type) {
+      case 'vlekken': return [[-18, -8, 6], [14, -14, 5], [22, 8, 7], [-6, 14, 4.5], [-26, 12, 4], [6, -24, 3.5]].map(([dx, dy, r]) => `<circle cx="${f1(A.mx + dx)}" cy="${f1(A.my + dy)}" r="${r}" fill="${kl}"/>`).join('');
+      case 'strepen': return [-24, -12, 0, 12, 24].map(dx => `<path d="M${f1(A.mx + dx)} ${f1(A.my - 40)}q6 20 0 40q-6 20 0 40" stroke="${kl}" stroke-width="5" fill="none"/>`).join('');
+      case 'ringen': return [-16, 0, 16].map(dy => `<path d="M${f1(A.mx - 50)} ${f1(A.my + dy)}q50 10 100 0" stroke="${kl}" stroke-width="5" fill="none"/>`).join('');
+      case 'scheuren': return `<path d="M${f1(A.mx - 20)} ${f1(A.my - 20)}l10 12l-6 10l12 12M${f1(A.mx + 14)} ${f1(A.my - 10)}l-6 14l10 8" stroke="${k.gloed || '#FFB347'}" stroke-width="3" fill="none" stroke-linejoin="round"/>`;
+      case 'sterretjes': return [[-20, -10], [16, -16], [22, 10], [-10, 16], [2, -2]].map(([dx, dy], i) => `<circle cx="${f1(A.mx + dx)}" cy="${f1(A.my + dy)}" r="${i % 2 ? 1.6 : 2.4}" fill="#fff" opacity=".9"/>`).join('');
+      case 'ruit': return [-20, 0, 20].map(dx => `<path d="M${f1(A.mx + dx)} ${f1(A.my - 12)}l8 12l-8 12l-8-12z" fill="${kl}"/>`).join('');
+      case 'hex': { let r = ''; for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const cx = A.mx + i * 18 + (j % 2 ? 9 : 0), cy = A.my + j * 14 - 8; r += `<path d="M${f1(cx - 8)} ${f1(cy)}l4 -7h8l4 7l-4 7h-8z" fill="none" stroke="${kl}" stroke-width="2.4"/>`; } return r; }
+      case 'masker': return `<path d="M${f1(A.gx - 30)} ${f1(A.gy - 6)}q30 -14 60 0q-4 14 -14 12q-16 -6 -32 0q-10 2 -14 -12z" fill="${kl}"/>`;
+      default: return '';
+    }
+  }
+
+  // ---------- lichaamsvormen. Elke vorm geeft lagen en ankerpunten terug.
+  // A: { achter, romp, clip, voor, gezicht {x,y,a,m,my,mm}, kop:[x,y], staart:[x,y], rug:[x,y], mx,my (midden romp), gx,gy }
+  const V = {};
+  V.bol = (P, k) => { const d = 'M48 128q-8-56 52-62q60 6 52 62q-52 10-104 0z'; return { romp: pa(d, k.c1) + glim(76, 82, 12, 7), clip: `<path d="${d}"/>`, buik: `<ellipse cx="100" cy="112" rx="34" ry="14"/>`, gezicht: { x: 100, y: 96, a: 15, m: 8, my: 110, mm: 7 }, kop: [100, 66], rug: [100, 70], staart: [148, 112], mx: 100, my: 100 }; };
+  V.druppel = (P, k) => { const d = 'M100 28q28 40 40 66q8 34-40 36q-48-2-40-36q12-26 40-66z'; return { romp: pa(d, k.c1) + glim(86, 74, 7, 12, -15), clip: `<path d="${d}"/>`, buik: `<ellipse cx="100" cy="112" rx="26" ry="12"/>`, gezicht: { x: 100, y: 96, a: 13, m: 7.5, my: 110, mm: 6 }, kop: [100, 34], rug: [100, 50], mx: 100, my: 96 }; };
+  V.ei = (P, k) => { const d = 'M100 34q38 0 40 52q2 44-40 44q-42 0-40-44q2-52 40-52z'; const voet = el(84, 130, 12, 6, k.c3 && P.voetK ? P.voetK : donker(k.c1, 0.2)) + el(116, 130, 12, 6, donker(k.c1, 0.2)); const arm = el(60, 96, 8, 12, k.c1, 'transform="rotate(25 60 96)"') + el(140, 96, 8, 12, k.c1, 'transform="rotate(-25 140 96)"'); return { achter: voet, romp: pa(d, k.c1) + glim(82, 58, 9, 14, -20), clip: `<path d="${d}"/>`, voor: arm, buik: `<ellipse cx="100" cy="104" rx="24" ry="20"/>`, gezicht: { x: 100, y: 70, a: 14, m: 8, my: 86, mm: 6 }, kop: [100, 36], rug: [100, 44], staart: [136, 116], mx: 100, my: 88 }; };
+  V.vos = (P, k) => {
+    const s = P.slank ? 0.92 : 1;
+    const poten = [[86, 112], [100, 116], [128, 112], [142, 114]].map(([x, y], i) => `<rect x="${x - 6}" y="${y}" width="12" height="20" rx="6" fill="${i % 2 ? donker(k.c1, 0.12) : k.c1}" stroke="${lijnK(k.c1)}" stroke-width="${SW}"/>`).join('');
+    const romp = el(116, 100, 40 * s, 24, k.c1);
+    const kop = ci(74, 76, 28, k.c1) + glim(62, 62, 8, 5);
+    const snuit = el(74, 90, 14, 9, k.c2) + el(74, 84, 4, 3, '#2A1D14');
+    const oren = oor(56, 54, P.oor || 'punt', k, -1, P.oorS || 1) + oor(92, 54, P.oor || 'punt', k, 1, P.oorS || 1);
+    const st0 = staart(150, 96, P.staart || 'pluim', k, P.staartS || 1);
+    return { achter: st0 + poten.slice(0) , romp: romp + oren + kop, clip: `<ellipse cx="116" cy="100" rx="${40 * s}" ry="24"/>`, buik: `<ellipse cx="114" cy="112" rx="24" ry="10"/>`, voor: snuit, gezicht: { x: 74, y: 72, a: 11, m: 6.5, my: 92, mm: 4, w: P.wangen !== false }, kop: [74, 50], staart: [176, 58], rug: [118, 78], mx: 116, my: 100, gx: 74, gy: 72 };
+  };
+  V.beer = (P, k) => {
+    const lijf = 'M58 132q-6-50 42-54q48 4 42 54z';
+    const oren = oor(70, 38, 'rond', k, -1, 1.1) + oor(130, 38, 'rond', k, 1, 1.1);
+    const kop = ci(100, 58, 32, k.c1) + glim(84, 44, 9, 6);
+    const snuit = el(100, 70, 15, 11, k.c2) + el(100, 64, 5, 3.5, '#2A1D14');
+    const armen = el(62, 108, 10, 16, k.c1, 'transform="rotate(20 62 108)"') + el(138, 108, 10, 16, k.c1, 'transform="rotate(-20 138 108)"');
+    return { achter: oren, romp: pa(lijf, k.c1) + kop, clip: `<path d="${lijf}"/>`, voor: snuit + armen + el(80, 132, 12, 6, donker(k.c1, 0.15)) + el(120, 132, 12, 6, donker(k.c1, 0.15)), buik: `<ellipse cx="100" cy="112" rx="24" ry="18"/>`, gezicht: { x: 100, y: 54, a: 13, m: 6.5, my: 74, mm: 4 }, kop: [100, 26], rug: [100, 84], staart: [140, 124], mx: 100, my: 110, gx: 100, gy: 54 };
+  };
+  V.konijn = (P, k) => {
+    const lijf = 'M64 132q-8-46 36-52q44 6 36 52z';
+    const oren = oor(86, 46, 'lang', k, -1, P.oorS || 1) + oor(114, 46, 'lang', k, 1, P.oorS || 1);
+    const kop = ci(100, 64, 28, k.c1) + glim(86, 52, 8, 5);
+    return { achter: oren + ci(140, 120, 9, k.c2), romp: pa(lijf, k.c1) + kop, clip: `<path d="${lijf}"/>`, voor: el(100, 76, 6, 4, '#F28C9A') + el(82, 132, 13, 6, k.c2) + el(118, 132, 13, 6, k.c2), buik: `<ellipse cx="100" cy="114" rx="20" ry="14"/>`, gezicht: { x: 100, y: 62, a: 12, m: 7, my: 80, mm: 4 }, kop: [100, 36], rug: [100, 86], staart: [140, 120], mx: 100, my: 110, gx: 100, gy: 62 };
+  };
+  V.vogel = (P, k) => {
+    const lijf = 'M58 98q0-46 44-46q42 2 42 44q0 34-42 36q-44-2-44-34z';
+    const staart0 = pa('M136 104l30-6l-6 12l8 8l-30-2z', k.c3 && P.staartK ? P.staartK : donker(k.c1, 0.15));
+    const poten = st('M88 126v10M84 136h8M114 126v10M110 136h8', '#F2A93B', 3.4);
+    const vleug = pa('M116 92q30 4 28 26q-18 8-34-8z', donker(k.c1, 0.12));
+    return { achter: staart0 + poten, romp: pa(lijf, k.c1) + glim(80, 70, 10, 6), clip: `<path d="${lijf}"/>`, voor: vleug, buik: `<ellipse cx="92" cy="108" rx="24" ry="18"/>`, gezicht: { x: 90, y: 80, a: 13, m: 7, my: 92, mm: 7, w: true }, kop: [98, 54], rug: [118, 64], staart: [162, 104], mx: 100, my: 94, gx: 90, gy: 80 };
+  };
+  V.uil = (P, k) => {
+    const lijf = 'M62 132q-10-80 38-86q48 6 38 86z';
+    const gezichtsschijf = el(88, 78, 16, 15, k.c2) + el(112, 78, 16, 15, k.c2);
+    const oren = pa('M66 60l-6-24l20 14z', k.c1) + pa('M134 60l6-24l-20 14z', k.c1);
+    const vleug = pa('M64 92q-12 18 4 36q10-16 6-34z', donker(k.c1, 0.15)) + pa('M136 92q12 18-4 36q-10-16-6-34z', donker(k.c1, 0.15));
+    return { achter: oren, romp: pa(lijf, k.c1) + glim(82, 62, 9, 6), clip: `<path d="${lijf}"/>`, voor: gezichtsschijf + vleug + st('M90 132v6M110 132v6', '#F2A93B', 4), buik: `<ellipse cx="100" cy="110" rx="22" ry="16"/>`, gezicht: { x: 100, y: 78, a: 12, m: 8.5, my: 90, mm: 5, w: false }, kop: [100, 46], rug: [100, 60], staart: [120, 130], mx: 100, my: 100, gx: 100, gy: 78 };
+  };
+  V.vis = (P, k) => {
+    const lijf = 'M44 88q22-36 70-30q30 6 38 30q-8 24-38 30q-48 6-70-30z';
+    const staart0 = pa('M146 88l26-22q-6 22 0 44z', k.c2);
+    const vin = pa('M92 60q14-20 34-12q-12 4-14 14z', k.c2) + pa('M96 116q10 16 26 12q-10-4-10-14z', k.c2);
+    return { achter: staart0 + vin, romp: pa(lijf, k.c1) + glim(76, 72, 12, 5, -10), clip: `<path d="${lijf}"/>`, voor: st('M112 72q8 16 0 32', lijnK(k.c1), 2), buik: `<path d="M50 94q30 20 90 4q-30 18-90-4z"/>`, gezicht: { x: 70, y: 82, a: 0, m: 8, my: 98, mm: 5, w: false, een: true }, kop: [84, 60], rug: [104, 58], staart: [170, 88], mx: 96, my: 88, gx: 70, gy: 82 };
+  };
+  V.slang = (P, k) => {
+    const pad = 'M150 128q-60 6-54-20q6-26 34-28q30-4 16-30q-10-18-40-12';
+    const romp = st(pad, lijnK(k.c1), 30) + st(pad, k.c1, 25) + st(pad, licht(k.c1, 0.18), 6, 'opacity=".55" transform="translate(-4 -4)"');
+    const kop = el(96, 46, 24, 19, k.c1) + glim(86, 38, 7, 4);
+    const buik = st('M150 128q-60 6-54-20q6-26 34-28', k.c2, 9, 'opacity=".85"');
+    return { romp: romp + buik + kop, clip: `<ellipse cx="96" cy="46" rx="24" ry="19"/>`, voor: '', gezicht: { x: 94, y: 44, a: 10, m: 6, my: 56, mm: 6 }, kop: [96, 28], rug: [138, 70], staart: [152, 128], mx: 96, my: 46, gx: 94, gy: 44 };
+  };
+  V.kever = (P, k) => {
+    const poten = [[-1, 96], [-1, 108], [-1, 120], [1, 96], [1, 108], [1, 120]].map(([d, y]) => st(`M${100 + d * 28} ${y}l${d * 20} ${-6}l${d * 6} 10`, lijnK(k.c1), 3.4)).join('');
+    const schild = 'M64 112q0-40 36-42q36 2 36 42q-2 22-36 22q-34 0-36-22z';
+    const kop = el(100, 70, 20, 15, donker(k.c1, 0.3));
+    return { achter: poten, romp: kop + pa(schild, k.c1) + st('M100 72v60', lijnK(k.c1), 2.2) + glim(82, 92, 9, 5), clip: `<path d="${schild}"/>`, voor: '', gezicht: { x: 100, y: 68, a: 9, m: 5.5, my: 78, mm: 4, w: false }, kop: [100, 56], rug: [100, 92], staart: [100, 134], mx: 100, my: 104, gx: 100, gy: 68 };
+  };
+  V.spin = (P, k) => {
+    const poten = [-1, 1].map(d => [80, 92, 104, 116].map((y, i) => st(`M${100 + d * 20} ${y}q${d * 26} ${-18 + i * 4} ${d * 44} ${6 + i * 8}`, lijnK(k.c1), 4)).join('')).join('');
+    const achterlijf = el(100, 106, 30, 26, k.c1);
+    const kop = ci(100, 72, 20, donker(k.c1, 0.1));
+    return { achter: poten, romp: achterlijf + kop + glim(88, 94, 8, 5), clip: `<ellipse cx="100" cy="106" rx="30" ry="26"/>`, voor: '', gezicht: { x: 100, y: 70, a: 8, m: 5, my: 80, mm: 4, w: false }, kop: [100, 52], rug: [100, 96], staart: [100, 132], mx: 100, my: 108, gx: 100, gy: 70 };
+  };
+  V.vlinder = (P, k) => {
+    const vl = el(70, 70, 30, 24, k.vleugel || k.c2, 'transform="rotate(-20 70 70)"') + el(130, 70, 30, 24, k.vleugel || k.c2, 'transform="rotate(20 130 70)"') + el(76, 108, 20, 16, donker(k.vleugel || k.c2, 0.1), 'transform="rotate(20 76 108)"') + el(124, 108, 20, 16, donker(k.vleugel || k.c2, 0.1), 'transform="rotate(-20 124 108)"');
+    const oog = ci(68, 70, 9, k.c3) + ci(132, 70, 9, k.c3) + ci(68, 70, 4, '#fff', 'stroke="none"') + ci(132, 70, 4, '#fff', 'stroke="none"');
+    const lijf = el(100, 96, 11, 30, k.c1);
+    const kop = ci(100, 60, 14, k.c1);
+    return { achter: vl + oog, romp: lijf + kop + st('M94 90h12M93 100h14M94 110h12', lijnK(k.c1), 2), clip: `<ellipse cx="100" cy="96" rx="11" ry="30"/>`, voor: '', gezicht: { x: 100, y: 58, a: 6, m: 4, my: 66, mm: 3, w: false }, kop: [100, 46], rug: [100, 80], staart: [100, 126], mx: 100, my: 96, gx: 100, gy: 58 };
+  };
+  V.vleermuis = (P, k) => {
+    const lijf = el(100, 92, 26, 28, k.c1);
+    const oren = pa('M82 70l-8-26l18 16z', k.c1) + pa('M118 70l8-26l-18 16z', k.c1);
+    return { achter: oren + vleugel(78, 92, k, -1, 1.1, 'vleermuis') + vleugel(122, 92, k, 1, 1.1, 'vleermuis'), romp: lijf + glim(88, 76, 7, 5), clip: `<ellipse cx="100" cy="92" rx="26" ry="28"/>`, voor: st('M92 118v8M108 118v8', lijnK(k.c1), 3), buik: `<ellipse cx="100" cy="104" rx="15" ry="13"/>`, gezicht: { x: 100, y: 86, a: 10, m: 6.5, my: 100, mm: 5 }, kop: [100, 62], rug: [100, 70], staart: [100, 124], mx: 100, my: 94, gx: 100, gy: 86 };
+  };
+  V.schildpad = (P, k) => {
+    const poten = el(66, 126, 12, 8, k.c2) + el(134, 126, 12, 8, k.c2);
+    const kop = ci(54, 98, 18, k.c2);
+    const schild = 'M60 120q0-56 50-56q50 0 50 56z';
+    return { achter: poten + kop + pa('M160 116l14 4l-14 6z', k.c2), romp: pa(schild, k.c1) + pa('M56 120h108v6q-54 8-108 0z', donker(k.c1, 0.2)) + glim(92, 82, 12, 6), clip: `<path d="${schild}"/>`, voor: '', gezicht: { x: 52, y: 96, a: 6, m: 5, my: 106, mm: 4, w: false }, kop: [110, 64], rug: [110, 66], staart: [170, 120], mx: 110, my: 96, gx: 52, gy: 96 };
+  };
+  V.krab = (P, k) => {
+    const poten = [-1, 1].map(d => [104, 114, 124].map(y => st(`M${100 + d * 30} ${y}l${d * 18} ${6}l${d * 4} 10`, lijnK(k.c1), 4)).join('')).join('');
+    const scharen = pa('M58 92q-26-10-20-30q8 6 18 4q-4-10 6-14q10 12-4 40z', k.c1) + pa('M142 92q26-10 20-30q-8 6-18 4q4-10-6-14q-10 12 4 40z', k.c1);
+    const lijf = el(100, 106, 40, 24, k.c1);
+    const stelen = st('M88 86v-16M112 86v-16', lijnK(k.c1), 4);
+    return { achter: poten + stelen, romp: scharen + lijf + glim(82, 96, 10, 5), clip: `<ellipse cx="100" cy="106" rx="40" ry="24"/>`, voor: '', gezicht: { x: 100, y: 66, a: 12, m: 6, my: 112, mm: 6, w: false }, kop: [100, 80], rug: [100, 84], staart: [100, 128], mx: 100, my: 106, gx: 100, gy: 66 };
+  };
+  V.kwal = (P, k) => {
+    const tent = [72, 86, 100, 114, 128].map((x, i) => st(`M${x} 96q${i % 2 ? 8 : -8} 14 0 24q${i % 2 ? -8 : 8} 10 0 18`, k.c2, 5, 'opacity=".85"')).join('');
+    const kap = 'M58 98q0-54 42-54q42 0 42 54q-10 6-14 0q-8 6-14 0q-8 6-14 0q-8 6-14 0q-8 6-14 0q-6 6-14 0z';
+    return { achter: tent, romp: pa(kap, k.c1, 'fill-opacity=".92"') + glim(80, 64, 12, 6), clip: `<path d="${kap}"/>`, voor: '', gezicht: { x: 100, y: 76, a: 13, m: 7, my: 88, mm: 5 }, kop: [100, 46], rug: [100, 50], staart: [100, 136], mx: 100, my: 76, gx: 100, gy: 76 };
+  };
+  V.octo = (P, k) => {
+    const armen = [-3, -2, -1, 1, 2, 3].map(i => st(`M${100 + i * 9} 102q${i * 10} 18 ${i * 18} 22q${i * 4} 4 ${i * 2} -8`, lijnK(k.c1), 12) + st(`M${100 + i * 9} 102q${i * 10} 18 ${i * 18} 22q${i * 4} 4 ${i * 2} -8`, k.c1, 8)).join('');
+    const kop = 'M64 96q-4-60 36-60q40 0 36 60q-36 14-72 0z';
+    return { achter: armen, romp: pa(kop, k.c1) + glim(82, 56, 10, 6), clip: `<path d="${kop}"/>`, voor: '', gezicht: { x: 100, y: 78, a: 13, m: 7.5, my: 92, mm: 5 }, kop: [100, 38], rug: [100, 42], staart: [100, 128], mx: 100, my: 70, gx: 100, gy: 78 };
+  };
+  V.golem = (P, k) => {
+    const lijf = 'M64 132l-4-50q0-12 12-14h56q12 2 12 14l-4 50z';
+    const kop = 'M76 70l-2-30q0-8 8-8h36q8 0 8 8l-2 30z';
+    const armen = pa('M60 80q-22 6-20 34q2 10 12 10q8-2 8-12z', donker(k.c1, 0.1)) + pa('M140 80q22 6 20 34q-2 10-12 10q-8-2-8-12z', donker(k.c1, 0.1));
+    return { achter: '', romp: pa(lijf, k.c1) + pa(kop, licht(k.c1, 0.08)) + glim(84, 44, 8, 4, -10), clip: `<path d="${lijf}"/>`, voor: armen + `<rect x="74" y="128" width="20" height="8" rx="2" fill="${donker(k.c1, 0.25)}" stroke="${lijnK(k.c1)}" stroke-width="2"/><rect x="106" y="128" width="20" height="8" rx="2" fill="${donker(k.c1, 0.25)}" stroke="${lijnK(k.c1)}" stroke-width="2"/>`, buik: `<ellipse cx="100" cy="106" rx="22" ry="16"/>`, gezicht: { x: 100, y: 52, a: 11, m: 6, my: 62, mm: 6, w: false }, kop: [100, 32], rug: [100, 70], staart: [138, 126], mx: 100, my: 102, gx: 100, gy: 52 };
+  };
+  V.kristal = (P, k) => {
+    const kl = k.c1;
+    const zij = kristal(70, 124, 1.5, donker(kl, 0.1), -24) + kristal(130, 124, 1.5, donker(kl, 0.1), 24);
+    const mid = 'M80 126l4-56l16-26l16 26l4 56z';
+    return { achter: zij, romp: pa(mid, kl) + pl('M100 46l-8 26l8 52l6-52z', '#fff', 'opacity=".35"'), clip: `<path d="${mid}"/>`, voor: el(100, 130, 30, 6, donker(kl, 0.3)), gezicht: { x: 100, y: 84, a: 9, m: 5.5, my: 98, mm: 4 }, kop: [100, 44], rug: [100, 60], staart: [130, 110], mx: 100, my: 92, gx: 100, gy: 84 };
+  };
+  V.wolk = (P, k) => {
+    const d = 'M52 116a20 20 0 0 1 6-38a24 24 0 0 1 36-20a26 26 0 0 1 42 6a20 20 0 0 1 14 32a14 14 0 0 1-8 20z';
+    return { romp: pa(d, k.c1) + glim(80, 72, 12, 6), clip: `<path d="${d}"/>`, voor: el(70, 122, 8, 5, k.c2) + el(130, 122, 8, 5, k.c2), gezicht: { x: 100, y: 92, a: 13, m: 7, my: 104, mm: 6 }, kop: [100, 56], rug: [100, 60], staart: [150, 100], mx: 100, my: 94, gx: 100, gy: 92 };
+  };
+  V.spook = (P, k) => {
+    const d = 'M64 120q-6-80 36-80q42 0 36 80q-6 10-12 2q-6 10-12 0q-6 10-12 0q-6 10-12 0q-6 10-12 0q-6 8-12-2z';
+    return { romp: pa(d, k.c1, 'fill-opacity=".95"') + glim(82, 62, 10, 6), clip: `<path d="${d}"/>`, voor: el(62, 92, 8, 11, k.c1, 'transform="rotate(30 62 92)"') + el(138, 92, 8, 11, k.c1, 'transform="rotate(-30 138 92)"'), gezicht: { x: 100, y: 76, a: 13, m: 7.5, my: 92, mm: 6 }, kop: [100, 40], rug: [100, 46], staart: [128, 124], mx: 100, my: 84, gx: 100, gy: 76 };
+  };
+  V.paddo = (P, k) => {
+    const steel = 'M80 132q-4-26 4-44h32q8 18 4 44z';
+    const hoed = 'M40 90q0-54 60-56q60 2 60 56q-60 10-120 0z';
+    const stippen = [[70, 60, 9], [100, 48, 8], [128, 62, 10], [86, 78, 6], [118, 80, 6]].map(([x, y, r]) => ci(x, y, r, k.c2, 'stroke="none"')).join('');
+    return { romp: pa(steel, k.c3 && P.steelK ? P.steelK : '#F2E8D0') + pa(hoed, k.c1) + stippen + glim(66, 52, 10, 5), clip: `<path d="${steel}"/>`, voor: '', gezicht: { x: 100, y: 104, a: 10, m: 6, my: 118, mm: 5 }, kop: [100, 36], rug: [100, 40], staart: [140, 92], mx: 100, my: 108, gx: 100, gy: 104 };
+  };
+  V.plant = (P, k) => {
+    const pot = P.pot ? pa('M70 132l-4-22h68l-4 22z', '#B5603A') : '';
+    const bol = 'M64 108q0-34 36-34q36 0 36 34q0 22-36 22q-36 0-36-22z';
+    return { achter: '', romp: pot + pa(bol, k.c1) + glim(82, 90, 10, 6), clip: `<path d="${bol}"/>`, voor: '', buik: `<ellipse cx="100" cy="116" rx="22" ry="10"/>`, gezicht: { x: 100, y: 102, a: 13, m: 7, my: 116, mm: 5 }, kop: [100, 76], rug: [100, 76], staart: [136, 112], mx: 100, my: 104, gx: 100, gy: 102 };
+  };
+  V.rups = (P, k) => {
+    const delen = [[148, 118, 13], [130, 114, 15], [112, 110, 16], [94, 106, 17]].map(([x, y, r], i) => ci(x, y, r, i % 2 ? k.c1 : k.c2) + el(x, y + r - 2, 4, 3, donker(k.c1, 0.3))).join('');
+    return { achter: delen, romp: ci(72, 92, 24, k.c1) + glim(62, 80, 7, 4), clip: `<circle cx="72" cy="92" r="24"/>`, voor: '', gezicht: { x: 72, y: 90, a: 10, m: 6, my: 102, mm: 5 }, kop: [72, 66], rug: [120, 96], staart: [160, 118], mx: 72, my: 92, gx: 72, gy: 90 };
+  };
+  V.slak = (P, k) => {
+    const lijf = 'M42 128q4-26 26-26h50q20 2 34 26z';
+    const huis = ci(110, 90, 32, k.c2) + st('M110 90m-22 0a22 22 0 1 1 22 22a14 14 0 1 1 10-14a6 6 0 1 1-6-6', lijnK(k.c2), 3);
+    return { achter: '', romp: pa(lijf, k.c1) + huis + glim(96, 72, 10, 6), clip: `<circle cx="110" cy="90" r="32"/>`, voor: st('M56 104l-6-20M66 104l2-20', lijnK(k.c1), 3) + ci(50, 82, 4, k.c1) + ci(68, 82, 4, k.c1), gezicht: { x: 60, y: 112, a: 7, m: 5, my: 120, mm: 4, w: false }, kop: [110, 58], rug: [112, 60], staart: [150, 126], mx: 110, my: 90, gx: 60, gy: 112 };
+  };
+  V.egel = (P, k) => {
+    let stekels = ''; for (let i = 0; i < 9; i++) { const a = Math.PI * (1.05 + i * 0.11), x = 108 + Math.cos(a) * 40, y = 102 + Math.sin(a) * 34; stekels += pa(`M${f1(x - 8)} ${f1(y + 6)}L${f1(108 + Math.cos(a) * 60)} ${f1(102 + Math.sin(a) * 52)}L${f1(x + 8)} ${f1(y + 4)}z`, k.c3 && P.stekelK ? P.stekelK : donker(k.c1, 0.25)); }
+    const lijf = el(108, 106, 42, 28, k.c1);
+    return { achter: stekels, romp: lijf + el(72, 108, 18, 16, k.c2), clip: `<ellipse cx="108" cy="106" rx="42" ry="28"/>`, voor: el(58, 110, 4, 3, '#2A1D14') + el(90, 132, 9, 5, donker(k.c1, 0.2)) + el(124, 132, 9, 5, donker(k.c1, 0.2)), gezicht: { x: 74, y: 102, a: 7, m: 5, my: 114, mm: 3, w: true }, kop: [108, 66], rug: [118, 70], staart: [150, 112], mx: 112, my: 100, gx: 74, gy: 102 };
+  };
+  V.draak = (P, k) => {
+    const staart0 = pa('M120 118q40 4 48-24q4 14-6 26q-14 14-44 10z', k.c1) + pa('M166 94l8-8l-2 14z', k.c3);
+    const lijf = 'M66 132q-8-52 34-58q42 6 34 58z';
+    const kop = el(100, 58, 26, 22, k.c1);
+    const snuit = el(100, 70, 16, 10, licht(k.c1, 0.1)) + ci(94, 68, 1.8, '#2A1D14', 'stroke="none"') + ci(106, 68, 1.8, '#2A1D14', 'stroke="none"');
+    return { achter: staart0, romp: pa(lijf, k.c1) + kop + glim(86, 48, 8, 5), clip: `<path d="${lijf}"/>`, voor: snuit + el(70, 104, 8, 13, k.c1, 'transform="rotate(25 70 104)"') + el(130, 104, 8, 13, k.c1, 'transform="rotate(-25 130 104)"') + el(82, 132, 13, 6, donker(k.c1, 0.2)) + el(118, 132, 13, 6, donker(k.c1, 0.2)), buik: `<path d="M86 132q-4-26 14-40q18 14 14 40z"/>`, gezicht: { x: 100, y: 54, a: 12, m: 6.5, my: 76, mm: 6, w: false }, kop: [100, 36], rug: [100, 86], staart: [170, 92], mx: 100, my: 108, gx: 100, gy: 54 };
+  };
+  V.kikker = (P, k) => {
+    const lijf = 'M48 124q-4-44 52-46q56 2 52 46q-52 12-104 0z';
+    const ogenbult = ci(76, 72, 15, k.c1) + ci(124, 72, 15, k.c1);
+    return { achter: el(54, 126, 16, 7, donker(k.c1, 0.15)) + el(146, 126, 16, 7, donker(k.c1, 0.15)), romp: ogenbult + pa(lijf, k.c1) + glim(70, 92, 10, 5), clip: `<path d="${lijf}"/>`, voor: el(80, 128, 10, 5, donker(k.c1, 0.1)) + el(120, 128, 10, 5, donker(k.c1, 0.1)), buik: `<ellipse cx="100" cy="112" rx="32" ry="12"/>`, gezicht: { x: 100, y: 70, a: 24, m: 8, my: 100, mm: 10, w: true }, kop: [100, 56], rug: [100, 80], staart: [148, 116], mx: 100, my: 104, gx: 100, gy: 70 };
+  };
+  V.paard = (P, k) => {
+    const poten = [[84, 108], [96, 112], [124, 108], [136, 112]].map(([x, y]) => `<rect x="${x - 5}" y="${y}" width="10" height="24" rx="5" fill="${k.c1}" stroke="${lijnK(k.c1)}" stroke-width="${SW}"/>` + el(x, y + 24, 6, 3, donker(k.c1, 0.4))).join('');
+    const romp = el(112, 98, 36, 20, k.c1);
+    const nek = pa('M76 100q-6-30 4-44l20 6q-4 18 8 30z', k.c1);
+    const kop = el(78, 54, 15, 20, k.c1, 'transform="rotate(-30 78 54)"');
+    const manen = pa('M86 34q20 6 20 34q-8-8-12-4q0-14-8-30z', k.manen || k.c2);
+    return { achter: poten + pa('M146 92q20 4 20 30q-12-6-18-18z', k.manen || k.c2), romp: romp + nek + manen + kop + glim(70, 44, 6, 4), clip: `<ellipse cx="112" cy="98" rx="36" ry="20"/>`, voor: el(70, 66, 5, 3, '#2A1D14'), gezicht: { x: 80, y: 48, a: 0, m: 6, my: 64, mm: 3, w: false, een: true }, kop: [82, 34], rug: [114, 78], staart: [166, 120], mx: 112, my: 98, gx: 80, gy: 48 };
+  };
+  V.walvis = (P, k) => {
+    const lijf = 'M30 100q4-46 70-46q56 0 66 34q6 22-20 34q-30 14-80 8q-38-6-36-30z';
+    return { achter: pa('M156 94q14-34 34-30q-6 12-18 18q16-4 20 8q-20 8-34 10z', k.c1), romp: pa(lijf, k.c1) + glim(70, 68, 16, 6, -10), clip: `<path d="${lijf}"/>`, voor: pa('M84 116q8 18 26 14q-12-8-14-18z', donker(k.c1, 0.12)), buik: `<path d="M36 104q50 22 120 2q-40 24-120-2z"/>`, gezicht: { x: 64, y: 88, a: 0, m: 6, my: 104, mm: 8, w: false, een: true }, kop: [84, 54], rug: [100, 54], staart: [186, 70], mx: 100, my: 94, gx: 64, gy: 88 };
+  };
+  V.wolf = (P, k) => {
+    const v = V.vos(Object.assign({}, P, { oor: P.oor || 'punt', staart: P.staart || 'pluim', oorS: 1.15 }), k);
+    v.romp = el(116, 98, 44, 26, k.c1) + oor(54, 52, 'punt', k, -1, 1.2) + oor(94, 52, 'punt', k, 1, 1.2) + ci(74, 74, 30, k.c1) + glim(62, 60, 8, 5) + pa('M50 84q-4 14 10 18l-4-10z', k.c2) + pa('M98 84q4 14-10 18l4-10z', k.c2);
+    v.clip = `<ellipse cx="116" cy="98" rx="44" ry="26"/>`;
+    return v;
+  };
+
+  // ---------- voorwerpen (Rommel en andere levende spullen)
+  V.sok = (P, k) => { const d = 'M80 30h40v58q0 14 14 22q10 8 4 18q-8 10-30 2q-28-10-28-36z'; return { romp: pa(d, k.c1) + pl('M80 30h40v12h-40z', k.c2) + pl('M80 46h40v6h-40z', k.c3, 'opacity=".7"') + pl('M80 58h40v6h-40z', k.c3, 'opacity=".7"') + pa('M120 108q10 4 16 12q-6 8-20 4z', k.c2), clip: `<path d="${d}"/>`, gezicht: { x: 100, y: 76, a: 10, m: 6, my: 90, mm: 5 }, kop: [100, 30], rug: [100, 36], staart: [138, 120], mx: 100, my: 80, gx: 100, gy: 76 }; };
+  V.theepot = (P, k) => { const lijf = 'M58 120q-8-50 42-52q50 2 42 52q-42 12-84 0z'; return { achter: pa('M58 84q-26-8-28 12q4 16 30 14', 'none', `stroke-width="7" stroke="${lijnK(k.c1)}"`) + pa('M140 92q24-14 30-34l8 4q-8 30-34 44z', k.c1), romp: pa(lijf, k.c1) + el(100, 68, 32, 7, donker(k.c1, 0.12)) + el(100, 60, 14, 6, k.c2) + ci(100, 52, 5, k.c3) + pl('M64 104q36 10 72 0', 'none', `stroke="${k.c2}" stroke-width="5"`) + glim(80, 84, 10, 6), clip: `<path d="${lijf}"/>`, gezicht: { x: 100, y: 90, a: 13, m: 7, my: 104, mm: 6 }, kop: [100, 46], rug: [100, 60], staart: [176, 58], mx: 100, my: 96, gx: 100, gy: 90 }; };
+  V.klok = (P, k) => { const voetjes = el(74, 130, 9, 5, k.c3) + el(126, 130, 9, 5, k.c3); return { achter: voetjes + ci(70, 46, 12, k.c2) + ci(130, 46, 12, k.c2) + st('M70 46l10 12M130 46l-10 12', lijnK(k.c2), 3), romp: ci(100, 88, 40, k.c1) + ci(100, 88, 31, '#FBF6E9') + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => { const a = i * Math.PI / 6; return `<circle cx="${f1(100 + Math.cos(a) * 26)}" cy="${f1(88 + Math.sin(a) * 26)}" r="1.6" fill="#2A1D14"/>`; }).join('') + st('M100 88V70M100 88l12 6', '#2A1D14', 3) + ci(100, 36, 5, k.c3), clip: `<circle cx="100" cy="88" r="31"/>`, gezicht: { x: 100, y: 96, a: 13, m: 5.5, my: 108, mm: 4, w: false }, kop: [100, 40], rug: [100, 46], staart: [140, 110], mx: 100, my: 88, gx: 100, gy: 96 }; };
+  V.laars = (P, k) => { const d = 'M70 32h44v66q30 4 32 24v10H70z'; return { romp: pa(d, k.c1) + pl('M70 32h44v10H70z', k.c2) + pa('M68 126h80v8H68z', donker(k.c1, 0.3)) + glim(82, 56, 6, 14, 0), clip: `<path d="${d}"/>`, gezicht: { x: 92, y: 74, a: 10, m: 6, my: 88, mm: 5 }, kop: [92, 32], rug: [92, 40], staart: [146, 118], mx: 92, my: 80, gx: 92, gy: 74 }; };
+  V.paraplu = (P, k) => { const scherm = 'M36 76q4-46 64-48q60 2 64 48q-10-8-21 0q-10-8-21 0q-11-8-22 0q-11-8-22 0q-11-8-21 0q-11-8-21 0z'; return { achter: st('M100 76v48q0 10-10 10t-10-10', lijnK('#5C3A21'), 6) + st('M100 76v48q0 10-10 10t-10-10', '#7A4E2D', 3.5), romp: pa(scherm, k.c1) + pl('M100 28q-14 20-14 48M100 28q14 20 14 48M100 28q-34 16-42 48M100 28q34 16 42 48', 'none', `stroke="${lijnK(k.c1)}" stroke-width="1.6"`) + ci(100, 26, 4, k.c3), clip: `<path d="${scherm}"/>`, gezicht: { x: 100, y: 54, a: 14, m: 6.5, my: 66, mm: 5 }, kop: [100, 22], rug: [100, 30], staart: [80, 130], mx: 100, my: 56, gx: 100, gy: 54 }; };
+  V.rooster = (P, k) => { const d = 'M54 126V70q0-16 16-16h60q16 0 16 16v56z'; return { achter: pa('M76 58q2-22 10-24h4q-6 8-6 24zM110 58q2-22 10-24h4q-6 8-6 24z', '#C98A43'), romp: pa(d, k.c1) + pl('M70 54h24v8H70zM106 54h24v8h-24z', '#23252B') + `<rect x="144" y="86" width="10" height="20" rx="3" fill="#23252B"/>` + glim(70, 80, 8, 14, 0), clip: `<path d="${d}"/>`, voor: el(70, 128, 9, 4, '#23252B') + el(130, 128, 9, 4, '#23252B'), gezicht: { x: 100, y: 90, a: 15, m: 7, my: 106, mm: 6 }, kop: [100, 40], rug: [100, 54], staart: [150, 100], mx: 100, my: 92, gx: 100, gy: 90 }; };
+  V.batterij = (P, k) => { const d = 'M72 128V48q0-8 8-8h40q8 0 8 8v80z'; return { romp: pa(d, k.c1) + pl('M72 92h56v36H72z', k.c2) + `<rect x="90" y="30" width="20" height="10" rx="3" fill="#9AA6C2" stroke="#3E465A" stroke-width="2"/>` + pl('M96 106h8M100 102v8', 'none', `stroke="${lijnK(k.c2)}" stroke-width="3"`) + glim(82, 62, 5, 14, 0), clip: `<path d="${d}"/>`, voor: el(84, 130, 9, 4, '#3A3D46') + el(116, 130, 9, 4, '#3A3D46'), gezicht: { x: 100, y: 66, a: 11, m: 6.5, my: 80, mm: 5 }, kop: [100, 30], rug: [100, 40], staart: [128, 110], mx: 100, my: 84, gx: 100, gy: 66 }; };
+  V.stekker = (P, k) => { const d = 'M68 112V72q0-14 14-14h36q14 0 14 14v40q0 10-10 10H78q-10 0-10-10z'; return { achter: st('M100 122q0 14 20 14h50', lijnK('#23252B'), 8) + st('M100 122q0 14 20 14h50', '#3A3D46', 5) + `<rect x="80" y="36" width="8" height="24" rx="2" fill="#C9CED6" stroke="#6F7785" stroke-width="2"/><rect x="112" y="36" width="8" height="24" rx="2" fill="#C9CED6" stroke="#6F7785" stroke-width="2"/>`, romp: pa(d, k.c1) + glim(80, 72, 5, 10, 0), clip: `<path d="${d}"/>`, gezicht: { x: 100, y: 86, a: 12, m: 7, my: 102, mm: 5 }, kop: [100, 36], rug: [100, 58], staart: [168, 136], mx: 100, my: 90, gx: 100, gy: 86 }; };
+  V.lamp = (P, k) => { const peer = 'M100 22q32 0 32 34q0 18-14 30v10H82V86Q68 74 68 56q0-34 32-34z'; return { achter: `<circle cx="100" cy="56" r="44" fill="${k.gloed || '#FFE76A'}" opacity=".25"/>`, romp: pa(peer, k.c1, 'fill-opacity=".95"') + pa('M82 96h36v8l-4 4v6l-4 4H90l-4-4v-6l-4-4z', '#9AA6C2') + st('M90 100h20M90 108h20', '#5F6470', 2) + st('M92 72q8-16 16 0', '#F2A93B', 2.4) + glim(84, 42, 6, 10, -10), clip: `<path d="${peer}"/>`, voor: st('M88 118l-6 16M112 118l6 16', '#5F6470', 4), gezicht: { x: 100, y: 52, a: 12, m: 6.5, my: 66, mm: 5 }, kop: [100, 22], rug: [100, 30], staart: [120, 130], mx: 100, my: 56, gx: 100, gy: 52 }; };
+  V.lucifer = (P, k) => { const stok = 'M90 132V58h20v74z'; return { romp: pa(stok, '#E9C48A') + el(100, 50, 18, 22, k.c1) + glim(92, 40, 5, 8), clip: `<path d="${stok}"/>`, voor: el(88, 134, 8, 3, '#7A4E2D') + el(112, 134, 8, 3, '#7A4E2D'), gezicht: { x: 100, y: 52, a: 8, m: 5, my: 62, mm: 4 }, kop: [100, 28], rug: [100, 34], staart: [110, 120], mx: 100, my: 96, gx: 100, gy: 52 }; };
+  V.fakkel = (P, k) => { const stok = 'M92 134l-4-70h24l-4 70z'; return { romp: pa(stok, '#7A4E2D') + pa('M80 64h40l-4 16H84z', k.c1) + st('M84 70h32', lijnK(k.c1), 2), clip: `<path d="${stok}"/>`, voor: '', gezicht: { x: 100, y: 96, a: 7, m: 5, my: 108, mm: 4, w: false }, kop: [100, 62], rug: [100, 64], staart: [100, 130], mx: 100, my: 100, gx: 100, gy: 96 }; };
+  V.vlieger = (P, k) => { const d = 'M100 22l40 50l-40 56l-40-56z'; return { achter: st('M100 128q-10 8 0 14t-4 14', '#5F6470', 2) + ci(100, 142, 4, k.c3) + ci(96, 154, 4, k.c2), romp: pa(d, k.c1) + pl('M100 22l40 50H60z', k.c2, 'opacity=".9"') + st('M100 22v106M60 72h80', lijnK(k.c1), 2), clip: `<path d="${d}"/>`, gezicht: { x: 100, y: 84, a: 12, m: 6.5, my: 98, mm: 5 }, kop: [100, 22], rug: [100, 40], staart: [100, 128], mx: 100, my: 76, gx: 100, gy: 84 }; };
+  V.molen = (P, k) => { const toren = 'M72 132l10-78h36l10 78z'; const wiek = (a) => `<g transform="rotate(${a} 100 52)"><rect x="96" y="6" width="8" height="46" fill="#7A4E2D" stroke="#3A2416" stroke-width="1.6"/><rect x="104" y="10" width="14" height="38" fill="${k.c2}" stroke="#3A2416" stroke-width="1.6"/></g>`; return { achter: '', romp: pa(toren, k.c1) + pa('M76 58l24-22l24 22z', k.c3) + `<rect x="92" y="108" width="16" height="24" rx="8" fill="#7A4E2D" stroke="#3A2416" stroke-width="2"/>` + [15, 105, 195, 285].map(wiek).join('') + ci(100, 52, 5, '#3A2416'), clip: `<path d="${toren}"/>`, gezicht: { x: 100, y: 82, a: 10, m: 5.5, my: 94, mm: 4 }, kop: [100, 30], rug: [100, 60], staart: [128, 120], mx: 100, my: 92, gx: 100, gy: 82 }; };
+  V.kaars = (P, k) => { const d = 'M80 132V66q0-6 6-6h28q6 0 6 6v66z'; return { romp: pa(d, k.c1) + pa('M80 66q4 12 8 4q4 14 8 2q4 16 8 0q4 12 8 2q4 8 8-8', k.c2) + st('M100 60v-8', '#2A1D14', 2.4) + glim(88, 84, 4, 12, 0), clip: `<path d="${d}"/>`, voor: el(100, 134, 30, 5, '#9AA6C2'), gezicht: { x: 100, y: 96, a: 9, m: 5.5, my: 110, mm: 4 }, kop: [100, 52], rug: [100, 56], staart: [120, 130], mx: 100, my: 100, gx: 100, gy: 96 }; };
+  V.grafsteen = (P, k) => { const d = 'M64 132V66q0-34 36-34q36 0 36 34v66z'; return { romp: pa(d, k.c1) + pa('M56 128h88v8H56z', donker(k.c1, 0.25)) + st('M92 50h16M100 42v20', donker(k.c1, 0.35), 4) + st('M76 104l10 6l-4 10', donker(k.c1, 0.3), 2) + glim(78, 56, 6, 12, 0), clip: `<path d="${d}"/>`, voor: pl('M60 132q10-8 16 0q8-6 12 0', '#4E8A3E'), gezicht: { x: 100, y: 84, a: 13, m: 7, my: 98, mm: 5 }, kop: [100, 32], rug: [100, 40], staart: [136, 126], mx: 100, my: 90, gx: 100, gy: 84 }; };
+  V.kampvuur = (P, k) => { return { achter: pa('M52 128l92-18l4 10l-92 18z', '#7A4E2D') + pa('M56 110l92 18l-4 10l-92-18z', '#8C5A32'), romp: vlam(100, 120, 2.1, k) + vlam(80, 124, 1.1, k) + vlam(120, 124, 1.1, k), clip: `<circle cx="100" cy="96" r="20"/>`, voor: '', gezicht: { x: 100, y: 98, a: 9, m: 5.5, my: 110, mm: 4, w: false }, kop: [100, 52], rug: [100, 60], staart: [140, 120], mx: 100, my: 96, gx: 100, gy: 98 }; };
+  V.peper = (P, k) => { const d = 'M86 44q-30 20-22 60q6 28 30 30q20-2 22-36q0-30-14-50z'; return { achter: '', romp: pa(d, k.c1) + pa('M86 44q4-10 16-8q-2 6-10 10z', '#2E8B62') + st('M96 38q2-14 12-16', '#2E6B2A', 4) + glim(80, 70, 6, 14, -10), clip: `<path d="${d}"/>`, gezicht: { x: 96, y: 82, a: 10, m: 6, my: 96, mm: 5 }, kop: [96, 30], rug: [96, 44], staart: [100, 132], mx: 96, my: 88, gx: 96, gy: 82 }; };
+  V.ketel = (P, k) => { const lijf = 'M58 124q-6-52 42-56q48 4 42 56q-42 10-84 0z'; return { achter: st('M68 70q32-40 64 0', lijnK('#23252B'), 8) + st('M68 70q32-40 64 0', '#3A3D46', 5) + pa('M138 98q22-6 26-26l8 2q-2 28-30 38z', k.c1), romp: pa(lijf, k.c1) + el(100, 70, 22, 6, donker(k.c1, 0.15)) + ci(100, 64, 5, '#23252B') + glim(78, 90, 9, 6), clip: `<path d="${lijf}"/>`, gezicht: { x: 100, y: 96, a: 13, m: 7, my: 110, mm: 6 }, kop: [100, 56], rug: [100, 62], staart: [170, 72], mx: 100, my: 98, gx: 100, gy: 96 }; };
+  V.blik = (P, k) => { const d = 'M66 130V50q0-8 34-8t34 8v80q0 6-34 6t-34-6z'; return { romp: pa(d, k.c1) + el(100, 50, 34, 8, licht(k.c1, 0.3)) + el(100, 50, 26, 5, donker(k.c1, 0.1)) + pl('M66 74q34 8 68 0v26q-34 8-68 0z', k.c2) + glim(78, 90, 5, 20, 0), clip: `<path d="${d}"/>`, gezicht: { x: 100, y: 84, a: 12, m: 6.5, my: 96, mm: 5 }, kop: [100, 42], rug: [100, 50], staart: [134, 120], mx: 100, my: 90, gx: 100, gy: 84 }; };
+  V.wasgoed = (P, k) => { const d = 'M44 132q-4-40 20-50q-6-30 26-32q8-18 30-8q28 0 26 30q24 12 14 60z'; return { romp: pa(d, k.c1) + pa('M60 96q20 10 40-2q14 16 34 4', 'none', `stroke="${k.c2}" stroke-width="10"`) + pa('M70 66q14 8 28-2', 'none', `stroke="${k.c3}" stroke-width="8"`) + pa('M48 116q24 10 42 0', 'none', `stroke="${licht(k.c3, 0.3)}" stroke-width="8"`) + pa('M120 48l14-10l10 10l-10 12z', k.c2), clip: `<path d="${d}"/>`, gezicht: { x: 100, y: 82, a: 15, m: 7.5, my: 98, mm: 7 }, kop: [96, 44], rug: [100, 50], staart: [150, 120], mx: 100, my: 96, gx: 100, gy: 82 }; };
+
+  // ---------- achtergronden per element
+  const ACHTER = {
+    vuur: ['#FFB27A', '#E8572A', (r) => [0, 1, 2, 3, 4].map(i => `<path d="M${20 + i * 40} 150q-14-30 6-60q6 20 14 24q0-22 14-34q4 30 10 70z" fill="#FFE0A3" opacity=".25"/>`).join('') + [0, 1, 2, 3, 4, 5, 6, 7].map(i => `<circle cx="${(i * 37) % 200}" cy="${20 + (i * 53) % 100}" r="${1.5 + (i % 3)}" fill="#FFF0C2" opacity=".6"/>`).join('')],
+    water: ['#A9DCF7', '#3A8DDE', () => [0, 1, 2, 3].map(i => `<path d="M0 ${40 + i * 30}q25-10 50 0t50 0t50 0t50 0" stroke="#fff" stroke-width="3" fill="none" opacity=".25"/>`).join('') + [[30, 30, 6], [170, 40, 4], [150, 120, 7], [40, 110, 4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/>`).join('')],
+    blad: ['#D7F0B5', '#5BAE4A', () => [[20, 140, -20], [180, 150, 30], [40, 40, 40], [168, 46, -40]].map(([x, y, rt]) => `<g transform="rotate(${rt} ${x} ${y})" opacity=".28"><path d="M${x} ${y}q-18-22 0-46q18 24 0 46z" fill="#2E6B2A"/></g>`).join('') + `<path d="M0 150q50-20 100-10t100-6v16z" fill="#2E6B2A" opacity=".25"/>`],
+    steen: ['#E8DCC8', '#9A8F84', () => `<path d="M0 150l20-36l26 18l24-30l30 26l26-22l30 30l20-18l24 32z" fill="#5C544B" opacity=".25"/>` + [[30, 40], [168, 30], [150, 70]].map(([x, y]) => `<path d="M${x} ${y}l6-12l6 12l-6 8z" fill="#fff" opacity=".35"/>`).join('')],
+    bliksem: ['#FFF3B0', '#F6A93B', () => [[30, 20], [160, 30], [110, 10]].map(([x, y]) => `<path d="M${x} ${y}l10 0l-8 20l12 0l-20 30l6-22l-10 0z" fill="#fff" opacity=".45"/>`).join('') + `<circle cx="100" cy="80" r="70" fill="#fff" opacity=".18"/>`],
+    wind: ['#F2FAFF', '#9FC6E8', () => [[20, 40], [130, 30], [60, 110], [150, 100]].map(([x, y]) => `<path d="M${x} ${y}q20-10 40 0q10 6 4 12q-6 4-10-2" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>`).join('')],
+    schaduw: ['#6E5A9A', '#241634', () => `<circle cx="160" cy="34" r="16" fill="#FFE9A8" opacity=".85"/><circle cx="166" cy="30" r="14" fill="#3A2852"/>` + [[20, 20], [50, 50], [130, 20], [100, 40], [180, 80], [30, 90]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 1 : 1.6}" fill="#fff" opacity=".8"/>`).join('') + `<path d="M0 150q40-30 80-10t70-10t50 4v16z" fill="#120A1C" opacity=".5"/>`],
+    rommel: ['#F2DDA0', '#C9A35B', () => { let d = ''; for (let x = 10; x < 200; x += 16) for (let y = 10; y < 150; y += 16) d += `<circle cx="${x}" cy="${y}" r="2" fill="#7A5A2A" opacity=".35"/>`; return d + `<rect x="0" y="128" width="200" height="22" fill="#9A6438" opacity=".55"/>`; }],
+  };
+  function achtergrond(e, fullArt, set) {
+    const a = ACHTER[e] || ACHTER.rommel, id = 'bg' + (++uid);
+    if (set === 'helden') {
+      const h = fullArt ? 280 : 150; let stralen = '';
+      for (let i = 0; i < 18; i++) { const a0 = i * Math.PI / 9, a1 = a0 + Math.PI / 18; stralen += `<path d="M100 ${h * 0.45}L${f1(100 + Math.cos(a0) * 320)} ${f1(h * 0.45 + Math.sin(a0) * 320)}L${f1(100 + Math.cos(a1) * 320)} ${f1(h * 0.45 + Math.sin(a1) * 320)}z" fill="#fff" opacity=".16"/>`; }
+      let stip = ''; for (let x = 6; x < 200; x += 12) for (let y = 6; y < h; y += 12) if ((x + y) % 24 === 12) stip += `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff" opacity=".22"/>`;
+      return `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="${a[0]}"/><stop offset="1" stop-color="${a[1]}"/></radialGradient></defs><rect width="200" height="${h}" fill="url(#${id})"/>` + stralen + stip;
+    }
+    return `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="${a[0]}"/><stop offset="1" stop-color="${a[1]}"/></radialGradient></defs><rect width="200" height="${fullArt ? 280 : 150}" fill="url(#${id})"/>` + a[2]();
+  }
+
+  // ---------- een beest tekenen
+  function beest(spec, opties) {
+    opties = opties || {};
+    const f = V[spec.v] || V.bol;
+    const k = Object.assign({}, spec.k);
+    const P = spec.p || {};
+    const A = f(P, k);
+    A.s = P.as || 1;
+    const id = 'kl' + (++uid);
+    const acc = spec.a || [];
+    let svg = '';
+    if (opties.silhouet) {
+      const inner = (A.achter || '') + acc.map(a => accessoire(a, A, k, 'achter')).join('') + A.romp + (A.voor || '') + acc.map(a => accessoire(a, A, k, 'voor')).join('');
+      svg = `<g filter="url(#sil${id})">${inner}</g>`;
+      return `<defs><filter id="sil${id}"><feColorMatrix type="matrix" values="0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.12  0 0 0 1 0"/></filter></defs>` + groep(svg, P);
+    }
+    svg += acc.map(a => accessoire(a, A, k, 'achter')).join('');
+    svg += A.achter || '';
+    svg += A.romp;
+    const binnen = (spec.pat ? patroon(spec.pat, k, A) : '') + (A.buik && spec.buik !== false && k.c2 ? A.buik.replace('/>', ` fill="${k.buik || k.c2}" opacity=".9"/>`) : '');
+    if (binnen) svg += `<defs><clipPath id="${id}">${A.clip}</clipPath></defs><g clip-path="url(#${id})">${binnen}</g>`;
+    svg += A.voor || '';
+    const g = A.gezicht ? Object.assign({}, A.gezicht, spec.g || {}) : null;
+    if (g) {
+      if (g.een) {
+        const oogType = spec.o || 'rond';
+        svg += ogen({ x: g.x, y: g.y, a: 0, m: g.m }, oogType === 'cycloop' ? 'rond' : oogType, k.iris).replace(/(<[^>]+>)+$/, m => m);
+      } else svg += ogen(g, spec.o || 'rond', k.iris);
+      if (g.w !== false && spec.wang !== false) svg += wangen(g, k.wang);
+      svg += mond(g, spec.m || 'lach');
+    }
+    svg += acc.map(a => accessoire(a, A, k, 'voor')).join('');
+    return groep(svg, P);
+  }
+  function groep(svg, P) {
+    const s = P.schaal || 1, dx = P.dx || 0, dy = P.dy || 0;
+    return `<g transform="translate(${f1(100 + dx)} ${f1(134 + dy)}) scale(${s}) translate(-100 -134)">${svg}</g>`;
+  }
+  function schaduwGrond(P) { const s = (P && P.schaal) || 1; return `<ellipse cx="${100 + ((P && P.dx) || 0)}" cy="136" rx="${f1(52 * s)}" ry="${f1(8 * s)}" fill="#000" opacity=".18"/>`; }
+  // dubbele attributen weghalen (de eerste telt, net als in de browser), zodat elke tekening ook geldige losse SVG is
+  const ontdubbel = svg => svg.replace(/<([a-zA-Z]+)((?:\s+[a-zA-Z:-]+="[^"]*")+)\s*(\/?)>/g, (m, tag, at, sl) => { const gezien = new Set(); const rest = at.replace(/\s+([a-zA-Z:-]+)="[^"]*"/g, (x, naam) => { if (gezien.has(naam)) return ''; gezien.add(naam); return x; }); return '<' + tag + rest + (sl ? '/' : '') + '>'; });
+  function kunst(spec, opties) { return ontdubbel(kunstRuw(spec, opties)); }
+  function kunstRuw(spec, opties) {
+    opties = opties || {};
+    const P = spec.p || {};
+    const vb = opties.vol ? '0 0 200 280' : '0 0 200 150';
+    const verschuif = opties.vol ? `<g transform="translate(-10 38) scale(1.1)">` : '<g>';
+    return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${opties.silhouet || opties.zonder ? '' : achtergrond(spec.e, opties.vol, spec.set)}${verschuif}${opties.silhouet || opties.zonder ? '' : schaduwGrond(P)}${beest(spec, opties)}</g></svg>`;
+  }
+  return { kunst, beest, achtergrond, meng, donker, licht, VORMEN: Object.keys(V) };
+})();
+
+const MASCOTTE_SPECS = [{"n":"Vonkvos","e":"vuur","z":"g","st":0,"kr":50,"v":"vos","p":{"schaal":0.74,"oor":"punt","staart":"dun"},"k":{"c1":"#F07B3F","c2":"#FFE0A3","c3":"#C8323C","iris":"#7A3A10"},"a":[["vlam","staart",0,0,0.7]],"o":"glim","m":"lach","aan":[["Vonkje",1,20]],"t":"Kwispelt hij te hard, dan vliegen er vonkjes door de kamer.","nr":1,"id":"zs001"},{"n":"Kapitein Kruimel","e":"rommel","z":"g","v":"bol","p":{"schaal":0.74},"k":{"c1":"#E0B07A","c2":"#F6E2B8","c3":"#8C5A2A","iris":"#2A1D14","cape":"#C8323C","masker":"#2F4C8F","embleem":"#F6CB2F"},"a":[["cape","kop",0,0,0.72],["masker","kop"]],"o":"rond","m":"lach","aan":[["Kruimelstorm",1,20]],"t":"Ruimt elke kruimel op voordat hij de vloer raakt.","set":"helden","st":0,"kr":50,"nr":1,"id":"hs001"},{"n":"Theepotje","e":"rommel","z":"g","st":0,"kr":50,"v":"theepot","p":{"schaal":0.74},"k":{"c1":"#F7F4E8","c2":"#2F8BD6","c3":"#2F4C8F","iris":"#2A1D14"},"o":"lief","m":"lach","aan":[["Kopje Thee",1,20]],"t":"Fluit zachtjes als hij blij is. Dat is vaak.","nr":109,"id":"zs109"},{"n":"Kapitein Kosmos","e":"bliksem","z":"u","v":"draak","p":{"schaal":1.04},"k":{"c1":"#2F4C8F","c2":"#9FD8FF","c3":"#14213F","iris":"#FFE76A","vleugel":"#C8323C","aura":"#9FD8FF","bliksem":"#FFE76A","cape":"#C8323C","masker":"#23252B","embleem":"#F6CB2F","symbool":"bliksem"},"a":[["aura","kop",0,0,1.1],["cape","kop",0,0,1.15],["masker","kop"],["embleem","vrij",100,108,1.1],["bliksems","kop",0,0,0.9]],"pat":"sterretjes","o":"boos","m":"tand","aan":[["Sterrenstoot",3,100],["Kosmische Donder",5,200]],"t":"Komt van een andere planeet. Daar hebben ze ook vlaai.","set":"helden","st":0,"kr":200,"nr":28,"id":"hs028"},{"n":"Sokkenvrouw","e":"rommel","z":"g","v":"sok","p":{"schaal":0.74},"k":{"c1":"#7A4E9A","c2":"#F6CB2F","c3":"#3E2A6E","iris":"#2A1D14","cape":"#E8577A","masker":"#23252B","embleem":"#F6CB2F"},"a":[["cape","kop",0,0,0.7],["masker","kop"],["embleem","vrij",100,104,0.8]],"o":"glim","m":"lach","aan":[["Verdwijntruc",1,20]],"t":"Vindt elke sok terug. Ook die uit 1998.","set":"helden","st":0,"kr":60,"nr":2,"id":"hs002"},{"n":"De Gouden Theepot","e":"rommel","z":"h","v":"theepot","p":{"schaal":1.04},"k":{"c1":"#E9B949","c2":"#C8323C","c3":"#7A5A10","iris":"#2A1D14","aura":"#FFE76A","cape":"#C8323C","masker":"#23252B","embleem":"#FFF3C4"},"a":[["aura","kop",0,0,0.9],["cape","kop",0,0,0.96],["masker","kop"]],"o":"glim","m":"lach","aan":[["Kopje Kracht",3,80],["Stoomstraal",4,130]],"t":"Na een kopje thee van hem voel je je zelf een held.","set":"helden","st":0,"kr":170,"nr":27,"id":"hs027"}];
+// Rommelland: 3D-modellen. Elke maker geeft { groep, anim(t, actief, staat) }.
+const RL3 = (function () {
+  const grad = new THREE.DataTexture(new Uint8Array([110, 190, 255]), 3, 1, THREE.LuminanceFormat);
+  grad.minFilter = grad.magFilter = THREE.NearestFilter; grad.needsUpdate = true;
+  const matCache = new Map();
+  const mat = (c, extra) => { if (!extra) { if (!matCache.has(c)) matCache.set(c, new THREE.MeshToonMaterial({ color: c, gradientMap: grad })); return matCache.get(c); } return new THREE.MeshToonMaterial(Object.assign({ color: c, gradientMap: grad }, extra)); };
+  const RAND = new THREE.MeshBasicMaterial({ color: 0x231a26, side: THREE.BackSide });
+  function mesh(geo, m, rand) {
+    const me = new THREE.Mesh(geo, typeof m === 'number' ? mat(m) : m); me.castShadow = true; me.receiveShadow = true;
+    if (rand) { geo.computeBoundingSphere(); const r = geo.boundingSphere.radius || 1, o = new THREE.Mesh(geo, RAND); o.scale.setScalar(1 + rand / r); o.raycast = () => {}; me.add(o); }
+    return me;
+  }
+  const at = (o, x, y, z) => { o.position.set(x, y, z); return o; };
+  const R = 0.03;
+  const lichtjes = [];
+  function lampje(g, x, y, z, k) { const l = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), new THREE.MeshBasicMaterial({ color: k || 0xfff3c4 })); at(l, x, y, z); g.add(l); lichtjes.push(l); return l; }
+  function streepTex(a, b, n) { const c = document.createElement('canvas'); c.width = 512; c.height = 32; const g = c.getContext('2d'); for (let i = 0; i < n; i++) { g.fillStyle = i % 2 ? a : b; g.fillRect(i * 512 / n, 0, 512 / n + 1, 32); } return new THREE.CanvasTexture(c); }
+  const STREEP = { rood: streepTex('#C8323C', '#FBF6E9', 16), blauw: streepTex('#2F8BD6', '#FBF6E9', 16), paars: streepTex('#7A4E9A', '#F6CB2F', 16), groen: streepTex('#2E8B62', '#FBF6E9', 16), geel: streepTex('#F6CB2F', '#C8323C', 16) };
+  function tekstTex(tekst, kleur, bg) { const c = document.createElement('canvas'); c.width = 1024; c.height = 240; const d = c.getContext('2d'); d.fillStyle = bg || '#F6CB2F'; d.fillRect(0, 0, 1024, 240); d.strokeStyle = '#231A26'; d.lineWidth = 16; d.strokeRect(8, 8, 1008, 224); let gr = 150; d.textAlign = 'center'; d.textBaseline = 'middle'; do { d.font = `800 ${gr}px "Bricolage Grotesque", system-ui, sans-serif`; gr -= 4; } while (d.measureText(tekst).width > 900 && gr > 30); d.fillStyle = kleur; d.fillText(tekst, 512, 126); d.lineWidth = 5; d.strokeText(tekst, 512, 126); const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t; }
+
+  // ======================= ATTRACTIES
+  function draaimolen() {
+    const g = new THREE.Group(), draai = new THREE.Group(); g.add(draai);
+    g.add(at(mesh(new THREE.CylinderGeometry(3.3, 3.4, 0.45, 40), 0x8c5530, R), 0, 0.22, 0));
+    draai.add(at(mesh(new THREE.CylinderGeometry(3.05, 3.05, 0.12, 40), 0xc99a2e), 0, 0.5, 0));
+    draai.add(at(mesh(new THREE.CylinderGeometry(0.22, 0.22, 4.2, 16), 0xe9b949, R), 0, 2.5, 0));
+    draai.add(at(mesh(new THREE.ConeGeometry(3.6, 1.5, 32, 1, true), mat(0xffffff, { map: STREEP.rood, side: THREE.DoubleSide }), R), 0, 5.05, 0));
+    draai.add(at(mesh(new THREE.CylinderGeometry(3.62, 3.62, 0.45, 32, 1, true), mat(0xc8323c, { side: THREE.DoubleSide })), 0, 4.1, 0));
+    draai.add(at(mesh(new THREE.SphereGeometry(0.3, 12, 8), 0xf6cb2f, R), 0, 6.0, 0));
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; lampje(draai, Math.cos(a) * 3.65, 3.92, Math.sin(a) * 3.65); }
+    const paarden = [], K = [0xfbf6e9, 0xe8577a, 0x5ec2e8, 0xf6cb2f];
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * Math.PI * 2, p = new THREE.Group(); at(p, Math.cos(a) * 2.2, 1.6, Math.sin(a) * 2.2); p.rotation.y = Math.PI - a;
+      draai.add(at(mesh(new THREE.CylinderGeometry(0.035, 0.035, 3.34, 6), 0xe9b949), Math.cos(a) * 2.2, 2.23, Math.sin(a) * 2.2));
+      const k = K[i % 4];
+      p.add(mesh(new THREE.BoxGeometry(0.35, 0.42, 1.0), k, R));
+      const kop = at(mesh(new THREE.BoxGeometry(0.28, 0.5, 0.3), k, R), 0, 0.35, 0.55); kop.rotation.x = -0.4; p.add(kop);
+      for (const [lx, lz] of [[-0.12, 0.35], [0.12, 0.35], [-0.12, -0.35], [0.12, -0.35]]) p.add(at(mesh(new THREE.BoxGeometry(0.08, 0.5, 0.08), k), lx, -0.42, lz));
+      draai.add(p); paarden.push(p);
+    }
+    return { groep: g, anim(t, actief, s) { s.hoek = (s.hoek || 0) + (actief ? 0.035 : 0.004); draai.rotation.y = s.hoek; paarden.forEach((p, i) => { p.position.y = 1.6 + (actief ? Math.sin(t * 2.4 + i * 1.3) * 0.25 : 0); }); } };
+  }
+  function reuzenrad() {
+    const g = new THREE.Group(), NAAF = 6.4, VOET = 2.7, ZP = 1.0, STRAAL = 4.4;
+    g.add(at(mesh(new THREE.BoxGeometry(6.4, 0.3, 3.0), 0x3a3d46, R), 0, 0.15, 0));
+    g.add(at(mesh(new THREE.BoxGeometry(2.0, 0.6, 1.0), 0x8c5530, R), 0, 0.6, 1.0));
+    for (const z of [-ZP, ZP]) { for (const s2 of [-1, 1]) { const dx = -s2 * VOET, dy = NAAF - 0.3, L = Math.hypot(dx, dy), poot = mesh(new THREE.BoxGeometry(0.24, L, 0.24), 0x9aa6c2, R); at(poot, s2 * VOET / 2, 0.3 + dy / 2, z); poot.rotation.z = Math.atan2(-dx, dy); g.add(poot); } const h = 2.6, br = 2 * VOET * (1 - (h - 0.3) / (NAAF - 0.3)); g.add(at(mesh(new THREE.BoxGeometry(br, 0.16, 0.16), 0x9aa6c2), 0, h, z)); }
+    g.add(at(mesh(new THREE.CylinderGeometry(0.22, 0.22, 2 * ZP + 0.4, 16).rotateX(Math.PI / 2), 0x5f6470), 0, NAAF, 0));
+    const wiel = new THREE.Group(); at(wiel, 0, NAAF, 0); g.add(wiel);
+    wiel.add(mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.2, 16).rotateX(Math.PI / 2), 0x23252b));
+    for (const z of [-0.5, 0.5]) { wiel.add(at(mesh(new THREE.TorusGeometry(STRAAL, 0.1, 8, 64), 0xc8323c), 0, 0, z)); wiel.add(at(mesh(new THREE.TorusGeometry(STRAAL * 0.55, 0.06, 6, 48), 0xc8323c), 0, 0, z)); for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, sp = mesh(new THREE.BoxGeometry(0.07, STRAAL, 0.07), 0xe9b949); sp.position.set(Math.cos(a) * STRAAL / 2, Math.sin(a) * STRAAL / 2, z); sp.rotation.z = a - Math.PI / 2; wiel.add(sp); } }
+    for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; lampje(wiel, Math.cos(a) * (STRAAL + 0.15), Math.sin(a) * (STRAAL + 0.15), 0.5, [0xfff3c4, 0x5ec2e8, 0xff7fb0][i % 3]); }
+    const gondels = [];
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, h = new THREE.Group(); at(h, Math.cos(a) * STRAAL, Math.sin(a) * STRAAL, 0); wiel.add(h); h.add(mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8).rotateX(Math.PI / 2), 0x5f6470)); const gd = new THREE.Group(); h.add(gd); for (const z of [-0.32, 0.32]) gd.add(at(mesh(new THREE.BoxGeometry(0.05, 0.62, 0.05), 0x23252b), 0, -0.31, z)); gd.add(at(mesh(new THREE.BoxGeometry(1.0, 0.12, 0.8), 0xfbf6e9), 0, -0.62, 0)); gd.add(at(mesh(new THREE.BoxGeometry(0.9, 0.62, 0.72), [0x2f8bd6, 0xe8577a, 0x2e8b62, 0xf6cb2f][i % 4], R), 0, -1.0, 0)); gondels.push(gd); }
+    return { groep: g, anim(t, actief, s) { s.hoek = (s.hoek || 0) + (actief ? 0.008 : 0.002); wiel.rotation.z = s.hoek; gondels.forEach(gd => { gd.rotation.z = -s.hoek; }); } };
+  }
+  function botsautos() {
+    const g = new THREE.Group();
+    g.add(at(mesh(new THREE.BoxGeometry(7.4, 0.3, 7.4), 0x3a3d46, R), 0, 0.15, 0));
+    g.add(at(mesh(new THREE.BoxGeometry(7.0, 0.04, 7.0), 0x5f6470), 0, 0.32, 0));
+    for (const [x, z, w, d] of [[0, -3.6, 7.4, 0.2], [0, 3.6, 7.4, 0.2], [-3.6, 0, 0.2, 7.4], [3.6, 0, 0.2, 7.4]]) g.add(at(mesh(new THREE.BoxGeometry(w, 0.6, d), 0xf6cb2f, R), x, 0.6, z));
+    for (const [x, z] of [[-3.5, -3.5], [3.5, -3.5], [-3.5, 3.5], [3.5, 3.5]]) g.add(at(mesh(new THREE.CylinderGeometry(0.14, 0.14, 4.2, 8), 0xc8323c, R), x, 2.4, z));
+    g.add(at(mesh(new THREE.BoxGeometry(7.8, 0.4, 7.8), mat(0xffffff, { map: STREEP.blauw }), R), 0, 4.6, 0));
+    g.add(at(mesh(new THREE.ConeGeometry(5.5, 1.2, 4).rotateY(Math.PI / 4), 0x2f8bd6, R), 0, 5.4, 0));
+    for (let i = 0; i < 16; i++) { const a = i / 16; lampje(g, -3.9 + (i % 8) * 1.1, 4.35, i < 8 ? 3.95 : -3.95, i % 2 ? 0xff7fb0 : 0xfff3c4); }
+    const autos = [];
+    for (let i = 0; i < 5; i++) { const a = new THREE.Group(), k = [0xc8323c, 0x2e8b62, 0xe8577a, 0xf6cb2f, 0x7a4e9a][i]; a.add(at(mesh(new THREE.BoxGeometry(1.2, 0.5, 0.9), k, R), 0, 0.6, 0)); a.add(at(mesh(new THREE.TorusGeometry(0.55, 0.12, 6, 16).rotateX(Math.PI / 2), 0x23252b), 0, 0.42, 0)); a.add(at(mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.5, 4), 0x9aa6c2), -0.4, 2.4, 0)); at(a, -2 + i, 0, -1 + (i % 3)); a.userData = { vx: (Math.random() - 0.5) * 3, vz: (Math.random() - 0.5) * 3 }; g.add(a); autos.push(a); }
+    return { groep: g, anim(t, actief, s, dt) { for (const a of autos) { const v = a.userData, f = actief ? 1 : 0.15; a.position.x += v.vx * dt * f; a.position.z += v.vz * dt * f; if (Math.abs(a.position.x) > 2.8) { v.vx *= -1; a.position.x = Math.sign(a.position.x) * 2.8; } if (Math.abs(a.position.z) > 2.8) { v.vz *= -1; a.position.z = Math.sign(a.position.z) * 2.8; } a.rotation.y = Math.atan2(v.vx, v.vz); } } };
+  }
+  function zweefmolen() {
+    const g = new THREE.Group();
+    g.add(at(mesh(new THREE.CylinderGeometry(3.6, 3.7, 0.3, 32), 0x8c5530, R), 0, 0.15, 0));
+    g.add(at(mesh(new THREE.CylinderGeometry(0.4, 0.6, 7.2, 16), 0x9aa6c2, R), 0, 3.8, 0));
+    const top = new THREE.Group(); at(top, 0, 7.4, 0); g.add(top);
+    top.add(mesh(new THREE.ConeGeometry(2.8, 1.4, 24), mat(0xffffff, { map: STREEP.groen }), R));
+    top.add(at(mesh(new THREE.CylinderGeometry(2.8, 2.8, 0.3, 24), 0x2e8b62), 0, -0.85, 0));
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; lampje(top, Math.cos(a) * 2.85, -0.85, Math.sin(a) * 2.85); }
+    const stoeltjes = [];
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, arm = new THREE.Group(); at(arm, Math.cos(a) * 2.5, -0.9, Math.sin(a) * 2.5); arm.rotation.y = -a; top.add(arm); const ketting = new THREE.Group(); arm.add(ketting); ketting.add(at(mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.2, 4), 0x23252b), 0, -1.6, 0)); ketting.add(at(mesh(new THREE.BoxGeometry(0.5, 0.12, 0.5), [0xc8323c, 0xf6cb2f, 0x2f8bd6, 0xe8577a, 0xfbf6e9][i % 5], R), 0, -3.2, 0)); ketting.add(at(mesh(new THREE.BoxGeometry(0.5, 0.45, 0.06), 0x3a3d46), 0, -3.0, -0.24)); stoeltjes.push(ketting); }
+    return { groep: g, anim(t, actief, s) { s.v = (s.v || 0) + ((actief ? 1 : 0) - (s.v || 0)) * 0.02; s.hoek = (s.hoek || 0) + 0.004 + s.v * 0.05; top.rotation.y = s.hoek; top.position.y = 7.4 + s.v * 0.3; stoeltjes.forEach(k => { k.rotation.x = 0; k.rotation.z = 0; k.parent.rotation.z = 0; k.rotation.x = -s.v * 0.85; }); } };
+  }
+  function spookhuis() {
+    const g = new THREE.Group();
+    g.add(at(mesh(new THREE.BoxGeometry(7.0, 0.3, 7.0), 0x3a3d46, R), 0, 0.15, 0));
+    g.add(at(mesh(new THREE.BoxGeometry(6.0, 4.6, 5.6), 0x5a3a6e, R), 0, 2.6, -0.3));
+    g.add(at(mesh(new THREE.ConeGeometry(4.6, 3.2, 4).rotateY(Math.PI / 4), 0x2a1e3a, R), 0, 6.5, -0.3));
+    g.add(at(mesh(new THREE.BoxGeometry(1.6, 3.4, 1.6), 0x4a2e5c, R), 2.2, 6.4, -1.4)); g.add(at(mesh(new THREE.ConeGeometry(1.3, 1.8, 4).rotateY(Math.PI / 4), 0x2a1e3a, R), 2.2, 9.0, -1.4));
+    g.add(at(mesh(new THREE.BoxGeometry(1.4, 2.4, 0.2), 0x3a2414, R), 0, 1.5, 2.55));
+    const ramen = [];
+    for (const [x, y] of [[-1.9, 3.6], [1.9, 3.6], [-1.9, 1.6], [1.9, 1.6]]) { const r = at(new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.0), new THREE.MeshBasicMaterial({ color: 0x9fe870 })), x, y, 2.52); g.add(r); ramen.push(r); lichtjes.push(r); }
+    const spook = new THREE.Group(); spook.add(mesh(new THREE.SphereGeometry(0.55, 16, 12), 0xfbf6e9, R)); spook.add(at(mesh(new THREE.ConeGeometry(0.55, 0.9, 16).rotateX(Math.PI), 0xfbf6e9), 0, -0.55, 0)); for (const s2 of [-0.18, 0.18]) spook.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 4), new THREE.MeshBasicMaterial({ color: 0x231a26 })), s2, 0.1, 0.5)); at(spook, -1.9, 5.0, 3.0); g.add(spook);
+    const vleermuizen = []; for (let i = 0; i < 3; i++) { const v = new THREE.Group(); v.add(mesh(new THREE.SphereGeometry(0.15, 8, 6), 0x231a26)); for (const s2 of [-1, 1]) { const w = at(mesh(new THREE.ConeGeometry(0.25, 0.5, 3).rotateZ(s2 * Math.PI / 2), 0x231a26), s2 * 0.3, 0, 0); v.add(w); } g.add(v); vleermuizen.push(v); }
+    return { groep: g, anim(t, actief) { spook.position.y = 5.0 + Math.sin(t * 2) * 0.4; spook.position.x = -1.9 + Math.sin(t * 0.7) * 0.6; vleermuizen.forEach((v, i) => { const a = t * (0.8 + i * 0.3) + i * 2; v.position.set(Math.cos(a) * 3.5, 7 + Math.sin(a * 2) * 0.5, Math.sin(a) * 3.5 - 0.3); v.children[1].rotation.z = Math.sin(t * 20) * 0.6; v.children[2].rotation.z = -Math.sin(t * 20) * 0.6; }); ramen.forEach((r, i) => { r.material.color.setHex((actief && Math.sin(t * 9 + i) > 0.3) ? 0xd8ff9a : 0x9fe870); }); } };
+  }
+  function schommelschip() {
+    const g = new THREE.Group();
+    g.add(at(mesh(new THREE.BoxGeometry(9.0, 0.3, 5.0), 0x3a3d46, R), 0, 0.15, 0));
+    for (const x of [-1.6, 1.6]) for (const s2 of [-1, 1]) { const poot = mesh(new THREE.BoxGeometry(0.25, 7.4, 0.25), 0xc8323c, R); at(poot, x, 3.5, s2 * 1.4); poot.rotation.x = -s2 * 0.38; g.add(poot); }
+    g.add(at(mesh(new THREE.CylinderGeometry(0.2, 0.2, 3.8, 12).rotateZ(Math.PI / 2), 0x5f6470), 0, 6.8, 0));
+    const schip = new THREE.Group(); at(schip, 0, 6.8, 0); g.add(schip);
+    for (const x of [-1.2, 1.2]) schip.add(at(mesh(new THREE.BoxGeometry(0.15, 4.4, 0.15), 0x9aa6c2), x, -2.2, 0));
+    const romp = new THREE.Shape(); romp.moveTo(-3.6, 0); romp.quadraticCurveTo(-3.2, -1.6, 0, -1.7); romp.quadraticCurveTo(3.2, -1.6, 3.6, 0); romp.lineTo(-3.6, 0);
+    const rompGeo = new THREE.ExtrudeGeometry(romp, { depth: 2.2, bevelEnabled: false }); rompGeo.translate(0, 0, -1.1);
+    const rompM = mesh(rompGeo, 0x8c5530, R); rompM.rotation.y = Math.PI / 2; at(rompM, 0, -4.2, 0); schip.add(rompM);
+    schip.add(at(mesh(new THREE.BoxGeometry(2.0, 0.15, 6.8), 0xc99a2e), 0, -4.2, 0));
+    schip.add(at(mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.4, 8), 0x5c3a21), 0, -2.6, 0));
+    schip.add(at(mesh(new THREE.PlaneGeometry(2.0, 1.6), mat(0xfbf6e9, { side: THREE.DoubleSide })), 0, -2.4, 0.08));
+    for (let i = 0; i < 6; i++) lampje(schip, 0.95, -4.05, -3 + i * 1.2, i % 2 ? 0xff7fb0 : 0xfff3c4);
+    return { groep: g, anim(t, actief, s) { s.amp = (s.amp || 0) + ((actief ? 1.05 : 0.05) - (s.amp || 0)) * 0.01; schip.rotation.x = Math.sin(t * 1.3) * s.amp; } };
+  }
+  function achtbaan() {
+    const g = new THREE.Group();
+    const punten = [[-7, 1, 3.6], [-2, 1, 3.6], [3, 1.2, 3.6], [6, 5.5, 3.2], [7.4, 8.6, 1.4], [6.8, 6, -1.8], [4, 2, -3.6], [1, 4.8, -3.6], [-2, 1.6, -3.6], [-5.6, 3.6, -3.2], [-7.6, 2, -0.6], [-8, 1.2, 2]].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+    const baan = new THREE.CatmullRomCurve3(punten, true, 'centripetal');
+    const naast = (u, d) => { const p = baan.getPointAt(u), tg = baan.getTangentAt(u), n = new THREE.Vector3(-tg.z, 0, tg.x).normalize(); return p.add(n.multiplyScalar(d)); };
+    for (const d of [-0.42, 0.42]) { const rail = new THREE.CatmullRomCurve3(Array.from({ length: 160 }, (_, i) => naast(i / 160, d)), true); g.add(mesh(new THREE.TubeGeometry(rail, 320, 0.09, 6, true), 0xc8323c)); }
+    for (let i = 0; i < 80; i++) { const u = i / 80, a = naast(u, -0.45), b = naast(u, 0.45), m = a.clone().lerp(b, 0.5), dw = mesh(new THREE.BoxGeometry(1.0, 0.08, 0.12), 0x5c3a21); dw.position.copy(m); dw.lookAt(m.clone().add(baan.getTangentAt(u))); g.add(dw); if (i % 4 === 0 && m.y > 0.6) { const p = mesh(new THREE.CylinderGeometry(0.1, 0.12, m.y, 6), 0x9aa6c2); at(p, m.x, m.y / 2, m.z); g.add(p); } }
+    g.add(at(mesh(new THREE.BoxGeometry(5.2, 0.6, 2.2), 0x8c5530, R), -4.5, 0.3, 4.6)); g.add(at(mesh(new THREE.BoxGeometry(5.6, 0.25, 2.6), mat(0xffffff, { map: STREEP.geel }), R), -4.5, 3.4, 4.6)); for (const x of [-6.9, -2.1]) g.add(at(mesh(new THREE.BoxGeometry(0.2, 3.0, 0.2), 0x23252b), x, 1.9, 5.5));
+    const karren = [];
+    for (let i = 0; i < 3; i++) { const k = new THREE.Group(); k.add(at(mesh(new THREE.BoxGeometry(0.9, 0.5, 1.2), [0x2f8bd6, 0xf6cb2f, 0xe8577a][i], R), 0, 0.35, 0)); k.add(at(mesh(new THREE.BoxGeometry(0.9, 0.35, 0.12), 0x23252b), 0, 0.75, -0.5)); g.add(k); karren.push(k); }
+    for (let i = 0; i < 30; i++) lampje(g, naast(i / 30, 0.6).x, naast(i / 30, 0.6).y + 0.15, naast(i / 30, 0.6).z, [0xfff3c4, 0xff7fb0, 0x5ec2e8][i % 3]);
+    return { groep: g, anim(t, actief, s, dt) { const p0 = baan.getPointAt(((s.u || 0) % 1 + 1) % 1); const v = actief ? Math.max(0.035, 0.11 - p0.y * 0.009) : 0; s.u = (s.u || 0) + v * dt * (s.snel || 1); karren.forEach((k, i) => { const u = (((s.u || 0) - i * 0.022) % 1 + 1) % 1, p = baan.getPointAt(u), tg = baan.getTangentAt(u); k.position.copy(p).y += 0.1; k.lookAt(p.clone().add(tg)); }); } };
+  }
+  function wildwater() {
+    const g = new THREE.Group();
+    const punten = [[-6, 0.6, 3], [0, 0.6, 3.4], [5, 0.6, 3], [7, 0.6, 0.5], [6, 0.6, -2.5], [2, 4.2, -3.2], [-2, 4.2, -3.2], [-5, 0.6, -2.5], [-7.2, 0.6, 0.4]].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+    const goot = new THREE.CatmullRomCurve3(punten, true, 'centripetal');
+    g.add(mesh(new THREE.TubeGeometry(goot, 200, 0.85, 10, true), mat(0x7a8396, { side: THREE.DoubleSide })));
+    g.add(mesh(new THREE.TubeGeometry(goot, 200, 0.62, 10, true), mat(0x3a9ad6, { transparent: true, opacity: 0.85 })));
+    for (let i = 0; i < 40; i++) { const p = goot.getPointAt(i / 40); if (p.y > 1) { const s2 = mesh(new THREE.CylinderGeometry(0.12, 0.14, p.y, 6), 0x9aa6c2); at(s2, p.x, p.y / 2, p.z); g.add(s2); } }
+    g.add(at(mesh(new THREE.BoxGeometry(3.4, 0.4, 2.0), 0x8c5530, R), -2.6, 0.2, 4.6));
+    for (let i = 0; i < 3; i++) g.add(at(mesh(new THREE.ConeGeometry(0.7, 1.8, 6), 0x9a8f84, R), 4 - i * 2.2, 0.9, 0.2 - i * 0.4));
+    const boten = []; for (let i = 0; i < 2; i++) { const b = new THREE.Group(); b.add(at(mesh(new THREE.BoxGeometry(0.9, 0.5, 1.8), 0x7a4e2d, R), 0, 0.15, 0)); b.add(at(mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.5, 8, 1, false, 0, Math.PI).rotateX(Math.PI / 2), 0x7a4e2d), 0, 0.15, 0.9)); g.add(b); boten.push(b); }
+    const spat = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(60 * 3), 3)), new THREE.PointsMaterial({ color: 0xdff4ff, size: 0.25 })); g.add(spat);
+    return { groep: g, anim(t, actief, s, dt) { s.u = (s.u || 0) + (actief ? 0.06 : 0.008) * dt; let plons = 0; boten.forEach((b, i) => { const u = ((s.u + i * 0.5) % 1 + 1) % 1, p = goot.getPointAt(u), tg = goot.getTangentAt(u); b.position.copy(p); b.position.y -= 0.35; b.lookAt(p.clone().add(tg)); if (u > 0.68 && u < 0.78) plons = 1; }); const pos = spat.geometry.attributes.position; const bp = goot.getPointAt(0.76); for (let i = 0; i < 60; i++) { const f = (t * 1.5 + i / 60) % 1, a = i * 2.4; pos.setXYZ(i, bp.x + Math.cos(a) * f * 1.6, plons ? 0.6 + Math.sin(f * Math.PI) * 1.8 : -5, bp.z + Math.sin(a) * f * 1.6); } pos.needsUpdate = true; } };
+  }
+
+  // ======================= KRAAMPJES
+  function kraam(kleur, streep, top) {
+    return () => {
+      const g = new THREE.Group();
+      g.add(at(mesh(new THREE.BoxGeometry(1.7, 1.6, 1.4), 0xfbf6e9, R), 0, 0.8, -0.1));
+      g.add(at(mesh(new THREE.BoxGeometry(1.5, 0.7, 0.08), 0x7a4e2d), 0, 1.0, 0.62));
+      const l = mesh(new THREE.BoxGeometry(2.0, 0.1, 0.9), mat(0xffffff, { map: STREEP[streep] }), R); at(l, 0, 1.75, 0.8); l.rotation.x = 0.35; g.add(l);
+      g.add(at(mesh(new THREE.BoxGeometry(1.8, 0.2, 1.5), kleur, R), 0, 1.7, -0.1));
+      const ding = top(); at(ding, 0, 2.2, -0.1); g.add(ding);
+      return { groep: g, anim(t) { ding.rotation.y = t * 0.8; } };
+    };
+  }
+  const tops = {
+    patat: () => { const d = new THREE.Group(); d.add(mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.5, 12), 0xc8323c, R)); for (let i = 0; i < 7; i++) d.add(at(mesh(new THREE.BoxGeometry(0.07, 0.5, 0.07), 0xf6cb2f), -0.15 + (i % 4) * 0.1, 0.4, -0.08 + Math.floor(i / 4) * 0.12)); return d; },
+    ijs: () => { const d = new THREE.Group(); d.add(at(mesh(new THREE.ConeGeometry(0.28, 0.8, 12).rotateX(Math.PI), 0xe0b07a, R), 0, 0.2, 0)); d.add(at(mesh(new THREE.SphereGeometry(0.32, 12, 10), 0xf7b8d8, R), 0, 0.72, 0)); return d; },
+    limonade: () => { const d = new THREE.Group(); d.add(at(mesh(new THREE.SphereGeometry(0.36, 12, 10), 0xf6e65a, R), 0, 0.3, 0)); d.add(at(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.6, 4), 0x2e8b62), 0.2, 0.7, 0)); return d; },
+    vlaai: () => { const d = new THREE.Group(); d.add(mesh(new THREE.CylinderGeometry(0.5, 0.45, 0.16, 20), 0xc98a43, R)); d.add(at(mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.04, 20), 0xa8162b), 0, 0.09, 0)); d.rotation.x = 0.8; return d; },
+    souvenir: () => { const d = new THREE.Group(); [[0xe8577a, -0.2], [0x5ec2e8, 0.15], [0xf6cb2f, 0]].forEach(([k, x], i) => { d.add(at(mesh(new THREE.SphereGeometry(0.22, 10, 8), k, R), x, 0.6 + i * 0.12, i * 0.1 - 0.1)); d.add(at(mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 3), 0x231a26), x, 0.2 + i * 0.06, i * 0.1 - 0.1)); }); return d; },
+    toilet: () => { const d = new THREE.Group(); d.add(at(mesh(new THREE.BoxGeometry(0.9, 0.5, 0.08), mat(0xffffff, { map: tekstTex('WC', '#2F4C8F', '#FBF6E9') }), R), 0, 0.25, 0)); return d; },
+  };
+  // ======================= VERSIERING
+  function boom() { const g = new THREE.Group(), s = 0.7 + Math.random() * 0.4; g.scale.setScalar(s); g.rotation.y = Math.random() * 6; g.add(at(mesh(new THREE.CylinderGeometry(0.18, 0.26, 1.6, 8), 0x7a4e2d), 0, 0.8, 0)); for (const [dx, dy, dz, r, k] of [[0, 2.1, 0, 1.15, 0x3f7a3a], [0.55, 1.75, 0.3, 0.8, 0x4e8a3e], [-0.5, 1.8, -0.2, 0.75, 0x4e8a3e], [0.1, 2.8, 0.05, 0.7, 0x5e9e4a]]) g.add(at(mesh(new THREE.IcosahedronGeometry(r, 1), mat(k, { flatShading: true }), R), dx, dy, dz)); return { groep: g, anim() {} }; }
+  function bloemen() { const g = new THREE.Group(); g.add(at(mesh(new THREE.BoxGeometry(1.6, 0.3, 1.6), 0x7a4e2d, R), 0, 0.15, 0)); for (let i = 0; i < 16; i++) { const k = [0xe8577a, 0xf6cb2f, 0xb88aff, 0xfbf6e9][i % 4]; g.add(at(mesh(new THREE.SphereGeometry(0.14, 8, 6), k), -0.6 + (i % 4) * 0.4, 0.42, -0.6 + Math.floor(i / 4) * 0.4)); } return { groep: g, anim() {} }; }
+  function bankje() { const g = new THREE.Group(); g.add(at(mesh(new THREE.BoxGeometry(1.6, 0.1, 0.5), 0x8c5530, R), 0, 0.5, 0)); g.add(at(mesh(new THREE.BoxGeometry(1.6, 0.5, 0.08), 0x7a4e2d, R), 0, 0.8, -0.24)); for (const s2 of [-0.65, 0.65]) g.add(at(mesh(new THREE.BoxGeometry(0.08, 0.5, 0.45), 0x23252b), s2, 0.25, 0)); return { groep: g, anim() {} }; }
+  function lantaarn() { const g = new THREE.Group(); g.add(at(mesh(new THREE.CylinderGeometry(0.06, 0.08, 3.2, 8), 0x23252b, R), 0, 1.6, 0)); const kap = at(new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.5, 0.4), new THREE.MeshBasicMaterial({ color: 0xfff3c4 })), 0, 3.4, 0); g.add(kap); lichtjes.push(kap); g.add(at(mesh(new THREE.ConeGeometry(0.38, 0.3, 4).rotateY(Math.PI / 4), 0x23252b, R), 0, 3.8, 0)); g.userData.lichtpunt = new THREE.Vector3(0, 3.3, 0); return { groep: g, anim() {} }; }
+  function prullenbak() { const g = new THREE.Group(); g.add(at(mesh(new THREE.CylinderGeometry(0.42, 0.36, 1.1, 20), 0x2e8b62, R), 0, 0.55, 0)); g.add(at(mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.12, 20), 0x23252b), 0, 1.12, 0)); const ogen = []; for (const s2 of [-0.15, 0.15]) { const o = at(mesh(new THREE.SphereGeometry(0.11, 12, 8), 0xfbf6e9, 0.01), s2, 0.78, 0.36); g.add(o); o.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0x231a26 })), 0, 0, 0.08)); ogen.push(o); } return { groep: g, anim(t) { const k = Math.floor(t * 3) % 17 === 0; ogen.forEach(o => { o.scale.y = k ? 0.15 : 1; }); } }; }
+  function fontein() { const g = new THREE.Group(); g.add(mesh(new THREE.LatheGeometry([[0, 0.12], [1.68, 0.12], [1.68, 0.45], [1.78, 0.55], [2.0, 0.55], [2.04, 0.45], [2.02, 0]].map(([x, y]) => new THREE.Vector2(x, y)), 40), mat(0xc9ced6, { side: THREE.DoubleSide }))); const w = new THREE.Mesh(new THREE.CircleGeometry(1.67, 40).rotateX(-Math.PI / 2), mat(0x3a9ad6)); w.position.y = 0.36; g.add(w); g.add(at(mesh(new THREE.CylinderGeometry(0.18, 0.26, 1.4, 12), 0xc9ced6, R), 0, 0.8, 0)); const druppels = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(90 * 3), 3)), new THREE.PointsMaterial({ color: 0xdff4ff, size: 0.12 })); g.add(druppels); const pos = druppels.geometry.attributes.position; return { groep: g, anim(t) { for (let i = 0; i < 90; i++) { const f = ((t * 0.6 + i / 90) % 1), a = i * 2.39996, r = 0.1 + f * 1.4; pos.setXYZ(i, Math.cos(a) * r, 1.5 + 1.0 * Math.sin((0.15 + f * 0.85) * Math.PI) - f * f * 1.1, Math.sin(a) * r); } pos.needsUpdate = true; } }; }
+  function snoephuisje() { const g = new THREE.Group(); g.add(at(mesh(new THREE.BoxGeometry(2.6, 2.0, 2.2), 0xc98a43, R), 0, 1.0, 0)); g.add(at(mesh(new THREE.ConeGeometry(2.2, 1.6, 4).rotateY(Math.PI / 4), 0xfbf6e9, R), 0, 2.8, 0)); g.add(at(mesh(new THREE.BoxGeometry(0.6, 1.0, 0.1), 0xe8577a, R), 0, 0.5, 1.12)); for (let i = 0; i < 10; i++) g.add(at(mesh(new THREE.SphereGeometry(0.13, 8, 6), [0xe8577a, 0xf6cb2f, 0x5ec2e8, 0x2e8b62][i % 4]), -1.1 + (i % 5) * 0.55, 1.5 + Math.floor(i / 5) * 0.4, 1.12)); for (const x of [-1.6, 1.6]) { g.add(at(mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8), 0xfbf6e9), x, 0.6, 1.4)); g.add(at(mesh(new THREE.TorusGeometry(0.2, 0.07, 6, 12, Math.PI), 0xc8323c), x, 1.25, 1.4)); } return { groep: g, anim() {} }; }
+  function kasteel() { const g = new THREE.Group(); g.add(at(mesh(new THREE.BoxGeometry(4.0, 3.0, 3.0), 0xd9cfb8, R), 0, 1.5, 0)); for (const [x, z] of [[-2, -1.5], [2, -1.5], [-2, 1.5], [2, 1.5]]) { g.add(at(mesh(new THREE.CylinderGeometry(0.6, 0.6, 4.4, 12), 0xd9cfb8, R), x, 2.2, z)); g.add(at(mesh(new THREE.ConeGeometry(0.8, 1.6, 12), 0x2f4c8f, R), x, 5.2, z)); } g.add(at(mesh(new THREE.BoxGeometry(1.0, 1.6, 0.1), 0x5c3a21, R), 0, 0.8, 1.52)); const vlag = at(mesh(new THREE.PlaneGeometry(0.8, 0.5), mat(0xe8577a, { side: THREE.DoubleSide })), 2.4, 6.4, 1.5); g.add(vlag); g.add(at(mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 4), 0x23252b), 2, 6.2, 1.5)); return { groep: g, anim(t) { vlag.rotation.y = Math.sin(t * 3) * 0.3; } }; }
+  function standbeeld() { const g = new THREE.Group(); g.add(at(mesh(new THREE.BoxGeometry(1.4, 1.0, 1.4), 0x9aa0a6, R), 0, 0.5, 0)); const goud = mat(0xe9b949, { emissive: 0x3a2a00 }); g.add(at(mesh(new THREE.SphereGeometry(0.6, 16, 12), goud, R), 0, 1.6, 0)); g.add(at(mesh(new THREE.SphereGeometry(0.4, 16, 12), goud, R), 0, 2.4, 0)); for (const s2 of [-0.25, 0.25]) g.add(at(mesh(new THREE.ConeGeometry(0.14, 0.4, 8), goud), s2, 2.85, 0)); g.add(at(mesh(new THREE.TorusGeometry(0.35, 0.06, 6, 16), goud), 0.55, 1.9, 0)); return { groep: g, anim() {} }; }
+  function heg() { const g = new THREE.Group(); g.add(at(mesh(new THREE.BoxGeometry(1.9, 1.0, 0.8), mat(0x3f7a3a, { flatShading: true }), R), 0, 0.5, 0)); return { groep: g, anim() {} }; }
+  // ======================= POORT
+  function poort(naam) {
+    const g = new THREE.Group(), PIL = 2.2, PB = 0.6;
+    for (const x of [-PIL, PIL]) { g.add(at(mesh(new THREE.BoxGeometry(PB, 4.2, PB), 0xc8323c, R), x, 2.1, 0)); g.add(at(mesh(new THREE.SphereGeometry(0.36, 16, 12), 0xf6cb2f, R), x, 4.88, 0)); }
+    g.add(at(mesh(new THREE.BoxGeometry(2 * PIL + PB + 0.3, 0.32, PB + 0.1), 0x9e2430, R), 0, 4.36, 0));
+    const BW = 2 * (PIL - PB / 2) - 0.3, BH = BW * 240 / 1024, geel = mat(0xf6cb2f);
+    const bord = at(mesh(new THREE.BoxGeometry(BW, BH, 0.16), [geel, geel, geel, geel, mat(0xffffff, { map: tekstTex(naam, '#C8323C') }), mat(0xffffff, { map: tekstTex('TOT ZIENS!', '#2E8B62') })], R), 0, 3.55, 0); g.add(bord);
+    for (const x of [-BW / 2 + 0.3, BW / 2 - 0.3]) g.add(at(mesh(new THREE.CylinderGeometry(0.03, 0.03, 4.2 - 3.55 - BH / 2, 6), 0x23252b), x, (4.2 + 3.55 + BH / 2) / 2, 0));
+    for (let i = 0; i < 13; i++) lampje(g, -2.5 + i * 0.4167, 4.36, PB / 2 + 0.07);
+    return { groep: g, anim() {}, hernoem(n) { bord.material[4] = mat(0xffffff, { map: tekstTex(n, '#C8323C') }); } };
+  }
+  return { mat, mesh, at, RAND, lichtjes, grad, tekstTex, makers: { draaimolen, reuzenrad, botsautos, zweefmolen, spookhuis, schommelschip, achtbaan, wildwater, patat: kraam(0xc8323c, 'geel', tops.patat), ijs: kraam(0xe8577a, 'rood', tops.ijs), limonade: kraam(0xf6cb2f, 'groen', tops.limonade), vlaai: kraam(0x8c5530, 'rood', tops.vlaai), souvenir: kraam(0x7a4e9a, 'paars', tops.souvenir), toilet: kraam(0x2f4c8f, 'blauw', tops.toilet), boom, bloemen, bankje, lantaarn, prullenbak, fontein, snoephuisje, kasteel, standbeeld, heg }, poort };
+})();
+
+(function () {
+  const { mat, mesh, at, makers, poort: maakPoort, lichtjes } = RL3;
+  const $ = id => document.getElementById(id);
+  const T = 2, GW = 32, GD = 24, POORT_I = 15;
+  const wx = i => (i - GW / 2 + 0.5) * T, wz = j => (j - GD / 2 + 0.5) * T;
+  const idx = (i, j) => j * GW + i, binnen = (i, j) => i >= 0 && j >= 0 && i < GW && j < GD;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const euro = n => '€' + Math.round(n).toLocaleString('nl-NL');
+
+  // ================= CATALOGUS
+  const CAT = {
+    draaimolen: { lw: 'de', naam: 'Draaimolen', soort: 'attractie', w: 4, d: 4, kost: 3000, onderhoud: 60, cap: 8, duur: 20, prijs: 2, sp: 1, pl: 3, mi: 1, overdekt: true, tekst: 'Paardjes die rondjes draaien. Voor jong en oud.' },
+    reuzenrad: { lw: 'het', naam: 'Reuzenrad', soort: 'attractie', w: 5, d: 2, kost: 5000, onderhoud: 80, cap: 8, duur: 30, prijs: 3, sp: 2, pl: 3, mi: 1, tekst: 'Hoog boven het park, met uitzicht.' },
+    botsautos: { lw: 'de', naam: 'Botsauto\'s', soort: 'attractie', w: 4, d: 4, kost: 4500, onderhoud: 70, cap: 5, duur: 18, prijs: 3, sp: 2, pl: 4, mi: 1, overdekt: true, tekst: 'Botsen maar! Onder een dak, dus ook leuk als het regent.' },
+    zweefmolen: { lw: 'de', naam: 'Zweefmolen', soort: 'attractie', w: 5, d: 5, kost: 5500, onderhoud: 90, cap: 10, duur: 20, prijs: 3, sp: 3, pl: 4, mi: 2, slot: 'g3', tekst: 'Stoeltjes die steeds hoger en wijder zwieren.' },
+    spookhuis: { lw: 'het', naam: 'Spookhuis', soort: 'attractie', w: 4, d: 4, kost: 6000, onderhoud: 90, cap: 6, duur: 25, prijs: 3, sp: 3, pl: 4, mi: 1, overdekt: true, slot: 'g5', tekst: 'Boe! Met een spook achter het raam.' },
+    schommelschip: { lw: 'het', naam: 'Schommelschip', soort: 'attractie', w: 5, d: 3, kost: 7000, onderhoud: 110, cap: 10, duur: 18, prijs: 4, sp: 4, pl: 4, mi: 3, slot: 'g10', tekst: 'Een groot schip dat heen en weer zwaait.' },
+    achtbaan: { lw: 'de', naam: 'Achtbaan', soort: 'attractie', w: 9, d: 6, kost: 14000, onderhoud: 220, cap: 9, duur: 26, prijs: 6, sp: 5, pl: 5, mi: 3, slot: 'g6', tekst: 'Heuvels, bochten en gillen. De ster van je park.' },
+    wildwater: { lw: 'de', naam: 'Wildwaterbaan', soort: 'attractie', w: 8, d: 5, kost: 12000, onderhoud: 180, cap: 6, duur: 28, prijs: 5, sp: 4, pl: 5, mi: 2, slot: 'g9', tekst: 'Met een bootje van de heuvel af. Plons!' },
+    patat: { naam: 'Patatkraam', soort: 'kraam', w: 1, d: 1, kost: 700, onderhoud: 20, prijs: 3, effect: { honger: -70, dorst: 10 }, tekst: 'Een zak patat tegen de honger.' },
+    ijs: { naam: 'IJskraam', soort: 'kraam', w: 1, d: 1, kost: 600, onderhoud: 15, prijs: 2, effect: { honger: -25, dorst: -15, plezier: 6 }, tekst: 'Een ijsje met een kersje.' },
+    limonade: { naam: 'Limonadekraam', soort: 'kraam', w: 1, d: 1, kost: 600, onderhoud: 15, prijs: 2, effect: { dorst: -70, plas: 20 }, tekst: 'Koude limonade tegen de dorst.' },
+    vlaai: { naam: 'Vlaaikraam', soort: 'kraam', w: 1, d: 1, kost: 800, onderhoud: 20, prijs: 3, effect: { honger: -55, plezier: 6 }, tekst: 'Een punt Limburgse vlaai.' },
+    souvenir: { naam: 'Souvenirwinkel', soort: 'kraam', w: 1, d: 1, kost: 900, onderhoud: 25, prijs: 5, effect: { plezier: 12 }, tekst: 'Ballonnen en knuffels. Bij regen verkopen ze ook paraplu\'s.' },
+    toilet: { naam: 'Toiletten', soort: 'kraam', w: 1, d: 1, kost: 700, onderhoud: 20, prijs: 0.5, effect: { plas: -100 }, tekst: 'Heel belangrijk. Echt.' },
+    boom: { naam: 'Boom', soort: 'decor', w: 1, d: 1, kost: 80, mooi: 2 },
+    bloemen: { naam: 'Bloembak', soort: 'decor', w: 1, d: 1, kost: 60, mooi: 2 },
+    heg: { naam: 'Heg', soort: 'decor', w: 1, d: 1, kost: 40, mooi: 1 },
+    bankje: { naam: 'Bankje', soort: 'decor', w: 1, d: 1, kost: 120, mooi: 1, bank: true },
+    lantaarn: { naam: 'Lantaarn', soort: 'decor', w: 1, d: 1, kost: 150, mooi: 2 },
+    prullenbak: { naam: 'Pratende prullenbak', soort: 'decor', w: 1, d: 1, kost: 100, mooi: 1, bak: true },
+    fontein: { naam: 'Fontein', soort: 'decor', w: 2, d: 2, kost: 900, mooi: 6 },
+    snoephuisje: { naam: 'Snoephuisje', soort: 'decor', w: 2, d: 2, kost: 1500, mooi: 8 },
+    kasteel: { naam: 'Sprookjeskasteel', soort: 'decor', w: 3, d: 3, kost: 3000, mooi: 12 },
+    standbeeld: { naam: 'Gouden standbeeld', soort: 'decor', w: 1, d: 1, kost: 2500, mooi: 10, slot: 'g11' },
+  };
+  const PERSONEEL = {
+    schoonmaker: { naam: 'Schoonmaker', loon: 50, kost: 300, tekst: 'Veegt rommel op van de paden.' },
+    monteur: { naam: 'Monteur', loon: 80, kost: 400, tekst: 'Repareert kapotte attracties.' },
+    mascotte: { naam: 'Rommelbeest-mascotte', loon: 60, kost: 500, tekst: 'Een Rommelbeest dat rondloopt en iedereen blij maakt.' },
+  };
+  const DOELEN = [
+    { id: 'g1', tekst: 'Bouw een draaimolen', beloning: 1500, test: s => s.aantal('draaimolen') > 0 },
+    { id: 'g2', tekst: 'Zet een eetkraam en een drinkkraam neer', beloning: 1000, test: s => (s.aantal('patat') + s.aantal('vlaai') + s.aantal('ijs')) > 0 && s.aantal('limonade') > 0 },
+    { id: 'g3', tekst: '25 bezoekers tegelijk in je park', beloning: 2000, test: s => s.gasten() >= 25, ontgrendelt: 'zweefmolen' },
+    { id: 'g4', tekst: 'Neem een schoonmaker aan', beloning: 500, test: s => s.personeel('schoonmaker') > 0 },
+    { id: 'g5', tekst: 'Een parkwaardering van 500', beloning: 2500, test: s => s.waardering() >= 500, ontgrendelt: 'spookhuis' },
+    { id: 'g6', tekst: '50 bezoekers tegelijk in je park', beloning: 4000, test: s => s.gasten() >= 50, ontgrendelt: 'achtbaan' },
+    { id: 'g7', tekst: 'Bouw de achtbaan', beloning: 5000, test: s => s.aantal('achtbaan') > 0 },
+    { id: 'g8', tekst: 'Huur een Rommelbeest als mascotte', beloning: 1000, test: s => s.personeel('mascotte') > 0 },
+    { id: 'g9', tekst: '€40.000 op de bank', beloning: 3000, test: s => s.geld() >= 40000, ontgrendelt: 'wildwater' },
+    { id: 'g10', tekst: '100 bezoekers tegelijk in je park', beloning: 8000, test: s => s.gasten() >= 100, ontgrendelt: 'schommelschip' },
+    { id: 'g11', tekst: 'Een parkwaardering van 800', beloning: 5000, test: s => s.waardering() >= 800, ontgrendelt: 'standbeeld' },
+    { id: 'g12', tekst: 'Geef een vuurwerkshow', beloning: 1000, test: s => s.vuurwerkGehad },
+    { id: 'g13', tekst: '1000 bezoekers in totaal', beloning: 6000, test: s => s.totaalGasten >= 1000 },
+  ];
+  const NAMEN = ['Anouk', 'Bram', 'Daan', 'Emma', 'Fleur', 'Gijs', 'Hanna', 'Isa', 'Jesse', 'Kiki', 'Luuk', 'Mila', 'Noah', 'Olivia', 'Pim', 'Quinten', 'Roos', 'Sem', 'Tess', 'Vera', 'Wout', 'Yara', 'Zoë', 'Lotte', 'Finn', 'Sara', 'Milan', 'Julia', 'Lars', 'Nina'];
+  const HOTELGASTEN = [['Harrie', 'Ik heb mijn dweil thuis gelaten. Voor één keer.'], ['Max', 'Nog één keer in de achtbaan. Echt de laatste. Nou ja.'], ['Mien', 'Wat een prachtig park! Bijna zo mooi als het hotel.'], ['Kapitein Wout', 'Dat schommelschip doet me aan vroeger denken.'], ['Madame Zora', 'Ik voorspel... een suikerspin.'], ['Bo', 'Ik ben al drie keer rondgerend.']];
+
+  // ================= TOESTAND
+  const S = { naam: 'Rommelland', geld: 20000, dag: 1, tijd: 0.05, entree: 5, waard: 300, totaalGasten: 0, doelen: {}, items: [], paden: new Uint8Array(GW * GD), bezet: new Int32Array(GW * GD), personeel: [], snel: 1, regen: 0, vuurwerkGehad: false, vandaag: { in: 0, uit: 0, gasten: 0 }, tips: true };
+  let uid = 1;
+  const gasten = [];
+  const ontgrendeld = t => !CAT[t].slot || S.doelen[CAT[t].slot];
+
+  // ================= THREE: wereld
+  const houder = $('rl-veld');
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  houder.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, 16 / 10, 0.5, 400);
+  const hemi = new THREE.HemisphereLight(0xdff2ff, 0x5e9e44, 0.75); scene.add(hemi);
+  const zon = new THREE.DirectionalLight(0xfff4dc, 0.9); zon.castShadow = true; zon.shadow.mapSize.set(2048, 2048);
+  Object.assign(zon.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 140 }); zon.shadow.bias = -0.0008; scene.add(zon); scene.add(zon.target);
+  const sterren = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 1500 }, (_, i) => { const a = Math.random() * 6.283, h = Math.random(); return i % 3 === 0 ? Math.cos(a) * 180 * (1 - h * 0.4) : i % 3 === 1 ? h * 90 + 8 : Math.sin(a) * 180 * (1 - h * 0.4); }), 3)), new THREE.PointsMaterial({ color: 0xfff3c4, size: 0.9 })); scene.add(sterren);
+  // de grond: gras en paden op één doek, opnieuw getekend als er iets verandert
+  const PX = 64, doek = document.createElement('canvas'); doek.width = GW * PX; doek.height = GD * PX; const dg = doek.getContext('2d');
+  const grasDoek = document.createElement('canvas'); grasDoek.width = doek.width; grasDoek.height = doek.height; const gg = grasDoek.getContext('2d');
+  gg.fillStyle = '#6FB04E'; gg.fillRect(0, 0, grasDoek.width, grasDoek.height);
+  for (let i = 0; i < 26000; i++) { gg.fillStyle = Math.random() < 0.5 ? '#5E9E44' : '#86C25E'; gg.fillRect(Math.random() * grasDoek.width, Math.random() * grasDoek.height, 3, 7); }
+  for (let i = 0; i < 700; i++) { gg.fillStyle = ['#F6CB2F', '#FBF6E9', '#E8577A', '#B88AFF'][i % 4]; gg.beginPath(); gg.arc(Math.random() * grasDoek.width, Math.random() * grasDoek.height, 4, 0, 7); gg.fill(); }
+  const grondTex = new THREE.CanvasTexture(doek); grondTex.anisotropy = 8;
+  const grond = new THREE.Mesh(new THREE.BoxGeometry(GW * T, 1, GD * T), [mat(0x6e4626), mat(0x6e4626), mat(0xe8e8e8, { map: grondTex }), mat(0x5c3a21), mat(0x6e4626), mat(0x5c3a21)]);
+  grond.position.y = -0.5; grond.receiveShadow = true; scene.add(grond);
+  const buiten = new THREE.Mesh(new THREE.PlaneGeometry(600, 600).rotateX(-Math.PI / 2), mat(0x5e9e44)); buiten.position.y = -1.02; scene.add(buiten);
+  function tekenGrond() {
+    dg.drawImage(grasDoek, 0, 0);
+    const pad = (i, j) => binnen(i, j) && S.paden[idx(i, j)];
+    for (let j = 0; j < GD; j++) for (let i = 0; i < GW; i++) if (pad(i, j)) { dg.fillStyle = '#B09A78'; dg.fillRect(i * PX, j * PX, PX, PX); }
+    for (let j = 0; j < GD; j++) for (let i = 0; i < GW; i++) if (pad(i, j)) {
+      const x0 = i * PX + (pad(i - 1, j) ? 0 : 5), x1 = (i + 1) * PX - (pad(i + 1, j) ? 0 : 5), y0 = j * PX + (pad(i, j - 1) ? 0 : 5), y1 = (j + 1) * PX - (pad(i, j + 1) ? 0 : 5);
+      dg.fillStyle = '#E2CFA6'; dg.fillRect(x0, y0, x1 - x0, y1 - y0);
+      dg.fillStyle = 'rgba(176,154,120,.55)'; for (let k = 0; k < 4; k++) { dg.fillRect(i * PX, j * PX + k * 16, PX, 1.5); dg.fillRect(i * PX + ((k % 2) ? 8 : 24) + (k % 2) * 0, j * PX + k * 16, 1.5, 16); dg.fillRect(i * PX + ((k % 2) ? 40 : 56), j * PX + k * 16, 1.5, 16); }
+    }
+    grondTex.needsUpdate = true;
+  }
+  // hekje rondom met de poort
+  const hek = new THREE.Group(); scene.add(hek);
+  const hekM = mat(0xfbf6e9);
+  for (let i = 0; i <= GW; i++) for (const z of [-GD * T / 2, GD * T / 2]) { if (z > 0 && (i === POORT_I || i === POORT_I + 1)) continue; hek.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), hekM), (i - GW / 2) * T, 0.45, z)); }
+  for (let j = 0; j <= GD; j++) for (const x of [-GW * T / 2, GW * T / 2]) hek.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), hekM), x, 0.45, (j - GD / 2) * T));
+  for (const y of [0.35, 0.75]) { hek.add(at(new THREE.Mesh(new THREE.BoxGeometry(GW * T, 0.07, 0.07), hekM), 0, y, -GD * T / 2)); for (const x of [-GW * T / 2, GW * T / 2]) hek.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, GD * T), hekM), x, y, 0)); for (const s of [-1, 1]) { const w = (GW / 2 - 1) * T; hek.add(at(new THREE.Mesh(new THREE.BoxGeometry(w, 0.07, 0.07), hekM), s * (T + w / 2), y, GD * T / 2)); } }
+  let poortObj = maakPoort(S.naam); at(poortObj.groep, wx(POORT_I) + T / 2, 0, GD * T / 2); scene.add(poortObj.groep);
+  // buiten het park: een weggetje naar de poort
+  const weg = new THREE.Mesh(new THREE.PlaneGeometry(T * 2, 40).rotateX(-Math.PI / 2), mat(0xe2cfa6)); weg.position.set(wx(POORT_I) + T / 2, -0.99, GD * T / 2 + 20); scene.add(weg);
+
+  // ================= BOUWEN
+  function vrij(t, i, j, r) {
+    const c = CAT[t], w = r % 2 ? c.d : c.w, d = r % 2 ? c.w : c.d;
+    for (let a = i; a < i + w; a++) for (let b = j; b < j + d; b++) if (!binnen(a, b) || S.paden[idx(a, b)] || S.bezet[idx(a, b)]) return false;
+    if (c.soort !== 'decor' && !ingangen({ i, j, w, d }).length) return 'pad';
+    return true;
+  }
+  function ingangen(it) { const uit = []; for (let a = it.i - 1; a <= it.i + it.w; a++) for (let b = it.j - 1; b <= it.j + it.d; b++) { const rand = (a === it.i - 1 || a === it.i + it.w) !== (b === it.j - 1 || b === it.j + it.d); if (rand && binnen(a, b) && S.paden[idx(a, b)]) uit.push([a, b]); } return uit; }
+  function plaats(t, i, j, r, opgeslagen) {
+    const c = CAT[t], w = r % 2 ? c.d : c.w, d = r % 2 ? c.w : c.d;
+    const model = makers[t](); const g = model.groep;
+    at(g, (i + w / 2 - GW / 2) * T, 0, (j + d / 2 - GD / 2) * T); g.rotation.y = -r * Math.PI / 2;
+    scene.add(g);
+    const it = Object.assign({ uid: uid++, t, i, j, r, w, d, model, groep: g, staat: {}, rij: [], inRit: [], timer: 0, wacht: 0, draait: false, open: true, kapot: false, prijs: c.prijs, betrouw: 1, totaal: 0, omzet: 0, vandaag: 0 }, opgeslagen || {});
+    it.model = model; it.groep = g; it.rij = []; it.inRit = []; it.draait = false; it.timer = 0; it.staat = {};
+    g.traverse(o => { o.userData.item = it; });
+    for (let a = i; a < i + w; a++) for (let b = j; b < j + d; b++) S.bezet[idx(a, b)] = it.uid;
+    S.items.push(it);
+    return it;
+  }
+  function verwijder(it) {
+    scene.remove(it.groep);
+    for (let a = it.i; a < it.i + it.w; a++) for (let b = it.j; b < it.j + it.d; b++) S.bezet[idx(a, b)] = 0;
+    S.items.splice(S.items.indexOf(it), 1);
+    for (const gid of it.rij.concat(it.inRit)) { const gs = gasten.find(x => x.id === gid); if (gs) { gs.toestand = 'denk'; gs.verborgen = false; } }
+    if (selectie === it) sluitInfo();
+  }
+  function zetPad(i, j, aan) {
+    if (!binnen(i, j) || S.bezet[idx(i, j)]) return false;
+    if (!aan && j === GD - 1 && (i === POORT_I || i === POORT_I + 1)) return false;
+    if (!!S.paden[idx(i, j)] === aan) return false;
+    S.paden[idx(i, j)] = aan ? 1 : 0; grondVies = true; return true;
+  }
+  let grondVies = true;
+
+  // ================= ROMMEL
+  const ROMMEL_MAX = 400;
+  const rommelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.28, 0.06, 0.2), mat(0xffffff, {}), ROMMEL_MAX); rommelMesh.count = 0; rommelMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(ROMMEL_MAX * 3).fill(1), 3); rommelMesh.frustumCulled = false; scene.add(rommelMesh);
+  const rommel = [];
+  const RK = [0xe8577a, 0xfbf6e9, 0xf6cb2f, 0x5ec2e8, 0xc8323c].map(k => new THREE.Color(k));
+  function tekenRommel() { const m = new THREE.Matrix4(); rommel.forEach((r, n) => { m.makeRotationY(r.rot); m.setPosition(r.x, 0.03, r.z); rommelMesh.setMatrixAt(n, m); rommelMesh.setColorAt(n, RK[n % RK.length]); }); rommelMesh.count = rommel.length; rommelMesh.instanceMatrix.needsUpdate = true; if (rommelMesh.instanceColor) rommelMesh.instanceColor.needsUpdate = true; }
+
+  // ================= BEZOEKERS (allemaal in een paar gedeelde vormen: snel, ook met veel mensen)
+  const MAXG = 180;
+  const delen = {
+    lijf: new THREE.InstancedMesh(new THREE.CylinderGeometry(0.2, 0.24, 0.62, 10), mat(0xffffff, {}), MAXG),
+    hoofd: new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 14, 10), mat(0xffffff, {}), MAXG),
+    haar: new THREE.InstancedMesh(new THREE.SphereGeometry(0.32, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), mat(0xffffff, {}), MAXG),
+    beenL: new THREE.InstancedMesh(new THREE.CylinderGeometry(0.08, 0.07, 0.62, 6).translate(0, -0.31, 0), mat(0xffffff, {}), MAXG),
+    beenR: new THREE.InstancedMesh(new THREE.CylinderGeometry(0.08, 0.07, 0.62, 6).translate(0, -0.31, 0), mat(0xffffff, {}), MAXG),
+    armL: new THREE.InstancedMesh(new THREE.CylinderGeometry(0.055, 0.05, 0.52, 6).translate(0, -0.26, 0), mat(0xffffff, {}), MAXG),
+    armR: new THREE.InstancedMesh(new THREE.CylinderGeometry(0.055, 0.05, 0.52, 6).translate(0, -0.26, 0), mat(0xffffff, {}), MAXG),
+    ogen: new THREE.InstancedMesh(new THREE.BoxGeometry(0.26, 0.07, 0.04), new THREE.MeshBasicMaterial({ color: 0x231a26 }), MAXG),
+  };
+  for (const d of Object.values(delen)) { d.castShadow = true; d.count = 0; d.frustumCulled = false; d.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXG * 3).fill(1), 3); scene.add(d); }
+  const HUID = [0xf6d3b3, 0xe8b48e, 0xc98e62, 0x8d5a3b, 0x5e3b26], HAAR = [0x2b2118, 0x6b4423, 0xc9873a, 0xe9c46a, 0xb23a2e, 0x9aa0a6], SHIRT = [0xc8323c, 0x2f4c8f, 0x2e8b62, 0xe9b949, 0x7a4e9a, 0xfbf6e9, 0xe8702a, 0x5ec2e8, 0xe8577a], BROEK = [0x2b3468, 0x3a3d46, 0x7a4e2d, 0x5c6e3a];
+  const kies = a => a[Math.floor(Math.random() * a.length)];
+  function nieuweGast() {
+    if (gasten.length >= MAXG) return;
+    const hotel = Math.random() < 0.04 ? kies(HOTELGASTEN) : null;
+    const g = { id: uid++, naam: hotel ? hotel[0] : kies(NAMEN), hotelZin: hotel ? hotel[1] : null, x: wx(POORT_I) + T / 2 + (Math.random() - 0.5) * 2, z: GD * T / 2 + 6, ti: Math.random() < 0.5 ? POORT_I : POORT_I + 1, tj: GD, pad: [[POORT_I + (Math.random() < 0.5 ? 0 : 1), GD - 1]], toestand: 'lopen', doel: null, geld: 20 + Math.random() * 40, honger: Math.random() * 30, dorst: Math.random() * 30, plas: Math.random() * 20, energie: 70 + Math.random() * 30, plezier: 60 + Math.random() * 20, voorkeur: 1 + Math.floor(Math.random() * 5), fase: Math.random() * 6, kop: 0, zij: (Math.random() - 0.5) * 1.1, gedaan: {}, rommelIn: 0, denk: 'Wat een leuk park!', kleur: { huid: kies(HUID), haar: kies(HAAR), shirt: kies(SHIRT), broek: kies(BROEK) }, wacht: 0, verborgen: false };
+    S.geld += S.entree; S.vandaag.in += S.entree; S.totaalGasten++; S.vandaag.gasten++;
+    gasten.push(g);
+  }
+  function bfs(van, isDoel) {
+    const vorig = new Int32Array(GW * GD).fill(-2), rij = [idx(van[0], van[1])]; vorig[rij[0]] = -1;
+    let gevonden = -1;
+    for (let k = 0; k < rij.length; k++) { const c = rij[k], i = c % GW, j = (c / GW) | 0; if (isDoel(i, j)) { gevonden = c; break; } for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const a = i + di, b = j + dj; if (!binnen(a, b) || !S.paden[idx(a, b)] || vorig[idx(a, b)] !== -2) continue; vorig[idx(a, b)] = c; rij.push(idx(a, b)); } }
+    if (gevonden < 0) return null;
+    const pad = []; for (let c = gevonden; c !== -1; c = vorig[c]) pad.unshift([c % GW, (c / GW) | 0]); pad.shift(); return pad;
+  }
+  const hier = g => [Math.max(0, Math.min(GW - 1, Math.round(g.x / T + GW / 2 - 0.5))), Math.max(0, Math.min(GD - 1, Math.round(g.z / T + GD / 2 - 0.5)))];
+  function kiesDoel(g) {
+    const [i, j] = hier(g);
+    if (!S.paden[idx(i, j)]) { g.pad = bfs([POORT_I, GD - 1], () => true) || []; }
+    const weg = g.energie < 12 || g.plezier < 15 || (g.geld < 1.5) || S.tijd > 0.92;
+    if (weg) { g.denk = g.plezier < 15 ? 'Ik vind er niks aan. Ik ga naar huis.' : g.energie < 12 ? 'Ik ben moe. Tijd om naar huis te gaan.' : g.geld < 1.5 ? 'Mijn geld is op.' : 'Het park gaat dicht. Dag!'; return naarUitgang(g); }
+    const kandidaten = S.items.filter(it => it.open && !it.kapot && CAT[it.t].soort !== 'decor');
+    let beste = null, score = -1e9;
+    for (const it of kandidaten) {
+      const c = CAT[it.t]; let s;
+      if (c.soort === 'kraam') { const e = c.effect; s = (e.honger ? -e.honger / 70 * Math.max(0, g.honger - 35) : 0) + (e.dorst && e.dorst < 0 ? -e.dorst / 70 * Math.max(0, g.dorst - 35) : 0) + (e.plas ? (e.plas < 0 ? Math.max(0, g.plas - 50) * 1.6 : 0) : 0) + (it.t === 'souvenir' ? (S.regen ? 40 : 6) : 0) + (it.t === 'ijs' ? 8 : 0) + (['ijs', 'vlaai', 'souvenir'].includes(it.t) && g.geld > 15 && g.plezier > 50 && Math.random() < 0.25 ? 34 : 0); if (it.prijs > g.geld) s = -1e9; s -= it.prijs * 1.5; }
+      else { const match = 5 - Math.abs(c.sp - g.voorkeur); s = c.pl * 6 + match * 6 - (g.gedaan[it.uid] || 0) * 14 - it.rij.length * 1.2 + (S.regen && c.overdekt ? 18 : 0) - (S.regen && !c.overdekt ? 10 : 0); if (it.prijs > g.geld) s = -1e9; if (g.honger > 75 || g.dorst > 75 || g.plas > 80) s -= 30; s -= Math.max(0, it.prijs - c.pl * 1.6) * 8; }
+      s += Math.random() * 10;
+      if (s > score) { score = s; beste = it; }
+    }
+    if (beste && score > 5) {
+      const ing = ingangen(beste); if (!ing.length) return dwaal(g);
+      const pad = bfs([i, j], (a, b) => ing.some(([x, y]) => x === a && y === b));
+      if (pad) { g.pad = pad; g.doel = beste.uid; g.toestand = 'lopen'; g.denk = CAT[beste.t].soort === 'kraam' ? denkKraam(beste) : 'Ik ga naar ' + CAT[beste.t].lw + ' ' + CAT[beste.t].naam.toLowerCase() + '!'; return; }
+    }
+    if (g.energie < 35) { const bank = S.items.find(it => it.t === 'bankje'); if (bank) { const ing = ingangen(bank); const pad = ing.length && bfs([i, j], (a, b) => ing.some(([x, y]) => x === a && y === b)); if (pad) { g.pad = pad; g.doel = bank.uid; g.toestand = 'lopen'; g.denk = 'Even uitrusten op een bankje.'; return; } } }
+    dwaal(g);
+  }
+  const denkKraam = it => ({ patat: 'Ik heb zin in patat!', ijs: 'Een ijsje, lekker!', limonade: 'Ik heb dorst.', vlaai: 'Een punt vlaai, graag.', souvenir: S.regen ? 'Ik koop een paraplu!' : 'Ik wil een ballon!', toilet: 'Ik moet echt naar de wc!' })[it.t];
+  function dwaal(g) { const [i, j] = hier(g); const opties = []; for (let k = 0; k < 6; k++) { const a = Math.floor(Math.random() * GW), b = Math.floor(Math.random() * GD); if (S.paden[idx(a, b)]) opties.push([a, b]); } const d = opties[0]; g.pad = d ? (bfs([i, j], (a, b) => a === d[0] && b === d[1]) || []) : []; g.doel = null; g.toestand = 'lopen'; if (Math.random() < 0.3) g.denk = kies(['Wat een gezellig park.', 'Waar zal ik nu eens heen gaan?', 'Wat ruikt het hier lekker!', 'Mooie bloemen hier.']); if (!g.pad.length) g.wacht = 2; }
+  function naarUitgang(g) { const [i, j] = hier(g); g.pad = bfs([i, j], (a, b) => b === GD - 1 && (a === POORT_I || a === POORT_I + 1)) || []; g.toestand = 'weg'; g.doel = null; }
+  function aanDoel(g) {
+    const it = S.items.find(x => x.uid === g.doel); g.doel = null;
+    if (!it || !it.open || it.kapot) { g.denk = it && it.kapot ? 'Hè, hij is kapot!' : 'Hij is dicht.'; g.plezier -= 5; return kiesDoel(g); }
+    const c = CAT[it.t];
+    if (c.soort === 'kraam') { if (g.geld < it.prijs) { g.denk = 'Dat kan ik niet betalen.'; return kiesDoel(g); } g.geld -= it.prijs; S.geld += it.prijs; it.omzet += it.prijs; it.totaal++; it.vandaag++; S.vandaag.in += it.prijs; const inkoop = it.prijs * (it.t === 'toilet' ? 0 : 0.35); S.geld -= inkoop; S.vandaag.uit += inkoop; for (const [k, v] of Object.entries(c.effect)) g[k] = Math.max(0, Math.min(100, g[k] + v)); if (['patat', 'ijs', 'vlaai', 'limonade'].includes(it.t)) g.rommelIn = 1; g.denk = ({ patat: 'Mmm, lekkere patat.', ijs: 'Wat een lekker ijsje!', limonade: 'Heerlijk fris.', vlaai: 'Die vlaai is top!', souvenir: S.regen ? 'Droog onder mijn nieuwe paraplu.' : 'Kijk mijn ballon!', toilet: 'Hè hè, dat lucht op.' })[it.t]; if (it.prijs > c.prijs * 2) { g.denk = 'Wel duur, zeg.'; g.plezier -= 6; } g.wacht = 1.2; g.toestand = 'denk'; return; }
+    if (c.bank) { g.toestand = 'zit'; g.wacht = 6; g.denk = 'Even lekker zitten.'; return; }
+    if (it.prijs > c.pl * 2.5) { g.denk = 'Veel te duur voor ' + c.lw + ' ' + c.naam.toLowerCase() + '!'; g.plezier -= 8; return kiesDoel(g); }
+    if (it.rij.length > 18) { g.denk = 'Die rij is veel te lang.'; g.plezier -= 4; return kiesDoel(g); }
+    g.toestand = 'rij'; it.rij.push(g.id); g.rijVan = it.uid; g.wacht = 0; g.denk = 'Ik sta in de rij voor ' + c.lw + ' ' + c.naam.toLowerCase() + '.';
+  }
+  // ================= PERSONEEL
+  const PERSONEEL_GROEP = new THREE.Group(); scene.add(PERSONEEL_GROEP);
+  const mascotteTex = [];
+  MASCOTTE_SPECS.forEach((spec, i) => { const svg = BT.kunst(spec, { zonder: true }).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" '); const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); c.width = 800; c.height = 600; const g = c.getContext('2d'); g.drawImage(img, 0, 0, 800, 600); const d = g.getImageData(0, 0, 800, 600).data; let x0 = 800, y0 = 600, x1 = 0, y1 = 0; for (let y = 0; y < 600; y += 2) for (let x = 0; x < 800; x += 2) if (d[(y * 800 + x) * 4 + 3] > 30) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } const w = x1 - x0 + 24, h = y1 - y0 + 24, k = document.createElement('canvas'); k.width = w; k.height = h; k.getContext('2d').drawImage(c, x0 - 12, y0 - 12, w, h, 0, 0, w, h); const r = document.createElement('canvas'); r.width = w; r.height = h; const rg = r.getContext('2d'); for (let a = 0; a < 16; a++) rg.drawImage(k, Math.cos(a / 8 * Math.PI) * 9, Math.sin(a / 8 * Math.PI) * 9); rg.globalCompositeOperation = 'source-in'; rg.fillStyle = '#E2CFA6'; rg.fillRect(0, 0, w, h); rg.globalCompositeOperation = 'source-over'; rg.drawImage(k, 0, 0); mascotteTex[i] = { tex: new THREE.CanvasTexture(r), ratio: w / h, naam: spec.n }; S.personeel.filter(p => p.type === 'mascotte' && p.spec === i && !p.klaar).forEach(maakPersoneelModel); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+  function maakPersoneelModel(p) {
+    if (p.groep) PERSONEEL_GROEP.remove(p.groep);
+    const g = new THREE.Group();
+    if (p.type === 'mascotte') {
+      const m = mascotteTex[p.spec]; if (!m) return;
+      const h = 2.1, vlak = new THREE.Mesh(new THREE.PlaneGeometry(h * m.ratio, h), new THREE.MeshToonMaterial({ map: m.tex, transparent: true, alphaTest: 0.5, gradientMap: RL3.grad, side: THREE.DoubleSide })); vlak.position.y = h / 2; vlak.castShadow = true; g.add(vlak); g.userData.kijk = vlak; p.naamTekst = m.naam;
+    } else {
+      const k = p.type === 'schoonmaker' ? 0x2e8b62 : 0x2f4c8f;
+      g.add(at(mesh(new THREE.CylinderGeometry(0.22, 0.26, 1.2, 10), k, 0.025), 0, 0.6, 0)); g.add(at(mesh(new THREE.SphereGeometry(0.3, 14, 10), 0xf0c8a8, 0.025), 0, 1.5, 0)); g.add(at(mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.12, 14), k, 0.02), 0, 1.72, 0));
+      if (p.type === 'schoonmaker') { g.add(at(mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.6, 4), 0xb5793f), 0.35, 0.8, 0.2)); g.add(at(mesh(new THREE.BoxGeometry(0.4, 0.12, 0.16), 0xe9b949, 0.02), 0.35, 0.05, 0.2)); }
+      else { g.add(at(mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), 0x9aa6c2, 0.02), 0.32, 0.7, 0.2)); }
+    }
+    g.traverse(o => { o.userData.personeel = p; });
+    p.groep = g; p.klaar = true; at(g, p.x, 0, p.z); PERSONEEL_GROEP.add(g);
+  }
+  function neemAan(type, spec, opgeslagen) {
+    const p = Object.assign({ id: uid++, type, spec: spec || 0, x: wx(POORT_I) + T / 2, z: wz(GD - 1), pad: [], wacht: 0, klus: null, schoon: 0 }, opgeslagen || {});
+    S.personeel.push(p); maakPersoneelModel(p); return p;
+  }
+  function updatePersoneel(dt) {
+    for (const p of S.personeel) {
+      if (!p.groep) continue;
+      if (p.wacht > 0) { p.wacht -= dt; if (p.wacht <= 0 && p.klus && p.type === 'monteur') { const it = S.items.find(x => x.uid === p.klus); if (it && it.kapot) { it.kapot = false; it.betrouw = 1; melding(CAT[it.t].naam + ' is gerepareerd.'); } p.klus = null; } continue; }
+      if (!p.pad.length) {
+        const [i, j] = hier(p);
+        if (p.type === 'schoonmaker' && rommel.length) { let besteR = null, af = 1e9; for (const r of rommel) { const d = Math.abs(r.i - i) + Math.abs(r.j - j); if (d < af) { af = d; besteR = r; } } if (besteR) { if (af === 0) { rommel.splice(rommel.indexOf(besteR), 1); p.schoon++; p.wacht = 0.8; tekenRommel(); continue; } p.pad = bfs([i, j], (a, b) => a === besteR.i && b === besteR.j) || []; } }
+        else if (p.type === 'monteur') { const kapot = S.items.find(it => it.kapot && !S.personeel.some(q => q !== p && q.klus === it.uid)); if (kapot) { const ing = ingangen(kapot); const pad = ing.length && bfs([i, j], (a, b) => ing.some(([x, y]) => x === a && y === b)); if (pad) { p.pad = pad; p.klus = kapot.uid; if (!pad.length) { p.wacht = 4; } } } }
+        if (!p.pad.length && !p.klus) { const a = Math.floor(Math.random() * GW), b = Math.floor(Math.random() * GD); if (S.paden[idx(a, b)]) p.pad = bfs([i, j], (x, y) => x === a && y === b) || []; if (!p.pad.length) p.wacht = 1; }
+        if (!p.pad.length && p.klus) p.wacht = 4;
+        continue;
+      }
+      const [ti, tj] = p.pad[0], tx = wx(ti), tz = wz(tj), dx = tx - p.x, dz = tz - p.z, af = Math.hypot(dx, dz), v = 2.2 * dt;
+      if (af <= v) { p.x = tx; p.z = tz; p.pad.shift(); if (!p.pad.length && p.klus) p.wacht = 4; } else { p.x += dx / af * v; p.z += dz / af * v; p.kop = Math.atan2(dx, dz); }
+      p.groep.position.set(p.x, p.type === 'mascotte' ? Math.abs(Math.sin(performance.now() / 160)) * 0.12 : 0, p.z);
+      if (p.type !== 'mascotte') p.groep.rotation.y = p.kop || 0;
+    }
+  }
+
+  // ================= DE SIMULATIE
+  let tijdSec = 0;
+  const DAG_SEC = 360;
+  function update(dt) {
+    tijdSec += dt;
+    S.tijd += dt / DAG_SEC;
+    if (S.tijd >= 1) dagOm();
+    // nieuwe bezoekers: hoe beter je park, hoe meer
+    const attracties = S.items.filter(it => CAT[it.t].soort === 'attractie' && it.open).length;
+    const kans = attracties ? (0.08 + attracties * 0.06) * (S.waard / 500) * Math.max(0.15, 1.6 - S.entree / 12) * (S.tijd < 0.85 ? 1 : 0) * (S.regen ? 0.5 : 1) : 0;
+    if (Math.random() < kans * dt) nieuweGast();
+    // bezoekers
+    for (let n = gasten.length - 1; n >= 0; n--) {
+      const g = gasten[n];
+      g.honger = Math.min(100, g.honger + 0.45 * dt); g.dorst = Math.min(100, g.dorst + 0.55 * dt); g.plas = Math.min(100, g.plas + 0.35 * dt); g.energie = Math.max(0, g.energie - 0.16 * dt);
+      g.plezier = Math.max(0, Math.min(100, g.plezier - (0.05 + (g.honger > 80 ? 0.2 : 0) + (g.dorst > 80 ? 0.2 : 0) + (g.plas > 85 ? 0.3 : 0) + (S.regen && g.toestand !== 'rit' ? 0.12 : 0)) * dt));
+      if (g.toestand === 'rit') continue;
+      if (g.toestand === 'rij') { g.wacht += dt; if (g.wacht > 70) { const it = S.items.find(x => x.uid === g.rijVan); if (it) it.rij.splice(it.rij.indexOf(g.id), 1); g.denk = 'Ik sta al zo lang te wachten!'; g.plezier -= 10; g.toestand = 'denk'; g.wacht = 0.5; } continue; }
+      if (g.wacht > 0) { g.wacht -= dt; if (g.toestand === 'zit') g.energie = Math.min(100, g.energie + 6 * dt); continue; }
+      if (g.toestand === 'zit' || g.toestand === 'denk') { kiesDoel(g); continue; }
+      if (!g.pad.length) {
+        if (g.toestand === 'weg') { gasten.splice(n, 1); continue; }
+        if (g.doel) aanDoel(g); else kiesDoel(g);
+        continue;
+      }
+      const [ti, tj] = g.pad[0], tx = wx(ti), tz = wz(tj), dx = tx - g.x, dz = tz - g.z, af = Math.hypot(dx, dz), v = (g.energie < 30 ? 1.3 : 1.9) * dt;
+      if (af <= v) {
+        g.x = tx; g.z = tz; g.pad.shift();
+        // rommel: na het eten gooien ze het weg, in een prullenbak als er een in de buurt staat
+        if (g.rommelIn) { g.rommelIn += 1; const bak = S.items.find(it => it.t === 'prullenbak' && Math.abs(it.i - ti) + Math.abs(it.j - tj) <= 3); if (bak) { g.rommelIn = 0; g.denk = 'Dank je wel! zegt de prullenbak.'; } else if (g.rommelIn > 6 && Math.random() < 0.25) { g.rommelIn = 0; if (rommel.length < ROMMEL_MAX) { rommel.push({ i: ti, j: tj, x: tx + (Math.random() - 0.5) * 1.2, z: tz + (Math.random() - 0.5) * 1.2, rot: Math.random() * 6 }); tekenRommel(); } } }
+        // mooie dingen en rommel in de buurt
+        let mooi = 0, vies = 0; for (const it of S.items) { const c = CAT[it.t]; if (c.mooi && Math.abs(it.i - ti) <= 3 && Math.abs(it.j - tj) <= 3) mooi += c.mooi; } for (const r of rommel) if (Math.abs(r.i - ti) <= 1 && Math.abs(r.j - tj) <= 1) vies++;
+        for (const p of S.personeel) if (p.type === 'mascotte' && Math.hypot(p.x - g.x, p.z - g.z) < 6) { mooi += 6; if (Math.random() < 0.05) g.denk = 'Kijk, een Rommelbeest! Hoi ' + (p.naamTekst || '') + '!'; }
+        g.plezier = Math.min(100, g.plezier + Math.min(8, mooi) * 0.04 - vies * 0.6);
+        if (vies > 2 && Math.random() < 0.2) g.denk = 'Wat een rommel op de paden.';
+      } else { g.x += dx / af * v; g.z += dz / af * v; g.kop = Math.atan2(dx, dz); }
+      g.fase += dt * 9;
+    }
+    // attracties
+    for (const it of S.items) {
+      const c = CAT[it.t]; if (c.soort !== 'attractie') continue;
+      if (it.draait) { it.timer -= dt; if (it.timer <= 0) losRit(it); continue; }
+      if (!it.open || it.kapot) continue;
+      if (it.rij.length) { it.wacht += dt; if (it.rij.length >= c.cap || it.wacht > 6) startRit(it); }
+    }
+  }
+  function startRit(it) {
+    const c = CAT[it.t]; it.wacht = 0;
+    const mee = it.rij.splice(0, c.cap);
+    for (const gid of mee) { const g = gasten.find(x => x.id === gid); if (!g) continue; if (g.geld < it.prijs) { g.denk = 'Mijn geld is op...'; g.toestand = 'denk'; g.wacht = 0.5; continue; } g.geld -= it.prijs; S.geld += it.prijs; S.vandaag.in += it.prijs; it.omzet += it.prijs; it.totaal++; it.vandaag++; g.toestand = 'rit'; g.verborgen = true; it.inRit.push(gid); }
+    if (!it.inRit.length) return;
+    it.draait = true; it.timer = c.duur;
+    if (Math.random() > it.betrouw) { it.timer = c.duur * 0.4; it.wordtKapot = true; }
+    it.betrouw = Math.max(0.82, it.betrouw - 0.004);
+  }
+  function losRit(it) {
+    const c = CAT[it.t]; it.draait = false;
+    const ing = ingangen(it)[0] || [it.i, it.j];
+    for (const gid of it.inRit) {
+      const g = gasten.find(x => x.id === gid); if (!g) continue;
+      g.verborgen = false; g.x = wx(ing[0]) + (Math.random() - 0.5) * 1.2; g.z = wz(ing[1]) + (Math.random() - 0.5) * 1.2;
+      const match = 5 - Math.abs(c.sp - g.voorkeur);
+      g.plezier = Math.min(100, g.plezier + c.pl * 4 + match * 3); g.energie = Math.max(0, g.energie - c.sp * 1.5); g.gedaan[it.uid] = (g.gedaan[it.uid] || 0) + 1;
+      if (c.mi >= 3 && Math.random() < 0.35 && g.voorkeur < 4) { g.denk = 'Ik voel me een beetje misselijk...'; g.plezier -= 8; }
+      else g.denk = match >= 4 ? kies(['Wauw, wat was dat gaaf!', 'Nog een keer!', (c.lw === 'het' ? 'Dat ' : 'Die ') + c.naam.toLowerCase() + ' is super!']) : match <= 1 ? (c.sp > g.voorkeur ? 'Dat was veel te eng voor mij!' : 'Dat was een beetje saai.') : 'Leuk zeg!';
+      if (g.hotelZin && Math.random() < 0.5) g.denk = g.hotelZin;
+      g.toestand = 'denk'; g.wacht = 0.6;
+    }
+    it.inRit = [];
+    if (it.wordtKapot) { it.wordtKapot = false; it.kapot = true; melding(c.naam + ' is kapot!' + (S.personeel.some(p => p.type === 'monteur') ? ' De monteur komt eraan.' : ' Neem een monteur aan of repareer hem zelf.'), 'fout'); }
+  }
+  function dagOm() {
+    let onderhoud = 0; for (const it of S.items) onderhoud += CAT[it.t].onderhoud || 0;
+    let lonen = 0; for (const p of S.personeel) lonen += PERSONEEL[p.type].loon;
+    S.geld -= onderhoud + lonen; S.vandaag.uit += onderhoud + lonen;
+    const rap = S.vandaag;
+    toonRapport(`Dag ${S.dag} is voorbij`, `<p>${rap.gasten} bezoekers kwamen langs.</p><ul><li>Inkomsten: <b>${euro(rap.in)}</b></li><li>Onderhoud: ${euro(onderhoud)}</li><li>Lonen: ${euro(lonen)}</li><li>Inkoop van de kraampjes: ${euro(rap.uit - onderhoud - lonen)}</li><li>Winst: <b>${euro(rap.in - rap.uit)}</b></li></ul>`);
+    S.dag++; S.tijd = 0; S.vandaag = { in: 0, uit: 0, gasten: 0 };
+    for (const it of S.items) it.vandaag = 0;
+    for (const g of gasten.splice(0)) { const it = g.rijVan && S.items.find(x => x.uid === g.rijVan); if (it) { it.rij = []; it.inRit = []; it.draait = false; } }
+    S.regen = Math.random() < 0.25 ? 1 : 0;
+    if (S.regen) melding('Vandaag gaat het regenen. Overdekte attracties en paraplu\'s zijn populair!');
+    bewaar();
+  }
+  function waardering() {
+    if (!gasten.length && !S.items.length) return 0;
+    const pl = gasten.length ? gasten.reduce((a, g) => a + g.plezier, 0) / gasten.length : 60;
+    const att = S.items.filter(it => CAT[it.t].soort === 'attractie');
+    const soorten = new Set(att.map(it => it.t)).size, kramen = new Set(S.items.filter(it => CAT[it.t].soort === 'kraam').map(it => it.t)).size;
+    let mooi = 0; for (const it of S.items) mooi += CAT[it.t].mooi || 0;
+    const w = 120 + pl * 4 + Math.min(220, soorten * 40) + Math.min(90, kramen * 15) + Math.min(110, mooi * 0.8) + (S.personeel.some(p => p.type === 'mascotte') ? 30 : 0) - rommel.length * 4 - att.filter(it => it.kapot).length * 50;
+    return Math.max(0, Math.min(1000, Math.round(w)));
+  }
+  const stand = { aantal: t => S.items.filter(it => it.t === t).length, gasten: () => gasten.length, personeel: t => S.personeel.filter(p => p.type === t).length, waardering: () => S.waard, geld: () => S.geld, get vuurwerkGehad() { return S.vuurwerkGehad; }, get totaalGasten() { return S.totaalGasten; } };
+  function checkDoelen() {
+    for (const d of DOELEN) if (!S.doelen[d.id] && d.test(stand)) { S.doelen[d.id] = true; S.geld += d.beloning; melding(`Doel gehaald: ${d.tekst}! +${euro(d.beloning)}` + (d.ontgrendelt ? `. Nieuw: ${CAT[d.ontgrendelt].naam}!` : ''), 'goed'); if (lade.dataset.cat) toonLade(lade.dataset.cat); tekenDoelen(); bewaar(); }
+  }
+
+  // ================= TEKENEN VAN BEZOEKERS
+  const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3(1, 1, 1), NUL = new THREE.Vector3(0, 0, 0), E = new THREE.Euler(), KL = new THREE.Color();
+  function zet(d, n, x, y, z, kop, rx, kleur, s) { E.set(rx || 0, kop, 0, 'YXZ'); Q.setFromEuler(E); V.set(x, y, z); M4.compose(V, Q, s === 0 ? NUL : SC); d.setMatrixAt(n, M4); if (kleur !== undefined) d.setColorAt(n, KL.setHex(kleur)); }
+  function tekenGasten() {
+    let n = 0;
+    for (const g of gasten) {
+      if (g.verborgen) continue;
+      let x = g.x, z = g.z, y = 0, zwaai = 0;
+      if (g.toestand === 'rij') { const it = S.items.find(q => q.uid === g.rijVan); if (it) { const ing = ingangen(it)[0]; if (ing) { const p = it.rij.indexOf(g.id); x = wx(ing[0]) + ((p % 3) - 1) * 0.55; z = wz(ing[1]) + (Math.floor(p / 3) % 3 - 1) * 0.55; } } }
+      else if (g.toestand === 'lopen' || g.toestand === 'weg') { const nx = Math.cos(g.kop), nz = -Math.sin(g.kop); x += nx * g.zij * 0.4; z += nz * g.zij * 0.4; zwaai = Math.sin(g.fase) * 0.55; }
+      if (g.toestand === 'zit') y = -0.12;
+      const k = g.kop, c = Math.cos(k), s = Math.sin(k);
+      const off = (lx, ly, lz) => [x + lx * c + lz * s, y + ly, z - lx * s + lz * c];
+      zet(delen.lijf, n, ...off(0, 0.95, 0), k, 0, g.kleur.shirt);
+      zet(delen.hoofd, n, ...off(0, 1.56, 0), k, 0, g.kleur.huid);
+      zet(delen.haar, n, ...off(0, 1.6, -0.03), k, -0.3, g.kleur.haar);
+      zet(delen.beenL, n, ...off(-0.11, 0.64, 0), k, zwaai, g.kleur.broek);
+      zet(delen.beenR, n, ...off(0.11, 0.64, 0), k, -zwaai, g.kleur.broek);
+      zet(delen.armL, n, ...off(-0.27, 1.22, 0), k, -zwaai * 0.8, g.kleur.shirt);
+      zet(delen.armR, n, ...off(0.27, 1.22, 0), k, zwaai * 0.8, g.kleur.shirt);
+      zet(delen.ogen, n, ...off(0, 1.58, 0.28), k, 0);
+      n++;
+    }
+    for (const d of Object.values(delen)) { d.count = n; d.instanceMatrix.needsUpdate = true; if (d.instanceColor) d.instanceColor.needsUpdate = true; }
+    tekenGasten.lijst = gasten.filter(g => !g.verborgen);
+  }
+
+  // ================= REGEN EN VUURWERK
+  const regenGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(2500 * 3).map((_, i) => i % 3 === 1 ? Math.random() * 40 : (Math.random() - 0.5) * 80), 3));
+  const regen = new THREE.Points(regenGeo, new THREE.PointsMaterial({ color: 0xbfd6f0, size: 0.18, transparent: true, opacity: 0.7 })); scene.add(regen);
+  const vuurwerk = [];
+  function knal() { const n = 140, geo = new THREE.BufferGeometry(), pos = new Float32Array(n * 3), vel = []; const cx = (Math.random() - 0.5) * 40, cy = 26 + Math.random() * 12, cz = (Math.random() - 0.5) * 30; for (let i = 0; i < n; i++) { pos[i * 3] = cx; pos[i * 3 + 1] = cy; pos[i * 3 + 2] = cz; const a = Math.random() * 6.283, b = Math.acos(2 * Math.random() - 1), v = 7 + Math.random() * 3; vel.push([Math.sin(b) * Math.cos(a) * v, Math.cos(b) * v, Math.sin(b) * Math.sin(a) * v]); } geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const p = new THREE.Points(geo, new THREE.PointsMaterial({ color: kies([0xff7fb0, 0xffe76a, 0x7ff0ff, 0xb5ff7a, 0xffffff]), size: 0.6, transparent: true })); scene.add(p); vuurwerk.push({ p, vel, t: 0 }); }
+  function updateVuurwerk(dt) { for (let k = vuurwerk.length - 1; k >= 0; k--) { const f = vuurwerk[k]; f.t += dt; const pos = f.p.geometry.attributes.position; for (let i = 0; i < f.vel.length; i++) { const v = f.vel[i]; v[1] -= 4 * dt; v[0] *= 0.985; v[2] *= 0.985; pos.setXYZ(i, pos.getX(i) + v[0] * dt, pos.getY(i) + v[1] * dt, pos.getZ(i) + v[2] * dt); } pos.needsUpdate = true; f.p.material.opacity = Math.max(0, 1 - f.t / 2.2); if (f.t > 2.2) { scene.remove(f.p); vuurwerk.splice(k, 1); } } }
+  let showTijd = 0;
+  function startShow() { if (S.geld < 800) { melding('Een vuurwerkshow kost €800.', 'fout'); return; } if (S.tijd < 0.62) { melding('Vuurwerk is pas mooi als het donker wordt. Wacht tot de avond.', 'fout'); return; } S.geld -= 800; S.vandaag.uit += 800; showTijd = 22; S.vuurwerkGehad = true; for (const g of gasten) { g.plezier = Math.min(100, g.plezier + 18); g.denk = 'Ooooh! Aaaah! Vuurwerk!'; } melding('De vuurwerkshow begint!', 'goed'); }
+
+  // ================= LICHT VAN DE DAG
+  function zetLicht() {
+    const t = S.tijd, avond = Math.max(0, Math.min(1, (t - 0.62) / 0.16)), ochtend = Math.max(0, 1 - t / 0.08);
+    const donker = Math.max(avond, ochtend * 0.6);
+    const lucht = new THREE.Color(0x8ec9f0).lerp(new THREE.Color(0xf2a86a), Math.max(0, Math.min(1, (t - 0.55) / 0.1)) * (1 - avond)).lerp(new THREE.Color(0x1a2248), donker);
+    if (S.regen) lucht.lerp(new THREE.Color(0x7a8396), 0.5 * (1 - donker));
+    scene.background = lucht; scene.fog = scene.fog || new THREE.Fog(lucht, 90, 220); scene.fog.color = lucht;
+    hemi.intensity = 0.75 - donker * 0.45 - (S.regen ? 0.15 : 0); zon.intensity = 0.95 - donker * 0.75 - (S.regen ? 0.4 : 0);
+    const hoek = 0.3 + t * 2.6; zon.position.set(Math.cos(hoek) * -50, 30 + Math.sin(t * Math.PI) * 30, 25); zon.color.set(donker > 0.5 ? 0xaab8ff : t > 0.55 ? 0xffc890 : 0xfff4dc);
+    sterren.visible = donker > 0.5; regen.visible = !!S.regen;
+    const aan = donker > 0.35; for (const l of lichtjes) l.material.color.setHex(aan ? 0xfff3c4 : 0xc9a24e);
+  }
+
+  // ================= CAMERA
+  let az = 0.6, el = 0.85, afstand = 70, doelAz = az, doelEl = el, doelAf = afstand;
+  const doel = new THREE.Vector3(0, 0, 4), doelDoel = doel.clone();
+  function zetCamera() { az += (doelAz - az) * 0.18; el += (doelEl - el) * 0.18; afstand += (doelAf - afstand) * 0.18; doel.lerp(doelDoel, 0.2); camera.position.set(doel.x + Math.sin(az) * Math.cos(el) * afstand, doel.y + Math.sin(el) * afstand, doel.z + Math.cos(az) * Math.cos(el) * afstand); camera.lookAt(doel); zon.target.position.copy(doel); zon.position.add(doel); }
+  const ray = new THREE.Raycaster(), muis = new THREE.Vector2(), VLAK = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  function opGrond(e) { const r = renderer.domElement.getBoundingClientRect(); muis.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(muis, camera); const p = new THREE.Vector3(); if (!ray.ray.intersectPlane(VLAK, p)) return null; return { p, i: Math.floor(p.x / T + GW / 2), j: Math.floor(p.z / T + GD / 2) }; }
+  function pan(dx, dy) { const s = afstand * 0.0016; const vx = Math.cos(az), vz = -Math.sin(az); doelDoel.x -= (dx * vx - dy * Math.sin(az)) * s; doelDoel.z -= (dx * vz - dy * Math.cos(az)) * s; doelDoel.x = Math.max(-GW, Math.min(GW, doelDoel.x)); doelDoel.z = Math.max(-GD, Math.min(GD + 6, doelDoel.z)); }
+
+  // ================= GEREEDSCHAP EN INVOER
+  let gereedschap = 'kijk', bouwType = null, draaiing = 0, spook = null, schilder = null;
+  const wijzers = new Map(); let knijp = 0, hoekStart = 0, bewogen = 0, rechts = false;
+  const cv = renderer.domElement; cv.style.touchAction = 'none';
+  cv.addEventListener('contextmenu', e => e.preventDefault());
+  cv.addEventListener('pointerdown', e => {
+    wijzers.set(e.pointerId, [e.clientX, e.clientY]); cv.setPointerCapture(e.pointerId); bewogen = 0; rechts = e.button === 2 || e.button === 1;
+    if (wijzers.size === 1 && !rechts && (gereedschap === 'pad' || gereedschap === 'padweg')) { const g = opGrond(e); if (g) { schilder = gereedschap; verfPad(g); } }
+  });
+  cv.addEventListener('pointermove', e => {
+    const g = opGrond(e); if (g && spook) zetSpook(g);
+    if (!wijzers.has(e.pointerId)) return;
+    const [ox, oy] = wijzers.get(e.pointerId); wijzers.set(e.pointerId, [e.clientX, e.clientY]);
+    const dx = e.clientX - ox, dy = e.clientY - oy;
+    if (wijzers.size === 2) { const [a, b] = [...wijzers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), hoek = Math.atan2(b[1] - a[1], b[0] - a[0]); if (knijp) { doelAf = Math.max(18, Math.min(120, doelAf * knijp / d)); doelAz -= (hoek - hoekStart); } knijp = d; hoekStart = hoek; bewogen = 99; return; }
+    bewogen += Math.abs(dx) + Math.abs(dy);
+    if (schilder && g) { verfPad(g); return; }
+    if (rechts) { doelAz -= dx * 0.008; doelEl = Math.max(0.35, Math.min(1.35, doelEl + dy * 0.006)); }
+    else if (bewogen > 5) pan(dx, dy);
+  });
+  const los = e => { wijzers.delete(e.pointerId); if (wijzers.size < 2) knijp = 0; };
+  cv.addEventListener('pointerup', e => { const was = schilder; schilder = null; if (bewogen < 6 && !rechts && !was) tik(e); if (was) bewaarLater(); los(e); });
+  cv.addEventListener('pointercancel', e => { schilder = null; los(e); });
+  cv.addEventListener('wheel', e => { e.preventDefault(); doelAf = Math.max(18, Math.min(120, doelAf * (e.deltaY > 0 ? 1.1 : 0.9))); }, { passive: false });
+  addEventListener('keydown', e => { if (e.target.closest('input, textarea')) return; if (e.key === 'r' || e.key === 'R') { draaiing = (draaiing + 1) % 4; if (spook) maakSpook(); } if (e.key === 'Escape') kiesGereedschap('kijk'); const st = 2.4; if (e.key === 'ArrowLeft' || e.key === 'a') pan(60, 0); if (e.key === 'ArrowRight' || e.key === 'd') pan(-60, 0); if (e.key === 'ArrowUp' || e.key === 'w') pan(0, 60); if (e.key === 'ArrowDown' || e.key === 's') pan(0, -60); if (e.key === 'q') doelAz += 0.4; if (e.key === 'e') doelAz -= 0.4; });
+  function verfPad(g) { if (!binnen(g.i, g.j)) return; if (schilder === 'pad') { if (S.geld < 20) { melding('Niet genoeg geld voor een pad.', 'fout'); schilder = null; return; } if (zetPad(g.i, g.j, true)) { S.geld -= 20; } } else if (zetPad(g.i, g.j, false)) S.geld += 10; }
+  function maakSpook() {
+    if (spook) scene.remove(spook.groep);
+    spook = null; if (!bouwType) return;
+    const m = makers[bouwType](); spook = { groep: m.groep };
+    m.groep.traverse(o => { if (o.isMesh) { o.material = o.material.clone ? (Array.isArray(o.material) ? o.material.map(x => x.clone()) : o.material.clone()) : o.material; (Array.isArray(o.material) ? o.material : [o.material]).forEach(x => { x.transparent = true; x.opacity = 0.6; }); o.castShadow = false; o.raycast = () => {}; } });
+    m.groep.rotation.y = -draaiing * Math.PI / 2; scene.add(m.groep);
+  }
+  let spookPlek = null;
+  function zetSpook(g) {
+    const c = CAT[bouwType], w = draaiing % 2 ? c.d : c.w, d = draaiing % 2 ? c.w : c.d;
+    const i = Math.round(g.p.x / T + GW / 2 - w / 2), j = Math.round(g.p.z / T + GD / 2 - d / 2);
+    spookPlek = { i, j }; at(spook.groep, (i + w / 2 - GW / 2) * T, 0.05, (j + d / 2 - GD / 2) * T);
+    const ok = vrij(bouwType, i, j, draaiing) === true && S.geld >= c.kost;
+    spook.groep.traverse(o => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach(x => { if (x.emissive) x.emissive.setHex(ok ? 0x1a5a2a : 0x7a1414); }); });
+  }
+  function tik(e) {
+    const g = opGrond(e);
+    if (gereedschap === 'bouw' && spookPlek) {
+      const c = CAT[bouwType], v = vrij(bouwType, spookPlek.i, spookPlek.j, draaiing);
+      if (S.geld < c.kost) { melding('Niet genoeg geld. ' + c.naam + ' kost ' + euro(c.kost) + '.', 'fout'); return; }
+      if (v === 'pad') { melding(c.naam + ' moet naast een pad staan, anders kunnen de bezoekers er niet bij.', 'fout'); return; }
+      if (!v) { melding('Daar is geen plek.', 'fout'); return; }
+      S.geld -= c.kost; S.vandaag.uit += c.kost; const it = plaats(bouwType, spookPlek.i, spookPlek.j, draaiing); geluid('bouw'); bewaarLater(); checkDoelen();
+      if (c.soort !== 'decor') { kiesGereedschap('kijk'); toonInfo(it); }
+      return;
+    }
+    // klikken op iets
+    const r = renderer.domElement.getBoundingClientRect(); muis.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(muis, camera);
+    const doelen = [delen.lijf, delen.hoofd, ...S.items.map(it => it.groep), PERSONEEL_GROEP, poortObj.groep];
+    const raak = ray.intersectObjects(doelen, true)[0];
+    if (gereedschap === 'sloop') {
+      if (raak && raak.object.userData.item) { const it = raak.object.userData.item; const terug = Math.round(CAT[it.t].kost * 0.5); verwijder(it); S.geld += terug; melding(CAT[it.t].naam + ' gesloopt. Je krijgt ' + euro(terug) + ' terug.'); geluid('sloop'); bewaarLater(); }
+      else if (g && binnen(g.i, g.j) && S.paden[idx(g.i, g.j)]) { if (zetPad(g.i, g.j, false)) { S.geld += 10; bewaarLater(); } }
+      return;
+    }
+    if (!raak) { sluitInfo(); return; }
+    if (raak.object.isInstancedMesh) { const gs = tekenGasten.lijst[raak.instanceId]; if (gs) toonGast(gs); return; }
+    if (raak.object.userData.personeel) { toonPersoneel(raak.object.userData.personeel); return; }
+    if (raak.object.userData.item) { toonInfo(raak.object.userData.item); return; }
+    let o = raak.object; while (o && o !== poortObj.groep) o = o.parent; if (o) toonPark();
+  }
+
+  // ================= UI
+  const lade = $('rl-lade'), info = $('rl-info');
+  function kiesGereedschap(g, cat) {
+    gereedschap = g; document.querySelectorAll('.rl-tab').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === (cat || g))));
+    if (g !== 'bouw') { bouwType = null; if (spook) { scene.remove(spook.groep); spook = null; } }
+    cv.style.cursor = g === 'kijk' ? 'grab' : 'crosshair';
+    $('rl-hint').textContent = { kijk: 'Sleep om te schuiven, rechts slepen (of met twee vingers) om te draaien. Klik op iets voor meer informatie.', pad: 'Klik of sleep over het gras om paden te leggen (€20 per tegel).', padweg: 'Sleep over paden om ze weg te halen.', sloop: 'Klik op iets om het te slopen. Je krijgt de helft van het geld terug.', bouw: 'Klik om neer te zetten. Druk op R of op de draaiknop om te draaien.' }[g] || '';
+  }
+  function toonLade(cat) {
+    lade.dataset.cat = cat; lade.hidden = false;
+    if (cat === 'personeel') { lade.innerHTML = Object.entries(PERSONEEL).map(([t, p]) => `<button class="rl-kaart" data-personeel="${t}" type="button"><b>${p.naam}</b><span>${p.tekst}</span><em>${euro(p.kost)} + ${euro(p.loon)} per dag</em></button>`).join('') + `<div class="rl-kaart rl-info-kaart"><b>In dienst</b><span>${Object.keys(PERSONEEL).map(t => PERSONEEL[t].naam + ': ' + S.personeel.filter(p => p.type === t).length).join('<br>')}</span></div>`; return; }
+    if (cat === 'doelen') { lade.innerHTML = '<div class="rl-doelen" id="rl-doelen"></div>'; tekenDoelen(); return; }
+    if (cat === 'menu') { lade.innerHTML = `<button class="rl-kaart" data-actie="park" type="button"><b>Mijn park</b><span>Naam, entreeprijs en cijfers.</span></button><button class="rl-kaart" data-actie="vuurwerk" type="button"><b>Vuurwerkshow</b><span>Alleen 's avonds. Iedereen wordt blij.</span><em>€800</em></button><button class="rl-kaart" data-actie="help" type="button"><b>Hoe werkt het?</b><span>Uitleg over het spel.</span></button><button class="rl-kaart" data-actie="nieuw" type="button"><b>Opnieuw beginnen</b><span>Een nieuw, leeg park.</span></button>`; return; }
+    if (cat === 'paden') { lade.innerHTML = `<button class="rl-kaart" data-gereedschap="pad" type="button"><b>Pad leggen</b><span>Sleep over het gras.</span><em>€20 per tegel</em></button><button class="rl-kaart" data-gereedschap="padweg" type="button"><b>Pad weghalen</b><span>Sleep over een pad.</span><em>€10 terug</em></button>`; return; }
+    const soort = { attracties: 'attractie', kraampjes: 'kraam', decor: 'decor' }[cat];
+    lade.innerHTML = Object.entries(CAT).filter(([, c]) => c.soort === soort).map(([t, c]) => { const op = ontgrendeld(t), doel = c.slot && DOELEN.find(d => d.id === c.slot); return `<button class="rl-kaart${op ? '' : ' slot'}" data-bouw="${t}" type="button" ${op ? '' : 'aria-disabled="true"'}><b>${c.naam}</b><span>${op ? (c.tekst || (c.mooi ? 'Maakt je park mooier.' : '')) : 'Op slot: ' + doel.tekst.toLowerCase() + '.'}</span><em>${euro(c.kost)}${c.soort === 'attractie' ? ' · ' + c.w + '×' + c.d : ''}</em>${c.sp ? `<i>Spanning ${'★'.repeat(c.sp)}${'☆'.repeat(5 - c.sp)}</i>` : ''}</button>`; }).join('');
+  }
+  lade.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.bouw) { if (!ontgrendeld(b.dataset.bouw)) { melding('Deze is nog op slot. Haal eerst het doel.', 'fout'); return; } kiesGereedschap('bouw', lade.dataset.cat); bouwType = b.dataset.bouw; maakSpook(); lade.querySelectorAll('.rl-kaart').forEach(k => k.classList.toggle('actief', k === b)); }
+    if (b.dataset.gereedschap) { kiesGereedschap(b.dataset.gereedschap, 'paden'); lade.querySelectorAll('.rl-kaart').forEach(k => k.classList.toggle('actief', k === b)); }
+    if (b.dataset.personeel) { const p = PERSONEEL[b.dataset.personeel]; if (S.geld < p.kost) { melding('Niet genoeg geld.', 'fout'); return; } S.geld -= p.kost; S.vandaag.uit += p.kost; neemAan(b.dataset.personeel, S.personeel.filter(x => x.type === 'mascotte').length % MASCOTTE_SPECS.length); melding(p.naam + ' is in dienst!', 'goed'); toonLade('personeel'); checkDoelen(); bewaarLater(); }
+    if (b.dataset.actie === 'park') toonPark();
+    if (b.dataset.actie === 'vuurwerk') startShow();
+    if (b.dataset.actie === 'help') toonHelp();
+    if (b.dataset.actie === 'nieuw') { if (confirm('Weet je zeker dat je opnieuw wilt beginnen? Je park is dan weg.')) { try { localStorage.removeItem(OPSLAG); } catch (er) {} location.reload(); } }
+  });
+  document.querySelectorAll('.rl-tab').forEach(b => b.addEventListener('click', () => { const t = b.dataset.tab; if (t === 'kijk' || t === 'sloop') { kiesGereedschap(t); lade.hidden = true; lade.dataset.cat = ''; } else { if (lade.dataset.cat === t && !lade.hidden) { lade.hidden = true; lade.dataset.cat = ''; kiesGereedschap('kijk'); return; } kiesGereedschap('kijk', t); toonLade(t); } }));
+  $('rl-draai').addEventListener('click', () => { draaiing = (draaiing + 1) % 4; if (spook) maakSpook(); });
+  $('rl-camL').addEventListener('click', () => { doelAz += 0.5; }); $('rl-camR').addEventListener('click', () => { doelAz -= 0.5; });
+  $('rl-zoomIn').addEventListener('click', () => { doelAf = Math.max(18, doelAf * 0.8); }); $('rl-zoomUit').addEventListener('click', () => { doelAf = Math.min(120, doelAf * 1.25); });
+  document.querySelectorAll('[data-snel]').forEach(b => b.addEventListener('click', () => { S.snel = +b.dataset.snel; document.querySelectorAll('[data-snel]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }));
+  let selectie = null;
+  function sluitInfo() { info.hidden = true; selectie = null; }
+  const sterren5 = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const balk = (naam, w, slecht) => `<div class="rl-balk"><span>${naam}</span><i><b style="width:${Math.round(w)}%;background:${(slecht ? w > 70 : w < 30) ? '#C8323C' : '#2E8B62'}"></b></i></div>`;
+  function toonInfo(it) {
+    selectie = it; const c = CAT[it.t]; info.hidden = false;
+    const status = c.soort === 'decor' ? '' : it.kapot ? '<span class="rl-status fout">Kapot</span>' : it.open ? '<span class="rl-status goed">Open</span>' : '<span class="rl-status">Dicht</span>';
+    info.innerHTML = `<button class="rl-sluit" type="button" aria-label="Sluiten">×</button><h3>${c.naam} ${status}</h3>` + (c.soort === 'attractie' ? `<p class="rl-sterren">Spanning ${sterren5(c.sp)}<br>Plezier ${sterren5(c.pl)}<br>Misselijkheid ${sterren5(c.mi)}</p><p>In de rij: <b>${it.rij.length}</b> · In de rit: <b>${it.inRit.length}</b><br>Vandaag: ${it.vandaag} · Totaal: ${it.totaal}<br>Omzet: ${euro(it.omzet)} · Onderhoud: ${euro(c.onderhoud)} per dag<br>Betrouwbaarheid: ${Math.round(it.betrouw * 100)}%</p>` : c.soort === 'kraam' ? `<p>${c.tekst}</p><p>Verkocht vandaag: <b>${it.vandaag}</b> · Totaal: ${it.totaal}<br>Omzet: ${euro(it.omzet)}</p>` : `<p>${c.tekst || 'Maakt je park mooier. Bezoekers in de buurt worden er blij van.'}</p>`)
+      + (c.soort !== 'decor' ? `<div class="rl-prijs">Prijs <button data-p="-1" type="button" aria-label="Goedkoper">−</button><b>${euro(it.prijs).replace('€', '€ ')}${it.prijs % 1 ? ',50' : ''}</b><button data-p="1" type="button" aria-label="Duurder">+</button></div>` : '')
+      + `<div class="rl-knoppen">${c.soort !== 'decor' ? `<button data-a="open" type="button">${it.open ? 'Sluiten' : 'Openen'}</button>` : ''}${it.kapot ? '<button data-a="maak" type="button">Repareren (€200)</button>' : ''}<button data-a="sloop" type="button">Slopen (+${euro(c.kost * 0.5)})</button></div>`;
+    info.querySelector('.rl-sluit').onclick = sluitInfo;
+    info.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { const stap = it.t === 'toilet' ? 0.5 : 1; it.prijs = Math.max(0, Math.min(20, it.prijs + +b.dataset.p * stap)); toonInfo(it); bewaarLater(); });
+    info.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const a = b.dataset.a; if (a === 'open') { it.open = !it.open; if (!it.open) { for (const gid of it.rij) { const g = gasten.find(x => x.id === gid); if (g) { g.toestand = 'denk'; g.denk = 'Hè, hij gaat dicht!'; } } it.rij = []; } } if (a === 'maak') { if (S.geld < 200) return melding('Niet genoeg geld.', 'fout'); S.geld -= 200; it.kapot = false; it.betrouw = 1; melding(c.naam + ' is gerepareerd.'); } if (a === 'sloop') { S.geld += Math.round(c.kost * 0.5); verwijder(it); bewaarLater(); return; } toonInfo(it); bewaarLater(); });
+  }
+  function toonGast(g) {
+    selectie = g; info.hidden = false;
+    info.innerHTML = `<button class="rl-sluit" type="button" aria-label="Sluiten">×</button><h3>${g.naam}${g.hotelZin ? ' <span class="rl-status">uit het Rommelhotel</span>' : ''}</h3><p class="rl-denk">“${g.denk}”</p>${balk('Plezier', g.plezier)}${balk('Energie', g.energie)}${balk('Honger', g.honger, true)}${balk('Dorst', g.dorst, true)}${balk('Wc', g.plas, true)}<p>Geld: <b>${euro(g.geld)}</b> · Houdt van: ${['rustige', 'kalme', 'leuke', 'spannende', 'wilde'][g.voorkeur - 1]} attracties</p>`;
+    info.querySelector('.rl-sluit').onclick = sluitInfo;
+  }
+  function toonPersoneel(p) { selectie = p; info.hidden = false; const P0 = PERSONEEL[p.type]; info.innerHTML = `<button class="rl-sluit" type="button" aria-label="Sluiten">×</button><h3>${p.type === 'mascotte' ? (p.naamTekst || 'Mascotte') : P0.naam}</h3><p>${P0.tekst}</p>${p.type === 'schoonmaker' ? `<p>Opgeveegd: <b>${p.schoon}</b> stukjes rommel.</p>` : ''}<p>Loon: ${euro(P0.loon)} per dag.</p><div class="rl-knoppen"><button data-a="ontsla" type="button">Ontslaan</button></div>`; info.querySelector('.rl-sluit').onclick = sluitInfo; info.querySelector('[data-a]').onclick = () => { PERSONEEL_GROEP.remove(p.groep); S.personeel.splice(S.personeel.indexOf(p), 1); sluitInfo(); bewaarLater(); }; }
+  function toonPark() {
+    selectie = 'park'; info.hidden = false;
+    info.innerHTML = `<button class="rl-sluit" type="button" aria-label="Sluiten">×</button><h3>Mijn park</h3><label class="rl-naam">Naam <input id="rl-naamIn" maxlength="18" value="${S.naam.replace(/"/g, '')}"></label><div class="rl-prijs">Entree <button data-e="-1" type="button" aria-label="Goedkoper">−</button><b>${euro(S.entree)}</b><button data-e="1" type="button" aria-label="Duurder">+</button></div><p>Bezoekers nu: <b>${gasten.length}</b> · Totaal: ${S.totaalGasten}<br>Waardering: <b>${S.waard}</b> van de 1000<br>Rommel op de paden: ${rommel.length}<br>Vandaag verdiend: ${euro(S.vandaag.in)}</p><p class="rl-tip">Tip: een lage entree lokt meer bezoekers, maar levert minder op. Mooie dingen, schone paden en veel verschillende attracties maken je park populairder.</p>`;
+    info.querySelector('.rl-sluit').onclick = sluitInfo;
+    info.querySelectorAll('[data-e]').forEach(b => b.onclick = () => { S.entree = Math.max(0, Math.min(40, S.entree + +b.dataset.e)); toonPark(); bewaarLater(); });
+    const inv = $('rl-naamIn'); inv.onchange = () => { const n = inv.value.trim().slice(0, 18) || 'Rommelland'; S.naam = n; scene.remove(poortObj.groep); poortObj = maakPoort(n.toUpperCase()); at(poortObj.groep, wx(POORT_I) + T / 2, 0, GD * T / 2); scene.add(poortObj.groep); bewaarLater(); };
+  }
+  function tekenDoelen() { const el = $('rl-doelen'); if (!el) return; el.innerHTML = '<h3>Doelen</h3><ul>' + DOELEN.map(d => `<li class="${S.doelen[d.id] ? 'klaar' : ''}"><span>${S.doelen[d.id] ? '✓' : '○'}</span>${d.tekst}<em>+${euro(d.beloning)}${d.ontgrendelt ? ' · ' + CAT[d.ontgrendelt].naam : ''}</em></li>`).join('') + '</ul>'; }
+  const toasts = $('rl-toasts');
+  function melding(tekst, soort) { const t = document.createElement('div'); t.className = 'rl-toast ' + (soort || ''); t.textContent = tekst; t.setAttribute('role', 'status'); toasts.appendChild(t); setTimeout(() => t.remove(), 4500); while (toasts.children.length > 4) toasts.firstChild.remove(); }
+  const dlg = $('rl-dialoog');
+  function toonRapport(kop, html) { dlg.innerHTML = `<h2>${kop}</h2>${html}<button type="button" class="rl-groot">Verder</button>`; dlg.querySelector('button').onclick = () => dlg.close(); if (!dlg.open) dlg.showModal(); }
+  function toonHelp() { toonRapport('Welkom in je pretpark!', `<p>Jij bent de baas van een gloednieuw pretpark. Zo begin je:</p><ol><li>Leg <b>paden</b> vanaf de poort. Bezoekers lopen alleen over paden.</li><li>Zet een <b>attractie</b> neer, naast een pad. Draaien doe je met R of de draaiknop.</li><li>Zet <b>kraampjes</b> neer voor eten, drinken en de wc.</li><li>Maak je park mooi met <b>bomen, bloemen en meer</b>, en zet prullenbakken neer tegen de rommel.</li><li>Neem <b>personeel</b> aan: een schoonmaker, een monteur, of een Rommelbeest als mascotte.</li></ol><p>Klik op een bezoeker om te zien wat hij denkt. Haal <b>doelen</b> om nieuwe attracties vrij te spelen. 's Avonds kun je een vuurwerkshow geven.</p>`); }
+  // ================= GELUID
+  let ac = null;
+  function geluid(wat) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const n = (f, t0, d, ty, v) => { const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + t0; o.type = ty; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); }; if (wat === 'bouw') { n(392, 0, 0.12, 'square', 0.03); n(523, 0.08, 0.16, 'square', 0.03); } if (wat === 'sloop') n(150, 0, 0.25, 'sawtooth', 0.03); } catch (e) {} }
+
+  // ================= OPSLAAN
+  const OPSLAG = 'rommelland-v1';
+  let opslaanTimer = null;
+  const bewaarLater = () => { clearTimeout(opslaanTimer); opslaanTimer = setTimeout(bewaar, 800); };
+  function bewaar() { try { localStorage.setItem(OPSLAG, JSON.stringify({ naam: S.naam, geld: S.geld, dag: S.dag, tijd: S.tijd, entree: S.entree, totaalGasten: S.totaalGasten, doelen: S.doelen, regen: S.regen, vuurwerkGehad: S.vuurwerkGehad, paden: Array.from(S.paden).join(''), items: S.items.map(it => ({ t: it.t, i: it.i, j: it.j, r: it.r, prijs: it.prijs, open: it.open, kapot: it.kapot, betrouw: it.betrouw, totaal: it.totaal, omzet: it.omzet })), personeel: S.personeel.map(p => ({ type: p.type, spec: p.spec, schoon: p.schoon })), rommel: rommel.map(r => [r.i, r.j]) })); } catch (e) {} }
+  function laad() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(OPSLAG) || 'null'); } catch (e) {}
+    if (!d) { startPark(); return false; }
+    Object.assign(S, { naam: d.naam, geld: d.geld, dag: d.dag, tijd: d.tijd, entree: d.entree, totaalGasten: d.totaalGasten, doelen: d.doelen || {}, regen: d.regen || 0, vuurwerkGehad: !!d.vuurwerkGehad });
+    [...d.paden].forEach((c, n) => { S.paden[n] = c === '1' ? 1 : 0; });
+    for (const it of d.items) plaats(it.t, it.i, it.j, it.r, { prijs: it.prijs, open: it.open, kapot: it.kapot, betrouw: it.betrouw, totaal: it.totaal, omzet: it.omzet });
+    for (const p of d.personeel || []) neemAan(p.type, p.spec, { schoon: p.schoon || 0 });
+    for (const [i, j] of d.rommel || []) rommel.push({ i, j, x: wx(i) + (Math.random() - 0.5), z: wz(j) + (Math.random() - 0.5), rot: Math.random() * 6 });
+    tekenRommel();
+    if (S.naam !== 'Rommelland') { scene.remove(poortObj.groep); poortObj = maakPoort(S.naam.toUpperCase()); at(poortObj.groep, wx(POORT_I) + T / 2, 0, GD * T / 2); scene.add(poortObj.groep); }
+    return true;
+  }
+  function startPark() {
+    for (let j = GD - 1; j >= GD - 6; j--) { S.paden[idx(POORT_I, j)] = 1; S.paden[idx(POORT_I + 1, j)] = 1; }
+    for (let i = POORT_I - 4; i <= POORT_I + 5; i++) S.paden[idx(i, GD - 7)] = 1;
+    [[2, 2], [5, 1], [9, 3], [27, 2], [29, 5], [30, 15], [1, 12], [3, 20], [28, 21], [24, 19], [7, 21]].forEach(([i, j]) => plaats('boom', i, j, 0));
+    plaats('bloemen', POORT_I - 1, GD - 2, 0); plaats('bloemen', POORT_I + 2, GD - 2, 0); plaats('lantaarn', POORT_I - 1, GD - 4, 0); plaats('lantaarn', POORT_I + 2, GD - 4, 0);
+  }
+
+  // ================= DE LUS
+  function maat() { const w = houder.clientWidth, h = houder.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  addEventListener('resize', maat);
+  const klok = new THREE.Clock(); let animT = 0, statT = 0, uiT = 0;
+  function tekenUI() {
+    $('rl-geld').textContent = euro(S.geld); $('rl-geld').classList.toggle('rood', S.geld < 0);
+    $('rl-gasten').textContent = gasten.length; $('rl-waard').textContent = S.waard;
+    const uur = 8 + S.tijd * 16; $('rl-tijd').textContent = `Dag ${S.dag}, ${String(Math.floor(uur)).padStart(2, '0')}:${String(Math.floor((uur % 1) * 60 / 15) * 15).padStart(2, '0')}`;
+    $('rl-weer').textContent = S.regen ? 'Regen' : S.tijd > 0.7 ? 'Avond' : 'Zonnig';
+    $('rl-parknaam').textContent = S.naam;
+    if (selectie && !info.hidden) { if (selectie === 'park') {} else if (selectie.t) { if (!document.activeElement || !info.contains(document.activeElement)) toonInfo(selectie); } else if (selectie.naam && gasten.includes(selectie)) toonGast(selectie); }
+  }
+  function lus() {
+    const echteDt = Math.min(0.05, klok.getDelta());
+    const dt = echteDt * S.snel;
+    if (S.snel > 0) { const stappen = Math.ceil(dt / 0.05); for (let k = 0; k < stappen; k++) update(dt / stappen); updatePersoneel(dt); }
+    animT += reduce ? 0 : echteDt;
+    for (const it of S.items) it.model.anim(animT, it.draait && !it.kapot, it.staat, echteDt * Math.max(1, S.snel));
+    if (grondVies) { tekenGrond(); grondVies = false; }
+    tekenGasten();
+    if (showTijd > 0) { showTijd -= echteDt; if (Math.random() < echteDt * 2.2) knal(); }
+    updateVuurwerk(echteDt);
+    if (S.regen) { const p = regenGeo.attributes.position; for (let i = 0; i < p.count; i++) { let y = p.getY(i) - 40 * echteDt; if (y < 0) y += 40; p.setY(i, y); } p.needsUpdate = true; regen.position.set(doel.x, 0, doel.z); }
+    for (const p of S.personeel) if (p.type === 'mascotte' && p.groep && p.groep.userData.kijk) p.groep.userData.kijk.rotation.y = Math.atan2(camera.position.x - p.x, camera.position.z - p.z);
+    statT += echteDt; if (statT > 1.5) { statT = 0; S.waard = waardering(); checkDoelen(); }
+    uiT += echteDt; if (uiT > 0.4) { uiT = 0; tekenUI(); zetLicht(); }
+    zetCamera(); renderer.render(scene, camera);
+    requestAnimationFrame(lus);
+  }
+  setInterval(bewaar, 30000); addEventListener('pagehide', bewaar);
+  const nieuw = !laad();
+  tekenGrond(); maat(); zetLicht(); kiesGereedschap('kijk'); tekenUI();
+  if (nieuw) setTimeout(toonHelp, 400);
+  lus();
+  // voor tests
+  window.__rl = { S, gasten, rommel, CAT, plaats, zetPad: (i, j) => zetPad(i, j, true), sim: (sec) => { for (let k = 0; k < sec * 10; k++) { update(0.1); updatePersoneel(0.1); } S.waard = waardering(); checkDoelen(); }, neemAan, waardering, kijk: (a, e, d, x, z) => { doelAz = az = a; doelEl = el = e; doelAf = afstand = d; doelDoel.set(x || 0, 0, z || 0); doel.copy(doelDoel); }, ingangen, startShow, vrij };
+})();
+
+</script>
+<script>
+(function () {
+  // GRAPJES: verborgen grapjes op het rommelhoekje. Geen teller, geen hints: wie ze vindt, vindt ze.
+  if (window.Grapjes) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const opHome = !!document.querySelector('.haak-rij');
+
+  const stijl = document.createElement('style');
+  stijl.textContent = `
+    .gr-vallen { position: fixed; top: -40px; z-index: 9998; pointer-events: none; }
+    .gr-groot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9998; pointer-events: none; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(3rem, 14vw, 9rem); color: #F6CB2F; text-shadow: 0 6px 0 #C8323C, 0 12px 0 #2E8B62; }
+    dialog.gr-boek { border: 0; border-radius: 12px; padding: 1.2rem 1.3rem; background: #F2DDA0; color: #1F2333; max-width: min(28rem, 94vw); font-family: "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+    dialog.gr-boek::backdrop { background: rgba(10,14,30,.7); }
+    .gr-boek h2 { margin: 0 0 .4rem; } .gr-boek ul { list-style: none; padding: 0; margin: .6rem 0; }
+    .gr-boek li { display: flex; gap: .6rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid #D9BE78; }
+    .gr-boek li small { display: block; color: #5E5643; }
+    .gr-boek button { font: inherit; font-weight: 700; border: 0; border-radius: 6px; padding: .5rem 1rem; background: #C8323C; color: #fff; cursor: pointer; }
+    .gr-gat { position: absolute; width: 34px; height: 20px; border-radius: 17px 17px 0 0; background: #0E1630; box-shadow: inset 0 4px 0 #070B18; z-index: 2; cursor: pointer; }
+    .gr-muis { position: absolute; left: 6px; bottom: 0; width: 22px; height: 14px; transform: translateY(14px); transition: transform .35s ease; }
+    .gr-gat.uit .gr-muis { transform: translateY(2px); }
+    .gr-gat { overflow: hidden; }
+    .gr-uil { position: absolute; z-index: 3; width: 56px; cursor: pointer; }
+    .gr-ballon { position: absolute; z-index: 4; background: #FBF6E9; color: #1F2333; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: .9rem; padding: .3rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; pointer-events: none; }
+    .gr-vlaggen { position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 50; pointer-events: none; }
+    @keyframes gr-schud { 10%, 50%, 90% { transform: translate(-6px, 2px); } 30%, 70% { transform: translate(6px, -2px); } }
+  `;
+  document.head.appendChild(stijl);
+
+  // ---------- geluidje
+  let ac = null;
+  function toon(f, t0, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0); o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(v || 0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {} }
+  
+  const boek = document.createElement('dialog'); boek.className = 'gr-boek';
+  document.body.appendChild(boek);
+  const vind = () => {};
+
+  // ---------- vlaaienregen
+  const VLAAI = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C98A43" stroke="#7A4E2D" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="#A8162B"/><path d="M8 20h24M20 8v24M11 11l18 18M29 11L11 29" stroke="#E0B07A" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#E0B07A"/></svg>';
+  function regen(html, n) {
+    for (let i = 0; i < (reduce ? 6 : n); i++) {
+      const v = document.createElement('div'); v.className = 'gr-vallen'; v.innerHTML = html;
+      v.style.left = (Math.random() * 96) + 'vw'; document.body.appendChild(v);
+      const duur = 2200 + Math.random() * 1600, draai = (Math.random() - 0.5) * 720;
+      if (v.animate) v.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(${innerHeight + 80}px) rotate(${draai}deg)` }], { duration: duur, delay: Math.random() * 900, easing: 'ease-in', fill: 'both' }).onfinish = () => v.remove();
+      else setTimeout(() => v.remove(), 3000);
+    }
+  }
+  function confetti() {
+    const kl = ['#C8323C', '#F6CB2F', '#2E8B62'];
+    for (let i = 0; i < (reduce ? 10 : 90); i++) regen(`<span style="display:block;width:9px;height:14px;background:${kl[i % 3]};border-radius:2px"></span>`, 1);
+  }
+  function grootWoord(t) { const g = document.createElement('div'); g.className = 'gr-groot'; g.textContent = t; document.body.appendChild(g); if (g.animate) g.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .35 }, { transform: 'scale(1)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2000 }).onfinish = () => g.remove(); else setTimeout(() => g.remove(), 1800); }
+
+  // ---------- typen
+  let getypt = '';
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key.length !== 1) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-14);
+    if (getypt.endsWith('vlaai')) { regen(VLAAI, 34); [523, 659, 784].forEach((f, i) => toon(f, i * 0.12, 0.25)); vind('vlaai'); getypt = ''; }
+    else if (getypt.endsWith('alaaf')) { confetti(); grootWoord('Alaaf!'); [392, 523, 659, 784, 659, 784].forEach((f, i) => toon(f, i * 0.13, 0.22, 'square', 0.03)); vind('alaaf'); getypt = ''; }
+    else if (getypt.endsWith('ejkeohlemmor')) {
+      getypt = ''; vind('spiegel');
+      document.documentElement.style.transition = 'transform .6s ease'; document.documentElement.style.transform = 'scaleX(-1)';
+      setTimeout(() => { document.documentElement.style.transform = ''; setTimeout(() => { document.documentElement.style.transition = ''; }, 700); }, 3500);
+    }
+  });
+
+  // ---------- klik-reeksen
+  const tellers = {};
+  function tel(id, nodig, venster) { const nu = Date.now(), t = (tellers[id] || []).filter(x => nu - x < venster); t.push(nu); tellers[id] = t; if (t.length >= nodig) { tellers[id] = []; return true; } return false; }
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('.sticker');
+    if (st && tel('sticker', 10, 8000)) {
+      vind('sticker');
+      if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
+      const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
+    }
+    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    if (ham && tel('hamer', 6, 3500)) {
+      vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
+      if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
+      grootWoord('Au!');
+    }
+    const ver = e.target.closest && e.target.closest('.versie');
+    if (ver && tel('versie', 5, 3000)) {
+      vind('bouwplaats');
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
+    }
+  });
+
+  // ---------- alleen op de homepage: het muisje, de nachtuil en de elfde van de elfde
+  function homepage() {
+    if (!opHome) return;
+    const main = document.querySelector('main') || document.body;
+    // muizengat onder aan de pagina
+    const gat = document.createElement('div'); gat.className = 'gr-gat'; gat.setAttribute('aria-label', 'Een muizengaatje'); gat.setAttribute('role', 'button'); gat.tabIndex = 0;
+    gat.innerHTML = '<svg class="gr-muis" viewBox="0 0 22 14" aria-hidden="true"><ellipse cx="11" cy="10" rx="9" ry="6" fill="#9AA0A6"/><circle cx="5" cy="5" r="3" fill="#C9CED6"/><circle cx="17" cy="5" r="3" fill="#C9CED6"/><circle cx="8" cy="9" r="1.2" fill="#1F2333"/><circle cx="14" cy="9" r="1.2" fill="#1F2333"/><circle cx="11" cy="12" r="1.3" fill="#E8577A"/></svg>';
+    const zetGat = () => { const voet = document.querySelector('footer') || main; const r = voet.getBoundingClientRect(); gat.style.left = Math.max(10, r.right + scrollX - 70) + 'px'; gat.style.top = (r.top + scrollY - 20) + 'px'; };
+    document.body.appendChild(gat); zetGat(); addEventListener('resize', zetGat); setTimeout(zetGat, 1500);
+    let uit = false;
+    const kijk = () => { uit = true; gat.classList.add('uit'); setTimeout(() => { uit = false; gat.classList.remove('uit'); }, 2600); setTimeout(kijk, 9000 + Math.random() * 12000); };
+    setTimeout(kijk, 5000 + Math.random() * 6000);
+    const pak = () => { if (!uit) return; vind('muis'); toon(2200, 0, 0.08, 'sine', 0.05); toon(2600, 0.08, 0.08, 'sine', 0.05); gat.classList.remove('uit'); uit = false; const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Piep!'; b.style.left = (parseFloat(gat.style.left) - 40) + 'px'; b.style.top = (parseFloat(gat.style.top) - 30) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2000); };
+    gat.addEventListener('click', pak); gat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pak(); });
+    // nachtuil tussen middernacht en vijf uur
+    const uur = new Date().getHours();
+    if (uur < 5) {
+      const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
+      uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
+      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
+      document.body.appendChild(uil);
+      const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
+      uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
+    }
+    // de elfde van de elfde: vlaggetjes in rood, geel en groen
+    const d = new Date();
+    if (d.getMonth() === 10 && d.getDate() === 11) {
+      const v = document.createElement('div'); v.className = 'gr-vlaggen';
+      let svg = '<svg width="100%" height="34" preserveAspectRatio="none" viewBox="0 0 1000 34" aria-hidden="true"><path d="M0 4Q500 22 1000 4" stroke="#F2DDA0" stroke-width="2" fill="none"/>';
+      for (let i = 0; i < 40; i++) { const x = i * 25 + 5, y = 4 + Math.sin(Math.PI * x / 1000) * 14; svg += `<path d="M${x} ${y.toFixed(1)}l14 0l-7 16z" fill="${['#C8323C', '#F6CB2F', '#2E8B62'][i % 3]}"/>`; }
+      v.innerHTML = svg + '</svg>'; document.body.appendChild(v);
+      setTimeout(() => { grootWoord('Alaaf!'); vind('elfelf'); }, 1200);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', homepage); else homepage();
+
+  // ---------- voor wie in de console kijkt
+  try { console.log('%cHé, nieuwsgierig aagje!', 'font: 800 20px sans-serif; color: #C8323C'); console.log('%cHier valt niks te zien. Of toch wel?', 'font: 600 13px sans-serif; color: #2F4C8F'); } catch (e) {}
+  window.Grapjes = true;
+})();
+
+</script>
+</body>
+</html>

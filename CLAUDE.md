@@ -124,6 +124,16 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - `404.html` is de pagina die GitHub Pages toont bij een adres dat niet bestaat. De werkplaats zet er geen label voor op de homepage. Gebruik in die pagina altijd links die met / beginnen.
 - Het voorbeeld in de werkplaats plakt de homepage-onderdelen direct in het voorbeeld: de versie die op de site staat, of anders de kopie in de werkplaats.
 
+## Rommelland (pretparkbouwer)
+
+- `rommelland.html` is een 3D-pretparkspel met three.js r128 (geladen van cdnjs, vaste versie). Bronbestanden: `rl_modellen.js` (alle 3D-modellen, met tekenfilmlook: toonmateriaal met drie stappen en donkere randen) en `rl_spel.js` (simulatie en bediening), samengevoegd via `rommelland_template.html`. De Rommelbeesten-tekenaar zit erin voor de kartonnen mascottes (`rl_mascottes.json`: zes beesten).
+- Het park is 32 × 24 tegels van 2 meter. Paden worden op het grasdoek getekend. Attracties en kraampjes moeten naast een pad staan; hun ingang is een aangrenzend padvak.
+- Catalogus `CAT`: 8 attracties (draaimolen, reuzenrad, botsauto's, zweefmolen, spookhuis, schommelschip, achtbaan, wildwaterbaan), 6 kraampjes en 10 soorten versiering. Personeel (`PERSONEEL`): schoonmaker, monteur en Rommelbeest-mascotte.
+- Bezoekers worden met InstancedMesh getekend (tot 180 tegelijk). Ze hebben honger, dorst, wc, energie, plezier, geld en een voorkeur voor spanning; ze kiezen attracties en kraampjes, staan in de rij, laten rommel vallen als er geen prullenbak in de buurt is, en hebben gedachten (klik op een bezoeker). Soms komt er een gast uit het Rommelhotel langs.
+- Een dag duurt 6 minuten (08:00 tot 24:00) met dag- en nachtlicht. Aan het eind van de dag: onderhoud en lonen, een dagrapport, en soms regen de volgende dag. Vuurwerkshow: €800, alleen 's avonds.
+- `DOELEN` (13 stuks) leveren geld op en spelen attracties vrij (zweefmolen, spookhuis, achtbaan, wildwaterbaan, schommelschip, gouden standbeeld). Waardering 0 tot 1000 bepaalt hoeveel bezoekers er komen.
+- Opslag: localStorage `rommelland-v1` (elke 30 seconden en bij weggaan). Testhaak: `window.__rl` (o.a. `sim(seconden)`).
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

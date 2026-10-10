@@ -719,7 +719,7 @@ const BT = (function () {
     const p = plek === 'staart' ? A.staart : plek === 'rug' ? A.rug : plek === 'vrij' ? [x0, y0] : A.kop;
     if (!p) return '';
     const [x, y] = p, s = s0 || A.s || 1;
-    const achter = ['cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
+    const achter = ['spotstraal', 'cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
     if ((laag === 'achter') !== achter.includes(soort)) return '';
     switch (soort) {
       case 'vlam': return vlam(x, y + 4, s, k);
@@ -740,6 +740,17 @@ const BT = (function () {
       case 'bliksem': return bliksemschicht(x - 2, y + 4, 1.1 * s, k.bliksem);
       case 'bliksems': return bliksemschicht(x - 16 * s, y + 8, 0.8 * s, k.bliksem) + bliksemschicht(x + 4 * s, y + 4, 1.0 * s, k.bliksem);
       case 'kroon': return kroon(x, y + 6, s, k.kroon);
+      case 'hogehoed': { const kh = k.hoed || '#23252B'; return el(x, y + 6, 26 * s, 6 * s, kh) + pa(`M${x - 15 * s} ${y + 5}l${3 * s} ${-34 * s}h${24 * s}l${3 * s} ${34 * s}z`, kh) + pa(`M${x - 13.5 * s} ${y - 3 * s}h${27 * s}l${-0.6 * s} ${-6 * s}h${-25.8 * s}z`, k.hoedband || '#C8323C', 'stroke="none"') + glim(x - 6 * s, y - 18 * s, 2.5 * s, 7 * s); }
+      case 'vlinderdas': { const kc = k.strik || '#C8323C'; return pa(`M${x} ${y}l${-16 * s} ${-9 * s}v${18 * s}zM${x} ${y}l${16 * s} ${-9 * s}v${18 * s}z`, kc) + ci(x, y, 4 * s, donker(kc, 0.2)); }
+      case 'monocle': { const G = A.gezicht; if (!G) return ''; const ox = G.x + G.a, oy = G.y; return ci(ox, oy, G.m * 1.55, 'none', `stroke="#C99A2E" stroke-width="2.2"`) + st(`M${f1(ox + G.m * 1.4)} ${f1(oy + G.m * 0.7)}q8 12 2 26`, '#C99A2E', 1.4); }
+      case 'koptelefoon': { const kc = k.koptelefoon || '#3A3D46'; return pa(`M${x - 30 * s} ${y + 26 * s}q0 ${-38 * s} ${30 * s} ${-38 * s}t${30 * s} ${38 * s}`, 'none', `stroke="${kc}" stroke-width="${5 * s}"`) + el(x - 31 * s, y + 30 * s, 8 * s, 11 * s, kc) + el(x + 31 * s, y + 30 * s, 8 * s, 11 * s, kc) + ci(x + 31 * s, y + 30 * s, 3 * s, '#FF5A5A', 'stroke="none"'); }
+      case 'boa': { const kc = k.boa || '#FF7FB0'; let r = ''; for (let i = 0; i < 9; i++) { const t = i / 8, bx = x - 40 * s + t * 80 * s, by = y + Math.sin(t * Math.PI) * 14 * s; r += ci(bx, by, 7 * s, i % 2 ? kc : licht(kc, 0.25), 'stroke-width="1.6"'); } return r; }
+      case 'roos': return pa(`M${x} ${y + 4}q-2 14 2 22`, 'none', `stroke="#2E8B62" stroke-width="2.4"`) + ci(x, y, 7 * s, k.roos || '#C8323C') + pa(`M${x - 4 * s} ${y}q4 -6 8 0q-4 4 -8 0`, 'none', `stroke="${donker(k.roos || '#C8323C', 0.3)}" stroke-width="1.6"`);
+      case 'sjerp': return pa(`M${x - 26 * s} ${y - 6 * s}L${x + 22 * s} ${y + 38 * s}l${-6 * s} ${8 * s}L${x - 30 * s} ${y + 4 * s}z`, k.sjerp || '#B82E3A') + st(`M${x - 27 * s} ${y - 2 * s}L${x + 18 * s} ${y + 40 * s}`, licht(k.sjerp || '#B82E3A', 0.3), 1.4);
+      case 'toverstaf': return st(`M${x - 18 * s} ${y + 18 * s}L${x + 10 * s} ${y - 10 * s}`, '#23252B', 4 * s) + st(`M${x + 6 * s} ${y - 6 * s}L${x + 10 * s} ${y - 10 * s}`, '#FBF6E9', 4 * s) + ster(x + 13 * s, y - 13 * s, 5 * s, '#FFE76A');
+      case 'scenario': return `<g transform="rotate(-14 ${x} ${y})">${pa(`M${x - 12 * s} ${y - 8 * s}h${22 * s}v${26 * s}h${-22 * s}z`, '#FBF6E9')}${st(`M${x - 8 * s} ${y - 2 * s}h${14 * s}M${x - 8 * s} ${y + 4 * s}h${14 * s}M${x - 8 * s} ${y + 10 * s}h${10 * s}`, '#8C939E', 1.2)}</g>`;
+      case 'pailletjes': return ster(x - 34 * s, y + 6, 4 * s, '#FFE76A') + ster(x + 36 * s, y - 2, 5 * s, '#fff') + ster(x - 22 * s, y - 20 * s, 3 * s, '#fff') + ster(x + 24 * s, y - 24 * s, 3.5 * s, '#FFE76A');
+      case 'snor': { const G = A.gezicht; if (!G) return ''; const my = G.my - 4; return pa(`M${G.x} ${my}q-6 -4 -14 0q-6 4 -12 -2q6 8 14 6q8 -2 12 -4zM${G.x} ${my}q6 -4 14 0q6 4 12 -2q-6 8 -14 6q-8 -2 -12 -4z`, k.snor || '#2A1D14'); }
       case 'halo': return `<ellipse cx="${f1(x)}" cy="${f1(y - 6)}" rx="${f1(18 * s)}" ry="${f1(5 * s)}" fill="none" stroke="#FFE76A" stroke-width="4"/><ellipse cx="${f1(x)}" cy="${f1(y - 6)}" rx="${f1(18 * s)}" ry="${f1(5 * s)}" fill="none" stroke="#fff" stroke-width="1.4" opacity=".8"/>`;
       case 'maan': return pl(`M${x + 6 * s} ${y - 2}a${10 * s} ${10 * s} 0 1 1 ${-14 * s} ${-12 * s}a${8 * s} ${8 * s} 0 1 0 ${14 * s} ${12 * s}z`, '#FFE9A8', `stroke="${lijnK('#FFE9A8')}" stroke-width="1.8"`);
       case 'ster': return ster(x, y - 6 * s, 9 * s, k.ster || '#FFE76A');
@@ -762,6 +773,7 @@ const BT = (function () {
       case 'sintels': return ci(x - 12 * s, y - 4, 2.4 * s, '#FFB347', 'stroke="none"') + ci(x + 10 * s, y - 12 * s, 2 * s, '#FFE76A', 'stroke="none"') + ci(x + 2 * s, y - 20 * s, 1.6 * s, '#FF7043', 'stroke="none"');
       case 'paddohoedje': return pa(`M${x - 12 * s} ${y + 2}q${0} ${-16 * s} ${12 * s} ${-16 * s}q${12 * s} ${0} ${12 * s} ${16 * s}z`, '#C8323C') + ci(x - 4 * s, y - 8 * s, 2.4 * s, '#fff', 'stroke="none"') + ci(x + 5 * s, y - 5 * s, 2 * s, '#fff', 'stroke="none"');
       case 'strik': return pa(`M${x} ${y}l${-12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + pa(`M${x} ${y}l${12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + ci(x, y, 3.5 * s, licht(k.strik || '#E8577A', 0.2));
+      case 'spotstraal': return `<path d="M${x - 10} ${y - 70}L${x - 56 * s} ${y + 90}h${112 * s}L${x + 10} ${y - 70}z" fill="${k.straal || '#FFF3C4'}" opacity=".22"/>`;
       case 'cape': { const kc = k.cape || '#C8323C', y0 = y + 14 * s; return pa(`M${x - 14 * s} ${y0}Q${x - 46 * s} ${y0 + 40 * s} ${x - 44 * s} ${y0 + 80 * s}Q${x - 30 * s} ${y0 + 72 * s} ${x - 16 * s} ${y0 + 82 * s}Q${x - 2 * s} ${y0 + 72 * s} ${x + 14 * s} ${y0 + 82 * s}Q${x + 30 * s} ${y0 + 72 * s} ${x + 46 * s} ${y0 + 80 * s}Q${x + 48 * s} ${y0 + 40 * s} ${x + 14 * s} ${y0}z`, kc) + st(`M${x - 8 * s} ${y0 + 12 * s}Q${x - 22 * s} ${y0 + 44 * s} ${x - 26 * s} ${y0 + 72 * s}M${x + 10 * s} ${y0 + 12 * s}Q${x + 24 * s} ${y0 + 44 * s} ${x + 30 * s} ${y0 + 72 * s}`, licht(kc, 0.25), 2, 'opacity=".55"'); }
       case 'masker': { const G = A.gezicht; if (!G) return ''; const km = k.masker || '#23252B', bx = G.a * 1 + G.m * 1.9, hy = G.m * 1.15; const gat = (cx) => `M${f1(cx - G.m * 1.15)} ${f1(G.y)}a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(G.m * 2.3)} 0a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(-G.m * 2.3)} 0z`; const gaten = G.a ? gat(G.x - G.a) + gat(G.x + G.a) : gat(G.x); return `<path d="M${f1(G.x - bx)} ${f1(G.y - hy * 0.6)}Q${f1(G.x)} ${f1(G.y - hy * 1.5)} ${f1(G.x + bx)} ${f1(G.y - hy * 0.6)}L${f1(G.x + bx + 3)} ${f1(G.y + hy * 0.5)}Q${f1(G.x)} ${f1(G.y + hy * 1.6)} ${f1(G.x - bx - 3)} ${f1(G.y + hy * 0.5)}z${gaten}" fill="${km}" fill-rule="evenodd" stroke="${lijnK(km)}" stroke-width="1.6"/>` + st(`M${f1(G.x + bx + 2)} ${f1(G.y)}q8 2 12 10M${f1(G.x + bx + 2)} ${f1(G.y + 2)}q6 6 7 14`, km, 3); }
       case 'embleem': { const ke = k.embleem || '#F6CB2F'; return ci(x, y, 7 * s, ke) + ci(x, y, 5 * s, licht(ke, 0.35), 'stroke="none"') + (k.symbool === 'bliksem' ? bliksemschicht(x - 2 * s, y + 4 * s, 0.45 * s, lijnK(ke)) : ster(x, y, 3.6 * s, lijnK(ke))); }
@@ -999,8 +1011,36 @@ const BT = (function () {
     schaduw: ['#6E5A9A', '#241634', () => `<circle cx="160" cy="34" r="16" fill="#FFE9A8" opacity=".85"/><circle cx="166" cy="30" r="14" fill="#3A2852"/>` + [[20, 20], [50, 50], [130, 20], [100, 40], [180, 80], [30, 90]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 1 : 1.6}" fill="#fff" opacity=".8"/>`).join('') + `<path d="M0 150q40-30 80-10t70-10t50 4v16z" fill="#120A1C" opacity=".5"/>`],
     rommel: ['#F2DDA0', '#C9A35B', () => { let d = ''; for (let x = 10; x < 200; x += 16) for (let y = 10; y < 150; y += 16) d += `<circle cx="${x}" cy="${y}" r="2" fill="#7A5A2A" opacity=".35"/>`; return d + `<rect x="0" y="128" width="200" height="22" fill="#9A6438" opacity=".55"/>`; }],
   };
+
+  // ================= COULISSENSET: nieuwe vormen
+  V.masker = (P, k) => { const d = 'M52 54q48-30 96 0q8 42-16 66q-32 24-64 0q-24-24-16-66z'; return { achter: pa('M54 62q-22 6-26 30q10-6 18-4M146 62q22 6 26 30q-10-6-18-4', 'none', `stroke-width="5" stroke="${k.lint || '#C8323C'}"`), romp: pa(d, k.c1) + glim(74, 62, 12, 6), clip: `<path d="${d}"/>`, voor: pa('M60 70q16-10 30 0M110 70q14-10 30 0', 'none', `stroke="${donker(k.c1, 0.35)}" stroke-width="2.4"`), gezicht: { x: 100, y: 84, a: 20, m: 8.5, my: 104, mm: 11 }, kop: [100, 42], rug: [100, 46], staart: [148, 70], mx: 100, my: 86, gx: 100, gy: 84 }; };
+  V.gordijn = (P, k) => { const d = 'M58 128q-10-62 8-90q16-14 34-14t34 14q18 28 8 90q-10 6-16-2q-9 8-17 0q-9 8-17 0q-9 8-17 0q-6 6-17 2z'; let plooi = ''; for (const x of [72, 86, 114, 128]) plooi += st(`M${x} 44q-4 40 2 80`, donker(k.c1, 0.25), 3, 'opacity=".55"'); return { romp: pa(d, k.c1) + glim(80, 48, 12, 7), clip: `<path d="${d}"/>`, voor: plooi + pa('M64 98q36 14 72 0', 'none', `stroke="${k.koord || '#E9B949'}" stroke-width="4.5"`) + ci(136, 100, 4.5, k.koord || '#E9B949') + pa('M132 104l-4 18h16l-4-18z', k.koord || '#E9B949'), gezicht: { x: 100, y: 66, a: 15, m: 8, my: 82, mm: 8 }, kop: [100, 26], rug: [100, 30], staart: [136, 112], mx: 100, my: 76, gx: 100, gy: 66 }; };
+  V.spot = (P, k) => { const d = 'M62 62q0-16 16-16h44q16 0 16 16v40q0 16-16 16h-44q-16 0-16-16z'; const lens = ci(100, 82, 26, k.lens || '#FFF3C4', `stroke="${donker(k.c1, 0.4)}" stroke-width="3"`); return { achter: st('M100 118v8M86 134l14-12 14 12', '#3A3D46', 4) + pa('M54 70v26M146 70v26', 'none', `stroke="#5F6470" stroke-width="5"`), romp: pa(d, k.c1) + glim(76, 54, 10, 5), clip: `<path d="${d}"/>`, voor: lens + ci(100, 82, 20, licht(k.lens || '#FFF3C4', 0.4), 'opacity=".7"') + pa('M66 46l-8-12h84l-8 12z', donker(k.c1, 0.2)) + pa('M62 120l-6 10h88l-6-10z', donker(k.c1, 0.2)), gezicht: { x: 100, y: 78, a: 11, m: 6.5, my: 92, mm: 7 }, kop: [100, 32], rug: [100, 40], staart: [140, 96], mx: 100, my: 84, gx: 100, gy: 78 }; };
+  V.pop = (P, k) => { const d = 'M100 30a20 20 0 1 1 -0.1 0zM80 74q20-8 40 0l6 40q-26 8-52 0z'; return { achter: pa('M64 18h72', 'none', `stroke="#8C5530" stroke-width="6" stroke-linecap="round"`) + pa('M100 10v14', 'none', `stroke="#8C5530" stroke-width="6" stroke-linecap="round"`) + st('M70 18L72 92M130 18L128 92M84 18L86 118M116 18L114 118', '#DDE3EA', 1.2, 'opacity=".9"'), romp: pa(d, k.c1) + pa('M72 90q-4 10 0 18M128 90q4 10 0 18', 'none', `stroke="${k.c1}" stroke-width="9" stroke-linecap="round"`) + pa('M88 114v14M112 114v14', 'none', `stroke="${k.c3 || donker(k.c1, 0.3)}" stroke-width="9" stroke-linecap="round"`) + glim(92, 38, 7, 4), clip: `<path d="${d}"/>`, buik: `<path d="M80 74q20-8 40 0l6 40q-26 8-52 0z"/>`, gezicht: { x: 100, y: 48, a: 9, m: 6, my: 60, mm: 6 }, kop: [100, 28], rug: [100, 76], staart: [126, 110], mx: 100, my: 70, gx: 100, gy: 48 }; };
+  V.popcorn = (P, k) => { const d = 'M62 62h76l-10 66h-56z'; let pc = ''; [[70, 58, 11], [86, 50, 12], [102, 46, 13], [118, 50, 12], [132, 58, 11], [80, 40, 9], [100, 34, 10], [120, 40, 9]].forEach(([x, y, r], i) => { pc += ci(x, y, r, i % 3 === 0 ? '#FFF6D8' : '#FFFDF2', `stroke="#C9A24E" stroke-width="1.6"`) + ci(x - r * 0.3, y - r * 0.3, r * 0.3, '#FFE7A0', 'stroke="none" opacity=".8"'); }); let strepen = ''; for (let i = 0; i < 5; i++) strepen += pa(`M${68 + i * 16} 62h8l-3 66h-6z`, '#FBF6E9', 'stroke="none" opacity=".9"'); return { romp: pa(d, k.c1), clip: `<path d="${d}"/>`, voor: strepen + pc, gezicht: { x: 100, y: 88, a: 13, m: 7, my: 104, mm: 8 }, kop: [100, 26], rug: [100, 30], staart: [134, 100], mx: 100, my: 92, gx: 100, gy: 88 }; };
+  V.kaartje = (P, k) => { const d = 'M48 62h104v14a8 8 0 0 0 0 16v26h-104v-26a8 8 0 0 0 0-16z'; let perf = ''; for (let y = 64; y < 118; y += 6) perf += ci(126, y, 1.4, donker(k.c1, 0.35), 'stroke="none"'); return { romp: `<g transform="rotate(-6 100 90)">${pa(d, k.c1)}${glim(70, 68, 12, 4)}</g>`, clip: `<path d="${d}" transform="rotate(-6 100 90)"/>`, voor: `<g transform="rotate(-6 100 90)">${perf}${pa('M134 80l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6-4.5-4 6-1z', k.c2 || '#E9B949')}</g>`, gezicht: { x: 90, y: 86, a: 12, m: 6.5, my: 100, mm: 7 }, kop: [92, 58], rug: [92, 60], staart: [150, 96], mx: 92, my: 90, gx: 90, gy: 86 }; };
+  V.pruik = (P, k) => { const bol = [[100, 48, 26], [74, 62, 22], [126, 62, 22], [62, 88, 20], [138, 88, 20], [68, 112, 18], [132, 112, 18], [100, 74, 30]]; const d = bol.map(([x, y, r]) => `M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0z`).join(''); let krul = ''; bol.forEach(([x, y, r]) => { krul += pa(`M${x - r * 0.5} ${y}q${r * 0.25} ${-r * 0.5} ${r * 0.5} 0t${r * 0.5} 0`, 'none', `stroke="${donker(k.c1, 0.22)}" stroke-width="2"`); }); const rand = bol.map(([x, y, r]) => ci(x, y, r + 1.4, lijnK(k.c1), 'stroke="none"')).join(''), vul = bol.map(([x, y, r]) => ci(x, y, r, k.c1, 'stroke="none"')).join('');
+    return { romp: rand + vul + krul + glim(88, 34, 10, 5), clip: `<path d="${d}"/>`, voor: el(100, 98, 22, 20, k.huid || '#F6D3B3'), gezicht: { x: 100, y: 96, a: 9, m: 5.5, my: 108, mm: 6 }, kop: [100, 22], rug: [100, 26], staart: [140, 112], mx: 100, my: 80, gx: 100, gy: 96 }; };
+  V.microfoon = (P, k) => { const d = 'M100 26a30 32 0 1 1 -0.1 0z'; let gaas = ''; for (let i = -24; i <= 24; i += 8) gaas += st(`M${100 + i} 28q${-i * 0.2} 30 0 62`, donker(k.c1, 0.3), 1.4, 'opacity=".5"') + st(`M72 ${58 + i}h56`, donker(k.c1, 0.3), 1.2, 'opacity=".35"'); return { achter: pa('M94 88h12l-2 34h-8z', '#3A3D46') + el(100, 128, 26, 6, '#23252B'), romp: pa(d, k.c1) + glim(86, 36, 10, 6), clip: `<path d="${d}"/>`, voor: gaas + pa('M78 88h44l-4 8h-36z', k.c2 || '#C99A2E'), gezicht: { x: 100, y: 56, a: 12, m: 7, my: 72, mm: 8 }, kop: [100, 24], rug: [100, 28], staart: [126, 96], mx: 100, my: 58, gx: 100, gy: 56 }; };
+
   function achtergrond(e, fullArt, set) {
     const a = ACHTER[e] || ACHTER.rommel, id = 'bg' + (++uid);
+    if (set === 'coulissen') {
+      const h = fullArt ? 280 : 150, vl = h * 0.8;
+      let plooi = ''; for (const [x0, w, kant] of [[0, 34, 1], [166, 34, -1]]) for (let i = 0; i < 4; i++) { const x = x0 + i * (w / 4); plooi += `<rect x="${f1(x)}" y="0" width="${f1(w / 4)}" height="${h}" fill="url(#${id}g)" opacity="${(0.75 + (i % 2) * 0.25).toFixed(2)}"/>`; }
+      let lampjes = ''; for (let x = 44; x <= 156; x += 16) lampjes += `<ellipse cx="${x}" cy="${f1(vl + 2)}" rx="3" ry="1.6" fill="#FFE76A" opacity=".85"/>`;
+      return `<defs><radialGradient id="${id}" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="${meng(a[0], '#3A2050', 0.62)}"/><stop offset="1" stop-color="#120A1A"/></radialGradient>
+          <linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A0E16"/><stop offset=".5" stop-color="#B82E3A"/><stop offset="1" stop-color="#6E1018"/></linearGradient>
+          <linearGradient id="${id}v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A4E2D"/><stop offset="1" stop-color="#3A2414"/></linearGradient>
+          <radialGradient id="${id}s" cx="50%" cy="0%" r="100%"><stop offset="0" stop-color="#FFF3C4" stop-opacity=".42"/><stop offset="1" stop-color="#FFF3C4" stop-opacity="0"/></radialGradient></defs>
+        <rect width="200" height="${h}" fill="url(#${id})"/>
+        <path d="M84 0L36 ${f1(vl)}h128L116 0z" fill="url(#${id}s)"/>
+        <rect y="${f1(vl)}" width="200" height="${f1(h - vl)}" fill="url(#${id}v)"/>
+        ${[1, 2, 3].map(i => `<path d="M0 ${f1(vl + i * (h - vl) / 4)}h200" stroke="#2A1A0E" stroke-width="1" opacity=".5"/>`).join('')}
+        <ellipse cx="100" cy="${f1(vl + 4)}" rx="62" ry="9" fill="#FFF3C4" opacity=".22"/>
+        ${lampjes}${plooi}
+        <rect width="200" height="12" fill="#8E1F28"/><path d="M0 12${Array.from({ length: 10 }, (_, i) => `q10 9 20 0`).join('')}" fill="#8E1F28"/><path d="M0 14${Array.from({ length: 10 }, (_, i) => `q10 9 20 0`).join('')}" fill="none" stroke="#E9B949" stroke-width="1.6"/>`;
+    }
     if (set === 'helden') {
       const h = fullArt ? 280 : 150; let stralen = '';
       for (let i = 0; i < 18; i++) { const a0 = i * Math.PI / 9, a1 = a0 + Math.PI / 18; stralen += `<path d="M100 ${h * 0.45}L${f1(100 + Math.cos(a0) * 320)} ${f1(h * 0.45 + Math.sin(a0) * 320)}L${f1(100 + Math.cos(a1) * 320)} ${f1(h * 0.45 + Math.sin(a1) * 320)}z" fill="#fff" opacity=".16"/>`; }
@@ -1030,7 +1070,9 @@ const BT = (function () {
     svg += A.achter || '';
     svg += A.romp;
     const binnen = (spec.pat ? patroon(spec.pat, k, A) : '') + (A.buik && spec.buik !== false && k.c2 ? A.buik.replace('/>', ` fill="${k.buik || k.c2}" opacity=".9"/>`) : '');
-    if (binnen) svg += `<defs><clipPath id="${id}">${A.clip}</clipPath></defs><g clip-path="url(#${id})">${binnen}</g>`;
+    const detail = spec.set === 'coulissen' || spec.detail;
+    const extra = detail ? textuur(spec.tex, k, A) + volume(A) + lichtrand(A) : '';
+    if (binnen || extra) svg += `<defs><clipPath id="${id}">${A.clip}</clipPath></defs><g clip-path="url(#${id})">${binnen}${extra}</g>`;
     svg += A.voor || '';
     const g = A.gezicht ? Object.assign({}, A.gezicht, spec.g || {}) : null;
     if (g) {
@@ -1043,6 +1085,29 @@ const BT = (function () {
     }
     svg += acc.map(a => accessoire(a, A, k, 'voor')).join('');
     return groep(svg, P);
+  }
+  // zacht licht van linksboven en schaduw rechtsonder, binnen de vorm van het beest
+  function volume(A) {
+    const id = 'vo' + (++uid), cx = (A.mx || 100) - 22, cy = (A.my || 88) - 26;
+    return `<defs><radialGradient id="${id}" cx="${cx}" cy="${cy}" r="86" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/><stop offset=".66" stop-color="#1a0a20" stop-opacity="0"/><stop offset="1" stop-color="#1a0a20" stop-opacity=".42"/></radialGradient></defs><rect x="0" y="0" width="200" height="160" fill="url(#${id})"/>`;
+  }
+  function lichtrand(A) {
+    const vorm = (kl, w, dx, op) => A.clip.replace(/<(path|ellipse|circle|rect|polygon)\b/g, `<$1 fill="none" stroke="${kl}" stroke-width="${w}" stroke-opacity="${op}" transform="translate(${dx} ${dx})"`).replace(/transform="rotate\(([^"]*)\)"/g, '');
+    return vorm('#FFF6E0', 5, -2.4, 0.5) + vorm('#1a0a20', 6, 2.6, 0.22);
+  }
+  function textuur(t, k, A) {
+    if (!t) return '';
+    const id = 'tx' + (++uid);
+    const vul = (patroon, op) => `<defs>${patroon}</defs><rect width="200" height="160" fill="url(#${id})" opacity="${op}"/>`;
+    if (t === 'fluweel') return vul(`<pattern id="${id}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(12)"><rect width="2.4" height="5" fill="#000"/></pattern>`, 0.1) + `<path d="M40 30L160 140" stroke="#fff" stroke-width="22" opacity=".09"/>`;
+    if (t === 'pailletten') { let r = ''; for (let y = 20; y < 150; y += 8) for (let x = 20 + (y % 16 ? 4 : 0); x < 185; x += 8) { const g = (x * 7 + y * 13) % 5; r += `<circle cx="${x}" cy="${y}" r="3" fill="${g === 0 ? '#fff' : licht(k.c1, 0.35)}" opacity="${g === 0 ? 0.7 : 0.35}"/>`; } return r; }
+    if (t === 'glitter') { let r = ''; for (let i = 0; i < 26; i++) { const x = 30 + (i * 53) % 140, y = 26 + (i * 37) % 110, q = 1.6 + (i % 3); r += `<path d="M${x} ${y - q * 2}L${x + q * 0.5} ${y - q * 0.5}L${x + q * 2} ${y}L${x + q * 0.5} ${y + q * 0.5}L${x} ${y + q * 2}L${x - q * 0.5} ${y + q * 0.5}L${x - q * 2} ${y}L${x - q * 0.5} ${y - q * 0.5}z" fill="${i % 4 ? '#fff' : '#FFE76A'}" opacity=".8"/>`; } return r; }
+    if (t === 'hout') { let r = ''; for (let y = 24; y < 150; y += 7) r += `<path d="M20 ${y}q40 ${(y % 3) - 1} 80 ${(y % 5) - 2}t80 ${(y % 4) - 1.5}" fill="none" stroke="${donker(k.c1, 0.35)}" stroke-width="1.3" opacity=".4"/>`; return r + `<ellipse cx="128" cy="96" rx="6" ry="3" fill="none" stroke="${donker(k.c1, 0.4)}" stroke-width="1.4" opacity=".5"/>`; }
+    if (t === 'goud') return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF8D0" stop-opacity=".55"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#FFF8D0" stop-opacity=".45"/><stop offset=".75" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect width="200" height="160" fill="url(#${id})"/>`;
+    if (t === 'veren') { let r = ''; for (let y = 30; y < 150; y += 9) for (let x = 24 + (y % 18 ? 5 : 0); x < 186; x += 10) r += `<path d="M${x - 5} ${y}q5 7 10 0" fill="none" stroke="${donker(k.c1, 0.3)}" stroke-width="1.4" opacity=".45"/>`; return r; }
+    if (t === 'streep') { let r = ''; for (let x = 0; x < 200; x += 14) r += `<rect x="${x}" y="0" width="7" height="160" fill="${k.c2 || '#fff'}" opacity=".55"/>`; return r; }
+    if (t === 'ruit') { let r = ''; for (let x = -20; x < 220; x += 16) r += `<path d="M${x} 0l60 160M${x + 60} 0l-60 160" stroke="${k.c2 || '#fff'}" stroke-width="2" opacity=".35"/>`; return r; }
+    return '';
   }
   function groep(svg, P) {
     const s = P.schaal || 1, dx = P.dx || 0, dy = P.dy || 0;
@@ -1256,13 +1321,44 @@ const HELDEN = [
 const HELD_KR = { g: 50, o: 80, z: 120, h: 150, u: 200, x: 250 };
 HELDEN.forEach((k, i) => { k.set = 'helden'; k.st = 0; k.kr = HELD_KR[k.z] + (i % 3) * 10; k.nr = i + 1; k.id = 'hs' + String(i + 1).padStart(3, '0'); KAARTEN.push(k); });
 
+// ---------------- COULISSENSET: beesten uit de theaterwereld, met meer detail (volume, lichtrand, stof)
+const COULISSEN = [
+  { n: 'Spotje', e: 'bliksem', z: 'g', st: 0, kr: 50, v: 'spot', p: sch(S1), k: { c1: '#3A3D46', lens: '#FFF3C4', iris: '#2A1D14' }, a: [['spotstraal', 'kop', 0, 0, 0.8]], o: 'rond', m: 'lach', aan: [['Lichtflits', 1, 20]], t: 'Schijnt altijd precies op de verkeerde persoon.' },
+  { n: 'Gordijntje', e: 'wind', z: 'g', st: 0, kr: 50, v: 'gordijn', p: sch(S1), tex: 'fluweel', k: { c1: '#B82E3A', koord: '#E9B949', iris: '#2A1D14' }, o: 'lief', m: 'o', aan: [['Wapperen', 1, 20]], t: 'Gaat open en dicht als iemand niest.' },
+  { n: 'Kaartje Knip', e: 'rommel', z: 'g', st: 0, kr: 40, v: 'kaartje', p: sch(S1), tex: 'ruit', k: { c1: '#F2DDA0', c2: '#C8323C', iris: '#2A1D14' }, o: 'kraal', m: 'lach', aan: [['Knip!', 1, 20]], t: 'Wil overal naar binnen, maar is altijd net te laat.' },
+  { n: 'Popcornpiet', e: 'vuur', z: 'g', st: 0, kr: 50, v: 'popcorn', p: sch(S1), k: { c1: '#C8323C', iris: '#2A1D14' }, o: 'rond', m: 'open', aan: [['Plof', 1, 20]], t: 'Ploft van blijdschap bij elke grap.' },
+  { n: 'Souffleursmol', e: 'steen', z: 'g', st: 0, kr: 50, v: 'beer', p: sch(S1), tex: 'fluweel', k: { c1: '#5A4E5E', c2: '#C9A9B4', c3: '#2A2030', iris: '#2A1D14' }, a: [['monocle', 'kop'], ['scenario', 'vrij', 140, 100, 1.1]], o: 'kraal', m: 'o', aan: [['Fluistertekst', 1, 20]], t: 'Fluistert de tekst als iemand hem vergeet. Soms de verkeerde.' },
+  { n: 'Microfoontje', e: 'wind', z: 'g', st: 0, kr: 50, v: 'microfoon', p: sch(S1), k: { c1: '#9AA6C2', c2: '#C99A2E', iris: '#2A1D14' }, o: 'lief', m: 'open', aan: [['Testen, testen', 1, 20]], t: 'Zingt altijd een tikje te hard.' },
+  { n: 'Pruikje', e: 'wind', z: 'g', st: 0, kr: 40, v: 'pruik', p: sch(S1), k: { c1: '#F2E6C8', huid: '#F6D3B3', iris: '#2A1D14' }, a: [['vlinderdas', 'vrij', 100, 124, 0.8]], o: 'slaap', m: 'lach', aan: [['Poederwolk', 1, 20]], t: 'Valt eraf bij elke buiging.' },
+  { n: 'Masker Lach', e: 'rommel', z: 'g', st: 0, kr: 50, v: 'masker', p: sch(S1), tex: 'goud', k: { c1: '#F2DDA0', lint: '#C8323C', iris: '#2A1D14' }, o: 'glim', m: 'lach', aan: [['Schaterlach', 1, 20]], t: 'Lacht altijd. Ook als het eigenlijk niet grappig is.' },
+  { n: 'Marionetje', e: 'blad', z: 'g', st: 0, kr: 50, v: 'pop', p: sch(S1), tex: 'hout', k: { c1: '#E0B07A', c2: '#2E8B62', c3: '#2F4C8F', iris: '#2A1D14' }, o: 'knoop', m: 'lach', aan: [['Touwtjesdans', 1, 20]], t: 'Danst zodra iemand aan zijn touwtjes trekt.' },
+  { n: 'Rozenknopje', e: 'blad', z: 'g', st: 0, kr: 40, v: 'konijn', p: sch(S1), tex: 'fluweel', k: { c1: '#F7D8E4', c2: '#FFFFFF', c3: '#C97A9A', iris: '#2A1D14', roos: '#C8323C' }, a: [['roos', 'vrij', 130, 104, 1.1]], o: 'lief', m: 'lach', aan: [['Rozenregen', 1, 20]], t: 'Gooit rozen naar het publiek. Vooral naar zichzelf.' },
+  { n: 'Grote Spot', e: 'bliksem', z: 'o', st: 1, van: 'Spotje', kr: 80, v: 'spot', p: sch(S2), tex: 'glitter', k: { c1: '#23252B', lens: '#FFE76A', iris: '#2A1D14' }, a: [['spotstraal', 'kop', 0, 0, 1.1], ['pailletjes', 'kop']], o: 'boos', m: 'lach', aan: [['Verblinden', 2, 50], ['Volle zaal', 2, 50]], t: 'Kan een hele zaal in één keer verblinden.' },
+  { n: 'Toneeldoek', e: 'wind', z: 'o', st: 1, van: 'Gordijntje', kr: 80, v: 'gordijn', p: sch(S2), tex: 'fluweel', k: { c1: '#8E1F28', koord: '#FFE76A', iris: '#2A1D14' }, a: [['pailletjes', 'kop']], o: 'glim', m: 'lach', aan: [['Doek valt', 2, 50], ['Nog één keer', 2, 50]], t: 'Sluit pas als het applaus echt is gestopt.' },
+  { n: 'Popcornbaas', e: 'vuur', z: 'o', st: 1, van: 'Popcornpiet', kr: 80, v: 'popcorn', p: sch(S2), k: { c1: '#B82E3A', iris: '#2A1D14', hoed: '#23252B', hoedband: '#E9B949' }, a: [['hogehoed', 'vrij', 100, 24, 0.9]], o: 'boos', m: 'lach', aan: [['Pauzepiek', 2, 50], ['Extra boter', 2, 50]], t: 'Verkoopt in de pauze meer dan de hele kassa.' },
+  { n: 'Treurmasker', e: 'schaduw', z: 'o', st: 0, kr: 80, v: 'masker', p: sch(S1), tex: 'goud', k: { c1: '#C9CED6', lint: '#3A2050', iris: '#2A1D14' }, o: 'slaap', m: 'o', aan: [['Tranenvloed', 2, 50]], t: 'Huilt zo mooi dat het publiek meehuilt.' },
+  { n: 'Klakkebek', e: 'wind', z: 'o', st: 0, kr: 70, v: 'vogel', p: sch(S1), tex: 'veren', k: { c1: '#2F4C8F', c2: '#F7F4E8', c3: '#14213F', iris: '#2A1D14', hoed: '#23252B', hoedband: '#C8323C', strik: '#C8323C' }, a: [['hogehoed', 'kop', 0, 0, 0.8], ['vlinderdas', 'vrij', 100, 104, 0.8]], o: 'glim', m: 'lach', aan: [['Tapdans', 2, 50]], t: 'Tikt zelfs het ritme als hij slaapt.' },
+  { n: 'Strijkvos', e: 'rommel', z: 'o', st: 0, kr: 80, v: 'vos', p: sch(S1), tex: 'fluweel', k: { c1: '#3A3D46', c2: '#F7F4E8', c3: '#14141A', iris: '#E9B949', strik: '#E9B949' }, a: [['vlinderdas', 'vrij', 92, 104, 0.8]], o: 'slaap', m: 'lach', aan: [['Vioolsolo', 2, 50]], t: 'Speelt viool met zijn staart, en meestal vals.' },
+  { n: 'Glitterspin', e: 'schaduw', z: 'o', st: 0, kr: 80, v: 'spin', p: sch(S1), tex: 'glitter', k: { c1: '#3A2050', c2: '#B88AFF', c3: '#1A0E26', iris: '#FFE76A' }, a: [['pailletjes', 'kop']], o: 'gloed', m: 'kat', aan: [['Glitterweb', 2, 50]], t: 'Weeft webben van glitter tussen de coulissen.' },
+  { n: 'Cue-uil', e: 'steen', z: 'z', st: 0, kr: 110, v: 'uil', p: sch(S2), tex: 'veren', k: { c1: '#7A6A5E', c2: '#E8DCC8', c3: '#3A2E26', iris: '#FFE76A', koptelefoon: '#23252B' }, a: [['koptelefoon', 'kop', 0, 0, 1.1], ['scenario', 'vrij', 146, 106, 1.2]], o: 'rond', m: 'snavel', aan: [['Nog vijf minuten!', 2, 60], ['Doek op', 3, 90]], t: 'Roept "nog vijf minuten!" en heeft altijd gelijk.' },
+  { n: 'Diva Boa', e: 'vuur', z: 'z', st: 0, kr: 110, v: 'slang', p: sch(S2), tex: 'pailletten', k: { c1: '#7A4E9A', c2: '#FF9AD0', c3: '#3A1E4A', iris: '#2A1D14', boa: '#FF7FB0', roos: '#C8323C' }, a: [['boa', 'vrij', 100, 76, 1.0], ['roos', 'kop', 0, 6, 1]], o: 'glim', m: 'lach', aan: [['Grote entree', 2, 60], ['Toegift', 3, 90]], t: 'Komt alleen op als de spot op haar staat.' },
+  { n: 'Gouden Micro', e: 'bliksem', z: 'z', st: 1, van: 'Microfoontje', kr: 120, v: 'microfoon', p: sch(S2), tex: 'goud', k: { c1: '#E9B949', c2: '#7A5A10', iris: '#2A1D14' }, a: [['pailletjes', 'kop']], o: 'glim', m: 'open', aan: [['Hoge noot', 2, 60], ['Staande ovatie', 3, 90]], t: 'Elk woord klinkt als een hit.' },
+  { n: 'Poppenspeler', e: 'blad', z: 'z', st: 1, van: 'Marionetje', kr: 110, v: 'pop', p: sch(S2), tex: 'hout', k: { c1: '#C98A43', c2: '#7A1E26', c3: '#23252B', iris: '#2A1D14', hoed: '#23252B', hoedband: '#E9B949', snor: '#3A2414' }, a: [['hogehoed', 'kop', 0, 0, 0.75], ['snor', 'kop']], o: 'boos', m: 'lach', aan: [['Touwtjes trekken', 2, 60], ['Dubbelrol', 3, 90]], t: 'Trekt aan alle touwtjes, ook aan die van anderen.' },
+  { n: 'Barokpruik', e: 'wind', z: 'z', st: 1, van: 'Pruikje', kr: 110, v: 'pruik', p: sch(S2), tex: 'glitter', k: { c1: '#F7F4E8', huid: '#F6D3B3', iris: '#2A1D14', roos: '#E8577A', strik: '#7A4E9A' }, a: [['roos', 'vrij', 138, 66, 1.1], ['vlinderdas', 'vrij', 100, 126, 0.9]], o: 'glim', m: 'lach', aan: [['Poederstorm', 2, 60], ['Diepe buiging', 3, 90]], t: 'Is drie keer zo hoog als nodig. Precies goed.' },
+  { n: 'Foyerfantoom', e: 'schaduw', z: 'h', st: 0, kr: 150, v: 'spook', p: sch(S2), tex: 'fluweel', k: { c1: '#E8E2F2', iris: '#3A2050', aura: '#B88AFF', hoed: '#23252B', hoedband: '#7A4E9A' }, a: [['aura', 'kop'], ['hogehoed', 'kop', 0, 2, 0.8]], o: 'gloed', m: 'kat', aan: [['Rij dertien', 3, 90], ['Verdwijntruc', 3, 120]], t: 'Zit elke voorstelling op rij dertien. Niemand zag hem ooit een kaartje kopen.' },
+  { n: 'Schijnwerperdraak', e: 'bliksem', z: 'h', st: 0, kr: 160, v: 'draak', p: sch(S2), tex: 'goud', k: { c1: '#E9B949', c2: '#FFF3C4', c3: '#7A5A10', iris: '#C8323C', vleugel: '#C8323C', straal: '#FFF3C4' }, a: [['spotstraal', 'kop', 0, 0, 1.2], ['drakenvleugels', 'rug'], ['pailletjes', 'kop']], o: 'gloed', m: 'tand', aan: [['Spotlichtadem', 3, 100], ['In de schijnwerpers', 4, 140]], t: 'Zijn adem is een spotlicht. Iedereen wil in zijn licht staan.' },
+  { n: 'Premièremasker', e: 'rommel', z: 'u', st: 0, kr: 200, v: 'masker', p: sch(S2), tex: 'goud', k: { c1: '#FFE76A', lint: '#7A1E26', iris: '#7A1E26', kroon: '#E9B949', sjerp: '#B82E3A', aura: '#FFE76A' }, a: [['aura', 'kop'], ['kroon', 'kop', 0, 4, 1.1], ['pailletjes', 'kop']], o: 'gloed', m: 'lach', aan: [['Openingsavond', 3, 120], ['Gouden applaus', 4, 180]], t: 'Verschijnt alleen op de eerste avond. Wie hem ziet, speelt nooit meer vals.' },
+];
+const COUL_KR = { g: 45, o: 80, z: 115, h: 155, u: 200, x: 250 };
+COULISSEN.forEach((k, i) => { k.set = 'coulissen'; k.kr = k.kr || COUL_KR[k.z]; k.nr = i + 1; k.id = 'cs' + String(i + 1).padStart(3, '0'); KAARTEN.push(k); });
+
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wacht = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : ms));
   const KAART = Object.fromEntries(KAARTEN.map(k => [k.id, k]));
-  const SETS = { zolder: { naam: 'Zolderset', aantal: 120 }, helden: { naam: 'Heldenset', aantal: 30 } };
+  const SETS = { zolder: { naam: 'Zolderset', aantal: 120 }, helden: { naam: 'Heldenset', aantal: 30 }, coulissen: { naam: 'Coulissenset', aantal: 150 } };
   KAARTEN.forEach(k => { if (!k.set) k.set = 'zolder'; });
   const PER_SET = {}; KAARTEN.forEach(k => { const p = PER_SET[k.set] = PER_SET[k.set] || {}; (p[k.z] = p[k.z] || []).push(k); });
   const PER_Z = PER_SET.zolder;
@@ -1279,6 +1375,7 @@ HELDEN.forEach((k, i) => { k.set = 'helden'; k.st = 0; k.kr = HELD_KR[k.z] + (i 
     premium: { naam: 'Gouden pakje', tier: 'goud', prijs: 250, tekst: '7 kaarten met 2 zeldzame plekken en veel betere kansen.', slots: ['g', 'g', 'g', 'o', 'o', 'R', 'R'], kans: { z: 0.48, h: 0.32, u: 0.14, x: 0.06 }, glim: 0.5, hoes: 'zs015' },
     regenboog: { naam: 'Regenboogpakje', tier: 'regenboog', prijs: 650, tekst: '7 kaarten met 3 zeldzame plekken en gegarandeerd een holo of beter.', slots: ['g', 'o', 'o', 'R', 'R', 'R', 'H'], kans: { z: 0.40, h: 0.34, u: 0.18, x: 0.08 }, kansH: { h: 0.66, u: 0.24, x: 0.10 }, glim: 0.8, hoes: 'zs121' },
     element: { naam: 'Elementpakje', tier: 'element', prijs: 180, tekst: '6 kaarten van het element van vandaag, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, alleenElement: true },
+    coulissen: { naam: 'Coulissenpakje', tier: 'coulissen', prijs: 175, set: 'coulissen', tekst: '6 kaarten uit de nieuwe Coulissenset, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.66, h: 0.26, u: 0.08 }, glim: 0.3, hoes: 'cs023' },
     helden: { naam: 'Heldenpakje', tier: 'helden', prijs: 150, set: 'helden', tekst: '6 kaarten uit de Heldenset, waarvan 1 zeldzaam of beter.', slots: ['g', 'g', 'g', 'o', 'o', 'R'], kans: { z: 0.62, h: 0.25, u: 0.09, x: 0.04 }, glim: 0.3, hoes: 'hs028' },
     wonder: { naam: 'Wonderpakje', tier: 'wonder', verborgen: true, prijs: 0, tekst: '', slots: ['W', 'W', 'W', 'W', 'W', 'W', 'W'], hoes: 'zs130' },
     doos: { naam: 'Doos met 10 pakjes', prijs: 900, tekst: '10 Zilveren pakjes voor de prijs van 9.', doos: true, kleur: ['#C8323C', '#FFB0B8', '#7A1E26', '#F2DDA0'], hoes: 'zs120' },
@@ -1551,7 +1648,7 @@ HELDEN.forEach((k, i) => { k.set = 'helden'; k.st = 0; k.kr = HELD_KR[k.z] + (i 
       <path d="${vorm}" fill="url(#${id}h)"/>
       <path d="M0 48h200M0 300h200" stroke="${k[2]}" stroke-width="1.5" stroke-dasharray="4 4" opacity=".55"/>
       <rect x="9" y="14" width="182" height="292" rx="10" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/>
-      <g transform="translate(100 66)"><text text-anchor="middle" y="0" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="18" letter-spacing=".5" textLength="168" lengthAdjust="spacingAndGlyphs" fill="#FBF6E9" stroke="#231A26" stroke-width="5" paint-order="stroke" stroke-linejoin="round">ROMMELBEESTEN</text><text text-anchor="middle" y="16" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="10" letter-spacing="3" fill="#231A26" opacity=".75">${(P.tier === 'helden' ? 'HELDENSET' : P.tier === 'element' ? E0.naam.toUpperCase() + 'EDITIE' : 'ZOLDERSET')}</text></g>
+      <g transform="translate(100 66)"><text text-anchor="middle" y="0" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="18" letter-spacing=".5" textLength="168" lengthAdjust="spacingAndGlyphs" fill="#FBF6E9" stroke="#231A26" stroke-width="5" paint-order="stroke" stroke-linejoin="round">ROMMELBEESTEN</text><text text-anchor="middle" y="16" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="10" letter-spacing="3" fill="#231A26" opacity=".75">${(P.tier === 'helden' ? 'HELDENSET' : P.tier === 'coulissen' ? 'COULISSENSET' : P.tier === 'element' ? E0.naam.toUpperCase() + 'EDITIE' : 'ZOLDERSET')}</text></g>
       <rect x="20" y="90" width="160" height="144" rx="14" fill="#231A26" stroke="${k[2]}" stroke-width="2"/>
       <g clip-path="url(#${id}r)"><g transform="translate(0 92)">${BT.achtergrond(hoes.e, false, hoes.set)}</g><g opacity=".9">${stralen}<animateTransform attributeName="transform" type="rotate" from="0 100 161" to="360 100 161" dur="24s" repeatCount="indefinite"/></g><rect x="22" y="92" width="156" height="140" fill="url(#${id}g)"/><g transform="translate(0 88)">${BT.beest(hoes)}</g></g>
       <rect x="20" y="90" width="160" height="144" rx="14" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>
@@ -1562,7 +1659,7 @@ HELDEN.forEach((k, i) => { k.set = 'helden'; k.st = 0; k.kr = HELD_KR[k.z] + (i 
       <rect class="glimstreep" x="-60" y="0" width="60" height="320" fill="url(#${id}s)" transform="skewX(-18)" opacity=".8"/>
     </svg>`;
   }
-  const TIERS = { wonder: { naam: 'WONDER', k: ['#FFF3C4', '#FFFFFF', '#5A2A9A', '#FFE76A'], ster: 5 }, brons: { naam: 'BRONS', k: ['#9A5E2A', '#F0B47A', '#5C3216', '#D88A4E'], ster: 1 }, zilver: { naam: 'ZILVER', k: ['#7E90AE', '#F2F6FC', '#3E4E6E', '#C2D0E6'], ster: 2 }, goud: { naam: 'GOUD', k: ['#B8862F', '#FFF4BE', '#6E4E08', '#FFD45E'], ster: 3 }, regenboog: { naam: 'REGENBOOG', k: ['#B98AFF', '#FFF3C4', '#3A1E5C', '#FF9AD0'], ster: 5 }, element: { naam: 'ELEMENT', k: [], ster: 3 }, helden: { naam: 'HELDEN', k: ['#C8323C', '#FFE76A', '#6E1018', '#F6CB2F'], ster: 3 } };
+  const TIERS = { coulissen: { naam: 'COULISSEN', k: ['#8E1F28', '#FFD8A0', '#3A0E14', '#E9B949'], ster: 4 }, wonder: { naam: 'WONDER', k: ['#FFF3C4', '#FFFFFF', '#5A2A9A', '#FFE76A'], ster: 5 }, brons: { naam: 'BRONS', k: ['#9A5E2A', '#F0B47A', '#5C3216', '#D88A4E'], ster: 1 }, zilver: { naam: 'ZILVER', k: ['#7E90AE', '#F2F6FC', '#3E4E6E', '#C2D0E6'], ster: 2 }, goud: { naam: 'GOUD', k: ['#B8862F', '#FFF4BE', '#6E4E08', '#FFD45E'], ster: 3 }, regenboog: { naam: 'REGENBOOG', k: ['#B98AFF', '#FFF3C4', '#3A1E5C', '#FF9AD0'], ster: 5 }, element: { naam: 'ELEMENT', k: [], ster: 3 }, helden: { naam: 'HELDEN', k: ['#C8323C', '#FFE76A', '#6E1018', '#F6CB2F'], ster: 3 } };
 
   // ---------------- munten
   let getoond = S.munten;
@@ -1640,7 +1737,8 @@ HELDEN.forEach((k, i) => { k.set = 'helden'; k.st = 0; k.kr = HELD_KR[k.z] + (i 
   function trekPakje(type, wonder) {
     const P = PAKJES[type];
     const PZ = PER_SET[P.set || 'zolder'], E = P.alleenElement ? dagElement() : null;
-    const uit = z => { const lijst = E ? (PZ[z] || []).filter(k => k.e === E) : PZ[z]; return willekeurig(lijst && lijst.length ? lijst : PZ[z]); };
+    // bestaat een zeldzaamheid (nog) niet in deze set, dan de beste die er wel is
+    const uit = z => { const volg = ['x', 'u', 'h', 'z', 'o', 'g']; let i = volg.indexOf(z), lijst = null; while (i < volg.length && !(lijst && lijst.length)) lijst = PZ[volg[i++]]; if (E) { const f = lijst.filter(k => k.e === E); if (f.length) lijst = f; } return willekeurig(lijst); };
     const kaarten = wonder ? P.slots.map(() => ({ k: uit(kiesZ({ h: 0.68, u: 0.26, x: 0.06 })), glim: Math.random() < 0.5 })) : P.slots.map(s => ({ k: uit(s === 'R' ? kiesZ(P.kans) : s === 'H' ? kiesZ(P.kansH) : s === 'r' ? (Math.random() < 0.15 ? kiesZ(P.kans) : 'o') : s), glim: false }));
     if (!wonder && Math.random() < P.glim) { const i = Math.floor(Math.random() * 3); const r = Math.random(); kaarten[i] = { k: uit(r < 0.6 ? 'g' : r < 0.9 ? 'o' : 'z'), glim: true }; }
     // van gewoon naar zeldzaam: de beste komt als laatste

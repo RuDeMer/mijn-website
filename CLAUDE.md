@@ -84,6 +84,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - **Wonderpakje**: elk gekocht of geopend pakje heeft een kans van 1 op 400 (`WONDER_KANS`) om een wonderpakje te zijn: alle kaarten holo of beter (68% holo, 26% ultra, 6% geheim), de helft glimmend, met een eigen regenboog-witte verpakking, een aankondiging en een melding in de samenvatting. Wordt geteld in `S.stats.wonder`.
 - **Beheermenu** (`BEHEER`): openen door "beheer" te typen of het logo 2 seconden ingedrukt te houden. Het vraagt het beheerwachtwoord van de werkplaats en controleert dat bij de scoreserver (`/ideeen/alle`); het wachtwoord wordt niet bewaard, alleen "ontgrendeld" voor dat tabblad (sessionStorage). Tabbladen: Speler (munten, niveau, dagbonus, opdrachten, aanbieding), Kaarten (zoeken, gewone en glimmende exemplaren erbij of eraf, hele set vullen of leegmaken), Pakjes (elk pakje geven of gratis openen, het volgende pakje een wonderpakje maken) en Back-up (code kopiëren, terugzetten, alles wissen).
 
+- **Coulissenset** (`COULISSEN` in beesten_data.js, ids `cs001` en verder, kaartnummers x/150): beesten uit de theaterwereld. Deel 1 staat erin: 25 kaarten (10 gewoon, 7 ongewoon, 5 zeldzaam, 2 holo, 1 ultra). Nog te maken: 125 kaarten, zodat de set uitkomt op 60 gewoon, 40 ongewoon, 25 zeldzaam, 12 holo, 8 ultra en 5 geheim. Bij de ultra- en geheime kaarten horen legendes geïnspireerd op Rubens rollen (schedelstaf, kroon, wandelstok, kaarten, hoed, bril, Dorians sjerp).
+- Kaarten in deze set krijgen automatisch de **detaillaag**: `volume()` (licht linksboven, schaduw rechtsonder), `lichtrand()` en optioneel een stof via `tex` ('fluweel', 'pailletten', 'glitter', 'hout', 'goud', 'veren', 'streep', 'ruit'). Dat kan ook voor een losse kaart in een andere set met `detail: true`.
+- Nieuwe vormen: masker, gordijn, spot, pop, popcorn, kaartje, pruik, microfoon. Nieuwe accessoires: hogehoed, vlinderdas, monocle, koptelefoon, boa, roos, sjerp, toverstaf, scenario, pailletjes, snor, spotstraal. Let op: het bestaande accessoire `strik` is iets anders dan `vlinderdas`.
+- Achtergrond: een podium met gordijnen, een gouden franje, een spotlicht, een houten vloer en voetlichtjes, licht gekleurd naar het element.
+- Het **Coulissenpakje** (175 munten, 6 kaarten, `tier: 'coulissen'`). Ontbreekt een zeldzaamheid nog in een set, dan trekt het spel de beste die er wel is.
+- Namen moeten op de kaart passen (de test `t20.py` controleert dat); maximaal ongeveer 18 tekens.
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

@@ -10,6 +10,9 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Onderaan de homepage staat een versienummer in de vorm `Versie 0.05`. Verhoog het bij elke update met 0.01 (0.09 wordt 0.10, 0.99 wordt 1.00), zodat Ruben kan controleren dat de update live staat. Een oud nummer zonder punt, zoals `Versie 4`, telt als 0.04.
 - `werkplaats.html` is Rubens eigen uploadpagina en homepage-editor. In het paneel Homepage past hij het briefje, de volgorde van de labels, het stempel Nieuw, zichtbaarheid, teksten en iconen aan, met een live voorbeeld. De editor leest en schrijft de labels binnen `.haak-rij`; houd die structuur dus aan (`div.label` met `a.label-kaart`, `.soort`, `.stempel`, `.naam`, `p`, `.doe`, en een verborgen label krijgt het attribuut `hidden`). De werkplaats staat bewust niet op de homepage en krijgt nooit een label. Hij zet bestanden online via de GitHub API met een sleutel die alleen in zijn browser staat, en verhoogt daarbij zelf het versienummer.
 
+- **Indeling** (sinds de herinrichting): na het verbinden een vaste bovenbalk met de verbinding, een link naar de site en tabbladen: Uploaden (standaard), Homepage, Scorebord en ideeën, Geschiedenis en Sleutel. Het gekozen tabblad wordt onthouden (localStorage `wp-tab`). Panelen hebben `class="wp-deel" data-tab="..."`; een nieuw onderdeel krijgt die ook, plus een knop in `.wp-tabs`.
+- Bestanden kun je overal op de pagina loslaten; dan gaat de werkplaats naar Uploaden. De balk met "Zet online" blijft in beeld zodra er bestanden klaarstaan, met een telling. De homepage staat op brede schermen naast het voorbeeld. Het rondhangende gereedschap verdwijnt na het verbinden.
+
 ## Regels voor nieuwe of aangepaste pagina's
 
 - Alle tekst voor bezoekers is Nederlands.

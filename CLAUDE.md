@@ -93,6 +93,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - **De winkel is een etalage**: bovenaan de aanbieding van de dag, daaronder een houten plank per set (`PLANKEN` in `tekenWinkel`, met verzamelvoortgang en een nieuw-stempel), elk pakje als tegel met een korte omschrijving (`KORT`), en aan de zijkant Mijn pakjes, de opdrachten en een inklapbare ruilbalie. Een nieuw pakje voeg je toe aan `PAKJES`, `KORT` en de juiste plank.
 
+- **Pakjes per set**: Zolderset (brons, zilver, goud, regenboog, element van de dag, doos), Coulissenset (Kaartjespakje 70, Coulissenpakje 175, Premièrepakje 375, Logepakje 800 met holo-garantie) en Heldenset (Heldenmini 60, Heldenpakje 150, Superheldenpakje 350, Legendepakje 750 met holo-garantie). Het uiterlijk komt van `tier`, de ondertitel van `set`. Op het lint staat alleen de soort; het aantal kaarten staat eronder, zodat de tekst altijd past.
+- **Vandaag voor jou** (bovenaan de winkel): elke 4 uur een gratis pakje (`GRATIS_MS`), de dagbonusreeks met 7 vakjes, en de aanbieding van de dag.
+- **Mijlpalen per set** (`MIJL`, `MIJL_BEL`): 25% verzameld geeft 150 munten, 50% het goudpakje van die set, 75% het regenboogpakje en 100% 1500 munten en een wonderpakje.
+- **Sync en cadeaus** (`SYNC`): elk apparaat krijgt een eigen geheim (localStorage `rommelbeesten-speler`) en een spelerscode van 6 tekens, die onderaan de winkel staat met de uitleg dat de verzameling zonder naam wordt bewaard. De verzameling gaat naar de scoreserver (`/rb/sync`) bij het laden, na het openen van pakjes, elke 2 minuten en bij weggaan. Cadeaus komen mee in het antwoord, worden één keer uitgepakt (`S.cadeausGehad`) en pas daarna als bezorgd gemeld (`/rb/ontvangen`).
+- **Beheer, tabblad Alle spelers**: alle spelers (code, scorebordnaam als ze meedoen, laatst gezien, kaarten per set), per speler de verzameling, wachtende cadeaus en een formulier om kaarten, munten, pakjes en een bericht te sturen. Vraagt het beheerwachtwoord, dat alleen in het geheugen van het tabblad blijft.
+- Scoreserver-routes: `POST /rb/sync`, `POST /rb/ontvangen`, `GET /rb/spelers`, `GET /rb/speler?id=`, `POST /rb/geef` (de laatste drie alleen met het beheerwachtwoord). Tabellen `rb_spelers` en `rb_cadeaus` maken zichzelf aan.
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

@@ -146,6 +146,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - De server is `scorebord-worker.js` (Cloudflare Worker met D1-database als binding `DB` en een geheim `BEHEER` voor beheer). Dat bestand hoort niet op de site, maar in Cloudflare. Endpoints: GET /scores, POST /score, POST /naam, POST /verwijder, DELETE /score (met beheerwachtwoord).
 - Een nieuw spel op het scorebord? Voeg het toe aan `SPELLEN` in de worker en in `scorebord_template.html`.
 
+- Scores worden vanzelf bijgewerkt vanaf elke pagina die `scorebord.js` laadt (alle spellen, het hotel, Rommelland, het scorebord en via `homepage-onderdelen.js` ook de homepage). `synchroniseer()` leest de beste scores die elk spel in de browser bewaart (`BRONNEN`: vlaaienbakker-v1, rommelwoord-stats-v1, rommelpoker-record, rommelbeesten-v1) en stuurt alleen wat nieuw of beter is. Wat al verstuurd is, staat per naam in localStorage `rommelhoekje-verstuurd`. Dit gebeurt bij elk bezoek, direct na het meedoen en als je naar een ander tabblad gaat. Bewaart een nieuw spel een score, voeg dan een regel toe aan `BRONNEN`.
+
 ## Homepage-onderdelen (belangrijk)
 
 - Alles wat de homepage aan gedeelde onderdelen heeft (gereedschap uit `muur.js`, animaties uit `beweging2.js`, de label-iconen, `scorebord.js`, `hebbedingen.js` en de bijbehorende CSS) zit in één bestand: `homepage-onderdelen.js`. `index.html` laadt dat met `<script src="homepage-onderdelen.js"></script>` onderaan de body.

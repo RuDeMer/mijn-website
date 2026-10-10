@@ -138,6 +138,33 @@ body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; posit
     return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
   }
   const laatst = {};
+  // ---------- alle spellen bijwerken, vanaf elke pagina van de site
+  // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
+  // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
+  const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const BRONNEN = {
+    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
+    poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
+  };
+  const VKEY = 'rommelhoekje-verstuurd';
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  let bezig = false;
+  async function synchroniseer() {
+    if (bezig || !speler || !speler.naam) return; bezig = true;
+    try {
+      const inst = await klaar; if (!adres(inst)) return;
+      const v = lees(VKEY) || {};
+      for (const [spel, bron] of Object.entries(BRONNEN)) {
+        let w = null; try { w = bron(); } catch (e) {}
+        if (!w) continue;
+        const o = v[spel];
+        if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
+        await API.stuur(spel, w[0], w[1]);
+      }
+    } finally { bezig = false; }
+  }
 
   const API = {
     klaar,
@@ -159,6 +186,7 @@ body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; posit
       }
       document.dispatchEvent(new CustomEvent('scorebord-naam'));
       for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      await synchroniseer();
       return uitslag;
     },
     // een score insturen (de server bewaart alleen je beste)
@@ -169,6 +197,7 @@ body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; posit
       try {
         const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
         const j = await r.json().catch(() => ({}));
+        if (r.ok) onthoud(spel, score, extra || 0);
         if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
         return r.ok ? j : null;
       } catch (e) { return null; }
@@ -214,7 +243,11 @@ body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; posit
   const st = document.createElement('style');
   st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
   document.head.appendChild(st);
+  API.synchroniseer = synchroniseer;
   window.Scorebord = API;
+  // bij elk bezoek, en als je even naar een ander tabblad gaat
+  klaar.then(() => setTimeout(synchroniseer, 1500));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) synchroniseer(); });
 })();
 
 </script>

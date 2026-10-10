@@ -81,6 +81,9 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - **Dubbele kaarten verkopen**: je houdt altijd één exemplaar van elke kaart, en als je een glimmende hebt, houd je die. Bij "Verkoop dubbele" kies je tussen alleen gewone dubbele, of alles, ook glimmende (drie keer zoveel waard). Het filter "Mijn dubbele" toont ook glimmende dubbele.
 - **Tekenregels**: geef beesten met een plat of liggend lijf (bol, walvis, krab, rups) geen cape; die hangt dan als een blok onder het lijf. Gebruik bijvoorbeeld vleugels of een masker. Vlammen horen niet midden op een gezicht; zet ze met `'vrij'` op een vleugel of op de rug.
 
+- **Wonderpakje**: elk gekocht of geopend pakje heeft een kans van 1 op 400 (`WONDER_KANS`) om een wonderpakje te zijn: alle kaarten holo of beter (68% holo, 26% ultra, 6% geheim), de helft glimmend, met een eigen regenboog-witte verpakking, een aankondiging en een melding in de samenvatting. Wordt geteld in `S.stats.wonder`.
+- **Beheermenu** (`BEHEER`): openen door "beheer" te typen of het logo 2 seconden ingedrukt te houden. Het vraagt het beheerwachtwoord van de werkplaats en controleert dat bij de scoreserver (`/ideeen/alle`); het wachtwoord wordt niet bewaard, alleen "ontgrendeld" voor dat tabblad (sessionStorage). Tabbladen: Speler (munten, niveau, dagbonus, opdrachten, aanbieding), Kaarten (zoeken, gewone en glimmende exemplaren erbij of eraf, hele set vullen of leegmaken), Pakjes (elk pakje geven of gratis openen, het volgende pakje een wonderpakje maken) en Back-up (code kopiëren, terugzetten, alles wissen).
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

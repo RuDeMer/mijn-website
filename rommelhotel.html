@@ -149,6 +149,19 @@ dialog { max-height: 90vh; overflow-y: auto; }
 .dag b { display: inline-block; }
 .label-icoon svg { transform-origin: 50% 80%; }
 
+
+/* hoofdstuk 4: nieuwe puzzels */
+.vh-buizen { display: grid; gap: 3px; align-items: center; max-width: 22rem; margin: .4rem auto; }
+.vh-buis { border: 0; padding: 0; background: none; cursor: pointer; aspect-ratio: 1; } .vh-buis svg { width: 100%; height: 100%; display: block; }
+.vh-bron { text-align: center; font-size: 1.3rem; font-weight: 800; color: #E9B949; }
+.vh-melodie { display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+.vh-toetsen { display: flex; gap: 4px; } .vh-toets { width: 3rem; height: 7rem; border: 2px solid #231A26; border-radius: 0 0 8px 8px; background: #FBF6E9; font: inherit; font-weight: 800; display: flex; align-items: flex-end; justify-content: center; padding-bottom: .4rem; cursor: pointer; box-shadow: 0 4px 0 #8C939E; }
+.vh-toets.aan { background: #FFE07A; transform: translateY(3px); box-shadow: 0 1px 0 #8C939E; }
+.vh-gespeeld { display: flex; gap: 4px; } .vh-gespeeld i { width: 2.2rem; height: 1.8rem; border-radius: 6px; background: rgba(0,0,0,.12); font-style: normal; font-size: .75rem; font-weight: 800; display: grid; place-items: center; } .vh-gespeeld i.vol { background: #E9B949; }
+.vh-schuif { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: min(18rem, 100%); margin: .4rem auto; background: #231A26; padding: 3px; border-radius: 6px; }
+.vh-stuk { border: 0; padding: 0; cursor: pointer; aspect-ratio: 1; background: #3A2A1A; } .vh-stuk svg { width: 100%; height: 100%; display: block; } .vh-leeg { aspect-ratio: 1; background: #120C08; }
+.vh-zoek svg { width: 100%; height: auto; border-radius: 8px; cursor: crosshair; display: block; }
+.vh-uitleg { font-size: .85rem; text-align: center; margin: .4rem 0 0; }
 </style>
 </head>
 <body data-gat="26" data-pagina="rommelhotel">
@@ -1788,8 +1801,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     huidig = RUIMTES[id] || RUIMTES.plein;
     herbouwMeubels();
     // hoe groot is deze wereld in pixels?
-    const hoogste = huidig.gebouw ? 150 : huidig.geenMuren ? 60 : WH + 6;
-    const minX = -huidig.h * 16, maxX = huidig.w * 16, minY = -hoogste, maxY = (huidig.w + huidig.h) * 8 + 10 + (huidig.dikte || 0);
+    const hoogste = huidig.gebouw ? 330 : huidig.geenMuren ? 60 : WH + 6;
+    const minX = -huidig.h * 16, maxX = huidig.w * 16, minY = -hoogste, maxY = (huidig.w + huidig.h) * 8 + 10 + (huidig.dak ? 30 : (huidig.dikte || 0));
     wereldB = Math.max(W, maxX - minX + 48); wereldH = Math.max(H, maxY - minY + 40);
     ox = Math.round(wereldB / 2 - (minX + maxX) / 2); oy = Math.round(wereldH / 2 - (minY + maxY) / 2);
     achtergrondVies = true;
@@ -1806,7 +1819,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     bewaar();
     $('kamernaam').textContent = huidig.naam;
     camVrij = false;
-    if (huidig.gebouw && (!spawn || spawn === 'aankomst')) { const Gb = huidig.gebouw, c = P((Gb.x0 + Gb.x1) / 2 + 1, Gb.y1 + 1.5, 82); camX = c[0] - VW / 2; camY = c[1] - VH / 2; camVrij = true; }
+    if (huidig.gebouw && (!spawn || spawn === 'aankomst')) { const Gb = huidig.gebouw, c = P((Gb.x0 + Gb.x1) / 2 + 1, Gb.y1 + 1.5, 150); camX = c[0] - VW / 2; camY = c[1] - VH / 2; camVrij = true; }
     else zetCamera(true);
     $('b-inrichten').hidden = !huidig.eigen;
     zetMunten();
@@ -2296,7 +2309,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     } else { g.fillStyle = '#101A33'; g.fillRect(0, 0, BW, BH); }
     if (R.dak) tekenSkyline();
     // vloerrand (dikte)
-    const rand = R.vloer['.'] ? R.vloer['.'][0] : R.vloer.g[0], D = R.dikte || 6;
+    const rand = R.vloer['.'] ? R.vloer['.'][0] : R.vloer.g[0], D = R.dak ? 1600 : (R.dikte || 6);
     // de gevel (dakterras) of gewoon de dikte van de vloer, langs elke rand aan de voorkant
     const gevel = (zijY) => (sx, sy) => { const z = R.dak ? (sy + 0.5) : 0; if (!R.dak) return kleur(rand, zijY ? 0.55 : 0.42); const rij = Math.floor((sy - oy) / 4), voeg = (sy % 4 === 0) || ((sx + (rij % 2) * 4) % 8 === 0); void z; return voeg ? (zijY ? '#8C6A4E' : '#7A5A40') : (zijY ? kl('#B5543A', 1 - (ruis(sx >> 2, sy >> 2) % 7) * 0.02) : kl('#9A4530', 1 - (ruis(sx >> 2, sy >> 2) % 7) * 0.02)); };
     for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
@@ -2308,8 +2321,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     if (R.dak) { // ramen in de gevel, en een rand van stenen bovenop
       for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
         if (tegelType(x, y) === ' ') continue;
-        if (tegelType(x, y + 1) === ' ' && x % 2 === 0) for (const z of [-22, -52]) { poly([P(x + 0.25, y + 1, z), P(x + 0.75, y + 1, z), P(x + 0.75, y + 1, z - 16), P(x + 0.25, y + 1, z - 16)], '#2A3A5C'); poly([P(x + 0.3, y + 1, z - 2), P(x + 0.7, y + 1, z - 2), P(x + 0.7, y + 1, z - 7), P(x + 0.3, y + 1, z - 7)], isDag() ? '#7FA8C8' : '#FFD98A'); }
-        if (tegelType(x + 1, y) === ' ' && y % 2 === 1) for (const z of [-22, -52]) { poly([P(x + 1, y + 0.25, z), P(x + 1, y + 0.75, z), P(x + 1, y + 0.75, z - 16), P(x + 1, y + 0.25, z - 16)], '#22304C'); poly([P(x + 1, y + 0.3, z - 2), P(x + 1, y + 0.7, z - 2), P(x + 1, y + 0.7, z - 7), P(x + 1, y + 0.3, z - 7)], isDag() ? '#6E98B8' : '#F2C97A'); }
+        if (tegelType(x, y + 1) === ' ' && x % 2 === 0) for (let z = -22; z > -700; z -= 30) { poly([P(x + 0.25, y + 1, z), P(x + 0.75, y + 1, z), P(x + 0.75, y + 1, z - 16), P(x + 0.25, y + 1, z - 16)], '#2A3A5C'); poly([P(x + 0.3, y + 1, z - 2), P(x + 0.7, y + 1, z - 2), P(x + 0.7, y + 1, z - 7), P(x + 0.3, y + 1, z - 7)], isDag() ? '#7FA8C8' : '#FFD98A'); }
+        if (tegelType(x + 1, y) === ' ' && y % 2 === 1) for (let z = -22; z > -700; z -= 30) { poly([P(x + 1, y + 0.25, z), P(x + 1, y + 0.75, z), P(x + 1, y + 0.75, z - 16), P(x + 1, y + 0.25, z - 16)], '#22304C'); poly([P(x + 1, y + 0.3, z - 2), P(x + 1, y + 0.7, z - 2), P(x + 1, y + 0.7, z - 7), P(x + 1, y + 0.3, z - 7)], isDag() ? '#6E98B8' : '#F2C97A'); }
       }
     }
     // tegels
@@ -2427,52 +2440,80 @@ dialog { max-height: 90vh; overflow-y: auto; }
   }
   // het hele hotel, van buiten
   function tekenGebouw(G) {
-    const { x0, y0, x1, y1 } = G, BG = 36, VL = 28, N = 3, TOP = BG + VL * N;
+    const { x0, y0, x1, y1 } = G, d = G.deur;
     const r = (n => () => (n = (n * 16807) % 2147483647) / 2147483647)(42);
-    // gevels
-    muurVlak('R', x0, x1, 0, BG, '#B5543A', y1); muurVlak('L', y0, y1, 0, BG, '#9E4632', x1);
-    muurVlak('R', x0, x1, BG, TOP, '#E8D5A8', y1); muurVlak('L', y0, y1, BG, TOP, '#D2BD8A', x1);
-    for (let z = 6; z < BG; z += 6) { muurVlak('R', x0, x1, z, z + 1, '#8E3A28', y1); muurVlak('L', y0, y1, z, z + 1, '#7E3324', x1); }
-    for (let f = 0; f <= N; f++) { const z = BG + f * VL; muurVlak('R', x0, x1, z - 2, z + 1, '#A88B54', y1); muurVlak('L', y0, y1, z - 2, z + 1, '#92784A', x1); }
-    // ramen
-    const raam = (kant, q, t0, t1, z0, z1) => {
-      const aan = r() < 0.62;
-      muurVlak(kant, t0 - 0.05, t1 + 0.05, z0 - 2, z1 + 2, '#FBF6E9', q);
+    const BAK = '#B5543A', BAKZ = '#9E4632', STEEN = '#EAD9B0', STEENZ = '#D4BF8E', LIJST = '#C9A24E';
+    const PL = 46, VL = 26, NM = 4, M1 = PL + VL * NM, IN = 0.35, U1 = M1 + 64, TORENH = U1 + 48;
+    const raam = (kant, q, t0, t1, z0, z1, boog) => {
+      const aan = r() < 0.6;
+      muurVlak(kant, t0 - 0.05, t1 + 0.05, z0 - 2, z1 + (boog ? 5 : 2), '#FBF6E9', q);
       muurVlak(kant, t0, t1, z0, z1, aan ? '#F6D27A' : '#3E5C8A', q);
+      if (boog) for (let k = 0; k < 4; k++) { const f = (k + 1) / 5; muurVlak(kant, t0 + (t1 - t0) * f * 0.5 - 0.02, t1 - (t1 - t0) * f * 0.5 + 0.02, z1 + k, z1 + k + 1, aan ? '#F6D27A' : '#3E5C8A', q); }
       muurVlak(kant, (t0 + t1) / 2 - 0.025, (t0 + t1) / 2 + 0.025, z0, z1, '#FBF6E9', q);
-      if (aan && r() < 0.4) muurVlak(kant, t0, t0 + (t1 - t0) * 0.35, z0, z1, '#C8323C', q);
+      if (aan && r() < 0.35) muurVlak(kant, t0, t0 + (t1 - t0) * 0.35, z0, z1, '#C8323C', q);
     };
-    for (let f = 0; f <= N; f++) {
-      const z0 = f === 0 ? 8 : BG + (f - 1) * VL + 7, z1 = f === 0 ? 28 : z0 + 15;
-      for (let x = x0; x < x1; x++) { if (f === 0 && (x === G.deur || x === G.deur - 1 || x === G.deur + 1)) continue; raam('R', y1, x + 0.22, x + 0.78, z0, z1); }
-      for (let y = y0; y < y1; y++) raam('L', x1, y + 0.22, y + 0.78, z0, z1);
+    // 1. de plint: baksteen zoals onder het dakterras, met hoge boogramen
+    muurVlak('R', x0, x1, 0, PL, BAK, y1); muurVlak('L', y0, y1, 0, PL, BAKZ, x1);
+    for (let z = 4; z < PL; z += 4) { muurVlak('R', x0, x1, z, z + 1, '#8E3A28', y1); muurVlak('L', y0, y1, z, z + 1, '#7E3324', x1); }
+    muurVlak('R', x0, x1, 0, 5, '#8C8378', y1); muurVlak('L', y0, y1, 0, 5, '#7A7268', x1);
+    for (let x = x0; x < x1; x++) { if (x >= d - 1 && x <= d + 1) continue; raam('R', y1, x + 0.2, x + 0.8, 10, 34, true); }
+    for (let y = y0; y < y1; y++) raam('L', x1, y + 0.2, y + 0.8, 10, 34, true);
+    muurVlak('R', x0, x1, PL - 4, PL, LIJST, y1); muurVlak('L', y0, y1, PL - 4, PL, '#B08A3E', x1);
+    poly([P(x0, y1, PL), P(x1, y1, PL), P(x1, y1 - IN, PL), P(x0 + IN, y1 - IN, PL)], '#D9C79A'); poly([P(x1, y0 + IN, PL), P(x1, y1, PL), P(x1 - IN, y1 - IN, PL), P(x1 - IN, y0 + IN, PL)], '#C9B78A');
+    // 2. het middenstuk: vier verdiepingen, iets ingesprongen, met balkons
+    const fq = y1 - IN, sq = x1 - IN;
+    muurVlak('R', x0 + IN, x1 - IN, PL, M1, STEEN, fq); muurVlak('L', y0 + IN, y1 - IN, PL, M1, STEENZ, sq);
+    for (let f = 0; f < NM; f++) {
+      const z0 = PL + f * VL + 6, z1 = z0 + 15;
+      muurVlak('R', x0 + IN, x1 - IN, PL + f * VL, PL + f * VL + 2, '#C9B58A', fq); muurVlak('L', y0 + IN, y1 - IN, PL + f * VL, PL + f * VL + 2, '#B5A27A', sq);
+      for (let x = x0 + 1; x < x1 - 0.5; x++) raam('R', fq, x + 0.15, x + 0.75, z0, z1);
+      for (let y = y0 + 1; y < y1 - 0.5; y++) raam('L', sq, y + 0.15, y + 0.75, z0, z1);
+      for (let y = y0 + 1; y < y1 - 1; y += 2) { blok(sq, y + 0.1, 0.3, 1.6, 2, '#C9CED6', z0 - 3); blok(sq + 0.26, y + 0.1, 0.04, 1.6, 6, '#A8D2E6', z0 - 1); }
     }
-    // balkons aan de zijkant
-    for (let f = 1; f <= N; f++) for (let y = y0 + 1; y < y1; y += 2) { const z = BG + (f - 1) * VL + 4; blok(x1, y + 0.1, 0.32, 0.8, 2, '#C9CED6', z); for (let i = 0; i <= 4; i++) blok(x1 + 0.28, y + 0.1 + i * 0.2 - 0.02, 0.04, 0.04, 7, '#FBF6E9', z + 2); blok(x1 + 0.28, y + 0.1, 0.04, 0.8, 1, '#FBF6E9', z + 9); }
-    // dak
-    poly([P(x0, y0, TOP), P(x1, y0, TOP), P(x1, y1, TOP), P(x0, y1, TOP)], '#5A5F6B');
-    blok(x0, y0, x1 - x0, 0.15, 6, '#C9B58A', TOP); blok(x0, y0, 0.15, y1 - y0, 6, '#C9B58A', TOP);
-    blok(x0 + 0.4, y0 + 0.4, 1.3, 1.1, 18, '#9AA6C2', TOP);
-    { const c = P(x0 + 4.2, y0 + 2.2, TOP + 26); blok(x0 + 4.17, y0 + 2.17, 0.06, 0.06, 26, '#FBF6E9', TOP); ovaal(c[0], c[1] + 2, 15, 6, '#C99A2E'); ovaal(c[0], c[1], 14, 6, '#E9B949'); }
-    for (const [a, b] of [[2.6, 3.2], [5.6, 3.4]]) { blok(x0 + a, y0 + b, 0.55, 0.8, 3, '#B5793F', TOP); blok(x0 + a, y0 + b, 0.55, 0.15, 8, '#2F4C8F', TOP); }
-    blok(x0, y1 - 0.15, x1 - x0, 0.15, 6, '#D9C9A8', TOP); blok(x1 - 0.15, y0, 0.15, y1 - y0, 6, '#C9B58A', TOP);
-    // letters op het dak
-    const tekst = 'ROMMELHOTEL', t = x0 + (x1 - x0 - tekstTegels(tekst, 2)) / 2;
-    for (let i = 0; i < tekst.length; i++) { const p = t + (i * 8 + 3) / 16; blok(p, y1 - 0.3, 0.04, 0.04, 6, '#3A3D46', TOP + 6); }
-    muurTekst('R', t + 1 / 16, TOP + 28, tekst, '#5C3A0A', 2, y1 - 0.28);
-    muurTekst('R', t, TOP + 29, tekst, '#F6D27A', 2, y1 - 0.3);
-    // entree
-    const d = G.deur;
+    // 3. het dakterras op het middenstuk, net als het echte
+    const tx0 = x0 + IN, ty0 = y0 + IN, tx1 = x1 - IN, ty1 = y1 - IN, ux0 = x0 + 1.6, uy0 = y0 + 0.6, ux1 = x1 - 1.6, uy1 = y1 - 1.7;
+    poly([P(tx0, ty0, M1), P(tx1, ty0, M1), P(tx1, ty1, M1), P(tx0, ty1, M1)], '#B5793F');
+    for (let x = tx0; x < tx1; x += 0.5) vlak(x, ty0, 0.04, ty1 - ty0, '#8C5A32', M1);
+    // de glazen bovenbouw, met de lichtreclame
+    muurVlak('R', ux0, ux1, M1, U1, '#5E8FB0', uy1); muurVlak('L', uy0, uy1, M1, U1, '#4E7FA0', ux1);
+    for (let x = ux0; x <= ux1; x += 0.5) muurVlak('R', x - 0.02, x + 0.02, M1, U1, '#2A4A64', uy1);
+    for (let y = uy0; y <= uy1; y += 0.5) muurVlak('L', y - 0.02, y + 0.02, M1, U1, '#24425A', ux1);
+    for (let z = M1 + 16; z < U1; z += 16) { muurVlak('R', ux0, ux1, z, z + 1, '#2A4A64', uy1); muurVlak('L', uy0, uy1, z, z + 1, '#24425A', ux1); }
+    for (let k = 0; k < 6; k++) { const a = ux0 + 0.3 + r() * (ux1 - ux0 - 1), zz = M1 + 18 + Math.floor(r() * 2) * 16; muurVlak('R', a, a + 0.4, zz, zz + 12, '#F2D89A', uy1); }
+    poly([P(ux0, uy0, U1), P(ux1, uy0, U1), P(ux1, uy1, U1), P(ux0, uy1, U1)], '#5A5F6B');
+    blok(ux0 + 0.4, uy0 + 0.3, 1.1, 0.9, 14, '#9AA6C2', U1);
+    const tekst = 'ROMMELHOTEL', tt = ux0 + (ux1 - ux0 - tekstTegels(tekst, 2)) / 2;
+    muurVlak('R', ux0, ux1, U1 - 14, U1, '#1E2246', uy1);
+    muurTekst('R', tt + 1 / 16, U1 - 2, tekst, '#5C3A0A', 2, uy1); muurTekst('R', tt, U1 - 1, tekst, '#FFE07A', 2, uy1);
+    // parasols, planten en ligstoelen op het terras
+    for (const [a, b, k] of [[ux1 + 0.6, ty1 - 0.9, '#E9B949'], [tx0 + 0.9, ty1 - 0.7, '#2F8BD6'], [tx1 - 0.6, uy0 + 1.2, '#C8323C']]) { const c = P(a, b, M1 + 20); blok(a - 0.03, b - 0.03, 0.06, 0.06, 20, '#FBF6E9', M1); ovaal(c[0], c[1] + 2, 12, 5, kl(k, 0.75)); ovaal(c[0], c[1], 11, 5, k); }
+    for (const [a, b] of [[tx0 + 0.2, ty0 + 0.4], [tx1 - 0.3, ty1 - 0.3], [ux0 - 0.6, ty1 - 0.3], [tx1 - 0.3, ty0 + 0.3]]) { blok(a, b, 0.3, 0.3, 4, POT, M1); const c = P(a + 0.15, b + 0.15, M1 + 10); ovaal(c[0], c[1], 6, 5, GROEN); ovaal(c[0] - 1, c[1] - 2, 4, 3, GROENL); }
+    for (const [a, b] of [[ux0 + 0.4, ty1 - 0.5], [ux0 + 1.4, ty1 - 0.5]]) { blok(a, b, 0.8, 0.35, 2, '#FBF6E9', M1 + 2); blok(a, b, 0.2, 0.35, 5, '#FBF6E9', M1 + 2); }
+    for (let x = tx0; x <= tx1 + 0.01; x += 0.5) blok(x - 0.03, ty1 - 0.03, 0.06, 0.06, 8, '#3A3D46', M1);
+    for (let y = ty0; y <= ty1 + 0.01; y += 0.5) blok(tx1 - 0.03, y - 0.03, 0.06, 0.06, 8, '#3A3D46', M1);
+    blok(tx0, ty1 - 0.04, tx1 - tx0, 0.06, 1, '#5F6470', M1 + 8); blok(tx1 - 0.04, ty0, 0.06, ty1 - ty0, 1, '#5F6470', M1 + 8);
+    // 4. de hoektoren met een koperen koepel en een spits
+    const tw = 1.5, Tq = x0 + tw;
+    muurVlak('R', x0, Tq, 0, TORENH, BAK, y1 + 0.01); muurVlak('L', y1 - tw, y1, 0, TORENH, BAKZ, Tq);
+    for (let z = 4; z < TORENH; z += 4) { muurVlak('R', x0, Tq, z, z + 1, '#8E3A28', y1 + 0.01); muurVlak('L', y1 - tw, y1, z, z + 1, '#7E3324', Tq); }
+    for (let z = 14; z < TORENH - 20; z += 24) { raam('R', y1 + 0.01, x0 + 0.45, Tq - 0.45, z, z + 14, true); raam('L', Tq, y1 - tw + 0.45, y1 - 0.45, z, z + 14, true); }
+    muurVlak('R', x0, Tq, TORENH - 6, TORENH, LIJST, y1 + 0.01); muurVlak('L', y1 - tw, y1, TORENH - 6, TORENH, '#B08A3E', Tq);
+    const kc = P(x0 + tw / 2, y1 - tw / 2, TORENH);
+    for (let k = 0; k < 14; k++) { const f = 1 - k / 14; ovaal(kc[0], kc[1] - k * 2, 24 * Math.sqrt(f), 12 * Math.sqrt(f), k % 3 === 0 ? '#4E9A7A' : '#5FB08A'); }
+    rect(kc[0] - 1, kc[1] - 52, 2, 26, '#C99A2E'); ovaal(kc[0], kc[1] - 30, 3, 3, '#E9B949');
+    rect(kc[0], kc[1] - 52, 9, 5, '#C8323C'); rect(kc[0], kc[1] - 52, 9, 1, '#FBF6E9');
+    // 5. de entree: een luifel met zuilen, een rode loper en een draaideur
     blok(d - 0.4, y1, 1.8, 0.4, 2, '#C9CED6'); blok(d - 0.3, y1, 1.6, 0.2, 2, '#D9DDE3', 2);
     meet = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 };
-    muurVlak('R', d - 0.2, d + 1.2, 0, 34, '#5C3A21', y1);
-    muurVlak('R', d - 0.12, d + 0.48, 3, 31, '#2E4A5E', y1); muurVlak('R', d + 0.52, d + 1.12, 3, 31, '#2E4A5E', y1);
-    muurVlak('R', d + 0.38, d + 0.44, 14, 19, '#E9B949', y1); muurVlak('R', d + 0.56, d + 0.62, 14, 19, '#E9B949', y1);
+    muurVlak('R', d - 0.3, d + 1.3, 0, 40, '#5C3A21', y1);
+    muurVlak('R', d - 0.2, d + 0.48, 3, 36, '#2E4A5E', y1); muurVlak('R', d + 0.52, d + 1.2, 3, 36, '#2E4A5E', y1);
+    muurVlak('R', d - 0.2, d + 1.2, 18, 19, '#C9A24E', y1); muurVlak('R', d + 0.48, d + 0.52, 3, 36, '#C9A24E', y1);
     const deur = huidig.deuren.find(x => x.gevel); if (deur) deur._bb = meet;
     meet = null;
-    for (let i = 0; i < 8; i++) blok(d - 0.4 + i * 0.225, y1, 0.225, 0.95, 3, i % 2 ? '#FBF6E9' : '#C8323C', 38);
-    poly([P(d - 0.4, y1 + 0.95, 38), P(d + 1.4, y1 + 0.95, 38), P(d + 1.4, y1 + 0.95, 34), P(d - 0.4, y1 + 0.95, 34)], '#9E2430');
-    vlak(d + 0.15, y1 + 0.4, 0.7, 2.4, '#9E2430'); vlak(d + 0.22, y1 + 0.4, 0.56, 2.4, '#C8323C');
+    for (const a of [d - 0.45, d + 1.35]) { blok(a - 0.06, y1 + 0.85, 0.12, 0.12, 42, '#FBF6E9'); blok(a - 0.1, y1 + 0.81, 0.2, 0.2, 3, '#D9DDE3'); }
+    for (let i = 0; i < 8; i++) blok(d - 0.5 + i * 0.25, y1, 0.25, 1.05, 3, i % 2 ? '#FBF6E9' : '#C8323C', 42);
+    poly([P(d - 0.5, y1 + 1.05, 42), P(d + 1.5, y1 + 1.05, 42), P(d + 1.5, y1 + 1.05, 38), P(d - 0.5, y1 + 1.05, 38)], '#9E2430');
+    vlak(d + 0.15, y1 + 0.4, 0.7, 2.6, '#9E2430'); vlak(d + 0.22, y1 + 0.4, 0.56, 2.6, '#C8323C');
   }
   function tekenSkyline() {
     const r = (n => () => (n = (n * 16807) % 2147483647) / 2147483647)(9), basis = P(0, 0, 0)[1] - 6;
@@ -2507,6 +2548,16 @@ dialog { max-height: 90vh; overflow-y: auto; }
       poly([a, b, c, e], '#C8323C');
       for (let t = d.t0; t < d.t1 - 0.1; t += 0.34) poly([P(t, 0, d.z), P(t + 0.17, 0, d.z), P(t + 0.17, 0.55, d.z - 10), P(t, 0.55, d.z - 10)], '#FBF6E9');
       poly([e, c, P(d.t1, 0.55, d.z - 14), P(d.t0, 0.55, d.z - 14)], '#9E2430');
+    } else if (d.soort === 'toneel') {
+      const mid0 = d.t0 + (d.t1 - d.t0) * 0.32, mid1 = d.t0 + (d.t1 - d.t0) * 0.68;
+      muurVlak(d.kant, mid0, mid1, d.z0, d.z1 - 10, '#1A1030');
+      for (let k = 0; k < 12; k++) { const a = mid0 + (k * 0.37) % (mid1 - mid0), z = d.z0 + 14 + (k * 13) % (d.z1 - d.z0 - 30); muurVlak(d.kant, a, a + 0.05, z, z + 2, '#FFE07A'); }
+      let i = 0; for (let a = d.t0; a < d.t1 - 0.01; a += 0.25, i++) { if (a + 0.25 > mid0 && a < mid1) continue; muurVlak(d.kant, a, Math.min(d.t1, a + 0.25), d.z0, d.z1, i % 2 ? '#8E1F28' : '#B82E3A'); }
+      muurVlak(d.kant, d.t0, d.t1, d.z1 - 12, d.z1, '#8E1F28'); muurVlak(d.kant, d.t0, d.t1, d.z1 - 13, d.z1 - 12, '#E9B949');
+      for (let a = d.t0; a < d.t1; a += 0.5) muurVlak(d.kant, a, a + 0.06, d.z1 - 16, d.z1 - 13, '#E9B949');
+    } else if (d.soort === 'leidingen') {
+      for (const z of [54, 30]) { muurVlak(d.kant, d.t0, d.t1, z, z + 4, '#8C939E'); muurVlak(d.kant, d.t0, d.t1, z + 3, z + 4, '#B5BCC6'); }
+      for (let t = d.t0 + 0.5; t < d.t1; t += 1.6) { muurVlak(d.kant, t, t + 0.12, 8, 58, '#7A7F8A'); muurVlak(d.kant, t - 0.08, t + 0.2, 40, 44, '#C8323C'); muurVlak(d.kant, t - 0.04, t + 0.16, 41, 43, '#E8577A'); }
     } else if (d.soort === 'bord') {
       const s = d.s || 2, lengte = tekstTegels(d.tekst, s) + 0.45;
       if (d.midden !== undefined) d.t = k === 'L' ? d.midden + lengte / 2 : d.midden - lengte / 2;
@@ -3145,6 +3196,122 @@ dialog { max-height: 90vh; overflow-y: auto; }
   );
   BADGES.tijdreiziger = 'Tijdreiziger';
   MUNTPLEKKEN.push(['machine', 'tijdmachine'], ['lobby1926', 'staandeklok'], ['receptie1926', 'paraplubak']);
+  // ================================================================ HOOFDSTUK 4: De verdwenen voorstelling
+  // nieuwe meubels en wanddecoratie
+  TEKEN.podium = m => { const h = m.h || 6; blok(m.x, m.y, m.w, m.d, h, '#6E4626'); for (let i = 0.5; i < m.w; i += 0.5) vlak(m.x + i, m.y, 0.03, m.d, '#5C3A21', h); blok(m.x, m.y + m.d - 0.1, m.w, 0.1, 2, '#C9A24E', h - 2); blok(m.x + m.w / 2 - 0.7, m.y + m.d, 1.4, 0.35, Math.round(h / 2), '#7A4E2D'); };
+  TEKEN.ketel = m => { blok(m.x + 0.1, m.y + 0.1, m.w - 0.2, m.d - 0.2, 4, '#3A3D46'); const c = P(m.x + m.w / 2, m.y + m.d / 2, 0); for (let z = 4; z < 40; z += 2) ovaal(c[0], c[1] - z, 13, 6, z % 8 < 4 ? '#8C939E' : '#9AA0A6'); ovaal(c[0], c[1] - 40, 13, 6, '#B5BCC6'); rect(c[0] - 3, c[1] - 58, 6, 18, '#5F6470'); ovaal(c[0] - 6, c[1] - 24, 3, 3, '#FBF6E9'); rect(c[0] - 6, c[1] - 25, 2, 1, '#C8323C'); rect(c[0] - 4, c[1] - 9, 8, 4, '#FF8A30'); rect(c[0] - 2, c[1] - 10, 4, 2, '#FFE07A'); };
+  TEKEN.kledingrek = m => { const k = m.kleuren || ['#C8323C', '#2F4C8F', '#E9B949', '#2E8B62']; blok(m.x + 0.05, m.y + 0.4, 0.06, 0.06, 30, '#5F6470'); blok(m.x + (m.w || 2) - 0.11, m.y + 0.4, 0.06, 0.06, 30, '#5F6470'); blok(m.x + 0.05, m.y + 0.4, (m.w || 2) - 0.1, 0.05, 2, '#9AA0A6', 30); for (let i = 0; i < 6; i++) { const a = m.x + 0.2 + i * ((m.w || 2) - 0.4) / 6; blok(a, m.y + 0.3, 0.22, 0.26, 20, k[i % k.length], 8); } };
+  TEKEN.toneelkist = m => { blok(m.x + 0.1, m.y + 0.15, 0.8, 0.7, 12, '#7A4E2D'); blok(m.x + 0.1, m.y + 0.15, 0.8, 0.7, 2, '#5C3A21', 12); blok(m.x + 0.42, m.y + 0.85, 0.16, 0.02, 4, '#E9B949', 5); };
+  // ---------------- de nieuwe ruimtes
+  const vormTegels = (w, h, gat, vul) => { const t = []; for (let y = 0; y < h; y++) { let r = ''; for (let x = 0; x < w; x++) r += gat.some(([a, b, c, d]) => x >= a && x <= c && y >= b && y <= d) ? ' ' : vul(x, y); t.push(r); } return t; };
+  const L_ROOS = { naam: 'Roos', huidK: '#E8B48E', haarK: '#7A1E26', stijlK: 'knot', shirtK: '#23252B', broekK: '#23252B', extra: 'vest' };
+  const L_OTTO = { naam: 'Otto', huidK: '#F0C8A8', haarK: '#C9CED6', stijlK: 'kort', shirtK: '#5C3A21', broekK: '#3A3D46' };
+  const L_WANDA = { naam: 'Wanda', huidK: '#8A5A3B', haarK: '#2B2118', stijlK: 'staart', shirtK: '#7A4E9A', broekK: '#3A3D46' };
+  const L_SJEF = { naam: 'Sjef', huidK: '#E8B48E', haarK: '#5C3A21', stijlK: 'pet', shirtK: '#5F6470', broekK: '#2F4C8F', extra: 'overall' };
+  RUIMTES.theater = {
+    naam: 'De theaterzaal', ondertitel: 'In het souterrain, sinds 1926', w: 16, h: 13, vorm: true,
+    tegels: vormTegels(16, 13, [[14, 11, 15, 12], [15, 10, 15, 10], [0, 12, 1, 12]], (x, y) => (y < 4 && x >= 3 && x <= 12 ? 'p' : '.')),
+    vloer: { '.': ['#6E1E28', '#621A24'], p: ['#9A6438', '#8A5A32'] }, mat: { p: 'planken' },
+    muur: { L: '#5A1E2A', R: '#4E1A24', patroon: 'lambrisering', rand: '#C9A24E' },
+    deuren: [{ kant: 'L', t: 7, x: 0, y: 7, lift: true, naam: 'Lift' }, { kant: 'R', t: 14, x: 14, y: 0, naar: 'coulissen', spawn: [1, 4, 'VR'], naam: 'Achter de coulissen' }],
+    muurDeco: [
+      { soort: 'toneel', kant: 'R', t0: 2.8, t1: 12.4, z0: 0, z1: 66 },
+      { soort: 'wandlamp', kant: 'L', t: 3, z: 50 }, { soort: 'wandlamp', kant: 'L', t: 10.5, z: 50 }, { soort: 'wandlamp', kant: 'R', t: 13.4, z: 52 },
+      { soort: 'schilderij', kant: 'L', t0: 4.4, t1: 5.8, z0: 26, z1: 48, kleur: '#C9873A' },
+    ],
+    meubels: [
+      { type: 'podium', x: 3, y: 0, w: 10, d: 3.4, h: 6, naam: 'Het toneel' },
+      { type: 'piano', x: 13, y: 4, w: 2, d: 1, actie: 'piano', naam: 'Theaterpiano' },
+      { type: 'hanglamp', x: 7, y: 8, hoog: 62, kleur: '#C9A24E', geenBlok: true }, { type: 'hanglamp', x: 4, y: 8, hoog: 62, kleur: '#C9A24E', geenBlok: true }, { type: 'hanglamp', x: 11, y: 8, hoog: 62, kleur: '#C9A24E', geenBlok: true },
+      { type: 'toneelkist', x: 1, y: 1, naam: 'Toneelkist' },
+      { type: 'plant', x: 15, y: 0, groot: true }, { type: 'plant', x: 0, y: 11, groot: true }, { type: 'plant', x: 14, y: 9 }, { type: 'plant', x: 1, y: 4 },
+    ],
+    kleden: [{ x: 7, y: 4.4, w: 2, d: 8, kleur: '#C8323C', rand: '#E9B949' }],
+    npcs: [
+      { id: 'roos', naam: 'Roos', look: L_ROOS, x: 7, y: 2, r: 'VL', zitHoog: 6, praatPlek: [7, 5], zinnen: ['Vanavond het gala! Of nou ja, als alles meezit.', 'Een goede voorstelling begint met een goed licht.'] },
+      { id: 'otto', naam: 'Otto', look: L_OTTO, x: 12, y: 5, r: 'AR', praatPlek: [11, 5], zinnen: ['Ik speel hier al vijftig jaar. Nou, oefen ik hier al vijftig jaar.', 'Deze piano heeft opa Rommel nog gestemd.'] },
+    ],
+  };
+  // rijen pluche stoelen, met een gangpad in het midden
+  for (const y of [6, 8, 10]) for (let x = 3; x <= 12; x++) { if (x === 7 || x === 8) continue; if (y === 10 && x > 11) continue; RUIMTES.theater.meubels.push({ type: 'stoel', x, y, r: 'AR', zit: [[x, y, 'AR']], kleur: '#9E2430' }); }
+  RUIMTES.coulissen = {
+    naam: 'Achter de coulissen', ondertitel: 'Kostuums, schmink en een hoop rommel', w: 11, h: 9, vorm: true,
+    tegels: vormTegels(11, 9, [[9, 7, 10, 8], [10, 6, 10, 6]], () => '.'),
+    vloer: { '.': ['#4A3A30', '#42342A'] }, mat: { '.': 'planken' },
+    muur: { L: '#3A2E44', R: '#32283C', patroon: 'lambrisering', rand: '#C9A24E' },
+    deuren: [{ kant: 'L', t: 4, x: 0, y: 4, naar: 'theater', spawn: [13, 1, 'VL'], naam: 'Naar het toneel' }, { kant: 'R', t: 8, x: 8, y: 0, naar: 'ketelhuis', spawn: [1, 3, 'VR'], naam: 'Naar het ketelhuis' }],
+    muurDeco: [{ soort: 'schilderij', kant: 'R', t0: 2.2, t1: 3.6, z0: 28, z1: 52, kleur: '#E9B949' }, { soort: 'wandlamp', kant: 'L', t: 2, z: 50 }, { soort: 'wandlamp', kant: 'R', t: 5.5, z: 52 }, { soort: 'wandlamp', kant: 'L', t: 7, z: 50 }],
+    meubels: [
+      { type: 'kledingrek', x: 1, y: 0, w: 2, naam: 'Kostuumrek' }, { type: 'kledingrek', x: 4, y: 0, w: 2, kleuren: ['#FBF6E9', '#23252B', '#7A4E9A'], naam: 'Kostuumrek' },
+      { type: 'kaptafel', x: 10, y: 1, naam: 'Kaptafel' }, { type: 'kaptafel', x: 10, y: 3, naam: 'Kaptafel' },
+      { type: 'toneelkist', x: 6, y: 6, naam: 'Kist met rekwisieten' }, { type: 'kapstok', x: 0, y: 7, naam: 'Hoedenstandaard' },
+      { type: 'plant', x: 8, y: 6 }, { id: 'c1', type: 'lamp', x: 9, y: 5, aan: true, actie: 'lamp', naam: 'Staande lamp' },
+    ],
+    npcs: [{ id: 'wanda', naam: 'Wanda', look: L_WANDA, x: 5, y: 3, r: 'VL', praatPlek: [5, 4], zinnen: ['Ik heb hier vierhonderd kostuums. En nul strijkplanken.', 'Wie heeft mijn naaldenkussen gezien?'] }],
+  };
+  RUIMTES.ketelhuis = {
+    naam: 'Het ketelhuis', ondertitel: 'Stoom voor het hele hotel', w: 10, h: 8, vorm: true,
+    tegels: vormTegels(10, 8, [[8, 6, 9, 7]], () => '.'),
+    vloer: { '.': ['#5F6470', '#555A66'] },
+    muur: { L: '#6E5A4A', R: '#5E4C3E', patroon: 'tegels', rand: '#3A2E26' },
+    deuren: [{ kant: 'L', t: 3, x: 0, y: 3, naar: 'coulissen', spawn: [8, 1, 'VL'], naam: 'Terug naar de coulissen' }],
+    muurDeco: [{ soort: 'leidingen', kant: 'R', t0: 0.4, t1: 9.6 }, { soort: 'leidingen', kant: 'L', t0: 4.4, t1: 7.6 }, { soort: 'wandlamp', kant: 'L', t: 1.6, z: 50 }],
+    meubels: [{ type: 'ketel', x: 4, y: 1, w: 2, d: 2, naam: 'Stoomketel' }, { type: 'archiefkast', x: 8, y: 0, naam: 'Gereedschapskast' }, { id: 'k1', type: 'lamp', x: 1, y: 6, aan: true, actie: 'lamp', naam: 'Werklamp' }],
+    npcs: [{ id: 'sjef', naam: 'Sjef', look: L_SJEF, x: 6, y: 4, r: 'VL', praatPlek: [6, 5], zinnen: ['Zonder mij geen warm water. Zonder koffie geen Sjef.', 'Die ketel is ouder dan ik. En dat zegt wat.'] }],
+  };
+  for (const id of ['theater', 'coulissen', 'ketelhuis']) { RUIMTES[id].id = id; RUIMTES[id].basis = RUIMTES[id].meubels.slice(); }
+  // de lift stopt nu ook in het souterrain, tussen de kelder en de begane grond
+  LIFTSTOP.theater = { naam: 'Souterrain: theaterzaal', spawn: [1, 7, 'VR'] };
+  for (const k of ['zwembad', 'theater', 'receptie', 'gang', 'bieb', 'spel', 'lab', 'dak']) { const v = LIFTSTOP[k]; if (v) { delete LIFTSTOP[k]; LIFTSTOP[k] = v; } }
+  // ---------------- de puzzels: geen rekenwerk dit keer
+  const buizenPuzzel = (() => {
+    const n = 5, pad = [[2, 0], [2, 1], [1, 1], [1, 2], [1, 3], [2, 3], [3, 3], [3, 4]], rs = 2, re = 3;
+    const N = 1, E = 2, Z = 4, Wd = 8, rotM = (m, r) => { for (let i = 0; i < r; i++) m = ((m << 1) | (m >> 3)) & 15; return m; };
+    const richting = (a, b) => (b[0] < a[0] ? N : b[0] > a[0] ? Z : b[1] > a[1] ? E : Wd), tegen = d => ({ 1: 4, 2: 8, 4: 1, 8: 2 })[d];
+    const masker = Array(n * n).fill(0);
+    pad.forEach((p, i) => { let m = 0; if (i === 0) m |= Wd; else m |= tegen(richting(pad[i - 1], p)); if (i === pad.length - 1) m |= E; else m |= richting(p, pad[i + 1]); masker[p[0] * n + p[1]] = m; });
+    let zaad = 7; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
+    const vorm = m => { const c = [1, 2, 4, 8].filter(b => m & b).length; return c === 4 ? 15 : c === 3 ? 7 : (m === 5 || m === 10) ? 5 : 3; };
+    const tegels = [], start = [];
+    for (let i = 0; i < n * n; i++) {
+      let m = masker[i]; if (!m) m = [5, 3, 3, 7, 5][Math.floor(rnd() * 5)];
+      const basis = vorm(m); let ok = 0; for (let r = 0; r < 4; r++) if (rotM(basis, r) === m) { ok = r; break; }
+      tegels.push(basis); start.push(masker[i] ? (ok + 1 + Math.floor(rnd() * 3)) % 4 : Math.floor(rnd() * 4));
+    }
+    return { n, rs, re, tegels, start };
+  })();
+  const schuifStart = (() => { const b = [0, 1, 2, 3, 4, 5, 6, 7, 8]; let zaad = 11, leeg = 8, vorige = -1; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647; for (let k = 0; k < 40; k++) { const opties = [leeg - 3, leeg + 3, leeg % 3 ? leeg - 1 : -1, leeg % 3 < 2 ? leeg + 1 : -1].filter(p => p >= 0 && p < 9 && p !== vorige); const p = opties[Math.floor(rnd() * opties.length)]; [b[leeg], b[p]] = [b[p], b[leeg]]; vorige = leeg; leeg = p; } return b; })();
+  const FOTO1926 = `<rect width="300" height="300" fill="#3A2A1A"/><rect x="0" y="0" width="300" height="40" fill="#5C1A1A"/><path d="M0 40h300" stroke="#C9A24E" stroke-width="4"/>${[0, 1, 2, 3, 4, 5].map(i => `<path d="M${i * 10} 40 q5 120 0 220" stroke="#7A2020" stroke-width="10" fill="none"/><path d="M${300 - i * 10} 40 q-5 120 0 220" stroke="#7A2020" stroke-width="10" fill="none"/>`).join('')}<rect x="60" y="190" width="180" height="40" fill="#8C5A32"/><circle cx="150" cy="70" r="16" fill="#F2D89A"/><path d="M150 54v-14M134 70h-14M166 70h14" stroke="#F2D89A" stroke-width="3"/>${[[100, '#C8323C'], [150, '#2F4C8F'], [200, '#2E8B62']].map(([x, k]) => `<circle cx="${x}" cy="140" r="12" fill="#E8C8A8"/><rect x="${x - 14}" y="152" width="28" height="38" fill="${k}"/><path d="M${x - 14} 160l-12 14M${x + 14} 160l12 14" stroke="${k}" stroke-width="6"/>`).join('')}<path d="M138 128l6-10 6 8 6-8 6 10z" fill="#E9B949"/><text x="150" y="268" font-family="serif" font-size="30" fill="#F2D89A" text-anchor="middle">1926</text>${[30, 70, 110, 190, 230, 270].map(x => `<circle cx="${x}" cy="292" r="10" fill="#1E140C"/>`).join('')}`;
+  const ZOEKPLAAT = `<rect width="400" height="260" fill="#3A2E44"/><rect y="200" width="400" height="60" fill="#4A3A30"/>${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<path d="M${i * 50} 200v60" stroke="#3A2C22" stroke-width="2"/>`).join('')}
+    <path d="M20 40h150" stroke="#9AA0A6" stroke-width="4"/>${['#C8323C', '#2F4C8F', '#E9B949', '#2E8B62', '#7A4E9A', '#FBF6E9', '#C8323C'].map((k, i) => `<path d="M${30 + i * 20} 40l-8 10v90h20v-90z" fill="${k}" stroke="#231A26" stroke-width="1.5"/>`).join('')}
+    <g transform="translate(80 140)"><ellipse rx="9" ry="6" fill="#F4F0E4" stroke="#231A26" stroke-width="1"/><circle cx="-3.5" cy="-1" r="1.6" fill="#231A26"/><circle cx="3.5" cy="-1" r="1.6" fill="#231A26"/></g>
+    <rect x="290" y="70" width="90" height="130" fill="#5C3A21" stroke="#231A26" stroke-width="2"/><path d="M335 70v130" stroke="#231A26" stroke-width="2"/><path d="M310 58l6-8 6 6 6-6 6 6 6-6 6 8z" fill="#C9A24E" stroke="#7A5A10" stroke-width="1"/>
+    <rect x="190" y="70" width="80" height="100" rx="40" fill="#9FC4D8" stroke="#C9A24E" stroke-width="5"/>${[0, 1, 2, 3, 4].map(i => `<circle cx="${196 + i * 17}" cy="66" r="4" fill="#FFE07A"/>`).join('')}<path d="M248 100q14 18 6 40" stroke="#B82E3A" stroke-width="7" fill="none"/>
+    <rect x="160" y="170" width="90" height="34" fill="#7A4E2D" stroke="#231A26" stroke-width="2"/><rect x="250" y="178" width="70" height="26" fill="#8C5A32" stroke="#231A26" stroke-width="2"/><rect x="330" y="186" width="60" height="22" fill="#6E4626" stroke="#231A26" stroke-width="2"/>
+    <path d="M210 168l-6 48q-1 8 6 8" stroke="#231A26" stroke-width="3" fill="none"/>
+    <g transform="translate(368 196)"><rect x="-10" y="-14" width="20" height="14" fill="#1A1A20"/><rect x="-15" y="-2" width="30" height="4" fill="#1A1A20"/><rect x="-10" y="-6" width="20" height="2" fill="#C8323C"/></g>
+    <g transform="translate(138 226)"><circle r="5" fill="#C8323C"/><path d="M0 4q-2 10 6 14" stroke="#2E8B62" stroke-width="2" fill="none"/></g>
+    <rect x="20" y="208" width="60" height="40" fill="#5C3A21" stroke="#231A26" stroke-width="2"/><rect x="90" y="214" width="40" height="30" fill="#8C939E" stroke="#231A26" stroke-width="2"/>`;
+  Object.assign(PUZZELS, {
+    p34: { nr: 34, titel: 'Het verhaspelde scenario', punten: 40, type: 'woord', antwoord: ['spotlicht'], tekst: 'Op de omslag van het scenario staan de letters <b>LICHTPOTS</b>. Iemand heeft ze door elkaar gehusseld. Welk woord over het theater stond er eigenlijk?', hints: ['Het is iets waar je als acteur graag in staat.', 'Het is een lamp die precies op jou schijnt.', 'Het woord begint met SPOT.'] },
+    p35: Object.assign({ nr: 35, titel: 'De stoomleidingen', punten: 50, type: 'buizen', tekst: 'De stoom moet van de ketel (links) naar de machine van het toneeldoek (rechts). Tik op een buis om hem een kwartslag te draaien, tot er één doorlopende leiding is.', hints: ['Begin bij de ketel en volg de buizen stap voor stap.', 'De leiding gaat eerst een stukje naar rechts, dan omhoog.', 'Na het hoogste stuk zakt de leiding twee rijen, en dan gaat hij naar rechts naar de uitgang.'] }, buizenPuzzel),
+    p36: { nr: 36, titel: 'De openingsmelodie', punten: 50, type: 'melodie', toetsen: ['do', 're', 'mi', 'fa', 'sol', 'la'], noten: [0, 2, 4, 4, 5, 4, 2, 0], tekst: 'Otto speelt de openingsmelodie van 1926 één keer voor. Speel hem precies na op de toetsen. Je mag zo vaak luisteren als je wilt.', hints: ['Hij begint en eindigt op de laagste toets.', 'De melodie gaat eerst omhoog en daarna weer omlaag.', 'do, mi, sol, sol, la, sol, mi, do'] },
+    p37: { nr: 37, titel: 'De gescheurde foto', punten: 50, type: 'schuif', start: schuifStart, plaat: FOTO1926, tekst: 'De foto van de première in 1926 is in negen stukjes geknipt en door elkaar geschoven. Schuif de stukjes terug: tik op een stukje naast het lege vakje.', hints: ['Begin met de bovenste rij: daar zitten het gordijn en de lamp.', 'Maak eerst de bovenste rij af en raak hem daarna niet meer aan.', 'Het lege vakje hoort rechtsonder.'] },
+    p38: { nr: 38, titel: 'Waar zijn de rekwisieten?', punten: 50, type: 'zoek', plaat: ZOEKPLAAT, items: [{ naam: 'kroon', x: 328, y: 54 }, { naam: 'masker', x: 80, y: 140 }, { naam: 'wandelstok', x: 206, y: 196, r: 20 }, { naam: 'hoge hoed', x: 368, y: 190 }, { naam: 'roos', x: 140, y: 232 }, { naam: 'sjerp', x: 254, y: 120 }], tekst: 'Op de foto zie je de rekwisieten van 1926. Ze liggen nog ergens hier achter de coulissen. Tik op elk voorwerp dat je vindt.', hints: ['Kijk ook goed bovenop de kasten.', 'Tussen de kostuums hangt iets dat een gezicht heeft.', 'Iets roods hangt over de spiegel, en iets roods ligt op de grond.'] },
+    p39: { nr: 39, titel: 'Het geheim van de toneelkist', punten: 60, type: 'woord', antwoord: ['applaus'], tekst: 'Op de toneelkist staat in het handschrift van opa Rommel: <b>BQQMBVT</b>. Daaronder staat: "Elke letter één stap terug in het alfabet."', hints: ['Een B wordt een A, en een Q wordt een P.', 'Het is wat acteurs krijgen als de voorstelling klaar is.', 'Het woord begint met APPL.'] },
+  });
+  HOOFDSTUKKEN[4] = 'De verdwenen voorstelling';
+  STAPPEN.push(
+    { hoofdstuk: 4, wie: 'mien', kamer: 'receptie', doel: 'Nieuw hoofdstuk! Praat met Mien in de grote hal.', voor: [['mien', 'Groot nieuws! De oude theaterzaal in het souterrain gaat weer open, na bijna honderd jaar.'], ['mien', 'Vanavond is het gala. Maar Roos, de regisseur, is in alle staten.'], ['mien', 'Ga jij even kijken? Neem de lift naar het souterrain.']], na: [['jij', 'Ik ga meteen!']] },
+    { wie: 'roos', kamer: 'theater', doel: 'Ga met de lift naar de theaterzaal en praat met Roos.', voor: [['roos', 'Eindelijk iemand! Het gala begint straks en alles gaat mis.'], ['roos', 'Kijk dit scenario. Iemand heeft de titel door elkaar gehusseld.']], puzzel: 'p34', na: [['roos', 'Spotlicht! Natuurlijk. Zo heet de voorstelling.'], ['roos', 'Maar het toneeldoek gaat niet open. Het werkt op stoom, uit het ketelhuis.'], ['roos', 'Loop achter het toneel langs, door de coulissen. Sjef de stoker weet er alles van.']] },
+    { wie: 'sjef', kamer: 'ketelhuis', doel: 'Help Sjef in het ketelhuis met de stoomleidingen.', voor: [['sjef', 'Het doek? Daar gaat de stoom heen, door die buizen daar.'], ['sjef', 'Maar iemand heeft aan alle kranen gedraaid. Nu loopt er niks meer goed.']], puzzel: 'p35', na: [['sjef', 'Hoor je dat gesis? Dat is het doek. Het werkt weer!'], ['sjef', 'Otto de pianist zocht je trouwens. Hij zit bij de piano in de zaal.']] },
+    { wie: 'otto', kamer: 'theater', doel: 'Help Otto de pianist in de theaterzaal.', voor: [['otto', 'Elk gala begint met de openingsmelodie. Van opa Rommel zelf.'], ['otto', 'Ik weet hem nog half. Ik speel hem één keer voor, en dan jij. Dan onthoud ik hem wel.']], puzzel: 'p36', na: [['otto', 'Dat is hem! Precies zoals in 1926.'], ['otto', 'Wanda achter de coulissen heeft de oude foto van de première. Daarop zie je wat er nog ontbreekt.']] },
+    { wie: 'wanda', kamer: 'coulissen', doel: 'Ga naar Wanda achter de coulissen.', voor: [['wanda', 'Die foto? Haha, die is in stukjes geknipt. Door een kind, denk ik. In 1975.'], ['wanda', 'Kun jij hem weer heel maken?']], puzzel: 'p37', na: [['wanda', 'Kijk: een kroon, een masker, een wandelstok, een hoge hoed, een roos en een sjerp.'], ['wanda', 'Die moeten vanavond allemaal op het toneel. Ze liggen hier ergens, tussen mijn rommel.']] },
+    { wie: 'wanda', kamer: 'coulissen', doel: 'Zoek de rekwisieten achter de coulissen.', voor: [['wanda', 'Zoek jij ze? Ik ben zelf de weg kwijt in mijn eigen kostuums.']], puzzel: 'p38', na: [['wanda', 'Allemaal gevonden! Ik breng ze naar Roos.'], ['wanda', 'O, en Roos vroeg nog naar de oude toneelkist in de zaal. Daar staat iets geheims op.']] },
+    { wie: 'roos', kamer: 'theater', doel: 'Ontcijfer het geheim van de toneelkist bij Roos.', voor: [['roos', 'Alles is klaar. Alleen deze kist... opa Rommel schreef er een geheim woord op.'], ['roos', 'Hij zei altijd: dat woord moet je zeggen vlak voordat het doek opengaat.']], puzzel: 'p39', na: [['roos', 'Applaus! Natuurlijk. Dat is wat je verdient.'], ['roos', 'Doek op! Licht aan! Muziek, Otto!'], ['otto', 'Do, mi, sol, sol, la, sol, mi, do...'], ['mien', 'Wat een gala! Precies zoals opa het wilde. Dankzij jou.']], einde: 4 },
+  );
+  BADGES.sterVanDeShow = 'Ster van de show';
+  MUNTPLEKKEN.push(['theater', 'toneelkist'], ['coulissen', 'kaptafel'], ['ketelhuis', 'archiefkast']);
 
   const V = () => (S.verhaal = S.verhaal || { stap: 0, munten: 3, opgelost: {}, punten: 0, gevonden: {}, gezien: {}, waarde: {} });
   const Verhaal = (() => {
@@ -3281,6 +3448,46 @@ dialog { max-height: 90vh; overflow-y: auto; }
       hintKnoppen();
       const sluit = () => { pz.close(); };
       pz.querySelector('#vh-later').addEventListener('click', () => { sluit(); });
+      let buizenKlaar = false;
+      if (P0.type === 'buizen') {
+        const n = P0.n, rot = (lampen = P0.start.slice());
+        const rotM = (m, r) => { for (let i = 0; i < r; i++) m = ((m << 1) | (m >> 3)) & 15; return m; };
+        const stroom = () => { const vol = new Set(), wacht = [P0.rs * n]; if (!(rotM(P0.tegels[P0.rs * n], rot[P0.rs * n]) & 8)) return { vol, klaar: false }; vol.add(P0.rs * n); let klaar = false;
+          while (wacht.length) { const i = wacht.pop(), r0 = Math.floor(i / n), c0 = i % n, m = rotM(P0.tegels[i], rot[i]);
+            if (r0 === P0.re && c0 === n - 1 && (m & 2)) klaar = true;
+            for (const [b, dr, dc, terug] of [[1, -1, 0, 4], [2, 0, 1, 8], [4, 1, 0, 1], [8, 0, -1, 2]]) { if (!(m & b)) continue; const r1 = r0 + dr, c1 = c0 + dc; if (r1 < 0 || c1 < 0 || r1 >= n || c1 >= n) continue; const j = r1 * n + c1; if (vol.has(j)) continue; if (rotM(P0.tegels[j], rot[j]) & terug) { vol.add(j); wacht.push(j); } } }
+          return { vol, klaar }; };
+        const buis = (m, vol) => { const k = vol ? '#3A9AD6' : '#8C939E', a = ['M20 20V0', 'M20 20H40', 'M20 20V40', 'M20 20H0']; return `<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="5" fill="${vol ? '#DCEFFA' : '#2A2E38'}"/>${[1, 2, 4, 8].map((b, i) => m & b ? `<path d="${a[i]}" stroke="#23252B" stroke-width="12"/><path d="${a[i]}" stroke="${k}" stroke-width="7"/>` : '').join('')}<circle cx="20" cy="20" r="6" fill="${k}" stroke="#23252B" stroke-width="2"/></svg>`; };
+        const teken0 = () => { const { vol, klaar } = stroom(); buizenKlaar = klaar; let h = `<div class="vh-buizen" style="grid-template-columns:2.4rem repeat(${n},1fr) 2.4rem">`;
+          for (let r0 = 0; r0 < n; r0++) { h += `<span class="vh-bron">${r0 === P0.rs ? '♨' : ''}</span>`; for (let c0 = 0; c0 < n; c0++) { const i = r0 * n + c0; h += `<button type="button" class="vh-buis" data-i="${i}" aria-label="Draai deze buis">${buis(rotM(P0.tegels[i], rot[i]), vol.has(i))}</button>`; } h += `<span class="vh-bron">${r0 === P0.re ? (klaar ? '✔' : '▶') : ''}</span>`; }
+          vak.innerHTML = h + `</div><p class="vh-uitleg">${klaar ? 'De stoom stroomt helemaal door! Klik op Controleer.' : 'Links komt de stoom binnen, rechts moet hij eruit.'}</p>`;
+          vak.querySelectorAll('.vh-buis').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; rot[i] = (rot[i] + 1) % 4; speel('klik'); teken0(); })); };
+        teken0();
+      }
+      if (P0.type === 'melodie') {
+        const fq = [262, 294, 330, 349, 392, 440, 494];
+        vak.innerHTML = `<div class="vh-melodie"><button type="button" class="vh-knop" id="vh-luister">Luister naar Otto</button><div class="vh-toetsen">${P0.toetsen.map((t, i) => `<button type="button" class="vh-toets" data-i="${i}">${t}</button>`).join('')}</div><div class="vh-gespeeld" id="vh-gespeeld"></div><button type="button" class="vh-knop" id="vh-wis">Opnieuw</button></div>`;
+        const toonG = () => { vak.querySelector('#vh-gespeeld').innerHTML = P0.noten.map((_, i) => `<i class="${i < volgorde.length ? 'vol' : ''}">${i < volgorde.length ? P0.toetsen[volgorde[i]] : ''}</i>`).join(''); };
+        const licht = i => { const b = vak.querySelector(`.vh-toets[data-i="${i}"]`); if (b) { b.classList.add('aan'); setTimeout(() => b.classList.remove('aan'), 260); } };
+        vak.querySelectorAll('.vh-toets').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; noot(fq[i], 0, 0.4, 'triangle', 0.2); licht(i); if (volgorde.length < P0.noten.length) volgorde.push(i); toonG(); }));
+        vak.querySelector('#vh-luister').addEventListener('click', () => P0.noten.forEach((nn, k) => setTimeout(() => { noot(fq[nn], 0, 0.4, 'triangle', 0.2); licht(nn); }, k * 450)));
+        vak.querySelector('#vh-wis').addEventListener('click', () => { volgorde = []; toonG(); });
+        toonG();
+      }
+      if (P0.type === 'schuif') {
+        lampen = P0.start.slice();
+        const teken0 = () => { vak.innerHTML = `<div class="vh-schuif">${lampen.map((t, pos) => t === 8 ? '<span class="vh-leeg"></span>' : `<button type="button" class="vh-stuk" data-pos="${pos}" aria-label="Stukje ${t + 1}"><svg viewBox="${(t % 3) * 100} ${Math.floor(t / 3) * 100} 100 100" aria-hidden="true">${P0.plaat}</svg></button>`).join('')}</div><p class="vh-uitleg">${lampen.every((t, i) => t === i) ? 'De foto is weer heel! Klik op Controleer.' : 'Tik op een stukje naast het lege vakje om het te schuiven.'}</p>`;
+          vak.querySelectorAll('.vh-stuk').forEach(b => b.addEventListener('click', () => { const p = +b.dataset.pos, e = lampen.indexOf(8); if (Math.abs(p % 3 - e % 3) + Math.abs(Math.floor(p / 3) - Math.floor(e / 3)) === 1) { [lampen[p], lampen[e]] = [lampen[e], lampen[p]]; speel('klik'); teken0(); } })); };
+        teken0();
+      }
+      if (P0.type === 'zoek') {
+        lampen = [];
+        vak.innerHTML = `<div class="vh-zoek"><svg viewBox="0 0 400 260" id="vh-zoekplaat" role="img" aria-label="Een rommelige kostuumkamer">${P0.plaat}<g id="vh-gevonden"></g></svg><p class="vh-uitleg" id="vh-zoeklijst"></p></div>`;
+        const sv = vak.querySelector('#vh-zoekplaat');
+        const lijst = () => { vak.querySelector('#vh-zoeklijst').innerHTML = 'Zoek: ' + P0.items.map((it, i) => lampen.includes(i) ? `<s>${it.naam}</s>` : `<b>${it.naam}</b>`).join(', '); };
+        sv.addEventListener('click', e => { const r = sv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 400, y = (e.clientY - r.top) / r.height * 260; const i = P0.items.findIndex((it, k) => !lampen.includes(k) && Math.hypot(it.x - x, it.y - y) < (it.r || 16)); if (i >= 0) { lampen.push(i); speel('pling'); vak.querySelector('#vh-gevonden').innerHTML += `<circle cx="${P0.items[i].x}" cy="${P0.items[i].y}" r="${(P0.items[i].r || 16) + 3}" fill="none" stroke="#2E8B62" stroke-width="3"/>`; lijst(); } });
+        lijst();
+      }
       pz.querySelector('#vh-check').addEventListener('click', () => {
         let goed = false;
         if (P0.type === 'getal') goed = +pz.querySelector('#vh-inv').value === P0.antwoord;
@@ -3290,6 +3497,10 @@ dialog { max-height: 90vh; overflow-y: auto; }
         if (P0.type === 'vingers') goed = gekozen === P0.antwoord;
         if (P0.type === 'verschil') goed = lampen.length >= 7;
         if (P0.type === 'volgorde') goed = volgorde.length === P0.items.length && volgorde.every((x, i) => x === P0.items[i]);
+        if (P0.type === 'buizen') goed = buizenKlaar;
+        if (P0.type === 'melodie') goed = volgorde.length === P0.noten.length && volgorde.every((x, i) => x === P0.noten[i]);
+        if (P0.type === 'schuif') goed = lampen.every((t, i) => t === i);
+        if (P0.type === 'zoek') goed = lampen.length === P0.items.length;
         const uit = pz.querySelector('#vh-uitslag');
         if (goed) {
           const al = V().opgelost[id] !== undefined;
@@ -3311,7 +3522,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
       const verder = () => dialoog(st.na, () => {
         V().stap++; bewaar(); teken();
         if (st.actie) tijdreis(st.actie === 'naar1926');
-        if (st.einde === 3) { badge('tijdreiziger'); krijg(200, 'terug uit 1926'); for (let i = 0; i < 18; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 110); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 3. Bedankt, tijdreiziger! Je kunt je puzzels altijd terugvinden in het puzzelboek.']]), 900); }
+        if (st.einde === 4) { badge('sterVanDeShow'); krijg(250, 'het gala gered'); for (let i = 0; i < 22; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 100); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 4! Je hebt de badge Ster van de show verdiend, en 250 munten.']]), 2400); }
+        else if (st.einde === 3) { badge('tijdreiziger'); krijg(200, 'terug uit 1926'); for (let i = 0; i < 18; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 110); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 3. Bedankt, tijdreiziger! Je kunt je puzzels altijd terugvinden in het puzzelboek.']]), 900); }
         else if (st.einde === 2) { badge('meesterspeurneus'); krijg(150, 'de vlaaidief ontmaskerd'); for (let i = 0; i < 14; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 120); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 2. Goed gespeurd! In de kelder staat iets vreemds te zoemen... maar dat is voor een volgende keer.']]), 900); }
         else if (st.einde) { badge('speurneus'); krijg(100, 'het geheim opgelost'); for (let i = 0; i < 14; i++) setTimeout(() => deeltje('ster', { x: speler.x, y: speler.y, w: 1, d: 1 }), i * 120); setTimeout(() => dialoog([['mien', 'Einde van hoofdstuk 1. Bedankt voor het spelen, speurneus! Er wacht nog een nieuw mysterie: praat straks nog eens met Mien.']]), 900); }
       });

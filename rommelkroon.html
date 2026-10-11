@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rommelkroon – Ruben's rommelhoekje</title>
+<meta name="description" content="Zet in elke rij, elke kolom en elk gekleurd vlak precies één kroon, zonder dat kronen elkaar raken. 120 puzzels, van 5×5 tot 10×10.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%2252%22%20height%3D%2252%22%20rx%3D%225%22%20fill%3D%22%23FBF6E9%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22/%3E%3Cpath%20d%3D%22M6%2023h52M6%2040h52M23%206v52M40%206v52%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%227.5%22%20y%3D%227.5%22%20width%3D%2215%22%20height%3D%2215%22%20fill%3D%22%23F4A6A6%22/%3E%3Crect%20x%3D%2240.5%22%20y%3D%2224%22%20width%3D%2216%22%20height%3D%2215%22%20fill%3D%22%23A9C4F5%22/%3E%3Crect%20x%3D%2224%22%20y%3D%2241%22%20width%3D%2215%22%20height%3D%2215.5%22%20fill%3D%22%23B8E0A0%22/%3E%3Cpath%20d%3D%22M27%2034l-1.5-10%205%204%203.5-7%203.5%207%205-4-1.5%2010z%22%20fill%3D%22%23E9B949%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M45%2013l7%207M52%2013l-7%207%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.6%22/%3E%3C/svg%3E">
+<style>
+:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; min-height: 100vh; background: #2F3A6B radial-gradient(rgba(255,255,255,.07) 1px, transparent 1.6px) 0 0 / 22px 22px; color: var(--inkt); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; }
+.kop { display: flex; align-items: center; gap: .8rem; padding: .6rem 1rem; background: var(--nacht); color: var(--papier); flex-wrap: wrap; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.kop a { color: var(--manila); font-weight: 700; font-size: .9rem; }
+.titel { display: flex; align-items: center; gap: .45rem; font-weight: 800; font-size: 1.15rem; } .titel svg { width: 28px; height: 28px; }
+.kop .rechts { margin-left: auto; display: flex; gap: .4rem; }
+.knop { font: inherit; font-weight: 800; font-size: .9rem; border: 0; border-radius: 7px; padding: .5rem .85rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.knop.hoofd { background: var(--rood); color: #fff; } .knop[aria-pressed="true"] { background: var(--goud); } .knop:disabled { opacity: .5; cursor: default; }
+main { max-width: 46rem; margin: 0 auto; padding: 1rem; }
+.paneel { background: var(--manila); border-radius: 12px; padding: 1rem 1.1rem 1.2rem; box-shadow: 0 5px 0 rgba(0,0,0,.3); margin-bottom: 1rem; }
+.paneel h2 { margin: 0 0 .3rem; } .paneel p { margin: .3rem 0; line-height: 1.45; }
+.dag { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; background: linear-gradient(135deg, #FFE9A8, #F2C66A); }
+.groep h3 { margin: 1rem 0 .4rem; font-size: 1rem; display: flex; justify-content: space-between; gap: .5rem; } .groep h3 small { font-weight: 600; color: #5E5643; }
+.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr)); gap: .4rem; }
+.lvl { font: inherit; font-weight: 800; border: 0; border-radius: 8px; aspect-ratio: 1; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; font-size: 1rem; }
+.lvl small { font-size: .62rem; font-weight: 700; color: #5E5643; }
+.lvl.klaar { background: #CFE8B8; } .lvl.bezig { background: #FFE9A8; } .lvl:disabled { background: #D9CFB4; color: #9A8F7A; cursor: default; box-shadow: none; }
+.spelkop { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.spelkop h2 { margin: 0; font-size: 1.2rem; } .tijd { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; background: var(--papier); padding: .3rem .6rem; border-radius: 6px; }
+.bord { --n: 5; display: grid; grid-template-columns: repeat(var(--n), 1fr); width: min(100%, 34rem); aspect-ratio: 1; margin: 0 auto; border: 3px solid var(--inkt); border-radius: 6px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--inkt); }
+.cel { border: 0; padding: 0; margin: 0; position: relative; cursor: pointer; display: grid; place-items: center; box-shadow: inset 0 0 0 .5px rgba(35,26,38,.35); }
+.cel.t { border-top: 2.5px solid var(--inkt); } .cel.l { border-left: 2.5px solid var(--inkt); } .cel.r { border-right: 2.5px solid var(--inkt); } .cel.b { border-bottom: 2.5px solid var(--inkt); }
+.cel svg { width: 70%; height: 70%; pointer-events: none; }
+.cel .x { width: 34%; height: 34%; }
+.cel.fout { background-image: repeating-linear-gradient(45deg, rgba(200,50,60,.38) 0 6px, transparent 6px 12px) !important; }
+.cel.hint svg { filter: drop-shadow(0 0 4px #fff); }
+.cel.pop svg { animation: pop .5s ease both; }
+@keyframes pop { 0% { transform: scale(.3) rotate(-20deg); } 70% { transform: scale(1.2) rotate(6deg); } 100% { transform: none; } }
+.balk { display: flex; gap: .45rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
+.regels { font-size: .9rem; color: #3A3226; }
+.klaar-kaart { text-align: center; }
+.klaar-kaart .groot { font-size: 2.2rem; font-weight: 800; margin: .2rem 0; }
+dialog { border: 0; border-radius: 14px; padding: 0; max-width: min(28rem, 94vw); background: var(--manila); box-shadow: 0 0 0 4px var(--inkt), 0 10px 0 4px rgba(0,0,0,.35); font-family: inherit; color: var(--inkt); }
+dialog::backdrop { background: rgba(10,14,30,.6); } dialog > div { padding: 1.1rem 1.3rem 1.2rem; }
+#sb-kroon { margin-top: .8rem; }
+@media (prefers-reduced-motion: reduce) { .cel.pop svg { animation: none; } }
+</style>
+</head>
+<body data-pagina="rommelkroon">
+<div class="kop">
+  <a href="./">Terug naar het rommelhoekje</a>
+  <span class="titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="6" y="6" width="52" height="52" rx="5" fill="#FBF6E9" stroke="#1F2333" stroke-width="3"/><path d="M6 23h52M6 40h52M23 6v52M40 6v52" stroke="#1F2333" stroke-width="2"/><rect x="7.5" y="7.5" width="15" height="15" fill="#F4A6A6"/><rect x="40.5" y="24" width="16" height="15" fill="#A9C4F5"/><rect x="24" y="41" width="15" height="15.5" fill="#B8E0A0"/><path d="M27 34l-1.5-10 5 4 3.5-7 3.5 7 5-4-1.5 10z" fill="#E9B949" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M45 13l7 7M52 13l-7 7" stroke="#1F2333" stroke-width="2.4" stroke-linecap="round" opacity=".6"/></svg></span>Rommelkroon</span>
+  <div class="rechts"><button class="knop" id="b-regels" type="button">Spelregels</button></div>
+</div>
+<main>
+  <section id="overzicht">
+    <div class="paneel dag"><div><h2>Puzzel van de dag</h2><p id="dag-tekst">Elke dag een nieuwe.</p></div><button class="knop hoofd" id="b-dag" type="button">Spelen</button></div>
+    <div class="paneel"><h2>Alle puzzels</h2><p id="stand">0 van 120 opgelost.</p><div id="groepen"></div><div id="sb-kroon"></div></div>
+  </section>
+  <section id="spel" hidden>
+    <div class="paneel">
+      <div class="spelkop"><button class="knop" id="b-terug" type="button">Puzzels</button><h2 id="spel-titel">Puzzel 1</h2><span class="tijd" id="tijd" aria-live="off">0:00</span></div>
+      <div class="bord" id="bord" role="grid" aria-label="Puzzelbord"></div>
+      <div class="balk">
+        <button class="knop" id="b-ongedaan" type="button">Ongedaan maken</button>
+        <button class="knop" id="b-hint" type="button">Hint</button>
+        <button class="knop" id="b-opnieuw" type="button">Opnieuw</button>
+        <button class="knop" id="b-auto" type="button" aria-pressed="false">Automatische kruisjes</button>
+      </div>
+      <p class="regels">Tik één keer voor een kruisje, nog eens voor een kroon, en nog eens om het vakje leeg te maken. Sleep over het bord om snel kruisjes te zetten.</p>
+    </div>
+  </section>
+</main>
+<dialog id="dlg"><div id="dlg-in"></div></dialog>
+<script>
+(function () {
+  try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) localStorage.setItem(k, v); sessionStorage.removeItem('koppel-herstel'); sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+})();
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+  // ---------- alle spellen bijwerken, vanaf elke pagina van de site
+  // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
+  // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
+  const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const BRONNEN = {
+    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
+    poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
+    beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
+  };
+  const VKEY = 'rommelhoekje-verstuurd';
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  let bezig = false;
+  async function synchroniseer() {
+    if (bezig || !speler || !speler.naam) return; bezig = true;
+    try {
+      const inst = await klaar; if (!adres(inst)) return;
+      const v = lees(VKEY) || {};
+      for (const [spel, bron] of Object.entries(BRONNEN)) {
+        let w = null; try { w = bron(); } catch (e) {}
+        if (!w) continue;
+        const o = v[spel];
+        if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
+        await API.stuur(spel, w[0], w[1]);
+      }
+    } finally { bezig = false; }
+  }
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      await synchroniseer();
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) onthoud(spel, score, extra || 0);
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+
+  // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
+  // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
+  const KKEY = 'rommelhoekje-koppel';
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const MAX = 380000;
+  const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
+  const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
+  const hash = t => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ':' + t.length; };
+  const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+  const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
+  let bezigK = false, eersteK = true;
+  async function koppelSync(stil) {
+    const K = leesK(); if (!K || !K.code || bezigK) return null;
+    const inst = await klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null;
+    bezigK = true;
+    try {
+      K.staat = K.staat || {}; const items = {}, bekend = {};
+      for (const k of SLEUTELS) {
+        let v = null; try { v = localStorage.getItem(k); } catch (e) {}
+        const st = K.staat[k];
+        if (v !== null) { const h = hash(v); if (!st || st.h !== h) { K.staat[k] = { h, t: Date.now() }; if (v.length <= MAX) items[k] = { t: K.staat[k].t, data: v }; } }
+        bekend[k] = K.staat[k] ? K.staat[k].t : 0;
+      }
+      const r = await fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend }) });
+      const j = await r.json(); if (!j.ok) return null;
+      const herstel = {}; let nieuwHier = false;
+      for (const [k, it] of Object.entries(j.items || {})) {
+        if (!SLEUTELS.includes(k) || (K.staat[k] && K.staat[k].t >= it.t)) continue;
+        K.staat[k] = { h: hash(it.data), t: it.t };
+        if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} }
+      }
+      K.laatst = Date.now(); schrijfK(K);
+      // nieuwe voortgang voor het spel dat nu open is: bij het openen meteen herladen, later alleen met een knop (anders gaan twee apparaten om de beurt herladen)
+      if (nieuwHier) {
+        try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
+        if (eersteK && !stil) { location.reload(); return j; }
+        toonKoppelMelding('Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', () => location.reload());
+      }
+      return j;
+    } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
+  }
+  const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
+  const WOORD2 = ['vlaai', 'raket', 'zolder', 'kraan', 'lamp', 'vos', 'uil', 'beer', 'trommel', 'vlieger', 'ster', 'koepel', 'piano', 'wolk', 'kikker', 'draak', 'tram', 'molen', 'sok', 'hoed', 'fiets', 'toren', 'boot', 'pinguin'];
+  function maakCode() { const a = new Uint32Array(4); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], 100 + a[3] % 900].join('-'); }
+  const schoon = c => (c || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  async function maakKoppeling() { const K = { code: maakCode(), staat: {} }; schrijfK(K); await koppelSync(true); return K.code; }
+  async function gebruikCode(code) {
+    code = schoon(code); if (code.length < 12) return 'Die code is te kort.';
+    // eerst kijken wat er op de server staat: de voortgang van je andere apparaat wint
+    const K = { code, staat: {} };
+    for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v !== null) K.staat[k] = { h: hash(v), t: 0 }; }
+    schrijfK(K);
+    const j = await koppelSync(true);
+    if (!j) { schrijfK(null); return 'Koppelen lukte niet. Controleer je internet en probeer het opnieuw.'; }
+    if (!j.aantal) { schrijfK(null); return 'Bij deze code staat nog niets. Klopt hij wel? Maak hem anders op je andere apparaat.'; }
+    // wat alleen op dit apparaat staat, sturen we daarna mee
+    const K2 = leesK(); for (const k of SLEUTELS) if (K2.staat[k] && K2.staat[k].t === 0) delete K2.staat[k]; schrijfK(K2);
+    setTimeout(() => koppelSync(true), 300);
+    if (Object.keys(j.items || {}).some(vanDezePagina)) setTimeout(() => location.reload(), 600);
+    return '';
+  }
+  // ---------- het venster
+  let dlg = null;
+  function stijl() { if (document.getElementById('kp-stijl')) return; const st = document.createElement('style'); st.id = 'kp-stijl'; st.textContent = `
+    .kp-dlg { border: 0; border-radius: 14px; padding: 0; max-width: min(30rem, 94vw); background: #F2DDA0; color: #231A26; box-shadow: 0 0 0 4px #231A26, 0 10px 0 4px rgba(0,0,0,.35); font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+    .kp-dlg::backdrop { background: rgba(10,14,30,.6); } .kp-in { padding: 1.1rem 1.3rem 1.2rem; } .kp-in h2 { margin: 0 0 .4rem; } .kp-in p { margin: .4rem 0; line-height: 1.45; }
+    .kp-code { font-size: 1.4rem; font-weight: 800; letter-spacing: .02em; background: #FBF6E9; border-radius: 8px; padding: .6rem .8rem; text-align: center; margin: .6rem 0; user-select: all; }
+    .kp-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .6rem; } .kp-rij input { flex: 1 1 12rem; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid #C9A24E; background: #FBF6E9; }
+    .kp-knop { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.3); } .kp-knop.hoofd { background: #C8323C; color: #fff; }
+    .kp-klein { font-size: .82rem; color: #5E5643; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
+    .kp-melding { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 9999; background: #FBF6E9; color: #231A26; font: 700 .92rem 'Bricolage Grotesque', system-ui, sans-serif; padding: .6rem .9rem; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.3); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
+    .kp-knopje { position: fixed; right: .9rem; bottom: .9rem; z-index: 50; font: 800 .88rem 'Bricolage Grotesque', system-ui, sans-serif; border: 0; border-radius: 999px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 0 0 3px #231A26, 0 4px 0 3px rgba(0,0,0,.3); }`; document.head.appendChild(st); }
+  function toonKoppelMelding(tekst, knop, doe) { stijl(); const m = document.createElement('div'); m.className = 'kp-melding'; m.setAttribute('role', 'status'); m.innerHTML = `<span>${tekst}</span>${knop ? `<button class="kp-knop hoofd" type="button">${knop}</button>` : ''}`; if (knop) m.querySelector('button').onclick = () => { m.remove(); doe(); }; document.body.appendChild(m); setTimeout(() => m.remove(), knop ? 20000 : 4000); }
+  function openKoppel() {
+    stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
+    const K = leesK();
+    const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je apparaten zijn gekoppeld</h2><p>Je koppelcode is:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
+      : `<div class="kp-in"><h2>Koppel je apparaten</h2><p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
+    const q = id => dlg.querySelector('#' + id);
+    q('kp-dicht').onclick = () => dlg.close();
+    if (q('kp-maak')) q('kp-maak').onclick = async () => { q('kp-maak').disabled = true; q('kp-fout').textContent = 'Even bezig...'; await maakKoppeling(); openKoppel(); };
+    if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
+    if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
+    if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); openKoppel(); };
+    if (!dlg.open) dlg.showModal();
+  }
+  API.koppel = openKoppel; API.koppelSync = koppelSync;
+  // op de homepage en het scorebord een knopje
+  if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
+  try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
+  klaar.then(() => setTimeout(() => koppelSync(false), 600));
+  setInterval(() => { if (!document.hidden) koppelSync(true); }, 30000);
+  // eerst het spel laten opslaan, dan pas meesturen
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => koppelSync(true), 400); });
+  // bij het sluiten: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is
+  addEventListener('load', () => addEventListener('pagehide', () => {
+    const K = leesK(); if (!K || !K.code) return;
+    klaar.then(inst => { const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return; const items = {}; let grootte = 0;
+      for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v === null) continue; const h = hash(v), st = (K.staat || {})[k]; if (st && st.h === h) continue; if (grootte + v.length > 60000) continue; grootte += v.length; const t = Date.now(); items[k] = { t, data: v }; K.staat[k] = { h, t }; }
+      if (!Object.keys(items).length) return; schrijfK(K);
+      try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend: {} }), keepalive: true }); } catch (e) {}
+    });
+  }));
+  API.synchroniseer = synchroniseer;
+  window.Scorebord = API;
+  // bij elk bezoek, en als je even naar een ander tabblad gaat
+  klaar.then(() => setTimeout(synchroniseer, 1500));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) synchroniseer(); });
+})();
+
+</script>
+<script>
+const PUZZELS = [{"n":5,"v":"aaaaaaabaaddddcddddddeeee","o":"02413"},{"n":5,"v":"aaaaaabbaaaabcceadccecccc","o":"31420"},{"n":5,"v":"abbbbccbbbccbbbeeebdeeeee","o":"03142"},{"n":5,"v":"bbbaabbbaabbbcadddcaddeea","o":"41302"},{"n":5,"v":"aaabbaaabbacabbacaddaaeed","o":"03142"},{"n":5,"v":"aaaabaaaabccabbeddddedddd","o":"24130"},{"n":5,"v":"bbaaabbaaaddacadaaaadeeea","o":"41302"},{"n":5,"v":"aaabbaaabbacebbccedbeeeeb","o":"24130"},{"n":5,"v":"caeeecaabeccceeccddeeeeee","o":"13024"},{"n":5,"v":"eaaabebbbbecbbbeeedeeeeee","o":"24130"},{"n":5,"v":"baaaabbaaabbacceeddceeecc","o":"31420"},{"n":5,"v":"aabbbaabbdacbbdaeebdaaeee","o":"03142"},{"n":5,"v":"ccaaaccbbbccbbbeccddeccdd","o":"24130"},{"n":5,"v":"abbbbecbbdecdddeeeedeeeed","o":"03142"},{"n":5,"v":"cccaabbcaaebccceddcceeeec","o":"31420"},{"n":5,"v":"bbcaabbccabeccaeeccdeeecc","o":"30241"},{"n":5,"v":"baaadbbcddcccddccccdceccd","o":"30241"},{"n":5,"v":"bbaaacbbaaccdddeddddeeddd","o":"42031"},{"n":5,"v":"bbaacbbddceddcceddddeeedd","o":"31420"},{"n":5,"v":"bbbaabbbaaeedcceeddeeeeee","o":"31420"},{"n":6,"v":"bbbabbbbbbbbbbbccbdbccccbbcceeffffee","o":"314052"},{"n":6,"v":"bbabbbbbbbbbbbcccdeecdddeecfffcccfff","o":"203514"},{"n":6,"v":"acccccacbcccbbbcccdddcfcdffeffdfffff","o":"024135"},{"n":6,"v":"bbbaaabbbbaabbbaacbbddcceeeccceefccc","o":"415302"},{"n":6,"v":"cabbbbccbbbbcccbbbccdddecccceecccfee","o":"140253"},{"n":6,"v":"caaabbccccbcdcccccddccccdddeccdddccf","o":"142035"},{"n":6,"v":"ccaaccbcccccbfccccffdcceffdccefffeee","o":"304251"},{"n":6,"v":"bbbbaabbbbbbccddbdceddddceddddceddfd","o":"520314"},{"n":6,"v":"aaacccaaccdbaaccdbaaccddaeeeddeeefff","o":"052413"},{"n":6,"v":"aabbbbcaabbbcabbdbaaeddbaaeaddaaaadf","o":"130425"},{"n":6,"v":"ccaaaacccbaacccbdacfcddaefffdafffaaa","o":"531402"},{"n":6,"v":"aaeeeeaaabbeccaaeeccdeeeffffeefffffe","o":"140253"},{"n":6,"v":"aaabbbddabbcddddbcddddddddeffddddffd","o":"135024"},{"n":6,"v":"caaaaacbbfaacffffacfffdaeeffdaeeffff","o":"520413"},{"n":6,"v":"baaaaabcaaaacccccccddcceffdcceffdcce","o":"304251"},{"n":6,"v":"bbaaacbbcaacbbccccbbccdfbeefffbeeeff","o":"302415"},{"n":6,"v":"bbbddabbbdddcebdddeeddffeeefffeeefff","o":"520314"},{"n":6,"v":"ccaaaacccabbcccebbecceddeeeeeeeefeee","o":"351402"},{"n":6,"v":"daabbbddabbbdddcbbfdddeefffeeeffffff","o":"253140"},{"n":6,"v":"ffabbbfdaabbfddcbbfddddbfffeebfffffb","o":"253140"},{"n":6,"v":"bfaaaabfaeeaffaeecffdeecffeeeeffffff","o":"305241"},{"n":6,"v":"feeaaafcebddfcedddffedddffedddfffddd","o":"531420"},{"n":7,"v":"abbbbbbbbbbbbbbbbbccbddcccccdcccfecdgcffegggggggg","o":"0241536"},{"n":7,"v":"cccbbbaccccbbbcccccbbcccddbfceeeddfeeeedffggggfff","o":"6403152"},{"n":7,"v":"bbbbbaabbbbbaaddbbbcaddbbbbaddeeefadgeefffggeeeff","o":"6350241"},{"n":7,"v":"aaaaaaabaaaaaaeeccaaaeeecafdeeecafdeeggfffeeegggf","o":"4026153"},{"n":7,"v":"aaaccccabbbbccaacccccaddccccdddceecfccceecfffeegc","o":"1362405"},{"n":7,"v":"aabbbbbccbbbbbccccbbbeeccfdbgeccfffgefffffgggffff","o":"0635142"},{"n":7,"v":"bbbbaacbdbccccbddccccdddddccedddfccggdgfccggggfcc","o":"5263041"},{"n":7,"v":"acccbeecccbbbecceeeeecceeeedeeegeedeeeggfdggggggd","o":"0416253"},{"n":7,"v":"bbaccccbbbccccdddccccddddeecfdfdeecfffdgeefffggee","o":"2063514"},{"n":7,"v":"aaaaaccaaabbccdaddccedddddcedddddeedfdddeeffgggee","o":"0352614"},{"n":7,"v":"aaabbbbcccbbbbccbbbdbfcebddbfceeeddfeegggdfegggdd","o":"2615304"},{"n":7,"v":"caaaaabcaaabbbcccadbbeddaddbeddddbbdddddbfddgdfff","o":"3514062"},{"n":7,"v":"caaaaaacaaaadbceeddddceeddddeeeddddeefffddeefffgg","o":"2604135"},{"n":7,"v":"acbbdddaccbbbdaccbdddaedddddeefggddefffgddffffggd","o":"0426135"},{"n":7,"v":"ddaaacbdaacccbdaacbbbddccceeddcceeefffceeegfffeee","o":"4631520"},{"n":7,"v":"bbaaaaabbgaacabbgaacfdggaaffdgeefffdggffffdggffff","o":"4150362"},{"n":7,"v":"aaabbddaaabbddcaaeeddgggedddgeeefgdgeggfggggggggg","o":"1305246"},{"n":7,"v":"afbdddcffbddccffbddcefffdeeefffeeeefffggggggggggg","o":"0253614"},{"n":7,"v":"aaaaaaagbggadcgggdddcffgddegffggeegffgggggggggggg","o":"4163502"},{"n":7,"v":"aaaaaaaaaabbcaaaabccadddcccaeedfccceggfffcgggffff","o":"6352041"},{"n":7,"v":"aaaaaabcacabbbcacccbbccccddbegccddbgggccfbggcccff","o":"3624051"},{"n":7,"v":"ccaaabbccaeeebcceeeeedddeeeefffeeeefffeeggffeeegg","o":"3602415"},{"n":7,"v":"aaaaabeaaccbbeddcfeeedddfffedddfeeeddffeeedddffeg","o":"1420536"},{"n":7,"v":"bbbbaacbbbbbacbbbbbccbddddddddeeeefdgggeefdgggfff","o":"4051362"},{"n":8,"v":"bbbbbbbabbbbbbbbbbbbcfddbbbeefddbeeeefddbeeeefddhhgeeffdhheeeffd","o":"71463520"},{"n":8,"v":"bbbbbaaabdbbbbaabdbaaaacddbaccccdddcccechfgggceehhhgggeehhhhhgge","o":"53706142"},{"n":8,"v":"eabbbbbbeebbbbbbeeeebdcceeeebddheeeeehhhheefhhghhhhhhhghhhhhhhhh","o":"14750362"},{"n":8,"v":"eaaaaaaaeebaaaaaeeedadaceeedddcceeedddcceegfccccgegfccccgggfchcc","o":"62741305"},{"n":8,"v":"dbbbbaaadddbbcccddddbbccddddbccceddddcccggddhccfggddhccfddddhhcc","o":"53620714"},{"n":8,"v":"aaaaadddbaaacdddeeeacdddeeeaaaddheeaaaddheeeefgdheeeffgghheeffff","o":"30462571"},{"n":8,"v":"aaaaaaabaaaaaabbcagaaabbccggadbbcgggffeecgggfffegggghhhhhhhhhhhh","o":"26057413"},{"n":8,"v":"aaaaaaffbaaaccffeaaacddfeeaaaddfeeaaaaffeeeaaaffeeehhgffeeehhfff","o":"20461753"},{"n":8,"v":"ddbbaaccdbbaaaccddbbccccddebccccddeeccccddeeefccddghhhhcdgghhhhc","o":"41703526"},{"n":8,"v":"aaabbbbbaabbbcccabbbdcccddbddccceddddcffddddcccfhhhdcgcchhcccccc","o":"24630751"},{"n":8,"v":"cbbbbaabccbbbbbbcccdbbbbfccdddeefccdeeeefffffeeeffffggeefffhheee","o":"62047153"},{"n":8,"v":"aabbccccabbbccccbbbccccceeeeecddeeeeeeddhgeeeefdhggeeeddhheeeedd","o":"13574620"},{"n":8,"v":"aaaacbbbaaaacbbbfdcccbbbfddcccbbfcccccebfccgcgebhccggggbhhgggggg","o":"37426051"},{"n":8,"v":"aaabbbbcabbbbbccfbbbbbcdfffbdbddeffdddddfffggdggffffggggfffffggh","o":"13640257"},{"n":8,"v":"cccccaaacbbccaaaccdgccffccdgccffeeggffffgeggggffgggggghhgggggggh","o":"51420637"},{"n":8,"v":"ccccaaadbcgcedddbcgcedddgggeededggeeeeedgeeegefdgggeggffggggghhf","o":"40372615"},{"n":8,"v":"eebaaaaaebbdaacceeddaaaceedffccceeefgccceeefggggeeeffgggefffhggg","o":"51720364"},{"n":8,"v":"bbbbbaaabbccbbbgbbcccccgdfceeeegffcceeggffffeeggffefegggeeeeehgg","o":"61304275"},{"n":8,"v":"ccccbbbaccccdbbbgcceddddgeeeddddgeeffdddgggffdddggggfffdgggghhdd","o":"75261304"},{"n":8,"v":"cccaaaaacccadbbaffcdddddfffdddddffhhddgefhhhhdgeffhhhdgghhhhhhhg","o":"35247061"},{"n":8,"v":"aaaaaaaaaddbffccdddffffcgdgfeeeegggffeefgggfffffgggggghhgggghhhh","o":"03716425"},{"n":8,"v":"bbbbaaaabbbbcccabbbbcccaeeedddcceeeggccceffggcccffffggcchhfggggc","o":"73640251"},{"n":8,"v":"bbaaaaaabbbaaaacbbbaaaccbdbaacccddbbfcecddfffeecdhffgggchhfffggc","o":"42716350"},{"n":8,"v":"ccaaabbbcffaddbdcffeedddhfeeggddhffegggghffggggghfhggggghhhggggg","o":"46073152"},{"n":9,"v":"aaaaaaaaaaaaaaabaaaaccaabbaaafbbbbdafffffedddfffffhhhdffgffhhhhfiiffhhhhiifffhhhh","o":"463750281"},{"n":9,"v":"bbbaaacccbbbbbacccbbbbbbcccdbbbbbcccbbbbbccceigggfceeeigggeeeeeiiggeeeheiiggeeeee","o":"536084271"},{"n":9,"v":"aaaaaaaaaaaaabbbbbaaacbbbbbeeecbbddbeeeccccibeeffcccibeeffcggiieeeehhiiieeeeeeeii","o":"153702648"},{"n":9,"v":"bbbbbbccabbbbcccccbbbccccccefdcgccccefffgccgcefffgggggeefigggghiffiggghhiiiiiiiii","o":"816203574"},{"n":9,"v":"aaaaaabbbaaaaabbbbaeccbbbbbaeeceebedaeeeeeeeeeeeegefheeeeggihhhegggiihhhggggiiiii","o":"052816374"},{"n":9,"v":"bbbbbbccabbbbbbcccbebbbdcdceeedddcddeffddddddeeffddggdegggggggigghgggggihhhhhgiii","o":"816403527"},{"n":9,"v":"aaaaabbbbaaaaddbbbacaadbbdbfccaddddbfeeeddddbfeegddgbbiieggdggbiiiigggghiiigggggg","o":"471530682"},{"n":9,"v":"aabbbbbccbabbbbcccbbbbbbcccbbbddgcccfffgggeecfffggggecfffhgggccfffhgccccfifhgggcc","o":"058472631"},{"n":9,"v":"aacccccbbacccfbbbdacccffdddccccfddddeeecffdddeefffddddgffffffddgfffffhhdgfiiiiihh","o":"163824075"},{"n":9,"v":"ddaabbbbbdddabbcccdddaaccffdddcccfffdddecccfiddddiiffidgdhiiiiidgghhhiiiddghiiiii","o":"246037158"},{"n":9,"v":"bbbbbaaaagbbbbbbaaggcbbaaadgaaaaaaddgaaeaaaddgagfffahhggggfhhhhgiiiiiiihgiiiiiihh","o":"642735081"},{"n":9,"v":"fffffabbbfcccfebbbfcccceedbffccceedbffffeedddfffffeeddggfffeehdiifeeehhdiieeeeedd","o":"583742061"},{"n":9,"v":"caaeeebbdcaaeebbbdcceeeedddceeeeddddheeedddddhhheidffdhhhiiggffhiiiiiiiihiiiiiiii","o":"261837504"},{"n":9,"v":"aaaaaaaaabaaaaaccadaddaaccedddffffcedggfffffegggffffffhgggfffffhhhgfffiihffffffii","o":"406285317"},{"n":9,"v":"dddaaccccddddacccbddddacfccddfdffffiefffffgiiffffffgiifhhfffgiifhffgggiihhhhhiiii","o":"485302617"},{"n":9,"v":"bbbccceadbbbccceedbbccceeediieeeedddiiieeegfdiiieeggffiiigggggfiiigihhffiiiiiiiii","o":"702648351"},{"n":9,"v":"bbbdaafffbbdddffccbbdefffcfhddeeffffhheefffffheefffgfghhefggggghhhfffiighhiiiiigg","o":"407135826"},{"n":9,"v":"aaaddbbbbaadddccbbaaddhceeeidddheeeeiighhfffeigghhffffighhhfhhfihhhhhhhfihhhhhhhf","o":"275386140"},{"n":10,"v":"babbbbbbbbbbbbdddddbcdddddddddccddddddddcccdddedddhhcdfeeeedhhddggggddhhhdiiigggjjjdjiggggjjjjjggggg","o":"1908647253"},{"n":10,"v":"bbbbbbbaabcccbbbbbbbcccbbbbbbbcccbdbdbbbccccdddeeefccccddieefiiigiiiheiiiiiiiihiiiiiiiiiiiiiijjiiiii","o":"7526904813"},{"n":10,"v":"ddddbbaaaadddddbbbaaccdddbbaaagddddaaaaaggdgddaeffggdgddafffgggggdaaafiiijhjjaffijjjjjjaaajjjjjjaaaa","o":"8613792405"},{"n":10,"v":"cccccaaabbcccccabbbbccccccdddbcccceeddddceeeeeeeddhffeeeedddhheeegeeedhheeggeeedhhhhggeeeijhhhgeeiii","o":"6837425190"},{"n":10,"v":"bbbbbaaaaabbbbbbeaaabbbbbbeaacbbbgbeedccbbfgeeddecbffggeeeeeffgggeeeeifffgeehieifffjeihiiifjjjjiiiii","o":"5097413682"},{"n":10,"v":"bbbbbbbaacbbbbbbbbacibbbibdaaciiiiibddaaifgiidddeaffgiiiidaajigiiiaaaajiiiihhhaajiiihhhhhajjiiihhhha","o":"7496802531"},{"n":10,"v":"bbbbbbcccabbbbbcccccebbbfcccffeeedfffcffeeefffffffeeefffiiifhgggffffiihhhffjjjjihjjjjjjjiijjjjjjjjji","o":"9473152086"},{"n":10,"v":"bbccccccaabbbccdeccadbbcddeccadddddeeecafddddeeecaffddeegaaaffdfgggaaafffffgggghjjiiggggghjiiggggggg","o":"8274615930"},{"n":10,"v":"ccccccaaabcccaaaabbbcccceaaaabeeceeddddbecceeehhhheeeeeehfffhhhhhhhgffhihiijjjjfhiiiiijjjfhiijjjjjjf","o":"6815397024"},{"n":10,"v":"cbbbbaddddcbbbbbddeeccbdbbddeecbbdddddeeffffddgeegffffdfggggffffffhghgiiiifihhhgiiiiiihgggjiiiiihhgg","o":"5316829740"},{"n":10,"v":"aaabbbccccajjebbbcccajjebebdccajjeeebddfajjjefffdfajjjefffffgjjjjfffffjjjjiiffhfjjiiiiiiiijjjjiiiiii","o":"2597460831"},{"n":10,"v":"ddbbbbbbaadddddbfaaaddbbbbffcadgggbeefaadgggeeefafjgggefffffjgggihhhhhjgigihihhhjjiiiiihhhjjjjjhhhhh","o":"9580462731"}];
+
+(function () {
+  const $ = id => document.getElementById(id);
+  const KEY = 'rommelkroon-v1', N = PUZZELS.length;
+  let opslag = { opgelost: {}, bezig: {}, auto: false };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  const KLEUREN = ['#F4A6A6', '#F7C98B', '#F6E58D', '#B8E0A0', '#9ED8D8', '#A9C4F5', '#C9B3F2', '#F2B5D9', '#D9C2A6', '#BFC7D1', '#E8E2A8'];
+  const KROON = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 30l-2-18 9 7 7-13 7 13 9-7-2 18z" fill="#E9B949" stroke="#231A26" stroke-width="2.6" stroke-linejoin="round"/><rect x="6" y="30" width="28" height="5" rx="1.5" fill="#C99A2E" stroke="#231A26" stroke-width="2.4"/><circle cx="20" cy="22" r="2.6" fill="#C8323C"/></svg>';
+  const KRUIS = '<svg class="x" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="#231A26" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg>';
+  const GROEPEN = [[5, 'Opwarmen'], [6, 'Makkelijk'], [7, 'Gemiddeld'], [8, 'Pittig'], [9, 'Lastig'], [10, 'Meester']];
+  const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const dagNr = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+  const dagPuzzel = () => { const kandidaten = PUZZELS.map((p, i) => i).filter(i => PUZZELS[i].n >= 7 && PUZZELS[i].n <= 9); return kandidaten[(dagNr() * 37) % kandidaten.length]; };
+  // ---------------- overzicht
+  const aantalKlaar = () => Object.keys(opslag.opgelost).length;
+  const open = i => i < aantalKlaar() + 3 || !!opslag.opgelost[i] || !!opslag.bezig[i];
+  function tekenOverzicht() {
+    $('stand').textContent = `${aantalKlaar()} van ${N} opgelost.` + (aantalKlaar() < N ? ' Los er een op om er weer een vrij te spelen.' : ' Je bent een echte Rommelkroon-meester!');
+    let h = '', i0 = 0;
+    for (const [n, naam] of GROEPEN) {
+      const idx = PUZZELS.map((p, i) => i).filter(i => PUZZELS[i].n === n);
+      if (!idx.length) continue;
+      const klaar = idx.filter(i => opslag.opgelost[i]).length;
+      h += `<div class="groep"><h3>${naam} · ${n}×${n}<small>${klaar} van ${idx.length}</small></h3><div class="levels">${idx.map(i => { const o = opslag.opgelost[i]; return `<button class="lvl ${o ? 'klaar' : opslag.bezig[i] ? 'bezig' : ''}" type="button" data-lvl="${i}" ${open(i) ? '' : 'disabled'} aria-label="Puzzel ${i + 1}${o ? ', opgelost in ' + fmt(o.tijd) : ''}">${i + 1}<small>${o ? fmt(o.tijd) : open(i) ? '' : 'dicht'}</small></button>`; }).join('')}</div></div>`;
+      i0 += idx.length;
+    }
+    $('groepen').innerHTML = h;
+    const d = dagPuzzel(), dk = opslag.opgelost[d];
+    $('dag-tekst').textContent = `Vandaag: puzzel ${d + 1} (${PUZZELS[d].n}×${PUZZELS[d].n}).` + (dk ? ` Opgelost in ${fmt(dk.tijd)}!` : '');
+  }
+  document.addEventListener('click', e => { const b = e.target.closest('[data-lvl]'); if (b && !b.disabled) start(+b.dataset.lvl); });
+  $('b-dag').addEventListener('click', () => start(dagPuzzel()));
+  // ---------------- het spel
+  let P = null, nr = 0, n = 0, reg = [], cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set();
+  function start(i) {
+    nr = i; P = PUZZELS[i]; n = P.n; reg = [...P.v].map(c => 'abcdefghijk'.indexOf(c));
+    const b = opslag.bezig[i];
+    cel = b ? b.cel.slice() : Array(n * n).fill(0); tijd = b ? b.tijd : 0; hints = b ? b.hints || 0 : 0; autoX = new Set(b && b.auto ? b.auto : []);
+    gesch = []; klaar = !!opslag.opgelost[i] && !b;
+    if (klaar) { cel = Array(n * n).fill(0); tijd = 0; klaar = false; }
+    $('overzicht').hidden = true; $('spel').hidden = false;
+    $('spel-titel').textContent = `Puzzel ${i + 1} · ${n}×${n}`;
+    bouwBord(); teken(); startKlok(); window.scrollTo(0, 0);
+  }
+  function bouwBord() {
+    const B = $('bord'); B.style.setProperty('--n', n); B.innerHTML = '';
+    for (let i = 0; i < n * n; i++) {
+      const r = Math.floor(i / n), c = i % n, g = reg[i], d = document.createElement('button');
+      d.type = 'button'; d.className = 'cel' + (r === 0 || reg[i - n] !== g ? ' t' : '') + (c === 0 || reg[i - 1] !== g ? ' l' : '') + (c === n - 1 || reg[i + 1] !== g ? ' r' : '') + (r === n - 1 || reg[i + n] !== g ? ' b' : '');
+      d.style.background = KLEUREN[g]; d.dataset.i = i; d.setAttribute('role', 'gridcell');
+      B.appendChild(d);
+    }
+  }
+  function conflicten() {
+    const fout = new Set(), kronen = [];
+    for (let i = 0; i < n * n; i++) if (cel[i] === 2) kronen.push(i);
+    for (let a = 0; a < kronen.length; a++) for (let b = a + 1; b < kronen.length; b++) {
+      const i = kronen[a], j = kronen[b], ri = Math.floor(i / n), ci = i % n, rj = Math.floor(j / n), cj = j % n;
+      if (ri === rj || ci === cj || reg[i] === reg[j] || (Math.abs(ri - rj) <= 1 && Math.abs(ci - cj) <= 1)) {
+        fout.add(i); fout.add(j);
+        if (ri === rj) for (let c = 0; c < n; c++) fout.add(ri * n + c);
+        if (ci === cj) for (let r = 0; r < n; r++) fout.add(r * n + ci);
+        if (reg[i] === reg[j]) for (let k = 0; k < n * n; k++) if (reg[k] === reg[i]) fout.add(k);
+      }
+    }
+    return { fout, kronen };
+  }
+  function teken(pop) {
+    const { fout } = conflicten(), B = $('bord').children;
+    for (let i = 0; i < n * n; i++) {
+      const d = B[i], r = Math.floor(i / n) + 1, c = (i % n) + 1;
+      d.innerHTML = cel[i] === 2 ? KROON : cel[i] === 1 ? KRUIS : '';
+      d.classList.toggle('fout', fout.has(i)); d.classList.toggle('pop', pop === i);
+      d.setAttribute('aria-label', `Rij ${r}, kolom ${c}, ${cel[i] === 2 ? 'kroon' : cel[i] === 1 ? 'kruisje' : 'leeg'}`);
+    }
+    $('b-ongedaan').disabled = !gesch.length;
+    $('b-auto').setAttribute('aria-pressed', String(!!opslag.auto));
+  }
+  function bewaarBezig() { if (klaar) return; opslag.bezig[nr] = { cel, tijd: Math.floor(tijd), hints, auto: [...autoX] }; bewaar(); }
+  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden) tijd += (nu - vorige) / 1000; vorige = nu; $('tijd').textContent = fmt(tijd); }, 250); }
+  function zet(i, w, opnemen = true) {
+    if (klaar || cel[i] === w) return;
+    if (opnemen) gesch.push({ cel: cel.slice(), auto: [...autoX] });
+    const was = cel[i]; cel[i] = w; autoX.delete(i);
+    if (opslag.auto) {
+      if (w === 2) { const r = Math.floor(i / n), c = i % n; for (let j = 0; j < n * n; j++) { const rr = Math.floor(j / n), cc = j % n; if (j !== i && cel[j] === 0 && (rr === r || cc === c || reg[j] === reg[i] || (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1))) { cel[j] = 1; autoX.add(j); } } }
+      if (was === 2) { for (const j of [...autoX]) { cel[j] = 0; autoX.delete(j); } for (let k = 0; k < n * n; k++) if (cel[k] === 2) { const r = Math.floor(k / n), c = k % n; for (let j = 0; j < n * n; j++) { const rr = Math.floor(j / n), cc = j % n; if (j !== k && cel[j] === 0 && (rr === r || cc === c || reg[j] === reg[k] || (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1))) { cel[j] = 1; autoX.add(j); } } } }
+    }
+    teken(w === 2 ? i : undefined); controleer(); bewaarBezig();
+  }
+  function controleer() {
+    const { fout, kronen } = conflicten();
+    if (kronen.length !== n || fout.size) return;
+    klaar = true; clearInterval(klok);
+    const t = Math.max(1, Math.round(tijd)), oud = opslag.opgelost[nr];
+    if (!oud || t < oud.tijd) opslag.opgelost[nr] = { tijd: t, hints };
+    delete opslag.bezig[nr]; bewaar(); stuurScore();
+    geluid();
+    const B = $('bord').children; kronen.forEach((i, k) => setTimeout(() => { B[i].classList.remove('pop'); void B[i].offsetWidth; B[i].classList.add('pop'); }, k * 90));
+    setTimeout(() => {
+      const volgende = nr + 1 < N ? nr + 1 : null, record = !oud || t < oud.tijd;
+      dialoog(`<div class="klaar-kaart"><h2>Opgelost!</h2><p class="groot">${fmt(t)}</p><p>${record && oud ? 'Een nieuw record voor deze puzzel!' : oud ? 'Je record is ' + fmt(oud.tijd) + '.' : 'Puzzel ' + (nr + 1) + ' staat op je naam.'}${hints ? ' Met ' + hints + ' hint' + (hints > 1 ? 's' : '') + '.' : ''}</p><div class="balk">${volgende !== null ? '<button class="knop hoofd" data-k="volgende" type="button">Volgende puzzel</button>' : ''}<button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`);
+    }, n * 90 + 400);
+  }
+  function geluid() { try { const ac = new (window.AudioContext || window.webkitAudioContext)(); [523, 659, 784, 1047].forEach((f, k) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, ac.currentTime + k * 0.09); g.gain.exponentialRampToValueAtTime(0.15, ac.currentTime + k * 0.09 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + k * 0.09 + 0.35); o.connect(g); g.connect(ac.destination); o.start(ac.currentTime + k * 0.09); o.stop(ac.currentTime + k * 0.09 + 0.4); }); } catch (e) {} }
+  // tikken en slepen
+  let sleep = null;
+  $('bord').addEventListener('pointerdown', e => { const d = e.target.closest('.cel'); if (!d || klaar) return; e.preventDefault(); const i = +d.dataset.i; sleep = { start: i, bewogen: false, gezet: new Set() }; $('bord').setPointerCapture && $('bord').setPointerCapture(e.pointerId); });
+  $('bord').addEventListener('pointermove', e => {
+    if (!sleep) return; const el = document.elementFromPoint(e.clientX, e.clientY), d = el && el.closest('.cel'); if (!d) return; const i = +d.dataset.i;
+    if (i !== sleep.start || sleep.bewogen) {
+      if (!sleep.bewogen) { sleep.bewogen = true; gesch.push({ cel: cel.slice(), auto: [...autoX] }); if (cel[sleep.start] === 0) { cel[sleep.start] = 1; sleep.gezet.add(sleep.start); } }
+      if (cel[i] === 0 && !sleep.gezet.has(i)) { cel[i] = 1; sleep.gezet.add(i); teken(); }
+    }
+  });
+  const loslaten = () => { if (!sleep) return; const s = sleep; sleep = null; if (s.bewogen) { teken(); bewaarBezig(); return; } const i = s.start; zet(i, (cel[i] + 1) % 3); };
+  $('bord').addEventListener('pointerup', loslaten); $('bord').addEventListener('pointercancel', () => { sleep = null; teken(); });
+  // toetsenbord: enter of spatie op een vakje
+  $('bord').addEventListener('keydown', e => { const d = e.target.closest('.cel'); if (!d) return; const i = +d.dataset.i; const naar = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: n, ArrowUp: -n }[e.key]; if (naar) { e.preventDefault(); const j = i + naar; if (j >= 0 && j < n * n) $('bord').children[j].focus(); } if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zet(i, (cel[i] + 1) % 3); } });
+  $('b-ongedaan').addEventListener('click', () => { const v = gesch.pop(); if (!v || klaar) return; cel = v.cel; autoX = new Set(v.auto); teken(); bewaarBezig(); });
+  $('b-opnieuw').addEventListener('click', () => { if (klaar) return; gesch.push({ cel: cel.slice(), auto: [...autoX] }); cel = Array(n * n).fill(0); autoX = new Set(); teken(); bewaarBezig(); });
+  $('b-auto').addEventListener('click', () => { opslag.auto = !opslag.auto; bewaar(); teken(); });
+  $('b-hint').addEventListener('click', () => {
+    if (klaar) return; const opl = [...P.o].map(ch => parseInt(ch, 16));
+    // eerst foute kronen weghalen, anders één goede kroon zetten
+    const fouteKroon = [...Array(n * n).keys()].find(i => cel[i] === 2 && opl[Math.floor(i / n)] !== i % n);
+    hints++; tijd += 15;
+    if (fouteKroon !== undefined) { zet(fouteKroon, 0); const d = $('bord').children[fouteKroon]; d.classList.add('fout'); setTimeout(() => teken(), 700); return; }
+    const leeg = [...Array(n).keys()].filter(r => cel[r * n + opl[r]] !== 2);
+    if (!leeg.length) return;
+    const r = leeg[Math.floor(Math.random() * leeg.length)], i = r * n + opl[r]; zet(i, 2); $('bord').children[i].classList.add('hint');
+  });
+  $('b-terug').addEventListener('click', () => { bewaarBezig(); clearInterval(klok); $('spel').hidden = true; $('overzicht').hidden = false; tekenOverzicht(); });
+  // ---------------- venster
+  function dialoog(html) { $('dlg-in').innerHTML = html; if (!$('dlg').open) $('dlg').showModal(); }
+  $('dlg').addEventListener('click', e => { const k = e.target.closest('[data-k]'); if (e.target === $('dlg')) $('dlg').close(); if (!k) return; $('dlg').close(); if (k.dataset.k === 'volgende') start(nr + 1); if (k.dataset.k === 'overzicht') { $('spel').hidden = true; $('overzicht').hidden = false; tekenOverzicht(); } });
+  $('b-regels').addEventListener('click', () => dialoog(`<h2>Spelregels</h2><p>Zet in elke <b>rij</b>, elke <b>kolom</b> en elk <b>gekleurd vlak</b> precies één kroon.</p><p>Kronen mogen elkaar <b>niet raken</b>, ook niet schuin.</p><p>Tik één keer voor een kruisje (hier kan geen kroon), nog eens voor een kroon, en nog eens om het vakje leeg te maken. Sleep over het bord om snel kruisjes te zetten. Met <b>Automatische kruisjes</b> zet het spel zelf kruisjes op plekken die niet meer kunnen.</p><p>Elke puzzel heeft precies één oplossing, dus je hoeft nooit te gokken. Een hint kost 15 seconden.</p><div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Begrepen</button></div>`));
+  // ---------------- scorebord
+  function stuurScore() { if (window.Scorebord) Scorebord.stuur('kroon', aantalKlaar(), Object.values(opslag.opgelost).reduce((a, o) => a + o.tijd, 0)); }
+  tekenOverzicht();
+  if (!localStorage.getItem(KEY)) setTimeout(() => $('b-regels').click(), 400);
+  if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-kroon'), 'opgeloste puzzels'); }
+  window.__kroon = { start, zet, get cel() { return cel; }, PUZZELS, opslag };
+})();
+</script>
+<script>
+(function () {
+  // GRAPJES: verborgen grapjes op het rommelhoekje. Geen teller, geen hints: wie ze vindt, vindt ze.
+  if (window.Grapjes) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const opHome = !!document.querySelector('.haak-rij');
+
+  const stijl = document.createElement('style');
+  stijl.textContent = `
+    .gr-vallen { position: fixed; top: -40px; z-index: 9998; pointer-events: none; }
+    .gr-groot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9998; pointer-events: none; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(3rem, 14vw, 9rem); color: #F6CB2F; text-shadow: 0 6px 0 #C8323C, 0 12px 0 #2E8B62; }
+    dialog.gr-boek { border: 0; border-radius: 12px; padding: 1.2rem 1.3rem; background: #F2DDA0; color: #1F2333; max-width: min(28rem, 94vw); font-family: "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+    dialog.gr-boek::backdrop { background: rgba(10,14,30,.7); }
+    .gr-boek h2 { margin: 0 0 .4rem; } .gr-boek ul { list-style: none; padding: 0; margin: .6rem 0; }
+    .gr-boek li { display: flex; gap: .6rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid #D9BE78; }
+    .gr-boek li small { display: block; color: #5E5643; }
+    .gr-boek button { font: inherit; font-weight: 700; border: 0; border-radius: 6px; padding: .5rem 1rem; background: #C8323C; color: #fff; cursor: pointer; }
+    .gr-gat { position: absolute; width: 34px; height: 20px; border-radius: 17px 17px 0 0; background: #0E1630; box-shadow: inset 0 4px 0 #070B18; z-index: 2; cursor: pointer; }
+    .gr-muis { position: absolute; left: 6px; bottom: 0; width: 22px; height: 14px; transform: translateY(14px); transition: transform .35s ease; }
+    .gr-gat.uit .gr-muis { transform: translateY(2px); }
+    .gr-gat { overflow: hidden; }
+    .gr-uil { position: absolute; z-index: 3; width: 56px; cursor: pointer; }
+    .gr-ballon { position: absolute; z-index: 4; background: #FBF6E9; color: #1F2333; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: .9rem; padding: .3rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; pointer-events: none; }
+    .gr-vlaggen { position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 50; pointer-events: none; }
+    @keyframes gr-schud { 10%, 50%, 90% { transform: translate(-6px, 2px); } 30%, 70% { transform: translate(6px, -2px); } }
+  `;
+  document.head.appendChild(stijl);
+
+  // ---------- geluidje
+  let ac = null;
+  function toon(f, t0, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0); o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(v || 0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {} }
+  
+  const boek = document.createElement('dialog'); boek.className = 'gr-boek';
+  document.body.appendChild(boek);
+  const vind = () => {};
+
+  // ---------- vlaaienregen
+  const VLAAI = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C98A43" stroke="#7A4E2D" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="#A8162B"/><path d="M8 20h24M20 8v24M11 11l18 18M29 11L11 29" stroke="#E0B07A" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#E0B07A"/></svg>';
+  function regen(html, n) {
+    for (let i = 0; i < (reduce ? 6 : n); i++) {
+      const v = document.createElement('div'); v.className = 'gr-vallen'; v.innerHTML = html;
+      v.style.left = (Math.random() * 96) + 'vw'; document.body.appendChild(v);
+      const duur = 2200 + Math.random() * 1600, draai = (Math.random() - 0.5) * 720;
+      if (v.animate) v.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(${innerHeight + 80}px) rotate(${draai}deg)` }], { duration: duur, delay: Math.random() * 900, easing: 'ease-in', fill: 'both' }).onfinish = () => v.remove();
+      else setTimeout(() => v.remove(), 3000);
+    }
+  }
+  function confetti() {
+    const kl = ['#C8323C', '#F6CB2F', '#2E8B62'];
+    for (let i = 0; i < (reduce ? 10 : 90); i++) regen(`<span style="display:block;width:9px;height:14px;background:${kl[i % 3]};border-radius:2px"></span>`, 1);
+  }
+  function grootWoord(t) { const g = document.createElement('div'); g.className = 'gr-groot'; g.textContent = t; document.body.appendChild(g); if (g.animate) g.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .35 }, { transform: 'scale(1)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2000 }).onfinish = () => g.remove(); else setTimeout(() => g.remove(), 1800); }
+
+  // ---------- typen
+  let getypt = '';
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key.length !== 1) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-14);
+    if (getypt.endsWith('vlaai')) { regen(VLAAI, 34); [523, 659, 784].forEach((f, i) => toon(f, i * 0.12, 0.25)); vind('vlaai'); getypt = ''; }
+    else if (getypt.endsWith('alaaf')) { confetti(); grootWoord('Alaaf!'); [392, 523, 659, 784, 659, 784].forEach((f, i) => toon(f, i * 0.13, 0.22, 'square', 0.03)); vind('alaaf'); getypt = ''; }
+    else if (getypt.endsWith('ejkeohlemmor')) {
+      getypt = ''; vind('spiegel');
+      document.documentElement.style.transition = 'transform .6s ease'; document.documentElement.style.transform = 'scaleX(-1)';
+      setTimeout(() => { document.documentElement.style.transform = ''; setTimeout(() => { document.documentElement.style.transition = ''; }, 700); }, 3500);
+    }
+  });
+
+  // ---------- klik-reeksen
+  const tellers = {};
+  function tel(id, nodig, venster) { const nu = Date.now(), t = (tellers[id] || []).filter(x => nu - x < venster); t.push(nu); tellers[id] = t; if (t.length >= nodig) { tellers[id] = []; return true; } return false; }
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('.sticker');
+    if (st && tel('sticker', 10, 8000)) {
+      vind('sticker');
+      if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
+      const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
+    }
+    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    if (ham && tel('hamer', 6, 3500)) {
+      vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
+      if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
+      grootWoord('Au!');
+    }
+    const ver = e.target.closest && e.target.closest('.versie');
+    if (ver && tel('versie', 5, 3000)) {
+      vind('bouwplaats');
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
+    }
+  });
+
+  // ---------- alleen op de homepage: het muisje, de nachtuil en de elfde van de elfde
+  function homepage() {
+    if (!opHome) return;
+    const main = document.querySelector('main') || document.body;
+    // muizengat onder aan de pagina
+    const gat = document.createElement('div'); gat.className = 'gr-gat'; gat.setAttribute('aria-label', 'Een muizengaatje'); gat.setAttribute('role', 'button'); gat.tabIndex = 0;
+    gat.innerHTML = '<svg class="gr-muis" viewBox="0 0 22 14" aria-hidden="true"><ellipse cx="11" cy="10" rx="9" ry="6" fill="#9AA0A6"/><circle cx="5" cy="5" r="3" fill="#C9CED6"/><circle cx="17" cy="5" r="3" fill="#C9CED6"/><circle cx="8" cy="9" r="1.2" fill="#1F2333"/><circle cx="14" cy="9" r="1.2" fill="#1F2333"/><circle cx="11" cy="12" r="1.3" fill="#E8577A"/></svg>';
+    const zetGat = () => { const voet = document.querySelector('footer') || main; const r = voet.getBoundingClientRect(); gat.style.left = Math.max(10, r.right + scrollX - 70) + 'px'; gat.style.top = (r.top + scrollY - 20) + 'px'; };
+    document.body.appendChild(gat); zetGat(); addEventListener('resize', zetGat); setTimeout(zetGat, 1500);
+    let uit = false;
+    const kijk = () => { uit = true; gat.classList.add('uit'); setTimeout(() => { uit = false; gat.classList.remove('uit'); }, 2600); setTimeout(kijk, 9000 + Math.random() * 12000); };
+    setTimeout(kijk, 5000 + Math.random() * 6000);
+    const pak = () => { if (!uit) return; vind('muis'); toon(2200, 0, 0.08, 'sine', 0.05); toon(2600, 0.08, 0.08, 'sine', 0.05); gat.classList.remove('uit'); uit = false; const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Piep!'; b.style.left = (parseFloat(gat.style.left) - 40) + 'px'; b.style.top = (parseFloat(gat.style.top) - 30) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2000); };
+    gat.addEventListener('click', pak); gat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pak(); });
+    // nachtuil tussen middernacht en vijf uur
+    const uur = new Date().getHours();
+    if (uur < 5) {
+      const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
+      uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
+      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
+      document.body.appendChild(uil);
+      const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
+      uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
+    }
+    // de elfde van de elfde: vlaggetjes in rood, geel en groen
+    const d = new Date();
+    if (d.getMonth() === 10 && d.getDate() === 11) {
+      const v = document.createElement('div'); v.className = 'gr-vlaggen';
+      let svg = '<svg width="100%" height="34" preserveAspectRatio="none" viewBox="0 0 1000 34" aria-hidden="true"><path d="M0 4Q500 22 1000 4" stroke="#F2DDA0" stroke-width="2" fill="none"/>';
+      for (let i = 0; i < 40; i++) { const x = i * 25 + 5, y = 4 + Math.sin(Math.PI * x / 1000) * 14; svg += `<path d="M${x} ${y.toFixed(1)}l14 0l-7 16z" fill="${['#C8323C', '#F6CB2F', '#2E8B62'][i % 3]}"/>`; }
+      v.innerHTML = svg + '</svg>'; document.body.appendChild(v);
+      setTimeout(() => { grootWoord('Alaaf!'); vind('elfelf'); }, 1200);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', homepage); else homepage();
+
+  // ---------- voor wie in de console kijkt
+  try { console.log('%cHé, nieuwsgierig aagje!', 'font: 800 20px sans-serif; color: #C8323C'); console.log('%cHier valt niks te zien. Of toch wel?', 'font: 600 13px sans-serif; color: #2F4C8F'); } catch (e) {}
+  window.Grapjes = true;
+})();
+
+</script>
+</body>
+</html>

@@ -218,6 +218,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Sterren: elke 5 sterren in een vlucht geven een extra vouw (maximaal 3). Gevangen sterren gaan in de spaarpot (`spaar`) en zijn te besteden in de sterrenwinkel: uiterlijken voor het vliegtuigje (`SKINS`: wit, krant, kraanvogel, neon, bladgoud, regenboog) en voordelen (`UPG`: start met een extra vouw, sterrenmagneet, dubbele sterren).
 - Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, spaar, skins, skin, upg, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
 
+## Rommelkroon (kroontjespuzzel)
+
+- `rommelkroon.html` (bron `kroon_template.html`, puzzels in `kroon_puzzels.js`, gemaakt met `node kroon_maker.js`). Eigen spel in de stijl van een bekende kroontjespuzzel, met een eigen naam en uiterlijk. Regels: in elke rij, kolom en gekleurd vlak precies één kroon, en kronen raken elkaar niet, ook niet schuin.
+- **120 puzzels**: 20 van 5x5, 22 van 6x6, 24 van 7x7, 24 van 8x8, 18 van 9x9 en 12 van 10x10, per grootte gesorteerd van makkelijk naar lastig. De maker plaatst eerst de kronen, laat daar vlakken omheen groeien, en houdt alleen puzzels met **precies één oplossing** over (elke puzzel wordt aan het eind nog eens nagerekend). Heeft een puzzel een tweede oplossing, dan schuift de maker één vakje naar een buurvlak tot alleen de bedoelde oplossing overblijft. Een puzzel staat als `{ n, v: vlakletters per vakje, o: kolom van de kroon per rij (hex) }`.
+- Spelen: tik voor kruisje, kroon, leeg; slepen zet kruisjes; automatische kruisjes (aan/uit); fouten worden rood gestreept; ongedaan maken, opnieuw, hint (zet een goede kroon of haalt een foute weg, kost 15 seconden). Puzzels gaan steeds drie verder open dan je hebt opgelost. Puzzel van de dag: een 7x7 tot 9x9, vast per datum.
+- Opslag: localStorage `rommelkroon-v1` (opgelost met tijd en hints, bezig per puzzel, automatische kruisjes). Gaat mee met koppelen. Scorebord: spel `kroon` (score = aantal opgeloste puzzels, extra = alle beste tijden bij elkaar). Testhaak: `window.__kroon`.
+
 ## Rommelritme (ritmespel)
 
 - `rommelritme.html` (bronnen: `rr_motor.js` voor natuurkunde en levelbouw, zonder DOM en te testen met `node rr_test.js`; `rr_spel.js` voor muziek, tekenen en schermen; samengevoegd via `ritme_template.html`). Eigen spel in de stijl van een ritme-platformer: geen namen, plaatjes of muziek van Geometry Dash.

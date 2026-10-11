@@ -114,6 +114,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - **Niveaus en beloningspad** (`VOORDELEN` in FUT): elk niveau geeft munten (`padMunt`), elke 3 niveaus een pakje (`padPak`), en op vaste niveaus een titel en een blijvend voordeel: 5 Verzamelaar (5% korting), 8 (dagbonus +25%), 10 Kenner (gratis pakje elke 3 uur), 12 (4 opdrachten per dag), 15 Speurneus (10% korting), 18 (dagbonus +50%), 20 Meesterverzamelaar (gratis pakje elke 2 uur), 25 Rommelkoning (15% korting), 30 Legende (wonderkans 1 op 300). `perk(naam)` geeft de huidige waarde. Klik op het niveau in de kop voor het pad (`toonPad`). XP komt van pakjes, nieuwe en zeldzame kaarten, opdrachten (50), ruilen (40), mijlpalen (60) en de dagbonus (20); na elk pakje staat "+XP" in de samenvatting.
 
+- **Telefoons**: de winkelplanken staan in een grid met `minmax(0, 1fr)` en `min-width: 0`, anders rekt de veegbare rij pakjes de hele pagina op tot zo'n 1000 punten breed (dan toont een telefoon de pagina als verkleinde computerpagina; zo gemeld op een Samsung S26 Ultra). Onder 640 punten breed: de albumfilters lopen over meerdere regels, het lintje bij de aanbieding valt weg, en na het openen staan de kaarten met drie naast elkaar, met ruimte onderaan voor de samenvatting. Controle: op 384 punten breed moet `document.documentElement.scrollWidth` gelijk zijn aan `innerWidth`.
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

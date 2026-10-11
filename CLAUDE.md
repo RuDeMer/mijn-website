@@ -116,6 +116,10 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - **Telefoons**: de winkelplanken staan in een grid met `minmax(0, 1fr)` en `min-width: 0`, anders rekt de veegbare rij pakjes de hele pagina op tot zo'n 1000 punten breed (dan toont een telefoon de pagina als verkleinde computerpagina; zo gemeld op een Samsung S26 Ultra). Onder 640 punten breed: de albumfilters lopen over meerdere regels, het lintje bij de aanbieding valt weg, en na het openen staan de kaarten met drie naast elkaar, met ruimte onderaan voor de samenvatting. Controle: op 384 punten breed moet `document.documentElement.scrollWidth` gelijk zijn aan `innerWidth`.
 
+- **Griezelset** (`GRIEZEL` in beesten_data.js, maakt `griezel_data.py`, ids `gz001` tot `gz040`, nummers x/40): een Halloween-miniset van 40 kaarten (14 gewoon, 10 ongewoon, 7 zeldzaam, 2 holo, 2 ultra, 5 geheim) in elf griezelthema's: heksenbos, ijsridders, spookcircus, maïsveld, gemaskerd bal, spookschip, dodenfeest, het houten paard, poppenhuis, mijnkobolden en het goochelaarshuis. Bewust **eigen** beesten, namen en verhaaltjes: herkenbaar aan de sfeer en aan oude verhalen en folklore (het houten paard, klopgeesten in mijnen, het dodenfeest, de ijskoningin), maar zonder personages, namen, vaste zinnen of verhaalwendingen uit de karakterbijbel van Toverland (dat is een intern document en hun eigendom).
+- Nieuwe vormen: `pompoen` en `schedel`. Nieuwe accessoires: heksenhoed, bezem, ijspegels, vleermuisjes, spinnenweb, stro, piratenhoed, helm, mijnlamp, goudsbloemen. Achtergrond: volle maan, mist, vleermuizen, grafstenen en een kale boom.
+- Zes pakjes (griezelmini, griezel, griezelgoud, griezelregenboog = Maanpakje, griezelelement, griezeldoos), alleen te koop van 1 oktober tot en met 10 november (`griezelTijd()`); dan staat de plank bovenaan met een Halloween-stempel. Buiten die periode verdwijnt de plank, maar de kaarten blijven in het album.
+
 ## Rommelhotel: tekenstijl
 
 - Het hotel wordt pixel voor pixel getekend op een klein canvas (480×300, op telefoons smaller) dat met een heel getal wordt vergroot, zodat alles haarscherp blijft (`zetMaat`).

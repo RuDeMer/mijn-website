@@ -221,6 +221,14 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - **Oefenen**: checkpoints aan het begin van elk deel; na een val begin je daar, inclusief de muziek. Telt niet mee voor je beste score.
 - Opslag: localStorage `rommelritme-v1` (best per level in procenten, pogingen, gehaald, geluid). Scorebord: spel `ritme` (score = de beste procenten van de drie levels bij elkaar, maximaal 300; extra = alle pogingen). Testhaak: `window.__rr`.
 
+## Koppelen: dezelfde voortgang op al je apparaten
+
+- Zit in `scorebord.js` (en dus op elke pagina die het scorebord laadt, ook de homepage via homepage-onderdelen.js). Knop **Koppel je apparaten** op de homepage en het scorebord; `Scorebord.koppel()` opent het venster.
+- Een koppelcode is een paar woorden en een getal (`rode-vlaai-raket-123`). De server bewaart per code (alleen een versleutelde vorm, via `idVan('koppel:' + code)`) per spel de laatste versie in de tabel `sync_data`. Route: `POST /sync` met `code`, `items` (wat dit apparaat nieuw heeft) en `bekend` (welke versie het al heeft); het antwoord bevat wat nieuwer is.
+- Welke opslag meegaat staat in `SLEUTELS` (vlaaienbakker, rommelwoord, rommelpoker, rommelbeesten, rommelhotel, rommelland, rommelblok, vouwvlieger, rommelritme, de scorebordnaam, de verstopte eitjes en het gereedschap op de homepage). Niet mee: werkplaats, ideeënbox, stemmen, en per-apparaat-codes zoals `rommelbeesten-speler`. Een nieuw spel: zet de sleutel in `SLEUTELS`. Maximaal 380 kB per spel (grotere Rommelblok-werelden blijven op het apparaat).
+- Regels: de nieuwste versie wint (per spel). Nieuwe voortgang voor andere spellen wordt meteen neergezet. Voor het spel dat open staat: bij het openen van de pagina herladen we één keer (de voortgang gaat via `sessionStorage` 'koppel-herstel' mee en wordt helemaal bovenaan scorebord.js neergezet, vóór het spel zijn opslag leest); later tijdens het spelen alleen een knop "Haal die voortgang op", zodat twee open apparaten niet om de beurt gaan herladen. Bij het sluiten stuurt de koppeling als laatste (na de opslag van het spel) nog snel mee wat veranderd is.
+- Wie een bestaande code invult: de voortgang van de server wint, en wat alleen op dit apparaat stond, gaat daarna mee.
+
 ## Scorebord en bezoekersteller
 
 - `scorebord.js` zit in elke spelpagina, in `scorebord.html` en (via de werkplaats) op de homepage. Het leest `instellingen.json` uit de map van de site: `scoreUrl` (het adres van de Cloudflare Worker) en `analyticsToken` (Cloudflare Web Analytics, zonder cookies). Beide zijn niet geheim en worden in de werkplaats ingesteld.

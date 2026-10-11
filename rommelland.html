@@ -107,6 +107,9 @@ dialog#rl-dialoog h2 { margin: 0 0 .4rem; } dialog#rl-dialoog li { margin: .25re
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function () {
+  try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) localStorage.setItem(k, v); sessionStorage.removeItem('koppel-herstel'); sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+})();
+(function () {
   // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
   const SKEY = 'rommelhoekje-speler';
   let speler = null;
@@ -145,6 +148,8 @@ dialog#rl-dialoog h2 { margin: 0 0 .4rem; } dialog#rl-dialoog li { margin: .25re
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
   };
   const VKEY = 'rommelhoekje-verstuurd';
@@ -242,6 +247,111 @@ dialog#rl-dialoog h2 { margin: 0 0 .4rem; } dialog#rl-dialoog li { margin: .25re
   const st = document.createElement('style');
   st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
   document.head.appendChild(st);
+
+  // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
+  // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
+  const KKEY = 'rommelhoekje-koppel';
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const MAX = 380000;
+  const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
+  const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
+  const hash = t => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ':' + t.length; };
+  const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+  const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
+  let bezigK = false, eersteK = true;
+  async function koppelSync(stil) {
+    const K = leesK(); if (!K || !K.code || bezigK) return null;
+    const inst = await klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null;
+    bezigK = true;
+    try {
+      K.staat = K.staat || {}; const items = {}, bekend = {};
+      for (const k of SLEUTELS) {
+        let v = null; try { v = localStorage.getItem(k); } catch (e) {}
+        const st = K.staat[k];
+        if (v !== null) { const h = hash(v); if (!st || st.h !== h) { K.staat[k] = { h, t: Date.now() }; if (v.length <= MAX) items[k] = { t: K.staat[k].t, data: v }; } }
+        bekend[k] = K.staat[k] ? K.staat[k].t : 0;
+      }
+      const r = await fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend }) });
+      const j = await r.json(); if (!j.ok) return null;
+      const herstel = {}; let nieuwHier = false;
+      for (const [k, it] of Object.entries(j.items || {})) {
+        if (!SLEUTELS.includes(k) || (K.staat[k] && K.staat[k].t >= it.t)) continue;
+        K.staat[k] = { h: hash(it.data), t: it.t };
+        if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} }
+      }
+      K.laatst = Date.now(); schrijfK(K);
+      // nieuwe voortgang voor het spel dat nu open is: bij het openen meteen herladen, later alleen met een knop (anders gaan twee apparaten om de beurt herladen)
+      if (nieuwHier) {
+        try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
+        if (eersteK && !stil) { location.reload(); return j; }
+        toonKoppelMelding('Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', () => location.reload());
+      }
+      return j;
+    } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
+  }
+  const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
+  const WOORD2 = ['vlaai', 'raket', 'zolder', 'kraan', 'lamp', 'vos', 'uil', 'beer', 'trommel', 'vlieger', 'ster', 'koepel', 'piano', 'wolk', 'kikker', 'draak', 'tram', 'molen', 'sok', 'hoed', 'fiets', 'toren', 'boot', 'pinguin'];
+  function maakCode() { const a = new Uint32Array(4); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], 100 + a[3] % 900].join('-'); }
+  const schoon = c => (c || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  async function maakKoppeling() { const K = { code: maakCode(), staat: {} }; schrijfK(K); await koppelSync(true); return K.code; }
+  async function gebruikCode(code) {
+    code = schoon(code); if (code.length < 12) return 'Die code is te kort.';
+    // eerst kijken wat er op de server staat: de voortgang van je andere apparaat wint
+    const K = { code, staat: {} };
+    for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v !== null) K.staat[k] = { h: hash(v), t: 0 }; }
+    schrijfK(K);
+    const j = await koppelSync(true);
+    if (!j) { schrijfK(null); return 'Koppelen lukte niet. Controleer je internet en probeer het opnieuw.'; }
+    if (!j.aantal) { schrijfK(null); return 'Bij deze code staat nog niets. Klopt hij wel? Maak hem anders op je andere apparaat.'; }
+    // wat alleen op dit apparaat staat, sturen we daarna mee
+    const K2 = leesK(); for (const k of SLEUTELS) if (K2.staat[k] && K2.staat[k].t === 0) delete K2.staat[k]; schrijfK(K2);
+    setTimeout(() => koppelSync(true), 300);
+    if (Object.keys(j.items || {}).some(vanDezePagina)) setTimeout(() => location.reload(), 600);
+    return '';
+  }
+  // ---------- het venster
+  let dlg = null;
+  function stijl() { if (document.getElementById('kp-stijl')) return; const st = document.createElement('style'); st.id = 'kp-stijl'; st.textContent = `
+    .kp-dlg { border: 0; border-radius: 14px; padding: 0; max-width: min(30rem, 94vw); background: #F2DDA0; color: #231A26; box-shadow: 0 0 0 4px #231A26, 0 10px 0 4px rgba(0,0,0,.35); font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+    .kp-dlg::backdrop { background: rgba(10,14,30,.6); } .kp-in { padding: 1.1rem 1.3rem 1.2rem; } .kp-in h2 { margin: 0 0 .4rem; } .kp-in p { margin: .4rem 0; line-height: 1.45; }
+    .kp-code { font-size: 1.4rem; font-weight: 800; letter-spacing: .02em; background: #FBF6E9; border-radius: 8px; padding: .6rem .8rem; text-align: center; margin: .6rem 0; user-select: all; }
+    .kp-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .6rem; } .kp-rij input { flex: 1 1 12rem; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid #C9A24E; background: #FBF6E9; }
+    .kp-knop { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.3); } .kp-knop.hoofd { background: #C8323C; color: #fff; }
+    .kp-klein { font-size: .82rem; color: #5E5643; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
+    .kp-melding { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 9999; background: #FBF6E9; color: #231A26; font: 700 .92rem 'Bricolage Grotesque', system-ui, sans-serif; padding: .6rem .9rem; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.3); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
+    .kp-knopje { position: fixed; right: .9rem; bottom: .9rem; z-index: 50; font: 800 .88rem 'Bricolage Grotesque', system-ui, sans-serif; border: 0; border-radius: 999px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 0 0 3px #231A26, 0 4px 0 3px rgba(0,0,0,.3); }`; document.head.appendChild(st); }
+  function toonKoppelMelding(tekst, knop, doe) { stijl(); const m = document.createElement('div'); m.className = 'kp-melding'; m.setAttribute('role', 'status'); m.innerHTML = `<span>${tekst}</span>${knop ? `<button class="kp-knop hoofd" type="button">${knop}</button>` : ''}`; if (knop) m.querySelector('button').onclick = () => { m.remove(); doe(); }; document.body.appendChild(m); setTimeout(() => m.remove(), knop ? 20000 : 4000); }
+  function openKoppel() {
+    stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
+    const K = leesK();
+    const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je apparaten zijn gekoppeld</h2><p>Je koppelcode is:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
+      : `<div class="kp-in"><h2>Koppel je apparaten</h2><p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
+    const q = id => dlg.querySelector('#' + id);
+    q('kp-dicht').onclick = () => dlg.close();
+    if (q('kp-maak')) q('kp-maak').onclick = async () => { q('kp-maak').disabled = true; q('kp-fout').textContent = 'Even bezig...'; await maakKoppeling(); openKoppel(); };
+    if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
+    if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
+    if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); openKoppel(); };
+    if (!dlg.open) dlg.showModal();
+  }
+  API.koppel = openKoppel; API.koppelSync = koppelSync;
+  // op de homepage en het scorebord een knopje
+  if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
+  try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
+  klaar.then(() => setTimeout(() => koppelSync(false), 600));
+  setInterval(() => { if (!document.hidden) koppelSync(true); }, 30000);
+  // eerst het spel laten opslaan, dan pas meesturen
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => koppelSync(true), 400); });
+  // bij het sluiten: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is
+  addEventListener('load', () => addEventListener('pagehide', () => {
+    const K = leesK(); if (!K || !K.code) return;
+    klaar.then(inst => { const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return; const items = {}; let grootte = 0;
+      for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v === null) continue; const h = hash(v), st = (K.staat || {})[k]; if (st && st.h === h) continue; if (grootte + v.length > 60000) continue; grootte += v.length; const t = Date.now(); items[k] = { t, data: v }; K.staat[k] = { h, t }; }
+      if (!Object.keys(items).length) return; schrijfK(K);
+      try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend: {} }), keepalive: true }); } catch (e) {}
+    });
+  }));
   API.synchroniseer = synchroniseer;
   window.Scorebord = API;
   // bij elk bezoek, en als je even naar een ander tabblad gaat
@@ -361,7 +471,7 @@ const BT = (function () {
     const p = plek === 'staart' ? A.staart : plek === 'rug' ? A.rug : plek === 'vrij' ? [x0, y0] : A.kop;
     if (!p) return '';
     const [x, y] = p, s = s0 || A.s || 1;
-    const achter = ['cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
+    const achter = ['spotstraal', 'cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
     if ((laag === 'achter') !== achter.includes(soort)) return '';
     switch (soort) {
       case 'vlam': return vlam(x, y + 4, s, k);
@@ -382,6 +492,18 @@ const BT = (function () {
       case 'bliksem': return bliksemschicht(x - 2, y + 4, 1.1 * s, k.bliksem);
       case 'bliksems': return bliksemschicht(x - 16 * s, y + 8, 0.8 * s, k.bliksem) + bliksemschicht(x + 4 * s, y + 4, 1.0 * s, k.bliksem);
       case 'kroon': return kroon(x, y + 6, s, k.kroon);
+      case 'bril': { const G = A.gezicht; if (!G) return ''; const r0 = G.m * 1.5; return ci(G.x - G.a, G.y, r0, '#E0F2FF', `fill-opacity=".35" stroke="${k.bril || '#C99A2E'}" stroke-width="2.4"`) + ci(G.x + G.a, G.y, r0, '#E0F2FF', `fill-opacity=".35" stroke="${k.bril || '#C99A2E'}" stroke-width="2.4"`) + st(`M${f1(G.x - G.a + r0)} ${f1(G.y)}q${f1(G.a - r0)} -5 ${f1(2 * (G.a - r0))} 0`, k.bril || '#C99A2E', 2.2); }
+      case 'hogehoed': { const kh = k.hoed || '#23252B'; return el(x, y + 6, 26 * s, 6 * s, kh) + pa(`M${x - 15 * s} ${y + 5}l${3 * s} ${-34 * s}h${24 * s}l${3 * s} ${34 * s}z`, kh) + pa(`M${x - 13.5 * s} ${y - 3 * s}h${27 * s}l${-0.6 * s} ${-6 * s}h${-25.8 * s}z`, k.hoedband || '#C8323C', 'stroke="none"') + glim(x - 6 * s, y - 18 * s, 2.5 * s, 7 * s); }
+      case 'vlinderdas': { const kc = k.strik || '#C8323C'; return pa(`M${x} ${y}l${-16 * s} ${-9 * s}v${18 * s}zM${x} ${y}l${16 * s} ${-9 * s}v${18 * s}z`, kc) + ci(x, y, 4 * s, donker(kc, 0.2)); }
+      case 'monocle': { const G = A.gezicht; if (!G) return ''; const ox = G.x + G.a, oy = G.y; return ci(ox, oy, G.m * 1.55, 'none', `stroke="#C99A2E" stroke-width="2.2"`) + st(`M${f1(ox + G.m * 1.4)} ${f1(oy + G.m * 0.7)}q8 12 2 26`, '#C99A2E', 1.4); }
+      case 'koptelefoon': { const kc = k.koptelefoon || '#3A3D46'; return pa(`M${x - 30 * s} ${y + 26 * s}q0 ${-38 * s} ${30 * s} ${-38 * s}t${30 * s} ${38 * s}`, 'none', `stroke="${kc}" stroke-width="${5 * s}"`) + el(x - 31 * s, y + 30 * s, 8 * s, 11 * s, kc) + el(x + 31 * s, y + 30 * s, 8 * s, 11 * s, kc) + ci(x + 31 * s, y + 30 * s, 3 * s, '#FF5A5A', 'stroke="none"'); }
+      case 'boa': { const kc = k.boa || '#FF7FB0'; let r = ''; for (let i = 0; i < 9; i++) { const t = i / 8, bx = x - 40 * s + t * 80 * s, by = y + Math.sin(t * Math.PI) * 14 * s; r += ci(bx, by, 7 * s, i % 2 ? kc : licht(kc, 0.25), 'stroke-width="1.6"'); } return r; }
+      case 'roos': return pa(`M${x} ${y + 4}q-2 14 2 22`, 'none', `stroke="#2E8B62" stroke-width="2.4"`) + ci(x, y, 7 * s, k.roos || '#C8323C') + pa(`M${x - 4 * s} ${y}q4 -6 8 0q-4 4 -8 0`, 'none', `stroke="${donker(k.roos || '#C8323C', 0.3)}" stroke-width="1.6"`);
+      case 'sjerp': return pa(`M${x - 26 * s} ${y - 6 * s}L${x + 22 * s} ${y + 38 * s}l${-6 * s} ${8 * s}L${x - 30 * s} ${y + 4 * s}z`, k.sjerp || '#B82E3A') + st(`M${x - 27 * s} ${y - 2 * s}L${x + 18 * s} ${y + 40 * s}`, licht(k.sjerp || '#B82E3A', 0.3), 1.4);
+      case 'toverstaf': return st(`M${x - 18 * s} ${y + 18 * s}L${x + 10 * s} ${y - 10 * s}`, '#23252B', 4 * s) + st(`M${x + 6 * s} ${y - 6 * s}L${x + 10 * s} ${y - 10 * s}`, '#FBF6E9', 4 * s) + ster(x + 13 * s, y - 13 * s, 5 * s, '#FFE76A');
+      case 'scenario': return `<g transform="rotate(-14 ${x} ${y})">${pa(`M${x - 12 * s} ${y - 8 * s}h${22 * s}v${26 * s}h${-22 * s}z`, '#FBF6E9')}${st(`M${x - 8 * s} ${y - 2 * s}h${14 * s}M${x - 8 * s} ${y + 4 * s}h${14 * s}M${x - 8 * s} ${y + 10 * s}h${10 * s}`, '#8C939E', 1.2)}</g>`;
+      case 'pailletjes': return ster(x - 34 * s, y + 6, 4 * s, '#FFE76A') + ster(x + 36 * s, y - 2, 5 * s, '#fff') + ster(x - 22 * s, y - 20 * s, 3 * s, '#fff') + ster(x + 24 * s, y - 24 * s, 3.5 * s, '#FFE76A');
+      case 'snor': { const G = A.gezicht; if (!G) return ''; const my = G.my - 4; return pa(`M${G.x} ${my}q-6 -4 -14 0q-6 4 -12 -2q6 8 14 6q8 -2 12 -4zM${G.x} ${my}q6 -4 14 0q6 4 12 -2q-6 8 -14 6q-8 -2 -12 -4z`, k.snor || '#2A1D14'); }
       case 'halo': return `<ellipse cx="${f1(x)}" cy="${f1(y - 6)}" rx="${f1(18 * s)}" ry="${f1(5 * s)}" fill="none" stroke="#FFE76A" stroke-width="4"/><ellipse cx="${f1(x)}" cy="${f1(y - 6)}" rx="${f1(18 * s)}" ry="${f1(5 * s)}" fill="none" stroke="#fff" stroke-width="1.4" opacity=".8"/>`;
       case 'maan': return pl(`M${x + 6 * s} ${y - 2}a${10 * s} ${10 * s} 0 1 1 ${-14 * s} ${-12 * s}a${8 * s} ${8 * s} 0 1 0 ${14 * s} ${12 * s}z`, '#FFE9A8', `stroke="${lijnK('#FFE9A8')}" stroke-width="1.8"`);
       case 'ster': return ster(x, y - 6 * s, 9 * s, k.ster || '#FFE76A');
@@ -404,6 +526,7 @@ const BT = (function () {
       case 'sintels': return ci(x - 12 * s, y - 4, 2.4 * s, '#FFB347', 'stroke="none"') + ci(x + 10 * s, y - 12 * s, 2 * s, '#FFE76A', 'stroke="none"') + ci(x + 2 * s, y - 20 * s, 1.6 * s, '#FF7043', 'stroke="none"');
       case 'paddohoedje': return pa(`M${x - 12 * s} ${y + 2}q${0} ${-16 * s} ${12 * s} ${-16 * s}q${12 * s} ${0} ${12 * s} ${16 * s}z`, '#C8323C') + ci(x - 4 * s, y - 8 * s, 2.4 * s, '#fff', 'stroke="none"') + ci(x + 5 * s, y - 5 * s, 2 * s, '#fff', 'stroke="none"');
       case 'strik': return pa(`M${x} ${y}l${-12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + pa(`M${x} ${y}l${12 * s} ${-7 * s}v${14 * s}z`, k.strik || '#E8577A') + ci(x, y, 3.5 * s, licht(k.strik || '#E8577A', 0.2));
+      case 'spotstraal': return `<path d="M${x - 10} ${y - 70}L${x - 56 * s} ${y + 90}h${112 * s}L${x + 10} ${y - 70}z" fill="${k.straal || '#FFF3C4'}" opacity=".22"/>`;
       case 'cape': { const kc = k.cape || '#C8323C', y0 = y + 14 * s; return pa(`M${x - 14 * s} ${y0}Q${x - 46 * s} ${y0 + 40 * s} ${x - 44 * s} ${y0 + 80 * s}Q${x - 30 * s} ${y0 + 72 * s} ${x - 16 * s} ${y0 + 82 * s}Q${x - 2 * s} ${y0 + 72 * s} ${x + 14 * s} ${y0 + 82 * s}Q${x + 30 * s} ${y0 + 72 * s} ${x + 46 * s} ${y0 + 80 * s}Q${x + 48 * s} ${y0 + 40 * s} ${x + 14 * s} ${y0}z`, kc) + st(`M${x - 8 * s} ${y0 + 12 * s}Q${x - 22 * s} ${y0 + 44 * s} ${x - 26 * s} ${y0 + 72 * s}M${x + 10 * s} ${y0 + 12 * s}Q${x + 24 * s} ${y0 + 44 * s} ${x + 30 * s} ${y0 + 72 * s}`, licht(kc, 0.25), 2, 'opacity=".55"'); }
       case 'masker': { const G = A.gezicht; if (!G) return ''; const km = k.masker || '#23252B', bx = G.a * 1 + G.m * 1.9, hy = G.m * 1.15; const gat = (cx) => `M${f1(cx - G.m * 1.15)} ${f1(G.y)}a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(G.m * 2.3)} 0a${f1(G.m * 1.15)} ${f1(G.m * 1.25)} 0 1 0 ${f1(-G.m * 2.3)} 0z`; const gaten = G.a ? gat(G.x - G.a) + gat(G.x + G.a) : gat(G.x); return `<path d="M${f1(G.x - bx)} ${f1(G.y - hy * 0.6)}Q${f1(G.x)} ${f1(G.y - hy * 1.5)} ${f1(G.x + bx)} ${f1(G.y - hy * 0.6)}L${f1(G.x + bx + 3)} ${f1(G.y + hy * 0.5)}Q${f1(G.x)} ${f1(G.y + hy * 1.6)} ${f1(G.x - bx - 3)} ${f1(G.y + hy * 0.5)}z${gaten}" fill="${km}" fill-rule="evenodd" stroke="${lijnK(km)}" stroke-width="1.6"/>` + st(`M${f1(G.x + bx + 2)} ${f1(G.y)}q8 2 12 10M${f1(G.x + bx + 2)} ${f1(G.y + 2)}q6 6 7 14`, km, 3); }
       case 'embleem': { const ke = k.embleem || '#F6CB2F'; return ci(x, y, 7 * s, ke) + ci(x, y, 5 * s, licht(ke, 0.35), 'stroke="none"') + (k.symbool === 'bliksem' ? bliksemschicht(x - 2 * s, y + 4 * s, 0.45 * s, lijnK(ke)) : ster(x, y, 3.6 * s, lijnK(ke))); }
@@ -641,8 +764,42 @@ const BT = (function () {
     schaduw: ['#6E5A9A', '#241634', () => `<circle cx="160" cy="34" r="16" fill="#FFE9A8" opacity=".85"/><circle cx="166" cy="30" r="14" fill="#3A2852"/>` + [[20, 20], [50, 50], [130, 20], [100, 40], [180, 80], [30, 90]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 1 : 1.6}" fill="#fff" opacity=".8"/>`).join('') + `<path d="M0 150q40-30 80-10t70-10t50 4v16z" fill="#120A1C" opacity=".5"/>`],
     rommel: ['#F2DDA0', '#C9A35B', () => { let d = ''; for (let x = 10; x < 200; x += 16) for (let y = 10; y < 150; y += 16) d += `<circle cx="${x}" cy="${y}" r="2" fill="#7A5A2A" opacity=".35"/>`; return d + `<rect x="0" y="128" width="200" height="22" fill="#9A6438" opacity=".55"/>`; }],
   };
+
+  // ================= COULISSENSET: nieuwe vormen
+  V.masker = (P, k) => { const d = 'M52 54q48-30 96 0q8 42-16 66q-32 24-64 0q-24-24-16-66z'; return { achter: pa('M54 62q-22 6-26 30q10-6 18-4M146 62q22 6 26 30q-10-6-18-4', 'none', `stroke-width="5" stroke="${k.lint || '#C8323C'}"`), romp: pa(d, k.c1) + glim(74, 62, 12, 6), clip: `<path d="${d}"/>`, voor: pa('M60 70q16-10 30 0M110 70q14-10 30 0', 'none', `stroke="${donker(k.c1, 0.35)}" stroke-width="2.4"`), gezicht: { x: 100, y: 84, a: 20, m: 8.5, my: 104, mm: 11 }, kop: [100, 42], rug: [100, 46], staart: [148, 70], mx: 100, my: 86, gx: 100, gy: 84 }; };
+  V.gordijn = (P, k) => { const d = 'M58 128q-10-62 8-90q16-14 34-14t34 14q18 28 8 90q-10 6-16-2q-9 8-17 0q-9 8-17 0q-9 8-17 0q-6 6-17 2z'; let plooi = ''; for (const x of [72, 86, 114, 128]) plooi += st(`M${x} 44q-4 40 2 80`, donker(k.c1, 0.25), 3, 'opacity=".55"'); return { romp: pa(d, k.c1) + glim(80, 48, 12, 7), clip: `<path d="${d}"/>`, voor: plooi + pa('M64 98q36 14 72 0', 'none', `stroke="${k.koord || '#E9B949'}" stroke-width="4.5"`) + ci(136, 100, 4.5, k.koord || '#E9B949') + pa('M132 104l-4 18h16l-4-18z', k.koord || '#E9B949'), gezicht: { x: 100, y: 66, a: 15, m: 8, my: 82, mm: 8 }, kop: [100, 26], rug: [100, 30], staart: [136, 112], mx: 100, my: 76, gx: 100, gy: 66 }; };
+  V.spot = (P, k) => { const d = 'M62 62q0-16 16-16h44q16 0 16 16v40q0 16-16 16h-44q-16 0-16-16z'; const lens = ci(100, 82, 26, k.lens || '#FFF3C4', `stroke="${donker(k.c1, 0.4)}" stroke-width="3"`); return { achter: st('M100 118v8M86 134l14-12 14 12', '#3A3D46', 4) + pa('M54 70v26M146 70v26', 'none', `stroke="#5F6470" stroke-width="5"`), romp: pa(d, k.c1) + glim(76, 54, 10, 5), clip: `<path d="${d}"/>`, voor: lens + ci(100, 82, 20, licht(k.lens || '#FFF3C4', 0.4), 'opacity=".7"') + pa('M66 46l-8-12h84l-8 12z', donker(k.c1, 0.2)) + pa('M62 120l-6 10h88l-6-10z', donker(k.c1, 0.2)), gezicht: { x: 100, y: 78, a: 11, m: 6.5, my: 92, mm: 7 }, kop: [100, 32], rug: [100, 40], staart: [140, 96], mx: 100, my: 84, gx: 100, gy: 78 }; };
+  V.pop = (P, k) => { const d = 'M100 30a20 20 0 1 1 -0.1 0zM80 74q20-8 40 0l6 40q-26 8-52 0z'; return { achter: pa('M64 18h72', 'none', `stroke="#8C5530" stroke-width="6" stroke-linecap="round"`) + pa('M100 10v14', 'none', `stroke="#8C5530" stroke-width="6" stroke-linecap="round"`) + st('M70 18L72 92M130 18L128 92M84 18L86 118M116 18L114 118', '#DDE3EA', 1.2, 'opacity=".9"'), romp: pa(d, k.c1) + pa('M72 90q-4 10 0 18M128 90q4 10 0 18', 'none', `stroke="${k.c1}" stroke-width="9" stroke-linecap="round"`) + pa('M88 114v14M112 114v14', 'none', `stroke="${k.c3 || donker(k.c1, 0.3)}" stroke-width="9" stroke-linecap="round"`) + glim(92, 38, 7, 4), clip: `<path d="${d}"/>`, buik: `<path d="M80 74q20-8 40 0l6 40q-26 8-52 0z"/>`, gezicht: { x: 100, y: 48, a: 9, m: 6, my: 60, mm: 6 }, kop: [100, 28], rug: [100, 76], staart: [126, 110], mx: 100, my: 70, gx: 100, gy: 48 }; };
+  V.popcorn = (P, k) => { const d = 'M62 62h76l-10 66h-56z'; let pc = ''; [[70, 58, 11], [86, 50, 12], [102, 46, 13], [118, 50, 12], [132, 58, 11], [80, 40, 9], [100, 34, 10], [120, 40, 9]].forEach(([x, y, r], i) => { pc += ci(x, y, r, i % 3 === 0 ? '#FFF6D8' : '#FFFDF2', `stroke="#C9A24E" stroke-width="1.6"`) + ci(x - r * 0.3, y - r * 0.3, r * 0.3, '#FFE7A0', 'stroke="none" opacity=".8"'); }); let strepen = ''; for (let i = 0; i < 5; i++) strepen += pa(`M${68 + i * 16} 62h8l-3 66h-6z`, '#FBF6E9', 'stroke="none" opacity=".9"'); return { romp: pa(d, k.c1), clip: `<path d="${d}"/>`, voor: strepen + pc, gezicht: { x: 100, y: 88, a: 13, m: 7, my: 104, mm: 8 }, kop: [100, 26], rug: [100, 30], staart: [134, 100], mx: 100, my: 92, gx: 100, gy: 88 }; };
+  V.kaartje = (P, k) => { const d = 'M48 62h104v14a8 8 0 0 0 0 16v26h-104v-26a8 8 0 0 0 0-16z'; let perf = ''; for (let y = 64; y < 118; y += 6) perf += ci(126, y, 1.4, donker(k.c1, 0.35), 'stroke="none"'); return { romp: `<g transform="rotate(-6 100 90)">${pa(d, k.c1)}${glim(70, 68, 12, 4)}</g>`, clip: `<path d="${d}" transform="rotate(-6 100 90)"/>`, voor: `<g transform="rotate(-6 100 90)">${perf}${pa('M134 80l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6-4.5-4 6-1z', k.c2 || '#E9B949')}</g>`, gezicht: { x: 90, y: 86, a: 12, m: 6.5, my: 100, mm: 7 }, kop: [92, 58], rug: [92, 60], staart: [150, 96], mx: 92, my: 90, gx: 90, gy: 86 }; };
+  V.pruik = (P, k) => { const bol = [[100, 48, 26], [74, 62, 22], [126, 62, 22], [62, 88, 20], [138, 88, 20], [68, 112, 18], [132, 112, 18], [100, 74, 30]]; const d = bol.map(([x, y, r]) => `M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0z`).join(''); let krul = ''; bol.forEach(([x, y, r]) => { krul += pa(`M${x - r * 0.5} ${y}q${r * 0.25} ${-r * 0.5} ${r * 0.5} 0t${r * 0.5} 0`, 'none', `stroke="${donker(k.c1, 0.22)}" stroke-width="2"`); }); const rand = bol.map(([x, y, r]) => ci(x, y, r + 1.4, lijnK(k.c1), 'stroke="none"')).join(''), vul = bol.map(([x, y, r]) => ci(x, y, r, k.c1, 'stroke="none"')).join('');
+    return { romp: rand + vul + krul + glim(88, 34, 10, 5), clip: `<path d="${d}"/>`, voor: el(100, 98, 22, 20, k.huid || '#F6D3B3'), gezicht: { x: 100, y: 96, a: 9, m: 5.5, my: 108, mm: 6 }, kop: [100, 22], rug: [100, 26], staart: [140, 112], mx: 100, my: 80, gx: 100, gy: 96 }; };
+  V.microfoon = (P, k) => { const d = 'M100 26a30 32 0 1 1 -0.1 0z'; let gaas = ''; for (let i = -24; i <= 24; i += 8) gaas += st(`M${100 + i} 28q${-i * 0.2} 30 0 62`, donker(k.c1, 0.3), 1.4, 'opacity=".5"') + st(`M72 ${58 + i}h56`, donker(k.c1, 0.3), 1.2, 'opacity=".35"'); return { achter: pa('M94 88h12l-2 34h-8z', '#3A3D46') + el(100, 128, 26, 6, '#23252B'), romp: pa(d, k.c1) + glim(86, 36, 10, 6), clip: `<path d="${d}"/>`, voor: gaas + pa('M78 88h44l-4 8h-36z', k.c2 || '#C99A2E'), gezicht: { x: 100, y: 56, a: 12, m: 7, my: 72, mm: 8 }, kop: [100, 24], rug: [100, 28], staart: [126, 96], mx: 100, my: 58, gx: 100, gy: 56 }; };
+
+
+  V.trommel = (P, k) => { const d = 'M56 70a44 12 0 0 1 88 0v40q-44 22-88 0z'; let koord = ''; for (let i = 0; i < 6; i++) koord += st(`M${62 + i * 16} 76l8 36`, k.c2 || '#FBF6E9', 2.2) + st(`M${70 + i * 16} 76l-8 36`, k.c2 || '#FBF6E9', 2.2); return { achter: st('M78 40l30 26M122 40l-30 26', '#C98A43', 4) + ci(78, 40, 4, '#FBF6E9') + ci(122, 40, 4, '#FBF6E9'), romp: pa(d, k.c1) + el(100, 70, 44, 12, k.vel || '#F7F4E8') + glim(76, 82, 8, 5), clip: `<path d="${d}"/>`, voor: koord + st('M56 108q44 22 88 0', donker(k.c1, 0.35), 4), gezicht: { x: 100, y: 90, a: 14, m: 7, my: 104, mm: 8 }, kop: [100, 56], rug: [100, 58], staart: [142, 100], mx: 100, my: 92, gx: 100, gy: 90 }; };
+  V.stoel = (P, k) => { const rug = 'M64 40q0-12 12-12h48q12 0 12 12v58h-72z', zit = 'M56 96h88q6 0 6 8v10h-100v-10q0-8 6-8z'; return { achter: st('M64 114v16M136 114v16', '#C99A2E', 5), romp: pa(rug, k.c1) + pa(zit, donker(k.c1, 0.12)) + pa('M50 74h10v38h-10zM140 74h10v38h-10z', k.hout || '#5C3A21') + glim(80, 40, 10, 5), clip: `<path d="${rug}"/><path d="${zit}"/>`, voor: st('M100 32v62', donker(k.c1, 0.25), 2.4, 'opacity=".6"') + st('M80 32v62M120 32v62', donker(k.c1, 0.25), 1.6, 'opacity=".4"'), gezicht: { x: 100, y: 62, a: 14, m: 7, my: 78, mm: 8 }, kop: [100, 26], rug: [100, 30], staart: [146, 100], mx: 100, my: 70, gx: 100, gy: 62 }; };
+  V.klapper = (P, k) => { const d = 'M52 66h96v56h-96z'; let streep = ''; for (let i = 0; i < 6; i++) streep += pa(`M${56 + i * 16} 50l10 0-8 14h-10z`, i % 2 ? (k.c2 || '#FBF6E9') : '#23252B', 'stroke="none"'); return { romp: pa(d, k.c1) + glim(70, 74, 10, 4), clip: `<path d="${d}"/>`, voor: `<g transform="rotate(-10 52 64)">${pa('M52 48h96v16h-96z', '#23252B')}${streep}</g>` + st('M60 108h80M60 116h50', '#FBF6E9', 1.4, 'opacity=".55"'), gezicht: { x: 100, y: 86, a: 15, m: 7.5, my: 100, mm: 8 }, kop: [100, 46], rug: [100, 48], staart: [148, 100], mx: 100, my: 92, gx: 100, gy: 86 }; };
+  V.kroonluchter = (P, k) => { const d = 'M100 52a28 22 0 1 1 -0.1 0z'; let armen = '', druppels = ''; [[-1, 1], [1, 1]].forEach(([sx]) => { armen += st(`M${100 + sx * 22} 80q${sx * 26} 4 ${sx * 34} -16`, k.c1, 4) + pa(`M${100 + sx * 54} 56h8v12h-8z`, '#FBF6E9') + vlam(100 + sx * 58, 52, 0.42, { vlam: '#FFE76A', vlamkern: '#FFF3C4' }); }); [-30, -14, 0, 14, 30].forEach((dx, i) => { druppels += st(`M${100 + dx} ${96 + (i % 2) * 4}v8`, '#C9CED6', 1) + pa(`M${100 + dx} ${104 + (i % 2) * 4}l-3 5 3 6 3-6z`, '#E0F7FF', 'stroke="#9AA6C2" stroke-width="1"'); }); return { achter: st('M100 0v52', '#5F6470', 2.4), romp: pa(d, k.c1) + glim(88, 58, 9, 5), clip: `<path d="${d}"/>`, voor: armen + druppels, gezicht: { x: 100, y: 72, a: 11, m: 6.5, my: 84, mm: 7 }, kop: [100, 50], rug: [100, 52], staart: [130, 84], mx: 100, my: 74, gx: 100, gy: 72 }; };
+
   function achtergrond(e, fullArt, set) {
     const a = ACHTER[e] || ACHTER.rommel, id = 'bg' + (++uid);
+    if (set === 'coulissen') {
+      const h = fullArt ? 280 : 150, vl = h * 0.8;
+      let plooi = ''; for (const [x0, w, kant] of [[0, 34, 1], [166, 34, -1]]) for (let i = 0; i < 4; i++) { const x = x0 + i * (w / 4); plooi += `<rect x="${f1(x)}" y="0" width="${f1(w / 4)}" height="${h}" fill="url(#${id}g)" opacity="${(0.75 + (i % 2) * 0.25).toFixed(2)}"/>`; }
+      let lampjes = ''; for (let x = 44; x <= 156; x += 16) lampjes += `<ellipse cx="${x}" cy="${f1(vl + 2)}" rx="3" ry="1.6" fill="#FFE76A" opacity=".85"/>`;
+      return `<defs><radialGradient id="${id}" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="${meng(a[0], '#3A2050', 0.62)}"/><stop offset="1" stop-color="#120A1A"/></radialGradient>
+          <linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A0E16"/><stop offset=".5" stop-color="#B82E3A"/><stop offset="1" stop-color="#6E1018"/></linearGradient>
+          <linearGradient id="${id}v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A4E2D"/><stop offset="1" stop-color="#3A2414"/></linearGradient>
+          <radialGradient id="${id}s" cx="50%" cy="0%" r="100%"><stop offset="0" stop-color="#FFF3C4" stop-opacity=".42"/><stop offset="1" stop-color="#FFF3C4" stop-opacity="0"/></radialGradient></defs>
+        <rect width="200" height="${h}" fill="url(#${id})"/>
+        <path d="M84 0L36 ${f1(vl)}h128L116 0z" fill="url(#${id}s)"/>
+        <rect y="${f1(vl)}" width="200" height="${f1(h - vl)}" fill="url(#${id}v)"/>
+        ${[1, 2, 3].map(i => `<path d="M0 ${f1(vl + i * (h - vl) / 4)}h200" stroke="#2A1A0E" stroke-width="1" opacity=".5"/>`).join('')}
+        <ellipse cx="100" cy="${f1(vl + 4)}" rx="62" ry="9" fill="#FFF3C4" opacity=".22"/>
+        ${lampjes}${plooi}
+        <rect width="200" height="12" fill="#8E1F28"/><path d="M0 12${Array.from({ length: 10 }, (_, i) => `q10 9 20 0`).join('')}" fill="#8E1F28"/><path d="M0 14${Array.from({ length: 10 }, (_, i) => `q10 9 20 0`).join('')}" fill="none" stroke="#E9B949" stroke-width="1.6"/>`;
+    }
     if (set === 'helden') {
       const h = fullArt ? 280 : 150; let stralen = '';
       for (let i = 0; i < 18; i++) { const a0 = i * Math.PI / 9, a1 = a0 + Math.PI / 18; stralen += `<path d="M100 ${h * 0.45}L${f1(100 + Math.cos(a0) * 320)} ${f1(h * 0.45 + Math.sin(a0) * 320)}L${f1(100 + Math.cos(a1) * 320)} ${f1(h * 0.45 + Math.sin(a1) * 320)}z" fill="#fff" opacity=".16"/>`; }
@@ -672,7 +829,9 @@ const BT = (function () {
     svg += A.achter || '';
     svg += A.romp;
     const binnen = (spec.pat ? patroon(spec.pat, k, A) : '') + (A.buik && spec.buik !== false && k.c2 ? A.buik.replace('/>', ` fill="${k.buik || k.c2}" opacity=".9"/>`) : '');
-    if (binnen) svg += `<defs><clipPath id="${id}">${A.clip}</clipPath></defs><g clip-path="url(#${id})">${binnen}</g>`;
+    const detail = spec.set === 'coulissen' || spec.detail;
+    const extra = detail ? textuur(spec.tex, k, A) + volume(A) + lichtrand(A) : '';
+    if (binnen || extra) svg += `<defs><clipPath id="${id}">${A.clip}</clipPath></defs><g clip-path="url(#${id})">${binnen}${extra}</g>`;
     svg += A.voor || '';
     const g = A.gezicht ? Object.assign({}, A.gezicht, spec.g || {}) : null;
     if (g) {
@@ -685,6 +844,29 @@ const BT = (function () {
     }
     svg += acc.map(a => accessoire(a, A, k, 'voor')).join('');
     return groep(svg, P);
+  }
+  // zacht licht van linksboven en schaduw rechtsonder, binnen de vorm van het beest
+  function volume(A) {
+    const id = 'vo' + (++uid), cx = (A.mx || 100) - 22, cy = (A.my || 88) - 26;
+    return `<defs><radialGradient id="${id}" cx="${cx}" cy="${cy}" r="86" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/><stop offset=".66" stop-color="#1a0a20" stop-opacity="0"/><stop offset="1" stop-color="#1a0a20" stop-opacity=".42"/></radialGradient></defs><rect x="0" y="0" width="200" height="160" fill="url(#${id})"/>`;
+  }
+  function lichtrand(A) {
+    const vorm = (kl, w, dx, op) => A.clip.replace(/<(path|ellipse|circle|rect|polygon)\b/g, `<$1 fill="none" stroke="${kl}" stroke-width="${w}" stroke-opacity="${op}" transform="translate(${dx} ${dx})"`).replace(/transform="rotate\(([^"]*)\)"/g, '');
+    return vorm('#FFF6E0', 5, -2.4, 0.5) + vorm('#1a0a20', 6, 2.6, 0.22);
+  }
+  function textuur(t, k, A) {
+    if (!t) return '';
+    const id = 'tx' + (++uid);
+    const vul = (patroon, op) => `<defs>${patroon}</defs><rect width="200" height="160" fill="url(#${id})" opacity="${op}"/>`;
+    if (t === 'fluweel') return vul(`<pattern id="${id}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(12)"><rect width="2.4" height="5" fill="#000"/></pattern>`, 0.1) + `<path d="M40 30L160 140" stroke="#fff" stroke-width="22" opacity=".09"/>`;
+    if (t === 'pailletten') { let r = ''; for (let y = 20; y < 150; y += 8) for (let x = 20 + (y % 16 ? 4 : 0); x < 185; x += 8) { const g = (x * 7 + y * 13) % 5; r += `<circle cx="${x}" cy="${y}" r="3" fill="${g === 0 ? '#fff' : licht(k.c1, 0.35)}" opacity="${g === 0 ? 0.7 : 0.35}"/>`; } return r; }
+    if (t === 'glitter') { let r = ''; for (let i = 0; i < 26; i++) { const x = 30 + (i * 53) % 140, y = 26 + (i * 37) % 110, q = 1.6 + (i % 3); r += `<path d="M${x} ${y - q * 2}L${x + q * 0.5} ${y - q * 0.5}L${x + q * 2} ${y}L${x + q * 0.5} ${y + q * 0.5}L${x} ${y + q * 2}L${x - q * 0.5} ${y + q * 0.5}L${x - q * 2} ${y}L${x - q * 0.5} ${y - q * 0.5}z" fill="${i % 4 ? '#fff' : '#FFE76A'}" opacity=".8"/>`; } return r; }
+    if (t === 'hout') { let r = ''; for (let y = 24; y < 150; y += 7) r += `<path d="M20 ${y}q40 ${(y % 3) - 1} 80 ${(y % 5) - 2}t80 ${(y % 4) - 1.5}" fill="none" stroke="${donker(k.c1, 0.35)}" stroke-width="1.3" opacity=".4"/>`; return r + `<ellipse cx="128" cy="96" rx="6" ry="3" fill="none" stroke="${donker(k.c1, 0.4)}" stroke-width="1.4" opacity=".5"/>`; }
+    if (t === 'goud') return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF8D0" stop-opacity=".55"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#FFF8D0" stop-opacity=".45"/><stop offset=".75" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect width="200" height="160" fill="url(#${id})"/>`;
+    if (t === 'veren') { let r = ''; for (let y = 30; y < 150; y += 9) for (let x = 24 + (y % 18 ? 5 : 0); x < 186; x += 10) r += `<path d="M${x - 5} ${y}q5 7 10 0" fill="none" stroke="${donker(k.c1, 0.3)}" stroke-width="1.4" opacity=".45"/>`; return r; }
+    if (t === 'streep') { let r = ''; for (let x = 0; x < 200; x += 14) r += `<rect x="${x}" y="0" width="7" height="160" fill="${k.c2 || '#fff'}" opacity=".55"/>`; return r; }
+    if (t === 'ruit') { let r = ''; for (let x = -20; x < 220; x += 16) r += `<path d="M${x} 0l60 160M${x + 60} 0l-60 160" stroke="${k.c2 || '#fff'}" stroke-width="2" opacity=".35"/>`; return r; }
+    return '';
   }
   function groep(svg, P) {
     const s = P.schaal || 1, dx = P.dx || 0, dy = P.dy || 0;

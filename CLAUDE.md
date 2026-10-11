@@ -266,3 +266,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - Commitberichten in het Nederlands, kort en duidelijk, bijvoorbeeld "Winkel overzichtelijker gemaakt".
 - Zeg na afloop in één of twee zinnen wat er veranderd is en wat Ruben moet doen om het live te zetten.
+
+## Werkplaats
+
+- **Versienummer**: alleen een nieuwe pagina of een nieuw spel (een nieuw .html-bestand, niet index.html of 404.html) zet het vinkje "versienummer verhogen" vanzelf aan, en dan gaat het met 0.01 omhoog. Alleen updates van bestaande bestanden laten het versienummer staan; je kunt het vinkje zelf aanzetten, en de werkplaats onthoudt dat tot na de upload. Wijzigingen op de homepage (volgorde, labels, teksten) veranderen het versienummer nooit.

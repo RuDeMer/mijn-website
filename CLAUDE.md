@@ -218,6 +218,13 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Sterren: elke 5 sterren in een vlucht geven een extra vouw (maximaal 3). Gevangen sterren gaan in de spaarpot (`spaar`) en zijn te besteden in de sterrenwinkel: uiterlijken voor het vliegtuigje (`SKINS`: wit, krant, kraanvogel, neon, bladgoud, regenboog) en voordelen (`UPG`: start met een extra vouw, sterrenmagneet, dubbele sterren).
 - Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, spaar, skins, skin, upg, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
 
+## Rob 👍 (rob.html)
+
+- Idee van Rob uit de ideeënbox, een grap uit de musicalgroep: de meme waarin je een duimpje omhoog geeft aan brood, maar dan aan Rob. Bron `rob_template.html`, alles in één bestand.
+- **Duimpjes voor Rob**: overal op het scherm duikt Rob op met een 👍 (willekeurige letters, kleuren en hoeken, met een tijdbalkje). Klik erop om Rob een duimpje te geven; er zweven duimpjes omhoog. Krijgt een Rob geen duimpje, of geef je er een aan iets dat geen Rob is (Bob, Rop, Rogier, Robot, Rob 👎, brood), dan loopt Silke's bozemeter vol; bij drie is het BOZE SILKE (trillend boos cartoongezicht, "xoxoxo"), met een zin die past bij wat er misging. Gouden Rob = 5 duimpjes; bij 15 op rij begint de Robstorm. Het wordt steeds sneller, met meer nep-Robs.
+- **Duimspam**: tien seconden zo vaak mogelijk op de blauwe duim; elke tik stuurt een duimpje omhoog. Vanaf 60 is Silke trots. Klikken binnen 40 ms na de vorige tellen niet. Een lopend potje stopt netjes als je iets anders kiest (`stopSpel`).
+- Rob kan "Rob!" zeggen via de spraak van het apparaat (knop "Rob praat"). Opslag: localStorage `rommelrob-v1` (best, bestSpam, totaal, stem). Gaat mee met koppelen. Scorebord: spel `rob` (score = meeste duimpjes in één potje, extra = alle duimpjes ooit). Homepage: categorie Snel een potje. Testhaak: `window.__rob`.
+
 ## Rommelarend (vliegen over Parijs)
 
 - `rommelarend.html` (bronnen: `arend_wereld.js` voor Parijs en de bezienswaardigheden, `arend_spel.js` voor het vliegen en de rest, samengevoegd via `arend_template.html`). three.js r128 van cdnjs, net als Rommelland en Rommelblok. Eigen spel, eigen naam en eigen eenvoudige modellen van de gebouwen.

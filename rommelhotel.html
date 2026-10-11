@@ -1566,11 +1566,11 @@ dialog { max-height: 90vh; overflow-y: auto; }
       { type: 'zwemband', x: 6, y: 3, kleur: '#E8577A', geenBlok: true }, { type: 'zwemband', x: 9, y: 6, kleur: '#E9B949', geenBlok: true },
       { type: 'ligstoel', x: 12, y: 1, zit: [[12, 1, 'VL']], kleur: '#E8577A' }, { type: 'ligstoel', x: 13, y: 3, zit: [[13, 3, 'VL']], kleur: '#2F8BD6' }, { type: 'ligstoel', x: 6, y: 10, zit: [[6, 10, 'VR']], kleur: '#E9B949' },
       { type: 'parasol', x: 12, y: 7, kleur: '#E9B949' },
-      { type: 'handdoeken', x: 0, y: 7, naam: 'Handdoeken' },
+      { type: 'handdoeken', x: 0, y: 4, naam: 'Handdoeken' },
       { type: 'plant', x: 13, y: 0, groot: true }, { type: 'plant', x: 0, y: 10 }, { type: 'plant', x: 11, y: 9 }, { type: 'plant', x: 2, y: 0 },
     ];
     R.npcs = R.npcs.map(n => n.id === 'zoe' ? Object.assign(n, { x: 12, y: 1 }) : n.id === 'bert' ? Object.assign(n, { x: 7, y: 10, gebied: [2, 9, 10, 10] }) : n);
-    R.npcs.push({ id: 'lotte', naam: 'Lotte', look: { naam: 'Lotte', huidK: '#C98E62', haarK: '#2B2118', stijlK: 'staart', shirtK: '#2F8BD6', broekK: '#2F8BD6' }, x: 6, y: 5, r: 'VR', dwaal: true, water: true, gebied: [3, 2, 11, 8], zinnen: ['Nog tien baantjes!', 'Het water is heerlijk. Spring er ook in!', 'Ik oefen voor mijn diploma C.'] });
+    R.npcs.push({ id: 'fleur', naam: 'Fleur', look: { naam: 'Fleur', huidK: '#C98E62', haarK: '#2B2118', stijlK: 'staart', shirtK: '#2F8BD6', broekK: '#2F8BD6' }, x: 6, y: 5, r: 'VR', dwaal: true, water: true, gebied: [3, 2, 11, 8], zinnen: ['Nog tien baantjes!', 'Het water is heerlijk. Spring er ook in!', 'Ik oefen voor mijn diploma C.'] });
   });
   // het dakterras: groter, met een gevel eronder en een reling die de vorm volgt
   verbouw('dak', 14, 11, [[12, 9, 13, 10], [13, 8, 13, 8], [0, 10, 2, 10]], R => {
@@ -1580,6 +1580,75 @@ dialog { max-height: 90vh; overflow-y: auto; }
     for (let x = 0; x < R.w; x++) { let y0 = null; for (let y = 0; y <= R.h; y++) { const rand = y < R.h && R.tegels[y][x] !== ' ' && (x === R.w - 1 || R.tegels[y][x + 1] === ' '); if (rand && y0 === null) y0 = y; if (!rand && y0 !== null) { R.meubels.push({ type: 'leuning', x: x + 1, y: y0, w: 0.08, d: y - y0, geenBlok: true }); y0 = null; } } }
     R.meubels.push({ type: 'bloembak', x: 11, y: 2 }, { type: 'bloembak', x: 11, y: 4 }, { type: 'parasol', x: 10, y: 6, kleur: '#2F8BD6' }, { type: 'ligstoel', x: 11, y: 7, zit: [[11, 7, 'VL']], kleur: '#2F8BD6' }, { type: 'plant', x: 13, y: 0, groot: true }, { type: 'plant', x: 3, y: 9, groot: true }, { type: 'plant', x: 12, y: 8 });
   });
+
+  // ---------------------------------------------------------------- de grote hal: receptie en lobby worden één ruimte, het café zit eraan vast, de kamers bereik je met de lift
+  const kopie = o => JSON.parse(JSON.stringify(o));
+  const OUD = { receptie: kopie(RUIMTES.receptie) }; // de receptie van 1926 houdt haar eigen deur naar de lobby van 1926
+  OUD.receptie.meubels.forEach(m => { if (m.type === 'bagagekar') m.y = 8; });
+  (function maakHal() {
+    const Rc = RUIMTES.receptie, Lb = RUIMTES.lobby, W = 22, Hh = 15;
+    const gat = [[19, 12, 21, 14], [21, 10, 21, 11], [20, 11, 20, 11], [0, 14, 1, 14]];
+    const tegels = []; for (let y = 0; y < Hh; y++) { let r = ''; for (let x = 0; x < W; x++) r += gat.some(([a, b, c, d]) => x >= a && x <= c && y >= b && y <= d) ? ' ' : x < 10 && y < 9 ? '.' : 'p'; tegels.push(r); }
+    const npc = id => Object.assign({}, (Rc.npcs.concat(Lb.npcs)).find(n => n.id === id));
+    const meubel = (lijst, type, naam) => Object.assign({}, lijst.find(m => m.type === type && (!naam || m.naam === naam)));
+    const hal = {
+      id: 'receptie', naam: 'De grote hal', ondertitel: 'Receptie, haard en piano, met het café ernaast', w: W, h: Hh, vorm: true, tegels,
+      vloer: { '.': Rc.vloer['.'], p: Lb.vloer['.'] },
+      mat: { '.': 'marmer', p: 'planken' },
+      muur: Rc.muur,
+      deuren: [
+        Object.assign({}, Rc.deuren.find(d => d.naar === 'plein')),
+        Object.assign({}, Rc.deuren.find(d => d.lift)),
+        { kant: 'R', t: 12, x: 12, y: 0, naar: 'cafe', spawn: [1, 3, 'VR'], naam: 'Naar het café' },
+      ],
+      muurDeco: Rc.muurDeco.filter(d => !(d.soort === 'bord')).concat([
+        { soort: 'bord', kant: 'L', t: 2.5, z: 68, tekst: 'KAMERS', kleur: '#23252B', tekstKleur: '#E9B949' },
+        { soort: 'bord', kant: 'R', t: 11.4, z: 68, tekst: 'CAFE', kleur: '#C8323C', tekstKleur: '#FBF6E9' },
+        { soort: 'prikbord', kant: 'R', t0: 13.6, t1: 15, z0: 26, z1: 50, actie: 'prikbord', voor: [14, 1], naam: 'Prikbord' },
+        { soort: 'raam', kant: 'R', t0: 6.2, t1: 7.6, z0: 24, z1: 56, gordijn: '#8E2F3A' },
+        { soort: 'raam', kant: 'R', t0: 17.2, t1: 18.6, z0: 24, z1: 56, gordijn: '#8E2F3A' },
+        { soort: 'schilderij', kant: 'L', t0: 6.2, t1: 7.4, z0: 26, z1: 46, kleur: '#C9873A' },
+        { soort: 'wandlamp', kant: 'L', t: 8.6, z: 50 }, { soort: 'wandlamp', kant: 'L', t: 11.3, z: 50 },
+        { soort: 'wandlamp', kant: 'R', t: 10.6, z: 52 }, { soort: 'wandlamp', kant: 'R', t: 16.2, z: 52 },
+      ]),
+      meubels: [
+        // de receptiebalie met Mien
+        ...Rc.meubels.filter(m => m.type === 'balie' || m.type === 'bel'),
+        { type: 'plant', x: 7, y: 1 }, { type: 'paraplubak', x: 7, y: 3, naam: 'Paraplubak' }, { type: 'bagagekar', x: 1, y: 8, naam: 'Bagagekar' },
+        { type: 'stoel', x: 6, y: 4, r: 'AL', zit: [[6, 4, 'AL']], kleur: '#2F4C8F' }, { type: 'stoel', x: 6, y: 5, r: 'AL', zit: [[6, 5, 'AL']], kleur: '#2F4C8F' }, { type: 'stoel', x: 6, y: 6, r: 'AL', zit: [[6, 6, 'AL']], kleur: '#2F4C8F', naam: 'Wachtstoel' },
+        { id: 'r1', type: 'lamp', x: 1, y: 7, aan: true, actie: 'lamp', naam: 'Staande lamp' },
+        // de zithoek bij de haard
+        { type: 'haard', x: 0, y: 9, d: 2, actie: 'haard', naam: 'Open haard' },
+        { type: 'boekenkast', kant: 'L', x: 0, y: 11.6, w: 0.5, d: 1.4, h: 54, naam: 'Boekenkast' },
+        { type: 'staandeklok', x: 0, y: 13, naam: 'Staande klok' },
+        { type: 'bank', x: 3, y: 9, w: 1, d: 2, r: 'VR', zit: [[3, 9, 'VR'], [3, 10, 'VR']], kleur: '#2E7A5E', naam: 'Bank' },
+        { type: 'bank', x: 4, y: 8, w: 2, d: 1, r: 'VL', zit: [[4, 8, 'VL'], [5, 8, 'VL']], kleur: '#2E7A5E', naam: 'Bank' },
+        { type: 'salontafel', x: 4, y: 9, w: 2, d: 2 },
+        { id: 'l1', type: 'lamp', x: 3, y: 8, aan: true, actie: 'lamp', naam: 'Leeslamp' },
+        // de piano bij de achterwand
+        { type: 'piano', x: 9, y: 0, w: 2, d: 1, actie: 'piano', naam: 'Piano' },
+        { type: 'stoel', x: 9, y: 1, r: 'AR', zit: [[9, 1, 'AR']], kleur: '#23252B', naam: 'Pianokruk' },
+        // rechts: aquarium en een tweede zithoek
+        { type: 'aquarium', x: 16, y: 0, w: 2, naam: 'Groot aquarium' },
+        { type: 'bank', x: 18, y: 4, w: 1, d: 2, r: 'AL', zit: [[18, 4, 'AL'], [18, 5, 'AL']], kleur: '#7A2E3A', naam: 'Bank bij het aquarium' },
+        { type: 'salontafel', x: 16, y: 4, w: 1, d: 2 },
+        { type: 'zitzak', x: 13, y: 10, kleur: '#E8577A', zit: [[13, 10, 'AL']] }, { type: 'zitzak', x: 15, y: 11, kleur: '#5EC2E8', zit: [[15, 11, 'AL']] }, { type: 'bistrotafel', x: 14, y: 10, kleur: '#F2EDE2' },
+        { type: 'plant', x: 21, y: 0, groot: true }, { type: 'plant', x: 21, y: 7 }, { type: 'plant', x: 18, y: 11 }, { type: 'plant', x: 9, y: 14, groot: true }, { type: 'plant', x: 15, y: 0 }, { type: 'plant', x: 11, y: 8 },
+      ],
+      kleden: [{ x: 2, y: 4, w: 3, d: 3, kleur: '#9E2430', rand: '#E9B949' }, { x: 2.6, y: 7.6, w: 4.4, d: 4, kleur: '#8E2F3A', rand: '#E0B34F' }, { x: 15.6, y: 3.6, w: 3, d: 2.8, kleur: '#2F4C8F', rand: '#C9A24E' }],
+      npcs: [
+        npc('mien'), Object.assign(npc('daan'), { gebied: [1, 3, 8, 7] }), npc('gerrit'), npc('fatima'),
+        Object.assign(npc('harrie'), { x: 12, y: 3, gebied: [8, 2, 15, 7] }),
+        Object.assign(npc('truus'), { x: 3, y: 10 }), Object.assign(npc('henk'), { x: 5, y: 8 }),
+        Object.assign(npc('lotte'), { x: 14, y: 12, gebied: [11, 9, 17, 13] }),
+      ],
+    };
+    // alles wat er nog meer bij de receptie hoorde (puzzels, verhaal) blijft bewaard
+    for (const k of Object.keys(Rc)) if (!(k in hal)) hal[k] = Rc[k];
+    RUIMTES.receptie = hal;
+    // het café zit nu direct aan de hal
+    for (const d of RUIMTES.cafe.deuren) if (d.naar === 'lobby') { d.naar = 'receptie'; d.spawn = [12, 1, 'VL']; d.naam = 'Naar de grote hal'; }
+  })();
   RUIMTES.machine = {
     naam: 'Machinekamer', ondertitel: 'Achter het zwembad: iets zoemt hier', w: 7, h: 6,
     tegels: Array(6).fill('.......'), vloer: { '.': ['#8C8F96', '#7E8188'] }, mat: { '.': 'stoep' },
@@ -1602,7 +1671,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     r.npcs = npcs; return r;
   };
   const posMien = RUIMTES.receptie.npcs.find(n => n.id === 'mien') || { x: 3, y: 1, r: 'VL' };
-  RUIMTES.receptie1926 = in1926(RUIMTES.receptie, 'Receptie, 1926', [
+  RUIMTES.receptie1926 = in1926(OUD.receptie, 'Receptie, 1926', [
     { id: 'kleinemien', naam: 'Kleine Mien', look: mens('Kleine Mien', 0, 1, 'knot', '#E8577A', '#7A4E9A', 'schort'), x: posMien.x, y: posMien.y, r: posMien.r, zinnen: ['Morgen gaat het hotel open!', 'Opa zegt dat er ooit honderd mensen tegelijk logeren. Dat geloof ik niet.'] },
     { id: 'piet', naam: 'Piet', look: mens('Piet', 1, 0, 'pet', '#2F4C8F', '#23252B'), x: 6, y: 5, r: 'VL', dwaal: true, gebied: [5, 4, 7, 6], zinnen: ['Ik ben de eerste conciërge van dit hotel. Mijn kleinzoon wordt later vast ook conciërge.', 'Dweilen? Nee hoor, ik veeg alleen.'] },
   ], { lobby: 'lobby1926' });
@@ -1674,6 +1743,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
   const SOUVENIRS = ['Roestig hoefijzer', 'Rubberen eendje', 'Gebarsten spiegel', 'Lege jampot', 'Kapotte wekker', 'Sokken zonder paar', 'Gedroogd klavertje', 'Glazen knikker', 'Postzegelalbum', 'Fietsbel', 'Tweedehands dobbelsteen', 'Zakmes'];
   const SOKPLEK = { cafe: [8, 4], spel: [7, 7], dak: [1, 6] };
   const BADGES = { inchecken: 'Ingecheckt', sokken: 'Sokkenjager', brief: 'Postbode', eenden: 'Eendenvriend', darts: 'Pijltjesprof', verzamelaar: 'Verzamelaar', rommelkoning: 'Rommelkoning', inrichter: 'Binnenhuisarchitect', sterren: 'Sterrenkijker', orgel: 'Muziekliefhebber' };
+  // de gang met de kamers bereik je alleen nog met de lift
+  for (const d of RUIMTES.gang.deuren) if (d.naar === 'lobby') { delete d.naar; delete d.spawn; d.lift = true; d.naam = 'Lift'; }
   // ---------------------------------------------------------------- opslag
   const KEY = 'rommelhotel-v1';
   const STANDAARD = { look: { naam: 'Gast', huid: 1, haar: 1, stijl: 0, shirt: 1, broek: 0 }, kamer: 'plein', x: 11, y: 15, bezocht: ['plein'], ingecheckt: false, lampen: {}, geluid: true,
@@ -1831,7 +1902,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   }
   function gaZitten(r, hoog) { speler.zit = true; speler.zitHoog = hoog || 0; speler.richting = r || speler.richting; speler.dans = false; $('b-dans').setAttribute('aria-pressed', 'false'); $('b-zit').setAttribute('aria-pressed', 'true'); }
 
-  const LIFTSTOP = { zwembad: { naam: 'Kelder: zwembad', spawn: [1, 1, 'VR'] }, receptie: { naam: 'Begane grond: receptie', spawn: [1, 2, 'VR'] }, spel: { naam: '1e verdieping: spelletjeskamer', spawn: [1, 4, 'VR'] }, bieb: { naam: '2e verdieping: bibliotheek', spawn: [1, 3, 'VR'] }, lab: { naam: 'Zolder: speurneuslab', spawn: [1, 3, 'VR'] }, dak: { naam: 'Dak: dakterras', spawn: [1, 1, 'VL'] } };
+  const LIFTSTOP = { zwembad: { naam: 'Kelder: zwembad', spawn: [1, 1, 'VR'] }, receptie: { naam: 'Begane grond: grote hal en café', spawn: [1, 2, 'VR'] }, gang: { naam: '1e verdieping: gastenkamers', spawn: [1, 1, 'VR'] }, bieb: { naam: '2e verdieping: bibliotheek', spawn: [1, 3, 'VR'] }, spel: { naam: '3e verdieping: spelletjeskamer', spawn: [1, 4, 'VR'] }, lab: { naam: 'Zolder: speurneuslab', spawn: [1, 3, 'VR'] }, dak: { naam: 'Dak: dakterras', spawn: [1, 1, 'VL'] } };
   function gebruikDeur(deur) {
     if (deur.slot === 'tijd') { zeg(speler, 'Die deur gaat in 1926 nog niet open.'); return; }
     if (deur.slot === 'incheck' && !S.ingecheckt) {
@@ -2331,8 +2402,9 @@ dialog { max-height: 90vh; overflow-y: auto; }
   // muren langs de achterkant van een vrije vorm: overal waar achter een vloertegel niets is
   function tekenVormMuren(R) {
     const M = R.muur, stukken = [];
-    for (let x = 0; x < R.w; x++) { let t0 = null; for (let y = 0; y <= R.h; y++) { const muur = y < R.h && tegelType(x, y) !== ' ' && tegelType(x - 1, y) === ' '; if (muur && t0 === null) t0 = y; if (!muur && t0 !== null) { stukken.push(['L', x, t0, y]); t0 = null; } } }
-    for (let y = 0; y < R.h; y++) { let t0 = null; for (let x = 0; x <= R.w; x++) { const muur = x < R.w && tegelType(x, y) !== ' ' && tegelType(x, y - 1) === ' '; if (muur && t0 === null) t0 = x; if (!muur && t0 !== null) { stukken.push(['R', y, t0, x]); t0 = null; } } }
+    const achterL = (x, y) => { for (let yy = 0; yy < y; yy++) if (tegelType(x - 1, yy) !== ' ') return false; return true; }, achterR = (x, y) => { for (let xx = 0; xx < x; xx++) if (tegelType(xx, y - 1) !== ' ') return false; return true; };
+    for (let x = 0; x < R.w; x++) { let t0 = null; for (let y = 0; y <= R.h; y++) { const muur = y < R.h && tegelType(x, y) !== ' ' && tegelType(x - 1, y) === ' ' && achterL(x, y); if (muur && t0 === null) t0 = y; if (!muur && t0 !== null) { stukken.push(['L', x, t0, y]); t0 = null; } } }
+    for (let y = 0; y < R.h; y++) { let t0 = null; for (let x = 0; x <= R.w; x++) { const muur = x < R.w && tegelType(x, y) !== ' ' && tegelType(x, y - 1) === ' ' && achterR(x, y); if (muur && t0 === null) t0 = x; if (!muur && t0 !== null) { stukken.push(['R', y, t0, x]); t0 = null; } } }
     const ox0 = ox, oy0 = oy, o = kl(M.rand, 0.4);
     // achterste muren eerst
     stukken.sort((a, b) => (a[1] + a[2]) - (b[1] + b[2]));
@@ -2573,8 +2645,12 @@ dialog { max-height: 90vh; overflow-y: auto; }
           poppetje(g, Math.round(p[0]), Math.round(p[1]), n.isSpeler ? S.look : n.look, { id: n.id ? [...String(n.id)].reduce((a, ch) => a + ch.charCodeAt(0), 0) : 3, praat: bubbels.some(b => b.wie === n && b.tot > nu), richting: n.richting, fase: n.fase, loopt: n.pad && n.pad.length > 0, zit: n.zit, zitHoog: n.zitHoog, zwaai: n.zwaai > nu, dans: n.dans, t, item: n.isSpeler && n.itemTot > nu ? n.item : null, fietst: n.isSpeler && S.fiets });
           if (zwemt) { // het water bedekt je benen, met kringen eromheen
             const wx = Math.round(p[0]), wy = Math.round(p[1]) - 12, golf = Math.sin(t / 260 + (n.x + n.y) * 2) * 1.5;
-            g.fillStyle = 'rgba(58,154,214,.88)'; g.fillRect(wx - 11, wy + golf, 22, 14); ovaal(wx, wy + golf, 11, 3, 'rgba(120,200,240,.9)');
+            g.save(); g.beginPath();
+            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = Math.round(n.x) + dx, Y = Math.round(n.y) + dy; if (tegelType(X, Y) !== 'w') continue; const a = P(X, Y, -5), b = P(X + 1, Y, -5), c = P(X + 1, Y + 1, -5), d = P(X, Y + 1, -5); g.moveTo(a[0], a[1] - 30); g.lineTo(b[0], b[1] - 30); g.lineTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.lineTo(d[0], d[1]); g.lineTo(d[0], d[1] - 30); g.closePath(); }
+            g.clip();
+            g.fillStyle = 'rgba(58,154,214,.9)'; g.fillRect(wx - 11, wy + golf, 22, 16); ovaal(wx, wy + golf, 11, 3, 'rgba(120,200,240,.9)');
             const k = (t / 900 + n.x) % 1; ovaal(wx, wy + 1, 12 + k * 10, 3 + k * 2, `rgba(220,240,255,${(0.5 * (1 - k)).toFixed(2)})`);
+            g.restore();
           }
           if (n.ballon) tekenBallon(Math.round(p[0]), Math.round(p[1]), n.ballon, t);
           if (typeof Verhaal !== 'undefined' && Verhaal.isDoel(n)) Verhaal.markeer(Math.round(p[0]), Math.round(p[1]) - 42);
@@ -2867,7 +2943,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function openKaart() {
     const ul = $('kamers'); ul.innerHTML = '';
     Object.entries(RUIMTES).forEach(([id, r]) => {
-      if (r.gast || r.jaar || id === 'machine') return;
+      if (r.gast || r.jaar || id === 'machine' || id === 'lobby') return;
       const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
       const bekend = S.bezocht.includes(id), opSlot = !['plein', 'receptie'].includes(id) && !S.ingecheckt;
       b.innerHTML = '<span></span><small></small>';
@@ -2920,9 +2996,9 @@ dialog { max-height: 90vh; overflow-y: auto; }
   };
   const STAPPEN = [
     { wie: 'mien', kamer: 'receptie', doel: 'Praat met Mien bij de receptie.', voor: [['mien', 'Psst, {naam}! Fijn dat je er bent. Ik moet je iets vertellen.'], ['mien', 'Over drie dagen bestaat het Rommelhotel honderd jaar. Er komt een groot feest.'], ['mien', 'Maar de Gouden Sleutel is verdwenen! Alleen daarmee gaat de oude jubileumkluis open.'], ['jij', 'Een verdwenen sleutel? Dat klinkt als een raadsel.'], ['mien', 'Precies. En jij lijkt me iemand die van raadsels houdt. Kijk eens naar mijn sleutelbord...']], puzzel: 'p1', na: [['mien', 'Knap! Je bent een echte speurneus.'], ['mien', 'Harrie dweilde gisteravond als laatste in de lobby. Vraag hem eens wat hij gezien heeft.'], ['mien', 'O, en kijk goed om je heen. Overal in het hotel liggen hintmuntjes verstopt.']] },
-    { wie: 'harrie', kamer: 'lobby', doel: 'Vraag Harrie in de lobby wat hij gezien heeft.', voor: [['harrie', 'Of ik iets gezien heb? Voetstappen! Op mijn net gedweilde vloer!'], ['harrie', 'Er waren nog drie gasten in de lobby: Truus, Henk en Lotte. Maar wie van hen was het?']], puzzel: 'p2', na: [['harrie', 'Truus? Onze lieve Truus? Ga het haar maar eens vragen.']] },
-    { wie: 'truus', kamer: 'lobby', doel: 'Vraag Truus wat ze gisteravond deed.', voor: [['truus', 'O jee, betrapt. Ja, ik liep nog even naar het café.'], ['truus', 'Ik had een briefje gevonden, onder de staande klok. Dat heb ik aan Joep gegeven.'], ['truus', 'Maar eerst moest ik Henk helpen met de lampjes. Daar kwam ik niet uit. Misschien kun jij hem helpen?']], na: [] },
-    { wie: 'henk', kamer: 'lobby', doel: 'Help Henk met de lampjes in de lobby.', voor: [['henk', 'Kijk nou, die lampjes. Als je er één indrukt, springen de buren mee.'], ['henk', 'Krijg jij ze allemaal tegelijk aan?']], puzzel: 'p3', na: [['henk', 'Prachtig! Nu kan ik mijn krant weer lezen.'], ['henk', 'Dat briefje van Truus? Joep in het café heeft het. Hij snapt er niks van.']] },
+    { wie: 'harrie', kamer: 'receptie', doel: 'Vraag Harrie in de grote hal wat hij gezien heeft.', voor: [['harrie', 'Of ik iets gezien heb? Voetstappen! Op mijn net gedweilde vloer!'], ['harrie', 'Er waren nog drie gasten in de lobby: Truus, Henk en Lotte. Maar wie van hen was het?']], puzzel: 'p2', na: [['harrie', 'Truus? Onze lieve Truus? Ga het haar maar eens vragen.']] },
+    { wie: 'truus', kamer: 'receptie', doel: 'Vraag Truus wat ze gisteravond deed.', voor: [['truus', 'O jee, betrapt. Ja, ik liep nog even naar het café.'], ['truus', 'Ik had een briefje gevonden, onder de staande klok. Dat heb ik aan Joep gegeven.'], ['truus', 'Maar eerst moest ik Henk helpen met de lampjes. Daar kwam ik niet uit. Misschien kun jij hem helpen?']], na: [] },
+    { wie: 'henk', kamer: 'receptie', doel: 'Help Henk met de lampjes in de grote hal.', voor: [['henk', 'Kijk nou, die lampjes. Als je er één indrukt, springen de buren mee.'], ['henk', 'Krijg jij ze allemaal tegelijk aan?']], puzzel: 'p3', na: [['henk', 'Prachtig! Nu kan ik mijn krant weer lezen.'], ['henk', 'Dat briefje van Truus? Joep in het café heeft het. Hij snapt er niks van.']] },
     { wie: 'joep', kamer: 'cafe', doel: 'Vraag Joep in het café naar het briefje.', voor: [['joep', 'Dit briefje bedoel je? Er staan rare letters op.'], ['joep', 'JO EF CJFC. Is het Spaans? Is het Limburgs?']], puzzel: 'p4', na: [['joep', 'In de bieb! Natuurlijk. Maar help je me eerst even? Ik moet nog een vlaai snijden.']] },
     { wie: 'joep', kamer: 'cafe', doel: 'Help Joep met de vlaai.', voor: [['joep', 'Ik wil zoveel mogelijk stukken, maar ik heb maar tijd voor drie sneden.']], puzzel: 'p5', na: [['joep', 'Zeven stukken! Je bent een rekenwonder.'], ['joep', 'Weet je wie alles ziet in dit hotel? Fenna van de schoonmaak. Ze is in de gang bij de kamers.']] },
     { wie: 'fenna', kamer: 'gang', doel: 'Vraag Fenna in de gang wie ze gezien heeft.', voor: [['fenna', 'Wie ik gezien heb? Iedereen, bij het ontbijt. Maar in welke volgorde ook alweer?'], ['fenna', 'Help je me even? Dan weet ik weer wie er als laatste wegging.']], puzzel: 'p6', na: [['fenna', 'Ja, zo was het! En na het ontbijt liep meneer Boekhout met een sleutelbos naar de lift.'], ['fenna', 'Hij zit in de bibliotheek, op de tweede verdieping. Neem de lift bij de receptie.']] },
@@ -3040,7 +3116,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   const VERVANG = [['Zeven stukken! Je bent een rekenwonder.', 'Elf stukken! Je bent een rekenwonder.'], ['Boek 30! Dat hoort hier niet.', 'Boek 22! Dat hoort hier niet.'], ['Acht! Ik heb ze allemaal bekeken.', 'Tien! Ik heb ze allemaal bekeken.'], ['Negen stukken! Dat is geen hapje meer.', 'Zeven stukken! Dat is geen hapje meer.'], ['Om twee voor één. Midden in de nacht!', 'Om zeventien voor één. Midden in de nacht!']];
   STAPPEN.forEach(st => ['voor', 'na'].forEach(w => (st[w] || []).forEach(r => { for (const [a, b] of VERVANG) if (r[1].startsWith(a)) r[1] = r[1].replace(a, b); })));
 
-  const MUNTPLEKKEN = [['receptie', 'paraplubak'], ['receptie', 'bagagekar'], ['lobby', 'staandeklok'], ['lobby', 'boekenkast'], ['cafe', 'kapstok'], ['cafe', 'vitrine'], ['gang', 'snoepautomaat'], ['bieb', 'globe'], ['zwembad', 'handdoeken'], ['k13', 'kristalbol'], ['k2', 'aquarium'], ['k7', 'telescoop'], ['lab', 'microscoop'], ['lab', 'archiefkast']];
+  const MUNTPLEKKEN = [['receptie', 'paraplubak'], ['receptie', 'bagagekar'], ['receptie', 'staandeklok'], ['receptie', 'boekenkast'], ['cafe', 'kapstok'], ['cafe', 'vitrine'], ['gang', 'snoepautomaat'], ['bieb', 'globe'], ['zwembad', 'handdoeken'], ['k13', 'kristalbol'], ['k2', 'aquarium'], ['k7', 'telescoop'], ['lab', 'microscoop'], ['lab', 'archiefkast']];
   BADGES.speurneus = 'Speurneus'; BADGES.meesterspeurneus = 'Meesterspeurneus';
   const HOOFDSTUKKEN = { 1: 'Het geheim van de Gouden Sleutel', 2: 'Wie heeft de vlaai opgegeten?' };
   // ================================================================ HOOFDSTUK 3: Terug naar 1926

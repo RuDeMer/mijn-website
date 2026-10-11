@@ -314,3 +314,20 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 ## Werkplaats
 
 - **Versienummer**: alleen een nieuwe pagina of een nieuw spel (een nieuw .html-bestand, niet index.html of 404.html) zet het vinkje "versienummer verhogen" vanzelf aan, en dan gaat het met 0.01 omhoog. Alleen updates van bestaande bestanden laten het versienummer staan; je kunt het vinkje zelf aanzetten, en de werkplaats onthoudt dat tot na de upload. Wijzigingen op de homepage (volgorde, labels, teksten) veranderen het versienummer nooit. Voor een grote update kun je bij het uploaden zelf een versienummer invullen (bijvoorbeeld 0.80); dat gaat dan altijd voor.
+
+
+## Balans en eerlijk spelen (najaar 2026)
+
+### Voortgang op de server, en controle tegen valsspelen
+- Iedereen heeft vanzelf een **account**: zonder koppelcode maakt `scorebord.js` er na 2,5 s zelf een (vijf delen, bijvoorbeeld `rode-vlaai-raket-uil-1234`), en synchroniseert dan alle `SLEUTELS` met de server (`/sync`). De code staat in het venster "Je account" (`Scorebord.koppel()`); daarmee haal je je voortgang op een ander apparaat of na een lege browser terug.
+- **De server controleert** in `/sync` de opslagen van `vlaaienbakker-v1` en `rommelbeesten-v1` (`VALIDATIE` in `scorebord-worker.js`): de nieuwe stand wordt vergeleken met de vorige op de server, en geweigerd als hij niet eerlijk te verdienen is (te snel gebakken, bakkers die je niet kon betalen, te veel gildesterren, te veel muntjes, kaarten of zeldzame kaarten voor het aantal geopende pakjes). De marges zijn ruim (offline bakken, dagbonussen en cadeaus passen erin). Bij een weigering stuurt de server de laatste eerlijke stand terug (`geweigerd` in het antwoord), zet `scorebord.js` die terug, herlaadt de pagina en legt het uit.
+- De server kent daarvoor de bakkers (`VB_BAKKERS`, prijs en productie), de rekenregels van de Vlaaienbakker, en de zeldzaamheid van alle 570 kaarten (`RB_RAR`). **Verander je bakkers, gilderegels, klikwaarden of verkoopwaarden, pas dan ook de worker aan**: `vb_bakkers.json` en `rb_rariteit.json` worden gemaakt met een klein Node-script (zie de geschiedenis), en `vbBonus`, `vbKlik` en `RB_WAARDE` staan los in de worker.
+- Wat nog niet waterdicht is: de allereerste opslag van een account wordt vertrouwd (bestaande voortgang moet mee kunnen), pakjes worden nog in de browser getrokken (de server begrenst alleen wat er bij kan komen), en scores van de andere spellen worden alleen op een maximum gecontroleerd.
+
+### Vlaaienbakker
+- **Bakkersgilde**: gildesterren = derdemachtswortel van (ooit / 1 biljoen), elke ster +2% (was: wortel van ooit / 100 miljard, +3%). Meesterbakker ×1,5 voor 150 sterren, Grootmeester ×2 voor 750 sterren, Gouden vingers klik ×3, Nachtploeg tot 12 uur. Bestaande bakkerijen worden eenmalig omgerekend (`S.gilde.v2`): verdiende sterren worden het nieuwe maximum, te besteden sterren maximaal verdiend + 5, gekochte voordelen blijven.
+- **Klikken**: de klikverbeteringen geven +1, +2, +3 en +4% van de productie per klik (was 2, 4, 8, 16), Alaaf klik ×15 (was ×40), en een klik telt pas 60 ms na de vorige (tegen automatische klikkers).
+- **Dagelijkse bonus** (`S.inlog`): elke dag dat je terugkomt 5, 10, 15, 20, 30, 45 of 60 minuten productie, oplopend met je reeks; vanaf dag 7 ook een minuut kermis. Een gemiste dag zet de reeks terug op 1. De dagelijkse bestellingen (gildester als je ze alle drie levert) blijven.
+
+### Rommelbeesten
+- Verkoopwaarde van holo, ultra en geheim: 35, 100 en 250 muntjes (was 50, 160, 500). Het gratis pakje komt op niveau 10 elke 3,5 uur en op niveau 20 elke 3 uur (was 3 en 2). Dagbonus met reeks, gratis pakjes, opdrachten en het niveaupad blijven de redenen om terug te komen.

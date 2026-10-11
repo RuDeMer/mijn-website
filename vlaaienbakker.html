@@ -306,6 +306,9 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    rob: () => { const s = lees('rommelrob-v1'); return s && s.best ? [s.best, s.totaal || 0] : null; },
+    arend: () => { const s = lees('rommelarend-v1'); if (!s) return null; const p = (s.ontdekt || []).length * 100 + (s.veren || []).length * 25 + Object.values(s.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0); return p ? [p, (s.ontdekt || []).length] : null; },
+    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
     ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
     vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
@@ -409,7 +412,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
   // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
   const KKEY = 'rommelhoekje-koppel';
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -431,8 +434,10 @@ details.stats summary { cursor: pointer; font-weight: 700; }
       }
       const r = await fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend }) });
       const j = await r.json(); if (!j.ok) return null;
-      const herstel = {}; let nieuwHier = false;
+      const herstel = {}; let nieuwHier = false, geweigerdHier = '';
       for (const [k, it] of Object.entries(j.items || {})) {
+        const weg = j.geweigerd && j.geweigerd[k];
+        if (weg) { K.staat[k] = { h: hash(it.data), t: it.t }; if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; geweigerdHier = weg; } else { try { localStorage.setItem(k, it.data); } catch (e) {} } continue; }
         if (!SLEUTELS.includes(k) || (K.staat[k] && K.staat[k].t >= it.t)) continue;
         K.staat[k] = { h: hash(it.data), t: it.t };
         if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} }
@@ -441,6 +446,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
       // nieuwe voortgang voor het spel dat nu open is: bij het openen meteen herladen, later alleen met een knop (anders gaan twee apparaten om de beurt herladen)
       if (nieuwHier) {
         try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
+        if (geweigerdHier) { try { sessionStorage.setItem('koppel-geweigerd', geweigerdHier); } catch (e) {} location.reload(); return j; }
         if (eersteK && !stil) { location.reload(); return j; }
         toonKoppelMelding('Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', () => location.reload());
       }
@@ -449,7 +455,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   }
   const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
   const WOORD2 = ['vlaai', 'raket', 'zolder', 'kraan', 'lamp', 'vos', 'uil', 'beer', 'trommel', 'vlieger', 'ster', 'koepel', 'piano', 'wolk', 'kikker', 'draak', 'tram', 'molen', 'sok', 'hoed', 'fiets', 'toren', 'boot', 'pinguin'];
-  function maakCode() { const a = new Uint32Array(4); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], 100 + a[3] % 900].join('-'); }
+  function maakCode() { const a = new Uint32Array(5); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], WOORD2[a[3] % WOORD2.length], 1000 + a[4] % 9000].join('-'); }
   const schoon = c => (c || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   async function maakKoppeling() { const K = { code: maakCode(), staat: {} }; schrijfK(K); await koppelSync(true); return K.code; }
   async function gebruikCode(code) {
@@ -483,7 +489,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
     const K = leesK();
     const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
-    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je apparaten zijn gekoppeld</h2><p>Je koppelcode is:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
       : `<div class="kp-in"><h2>Koppel je apparaten</h2><p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
     const q = id => dlg.querySelector('#' + id);
     q('kp-dicht').onclick = () => dlg.close();
@@ -494,6 +500,10 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     if (!dlg.open) dlg.showModal();
   }
   API.koppel = openKoppel; API.koppelSync = koppelSync;
+  // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
+  setTimeout(() => { const K = leesK(); if (!K || !K.code) maakKoppeling().catch(() => {}); }, 2500);
+  // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
+  try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang is teruggezet naar de laatste eerlijke stand op de server (' + w + '). Valsspelen telt niet mee!'), 400)); } } catch (e) {}
   // op de homepage en het scorebord een knopje
   if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
   try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
@@ -663,10 +673,10 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     UPGRADES.push({ id: b.id + '-5', soort: 'bakker', bakker: b.id, naam: b.t[4], effect: b.naam + ' ×3', prijs: b.prijs * 1e9, eis: S => (S.bakkers[b.id] || 0) >= 250 });
   });
   UPGRADES.push({ id: 'mixer', soort: 'klik', icoon: 'mixer', naam: 'Keukenmixer', effect: 'Klik ×2', prijs: 600, eis: S => S.kliks >= 30 });
-  UPGRADES.push({ id: 'want', soort: 'klik', icoon: 'want', naam: 'Ovenwant', effect: 'Elke klik +2% van je productie', prijs: 50000, eis: S => S.kliks >= 200 });
-  UPGRADES.push({ id: 'deegroller', soort: 'klik', icoon: 'deegroller', naam: 'Gouden deegroller', effect: 'Elke klik nog eens +4%', prijs: 5e6, eis: S => S.upg.includes('want') });
-  UPGRADES.push({ id: 'garde', soort: 'klik', icoon: 'mixer', naam: 'Zilveren garde', effect: 'Elke klik nog eens +8%', prijs: 5e10, eis: S => S.kliks >= 3000 });
-  UPGRADES.push({ id: 'klikrobot', soort: 'klik', icoon: 'want', naam: 'Klikrobot', effect: 'Elke klik nog eens +16%', prijs: 5e13, eis: S => S.kliks >= 10000 });
+  UPGRADES.push({ id: 'want', soort: 'klik', icoon: 'want', naam: 'Ovenwant', effect: 'Elke klik +1% van je productie', prijs: 50000, eis: S => S.kliks >= 200 });
+  UPGRADES.push({ id: 'deegroller', soort: 'klik', icoon: 'deegroller', naam: 'Gouden deegroller', effect: 'Elke klik nog eens +2%', prijs: 5e6, eis: S => S.upg.includes('want') });
+  UPGRADES.push({ id: 'garde', soort: 'klik', icoon: 'mixer', naam: 'Zilveren garde', effect: 'Elke klik nog eens +3%', prijs: 5e10, eis: S => S.kliks >= 3000 });
+  UPGRADES.push({ id: 'klikrobot', soort: 'klik', icoon: 'want', naam: 'Klikrobot', effect: 'Elke klik nog eens +4%', prijs: 5e13, eis: S => S.kliks >= 10000 });
 
   const totaalBakkers = S => Object.values(S.bakkers).reduce((a, b) => a + b, 0);
   // [id, naam, uitleg, hoe meet je het, doel, eenheid]
@@ -729,6 +739,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   let S = nieuweStaat();
   try { const r = localStorage.getItem(KEY); if (r) { const o = JSON.parse(r); if (o && o.v === 1) S = Object.assign(nieuweStaat(), o); } } catch (e) {}
   if (!S.ooit) S.ooit = S.totaal; S.gilde = Object.assign({ sterren: 0, verdiend: 0, resets: 0, perks: [] }, S.gilde || {});
+  if (!S.gilde.v2) { const nieuwPot = Math.floor(Math.cbrt(S.ooit / 1e12)), oudV = S.gilde.verdiend; S.gilde.verdiend = Math.min(oudV, nieuwPot); S.gilde.sterren = Math.min(S.gilde.sterren, S.gilde.verdiend + 5); S.gilde.v2 = true; if (oudV > S.gilde.verdiend) S.gildeHerzien = [oudV, S.gilde.verdiend]; }
   const bewaar = () => { S.tijd = Date.now(); try { S.vpsNu = Math.floor(vps(true)); } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   let buffs = [];
   let stuks = 1;
@@ -736,7 +747,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   // ---------- rekenen
   function vermenigvuldiger(bid) { let m = 1; for (const [n, f] of [[1, 2], [2, 2], [3, 2], [4, 3], [5, 3]]) if (S.upg.includes(bid + '-' + n)) m *= f; return m; }
   const heeftPerk = p => S.gilde.perks.includes(p);
-  function gildeBonus() { return (1 + 0.03 * S.gilde.verdiend) * (heeftPerk('meester') ? 2 : 1) * (heeftPerk('groot') ? 3 : 1); }
+  function gildeBonus() { return (1 + 0.02 * S.gilde.verdiend) * (heeftPerk('meester') ? 1.5 : 1) * (heeftPerk('groot') ? 2 : 1); }
   function algemeen() { return (1 + 0.1 * (S.smaken.length - 1)) * (1 + 0.02 * S.pres.length) * gildeBonus(); }
   function vpsVan(b) { return (S.bakkers[b.id] || 0) * b.vps * vermenigvuldiger(b.id) * algemeen(); }
   function vps(zonderBuff) {
@@ -746,9 +757,9 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   }
   function klikWaarde() {
     let k = Math.pow(2, S.smaken.length - 1) * (S.upg.includes('mixer') ? 2 : 1);
-    k += vps(true) * ((S.upg.includes('want') ? 0.02 : 0) + (S.upg.includes('deegroller') ? 0.04 : 0) + (S.upg.includes('garde') ? 0.08 : 0) + (S.upg.includes('klikrobot') ? 0.16 : 0));
-    if (heeftPerk('klik')) k *= 10;
-    if (buffs.some(x => x.id === 'alaaf')) k *= 40;
+    k += vps(true) * ((S.upg.includes('want') ? 0.01 : 0) + (S.upg.includes('deegroller') ? 0.02 : 0) + (S.upg.includes('garde') ? 0.03 : 0) + (S.upg.includes('klikrobot') ? 0.04 : 0));
+    if (heeftPerk('klik')) k *= 3;
+    if (buffs.some(x => x.id === 'alaaf')) k *= 15;
     return k;
   }
   const prijsVan = (b, n) => { const k = S.bakkers[b.id] || 0; return Math.ceil(b.prijs * (heeftPerk('korting') ? 0.9 : 1) * Math.pow(GROEI, k) * (Math.pow(GROEI, n) - 1) / (GROEI - 1) - 1e-6); };
@@ -761,7 +772,9 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     $('vlaai').setAttribute('aria-label', 'Bak een ' + (sm ? sm.naam.toLowerCase() : 'vlaai'));
   }
   let zwevers = 0;
+  let laatsteKlik = 0;
   function klik(x, y) {
+    const nu0 = performance.now(); if (nu0 - laatsteKlik < 60) return; laatsteKlik = nu0;
     const k = klikWaarde();
     S.vlaaien += k; S.totaal += k; S.ooit += k; S.kliks++; telDag('klik', 1);
     const knop = $('vlaai');
@@ -929,7 +942,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     const r = Math.random();
     if (r < 0.45) { buffs = buffs.filter(b => b.id !== 'kermis'); buffs.push({ id: 'kermis', naam: 'Kermis: productie ×5', tot: Date.now() + 30000 * (heeftPerk('buff') ? 2 : 1), duur: 30000 * (heeftPerk('buff') ? 2 : 1) }); meld('Kermis! Je bakkers bakken 30 seconden lang vijf keer zo snel.'); }
     else if (r < 0.8) { const x = Math.max(25, Math.min(S.vlaaien * 0.2, vps(true) * 900)); S.vlaaien += x; S.totaal += x; S.ooit += x; meld('De buurvrouw koopt een hele stapel: +' + fmt(x) + ' vlaaien!'); }
-    else { buffs = buffs.filter(b => b.id !== 'alaaf'); buffs.push({ id: 'alaaf', naam: 'Alaaf: klik ×40', tot: Date.now() + 15000 * (heeftPerk('buff') ? 2 : 1), duur: 15000 * (heeftPerk('buff') ? 2 : 1) }); meld('Alaaf! 15 seconden lang levert elke klik veertig keer zoveel op.'); }
+    else { buffs = buffs.filter(b => b.id !== 'alaaf'); buffs.push({ id: 'alaaf', naam: 'Alaaf: klik ×15', tot: Date.now() + 15000 * (heeftPerk('buff') ? 2 : 1), duur: 15000 * (heeftPerk('buff') ? 2 : 1) }); meld('Alaaf! 15 seconden lang levert elke klik veertig keer zoveel op.'); }
     haalGoudWeg(); alles();
   }
   function tekenBuffs() {
@@ -971,19 +984,19 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   // ---------- het Bakkersgilde: verkoop je bakkerij voor gildesterren
   const PERKS = [
     { id: 'start', naam: 'Vliegende start', tekst: 'Begin elke keer met 10 oma\'s en 5 bakkersleerlingen.', prijs: 5 },
-    { id: 'klik', naam: 'Gouden vingers', tekst: 'Elke klik is tien keer zoveel waard.', prijs: 10 },
-    { id: 'offline', naam: 'Nachtploeg', tekst: 'Als je weg bent, bakken je bakkers op volle kracht door, tot 24 uur lang.', prijs: 10 },
+    { id: 'klik', naam: 'Gouden vingers', tekst: 'Elke klik is drie keer zoveel waard.', prijs: 10 },
+    { id: 'offline', naam: 'Nachtploeg', tekst: 'Als je weg bent, bakken je bakkers op volle kracht door, tot 12 uur lang.', prijs: 10 },
     { id: 'goud', naam: 'Geluksvogel', tekst: 'Gouden vlaaien komen twee keer zo vaak.', prijs: 15 },
     { id: 'korting', naam: 'Gildekorting', tekst: 'Alle bakkers zijn 10% goedkoper.', prijs: 25 },
     { id: 'buff', naam: 'Lange kermis', tekst: 'Effecten van gouden vlaaien duren twee keer zo lang.', prijs: 30 },
     { id: 'smaak', naam: 'Smaakgeheugen', tekst: 'Je smaken blijven bewaard als je opnieuw begint.', prijs: 40 },
     { id: 'upg', naam: 'Receptenboek', tekst: 'De eerste twee verbeteringen van elke bakker blijven bewaard.', prijs: 60 },
-    { id: 'meester', naam: 'Meesterbakker', tekst: 'Alles bakt twee keer zoveel.', prijs: 100 },
-    { id: 'groot', naam: 'Grootmeester', tekst: 'Alles bakt nog eens drie keer zoveel.', prijs: 500 },
+    { id: 'meester', naam: 'Meesterbakker', tekst: 'Alles bakt anderhalf keer zoveel.', prijs: 150 },
+    { id: 'groot', naam: 'Grootmeester', tekst: 'Alles bakt nog eens twee keer zoveel.', prijs: 750 },
   ];
-  const potentieel = () => Math.floor(Math.sqrt(S.ooit / 1e11));
+  const potentieel = () => Math.floor(Math.cbrt(S.ooit / 1e12));
   const nieuweSterren = () => Math.max(0, potentieel() - S.gilde.verdiend);
-  function volgendeSter() { const p = potentieel() + 1; return p * p * 1e11 - S.ooit; }
+  function volgendeSter() { const p = potentieel() + 1; return p * p * p * 1e12 - S.ooit; }
   function verkoop() {
     const n = nieuweSterren(); if (!n) return;
     if (!confirm(`Je verkoopt je bakkerij aan het Bakkersgilde en begint opnieuw. Je krijgt ${n} gildester${n > 1 ? 'ren' : ''}, en elke gildester laat je voor altijd 3% meer bakken. Je prestaties blijven bewaard. Doorgaan?`)) return;
@@ -998,7 +1011,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     const n = nieuweSterren();
     $('gilde').innerHTML = `<div class="gilde-stand"><div><b>${S.gilde.sterren}</b><span>gildesterren om te besteden</span></div><div><b>+${Math.round((gildeBonus() - 1) * 100)}%</b><span>meer bakken door het gilde</span></div><div><b>${S.gilde.resets}</b><span>keer opnieuw begonnen</span></div></div>
       <button class="knop hoofd" id="b-gilde" type="button" ${n ? '' : 'disabled'}>${n ? `Verkoop aan het gilde: +${n} gildester${n > 1 ? 'ren' : ''}` : 'Nog geen gildesterren te verdienen'}</button>
-      <p class="gilde-uitleg">Gildesterren verdien je met alles wat je ooit hebt gebakken. ${potentieel() < 1 ? 'Je eerste gildester krijg je bij 100 miljard vlaaien in totaal.' : `Nog ${fmt(volgendeSter())} vlaaien tot de volgende.`} Elke gildester laat je voor altijd 3% meer bakken, en je kunt ze uitgeven aan gildevoordelen.</p>
+      <p class="gilde-uitleg">Gildesterren verdien je met alles wat je ooit hebt gebakken. ${potentieel() < 1 ? 'Je eerste gildester krijg je bij 1 biljoen vlaaien in totaal.' : `Nog ${fmt(volgendeSter())} vlaaien tot de volgende.`} Elke gildester laat je voor altijd 3% meer bakken, en je kunt ze uitgeven aan gildevoordelen.</p>
       <ul class="perks">${PERKS.map(p => `<li class="${heeftPerk(p.id) ? 'heb' : ''}"><b>${p.naam}</b><span>${p.tekst}</span>${heeftPerk(p.id) ? '<span>✓ In bezit</span>' : `<button class="knop" type="button" data-perk="${p.id}" ${S.gilde.sterren >= p.prijs ? '' : 'disabled'}>${p.prijs} gildesterren</button>`}</li>`).join('')}</ul>`;
   }
   document.addEventListener('click', e => {
@@ -1007,11 +1020,22 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   });
   function alles() { tekenTeller(); tekenBakkers(); tekenUpgrades(); controleerPrestaties(); tekenStats(); tekenBestel(); tekenGilde(); }
 
+  // ---------- dagelijkse bonus: elke dag terugkomen levert meer op (een gemiste dag zet de reeks terug op 1)
+  (function dagBonus() {
+    const vandaag = vandaagNr(), I = S.inlog = S.inlog || { laatst: 0, reeks: 0 };
+    if (I.laatst === vandaag) return;
+    I.reeks = I.laatst === vandaag - 1 ? I.reeks + 1 : 1; I.laatst = vandaag;
+    const minuten = [5, 10, 15, 20, 30, 45, 60][Math.min(7, I.reeks) - 1], x = Math.max(100, vps(true) * 60 * minuten);
+    S.vlaaien += x; S.totaal += x; S.ooit += x;
+    if (I.reeks >= 7) buffs.push({ id: 'kermis', naam: 'Kermis: productie ×5', tot: Date.now() + 60000, duur: 60000 });
+    setTimeout(() => meld(`Dag ${I.reeks} op rij in de bakkerij! Je krijgt ${fmt(x)} vlaaien (${minuten} minuten productie)${I.reeks >= 7 ? ' en een minuut kermis' : `. Kom morgen terug voor nog meer`}.`), 1800);
+  })();
+  if (S.gildeHerzien) { const [o, n] = S.gildeHerzien; delete S.gildeHerzien; setTimeout(() => meld(`Het Bakkersgilde is eerlijker gemaakt: gildesterren zijn nu zeldzamer, maar elke ster is meer waard om te verdienen. Je hebt er nu ${n} (was ${o}). Je gekochte voordelen houd je.`), 3200); }
   // ---------- welkom terug
   (function welkomTerug() {
     const weg = (Date.now() - (S.tijd || Date.now())) / 1000;
     if (weg < 60 || vps(true) <= 0) return;
-    const sec = Math.min(weg, (heeftPerk('offline') ? 24 : 8) * 3600), x = vps(true) * sec * (heeftPerk('offline') ? 1 : 0.5);
+    const sec = Math.min(weg, (heeftPerk('offline') ? 12 : 8) * 3600), x = vps(true) * sec * (heeftPerk('offline') ? 1 : 0.5);
     S.vlaaien += x; S.totaal += x; S.ooit += x;
     const tijd = sec >= 3600 ? (sec / 3600).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' uur' : Math.round(sec / 60) + ' minuten';
     $('welkom').innerHTML = `<div class="welkom" role="status"><p><b>Welkom terug!</b> Je was ${tijd} weg. Je bakkers hebben intussen ${fmt(x)} vlaaien gebakken.</p><button class="knop hoofd" id="b-welkom">Lekker!</button></div>`;

@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Rommelarend – vlieg als arend over Parijs</title>
+<meta name="description" content="Vlieg als arend over Parijs. Ontdek de Eiffeltoren, de Arc de Triomphe, de Notre-Dame en meer, verzamel gouden veren en vlieg wedstrijden door ringen.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2226%22%20fill%3D%22%238EC5EE%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22/%3E%3Cpath%20d%3D%22M14%2050h36%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M28%2050l4-30%204%2030z%22%20fill%3D%22%237A6248%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M27%2040h10M29%2030h6%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%221.8%22/%3E%3Cpath%20d%3D%22M10%2026q10-8%2018-2l4%203%204-3q8-6%2018%202q-8%200-12%206l-10%202-10-2q-4-6-12-6z%22%20fill%3D%22%235A3A22%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2227%22%20r%3D%223.2%22%20fill%3D%22%23F4F0E6%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M32%2029l1.6%202.4h-3.2z%22%20fill%3D%22%23E9B949%22/%3E%3C/svg%3E">
+<style>
+:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0E1430; color: var(--inkt); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.ar-kop { display: flex; align-items: center; gap: .7rem; padding: .4rem .8rem; background: var(--nacht); color: var(--papier); z-index: 5; }
+.ar-kop a { color: var(--manila); font-weight: 700; font-size: .85rem; } .ar-kort { display: none; } @media (max-width: 600px) { .ar-lang { display: none; } .ar-kort { display: inline; } }
+.ar-titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; } .ar-titel svg { width: 26px; height: 26px; }
+#ar-veld { position: relative; flex: 1; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+#ar-veld canvas { display: block; }
+.ar-hud { position: absolute; pointer-events: none; }
+#ar-tel { left: .7rem; top: .6rem; display: flex; gap: .4rem; flex-wrap: wrap; }
+#ar-tel span { background: rgba(251,246,233,.92); padding: .3rem .6rem; border-radius: 999px; font-weight: 800; font-size: .88rem; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+#ar-mini { right: .7rem; top: .6rem; width: 150px; height: 150px; pointer-events: auto; cursor: pointer; }
+.ar-knoppen-boven { position: absolute; right: .7rem; top: calc(150px + 1.1rem); display: flex; gap: .35rem; }
+.ar-knop { font: inherit; font-weight: 800; font-size: .9rem; border: 0; border-radius: 8px; padding: .5rem .85rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.ar-knop.hoofd { background: var(--rood); color: #fff; } .ar-knop[aria-pressed="true"] { background: var(--goud); }
+#ar-melding { left: 50%; top: .7rem; transform: translateX(-50%); background: var(--papier); padding: .45rem .9rem; border-radius: 10px; font-weight: 800; box-shadow: 0 3px 0 rgba(0,0,0,.3); max-width: min(90%, 30rem); text-align: center; }
+#ar-race { left: 50%; top: 3.4rem; transform: translateX(-50%); background: #2E8B62; color: #fff; padding: .35rem .8rem; border-radius: 8px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#ar-snel { left: 50%; bottom: .7rem; transform: translateX(-50%); color: #fff; font-weight: 800; font-size: .85rem; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+#ar-ontdekt { left: .7rem; bottom: .7rem; width: min(24rem, calc(100% - 1.4rem)); background: var(--manila); border-radius: 12px; padding: .7rem .9rem; box-shadow: 0 4px 0 rgba(0,0,0,.3); display: flex; flex-direction: column; gap: .15rem; transition: opacity .5s; }
+#ar-ontdekt.weg { opacity: 0; } #ar-ontdekt small { font-weight: 800; color: var(--rood); text-transform: uppercase; font-size: .72rem; letter-spacing: .04em; } #ar-ontdekt b { font-size: 1.2rem; } #ar-ontdekt span { font-size: .88rem; line-height: 1.4; }
+/* telefoon: stuurknuppel en knoppen */
+.ar-touch { display: none; }
+.ar-mobiel .ar-touch { display: flex; }
+.ar-touch-knoppen { position: absolute; right: 1rem; bottom: 1.4rem; flex-direction: column; gap: .7rem; align-items: center; }
+.ar-touch-knoppen button { width: 5.2rem; height: 5.2rem; border-radius: 50%; border: 0; font: inherit; font-weight: 800; font-size: .95rem; color: var(--inkt); background: rgba(251,246,233,.88); box-shadow: 0 4px 0 rgba(0,0,0,.3); touch-action: none; }
+#ar-duik { background: rgba(233,185,73,.9); }
+#ar-knuppel { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 3px solid rgba(251,246,233,.7); background: rgba(26,34,72,.25); pointer-events: none; }
+#ar-knop-binnen { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(251,246,233,.85); }
+.ar-mobiel #ar-ontdekt { bottom: 8.5rem; }
+.ar-mobiel #ar-mini { width: 120px; height: 120px; } .ar-mobiel .ar-knoppen-boven { top: calc(120px + 1.1rem); }
+.ar-mobiel #ar-snel { bottom: auto; top: 3.2rem; left: .8rem; transform: none; }
+/* menu en vensters */
+.ar-scherm { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; padding: 1rem; background: rgba(10,14,30,.45); overflow: auto; }
+.ar-scherm[hidden] { display: none; }
+.ar-kaart { background: var(--manila); border-radius: 14px; padding: 1.2rem 1.4rem; max-width: 32rem; width: 100%; box-shadow: 0 6px 0 rgba(0,0,0,.35); max-height: calc(100% - 1rem); overflow: auto; }
+.ar-kaart h2 { margin: 0 0 .4rem; } .ar-kaart h3 { margin: .9rem 0 .3rem; font-size: 1rem; } .ar-kaart p { margin: .35rem 0; line-height: 1.45; }
+.ar-menu-kaart h1 { margin: 0; font-size: 2rem; line-height: 1.05; } .ar-menu-kaart h1 small { display: block; font-size: 1rem; color: #5E5643; font-weight: 700; margin-top: .2rem; }
+.ar-menu-knoppen { display: grid; gap: .5rem; margin: 1rem 0 .6rem; } .ar-menu-knoppen .ar-knop { padding: .75rem 1rem; font-size: 1rem; text-align: left; }
+.ar-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .8rem; }
+.ar-klein, #ar-uitleg { font-size: .85rem; color: #5E5643; }
+.ar-groot { font-size: 2.2rem; font-weight: 800; margin: .2rem 0; }
+.ar-lijst, .ar-dagboek { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .45rem; }
+.ar-race-knop { width: 100%; text-align: left; font: inherit; border: 0; border-radius: 10px; background: var(--papier); padding: .65rem .8rem; cursor: pointer; display: flex; flex-direction: column; gap: .15rem; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+.ar-race-knop b { font-size: 1.02rem; } .ar-race-knop span { font-size: .88rem; } .ar-race-knop small { font-size: .78rem; color: #5E5643; }
+.ar-dagboek li { background: var(--papier); border-radius: 8px; padding: .5rem .7rem; display: flex; flex-direction: column; gap: .1rem; font-size: .88rem; } .ar-dagboek li.ja { box-shadow: inset 4px 0 0 var(--goud); } .ar-dagboek li b { font-size: .98rem; } .ar-dagboek li:not(.ja) { opacity: .7; }
+.ar-vink { display: flex; gap: .5rem; align-items: center; margin: .4rem 0; font-weight: 600; }
+#ar-kaart-groot { position: absolute; inset: 0; z-index: 7; background: rgba(10,14,30,.75); display: grid; place-items: center; padding: 1rem; cursor: pointer; }
+#ar-kaart-groot[hidden] { display: none; }
+#ar-kaart-doek { width: min(92vw, 80vh); height: auto; border-radius: 12px; box-shadow: 0 0 0 4px var(--inkt), 0 8px 0 4px rgba(0,0,0,.4); }
+#ar-laden[hidden] { display: none !important; }
+#ar-laden { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-weight: 800; z-index: 9; background: #0E1430; }
+#sb-arend { margin-top: .8rem; }
+</style>
+</head>
+<body data-pagina="rommelarend">
+<div class="ar-kop">
+  <a href="./"><span class="ar-lang">Terug naar het rommelhoekje</span><span class="ar-kort">Terug</span></a>
+  <span class="ar-titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><circle cx="32" cy="32" r="26" fill="#8EC5EE" stroke="#1F2333" stroke-width="3"/><path d="M14 50h36" stroke="#1F2333" stroke-width="2.4"/><path d="M28 50l4-30 4 30z" fill="#7A6248" stroke="#1F2333" stroke-width="2"/><path d="M27 40h10M29 30h6" stroke="#1F2333" stroke-width="1.8"/><path d="M10 26q10-8 18-2l4 3 4-3q8-6 18 2q-8 0-12 6l-10 2-10-2q-4-6-12-6z" fill="#5A3A22" stroke="#1F2333" stroke-width="2.2" stroke-linejoin="round"/><circle cx="32" cy="27" r="3.2" fill="#F4F0E6" stroke="#1F2333" stroke-width="1.6"/><path d="M32 29l1.6 2.4h-3.2z" fill="#E9B949"/></svg></span>Rommelarend</span>
+</div>
+<div id="ar-veld">
+  <div id="ar-laden" role="status">Parijs wordt gebouwd...</div>
+  <div class="ar-hud" id="ar-tel"></div>
+  <canvas class="ar-hud" id="ar-mini" width="300" height="300" aria-label="Kaartje, klik voor de grote kaart"></canvas>
+  <div class="ar-knoppen-boven"><button class="ar-knop" id="ar-kaartknop" type="button">Kaart</button><button class="ar-knop" id="ar-menuknop" type="button">Menu</button></div>
+  <div class="ar-hud" id="ar-melding" hidden role="status"></div>
+  <div class="ar-hud" id="ar-race" hidden></div>
+  <div class="ar-hud" id="ar-snel"></div>
+  <div class="ar-hud" id="ar-ontdekt" hidden role="status"></div>
+  <div id="ar-knuppel" hidden><div id="ar-knop-binnen"></div></div>
+  <div class="ar-touch ar-touch-knoppen"><button id="ar-klap" type="button">Klap</button><button id="ar-duik" type="button">Duik</button></div>
+  <div id="ar-kaart-groot" hidden><canvas id="ar-kaart-doek" aria-label="Kaart van Parijs"></canvas></div>
+  <div class="ar-scherm" id="ar-menu" hidden>
+    <div class="ar-kaart ar-menu-kaart">
+      <h1>Rommelarend<small>Vlieg als arend over Parijs</small></h1>
+      <p id="ar-menu-stand"></p>
+      <div class="ar-menu-knoppen">
+        <button class="ar-knop hoofd" id="ar-verder" data-actie="vrij" type="button">Begin met vliegen</button>
+        <button class="ar-knop" data-actie="races" type="button">Wedstrijden door ringen</button>
+        <button class="ar-knop" data-actie="dagboek" type="button">Mijn Parijs</button>
+        <button class="ar-knop" data-actie="instellingen" type="button">Instellingen</button>
+      </div>
+      <p id="ar-uitleg"></p>
+      <div id="sb-arend"></div>
+    </div>
+  </div>
+  <div class="ar-scherm" id="ar-venster" hidden><div class="ar-kaart" id="ar-venster-in"></div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) localStorage.setItem(k, v); sessionStorage.removeItem('koppel-herstel'); sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+})();
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+  // ---------- alle spellen bijwerken, vanaf elke pagina van de site
+  // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
+  // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
+  const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const BRONNEN = {
+    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
+    poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    arend: () => { const s = lees('rommelarend-v1'); if (!s) return null; const p = (s.ontdekt || []).length * 100 + (s.veren || []).length * 25 + Object.values(s.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0); return p ? [p, (s.ontdekt || []).length] : null; },
+    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
+    beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
+  };
+  const VKEY = 'rommelhoekje-verstuurd';
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  let bezig = false;
+  async function synchroniseer() {
+    if (bezig || !speler || !speler.naam) return; bezig = true;
+    try {
+      const inst = await klaar; if (!adres(inst)) return;
+      const v = lees(VKEY) || {};
+      for (const [spel, bron] of Object.entries(BRONNEN)) {
+        let w = null; try { w = bron(); } catch (e) {}
+        if (!w) continue;
+        const o = v[spel];
+        if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
+        await API.stuur(spel, w[0], w[1]);
+      }
+    } finally { bezig = false; }
+  }
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      await synchroniseer();
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) onthoud(spel, score, extra || 0);
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+
+  // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
+  // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
+  const KKEY = 'rommelhoekje-koppel';
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const MAX = 380000;
+  const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
+  const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
+  const hash = t => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ':' + t.length; };
+  const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+  const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
+  let bezigK = false, eersteK = true;
+  async function koppelSync(stil) {
+    const K = leesK(); if (!K || !K.code || bezigK) return null;
+    const inst = await klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null;
+    bezigK = true;
+    try {
+      K.staat = K.staat || {}; const items = {}, bekend = {};
+      for (const k of SLEUTELS) {
+        let v = null; try { v = localStorage.getItem(k); } catch (e) {}
+        const st = K.staat[k];
+        if (v !== null) { const h = hash(v); if (!st || st.h !== h) { K.staat[k] = { h, t: Date.now() }; if (v.length <= MAX) items[k] = { t: K.staat[k].t, data: v }; } }
+        bekend[k] = K.staat[k] ? K.staat[k].t : 0;
+      }
+      const r = await fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend }) });
+      const j = await r.json(); if (!j.ok) return null;
+      const herstel = {}; let nieuwHier = false;
+      for (const [k, it] of Object.entries(j.items || {})) {
+        if (!SLEUTELS.includes(k) || (K.staat[k] && K.staat[k].t >= it.t)) continue;
+        K.staat[k] = { h: hash(it.data), t: it.t };
+        if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} }
+      }
+      K.laatst = Date.now(); schrijfK(K);
+      // nieuwe voortgang voor het spel dat nu open is: bij het openen meteen herladen, later alleen met een knop (anders gaan twee apparaten om de beurt herladen)
+      if (nieuwHier) {
+        try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
+        if (eersteK && !stil) { location.reload(); return j; }
+        toonKoppelMelding('Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', () => location.reload());
+      }
+      return j;
+    } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
+  }
+  const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
+  const WOORD2 = ['vlaai', 'raket', 'zolder', 'kraan', 'lamp', 'vos', 'uil', 'beer', 'trommel', 'vlieger', 'ster', 'koepel', 'piano', 'wolk', 'kikker', 'draak', 'tram', 'molen', 'sok', 'hoed', 'fiets', 'toren', 'boot', 'pinguin'];
+  function maakCode() { const a = new Uint32Array(4); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], 100 + a[3] % 900].join('-'); }
+  const schoon = c => (c || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  async function maakKoppeling() { const K = { code: maakCode(), staat: {} }; schrijfK(K); await koppelSync(true); return K.code; }
+  async function gebruikCode(code) {
+    code = schoon(code); if (code.length < 12) return 'Die code is te kort.';
+    // eerst kijken wat er op de server staat: de voortgang van je andere apparaat wint
+    const K = { code, staat: {} };
+    for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v !== null) K.staat[k] = { h: hash(v), t: 0 }; }
+    schrijfK(K);
+    const j = await koppelSync(true);
+    if (!j) { schrijfK(null); return 'Koppelen lukte niet. Controleer je internet en probeer het opnieuw.'; }
+    if (!j.aantal) { schrijfK(null); return 'Bij deze code staat nog niets. Klopt hij wel? Maak hem anders op je andere apparaat.'; }
+    // wat alleen op dit apparaat staat, sturen we daarna mee
+    const K2 = leesK(); for (const k of SLEUTELS) if (K2.staat[k] && K2.staat[k].t === 0) delete K2.staat[k]; schrijfK(K2);
+    setTimeout(() => koppelSync(true), 300);
+    if (Object.keys(j.items || {}).some(vanDezePagina)) setTimeout(() => location.reload(), 600);
+    return '';
+  }
+  // ---------- het venster
+  let dlg = null;
+  function stijl() { if (document.getElementById('kp-stijl')) return; const st = document.createElement('style'); st.id = 'kp-stijl'; st.textContent = `
+    .kp-dlg { border: 0; border-radius: 14px; padding: 0; max-width: min(30rem, 94vw); background: #F2DDA0; color: #231A26; box-shadow: 0 0 0 4px #231A26, 0 10px 0 4px rgba(0,0,0,.35); font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+    .kp-dlg::backdrop { background: rgba(10,14,30,.6); } .kp-in { padding: 1.1rem 1.3rem 1.2rem; } .kp-in h2 { margin: 0 0 .4rem; } .kp-in p { margin: .4rem 0; line-height: 1.45; }
+    .kp-code { font-size: 1.4rem; font-weight: 800; letter-spacing: .02em; background: #FBF6E9; border-radius: 8px; padding: .6rem .8rem; text-align: center; margin: .6rem 0; user-select: all; }
+    .kp-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .6rem; } .kp-rij input { flex: 1 1 12rem; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid #C9A24E; background: #FBF6E9; }
+    .kp-knop { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.3); } .kp-knop.hoofd { background: #C8323C; color: #fff; }
+    .kp-klein { font-size: .82rem; color: #5E5643; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
+    .kp-melding { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 9999; background: #FBF6E9; color: #231A26; font: 700 .92rem 'Bricolage Grotesque', system-ui, sans-serif; padding: .6rem .9rem; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.3); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
+    .kp-knopje { position: fixed; right: .9rem; bottom: .9rem; z-index: 50; font: 800 .88rem 'Bricolage Grotesque', system-ui, sans-serif; border: 0; border-radius: 999px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 0 0 3px #231A26, 0 4px 0 3px rgba(0,0,0,.3); }`; document.head.appendChild(st); }
+  function toonKoppelMelding(tekst, knop, doe) { stijl(); const m = document.createElement('div'); m.className = 'kp-melding'; m.setAttribute('role', 'status'); m.innerHTML = `<span>${tekst}</span>${knop ? `<button class="kp-knop hoofd" type="button">${knop}</button>` : ''}`; if (knop) m.querySelector('button').onclick = () => { m.remove(); doe(); }; document.body.appendChild(m); setTimeout(() => m.remove(), knop ? 20000 : 4000); }
+  function openKoppel() {
+    stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
+    const K = leesK();
+    const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je apparaten zijn gekoppeld</h2><p>Je koppelcode is:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
+      : `<div class="kp-in"><h2>Koppel je apparaten</h2><p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
+    const q = id => dlg.querySelector('#' + id);
+    q('kp-dicht').onclick = () => dlg.close();
+    if (q('kp-maak')) q('kp-maak').onclick = async () => { q('kp-maak').disabled = true; q('kp-fout').textContent = 'Even bezig...'; await maakKoppeling(); openKoppel(); };
+    if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
+    if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
+    if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); openKoppel(); };
+    if (!dlg.open) dlg.showModal();
+  }
+  API.koppel = openKoppel; API.koppelSync = koppelSync;
+  // op de homepage en het scorebord een knopje
+  if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
+  try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
+  klaar.then(() => setTimeout(() => koppelSync(false), 600));
+  setInterval(() => { if (!document.hidden) koppelSync(true); }, 30000);
+  // eerst het spel laten opslaan, dan pas meesturen
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => koppelSync(true), 400); });
+  // bij het sluiten: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is
+  addEventListener('load', () => addEventListener('pagehide', () => {
+    const K = leesK(); if (!K || !K.code) return;
+    klaar.then(inst => { const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return; const items = {}; let grootte = 0;
+      for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v === null) continue; const h = hash(v), st = (K.staat || {})[k]; if (st && st.h === h) continue; if (grootte + v.length > 60000) continue; grootte += v.length; const t = Date.now(); items[k] = { t, data: v }; K.staat[k] = { h, t }; }
+      if (!Object.keys(items).length) return; schrijfK(K);
+      try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend: {} }), keepalive: true }); } catch (e) {}
+    });
+  }));
+  API.synchroniseer = synchroniseer;
+  window.Scorebord = API;
+  // bij elk bezoek, en als je even naar een ander tabblad gaat
+  klaar.then(() => setTimeout(synchroniseer, 1500));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) synchroniseer(); });
+})();
+
+</script>
+<script>
+// Rommelarend: de wereld. Parijs op schaal: 1 km = 520 eenheden. x = oost, z = zuid.
+const AW = (function () {
+  const KM = 520;
+  const P = (x, z) => [x * KM, z * KM];
+  // ---------------- de Seine (een lijn met een breedte), de eilanden en de parken
+  const SEINE = [[4.4, 1.7], [3.0, 1.35], [2.0, 0.95], [1.2, 0.35], [0.5, 0.05], [-0.3, -0.12], [-1.1, -0.32], [-1.9, -0.5], [-2.8, -0.52], [-3.6, -0.18], [-4.35, 0.25], [-5.05, 0.9], [-5.55, 1.7], [-5.85, 2.8], [-6.0, 4.3]].map(([x, z]) => P(x, z));
+  const SEINE_B = 0.16 * KM;
+  const EILANDEN = [{ x: -0.15 * KM, z: -0.05 * KM, rx: 0.5 * KM, rz: 0.1 * KM, hoek: -0.22 }, { x: 0.55 * KM, z: 0.12 * KM, rx: 0.26 * KM, rz: 0.08 * KM, hoek: -0.35 }];
+  const PARKEN = [
+    { naam: 'Tuilerieën', x: -2.2 * KM, z: -0.62 * KM, rx: 0.42 * KM, rz: 0.12 * KM, hoek: -0.18, rechthoek: true },
+    { naam: 'Champ de Mars', x: -4.6 * KM, z: 0.95 * KM, rx: 0.42 * KM, rz: 0.11 * KM, hoek: 0.75, rechthoek: true },
+    { naam: 'Luxembourg', x: -0.75 * KM, z: 1.4 * KM, rx: 0.33 * KM, rz: 0.26 * KM },
+    { naam: 'Jardin des Plantes', x: 0.95 * KM, z: 0.95 * KM, rx: 0.25 * KM, rz: 0.18 * KM },
+    { naam: 'Buttes-Chaumont', x: 1.7 * KM, z: -2.4 * KM, rx: 0.28 * KM, rz: 0.22 * KM },
+    { naam: 'Parc Monceau', x: -3.55 * KM, z: -2.25 * KM, rx: 0.2 * KM, rz: 0.16 * KM },
+    { naam: 'Bois de Boulogne', x: -7.6 * KM, z: 0.4 * KM, rx: 1.0 * KM, rz: 1.6 * KM },
+    { naam: 'Esplanade des Invalides', x: -3.45 * KM, z: 0.35 * KM, rx: 0.1 * KM, rz: 0.38 * KM, rechthoek: true },
+  ];
+  // brede lanen waar geen huizen staan
+  const LANEN = [
+    [P(-2.8, -0.72), P(-5.2, -1.45), 0.07 * KM], // Champs-Élysées
+    [P(-1.2, -0.62), P(-2.8, -0.72), 0.04 * KM], // Rue de Rivoli
+    [P(-1.65, -1.95), P(-1.25, -0.62), 0.04 * KM], // Avenue de l'Opéra
+    [P(-4.95, 0.55), P(-4.2, 1.35), 0.06 * KM], // Champ de Mars-as
+    [P(-3.1, -1.9), P(-0.2, -1.75), 0.04 * KM], // Grands Boulevards
+    [P(-2.2, 0.55), P(1.2, 0.55), 0.035 * KM], // Saint-Germain
+    [P(0.1, -2.8), P(0.25, 1.9), 0.04 * KM], // noord-zuid as
+    [P(-5.2, -1.45), P(-9.5, -3.2), 0.08 * KM], // naar La Défense
+    [P(1.3, 0.2), P(4.2, -0.1), 0.04 * KM],
+  ];
+  // de heuvel van Montmartre
+  const HEUVEL = { x: -0.55 * KM, z: -3.75 * KM, r: 0.55 * KM, h: 62 };
+  const hoogte = (x, z) => { const d2 = ((x - HEUVEL.x) ** 2 + (z - HEUVEL.z) ** 2) / (HEUVEL.r * HEUVEL.r); return HEUVEL.h * Math.exp(-d2 * 1.6); };
+  const GRENS = { x0: -10.5 * KM, x1: 4.6 * KM, z0: -5.2 * KM, z1: 4.6 * KM };
+  // ---------------- de bezienswaardigheden
+  const BEZ = [
+    { id: 'eiffel', naam: 'De Eiffeltoren', x: -4.95, z: 0.55, r: 140, feit: 'Gebouwd in 1889 voor de wereldtentoonstelling. Hij is 330 meter hoog en wordt elke zeven jaar opnieuw geverfd, met 60 ton verf.' },
+    { id: 'arc', naam: 'De Arc de Triomphe', x: -5.2, z: -1.45, r: 90, feit: 'Op dit plein komen twaalf lanen samen, als de punten van een ster. Durf jij er dwars doorheen te vliegen?' },
+    { id: 'notredame', naam: 'De Notre-Dame', x: -0.05, z: -0.02, r: 100, feit: 'Een kathedraal van bijna 900 jaar oud, op een eiland midden in de Seine. Na de brand van 2019 is ze weer helemaal opgebouwd.' },
+    { id: 'sacrecoeur', naam: 'De Sacré-Cœur', x: -0.55, z: -3.85, r: 110, feit: 'De witte kerk staat bovenop de heuvel Montmartre, het hoogste punt van Parijs. De steen wordt witter als het regent.' },
+    { id: 'louvre', naam: 'Het Louvre', x: -1.35, z: -0.45, r: 130, ruimte: 165, feit: 'Het grootste kunstmuseum ter wereld, met de Mona Lisa. De glazen piramide op het plein is van 1989.' },
+    { id: 'concorde', naam: 'Place de la Concorde', x: -2.8, z: -0.72, r: 80, feit: 'De obelisk in het midden komt uit Egypte en is meer dan 3000 jaar oud.' },
+    { id: 'grandpalais', naam: 'Het Grand Palais', x: -3.25, z: -0.42, r: 90, feit: 'Een paleis met een enorm dak van glas en staal, gebouwd voor de wereldtentoonstelling van 1900.' },
+    { id: 'alexandre', naam: 'Pont Alexandre III', x: -3.42, z: -0.2, r: 70, ruimte: 40, feit: 'De rijkst versierde brug van Parijs, met gouden beelden op hoge zuilen. Vlieg er eens onderdoor!' },
+    { id: 'invalides', naam: 'Les Invalides', x: -3.45, z: 0.98, r: 90, feit: 'Onder de gouden koepel ligt keizer Napoleon begraven. Het goud is meer dan twaalf kilo.' },
+    { id: 'montparnasse', naam: 'Tour Montparnasse', x: -2.6, z: 2.4, r: 90, feit: 'Een zwarte wolkenkrabber van 210 meter. Veel Parijzenaars zeggen: vanaf boven is het uitzicht het mooist, want dan zie je de toren zelf niet.' },
+    { id: 'pantheon', naam: 'Het Panthéon', x: 0.1, z: 1.05, r: 80, feit: 'Hier liggen beroemde Fransen begraven. Onder de koepel hing ooit een slinger die liet zien dat de aarde draait.' },
+    { id: 'luxembourg', naam: 'Jardin du Luxembourg', x: -0.75, z: 1.25, r: 110, ruimte: 60, feit: 'Een paleistuin waar kinderen met houten zeilbootjes spelen in de grote vijver.' },
+    { id: 'pompidou', naam: 'Centre Pompidou', x: 0.25, z: -0.85, r: 70, feit: 'Een museum dat binnenstebuiten lijkt: alle buizen zitten aan de buitenkant. Blauw voor lucht, groen voor water, rood voor de liften.' },
+    { id: 'opera', naam: 'Opéra Garnier', x: -1.65, z: -1.95, r: 80, feit: 'Een gouden operagebouw. Onder het gebouw ligt een ondergronds meer.' },
+    { id: 'moulinrouge', naam: 'De Moulin Rouge', x: -1.55, z: -3.5, r: 70, feit: 'Een beroemd theater met een rode molen op het dak, sinds 1889. Hier werd de cancan beroemd.' },
+    { id: 'bastille', naam: 'Place de la Bastille', x: 1.3, z: 0.22, r: 70, feit: 'Hier stond vroeger een gevangenis. Nu staat er een zuil met een gouden engel bovenop.' },
+    { id: 'grandearche', naam: 'De Grande Arche', x: -9.5, z: -3.2, r: 140, ruimte: 120, feit: 'Een enorme holle kubus in de zakenwijk La Défense. De Notre-Dame zou er met toren en al in passen.' },
+    { id: 'seine', naam: 'De Seine', x: -2.0, z: -0.5, r: 60, feit: 'De rivier door Parijs, met 37 bruggen. Bootjes varen er de hele dag langs alle bezienswaardigheden.', laag: 40 },
+  ];
+  BEZ.forEach(b => { b.x *= KM; b.z *= KM; });
+  // ---------------- hulpjes
+  const afstandTotLijn = (px, pz, [ax, az], [bx, bz]) => { const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - ax - t * dx, pz - az - t * dz); };
+  const inSeine = (x, z, extra = 0) => { for (let i = 0; i < SEINE.length - 1; i++) if (afstandTotLijn(x, z, SEINE[i], SEINE[i + 1]) < SEINE_B / 2 + extra) return true; return false; };
+  const inEllips = (x, z, e) => { const c = Math.cos(-(e.hoek || 0)), s = Math.sin(-(e.hoek || 0)), dx = x - e.x, dz = z - e.z, u = dx * c - dz * s, v = dx * s + dz * c; return e.rechthoek ? Math.abs(u) < e.rx && Math.abs(v) < e.rz : (u * u) / (e.rx * e.rx) + (v * v) / (e.rz * e.rz) < 1; };
+  const opEiland = (x, z) => EILANDEN.some(e => inEllips(x, z, e));
+  const water = (x, z) => inSeine(x, z) && !opEiland(x, z);
+
+  // ---------------- alles bouwen
+  function bouw(scene, opties) {
+    const mobiel = opties.mobiel;
+    const W = new THREE.Group(); scene.add(W);
+    const mat = (k, extra) => new THREE.MeshLambertMaterial(Object.assign({ color: k }, extra || {}));
+    const botsers = []; // { x, z, hx, hz, h, y0 } kaders waar de arend niet doorheen kan
+    // --- de grond: een kaart getekend op een doek (ook voor het kaartje in beeld)
+    const KAART = 2048, kaart = document.createElement('canvas'); kaart.width = kaart.height = KAART;
+    const g = kaart.getContext('2d');
+    const naarK = (x, z) => [(x - GRENS.x0) / (GRENS.x1 - GRENS.x0) * KAART, (z - GRENS.z0) / (GRENS.z1 - GRENS.z0) * KAART];
+    const schaal = KAART / (GRENS.x1 - GRENS.x0);
+    g.fillStyle = '#B9B2A2'; g.fillRect(0, 0, KAART, KAART);
+    // straatjes
+    g.strokeStyle = '#A39C8C'; g.lineWidth = 1;
+    for (let i = 0; i < KAART; i += 9) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, KAART); g.moveTo(0, i); g.lineTo(KAART, i); g.stroke(); }
+    // lanen
+    g.strokeStyle = '#8E887A'; g.lineCap = 'round';
+    for (const [a, b, w] of LANEN) { g.lineWidth = w * schaal; g.beginPath(); g.moveTo(...naarK(...a)); g.lineTo(...naarK(...b)); g.stroke(); }
+    // parken
+    g.fillStyle = '#6FA35A';
+    for (const p of PARKEN) { g.save(); g.translate(...naarK(p.x, p.z)); g.rotate(p.hoek || 0); g.beginPath(); if (p.rechthoek) g.rect(-p.rx * schaal, -p.rz * schaal, p.rx * 2 * schaal, p.rz * 2 * schaal); else g.ellipse(0, 0, p.rx * schaal, p.rz * schaal, 0, 0, 7); g.fill(); g.restore(); }
+    // de Seine
+    g.strokeStyle = '#3E7FA8'; g.lineWidth = SEINE_B * schaal; g.lineJoin = 'round'; g.beginPath(); SEINE.forEach((p, i) => (i ? g.lineTo : g.moveTo).call(g, ...naarK(...p))); g.stroke();
+    g.fillStyle = '#B9B2A2'; for (const e of EILANDEN) { g.save(); g.translate(...naarK(e.x, e.z)); g.rotate(e.hoek); g.beginPath(); g.ellipse(0, 0, e.rx * schaal, e.rz * schaal, 0, 0, 7); g.fill(); g.restore(); }
+    const grondTex = new THREE.CanvasTexture(kaart); grondTex.anisotropy = 4;
+    const gs = mobiel ? 96 : 160, grondGeo = new THREE.PlaneGeometry(GRENS.x1 - GRENS.x0, GRENS.z1 - GRENS.z0, gs, gs);
+    grondGeo.rotateX(-Math.PI / 2); grondGeo.translate((GRENS.x0 + GRENS.x1) / 2, 0, (GRENS.z0 + GRENS.z1) / 2);
+    const gp = grondGeo.attributes.position; for (let i = 0; i < gp.count; i++) gp.setY(i, hoogte(gp.getX(i), gp.getZ(i)) - (water(gp.getX(i), gp.getZ(i)) ? 4 : 0)); grondGeo.computeVertexNormals();
+    W.add(new THREE.Mesh(grondGeo, mat('#FFFFFF', { map: grondTex })));
+    // buiten de stad: velden tot de horizon
+    const buiten = new THREE.Mesh(new THREE.PlaneGeometry(60000, 60000).rotateX(-Math.PI / 2), mat('#8FA870')); buiten.position.y = -0.6; W.add(buiten);
+    // het water
+    const waterMat = new THREE.MeshPhongMaterial({ color: '#3E7FA8', shininess: 80, specular: '#9FD3FF', transparent: true, opacity: 0.92 });
+    for (let i = 0; i < SEINE.length - 1; i++) {
+      const [ax, az] = SEINE[i], [bx, bz] = SEINE[i + 1], l = Math.hypot(bx - ax, bz - az);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(l + SEINE_B * 0.6, SEINE_B).rotateX(-Math.PI / 2), waterMat); m.position.set((ax + bx) / 2, -1.2, (az + bz) / 2); m.rotation.y = -Math.atan2(bz - az, bx - ax); W.add(m);
+    }
+    // --- de huizenblokken: duizenden blokken in Parijse stijl
+    const CEL = 0.078 * KM, blokken = [], raster = new Map();
+    const vrij = (x, z, r) => {
+      if (x < GRENS.x0 + 300 || x > GRENS.x1 - 60 || z < GRENS.z0 + 60 || z > GRENS.z1 - 60) return false;
+      if (inSeine(x, z, r + 6) && !opEiland(x, z)) return false;
+      if (PARKEN.some(p => inEllips(x, z, p))) return false;
+      for (const [a, b, w] of LANEN) if (afstandTotLijn(x, z, a, b) < w / 2 + r) return false;
+      for (const b of BEZ) if (b.id !== 'seine' && Math.hypot(x - b.x, z - b.z) < (b.ruimte || b.r * 0.85) + r) return false;
+      return true;
+    };
+    let zaad = 7; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
+    for (let x = GRENS.x0; x < GRENS.x1; x += CEL) for (let z = GRENS.z0; z < GRENS.z1; z += CEL) {
+      const cx = x + CEL / 2 + (rnd() - 0.5) * 6, cz = z + CEL / 2 + (rnd() - 0.5) * 6;
+      const w = CEL * (0.66 + rnd() * 0.14), d = CEL * (0.66 + rnd() * 0.14);
+      if (!vrij(cx, cz, Math.max(w, d) / 2)) continue;
+      const dDef = Math.hypot(cx - (-9.5 * KM), cz - (-3.2 * KM)), defense = dDef < 0.9 * KM;
+      const centrum = Math.hypot(cx + 1.5 * KM, cz + 0.5 * KM) < 3.6 * KM;
+      let h = defense ? 50 + rnd() * 110 : centrum ? 15 + rnd() * 6 : 12 + rnd() * 14;
+      if (!defense && rnd() < 0.02) h += 14;
+      const y0 = hoogte(cx, cz);
+      // buiten het centrum ijler: daar vlieg je hoog overheen (en zo blijft het snel op telefoons)
+      const dc = Math.hypot(cx + 1.5 * KM, cz + 0.5 * KM);
+      if (!defense && dc > 3.6 * KM && rnd() < (mobiel ? 0.72 : 0.55)) continue;
+      if (mobiel && !centrum && !defense && rnd() < 0.3) continue;
+      const blok = { x: cx, z: cz, hx: w / 2, hz: d / 2, h, y0, defense };
+      blokken.push(blok); botsers.push(blok);
+    }
+    // muren met ramen (één textuur), en daken
+    const ramen = document.createElement('canvas'); ramen.width = 64; ramen.height = 64; const rg = ramen.getContext('2d');
+    rg.fillStyle = '#E8DCC0'; rg.fillRect(0, 0, 64, 64); rg.fillStyle = '#6A6458'; for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) rg.fillRect(4 + c * 15, 6 + r * 15, 7, 9); rg.fillStyle = '#D8CCAE'; for (let r = 0; r < 4; r++) rg.fillRect(0, 2 + r * 15, 64, 2);
+    const ramenTex = new THREE.CanvasTexture(ramen); ramenTex.wrapS = ramenTex.wrapT = THREE.RepeatWrapping; ramenTex.repeat.set(2, 1.4);
+    const nachtRamen = document.createElement('canvas'); nachtRamen.width = 64; nachtRamen.height = 64; const ng = nachtRamen.getContext('2d');
+    ng.fillStyle = '#000'; ng.fillRect(0, 0, 64, 64); for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) { ng.fillStyle = (r * 7 + c * 3) % 5 < 2 ? '#FFC870' : '#2A2418'; ng.fillRect(4 + c * 15, 6 + r * 15, 7, 9); }
+    const nachtTex = new THREE.CanvasTexture(nachtRamen); nachtTex.wrapS = nachtTex.wrapT = THREE.RepeatWrapping; nachtTex.repeat.set(2, 1.4);
+    const muurMat = new THREE.MeshLambertMaterial({ color: '#FFFFFF', map: ramenTex, emissive: '#000000', emissiveMap: nachtTex });
+    const dakMat = mat('#6E7A8A'), glasMat = new THREE.MeshLambertMaterial({ color: '#7FA8C8', emissive: '#000000', emissiveMap: nachtTex, map: ramenTex });
+    const doos = new THREE.BoxGeometry(1, 1, 1); doos.translate(0, 0.5, 0);
+    const dak = new THREE.CylinderGeometry(0.62, 0.72, 1, 4, 1); dak.rotateY(Math.PI / 4); dak.translate(0, 0.5, 0);
+    const gewoon = blokken.filter(b => !b.defense), torens = blokken.filter(b => b.defense);
+    const muren = new THREE.InstancedMesh(doos, muurMat, gewoon.length), daken = new THREE.InstancedMesh(dak, dakMat, gewoon.length), glas = new THREE.InstancedMesh(doos, glasMat, Math.max(1, torens.length));
+    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), sch = new THREE.Vector3(), pos = new THREE.Vector3(), kleur = new THREE.Color();
+    gewoon.forEach((b, i) => {
+      M.compose(pos.set(b.x, b.y0, b.z), q, sch.set(b.hx * 2, b.h, b.hz * 2)); muren.setMatrixAt(i, M);
+      kleur.setHSL(0.11 + rnd() * 0.03, 0.25 + rnd() * 0.15, 0.82 + rnd() * 0.1); muren.setColorAt(i, kleur);
+      M.compose(pos.set(b.x, b.y0 + b.h, b.z), q, sch.set(b.hx * 2, 5 + rnd() * 2, b.hz * 2)); daken.setMatrixAt(i, M);
+      kleur.setHSL(0.58, 0.1, 0.42 + rnd() * 0.12); daken.setColorAt(i, kleur);
+    });
+    torens.forEach((b, i) => { M.compose(pos.set(b.x, b.y0, b.z), q, sch.set(b.hx * 2, b.h, b.hz * 2)); glas.setMatrixAt(i, M); kleur.setHSL(0.56, 0.3, 0.55 + rnd() * 0.2); glas.setColorAt(i, kleur); });
+    W.add(muren, daken, glas);
+    // een raster om snel te vinden waar je tegenaan kunt vliegen
+    const RC = 80, sleutel = (x, z) => Math.floor(x / RC) + ',' + Math.floor(z / RC);
+    const zetInRaster = b => { for (let x = Math.floor((b.x - b.hx) / RC); x <= Math.floor((b.x + b.hx) / RC); x++) for (let z = Math.floor((b.z - b.hz) / RC); z <= Math.floor((b.z + b.hz) / RC); z++) { const k = x + ',' + z; if (!raster.has(k)) raster.set(k, []); raster.get(k).push(b); } };
+    // --- bomen in de parken en langs de lanen
+    const boomPlekken = [];
+    for (const p of PARKEN) { const n = Math.min(260, Math.round(p.rx * p.rz / 900)); for (let i = 0; i < n; i++) { const a = rnd() * 6.283, r = Math.sqrt(rnd()) * 0.92, c = Math.cos(p.hoek || 0), s = Math.sin(p.hoek || 0), u = Math.cos(a) * r * p.rx, v = Math.sin(a) * r * p.rz; boomPlekken.push([p.x + u * c - v * s, p.z + u * s + v * c]); } }
+    for (const [a, b, w] of LANEN) { const l = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.floor(l / 24); for (let i = 0; i < n; i++) { const t = i / n, x = a[0] + (b[0] - a[0]) * t, z = a[1] + (b[1] - a[1]) * t, nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l; for (const kant of [-1, 1]) boomPlekken.push([x + nx * kant * (w / 2 - 4), z + nz * kant * (w / 2 - 4)]); } }
+    const boomGeo = new THREE.IcosahedronGeometry(1, 0), stamGeo = new THREE.CylinderGeometry(0.15, 0.2, 1, 5);
+    const boomN = mobiel ? Math.min(1400, boomPlekken.length) : boomPlekken.length;
+    const kruinen = new THREE.InstancedMesh(boomGeo, mat('#4E8A3A'), boomN), stammen = new THREE.InstancedMesh(stamGeo, mat('#6E5236'), boomN);
+    for (let i = 0; i < boomN; i++) { const [x, z] = boomPlekken[i], y = hoogte(x, z), s = 4 + rnd() * 2.5; M.compose(pos.set(x, y + 3 + s * 0.6, z), q, sch.set(s, s * 1.1, s)); kruinen.setMatrixAt(i, M); kleur.setHSL(0.27 + rnd() * 0.06, 0.45, 0.32 + rnd() * 0.1); kruinen.setColorAt(i, kleur); M.compose(pos.set(x, y + 1.5, z), q, sch.set(1.5, 3.5, 1.5)); stammen.setMatrixAt(i, M); }
+    W.add(kruinen, stammen);
+    // --- bruggen over de Seine
+    const brugMat = mat('#C9BDA2');
+    const bruggen = [];
+    for (let i = 1; i < SEINE.length - 1; i++) for (const t of [0.35, 0.8]) {
+      const [ax, az] = SEINE[i], [bx, bz] = SEINE[i + 1], x = ax + (bx - ax) * t, z = az + (bz - az) * t, hoek = Math.atan2(bz - az, bx - ax);
+      const b = new THREE.Mesh(new THREE.BoxGeometry(14, 3, SEINE_B + 30), brugMat); b.position.set(x, 4, z); b.rotation.y = -hoek; W.add(b);
+      bruggen.push({ x, z, hoek });
+    }
+    // --- de bezienswaardigheden
+    const L = {}, anim = { molen: null, lichtjes: null, bootjes: [] };
+    const zet = (obj, x, z, ry) => { obj.position.set(x, hoogte(x, z), z); if (ry) obj.rotation.y = ry; W.add(obj); return obj; };
+    const kader = (x, z, hx, hz, h, y0) => botsers.push({ x, z, hx, hz, h, y0: y0 || hoogte(x, z) });
+    const B = id => BEZ.find(b => b.id === id);
+    const box = (w, h, d, kl, x, y, z, ouder) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), typeof kl === 'string' ? mat(kl) : kl); m.position.set(x, y + h / 2, z); ouder.add(m); return m; };
+    const cil = (rb, ro, h, kl, x, y, z, ouder, seg) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(ro, rb, h, seg || 12), typeof kl === 'string' ? mat(kl) : kl); m.position.set(x, y + h / 2, z); ouder.add(m); return m; };
+    const bol = (r, kl, x, y, z, ouder, half) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10, 0, 6.283, 0, half ? Math.PI / 2 : Math.PI), typeof kl === 'string' ? mat(kl) : kl); m.position.set(x, y, z); ouder.add(m); return m; };
+    // De Eiffeltoren: vier poten, drie verdiepingen en een spits; onder de bogen kun je doorvliegen
+    {
+      const e = B('eiffel'), T = new THREE.Group(), brons = mat('#7A6248'), H = 175;
+      for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const poot = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 5.5, 62, 4, 1, true), brons);
+        poot.position.set(sx * 19, 31, sz * 19); poot.rotation.z = -sx * 0.32; poot.rotation.x = sz * 0.32; T.add(poot);
+        const steun = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 2.2, 48, 4), brons); steun.position.set(sx * 6, 78, sz * 6); steun.rotation.z = -sx * 0.13; steun.rotation.x = sz * 0.13; T.add(steun);
+      }
+      for (const [s, a] of [[[1, 0], 0], [[0, 1], Math.PI / 2]]) { const boog = new THREE.Mesh(new THREE.TorusGeometry(15, 1.2, 4, 16, Math.PI), brons); boog.position.set(0, 22, 0); boog.rotation.y = a; T.add(boog); void s; }
+      box(46, 3, 46, brons, 0, 56, 0, T); box(22, 2.5, 22, brons, 0, 101, 0, T);
+      cil(5.5, 1.6, 64, brons, 0, 103, 0, T, 4); box(7, 3, 7, brons, 0, 166, 0, T); cil(0.5, 0.25, 12, '#C9C2B2', 0, 169, 0, T, 6);
+      zet(T, e.x, e.z, Math.PI / 4);
+      for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const c = Math.cos(Math.PI / 4), s = Math.sin(Math.PI / 4), lx = sx * 22, lz = sz * 22; kader(e.x + lx * c + lz * s, e.z - lx * s + lz * c, 7, 7, 40); }
+      kader(e.x, e.z, 10, 10, 120, 52); kader(e.x, e.z, 4, 4, H - 50, 120);
+      // lichtjes die 's avonds schitteren
+      const lg = new THREE.BufferGeometry(), lp = [];
+      for (let i = 0; i < 420; i++) { const y = rnd() * 160, br = y < 56 ? 26 - y * 0.25 : y < 101 ? 11 - (y - 56) * 0.1 : 5 - (y - 101) * 0.05, a = rnd() * 6.283; lp.push(Math.cos(a) * br, y + 2, Math.sin(a) * br); }
+      lg.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
+      const lichtjes = new THREE.Points(lg, new THREE.PointsMaterial({ color: '#FFF3C4', size: 2.4, transparent: true, opacity: 0, depthWrite: false })); T.add(lichtjes); anim.lichtjes = lichtjes;
+      L.eiffel = T;
+    }
+    // De Arc de Triomphe: met een grote boog om doorheen te vliegen
+    {
+      const a = B('arc'), G = new THREE.Group(), steen = mat('#D8CBB0');
+      box(9, 34, 26, steen, -12.5, 0, 0, G); box(9, 34, 26, steen, 12.5, 0, 0, G); box(34, 12, 26, steen, 0, 34, 0, G); box(36, 2, 28, '#C9BC9E', 0, 46, 0, G);
+      zet(G, a.x, a.z, -Math.atan2(-1.45 + 0.72, -5.2 + 2.8) + Math.PI / 2);
+      const hoek = G.rotation.y, c = Math.cos(hoek), s = Math.sin(hoek);
+      for (const lx of [-12.5, 12.5]) kader(a.x + lx * c, a.z - lx * s, 6, 6, 34);
+      kader(a.x, a.z, 18, 9, 14, hoogte(a.x, a.z) + 34);
+      a.boog = { x: a.x, z: a.z, hoek };
+      // het plein eromheen
+      const plein = new THREE.Mesh(new THREE.CircleGeometry(78, 24).rotateX(-Math.PI / 2), mat('#9E9888')); plein.position.set(a.x, 0.15, a.z); W.add(plein);
+      L.arc = G;
+    }
+    // De Notre-Dame: lang schip, twee torens, een spits en een roosvenster
+    {
+      const n = B('notredame'), G = new THREE.Group(), steen = mat('#CFC3A6'), dakk = mat('#5E6874');
+      box(70, 26, 26, steen, 0, 0, 0, G); const d = cil(13, 13, 70, dakk, 0, 26, 0, G, 3); d.rotation.z = Math.PI / 2; d.position.y = 30;
+      box(14, 46, 14, steen, -38, 0, -8, G); box(14, 46, 14, steen, -38, 0, 8, G); box(10, 28, 30, steen, -36, 0, 0, G);
+      cil(2.5, 0.2, 34, '#6E7480', 12, 34, 0, G, 8);
+      const roos = new THREE.Mesh(new THREE.CircleGeometry(5, 16), mat('#7A4E9A')); roos.position.set(-41.1, 20, 0); roos.rotation.y = -Math.PI / 2; G.add(roos);
+      for (let i = -2; i <= 2; i++) { box(2, 18, 34, steen, i * 12, 0, 0, G); }
+      zet(G, n.x, n.z, 0.22); kader(n.x, n.z, 38, 16, 46);
+      L.notredame = G;
+    }
+    // De Sacré-Cœur: witte koepels op de heuvel
+    {
+      const s = B('sacrecoeur'), G = new THREE.Group(), wit = mat('#F4F0E6');
+      box(40, 22, 30, wit, 0, 0, 0, G); cil(9, 9, 12, wit, 0, 22, 0, G); bol(9, wit, 0, 34, 0, G, true); cil(1.6, 1.6, 8, wit, 0, 42, 0, G, 8); bol(1.8, wit, 0, 51, 0, G);
+      for (const [x, z] of [[-14, -10], [-14, 10], [14, -10], [14, 10]]) { cil(4, 4, 6, wit, x, 22, z, G); bol(4, wit, x, 28, z, G, true); }
+      cil(5, 5, 40, wit, 22, 0, 0, G, 10); bol(5, wit, 22, 40, 0, G, true);
+      zet(G, s.x, s.z, Math.PI / 2); kader(s.x, s.z, 22, 22, 50);
+      L.sacrecoeur = G;
+    }
+    // Het Louvre: een U-vormig paleis met de glazen piramide
+    {
+      const l = B('louvre'), G = new THREE.Group(), steen = mat('#D9CDB2'), dakk = mat('#6E7A8A');
+      box(260, 20, 26, steen, 0, 0, -70, G); box(260, 20, 26, steen, 0, 0, 70, G); box(26, 20, 166, steen, 130, 0, 0, G); box(120, 20, 22, steen, 40, 0, 0, G);
+      for (const [x, z, w, d] of [[0, -70, 262, 28], [0, 70, 262, 28], [130, 0, 28, 168]]) box(w, 4, d, dakk, x, 20, z, G);
+      const pir = new THREE.Mesh(new THREE.ConeGeometry(16, 20, 4), new THREE.MeshPhongMaterial({ color: '#BFE0F0', transparent: true, opacity: 0.7, shininess: 100 })); pir.position.set(-60, 10, 0); pir.rotation.y = Math.PI / 4; G.add(pir);
+      zet(G, l.x, l.z, 0.2);
+      const c = Math.cos(0.2), s = Math.sin(0.2);
+      for (const [lx, lz, hx, hz] of [[0, -70, 130, 13], [0, 70, 130, 13], [130, 0, 13, 83], [40, 0, 60, 11]]) kader(l.x + lx * c + lz * s, l.z - lx * s + lz * c, hx, hz, 24);
+      L.louvre = G;
+    }
+    // Place de la Concorde: de obelisk en twee fonteinen
+    { const c = B('concorde'), G = new THREE.Group(); cil(2.4, 1.2, 30, '#C9A86E', 0, 2, 0, G, 4); const top = new THREE.Mesh(new THREE.ConeGeometry(1.4, 3, 4), mat('#E9B949')); top.position.y = 33.5; G.add(top); box(6, 2, 6, '#9E9888', 0, 0, 0, G); for (const x of [-24, 24]) { cil(9, 9, 1.2, '#6FA0C8', x, 0, 0, G); cil(2, 2, 6, '#C9BDA2', x, 0, 0, G); } zet(G, c.x, c.z); kader(c.x, c.z, 3, 3, 34); L.concorde = G; }
+    // Het Grand Palais: een dak van glas
+    { const p = B('grandpalais'), G = new THREE.Group(), steen = mat('#D9CDB2'); box(120, 16, 60, steen, 0, 0, 0, G); const d = new THREE.Mesh(new THREE.CylinderGeometry(28, 28, 116, 16, 1, true, 0, Math.PI), new THREE.MeshPhongMaterial({ color: '#9FC8DC', transparent: true, opacity: 0.75, side: THREE.DoubleSide, shininess: 90 })); d.rotation.z = Math.PI / 2; d.rotation.y = Math.PI / 2; d.position.set(0, 16, 0); d.rotation.set(0, 0, Math.PI / 2); G.add(d); bol(14, new THREE.MeshPhongMaterial({ color: '#9FC8DC', transparent: true, opacity: 0.8 }), 0, 30, 0, G, true); zet(G, p.x, p.z, -0.15); kader(p.x, p.z, 62, 32, 44); L.grandpalais = G; }
+    // Pont Alexandre III: een brug met gouden zuilen
+    { const a = B('alexandre'), G = new THREE.Group(); box(16, 3, SEINE_B + 50, '#C9BDA2', 0, 5, 0, G); for (const z of [-62, 62]) for (const x of [-9, 9]) { cil(1.6, 1.6, 22, '#C9BDA2', x, 0, z, G, 8); const goud = new THREE.Mesh(new THREE.SphereGeometry(2.6, 8, 6), mat('#E9B949', { emissive: '#3A2A00' })); goud.position.set(x, 24, z); G.add(goud); } zet(G, a.x, a.z, -0.25); L.alexandre = G; }
+    // Les Invalides: de gouden koepel
+    { const i = B('invalides'), G = new THREE.Group(), steen = mat('#D9CDB2'), goud = mat('#E9B949', { emissive: '#4A3400' }); box(110, 18, 70, steen, 0, 0, 0, G); cil(14, 14, 16, steen, 0, 18, 0, G); bol(14, goud, 0, 34, 0, G, true); cil(2, 0.6, 14, goud, 0, 46, 0, G, 8); zet(G, i.x, i.z, 0); kader(i.x, i.z, 56, 36, 58); L.invalides = G; }
+    // Tour Montparnasse: zwart en hoog
+    { const m = B('montparnasse'), G = new THREE.Group(); box(30, 115, 20, new THREE.MeshLambertMaterial({ color: '#2A2E36', emissive: '#000000', emissiveMap: nachtTex, map: ramenTex }), 0, 0, 0, G); box(31, 3, 21, '#1A1E24', 0, 115, 0, G); zet(G, m.x, m.z, 0.3); kader(m.x, m.z, 18, 18, 118); L.montparnasse = G; }
+    // Het Panthéon: zuilen en een koepel
+    { const p = B('pantheon'), G = new THREE.Group(), steen = mat('#E2D7BE'); box(60, 22, 50, steen, 0, 0, 0, G); for (let i = 0; i < 8; i++) cil(1.4, 1.4, 18, steen, -32, 0, -14 + i * 4, G, 8); box(6, 5, 34, steen, -32, 18, 0, G); cil(13, 13, 14, steen, 0, 22, 0, G, 16); for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; cil(0.9, 0.9, 12, steen, Math.cos(a) * 14, 22, Math.sin(a) * 14, G, 6); } bol(12, steen, 0, 36, 0, G, true); cil(1.8, 0.8, 8, steen, 0, 47, 0, G, 8); zet(G, p.x, p.z); kader(p.x, p.z, 34, 26, 54); L.pantheon = G; }
+    // Jardin du Luxembourg: het paleis aan de tuin, met de vijver
+    { const l = B('luxembourg'), G = new THREE.Group(), steen = mat('#D9CDB2'); box(80, 18, 24, steen, 0, 0, -60, G); box(20, 26, 26, steen, 0, 0, -60, G); const vijver = new THREE.Mesh(new THREE.CircleGeometry(20, 20).rotateX(-Math.PI / 2), mat('#5E9EC8')); vijver.position.set(0, 0.4, 20); G.add(vijver); zet(G, l.x, l.z); kader(l.x, l.z - 60, 40, 13, 26); L.luxembourg = G; }
+    // Centre Pompidou: buizen aan de buitenkant
+    { const p = B('pompidou'), G = new THREE.Group(); box(80, 26, 36, '#C9CED6', 0, 0, 0, G); const kl = ['#2F6FD6', '#2E8B62', '#C8323C', '#E9B949']; for (let i = 0; i < 12; i++) { const b = cil(1.6, 1.6, 26, kl[i % 4], -38 + i * 7, 0, 19, G, 8); void b; } for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 80, 8), mat(kl[i])); b.rotation.z = Math.PI / 2; b.position.set(0, 6 + i * 6, 20); G.add(b); } const roltrap = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 70, 8), mat('#C8323C')); roltrap.rotation.z = Math.PI / 2 - 0.35; roltrap.position.set(0, 14, -19); G.add(roltrap); zet(G, p.x, p.z); kader(p.x, p.z, 42, 21, 28); L.pompidou = G; }
+    // Opéra Garnier: groene koepel en gouden beelden
+    { const o = B('opera'), G = new THREE.Group(), steen = mat('#D9C9A6'), groen = mat('#5FA88A'), goud = mat('#E9B949', { emissive: '#4A3400' }); box(70, 22, 90, steen, 0, 0, 0, G); box(24, 34, 30, steen, 0, 0, 20, G); bol(14, groen, 0, 34, 20, G, true); cil(0.8, 0.8, 6, goud, 0, 46, 20, G, 6); for (const x of [-30, 30]) { const b = bol(3, goud, x, 25, -44, G); void b; } box(72, 3, 92, '#5FA88A', 0, 22, 0, G); zet(G, o.x, o.z, 0.15); kader(o.x, o.z, 46, 46, 48); L.opera = G; }
+    // De Moulin Rouge: rode molen met draaiende wieken
+    { const m = B('moulinrouge'), G = new THREE.Group(), rood = mat('#C8323C', { emissive: '#3A0000' }); box(40, 14, 24, '#7A1E26', 0, 0, 0, G); cil(6, 5, 16, rood, 0, 14, 0, G, 8); const kap = new THREE.Mesh(new THREE.ConeGeometry(6.5, 6, 8), mat('#7A1E26')); kap.position.set(0, 33, 0); G.add(kap); const wieken = new THREE.Group(); for (let i = 0; i < 4; i++) { const w = new THREE.Mesh(new THREE.BoxGeometry(2.4, 22, 0.6), mat('#FFE07A', { emissive: '#4A3400' })); w.position.y = 11; const arm = new THREE.Group(); arm.add(w); arm.rotation.z = i * Math.PI / 2; wieken.add(arm); } wieken.position.set(0, 26, -7); G.add(wieken); anim.molen = wieken; zet(G, m.x, m.z, 0.3); kader(m.x, m.z, 22, 14, 36); L.moulinrouge = G; }
+    // Place de la Bastille: de zuil met de gouden engel
+    { const b = B('bastille'), G = new THREE.Group(); cil(3.5, 3, 46, '#4E5A4A', 0, 4, 0, G, 12); box(10, 4, 10, '#C9BDA2', 0, 0, 0, G); const engel = new THREE.Mesh(new THREE.OctahedronGeometry(2.6), mat('#E9B949', { emissive: '#5A4000' })); engel.position.y = 53; G.add(engel); zet(G, b.x, b.z); kader(b.x, b.z, 4, 4, 54); L.bastille = G; }
+    // De Grande Arche: een holle kubus in La Défense
+    { const a = B('grandearche'), G = new THREE.Group(), wit = mat('#F2F0EA'); box(14, 110, 100, wit, -48, 0, 0, G); box(14, 110, 100, wit, 48, 0, 0, G); box(110, 14, 100, wit, 0, 96, 0, G); box(110, 10, 100, wit, 0, 0, 0, G); zet(G, a.x, a.z, -Math.atan2(-3.2 + 1.45, -9.5 + 5.2) + Math.PI / 2); const h = G.rotation.y, c = Math.cos(h), s = Math.sin(h); for (const lx of [-48, 48]) kader(a.x + lx * c, a.z - lx * s, 9, 9, 110); kader(a.x, a.z, 55, 9, 14, hoogte(a.x, a.z) + 96); L.grandearche = G; }
+    // --- bootjes op de Seine
+    for (let i = 0; i < (mobiel ? 4 : 8); i++) {
+      const boot = new THREE.Group(); box(8, 2.5, 30, '#F4F0E6', 0, 0, 0, boot); box(7, 2.5, 18, new THREE.MeshPhongMaterial({ color: '#9FC8DC', transparent: true, opacity: 0.8 }), 0, 2.5, 2, boot); box(8.2, 0.6, 30.2, '#2F4C8F', 0, 0.2, 0, boot);
+      boot.position.y = -0.4; W.add(boot); anim.bootjes.push({ boot, t: i / 8, snel: 0.004 + rnd() * 0.004, richting: i % 2 ? 1 : -1 });
+    }
+    // alle kaders in het raster
+    botsers.forEach(zetInRaster);
+    const botst = (x, y, z, r) => {
+      const lijst = raster.get(sleutel(x, z)); if (!lijst) return null;
+      for (const b of lijst) if (Math.abs(x - b.x) < b.hx + r && Math.abs(z - b.z) < b.hz + r && y > b.y0 - r && y < b.y0 + b.h + (b.defense ? 0 : 5) + r) return b;
+      return null;
+    };
+    // de bootjes laten varen langs de Seine
+    const seineLengte = []; let tot = 0; for (let i = 0; i < SEINE.length - 1; i++) { tot += Math.hypot(SEINE[i + 1][0] - SEINE[i][0], SEINE[i + 1][1] - SEINE[i][1]); seineLengte.push(tot); }
+    const opSeine = t => { const d = ((t % 1) + 1) % 1 * tot; let i = seineLengte.findIndex(l => l >= d); if (i < 0) i = seineLengte.length - 1; const l0 = i ? seineLengte[i - 1] : 0, f = (d - l0) / (seineLengte[i] - l0), [ax, az] = SEINE[i], [bx, bz] = SEINE[i + 1]; return [ax + (bx - ax) * f, az + (bz - az) * f, Math.atan2(bz - az, bx - ax)]; };
+    function update(dt, tijd, nacht) {
+      if (anim.molen) anim.molen.rotation.z += dt * 0.8;
+      if (anim.lichtjes) anim.lichtjes.material.opacity = nacht > 0.5 ? (Math.floor(tijd * 4) % 2 ? 0.95 : 0.55) * (Math.sin(tijd * 0.25) > 0.6 ? 1 : 0.4) : 0;
+      for (const b of anim.bootjes) { b.t += b.snel * dt * b.richting * 0.15; const [x, z, h] = opSeine(b.t); b.boot.position.x = x + Math.sin(h) * 14 * b.richting; b.boot.position.z = z - Math.cos(h) * 14 * b.richting; b.boot.rotation.y = -h + (b.richting > 0 ? Math.PI / 2 : -Math.PI / 2); }
+      muurMat.emissive.setScalar(nacht * 0.9); glasMat.emissive.setScalar(nacht * 0.8);
+    }
+    return { W, botst, update, kaart, naarK, BEZ, GRENS, hoogte, water, L, aantalBlokken: blokken.length, bruggen };
+  }
+  return { bouw, BEZ, GRENS, KM, hoogte, SEINE, inSeine };
+})();
+
+(function () {
+  const $ = id => document.getElementById(id);
+  const mobiel = matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
+  const KEY = 'rommelarend-v1';
+  let opslag = { ontdekt: [], veren: [], races: {}, tijd: 'middag', omgekeerd: false, geluid: true, kantel: false, gestart: false };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  if (!window.THREE) { $('ar-laden').textContent = 'De 3D-wereld kon niet laden. Controleer je internet en vernieuw de pagina.'; return; }
+  // ---------------- de wereld
+  const renderer = new THREE.WebGLRenderer({ antialias: !mobiel, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobiel ? 1.25 : 1.6));
+  $('ar-veld').prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(62, 1, 1, 9000);
+  const hemi = new THREE.HemisphereLight('#CFE6FF', '#7A6A50', 0.75), zon = new THREE.DirectionalLight('#FFF3DA', 0.9);
+  zon.position.set(-600, 900, 400); scene.add(hemi, zon);
+  const W = AW.bouw(scene, { mobiel });
+  // lucht met sterren
+  const sterGeo = new THREE.BufferGeometry(), sp = []; for (let i = 0; i < 900; i++) { const a = Math.random() * 6.283, b = Math.random() * 1.3 + 0.12, r = 7000; sp.push(Math.cos(a) * Math.cos(b) * r, Math.sin(b) * r, Math.sin(a) * Math.cos(b) * r); }
+  sterGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  const sterren = new THREE.Points(sterGeo, new THREE.PointsMaterial({ color: '#FFFFFF', size: 2, sizeAttenuation: false, transparent: true, opacity: 0, fog: false })); scene.add(sterren);
+  const zonBol = new THREE.Mesh(new THREE.SphereGeometry(160, 16, 12), new THREE.MeshBasicMaterial({ color: '#FFF3C4', fog: false })); scene.add(zonBol);
+  const TIJDEN = {
+    ochtend: { lucht: '#F2C6A8', mist: '#E8C8B0', hemi: ['#FFE0C8', '#7A6A50', 0.7], zon: ['#FFC8A0', 0.8], zonPos: [900, 260, -300], nacht: 0, sterren: 0 },
+    middag: { lucht: '#8EC5EE', mist: '#B9D6EC', hemi: ['#CFE6FF', '#7A6A50', 0.75], zon: ['#FFF3DA', 0.9], zonPos: [-500, 1100, 300], nacht: 0, sterren: 0 },
+    avond: { lucht: '#E88A5A', mist: '#D99070', hemi: ['#FFB890', '#5A4A50', 0.6], zon: ['#FF9A60', 0.85], zonPos: [-1100, 180, 200], nacht: 0.45, sterren: 0.3 },
+    nacht: { lucht: '#0E1430', mist: '#141C3A', hemi: ['#5A6AA8', '#1A1A28', 0.45], zon: ['#9AA8E8', 0.25], zonPos: [400, 700, -600], nacht: 1, sterren: 1 },
+  };
+  let nachtNu = 0;
+  function zetTijd(t) {
+    const T = TIJDEN[t] || TIJDEN.middag; opslag.tijd = t; bewaar();
+    scene.background = new THREE.Color(T.lucht); scene.fog = new THREE.Fog(T.mist, mobiel ? 320 : 420, mobiel ? 1350 : 1900);
+    hemi.color.set(T.hemi[0]); hemi.groundColor.set(T.hemi[1]); hemi.intensity = T.hemi[2]; zon.color.set(T.zon[0]); zon.intensity = T.zon[1]; zon.position.set(...T.zonPos);
+    zonBol.material.color.set(t === 'nacht' ? '#EEF0FF' : T.zon[0]); zonBol.scale.setScalar(t === 'nacht' ? 0.5 : 1);
+    nachtNu = T.nacht; sterren.material.opacity = T.sterren;
+    document.querySelectorAll('[data-tijd]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tijd === t)));
+  }
+  // ---------------- de arend
+  const arend = new THREE.Group(), lijf = new THREE.Group(); arend.add(lijf);
+  const bruin = new THREE.MeshLambertMaterial({ color: '#5A3A22' }), donker = new THREE.MeshLambertMaterial({ color: '#3A2414' }), wit = new THREE.MeshLambertMaterial({ color: '#F4F0E6' }), geel = new THREE.MeshLambertMaterial({ color: '#E9B949' });
+  const romp = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 10), bruin); romp.scale.set(1, 0.8, 2.3); lijf.add(romp);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 10), wit); kop.position.set(0, 0.35, -2.3); lijf.add(kop);
+  const snavel = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.9, 6), geel); snavel.rotation.x = -Math.PI / 2; snavel.position.set(0, 0.25, -3.1); lijf.add(snavel);
+  for (const x of [-0.32, 0.32]) { const oog = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), new THREE.MeshBasicMaterial({ color: '#1A1A1A' })); oog.position.set(x, 0.55, -2.75); lijf.add(oog); }
+  const staart = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.2, 6), wit); staart.rotation.x = Math.PI / 2; staart.scale.set(1, 1, 0.25); staart.position.set(0, 0.05, 2.9); lijf.add(staart);
+  const vleugels = [];
+  for (const kant of [-1, 1]) {
+    const scharnier = new THREE.Group(); scharnier.position.set(kant * 0.8, 0.2, -0.3);
+    const binnen = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.22, 2.4), bruin); binnen.position.x = kant * 2.1; scharnier.add(binnen);
+    const buiten = new THREE.Group(); buiten.position.x = kant * 4.2; scharnier.add(buiten);
+    const tip = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.18, 2), donker); tip.position.x = kant * 1.8; buiten.add(tip);
+    for (let i = 0; i < 4; i++) { const veer = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.12, 1.6), donker); veer.position.set(kant * (3.5 + i * 0.05), 0, 0.6 - i * 0.55); veer.rotation.y = kant * (0.2 + i * 0.12); buiten.add(veer); }
+    lijf.add(scharnier); vleugels.push({ scharnier, buiten, kant });
+  }
+  lijf.scale.setScalar(2.1); scene.add(arend);
+  // ---------------- de vlucht
+  const START = { x: -2.95 * AW.KM, y: 70, z: -0.75 * AW.KM, yaw: Math.PI * 0.62 };
+  const A = { x: START.x, y: START.y, z: START.z, yaw: START.yaw, pitch: 0, roll: 0, snel: 34, vy: 0, klap: 0, klapT: 0, stoot: 0 };
+  const inv = { draai: 0, klim: 0, klap: false, snel: false };
+  const toets = {};
+  addEventListener('keydown', e => { toets[e.code] = true; if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) && S.scherm === 'spel') e.preventDefault(); if (e.code === 'Space' && !e.repeat) klap(); if (e.code === 'KeyM' && S.scherm === 'spel') toonKaart(); if ((e.code === 'Escape' || e.code === 'KeyP') && S.scherm === 'spel') pauze(); if (e.code === 'KeyC') S.camera = (S.camera + 1) % 3; });
+  addEventListener('keyup', e => { toets[e.code] = false; });
+  addEventListener('blur', () => { for (const k in toets) toets[k] = false; if (S.scherm === 'spel') pauze(); });
+  // slepen met muis of vinger: links op een telefoon is de stuurknuppel
+  const knuppel = { id: null, x0: 0, y0: 0, x: 0, y: 0 };
+  const veld = $('ar-veld');
+  veld.addEventListener('pointerdown', e => { if (S.scherm !== 'spel' || e.target.closest('button, .ar-kaart-groot')) return; if (mobiel && e.clientX > innerWidth * 0.55) return; knuppel.id = e.pointerId; knuppel.x0 = knuppel.x = e.clientX; knuppel.y0 = knuppel.y = e.clientY; veld.setPointerCapture(e.pointerId); toonKnuppel(true); geluidStart(); });
+  veld.addEventListener('pointermove', e => { if (e.pointerId !== knuppel.id) return; knuppel.x = e.clientX; knuppel.y = e.clientY; toonKnuppel(true); });
+  const los = e => { if (e.pointerId !== knuppel.id) return; knuppel.id = null; toonKnuppel(false); };
+  veld.addEventListener('pointerup', los); veld.addEventListener('pointercancel', los);
+  function toonKnuppel(aan) { const k = $('ar-knuppel'); if (!aan || !mobiel) { k.hidden = true; return; } k.hidden = false; k.style.left = knuppel.x0 + 'px'; k.style.top = knuppel.y0 + 'px'; const dx = Math.max(-50, Math.min(50, knuppel.x - knuppel.x0)), dy = Math.max(-50, Math.min(50, knuppel.y - knuppel.y0)); $('ar-knop-binnen').style.transform = `translate(${dx}px, ${dy}px)`; }
+  $('ar-klap').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); klap(); geluidStart(); });
+  $('ar-duik').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); inv.snel = true; geluidStart(); });
+  for (const t of ['pointerup', 'pointercancel', 'pointerleave']) $('ar-duik').addEventListener(t, () => { inv.snel = false; });
+  // kantelen (telefoon)
+  let kantel = null;
+  addEventListener('deviceorientation', e => { if (!opslag.kantel || e.gamma == null) return; const liggend = Math.abs(window.orientation || 0) === 90 || innerWidth > innerHeight; kantel = liggend ? { draai: (e.beta || 0) / 25 * (window.orientation === -90 ? -1 : 1), klim: -((e.gamma || 0) + 45) / 25 } : { draai: (e.gamma || 0) / 25, klim: ((e.beta || 0) - 45) / -25 }; });
+  function leesInvoer() {
+    let d = 0, k = 0;
+    if (toets.ArrowLeft || toets.KeyA) d -= 1; if (toets.ArrowRight || toets.KeyD) d += 1;
+    if (toets.ArrowUp || toets.KeyW) k += 1; if (toets.ArrowDown || toets.KeyS) k -= 1;
+    if (knuppel.id !== null) { d += (knuppel.x - knuppel.x0) / (mobiel ? 50 : 140); k += -(knuppel.y - knuppel.y0) / (mobiel ? 50 : 140); }
+    if (kantel && opslag.kantel) { d += kantel.draai; k += kantel.klim; }
+    inv.draai = Math.max(-1, Math.min(1, d)); inv.klim = Math.max(-1, Math.min(1, k)) * (opslag.omgekeerd ? -1 : 1);
+    inv.snelToets = toets.ShiftLeft || toets.ShiftRight;
+  }
+  function klap() { if (S.scherm !== 'spel' || A.klapT > 0) return; A.klapT = 0.45; A.vy += 10; A.snel = Math.min(80, A.snel + 5); fx.klap(); }
+  const vooruit = new THREE.Vector3();
+  function vlieg(dt) {
+    leesInvoer();
+    const stoot = A.stoot > 0; if (stoot) A.stoot -= dt;
+    const draai = stoot ? inv.draai * 0.3 : inv.draai, klim = stoot ? 0 : inv.klim, duik = (inv.snel || inv.snelToets) && !stoot;
+    A.yaw -= draai * 1.15 * dt;
+    A.roll += ((-draai * 0.85) - A.roll) * Math.min(1, dt * 4);
+    const doelPitch = duik ? -0.42 : klim * 0.5;
+    A.pitch += (doelPitch - A.pitch) * Math.min(1, dt * 2.6);
+    A.snel += (-Math.sin(A.pitch) * (A.pitch > 0 ? 22 : 36) - (A.snel - 34) * 0.4 + (duik ? 34 : 0)) * dt;
+    A.snel = Math.max(22, Math.min(96, A.snel));
+    vooruit.set(-Math.sin(A.yaw) * Math.cos(A.pitch), Math.sin(A.pitch), -Math.cos(A.yaw) * Math.cos(A.pitch));
+    A.x += vooruit.x * A.snel * dt; A.y += vooruit.y * A.snel * dt + A.vy * dt; A.z += vooruit.z * A.snel * dt;
+    A.vy *= Math.exp(-2.2 * dt);
+    if (A.klapT > 0) A.klapT -= dt;
+    // grond, water en plafond: nooit neerstorten
+    const grond = AW.hoogte(A.x, A.z) + (W.water(A.x, A.z) ? 1.2 : 3);
+    if (A.y < grond) { A.y = grond; A.pitch = Math.max(A.pitch, 0.12); if (A.snel > 50) A.snel -= 20 * dt; }
+    if (A.y > 560) { A.y -= (A.y - 560) * dt * 2; A.pitch = Math.min(A.pitch, 0); }
+    // de rand van de stad: vriendelijk terugsturen
+    const G = AW.GRENS, buiten = A.x < G.x0 + 200 || A.x > G.x1 - 100 || A.z < G.z0 + 100 || A.z > G.z1 - 100;
+    if (buiten) { const doel = Math.atan2(-(-1.5 * AW.KM - A.x), -(0 - A.z)); let v = doel - A.yaw; v = Math.atan2(Math.sin(v), Math.cos(v)); A.yaw += v * dt * 1.2; melding('Hier houdt Parijs op. Terug naar de stad!', 'rand'); }
+    // tegen een gebouw: wegkaatsen, zonder schade
+    const b = W.botst(A.x, A.y, A.z, 2.5);
+    if (b) {
+      const dx = (b.hx + 2.5) - Math.abs(A.x - b.x), dz = (b.hz + 2.5) - Math.abs(A.z - b.z), dy = (b.y0 + b.h + 5 + 2.5) - A.y;
+      if (dy < dx && dy < dz && dy < 8) { A.y = b.y0 + b.h + 7.6; A.pitch = Math.max(A.pitch, 0.2); }
+      else {
+        if (dx < dz) { A.x += Math.sign(A.x - b.x) * (dx + 0.5); vooruit.x *= -1; } else { A.z += Math.sign(A.z - b.z) * (dz + 0.5); vooruit.z *= -1; }
+        A.yaw = Math.atan2(-vooruit.x, -vooruit.z); A.snel *= 0.55; A.stoot = 0.6; A.vy += 4; S.schud = 0.4; veertjes(A.x, A.y, A.z, 14, '#8C6A4E'); fx.bots(); melding('Au! Kijk uit voor de gebouwen.', 'bots');
+      }
+    }
+    // de arend in beeld
+    arend.position.set(A.x, A.y, A.z); arend.rotation.set(0, A.yaw, 0, 'YXZ'); lijf.rotation.set(-A.pitch, 0, A.roll, 'YXZ');
+    const t = performance.now() / 1000, flap = A.klapT > 0 ? Math.sin((0.45 - A.klapT) * 30) * 0.9 : duik ? -0.15 : Math.sin(t * 1.4) * 0.05 + 0.08;
+    for (const v of vleugels) { v.scharnier.rotation.z = v.kant * flap; v.buiten.rotation.z = v.kant * (duik ? -0.5 : flap * 0.5); v.scharnier.rotation.y = duik ? -v.kant * 0.5 : 0; }
+  }
+  // ---------------- camera
+  const camPos = new THREE.Vector3(), camDoel = new THREE.Vector3();
+  function camVolg(dt, direct) {
+    const af = [19, 36, 11][S.camera], hoog = [5.5, 12, 3][S.camera];
+    const achter = new THREE.Vector3(Math.sin(A.yaw) * af, hoog + A.pitch * -6, Math.cos(A.yaw) * af);
+    const doel = new THREE.Vector3(A.x, A.y, A.z).add(achter);
+    const grondCam = AW.hoogte(doel.x, doel.z) + 4; if (doel.y < grondCam) doel.y = grondCam;
+    if (direct) camPos.copy(doel); else camPos.lerp(doel, Math.min(1, dt * 4.5));
+    camDoel.set(A.x - Math.sin(A.yaw) * 22, A.y + 1.5 + Math.sin(A.pitch) * 10, A.z - Math.cos(A.yaw) * 22);
+    camera.position.copy(camPos);
+    if (S.schud > 0) { S.schud -= dt; camera.position.x += (Math.random() - 0.5) * 3 * S.schud; camera.position.y += (Math.random() - 0.5) * 3 * S.schud; }
+    camera.lookAt(camDoel);
+    const fov = 60 + (A.snel - 34) * 0.22; camera.fov += (Math.max(56, Math.min(80, fov)) - camera.fov) * Math.min(1, dt * 3); camera.updateProjectionMatrix();
+  }
+  // ---------------- gouden veren
+  const VEREN = (() => {
+    const lijst = [], B = id => AW.BEZ.find(b => b.id === id), h = AW.hoogte;
+    const e = B('eiffel'); lijst.push([e.x, 258, e.z], [e.x + 17, 106, e.z + 17], [e.x, 26, e.z], [e.x + 30, 60, e.z + 30]);
+    const a = B('arc'); lijst.push([a.x, h(a.x, a.z) + 16, a.z], [a.x, 70, a.z]);
+    const n = B('notredame'); lijst.push([n.x + 12, 74, n.z], [n.x - 40, 62, n.z + 8]);
+    const sc = B('sacrecoeur'); lijst.push([sc.x, h(sc.x, sc.z) + 60, sc.z], [sc.x + 60, h(sc.x, sc.z) + 20, sc.z + 40]);
+    const l = B('louvre'); lijst.push([l.x - 55, 26, l.z + 12], [l.x + 60, 34, l.z - 14]);
+    const c = B('concorde'); lijst.push([c.x, 42, c.z]);
+    const gp = B('grandpalais'); lijst.push([gp.x, 54, gp.z]);
+    const al = B('alexandre'); lijst.push([al.x, 2.5, al.z]);
+    const inv = B('invalides'); lijst.push([inv.x, 66, inv.z]);
+    const mp = B('montparnasse'); lijst.push([mp.x, 128, mp.z]);
+    const pa = B('pantheon'); lijst.push([pa.x, 62, pa.z]);
+    const lu = B('luxembourg'); lijst.push([lu.x, 8, lu.z + 20]);
+    const po = B('pompidou'); lijst.push([po.x, 36, po.z]);
+    const op = B('opera'); lijst.push([op.x, 56, op.z + 20]);
+    const mr = B('moulinrouge'); lijst.push([mr.x, 50, mr.z]);
+    const ba = B('bastille'); lijst.push([ba.x, 62, ba.z]);
+    const ga = B('grandearche'); lijst.push([ga.x, h(ga.x, ga.z) + 50, ga.z], [ga.x, h(ga.x, ga.z) + 125, ga.z]);
+    // laag boven de Seine en boven de parken
+    for (let i = 1; i < AW.SEINE.length - 2; i += 2) { const [x, z] = AW.SEINE[i]; lijst.push([x, 6, z]); }
+    for (const [x, z] of [[-7.6, 0.4], [1.7, -2.4], [-3.55, -2.25], [0.95, 0.95], [-4.6, 0.95], [-2.2, -0.62]]) lijst.push([x * AW.KM, h(x * AW.KM, z * AW.KM) + 14, z * AW.KM]);
+    // hoog in de lucht en op daken
+    for (const [x, z, y] of [[-1.0, -2.6, 90], [1.8, 1.8, 70], [-6.5, -2.2, 110], [-2.0, 3.4, 60], [2.6, -1.2, 80], [-4.0, -3.4, 120]]) lijst.push([x * AW.KM, y, z * AW.KM]);
+    return lijst.slice(0, 40).map((p, i) => ({ id: 'v' + i, x: p[0], y: p[1], z: p[2] }));
+  })();
+  const veerMat = new THREE.MeshLambertMaterial({ color: '#FFD84A', emissive: '#6A4E00' });
+  const veerGeo = new THREE.ConeGeometry(1.2, 5, 6); veerGeo.scale(1, 1, 0.35);
+  const veerMeshes = VEREN.map(v => { const m = new THREE.Mesh(veerGeo, veerMat); m.position.set(v.x, v.y, v.z); m.visible = !opslag.veren.includes(v.id); scene.add(m); const gloed = new THREE.Mesh(new THREE.SphereGeometry(3.2, 10, 8), new THREE.MeshBasicMaterial({ color: '#FFE76A', transparent: true, opacity: 0.25, depthWrite: false })); m.add(gloed); return m; });
+  function checkVeren() {
+    VEREN.forEach((v, i) => { const m = veerMeshes[i]; if (!m.visible) return; m.rotation.y += 0.04; if (Math.hypot(A.x - v.x, A.y - v.y, A.z - v.z) < (mobiel ? 9 : 7.5)) { m.visible = false; opslag.veren.push(v.id); bewaar(); fx.veer(); veertjes(v.x, v.y, v.z, 18, '#FFD84A'); melding(`Gouden veer! ${opslag.veren.length} van ${VEREN.length}`, 'veer'); stuurScore(); tekenHud(); } });
+  }
+  // ---------------- wedstrijden door ringen
+  const RACES = (() => {
+    const B = id => AW.BEZ.find(b => b.id === id), h = AW.hoogte, KM = AW.KM;
+    const e = B('eiffel'), a = B('arc'), c = B('concorde'), sc = B('sacrecoeur'), mr = B('moulinrouge');
+    const rondje = []; for (let i = 0; i <= 14; i++) { const t = i / 14 * Math.PI * 2.5, r = 80 - i * 3; rondje.push([e.x + Math.cos(t) * r, 40 + i * 9, e.z + Math.sin(t) * r]); } rondje.push([e.x - 120, 150, e.z - 120], [e.x - 60, 60, e.z - 60], { p: [e.x, 22, e.z], door: true }, [e.x + 60, 26, e.z + 60]);
+    const seine = AW.SEINE.slice(3, 12).map(([x, z]) => [x, 12, z]);
+    const champs = []; for (let i = 0; i < 8; i++) { const t = i / 8; champs.push([c.x + (a.x - c.x) * t, i < 6 ? 30 : 18, c.z + (a.z - c.z) * t]); } const ux = (a.x - c.x), uz = (a.z - c.z), ul = Math.hypot(ux, uz); champs.push({ p: [a.x, h(a.x, a.z) + 15, a.z], door: true }, [a.x + ux / ul * 90, h(a.x, a.z) + 22, a.z + uz / ul * 90]);
+    const mont = [[mr.x, 50, mr.z + 40], [mr.x, 46, mr.z - 30]]; for (let i = 0; i <= 8; i++) { const t = i / 8 * Math.PI * 2, r = 120 - i * 6; mont.push([sc.x + Math.cos(t) * r, h(sc.x, sc.z) + 30 + i * 6, sc.z + Math.sin(t) * r]); }
+    const tour = ['louvre', 'opera', 'grandpalais', 'invalides', 'montparnasse', 'pantheon', 'notredame'].map(id => { const b = B(id); return [b.x, id === 'montparnasse' ? 140 : id === 'notredame' ? 70 : 64, b.z]; });
+    return [
+      { id: 'eiffel', naam: 'Rondje Eiffeltoren', tekst: 'Draai omhoog rond de toren, en duik dan onder de bogen door.', ringen: rondje },
+      { id: 'seine', naam: 'Langs de Seine', tekst: 'Laag over het water, onder de vogels door.', ringen: seine },
+      { id: 'champs', naam: 'Door de Arc', tekst: 'Over de Champs-Élysées, en dwars door de Arc de Triomphe.', ringen: champs },
+      { id: 'montmartre', naam: 'Montmartre', tekst: 'Langs de Moulin Rouge en spiraal omhoog naar de Sacré-Cœur.', ringen: mont },
+      { id: 'tour', naam: 'De grote tour', tekst: 'Zeven bezienswaardigheden in één vlucht.', ringen: tour },
+    ].map(r => {
+      r.door = r.ringen.map(q => !!(q && q.door)); r.ringen = r.ringen.map(q => (q && q.p ? q.p.slice() : q.slice()));
+      for (let ronde = 0; ronde < 12; ronde++) {
+        let veranderd = false;
+        r.ringen.forEach((p, i) => { if (r.door[i]) return; let k = 0; while (W.botst(p[0], p[1], p[2], 9) && k++ < 40) { p[1] += 5; veranderd = true; } });
+        for (let i = 1; i < r.ringen.length; i++) { const q = r.ringen[i - 1], p = r.ringen[i]; for (let t = 0.05; t < 1; t += 0.05) { const x = q[0] + (p[0] - q[0]) * t, y = q[1] + (p[1] - q[1]) * t, z = q[2] + (p[2] - q[2]) * t, b = W.botst(x, y, z, 4); if (b) { const top = b.y0 + b.h + 14; if (!r.door[i - 1]) q[1] = Math.max(q[1], top); if (!r.door[i]) p[1] = Math.max(p[1], top); veranderd = true; break; } } }
+        if (!veranderd) break;
+      }
+      let l = 0; for (let i = 1; i < r.ringen.length; i++) l += Math.hypot(r.ringen[i][0] - r.ringen[i - 1][0], r.ringen[i][1] - r.ringen[i - 1][1], r.ringen[i][2] - r.ringen[i - 1][2]); r.goud = Math.round(l / 30 + r.ringen.length * 0.6); r.zilver = Math.round(r.goud * 1.25); r.brons = Math.round(r.goud * 1.6); return r; });
+  })();
+  const ringGroep = new THREE.Group(); scene.add(ringGroep);
+  const ringMat = new THREE.MeshBasicMaterial({ color: '#5EE6FF', transparent: true, opacity: 0.8 }), volgendeMat = new THREE.MeshBasicMaterial({ color: '#8AFF6A', transparent: true, opacity: 0.95 });
+  const ringGeo = new THREE.TorusGeometry(mobiel ? 15 : 13, 1.1, 6, 28);
+  let race = null;
+  function startRace(R) {
+    ringGroep.clear();
+    const eerste = R.ringen[0], tweede = R.ringen[1];
+    // begin een eindje voor de eerste ring, in de goede richting
+    const yaw = Math.atan2(-(tweede[0] - eerste[0]), -(tweede[2] - eerste[2]));
+    Object.assign(A, { x: eerste[0] + Math.sin(yaw) * 70, y: eerste[1] + 4, z: eerste[2] + Math.cos(yaw) * 70, yaw, pitch: 0, snel: 38, vy: 0 });
+    race = { R, i: 0, t: 0, meshes: R.ringen.map((p, i) => { const m = new THREE.Mesh(ringGeo, i ? ringMat : volgendeMat); m.position.set(...p); const q = R.ringen[Math.min(R.ringen.length - 1, i + 1)], v = R.ringen[Math.max(0, i - 1)]; m.lookAt(i < R.ringen.length - 1 ? q[0] : p[0] * 2 - v[0], i < R.ringen.length - 1 ? q[1] : p[1], i < R.ringen.length - 1 ? q[2] : p[2] * 2 - v[2]); ringGroep.add(m); return m; }) };
+    sluitMenus(); S.scherm = 'spel'; camVolg(0, true); melding(R.naam + ': vlieg door de groene ring!', 'race'); tekenHud();
+  }
+  function checkRace(dt) {
+    if (!race) return; race.t += dt;
+    const p = race.R.ringen[race.i];
+    if (Math.hypot(A.x - p[0], A.y - p[1], A.z - p[2]) < (mobiel ? 16 : 14)) {
+      race.meshes[race.i].visible = false; race.i++; fx.ring();
+      if (race.i >= race.R.ringen.length) return eindeRace();
+      race.meshes[race.i].material = volgendeMat;
+    }
+    $('ar-race').textContent = `${race.R.naam} · ring ${race.i + 1} van ${race.R.ringen.length} · ${race.t.toFixed(1)} s`;
+  }
+  function eindeRace() {
+    const R = race.R, t = Math.round(race.t * 10) / 10, medaille = t <= R.goud ? 'goud' : t <= R.zilver ? 'zilver' : t <= R.brons ? 'brons' : null;
+    const oud = opslag.races[R.id], beter = !oud || t < oud.tijd;
+    if (beter) opslag.races[R.id] = { tijd: t, medaille: medaille || (oud && oud.medaille) || null };
+    else if (medaille && (!oud.medaille || ['brons', 'zilver', 'goud'].indexOf(medaille) > ['brons', 'zilver', 'goud'].indexOf(oud.medaille))) oud.medaille = medaille;
+    bewaar(); stuurScore(); ringGroep.clear(); race = null; $('ar-race').hidden = true; fx.fanfare();
+    venster(`<h2>${R.naam}: gehaald!</h2><p class="ar-groot">${t.toFixed(1)} s</p><p>${medaille ? 'Je verdient een <b>' + medaille + 'en</b> medaille!' : 'Net geen medaille. Voor brons moet je binnen ' + R.brons + ' seconden zijn.'}${beter && oud ? ' Een nieuw record!' : ''}</p><p class="ar-klein">Goud: ${R.goud} s · zilver: ${R.zilver} s · brons: ${R.brons} s</p><div class="ar-rij"><button class="ar-knop hoofd" data-race="${R.id}" type="button">Nog een keer</button><button class="ar-knop" data-actie="races" type="button">Andere wedstrijd</button><button class="ar-knop" data-actie="vrij" type="button">Vrij vliegen</button></div>`);
+  }
+  // ---------------- bezienswaardigheden ontdekken
+  function checkOntdek() {
+    for (const b of AW.BEZ) {
+      if (opslag.ontdekt.includes(b.id)) continue;
+      const d = Math.hypot(A.x - b.x, A.z - b.z);
+      if (d < b.r && A.y < (b.laag || 260)) {
+        opslag.ontdekt.push(b.id); bewaar(); stuurScore(); fx.ontdek(); tekenHud();
+        toonOntdekt(b);
+      }
+    }
+  }
+  function toonOntdekt(b) { const k = $('ar-ontdekt'); k.innerHTML = `<small>Ontdekt! ${opslag.ontdekt.length} van ${AW.BEZ.length}</small><b>${b.naam}</b><span>${b.feit}</span>`; k.hidden = false; k.classList.remove('weg'); clearTimeout(toonOntdekt.t); toonOntdekt.t = setTimeout(() => { k.classList.add('weg'); setTimeout(() => { k.hidden = true; }, 600); }, 7000); }
+  // ---------------- veertjes (deeltjes)
+  const deeltjes = [];
+  const deeltjeGeo = new THREE.PlaneGeometry(0.8, 1.6);
+  function veertjes(x, y, z, n, kleur) { const m = new THREE.MeshBasicMaterial({ color: kleur, side: THREE.DoubleSide, transparent: true }); for (let i = 0; i < n; i++) { const d = new THREE.Mesh(deeltjeGeo, m); d.position.set(x, y, z); d.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 18, Math.random() * 12, (Math.random() - 0.5) * 18), t: 1.4 }; scene.add(d); deeltjes.push(d); } }
+  function updateDeeltjes(dt) { for (let i = deeltjes.length - 1; i >= 0; i--) { const d = deeltjes[i], u = d.userData; u.t -= dt; u.v.y -= 9 * dt; d.position.addScaledVector(u.v, dt); d.rotation.x += dt * 5; d.rotation.y += dt * 3; d.material.opacity = Math.max(0, u.t / 1.4); if (u.t <= 0) { scene.remove(d); deeltjes.splice(i, 1); } } }
+  // ---------------- beeld: hud, kaartje en meldingen
+  const S = { scherm: 'menu', camera: 0, schud: 0, meldT: 0 };
+  function tekenHud() { $('ar-tel').innerHTML = `<span title="Bezienswaardigheden">🏛 ${opslag.ontdekt.length}/${AW.BEZ.length}</span><span title="Gouden veren">🪶 ${opslag.veren.length}/${VEREN.length}</span><span title="Punten">★ ${punten()}</span>`; $('ar-race').hidden = !race; }
+  const meld = $('ar-melding'); let meldSoort = '', meldTot = 0;
+  function melding(t, soort) { const nu = performance.now(); if (soort === meldSoort && nu < meldTot - 1500) return; meldSoort = soort; meldTot = nu + 2600; meld.textContent = t; meld.hidden = false; }
+  const mini = $('ar-mini'), mg = mini.getContext('2d');
+  function tekenMini() {
+    const M = mini.width, kaartSchaal = W.kaart.width / (AW.GRENS.x1 - AW.GRENS.x0), zoom = 2.4, [kx, kz] = W.naarK(A.x, A.z);
+    mg.save(); mg.clearRect(0, 0, M, M); mg.beginPath(); mg.arc(M / 2, M / 2, M / 2 - 2, 0, 7); mg.clip();
+    mg.translate(M / 2, M / 2); mg.rotate(A.yaw); mg.scale(zoom * M / 360, zoom * M / 360); mg.drawImage(W.kaart, -kx, -kz);
+    for (const b of AW.BEZ) { const [bx, bz] = W.naarK(b.x, b.z); mg.fillStyle = opslag.ontdekt.includes(b.id) ? '#E9B949' : '#FFFFFF'; mg.strokeStyle = '#231A26'; mg.lineWidth = 1.5 / zoom; mg.beginPath(); mg.arc(bx - kx, bz - kz, 5 / zoom * 2, 0, 7); mg.fill(); mg.stroke(); }
+    if (race) { const p = race.R.ringen[race.i], [rx, rz] = W.naarK(p[0], p[2]); mg.fillStyle = '#8AFF6A'; mg.beginPath(); mg.arc(rx - kx, rz - kz, 6 / zoom * 2, 0, 7); mg.fill(); }
+    mg.restore();
+    mg.fillStyle = '#C8323C'; mg.strokeStyle = '#FBF6E9'; mg.lineWidth = 2; mg.beginPath(); mg.moveTo(M / 2, M / 2 - 9); mg.lineTo(M / 2 + 6, M / 2 + 7); mg.lineTo(M / 2, M / 2 + 3); mg.lineTo(M / 2 - 6, M / 2 + 7); mg.closePath(); mg.fill(); mg.stroke();
+    mg.strokeStyle = '#231A26'; mg.lineWidth = 3; mg.beginPath(); mg.arc(M / 2, M / 2, M / 2 - 2, 0, 7); mg.stroke();
+    // noorden
+    const na = -A.yaw - Math.PI / 2; mg.fillStyle = '#FBF6E9'; mg.font = '800 13px system-ui, sans-serif'; mg.textAlign = 'center'; mg.textBaseline = 'middle'; mg.fillText('N', M / 2 + Math.cos(na) * (M / 2 - 12), M / 2 + Math.sin(na) * (M / 2 - 12));
+  }
+  function toonKaart() {
+    const groot = $('ar-kaart-groot'); if (!groot.hidden) { groot.hidden = true; return; }
+    const c = $('ar-kaart-doek'), g = c.getContext('2d'); c.width = c.height = 1000; g.drawImage(W.kaart, 0, 0, 1000, 1000);
+    const f = 1000 / W.kaart.width;
+    for (const b of AW.BEZ) { const [x, z] = W.naarK(b.x, b.z), o = opslag.ontdekt.includes(b.id); g.fillStyle = o ? '#E9B949' : '#FFFFFF'; g.strokeStyle = '#231A26'; g.lineWidth = 3; g.beginPath(); g.arc(x * f, z * f, 9, 0, 7); g.fill(); g.stroke(); g.font = '700 17px system-ui, sans-serif'; g.fillStyle = '#231A26'; g.strokeStyle = 'rgba(251,246,233,.9)'; g.lineWidth = 5; const naam = o ? b.naam.replace(/^(De|Het) /, '') : '???'; g.strokeText(naam, x * f + 13, z * f + 6); g.fillText(naam, x * f + 13, z * f + 6); }
+    const [ax, az] = W.naarK(A.x, A.z); g.save(); g.translate(ax * f, az * f); g.rotate(-A.yaw); g.fillStyle = '#C8323C'; g.strokeStyle = '#FBF6E9'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, -16); g.lineTo(11, 12); g.lineTo(0, 6); g.lineTo(-11, 12); g.closePath(); g.fill(); g.stroke(); g.restore();
+    groot.hidden = false;
+  }
+  $('ar-kaart-groot').addEventListener('click', () => { $('ar-kaart-groot').hidden = true; });
+  $('ar-kaartknop').addEventListener('click', e => { e.stopPropagation(); toonKaart(); });
+  // ---------------- menu's
+  const punten = () => opslag.ontdekt.length * 100 + opslag.veren.length * 25 + Object.values(opslag.races).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0);
+  function venster(html) { $('ar-venster-in').innerHTML = html; $('ar-venster').hidden = false; S.scherm = 'venster'; }
+  function sluitMenus() { $('ar-venster').hidden = true; $('ar-menu').hidden = true; }
+  function menu() { sluitMenus(); $('ar-menu').hidden = false; S.scherm = 'menu'; $('ar-menu-stand').textContent = `${opslag.ontdekt.length} van ${AW.BEZ.length} bezienswaardigheden · ${opslag.veren.length} van ${VEREN.length} gouden veren · ${punten()} punten`; $('ar-verder').textContent = opslag.gestart ? 'Verder vliegen' : 'Begin met vliegen'; }
+  function pauze() { venster(`<h2>Pauze</h2><p>Even uitrusten op een dakgoot.</p><div class="ar-rij"><button class="ar-knop hoofd" data-actie="verder" type="button">Verder vliegen</button><button class="ar-knop" data-actie="menu" type="button">Naar het menu</button></div>`); }
+  function racesLijst() { venster(`<h2>Wedstrijden</h2><p>Vlieg zo snel mogelijk door alle ringen. De groene ring is de volgende; op je kaartje zie je hem als groene stip.</p><ul class="ar-lijst">${RACES.map(R => { const r = opslag.races[R.id]; return `<li><button class="ar-race-knop" data-race="${R.id}" type="button"><b>${R.naam}</b><span>${R.tekst}</span><small>${r ? 'Record ' + r.tijd.toFixed(1) + ' s' + (r.medaille ? ' · ' + r.medaille : '') : 'Nog niet gevlogen'} · ${R.ringen.length} ringen</small></button></li>`; }).join('')}</ul><div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Terug</button></div>`); }
+  function dagboek() { venster(`<h2>Mijn Parijs</h2><p>${opslag.ontdekt.length} van ${AW.BEZ.length} bezienswaardigheden ontdekt, en ${opslag.veren.length} van ${VEREN.length} gouden veren gevonden.</p><ul class="ar-dagboek">${AW.BEZ.map(b => opslag.ontdekt.includes(b.id) ? `<li class="ja"><b>${b.naam}</b><span>${b.feit}</span></li>` : `<li><b>???</b><span>Nog niet ontdekt. Vlieg laag langs om hem te vinden.</span></li>`).join('')}</ul><div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Terug</button></div>`); }
+  function instellingen() { venster(`<h2>Instellingen</h2><h3>Tijd van de dag</h3><div class="ar-rij">${Object.keys(TIJDEN).map(t => `<button class="ar-knop" data-tijd="${t}" aria-pressed="${opslag.tijd === t}" type="button">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div><h3>Besturing</h3><label class="ar-vink"><input type="checkbox" id="ar-in-omgekeerd" ${opslag.omgekeerd ? 'checked' : ''}> Omhoog en omlaag omdraaien (zoals een vliegtuig)</label>${mobiel ? `<label class="ar-vink"><input type="checkbox" id="ar-in-kantel" ${opslag.kantel ? 'checked' : ''}> Sturen door je telefoon te kantelen</label>` : ''}<label class="ar-vink"><input type="checkbox" id="ar-in-geluid" ${opslag.geluid ? 'checked' : ''}> Geluid</label><div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Klaar</button></div>`); }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-actie]'), r = e.target.closest('[data-race]'), t = e.target.closest('[data-tijd]');
+    if (t) { zetTijd(t.dataset.tijd); return; }
+    if (r) { startRace(RACES.find(x => x.id === r.dataset.race)); return; }
+    if (!a) return; const w = a.dataset.actie;
+    if (w === 'vrij' || w === 'verder') { if (w === 'vrij' && race) { ringGroep.clear(); race = null; } sluitMenus(); S.scherm = 'spel'; if (!opslag.gestart) { opslag.gestart = true; bewaar(); setTimeout(() => melding(mobiel ? 'Sleep links om te sturen. Tik rechts om met je vleugels te klappen.' : 'Pijltjes of WASD om te sturen, spatie om te klappen, shift om te duiken.', 'uitleg'), 400); } camVolg(0, true); tekenHud(); geluidStart(); }
+    if (w === 'menu') menu(); if (w === 'races') racesLijst(); if (w === 'dagboek') dagboek(); if (w === 'instellingen') instellingen();
+  });
+  document.addEventListener('change', e => { if (e.target.id === 'ar-in-omgekeerd') { opslag.omgekeerd = e.target.checked; bewaar(); } if (e.target.id === 'ar-in-geluid') { opslag.geluid = e.target.checked; bewaar(); if (!opslag.geluid) stilte(); } if (e.target.id === 'ar-in-kantel') { opslag.kantel = e.target.checked; bewaar(); if (opslag.kantel && window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } });
+  $('ar-menuknop').addEventListener('click', e => { e.stopPropagation(); if (S.scherm === 'spel') pauze(); });
+  // ---------------- geluid
+  let ac = null, wind = null;
+  function geluidStart() { if (!opslag.geluid || ac) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); const buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = ac.createBufferSource(); s.buffer = buf; s.loop = true; const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 500; f.Q.value = 0.6; const g = ac.createGain(); g.gain.value = 0; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); wind = { f, g }; setTimeout(() => fx.roep(), 600); } catch (e) {} }
+  function stilte() { if (wind) wind.g.gain.value = 0; }
+  const toon = (f, t0, duur, type, vol, glij) => { if (!ac || !opslag.geluid) return; const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + t0; o.type = type; o.frequency.setValueAtTime(f, t); if (glij) o.frequency.exponentialRampToValueAtTime(glij, t + duur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + duur); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + duur + 0.05); };
+  const fx = {
+    klap: () => { if (!ac || !opslag.geluid) return; const b = ac.createBuffer(1, ac.sampleRate * 0.25, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2); const s = ac.createBufferSource(); s.buffer = b; const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700; const g = ac.createGain(); g.gain.value = 0.5; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); },
+    ring: () => { toon(880, 0, 0.18, 'sine', 0.2); toon(1320, 0.06, 0.22, 'sine', 0.16); },
+    veer: () => { [988, 1319, 1568, 1976].forEach((f, i) => toon(f, i * 0.06, 0.25, 'triangle', 0.12)); },
+    ontdek: () => { [523, 659, 784, 1047].forEach((f, i) => toon(f, i * 0.1, 0.4, 'triangle', 0.14)); },
+    fanfare: () => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => toon(f, i * 0.12, 0.35, 'square', 0.07)); },
+    bots: () => toon(140, 0, 0.25, 'sawtooth', 0.12, 60),
+    roep: () => { toon(1900, 0, 0.5, 'sawtooth', 0.04, 1300); toon(1950, 0.55, 0.35, 'sawtooth', 0.03, 1500); },
+  };
+  // ---------------- scorebord
+  function stuurScore() { if (window.Scorebord) Scorebord.stuur('arend', punten(), opslag.ontdekt.length); }
+  // ---------------- de lus
+  function maat() { const r = veld.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); renderer.domElement.style.width = r.width + 'px'; renderer.domElement.style.height = r.height + 'px'; camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); }
+  addEventListener('resize', maat);
+  let vorige = performance.now(), miniT = 0, roepT = 20;
+  function lus(nu) {
+    requestAnimationFrame(lus);
+    const dt = Math.min(0.05, (nu - vorige) / 1000); vorige = nu;
+    if (S.scherm === 'spel') {
+      vlieg(dt); checkVeren(); checkRace(dt); checkOntdek();
+      if (wind) { wind.g.gain.value = opslag.geluid ? Math.min(0.32, 0.04 + (A.snel - 16) / 260) : 0; wind.f.frequency.value = 300 + A.snel * 9; }
+      roepT -= dt; if (roepT < 0) { roepT = 25 + Math.random() * 30; fx.roep(); }
+      if (performance.now() > meldTot) meld.hidden = true;
+      $('ar-snel').textContent = Math.round(A.snel * 2.2) + ' km/u · ' + Math.round(A.y - AW.hoogte(A.x, A.z)) + ' m hoog';
+    } else {
+      // in het menu: langzaam rondcirkelen
+      A.yaw += dt * 0.08;
+    }
+    camVolg(dt, false);
+    W.update(dt, nu / 1000, nachtNu);
+    updateDeeltjes(dt);
+    miniT -= dt; if (miniT < 0) { miniT = 0.1; tekenMini(); }
+    renderer.render(scene, camera);
+  }
+  zetTijd(opslag.tijd); maat(); arend.position.set(A.x, A.y, A.z); camVolg(0, true);
+  $('ar-laden').hidden = true; menu(); tekenHud(); requestAnimationFrame(lus);
+  $('ar-uitleg').textContent = mobiel ? 'Sleep met je vinger links op het scherm om te sturen. Tik rechts op Klap om hoger te komen, en houd Duik ingedrukt om snel te gaan.' : 'Pijltjes of WASD om te sturen, spatie om met je vleugels te klappen, shift om te duiken. M voor de kaart, C voor een andere camera. Je kunt ook met de muis slepen.';
+  document.body.classList.toggle('ar-mobiel', mobiel);
+  if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-arend'), 'punten'); }
+  window.__ar = { A, S, opslag, RACES, VEREN, startRace, W, inv, toets, stap: (n, dt) => { for (let i = 0; i < n; i++) { vlieg(dt); checkVeren(); checkRace(dt); checkOntdek(); } } };
+})();
+
+</script>
+<script>
+(function () {
+  // GRAPJES: verborgen grapjes op het rommelhoekje. Geen teller, geen hints: wie ze vindt, vindt ze.
+  if (window.Grapjes) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const opHome = !!document.querySelector('.haak-rij');
+
+  const stijl = document.createElement('style');
+  stijl.textContent = `
+    .gr-vallen { position: fixed; top: -40px; z-index: 9998; pointer-events: none; }
+    .gr-groot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9998; pointer-events: none; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(3rem, 14vw, 9rem); color: #F6CB2F; text-shadow: 0 6px 0 #C8323C, 0 12px 0 #2E8B62; }
+    dialog.gr-boek { border: 0; border-radius: 12px; padding: 1.2rem 1.3rem; background: #F2DDA0; color: #1F2333; max-width: min(28rem, 94vw); font-family: "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+    dialog.gr-boek::backdrop { background: rgba(10,14,30,.7); }
+    .gr-boek h2 { margin: 0 0 .4rem; } .gr-boek ul { list-style: none; padding: 0; margin: .6rem 0; }
+    .gr-boek li { display: flex; gap: .6rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid #D9BE78; }
+    .gr-boek li small { display: block; color: #5E5643; }
+    .gr-boek button { font: inherit; font-weight: 700; border: 0; border-radius: 6px; padding: .5rem 1rem; background: #C8323C; color: #fff; cursor: pointer; }
+    .gr-gat { position: absolute; width: 34px; height: 20px; border-radius: 17px 17px 0 0; background: #0E1630; box-shadow: inset 0 4px 0 #070B18; z-index: 2; cursor: pointer; }
+    .gr-muis { position: absolute; left: 6px; bottom: 0; width: 22px; height: 14px; transform: translateY(14px); transition: transform .35s ease; }
+    .gr-gat.uit .gr-muis { transform: translateY(2px); }
+    .gr-gat { overflow: hidden; }
+    .gr-uil { position: absolute; z-index: 3; width: 56px; cursor: pointer; }
+    .gr-ballon { position: absolute; z-index: 4; background: #FBF6E9; color: #1F2333; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: .9rem; padding: .3rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; pointer-events: none; }
+    .gr-vlaggen { position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 50; pointer-events: none; }
+    @keyframes gr-schud { 10%, 50%, 90% { transform: translate(-6px, 2px); } 30%, 70% { transform: translate(6px, -2px); } }
+  `;
+  document.head.appendChild(stijl);
+
+  // ---------- geluidje
+  let ac = null;
+  function toon(f, t0, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0); o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(v || 0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {} }
+  
+  const boek = document.createElement('dialog'); boek.className = 'gr-boek';
+  document.body.appendChild(boek);
+  const vind = () => {};
+
+  // ---------- vlaaienregen
+  const VLAAI = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C98A43" stroke="#7A4E2D" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="#A8162B"/><path d="M8 20h24M20 8v24M11 11l18 18M29 11L11 29" stroke="#E0B07A" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#E0B07A"/></svg>';
+  function regen(html, n) {
+    for (let i = 0; i < (reduce ? 6 : n); i++) {
+      const v = document.createElement('div'); v.className = 'gr-vallen'; v.innerHTML = html;
+      v.style.left = (Math.random() * 96) + 'vw'; document.body.appendChild(v);
+      const duur = 2200 + Math.random() * 1600, draai = (Math.random() - 0.5) * 720;
+      if (v.animate) v.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(${innerHeight + 80}px) rotate(${draai}deg)` }], { duration: duur, delay: Math.random() * 900, easing: 'ease-in', fill: 'both' }).onfinish = () => v.remove();
+      else setTimeout(() => v.remove(), 3000);
+    }
+  }
+  function confetti() {
+    const kl = ['#C8323C', '#F6CB2F', '#2E8B62'];
+    for (let i = 0; i < (reduce ? 10 : 90); i++) regen(`<span style="display:block;width:9px;height:14px;background:${kl[i % 3]};border-radius:2px"></span>`, 1);
+  }
+  function grootWoord(t) { const g = document.createElement('div'); g.className = 'gr-groot'; g.textContent = t; document.body.appendChild(g); if (g.animate) g.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .35 }, { transform: 'scale(1)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2000 }).onfinish = () => g.remove(); else setTimeout(() => g.remove(), 1800); }
+
+  // ---------- typen
+  let getypt = '';
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key.length !== 1) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-14);
+    if (getypt.endsWith('vlaai')) { regen(VLAAI, 34); [523, 659, 784].forEach((f, i) => toon(f, i * 0.12, 0.25)); vind('vlaai'); getypt = ''; }
+    else if (getypt.endsWith('alaaf')) { confetti(); grootWoord('Alaaf!'); [392, 523, 659, 784, 659, 784].forEach((f, i) => toon(f, i * 0.13, 0.22, 'square', 0.03)); vind('alaaf'); getypt = ''; }
+    else if (getypt.endsWith('ejkeohlemmor')) {
+      getypt = ''; vind('spiegel');
+      document.documentElement.style.transition = 'transform .6s ease'; document.documentElement.style.transform = 'scaleX(-1)';
+      setTimeout(() => { document.documentElement.style.transform = ''; setTimeout(() => { document.documentElement.style.transition = ''; }, 700); }, 3500);
+    }
+  });
+
+  // ---------- klik-reeksen
+  const tellers = {};
+  function tel(id, nodig, venster) { const nu = Date.now(), t = (tellers[id] || []).filter(x => nu - x < venster); t.push(nu); tellers[id] = t; if (t.length >= nodig) { tellers[id] = []; return true; } return false; }
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('.sticker');
+    if (st && tel('sticker', 10, 8000)) {
+      vind('sticker');
+      if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
+      const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
+    }
+    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    if (ham && tel('hamer', 6, 3500)) {
+      vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
+      if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
+      grootWoord('Au!');
+    }
+    const ver = e.target.closest && e.target.closest('.versie');
+    if (ver && tel('versie', 5, 3000)) {
+      vind('bouwplaats');
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
+    }
+  });
+
+  // ---------- alleen op de homepage: het muisje, de nachtuil en de elfde van de elfde
+  function homepage() {
+    if (!opHome) return;
+    const main = document.querySelector('main') || document.body;
+    // muizengat onder aan de pagina
+    const gat = document.createElement('div'); gat.className = 'gr-gat'; gat.setAttribute('aria-label', 'Een muizengaatje'); gat.setAttribute('role', 'button'); gat.tabIndex = 0;
+    gat.innerHTML = '<svg class="gr-muis" viewBox="0 0 22 14" aria-hidden="true"><ellipse cx="11" cy="10" rx="9" ry="6" fill="#9AA0A6"/><circle cx="5" cy="5" r="3" fill="#C9CED6"/><circle cx="17" cy="5" r="3" fill="#C9CED6"/><circle cx="8" cy="9" r="1.2" fill="#1F2333"/><circle cx="14" cy="9" r="1.2" fill="#1F2333"/><circle cx="11" cy="12" r="1.3" fill="#E8577A"/></svg>';
+    const zetGat = () => { const voet = document.querySelector('footer') || main; const r = voet.getBoundingClientRect(); gat.style.left = Math.max(10, r.right + scrollX - 70) + 'px'; gat.style.top = (r.top + scrollY - 20) + 'px'; };
+    document.body.appendChild(gat); zetGat(); addEventListener('resize', zetGat); setTimeout(zetGat, 1500);
+    let uit = false;
+    const kijk = () => { uit = true; gat.classList.add('uit'); setTimeout(() => { uit = false; gat.classList.remove('uit'); }, 2600); setTimeout(kijk, 9000 + Math.random() * 12000); };
+    setTimeout(kijk, 5000 + Math.random() * 6000);
+    const pak = () => { if (!uit) return; vind('muis'); toon(2200, 0, 0.08, 'sine', 0.05); toon(2600, 0.08, 0.08, 'sine', 0.05); gat.classList.remove('uit'); uit = false; const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Piep!'; b.style.left = (parseFloat(gat.style.left) - 40) + 'px'; b.style.top = (parseFloat(gat.style.top) - 30) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2000); };
+    gat.addEventListener('click', pak); gat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pak(); });
+    // nachtuil tussen middernacht en vijf uur
+    const uur = new Date().getHours();
+    if (uur < 5) {
+      const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
+      uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
+      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
+      document.body.appendChild(uil);
+      const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
+      uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
+    }
+    // de elfde van de elfde: vlaggetjes in rood, geel en groen
+    const d = new Date();
+    if (d.getMonth() === 10 && d.getDate() === 11) {
+      const v = document.createElement('div'); v.className = 'gr-vlaggen';
+      let svg = '<svg width="100%" height="34" preserveAspectRatio="none" viewBox="0 0 1000 34" aria-hidden="true"><path d="M0 4Q500 22 1000 4" stroke="#F2DDA0" stroke-width="2" fill="none"/>';
+      for (let i = 0; i < 40; i++) { const x = i * 25 + 5, y = 4 + Math.sin(Math.PI * x / 1000) * 14; svg += `<path d="M${x} ${y.toFixed(1)}l14 0l-7 16z" fill="${['#C8323C', '#F6CB2F', '#2E8B62'][i % 3]}"/>`; }
+      v.innerHTML = svg + '</svg>'; document.body.appendChild(v);
+      setTimeout(() => { grootWoord('Alaaf!'); vind('elfelf'); }, 1200);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', homepage); else homepage();
+
+  // ---------- voor wie in de console kijkt
+  try { console.log('%cHé, nieuwsgierig aagje!', 'font: 800 20px sans-serif; color: #C8323C'); console.log('%cHier valt niks te zien. Of toch wel?', 'font: 600 13px sans-serif; color: #2F4C8F'); } catch (e) {}
+  window.Grapjes = true;
+})();
+
+</script>
+</body>
+</html>

@@ -65,6 +65,12 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Echte andere bezoekers zijn er nog niet; daarvoor is een server nodig.
 - Opslag in localStorage onder `rommelhotel-v1`. Oude opslag met de ruimte `ingang` wordt automatisch omgezet naar `plein`.
 
+- **De verbouwing** (`verbouw()` in hotel.js, vlak voor `RUIMTES.machine`): grotere ruimtes met vrije vormen (receptie 12x10, lobby 14x12, café 13x10 in L-vorm, bibliotheek 12x11 in T-vorm, spelletjeskamer 12x10, zwembad 14x12, dakterras 14x11). Lege tegels (een spatie in `tegels`) vormen de uitsparingen. Ruimtes met `vorm: true` krijgen muren via `tekenVormMuren` (overal waar achter een vloertegel niets is) en vloerranden aan elke voorkant. Deuren en wanddecoratie staan nog op de achterste muren (x = 0 en y = 0): zet daar geen uitsparingen. De 1926-kopieën worden daarna gemaakt en volgen de nieuwe vormen vanzelf.
+- Bordjes alleen waar nodig: KAMERS, CAFE en de kamernummers. RECEPTIE, LOBBY, BIEB en ZWEMBAD zijn weg.
+- **Dakterras**: `dikte: 84` geeft een bakstenen gevel met ramen onder de vloer; de reling wordt uit de vorm gegenereerd.
+- **Zwemmen**: in een ruimte met `zwemmen: true` zijn watertegels begaanbaar; je zakt het water in (alleen je bovenlijf is te zien, met kringen) en gaat langzamer. Lotte zwemt baantjes (`water: true` houdt haar in het water). De duikplank heeft de actie `duik`.
+- **Animaties**: de looprichting wordt per stap naar een tegel bepaald (niet meer per beeldje, dat gaf haperen); kies je tijdens het lopen een nieuw doel, dan maak je eerst je stap af. Zittende bewoners draaien niet meer om op hun stoel als je met ze praat. Kom je ergens binnen op een plek zonder vloer, dan ga je naar de dichtstbijzijnde vrije tegel.
+
 ## Rommelbeesten
 
 - Eigen verzamelkaartspel in `rommelbeesten.html`: een eigen ontwerp, geen namaak van een bestaand kaartspel. Gebruik geen namen, beesten, kaartontwerpen, symbolen of logo's van bestaande kaartspellen of games.

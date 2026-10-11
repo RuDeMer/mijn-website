@@ -295,6 +295,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
   };
   const VKEY = 'rommelhoekje-verstuurd';
@@ -1517,6 +1519,67 @@ dialog { max-height: 90vh; overflow-y: auto; }
       meubels: [{ type: 'tent', x: 3, y: 0, w: 2, d: 1.5, kleur: '#E9B949', naam: 'Tent' }, { type: 'ligstoel', x: 1, y: 4, zit: [[1, 4, 'VL']], kleur: '#2E8B62' }, { type: 'plant', x: 0, y: 5, groot: true }, { type: 'plant', x: 5, y: 5, groot: true }, { type: 'plant', x: 5, y: 2 }, { id: 'l1', type: 'lamp', x: 0, y: 0, aan: true, actie: 'lamp', naam: 'Lamp' }],
       npcs: [{ id: 'lars', naam: 'Lars', look: mens('Lars', 1, 1, 'pet', '#2E8B62', '#7A4E2D'), x: 3, y: 3, r: 'VL', dwaal: true, gebied: [2, 2, 4, 4], zinnen: ['We hebben de tent binnen opgezet. Veel droger!', 'Harrie vindt het gras op de vloer niet zo leuk.'] }, { id: 'lot', naam: 'Lot', look: mens('Lot', 2, 2, 'lang', '#E9B949', '#2F4C8F'), x: 1, y: 4, r: 'VL', zit: true, zitHoog: 5, zinnen: ['Vannacht hoorden we een uil. Het was Harrie die floot.', 'Morgen gaan we kamperen op het dakterras.'] }] },
   };
+
+  // ---------------------------------------------------------------- de grote verbouwing: grotere ruimtes met vrije vormen, zoals de openbare ruimtes van een groot hotel
+  function verbouw(id, w, h, gaten, extra) {
+    const R = RUIMTES[id]; if (!R) return;
+    const oud = R.tegels || [], vul = R.vloer['.'] ? '.' : Object.keys(R.vloer)[0];
+    const rijen = []; for (let y = 0; y < h; y++) { const r = []; for (let x = 0; x < w; x++) r.push(oud[y] && oud[y][x] !== undefined && oud[y][x] !== ' ' ? oud[y][x] : vul); rijen.push(r); }
+    for (const [x0, y0, x1, y1] of gaten) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (rijen[y]) rijen[y][x] = ' ';
+    R.tegels = rijen.map(r => r.join('')); R.w = w; R.h = h; R.vorm = true;
+    // alleen de bordjes die echt nodig zijn: de kamers en het café
+    R.muurDeco = (R.muurDeco || []).filter(d => !(d.soort === 'bord' && /^(RECEPTIE|LOBBY|BIEB|ZWEMBAD)$/.test(d.tekst)));
+    if (extra) extra(R);
+  }
+  const zitje = (x, y, r, kleur) => ({ type: 'stoel', x, y, r, zit: [[x, y, r]], kleur });
+  verbouw('receptie', 12, 10, [[10, 8, 11, 9], [11, 7, 11, 7], [0, 9, 0, 9]], R => {
+    R.meubels.push({ type: 'aquarium', x: 8, y: 0, w: 2, naam: 'Aquarium' }, { type: 'bank', x: 10, y: 2, w: 1, d: 2, r: 'AL', zit: [[10, 2, 'AL'], [10, 3, 'AL']], kleur: '#7A2E3A', naam: 'Wachtbank' }, { type: 'salontafel', x: 8, y: 2, w: 1, d: 2 },
+      { type: 'plant', x: 11, y: 0, groot: true }, { type: 'plant', x: 11, y: 5 }, { type: 'plant', x: 9, y: 7 }, { type: 'kapstok', x: 7, y: 9, naam: 'Kapstok' });
+    (R.kleden = R.kleden || []).push({ x: 7.6, y: 1.6, w: 3.2, d: 2.8, kleur: '#2F4C8F', rand: '#C9A24E' });
+  });
+  verbouw('lobby', 14, 12, [[12, 10, 13, 11], [13, 9, 13, 9], [0, 11, 1, 11]], R => {
+    R.meubels.push({ type: 'aquarium', x: 10, y: 0, w: 2, naam: 'Groot aquarium' }, { type: 'plant', x: 13, y: 0, groot: true }, { type: 'plant', x: 13, y: 6 }, { type: 'plant', x: 2, y: 11 },
+      { type: 'bank', x: 13, y: 2, w: 1, d: 2, r: 'AL', zit: [[13, 2, 'AL'], [13, 3, 'AL']], kleur: '#2E5A43', naam: 'Bank bij het aquarium' }, { type: 'salontafel', x: 11, y: 2, w: 1, d: 2 },
+      { type: 'zitzak', x: 10, y: 8, kleur: '#E8577A', zit: [[10, 8, 'AL']] }, { type: 'zitzak', x: 11, y: 9, kleur: '#5EC2E8', zit: [[11, 9, 'AL']] }, { type: 'zitzak', x: 8, y: 10, kleur: '#E9B949', zit: [[8, 10, 'AR']] }, { type: 'bistrotafel', x: 9, y: 9, kleur: '#F2EDE2' });
+    (R.kleden = R.kleden || []).push({ x: 10.6, y: 1.6, w: 3, d: 2.8, kleur: '#7A2E3A', rand: '#E9B949' });
+  });
+  verbouw('cafe', 13, 10, [[10, 7, 12, 9], [12, 6, 12, 6], [0, 9, 1, 9]], R => {
+    R.meubels.push({ type: 'bistrotafel', x: 10, y: 2, kleur: '#F2EDE2' }, zitje(11, 2, 'AL', '#2E5A43'), zitje(10, 3, 'AR', '#2E5A43'), { type: 'bistrotafel', x: 10, y: 5, kleur: '#F2EDE2' }, zitje(11, 5, 'AL', '#2E5A43'), zitje(9, 5, 'AR', '#2E5A43'),
+      { type: 'hanglamp', x: 10, y: 2, hoog: 50, kleur: '#2E6E4A', geenBlok: true }, { type: 'hanglamp', x: 10, y: 5, hoog: 50, kleur: '#2E6E4A', geenBlok: true }, { type: 'plant', x: 12, y: 0, groot: true }, { type: 'plant', x: 12, y: 4 }, { type: 'plant', x: 9, y: 8 });
+  });
+  verbouw('bieb', 12, 11, [[0, 9, 2, 10], [10, 9, 11, 10], [11, 8, 11, 8]], R => {
+    R.meubels.push({ type: 'boekenkast', kant: 'R', x: 9.1, y: 0, w: 2.7, d: 0.5, h: 54, naam: 'Boekenkast' }, { type: 'zitzak', x: 10, y: 4, kleur: '#7A4E9A', zit: [[10, 4, 'AL']] }, { type: 'zitzak', x: 10, y: 6, kleur: '#2E5A43', zit: [[10, 6, 'AL']] },
+      { id: 'l2', type: 'lamp', x: 11, y: 5, aan: true, actie: 'lamp', naam: 'Leeslamp' }, { type: 'plant', x: 11, y: 2 }, { type: 'plant', x: 9, y: 10, groot: true }, { type: 'plant', x: 3, y: 10 });
+    (R.kleden = R.kleden || []).push({ x: 8.7, y: 3.6, w: 3, d: 3.2, kleur: '#2E5A43', rand: '#C9A24E' });
+  });
+  verbouw('spel', 12, 10, [[10, 8, 11, 9], [11, 7, 11, 7], [0, 9, 0, 9]], R => {
+    R.meubels.push({ type: 'zitzak', x: 10, y: 3, kleur: '#E8577A', zit: [[10, 3, 'AL']] }, { type: 'zitzak', x: 10, y: 5, kleur: '#E9B949', zit: [[10, 5, 'AL']] }, { type: 'plant', x: 11, y: 0, groot: true }, { type: 'plant', x: 9, y: 7 });
+  });
+  // het zwembad: een groot bad met ronde vormen, en je kunt erin zwemmen
+  verbouw('zwembad', 14, 12, [[12, 10, 13, 11], [13, 9, 13, 9], [0, 11, 1, 11]], R => {
+    const bad = { 2: [4, 9], 3: [3, 10], 4: [3, 11], 5: [3, 11], 6: [3, 11], 7: [4, 10], 8: [5, 9] };
+    R.tegels = R.tegels.map((rij, y) => rij.split('').map((c, x) => (c === ' ' ? ' ' : bad[y] && x >= bad[y][0] && x <= bad[y][1] ? 'w' : '.')).join(''));
+    R.zwemmen = true;
+    R.meubels = [
+      { type: 'duikplank', x: 1, y: 5, w: 2, d: 1, naam: 'Duikplank', actie: 'duik' },
+      { type: 'trapje', x: 12, y: 5, naam: 'Trapje', geenBlok: true },
+      { type: 'zwemband', x: 6, y: 3, kleur: '#E8577A', geenBlok: true }, { type: 'zwemband', x: 9, y: 6, kleur: '#E9B949', geenBlok: true },
+      { type: 'ligstoel', x: 12, y: 1, zit: [[12, 1, 'VL']], kleur: '#E8577A' }, { type: 'ligstoel', x: 13, y: 3, zit: [[13, 3, 'VL']], kleur: '#2F8BD6' }, { type: 'ligstoel', x: 6, y: 10, zit: [[6, 10, 'VR']], kleur: '#E9B949' },
+      { type: 'parasol', x: 12, y: 7, kleur: '#E9B949' },
+      { type: 'handdoeken', x: 0, y: 7, naam: 'Handdoeken' },
+      { type: 'plant', x: 13, y: 0, groot: true }, { type: 'plant', x: 0, y: 10 }, { type: 'plant', x: 11, y: 9 }, { type: 'plant', x: 2, y: 0 },
+    ];
+    R.npcs = R.npcs.map(n => n.id === 'zoe' ? Object.assign(n, { x: 12, y: 1 }) : n.id === 'bert' ? Object.assign(n, { x: 7, y: 10, gebied: [2, 9, 10, 10] }) : n);
+    R.npcs.push({ id: 'lotte', naam: 'Lotte', look: { naam: 'Lotte', huidK: '#C98E62', haarK: '#2B2118', stijlK: 'staart', shirtK: '#2F8BD6', broekK: '#2F8BD6' }, x: 6, y: 5, r: 'VR', dwaal: true, water: true, gebied: [3, 2, 11, 8], zinnen: ['Nog tien baantjes!', 'Het water is heerlijk. Spring er ook in!', 'Ik oefen voor mijn diploma C.'] });
+  });
+  // het dakterras: groter, met een gevel eronder en een reling die de vorm volgt
+  verbouw('dak', 14, 11, [[12, 9, 13, 10], [13, 8, 13, 8], [0, 10, 2, 10]], R => {
+    R.dikte = 84;
+    R.meubels = R.meubels.filter(m => m.type !== 'leuning');
+    for (let y = 0; y < R.h; y++) { let x0 = null; for (let x = 0; x <= R.w; x++) { const rand = x < R.w && R.tegels[y][x] !== ' ' && (y === R.h - 1 || R.tegels[y + 1][x] === ' '); if (rand && x0 === null) x0 = x; if (!rand && x0 !== null) { R.meubels.push({ type: 'leuning', x: x0, y: y + 1, w: x - x0, d: 0.08, geenBlok: true }); x0 = null; } } }
+    for (let x = 0; x < R.w; x++) { let y0 = null; for (let y = 0; y <= R.h; y++) { const rand = y < R.h && R.tegels[y][x] !== ' ' && (x === R.w - 1 || R.tegels[y][x + 1] === ' '); if (rand && y0 === null) y0 = y; if (!rand && y0 !== null) { R.meubels.push({ type: 'leuning', x: x + 1, y: y0, w: 0.08, d: y - y0, geenBlok: true }); y0 = null; } } }
+    R.meubels.push({ type: 'bloembak', x: 11, y: 2 }, { type: 'bloembak', x: 11, y: 4 }, { type: 'parasol', x: 10, y: 6, kleur: '#2F8BD6' }, { type: 'ligstoel', x: 11, y: 7, zit: [[11, 7, 'VL']], kleur: '#2F8BD6' }, { type: 'plant', x: 13, y: 0, groot: true }, { type: 'plant', x: 3, y: 9, groot: true }, { type: 'plant', x: 12, y: 8 });
+  });
   RUIMTES.machine = {
     naam: 'Machinekamer', ondertitel: 'Achter het zwembad: iets zoemt hier', w: 7, h: 6,
     tegels: Array(6).fill('.......'), vloer: { '.': ['#8C8F96', '#7E8188'] }, mat: { '.': 'stoep' },
@@ -1655,7 +1718,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     herbouwMeubels();
     // hoe groot is deze wereld in pixels?
     const hoogste = huidig.gebouw ? 150 : huidig.geenMuren ? 60 : WH + 6;
-    const minX = -huidig.h * 16, maxX = huidig.w * 16, minY = -hoogste, maxY = (huidig.w + huidig.h) * 8 + 10;
+    const minX = -huidig.h * 16, maxX = huidig.w * 16, minY = -hoogste, maxY = (huidig.w + huidig.h) * 8 + 10 + (huidig.dikte || 0);
     wereldB = Math.max(W, maxX - minX + 48); wereldH = Math.max(H, maxY - minY + 40);
     ox = Math.round(wereldB / 2 - (minX + maxX) / 2); oy = Math.round(wereldH / 2 - (minY + maxY) / 2);
     achtergrondVies = true;
@@ -1664,6 +1727,8 @@ dialog { max-height: 90vh; overflow-y: auto; }
     if (huidig.id !== 'plein' && S.fiets) { S.fiets = false; }
     const [sx, sy, sr] = Array.isArray(spawn) ? spawn : [S.x, S.y, speler.richting];
     speler.x = sx; speler.y = sy; speler.pad = []; speler.richting = sr || 'VL'; speler.zit = false; speler.zitHoog = 0; speler.dans = false;
+    // sta je ergens zonder vloer (of in een kast)? Dan naar de dichtstbijzijnde vrije tegel
+    { const blok = geblokt(); if (!begaanbaar(Math.round(speler.x), Math.round(speler.y), blok) || tegelType(Math.round(speler.x), Math.round(speler.y)) === 'w') { let best = null, bd = 1e9; for (let y = 0; y < huidig.h; y++) for (let x = 0; x < huidig.w; x++) { const t = tegelType(x, y); if (t === 'w' || !begaanbaar(x, y, blok)) continue; const d = Math.hypot(x - speler.x, y - speler.y); if (d < bd) { bd = d; best = [x, y]; } } if (best) { speler.x = best[0]; speler.y = best[1]; S.x = best[0]; S.y = best[1]; } } }
     $('b-dans').setAttribute('aria-pressed', 'false'); $('b-zit').setAttribute('aria-pressed', 'false');
     S.kamer = huidig.id; S.x = sx; S.y = sy;
     if (!S.bezocht.includes(huidig.id)) S.bezocht.push(huidig.id);
@@ -1694,7 +1759,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   }
   const NIET_LOPEN = ' Xhw';
   let waterModus = false;
-  function begaanbaar(x, y, blokken) { const t = tegelType(x, y); if (waterModus) return t === 'w' && !blokken.has(x + ',' + y); return !NIET_LOPEN.includes(t) && !blokken.has(x + ',' + y); }
+  function begaanbaar(x, y, blokken) { const t = tegelType(x, y); if (waterModus) return t === 'w' && !blokken.has(x + ',' + y); if (t === 'w' && huidig.zwemmen) return !blokken.has(x + ',' + y); return !NIET_LOPEN.includes(t) && !blokken.has(x + ',' + y); }
   function zoekPad(sx, sy, tx, ty, zelf) {
     waterModus = !!(zelf && zelf.water);
     try { return zoekPadEcht(sx, sy, tx, ty, zelf); } finally { waterModus = false; }
@@ -1732,11 +1797,13 @@ dialog { max-height: 90vh; overflow-y: auto; }
   // ---------------------------------------------------------------- lopen en doen
   function loopNaar(x, y, daarna) {
     if (speler.zit) { speler.zit = false; speler.zitHoog = 0; $('b-zit').setAttribute('aria-pressed', 'false'); }
-    const sx = Math.round(speler.x), sy = Math.round(speler.y);
-    if (sx === x && sy === y) { speler.pad = []; wachtActie = daarna || null; aangekomen(); return true; }
+    // loop je al? Dan eerst de tegel afmaken waar je naartoe liep, anders stap je terug
+    const bezig = speler.pad && speler.pad.length ? speler.pad[0] : null;
+    const sx = bezig ? bezig[0] : Math.round(speler.x), sy = bezig ? bezig[1] : Math.round(speler.y);
+    if (sx === x && sy === y) { speler.pad = bezig ? [bezig] : []; wachtActie = daarna || null; if (!bezig) aangekomen(); return true; }
     const pad = zoekPad(sx, sy, x, y, speler);
     if (!pad) return false;
-    speler.pad = pad; wachtActie = daarna || null;
+    speler.pad = bezig ? [bezig, ...pad.filter((p, i) => i > 0 || p[0] !== sx || p[1] !== sy)] : pad; wachtActie = daarna || null;
     return true;
   }
   function naastVrij(tegels) {
@@ -1872,10 +1939,17 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const wim = n || npcs.find(x => x.id === 'wim');
     if (wim) setTimeout(() => { zeg(wim, 'Een muntje voor de orgelman?'); toonKeuzes([{ tekst: 'Geef 1 munt', doe: () => { if (betaal(1)) { zeg(wim, 'Dank je wel! Daar speel ik er nog eentje voor.'); speelOrgel(); badge('orgel'); } else zeg(wim, 'Geeft niks, de muziek is gratis.'); } }, { tekst: 'Nee', doe: () => {} }]); }, 1200);
   }
+  function duik() {
+    const plek = huidig.tegels.reduce((p, rij, y) => p || (rij.indexOf('w') >= 0 ? [rij.indexOf('w') + 1, y] : null), null) || [5, 5];
+    zeg(speler, 'Daar ga ik... PLONS!'); speel('pling');
+    speler.pad = []; speler.x = plek[0]; speler.y = plek[1]; S.x = plek[0]; S.y = plek[1]; bewaar();
+    for (let i = 0; i < 12; i++) deeltje('noot', { x: plek[0], y: plek[1] });
+  }
   function doeActie(m) {
     const a = m.actie;
     if (a === 'lamp') { const k = huidig.id + ':' + m.id; S.lampen[k] = !aanUit(m); bewaar(); speel('klik'); }
     else if (a === 'piano') { speelPiano(m); }
+    else if (a === 'duik') { duik(); }
     else if (a === 'jukebox') { zetJukebox(!jukeboxAan); zeg(speler, jukeboxAan ? 'Muziek!' : 'Even stilte.'); }
     else if (a === 'bel') { speel('bel'); const mien = npcs.find(n => n.id === 'mien'); if (mien) setTimeout(() => zeg(mien, S.ingecheckt ? 'Ja ja, ik sta hier al!' : 'Ik kom eraan! Zal ik je inchecken?'), 500); if (mien && !S.ingecheckt) setTimeout(() => praatMet(mien), 1600); }
     else if (a === 'prikbord') { zeg(speler, PRIKBORD[Math.floor(Math.random() * PRIKBORD.length)]); }
@@ -1940,7 +2014,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function klikNpc(n) {
     verbergKeuzes();
     const plek = n.praatPlek || naastVrij([[Math.round(n.x), Math.round(n.y)]]);
-    const praat = () => { kijkNaar(n.x, n.y); if (!n.dwaal) n.richting = richtingNaar(speler.x - n.x, speler.y - n.y, n.richting); else { n.pad = []; n.richting = richtingNaar(speler.x - n.x, speler.y - n.y, n.richting); n.rust = Date.now() + 4000; } praatMet(n); };
+    const praat = () => { kijkNaar(n.x, n.y); if (n.zit) {} else if (!n.dwaal) n.richting = richtingNaar(speler.x - n.x, speler.y - n.y, n.richting); else { n.pad = []; n.richting = richtingNaar(speler.x - n.x, speler.y - n.y, n.richting); n.rust = Date.now() + 4000; } praatMet(n); };
     if (!plek) { praat(); return; }
     if (n.dwaal) { n.pad = []; n.rust = Date.now() + 6000; }
     loopNaar(plek[0], plek[1], praat);
@@ -1967,7 +2041,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     bubbels = bubbels.filter(b => { if (nu > b.tot) { b.el.remove(); return false; } return true; });
     for (const b of bubbels) {
       const p = P(b.wie.x + 0.5, b.wie.y + 0.5, 0);
-      const omhoog = 44 + (b.wie.zitHoog || 0) + (b.wie.duif ? -20 : 0);
+      const omhoog = 44 + (b.wie.zitHoog || 0) + (b.wie.duif ? -20 : 0) - (huidig.zwemmen && tegelType(Math.round(b.wie.x), Math.round(b.wie.y)) === 'w' ? 16 : 0);
       const hoogte = b.el.offsetHeight || 24, schaal = cv.clientHeight / VH;
       let top = (p[1] - Math.round(camY) - omhoog) * schaal - b.op * (hoogte + 6);
       b.el.style.left = Math.max(60, Math.min(cv.clientWidth - 60, (p[0] - Math.round(camX)) * schaal)) + 'px';
@@ -2151,9 +2225,22 @@ dialog { max-height: 90vh; overflow-y: auto; }
     } else { g.fillStyle = '#101A33'; g.fillRect(0, 0, BW, BH); }
     if (R.dak) tekenSkyline();
     // vloerrand (dikte)
-    const rand = R.vloer['.'] ? R.vloer['.'][0] : R.vloer.g[0];
-    poly([P(0, R.h, 0), P(R.w, R.h, 0), P(R.w, R.h, -6), P(0, R.h, -6)], kleur(R.vloer[R.tegels[R.h - 1][0]] ? R.vloer[R.tegels[R.h - 1][0]][0] : rand, 0.55));
-    poly([P(R.w, 0, 0), P(R.w, R.h, 0), P(R.w, R.h, -6), P(R.w, 0, -6)], kleur(rand, 0.42));
+    const rand = R.vloer['.'] ? R.vloer['.'][0] : R.vloer.g[0], D = R.dikte || 6;
+    // de gevel (dakterras) of gewoon de dikte van de vloer, langs elke rand aan de voorkant
+    const gevel = (zijY) => (sx, sy) => { const z = R.dak ? (sy + 0.5) : 0; if (!R.dak) return kleur(rand, zijY ? 0.55 : 0.42); const rij = Math.floor((sy - oy) / 4), voeg = (sy % 4 === 0) || ((sx + (rij % 2) * 4) % 8 === 0); void z; return voeg ? (zijY ? '#8C6A4E' : '#7A5A40') : (zijY ? kl('#B5543A', 1 - (ruis(sx >> 2, sy >> 2) % 7) * 0.02) : kl('#9A4530', 1 - (ruis(sx >> 2, sy >> 2) % 7) * 0.02)); };
+    for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
+      const t = tegelType(x, y); if (t === ' ') continue;
+      const k0 = (R.vloer[t] || R.vloer['.'] || [rand])[0];
+      if (tegelType(x, y + 1) === ' ') poly([P(x, y + 1, 0), P(x + 1, y + 1, 0), P(x + 1, y + 1, -D), P(x, y + 1, -D)], R.dak ? gevel(true) : kleur(k0, 0.55));
+      if (tegelType(x + 1, y) === ' ') poly([P(x + 1, y, 0), P(x + 1, y + 1, 0), P(x + 1, y + 1, -D), P(x + 1, y, -D)], R.dak ? gevel(false) : kleur(k0, 0.42));
+    }
+    if (R.dak) { // ramen in de gevel, en een rand van stenen bovenop
+      for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
+        if (tegelType(x, y) === ' ') continue;
+        if (tegelType(x, y + 1) === ' ' && x % 2 === 0) for (const z of [-22, -52]) { poly([P(x + 0.25, y + 1, z), P(x + 0.75, y + 1, z), P(x + 0.75, y + 1, z - 16), P(x + 0.25, y + 1, z - 16)], '#2A3A5C'); poly([P(x + 0.3, y + 1, z - 2), P(x + 0.7, y + 1, z - 2), P(x + 0.7, y + 1, z - 7), P(x + 0.3, y + 1, z - 7)], isDag() ? '#7FA8C8' : '#FFD98A'); }
+        if (tegelType(x + 1, y) === ' ' && y % 2 === 1) for (const z of [-22, -52]) { poly([P(x + 1, y + 0.25, z), P(x + 1, y + 0.75, z), P(x + 1, y + 0.75, z - 16), P(x + 1, y + 0.25, z - 16)], '#22304C'); poly([P(x + 1, y + 0.3, z - 2), P(x + 1, y + 0.7, z - 2), P(x + 1, y + 0.7, z - 7), P(x + 1, y + 0.3, z - 7)], isDag() ? '#6E98B8' : '#F2C97A'); }
+      }
+    }
     // tegels
     for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
       const t = tegelType(x, y); if (t === ' ' || t === 'X') continue;
@@ -2226,6 +2313,7 @@ dialog { max-height: 90vh; overflow-y: auto; }
     g = vorige; achtergrondVies = false;
   }
   function tekenMuren(R) {
+    if (R.vorm) return tekenVormMuren(R);
     const M = R.muur;
     // linkermuur: vlak x = 0, t loopt langs y. Rechtermuur: vlak y = 0, t loopt langs x.
     poly([P(0, 0, 0), P(0, R.h, 0), P(0, R.h, WH), P(0, 0, WH)], (sx, sy) => { const t = (ox - (sx + 0.5)) / 16, z = oy + t * 8 - (sy + 0.5); return muurPixel(M, M.L, t, z, 1); });
@@ -2239,6 +2327,31 @@ dialog { max-height: 90vh; overflow-y: auto; }
     lijnP(P(-0.25, -0.25, WH), P(R.w, -0.25, WH), o); lijnP(P(-0.25, -0.25, WH), P(-0.25, R.h, WH), o);
     lijnP(P(-0.25, R.h, WH), P(-0.25, R.h, 0), o); lijnP(P(R.w, -0.25, WH), P(R.w, -0.25, 0), o);
     lijnP(P(0, R.h, 0), P(R.w, R.h, 0), kl(M.R, 0.35)); lijnP(P(R.w, 0, 0), P(R.w, R.h, 0), kl(M.R, 0.35));
+  }
+  // muren langs de achterkant van een vrije vorm: overal waar achter een vloertegel niets is
+  function tekenVormMuren(R) {
+    const M = R.muur, stukken = [];
+    for (let x = 0; x < R.w; x++) { let t0 = null; for (let y = 0; y <= R.h; y++) { const muur = y < R.h && tegelType(x, y) !== ' ' && tegelType(x - 1, y) === ' '; if (muur && t0 === null) t0 = y; if (!muur && t0 !== null) { stukken.push(['L', x, t0, y]); t0 = null; } } }
+    for (let y = 0; y < R.h; y++) { let t0 = null; for (let x = 0; x <= R.w; x++) { const muur = x < R.w && tegelType(x, y) !== ' ' && tegelType(x, y - 1) === ' '; if (muur && t0 === null) t0 = x; if (!muur && t0 !== null) { stukken.push(['R', y, t0, x]); t0 = null; } } }
+    const ox0 = ox, oy0 = oy, o = kl(M.rand, 0.4);
+    // achterste muren eerst
+    stukken.sort((a, b) => (a[1] + a[2]) - (b[1] + b[2]));
+    for (const [kant, q, t0, t1] of stukken) {
+      if (kant === 'L') { ox = ox0 + q * 16; oy = oy0 + q * 8; } else { ox = ox0 - q * 16; oy = oy0 + q * 8; }
+      if (kant === 'L') {
+        poly([P(0, t0, 0), P(0, t1, 0), P(0, t1, WH), P(0, t0, WH)], (sx, sy) => { const t = (ox - (sx + 0.5)) / 16, z = oy + t * 8 - (sy + 0.5); return muurPixel(M, M.L, t + q * 0, z, 1); });
+        poly([P(0, t0, WH), P(-0.25, t0 - (t0 ? 0 : 0.25), WH), P(-0.25, t1, WH), P(0, t1, WH)], kleur(M.rand, 1.15));
+        poly([P(0, t1, 0), P(-0.25, t1, 0), P(-0.25, t1, WH), P(0, t1, WH)], kleur(M.rand, 0.8));
+        lijnP(P(-0.25, t0, WH), P(-0.25, t1, WH), o); lijnP(P(-0.25, t1, WH), P(-0.25, t1, 0), o);
+      } else {
+        poly([P(t0, 0, 0), P(t1, 0, 0), P(t1, 0, WH), P(t0, 0, WH)], (sx, sy) => { const t = ((sx + 0.5) - ox) / 16, z = oy + t * 8 - (sy + 0.5); return muurPixel(M, M.R, t, z, 1); });
+        poly([P(t0 - 0.25, -0.25, WH), P(t1, -0.25, WH), P(t1, 0, WH), P(t0, 0, WH)], kleur(M.rand, 1.25));
+        poly([P(t1, 0, 0), P(t1, -0.25, 0), P(t1, -0.25, WH), P(t1, 0, WH)], kleur(M.rand, 0.65));
+        lijnP(P(t0 - 0.25, -0.25, WH), P(t1, -0.25, WH), o); lijnP(P(t1, -0.25, WH), P(t1, -0.25, 0), o);
+        lijnP(P(t0, 0, 0), P(t0, 0, WH), kl(M.R, 0.55));
+      }
+    }
+    ox = ox0; oy = oy0;
   }
   // het hele hotel, van buiten
   function tekenGebouw(G) {
@@ -2450,13 +2563,19 @@ dialog { max-height: 90vh; overflow-y: auto; }
   function tekenPersoon(n, nu, t) {
     {
       {
-        const p = P(n.x + 0.5, n.y + 0.5, n.zitHoog || 0);
+        const zwemt = huidig.zwemmen && !n.duif && !n.hond && !n.eend && tegelType(Math.round(n.x), Math.round(n.y)) === 'w';
+        const p = P(n.x + 0.5, n.y + 0.5, zwemt ? -16 : (n.zitHoog || 0));
         if (n.duif) tekenDuif(p[0], p[1], n, t);
         else if (n.hond) tekenHond(p[0], p[1], n, t);
         else if (n.eend) tekenEend(p[0], p[1], n, t);
         else {
           if (n.isSpeler && S.fiets) fiets(p[0], p[1] + 1, '#2E8B62', true);
           poppetje(g, Math.round(p[0]), Math.round(p[1]), n.isSpeler ? S.look : n.look, { id: n.id ? [...String(n.id)].reduce((a, ch) => a + ch.charCodeAt(0), 0) : 3, praat: bubbels.some(b => b.wie === n && b.tot > nu), richting: n.richting, fase: n.fase, loopt: n.pad && n.pad.length > 0, zit: n.zit, zitHoog: n.zitHoog, zwaai: n.zwaai > nu, dans: n.dans, t, item: n.isSpeler && n.itemTot > nu ? n.item : null, fietst: n.isSpeler && S.fiets });
+          if (zwemt) { // het water bedekt je benen, met kringen eromheen
+            const wx = Math.round(p[0]), wy = Math.round(p[1]) - 12, golf = Math.sin(t / 260 + (n.x + n.y) * 2) * 1.5;
+            g.fillStyle = 'rgba(58,154,214,.88)'; g.fillRect(wx - 11, wy + golf, 22, 14); ovaal(wx, wy + golf, 11, 3, 'rgba(120,200,240,.9)');
+            const k = (t / 900 + n.x) % 1; ovaal(wx, wy + 1, 12 + k * 10, 3 + k * 2, `rgba(220,240,255,${(0.5 * (1 - k)).toFixed(2)})`);
+          }
           if (n.ballon) tekenBallon(Math.round(p[0]), Math.round(p[1]), n.ballon, t);
           if (typeof Verhaal !== 'undefined' && Verhaal.isDoel(n)) Verhaal.markeer(Math.round(p[0]), Math.round(p[1]) - 42);
         }
@@ -2492,9 +2611,10 @@ dialog { max-height: 90vh; overflow-y: auto; }
     const nu = Date.now();
     for (const n of [speler, ...npcs]) {
       if (!n.pad || !n.pad.length) continue;
-      const [tx, ty] = n.pad[0], snel = (n.duif || n.eend ? 1.6 : n.hond ? 2.6 : n.isSpeler ? (S.fiets ? 6.5 : 3.6) : 2) * dt;
+      const [tx, ty] = n.pad[0], inWater = huidig.zwemmen && tegelType(Math.round(n.x), Math.round(n.y)) === 'w', snel = (n.duif || n.eend ? 1.6 : n.hond ? 2.6 : n.isSpeler ? (S.fiets ? 6.5 : 3.6) : 2) * dt * (inWater ? 0.6 : 1);
       const dx = tx - n.x, dy = ty - n.y, af = Math.hypot(dx, dy);
-      n.richting = richtingNaar(Math.sign(Math.round(dx * 10)), Math.sign(Math.round(dy * 10)), n.richting);
+      // de richting volgt het hele stukje naar de volgende tegel, niet het restje (dat gaf haperen)
+      if (!n.seg || n.seg[0] !== tx || n.seg[1] !== ty) { n.seg = [tx, ty]; if (af > 0.01) n.richting = richtingNaar(Math.sign(Math.round(dx * 4)), Math.sign(Math.round(dy * 4)), n.richting); }
       n.loopTijd = (n.loopTijd || 0) + dt;
       n.fase = Math.floor(n.loopTijd * 8) % 4;
       if (af <= snel) { n.x = tx; n.y = ty; n.pad.shift(); if (!n.pad.length) { n.fase = 0; if (n.isSpeler) { S.x = tx; S.y = ty; bewaar(); aangekomen(); } } }

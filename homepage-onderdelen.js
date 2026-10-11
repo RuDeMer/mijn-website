@@ -12,6 +12,137 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   s.innerHTML = '<svg viewBox="0 0 64 64" focusable="false">' + SPELICONEN[n] + '</svg>';
 });
 
+// ================================================================ HOMEPAGE 0.8: overzichtelijk in categorieën
+(function v8() {
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', v8); return; }
+  if (!document.querySelector('.held') || !document.querySelector('.label-kaart')) return; // alleen op de homepage
+  const CATEGORIEEN = [
+    { id: 'werelden', naam: 'Werelden om te ontdekken', kort: 'Werelden', paginas: ['rommelhotel', 'rommelland', 'rommelblok'], woorden: /avontuur|wereld|hotel|3d|ontdek/ },
+    { id: 'verzamelen', naam: 'Verzamelen en bouwen', kort: 'Verzamelen', paginas: ['rommelbeesten', 'vlaaienbakker'], woorden: /verzamel|bouw|bak|klik/ },
+    { id: 'snel', naam: 'Snel een potje', kort: 'Snel een potje', paginas: ['vouwvlieger', 'rommelritme', 'rommelpoker'], woorden: /ritme|kaart|vlieg|race|arcade/ },
+    { id: 'puzzels', naam: 'Puzzels', kort: 'Puzzels', paginas: ['rommelwoord', 'rommelkroon'], woorden: /puzzel|woord|raad|denk/ },
+    { id: 'meer', naam: 'Rond het rommelhoekje', kort: 'Meer', paginas: ['scorebord', 'ideeenbox'], woorden: /tool|bord|box|idee|score/ },
+  ];
+  const pagina = a => ((a.getAttribute('href') || '').split('/').pop() || '').replace(/\.html?$/, '').toLowerCase();
+  const leesJSON = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const groot = x => { const n = [[1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']]; for (const [v, w] of n) if (x >= v) return (x / v).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' ' + w; return Math.round(x).toLocaleString('nl-NL'); };
+  // voortgang per spel, uit de opslag van dat spel
+  const VOORTGANG = {
+    rommelkroon: () => { const s = leesJSON('rommelkroon-v1'); const n = s && s.opgelost ? Object.keys(s.opgelost).length : 0; return n ? [n + ' van 120 puzzels', n / 120] : null; },
+    rommelbeesten: () => { const s = leesJSON('rommelbeesten-v1'); const n = s && s.bezit ? Object.keys(s.bezit).filter(k => s.bezit[k] && (s.bezit[k].n || s.bezit[k] > 0 || s.bezit[k].g)).length : 0; return n ? [n + ' kaarten verzameld', Math.min(1, n / 350)] : null; },
+    vlaaienbakker: () => { const s = leesJSON('vlaaienbakker-v1'); const t = s ? (s.ooit || s.totaal || 0) : 0; return t >= 1 ? [groot(t) + ' vlaaien', null] : null; },
+    vouwvlieger: () => { const s = leesJSON('vouwvlieger-v1'); return s && s.best ? ['Record: ' + s.best, Math.min(1, s.best / 100)] : null; },
+    rommelritme: () => { const s = leesJSON('rommelritme-v1'); if (!s || !s.best) return null; const w = Object.values(s.best); const som = w.reduce((a, b) => a + b, 0); return som ? ['Gemiddeld ' + Math.round(som / 3) + '% per level', som / 300] : null; },
+    rommelwoord: () => { const s = leesJSON('rommelwoord-stats-v1'); if (!s) return null; const r = s.reeks || s.streak || 0, g = s.gespeeld || s.played || 0; return g ? [r ? 'Reeks van ' + r + ' dagen' : g + ' keer gespeeld', null] : null; },
+    rommelhotel: () => { const s = leesJSON('rommelhotel-v1'); const n = s && s.verhaal && s.verhaal.opgelost ? Object.keys(s.verhaal.opgelost).length : 0; return n ? [n + ' puzzels opgelost', Math.min(1, n / 39)] : s ? ['Ga verder in het hotel', null] : null; },
+    rommelpoker: () => { const r = +localStorage.getItem('rommelpoker-record') || 0; return r ? ['Record: ronde ' + r, null] : null; },
+    rommelland: () => (localStorage.getItem('rommelland-v1') ? ['Ga verder in je wereld', null] : null),
+    rommelblok: () => (localStorage.getItem('rommelblok-v2') ? ['Ga verder met bouwen', null] : null),
+  };
+  // ---------- de kaarten verzamelen en verdelen
+  const main = document.querySelector('main'); if (!main) return;
+  const rijen = [...main.querySelectorAll('.haak-rij')].filter(r => r.querySelector('.label-kaart[href]') && !r.closest('.coulissen, #coulissen'));
+  if (!rijen.length) return;
+  const labels = [];
+  rijen.forEach(r => r.querySelectorAll(':scope > .label').forEach(l => labels.push(l)));
+  const perCat = Object.fromEntries(CATEGORIEEN.map(c => [c.id, []]));
+  let nieuwste = null;
+  for (const l of labels) {
+    if (l.classList.contains('leeg')) { l.remove(); continue; }
+    const a = l.querySelector('.label-kaart'), p = pagina(a), soort = (l.querySelector('.soort') || {}).textContent || '';
+    let cat = CATEGORIEEN.find(c => c.paginas.includes(p)) || CATEGORIEEN.find(c => c.woorden.test(soort.toLowerCase() + ' ' + p)) || CATEGORIEEN[2];
+    perCat[cat.id].push(l);
+    if (l.querySelector('.stempel') && p !== 'ideeenbox') nieuwste = l;
+  }
+  // de oude koppen en rijen opruimen
+  const eersteKop = rijen[0].previousElementSibling && rijen[0].previousElementSibling.tagName === 'H2' ? rijen[0].previousElementSibling : null;
+  const plek = document.createElement('div'); plek.className = 'v8';
+  (eersteKop || rijen[0]).before(plek);
+  rijen.forEach(r => { const k = r.previousElementSibling; if (k && k.tagName === 'H2' && !k.closest('.coulissen')) k.remove(); r.remove(); });
+  // ---------- menu
+  const actief = CATEGORIEEN.filter(c => perCat[c.id].length);
+  let h = `<nav class="v8-nav" aria-label="Categorieën">${actief.map(c => `<a href="#cat-${c.id}">${c.kort}</a>`).join('')}</nav>`;
+  // ---------- verder spelen
+  const verder = [];
+  for (const l of labels) { const a = l.querySelector('.label-kaart'); if (!a || l.classList.contains('leeg')) continue; const p = pagina(a), f = VOORTGANG[p]; if (!f) continue; let v = null; try { v = f(); } catch (e) {} if (v) verder.push({ a, p, v }); }
+  if (verder.length) h += `<section class="v8-verder" aria-labelledby="v8-verder-kop"><h2 id="v8-verder-kop"><span>Verder spelen</span></h2><div class="v8-verder-rij">${verder.slice(0, 8).map(({ a, v }) => `<a class="v8-mini" href="${a.getAttribute('href')}"><span class="v8-mini-icoon" data-icoon="${a.dataset.icoon || ''}"></span><span class="v8-mini-tekst"><b>${(a.querySelector('.naam') || {}).textContent || ''}</b><small>${v[0]}</small>${v[1] != null ? `<i><em style="width:${Math.round(Math.max(0.03, v[1]) * 100)}%"></em></i>` : ''}</span></a>`).join('')}</div></section>`;
+  // ---------- uitgelicht: het nieuwste spel
+  if (nieuwste) { const a = nieuwste.querySelector('.label-kaart'); h += `<section class="v8-uitgelicht" aria-label="Nieuw in het rommelhoekje"><a href="${a.getAttribute('href')}"><span class="v8-uit-icoon" data-icoon="${a.dataset.icoon || ''}"></span><span class="v8-uit-tekst"><span class="v8-uit-stempel">Nieuw in het rommelhoekje</span><b>${(a.querySelector('.naam') || {}).textContent || ''}</b><span>${(a.querySelector('p') || {}).textContent || ''}</span></span><span class="v8-uit-doe">${(a.querySelector('.doe') || {}).textContent || 'Probeer het'}</span></a></section>`; }
+  plek.innerHTML = h;
+  for (const c of actief) {
+    const sec = document.createElement('section'); sec.className = 'v8-cat'; sec.id = 'cat-' + c.id;
+    sec.innerHTML = `<h2><span>${c.naam}</span></h2>`;
+    const rij = document.createElement('div'); rij.className = 'haak-rij v8-rij';
+    perCat[c.id].forEach(l => rij.appendChild(l));
+    sec.appendChild(rij); plek.appendChild(sec);
+  }
+  // ---------- iconen: altijd de nieuwste (de homepage zelf heeft soms nog een oude lijst)
+  // ontbreekt een icoon, of heeft een oude kaart een verkeerde naam? Raad het aan de pagina
+  const RADEN = { rommelland: 'pretpark', rommelblok: 'blok', vouwvlieger: 'vlieger', rommelritme: 'ritme', rommelkroon: 'rommelkroon', rommelbeesten: 'pakje', rommelhotel: 'hotel', vlaaienbakker: 'vlaai', rommelpoker: 'kaarten', rommelwoord: 'woord', scorebord: 'beker', ideeenbox: 'idee' };
+  document.querySelectorAll('.label-kaart[href]').forEach(a => { const g = RADEN[pagina(a)]; if (g && (typeof SPELICONEN === 'undefined' || !SPELICONEN[a.dataset.icoon])) a.dataset.icoon = g; });
+  plek.querySelectorAll('[data-icoon]').forEach(s => { const a = labels.map(l => l.querySelector('.label-kaart')).find(x => x && x.getAttribute('href') === (s.closest('a') || {}).getAttribute?.('href')); if (a) s.dataset.icoon = a.dataset.icoon; });
+  const vulIconen = () => {
+    if (typeof SPELICONEN === 'undefined') return;
+    document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => { let s = a.querySelector('.label-icoon'); if (!s) return; const n = SPELICONEN[a.dataset.icoon] ? a.dataset.icoon : 'doos'; s.innerHTML = '<svg viewBox="0 0 64 64" focusable="false">' + SPELICONEN[n] + '</svg>'; });
+    document.querySelectorAll('.v8-mini-icoon, .v8-uit-icoon').forEach(s => { const n = SPELICONEN[s.dataset.icoon] ? s.dataset.icoon : 'doos'; s.innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true">' + SPELICONEN[n] + '</svg>'; });
+  };
+  vulIconen(); document.addEventListener('DOMContentLoaded', vulIconen); addEventListener('load', vulIconen); setTimeout(vulIconen, 600);
+  // ---------- voet
+  const voet = document.querySelector('footer');
+  if (voet && !voet.querySelector('.v8-links')) {
+    const links = document.createElement('nav'); links.className = 'v8-links'; links.setAttribute('aria-label', 'Meer');
+    links.innerHTML = '<a href="scorebord.html">Scorebord</a><a href="ideeenbox.html">Ideeënbox</a><button type="button" class="v8-koppel">Koppel je apparaten</button>';
+    voet.prepend(links);
+    links.querySelector('.v8-koppel').addEventListener('click', () => { if (window.Scorebord && Scorebord.koppel) Scorebord.koppel(); });
+  }
+  document.body.classList.add('v8-body');
+  const st = document.createElement('style'); st.id = 'v8-stijl';
+  st.textContent = `
+    html, body.v8-body { overflow-x: hidden; overflow-x: clip; }
+    .v8-body main { padding-top: 6vh; }
+    .v8-body .held { margin-bottom: 1.4rem; }
+    .v8-nav { position: sticky; top: 0; z-index: 20; display: flex; gap: .45rem; overflow-x: auto; padding: .6rem 0 .7rem; margin: 0 0 1.6rem; scrollbar-width: none; background: linear-gradient(var(--blauw, #2F4C8F) 70%, transparent); }
+    .v8-nav::-webkit-scrollbar { display: none; }
+    .v8-nav a { flex: 0 0 auto; font-weight: 800; font-size: .9rem; text-decoration: none; color: var(--inkt, #231A26); background: var(--manila, #F2DDA0); padding: .42rem .85rem; border-radius: 999px; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
+    .v8-nav a:hover, .v8-nav a:focus-visible { background: var(--papier, #FBF6E9); }
+    .v8-cat, .v8-verder, .v8-uitgelicht { scroll-margin-top: 4.2rem; margin-bottom: 2.6rem; }
+    .v8-body .v8-rij { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: 2.4rem 1.6rem; padding-top: 2.4rem; }
+    .v8-body .v8-rij .label { width: auto; height: 100%; }
+    .v8-body .v8-rij .label-kaart { height: 100%; display: flex; flex-direction: column; }
+    .v8-body .v8-rij .label-kaart .doe { margin-top: auto; align-self: flex-start; }
+    .v8-body .v8-rij .label-kaart p { margin-bottom: 1rem; }
+    .v8-verder-rij { display: flex; gap: .8rem; overflow-x: auto; padding: 1rem .2rem .5rem; scrollbar-width: thin; }
+    .v8-mini { flex: 0 0 auto; display: flex; gap: .65rem; align-items: center; min-width: 14rem; max-width: 17rem; background: var(--papier, #FBF6E9); color: var(--inkt, #231A26); text-decoration: none; border-radius: 10px; padding: .6rem .8rem; box-shadow: 0 4px 0 rgba(0,0,0,.28); }
+    .v8-mini:hover, .v8-mini:focus-visible { transform: translateY(-2px); }
+    .v8-mini-icoon { width: 2.8rem; height: 2.8rem; flex: 0 0 auto; } .v8-mini-icoon svg, .v8-uit-icoon svg { width: 100%; height: 100%; display: block; }
+    .v8-mini-tekst { display: flex; flex-direction: column; gap: .15rem; min-width: 0; flex: 1; } .v8-mini-tekst b { font-size: 1rem; } .v8-mini-tekst small { font-size: .82rem; color: #5E5643; }
+    .v8-mini-tekst i { display: block; height: .38rem; border-radius: 999px; background: #E2D8BE; overflow: hidden; margin-top: .15rem; } .v8-mini-tekst em { display: block; height: 100%; background: var(--rood, #C8323C); }
+    .v8-uitgelicht a { display: grid; grid-template-columns: auto 1fr auto; gap: 1.2rem; align-items: center; text-decoration: none; color: var(--inkt, #231A26); background: linear-gradient(135deg, var(--manila, #F2DDA0), #F7E7B8); border-radius: 14px; padding: 1.1rem 1.4rem; box-shadow: 0 6px 0 rgba(0,0,0,.3); }
+    .v8-uit-icoon { width: 5.2rem; height: 5.2rem; } .v8-uit-tekst { display: flex; flex-direction: column; gap: .2rem; } .v8-uit-tekst b { font-size: 1.6rem; line-height: 1.1; }
+    .v8-uit-stempel { align-self: flex-start; background: var(--rood, #C8323C); color: #fff; font-weight: 800; font-size: .75rem; letter-spacing: .04em; text-transform: uppercase; padding: .15rem .55rem; border-radius: 3px; transform: rotate(-1.5deg); }
+    .v8-uit-doe { font-weight: 800; background: var(--rood, #C8323C); color: #fff; padding: .6rem 1rem; border-radius: 8px; box-shadow: 0 3px 0 rgba(0,0,0,.3); white-space: nowrap; }
+    .v8-uitgelicht a:hover .v8-uit-doe, .v8-uitgelicht a:focus-visible .v8-uit-doe { background: #A8162B; }
+    .v8-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-right: auto; }
+    .v8-links a, .v8-links button { color: var(--manila, #F2DDA0); font: inherit; font-weight: 700; font-size: .9rem; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .v8-body .kp-knopje { display: none; }
+    @media (max-width: 700px) {
+      .v8-body .rek.zijkant { display: none; }
+      .v8-body .rek-held { min-height: 11.5rem; margin-top: 0; }
+      .v8-body .v8-nav { margin-bottom: 1.2rem; }
+      .v8-body .held-rij { gap: 1rem; }
+      .v8-body .v8-rij { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.8rem .8rem; padding-top: 2rem; }
+      .v8-body .v8-rij .label-kaart p { display: none; }
+      .v8-body .v8-rij .label-icoon { width: 3.2rem; height: 3.2rem; }
+      .v8-body .v8-rij .label-kaart .naam { font-size: 1.1rem; }
+      .v8-body .v8-rij .label-kaart .doe { font-size: .8rem; }
+      .v8-uitgelicht a { grid-template-columns: auto 1fr; } .v8-uit-doe { grid-column: 1 / -1; text-align: center; } .v8-uit-icoon { width: 3.8rem; height: 3.8rem; } .v8-uit-tekst b { font-size: 1.3rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .v8-mini:hover { transform: none; } }
+  `;
+  document.head.appendChild(st);
+  window.__v8 = { perCat, verder: verder.length };
+})();
+
 })();
 ;(function () {
 (function () {

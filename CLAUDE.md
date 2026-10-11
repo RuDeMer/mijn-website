@@ -274,6 +274,14 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Commitberichten in het Nederlands, kort en duidelijk, bijvoorbeeld "Winkel overzichtelijker gemaakt".
 - Zeg na afloop in één of twee zinnen wat er veranderd is en wat Ruben moet doen om het live te zetten.
 
+## Homepage 0.8 (in homepage-onderdelen.js)
+
+- `home_v8.js` draait in het iconenblok van de onderdelen (zodat het bij `SPELICONEN` kan) en ordent de homepage terwijl die laadt, zonder index.html te veranderen: je eigen kaarten, labels en volgorde uit de werkplaats blijven dus gewoon werken.
+- Alle kaarten uit "Aan de haak" worden verdeeld over vijf categorieën (`CATEGORIEEN`): Werelden om te ontdekken, Verzamelen en bouwen, Snel een potje, Puzzels, Rond het rommelhoekje. Bekende pagina's staan in de lijst; een nieuw spel komt vanzelf in de goede categorie aan de hand van de paginanaam en het soortlabel (puzzel, verzamel, avontuur, enzovoort), anders bij Snel een potje. Binnen een categorie blijft jouw volgorde staan. Het blokje "Binnenkort" verdwijnt.
+- Bovenaan: een menu met de categorieën (blijft staan bij scrollen), "Verder spelen" met de voortgang uit de opslag van elk spel (`VOORTGANG`), en een uitgelichte kaart voor het nieuwste spel (de laatste kaart met een Nieuw-stempel, behalve de ideeënbox). In de voet: links naar het scorebord, de ideeënbox en koppelen (het zwevende koppelknopje is daar dan weg).
+- De iconen worden na het laden nog eens gezet, omdat een oudere index.html zijn eigen, oudere iconenlijst meedraagt (dat gaf doosjes bij de nieuwste spellen). Kaarten met een onbekende iconnaam krijgen een icoon aan de hand van de paginanaam (`RADEN`).
+- Stijl: even hoge kaarten in een raster; op telefoons twee kaarten naast elkaar zonder beschrijving, geen gereedschap aan de zijkanten en een kleiner rek onder het briefje; alles wat buiten de pagina zwaait wordt afgeknipt.
+
 ## Werkplaats
 
-- **Versienummer**: alleen een nieuwe pagina of een nieuw spel (een nieuw .html-bestand, niet index.html of 404.html) zet het vinkje "versienummer verhogen" vanzelf aan, en dan gaat het met 0.01 omhoog. Alleen updates van bestaande bestanden laten het versienummer staan; je kunt het vinkje zelf aanzetten, en de werkplaats onthoudt dat tot na de upload. Wijzigingen op de homepage (volgorde, labels, teksten) veranderen het versienummer nooit.
+- **Versienummer**: alleen een nieuwe pagina of een nieuw spel (een nieuw .html-bestand, niet index.html of 404.html) zet het vinkje "versienummer verhogen" vanzelf aan, en dan gaat het met 0.01 omhoog. Alleen updates van bestaande bestanden laten het versienummer staan; je kunt het vinkje zelf aanzetten, en de werkplaats onthoudt dat tot na de upload. Wijzigingen op de homepage (volgorde, labels, teksten) veranderen het versienummer nooit. Voor een grote update kun je bij het uploaden zelf een versienummer invullen (bijvoorbeeld 0.80); dat gaat dan altijd voor.

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Rommelbel – Ruben's rommelhoekje</title>
+<meta name="description" content="Schiet bellen, maak groepjes van drie en laat het plafond niet te laag zakken. 30 levels en een eindeloze stand.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2218%22%20r%3D%2210%22%20fill%3D%22%23E8414E%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2218%22%20r%3D%2210%22%20fill%3D%22%233A86E8%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2234%22%20r%3D%2210%22%20fill%3D%22%23F5C330%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%23fff%22%20opacity%3D%22.7%22/%3E%3Ccircle%20cx%3D%2236%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%23fff%22%20opacity%3D%22.7%22/%3E%3Ccircle%20cx%3D%2226%22%20cy%3D%2230%22%20r%3D%223%22%20fill%3D%22%23fff%22%20opacity%3D%22.7%22/%3E%3Cpath%20d%3D%22M32%2060V50%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2248%22%20r%3D%227%22%20fill%3D%22%233DB06A%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Cpath%20d%3D%22M22%2060h20%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
+<style>
+:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { display: flex; flex-direction: column; background: #24305E; color: var(--inkt); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.kop { display: flex; align-items: center; gap: .7rem; padding: .45rem .8rem; background: var(--nacht); color: var(--papier); z-index: 5; }
+.kop a { color: var(--manila); font-weight: 700; font-size: .85rem; }
+.titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; } .titel svg { width: 26px; height: 26px; }
+.kop .rechts { margin-left: auto; display: flex; gap: .35rem; }
+.knop { font: inherit; font-weight: 800; font-size: .9rem; border: 0; border-radius: 8px; padding: .5rem .85rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.knop.hoofd { background: var(--rood); color: #fff; } .knop[aria-pressed="false"] { opacity: .6; }
+#veld { position: relative; flex: 1; display: grid; place-items: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+#doek { display: block; border-radius: 14px; box-shadow: 0 0 0 4px var(--inkt), 0 10px 0 4px rgba(0,0,0,.3); cursor: crosshair; touch-action: none; }
+.scherm { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; z-index: 6; background: rgba(14,20,48,.55); overflow: auto; }
+.kaart { background: var(--manila); border-radius: 16px; padding: 1.2rem 1.4rem; max-width: 30rem; width: 100%; box-shadow: 0 6px 0 rgba(0,0,0,.35); max-height: calc(100% - 1rem); overflow: auto; }
+.kaart h1 { margin: 0; font-size: clamp(2.2rem, 9vw, 3.2rem); line-height: 1; } .kaart h1 small { display: block; font-size: 1rem; color: #5E5643; margin-top: .3rem; }
+.kaart h2 { margin: 0 0 .4rem; } .kaart p { margin: .4rem 0; line-height: 1.45; }
+.rij { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .8rem; } .rij .knop { font-size: 1rem; padding: .7rem 1rem; }
+.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.3rem, 1fr)); gap: .4rem; margin-top: .6rem; }
+.lvl { font: inherit; font-weight: 800; border: 0; border-radius: 10px; aspect-ratio: 1; cursor: pointer; background: var(--papier); box-shadow: 0 3px 0 rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1rem; }
+.lvl small { font-size: .7rem; color: #C99A2E; letter-spacing: -.05em; } .lvl:disabled { background: #D9CFB4; color: #9A8F7A; cursor: default; box-shadow: none; }
+.klein { font-size: .85rem; color: #5E5643; }
+.groot { font-size: 2.2rem; font-weight: 800; margin: .2rem 0; } .sterren { font-size: 2rem; letter-spacing: .1em; color: #C99A2E; }
+#sb-bel { margin-top: .8rem; }
+</style>
+</head>
+<body data-pagina="rommelbel">
+<div class="kop">
+  <a href="./">Terug</a>
+  <span class="titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><circle cx="20" cy="18" r="10" fill="#E8414E" stroke="#1F2333" stroke-width="2.6"/><circle cx="40" cy="18" r="10" fill="#3A86E8" stroke="#1F2333" stroke-width="2.6"/><circle cx="30" cy="34" r="10" fill="#F5C330" stroke="#1F2333" stroke-width="2.6"/><circle cx="16" cy="14" r="3" fill="#fff" opacity=".7"/><circle cx="36" cy="14" r="3" fill="#fff" opacity=".7"/><circle cx="26" cy="30" r="3" fill="#fff" opacity=".7"/><path d="M32 60V50" stroke="#1F2333" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="48" r="7" fill="#3DB06A" stroke="#1F2333" stroke-width="2.6"/><path d="M22 60h20" stroke="#1F2333" stroke-width="3" stroke-linecap="round"/></svg></span>Rommelbel</span>
+  <div class="rechts"><button class="knop" id="b-geluid" type="button" aria-pressed="true">Geluid</button><button class="knop" id="b-menu" type="button">Menu</button></div>
+</div>
+<div id="veld">
+  <canvas id="doek" aria-label="Speelveld: mik met de muis of je vinger en laat los om te schieten"></canvas>
+  <div class="scherm" id="menu"><div class="kaart" id="menu-in"></div></div>
+</div>
+<script>
+(function () {
+  try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) localStorage.setItem(k, v); sessionStorage.removeItem('koppel-herstel'); sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+})();
+(function () {
+  // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
+  const SKEY = 'rommelhoekje-speler';
+  let speler = null;
+  try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { speler = null; }
+  const bewaar = () => { try { if (speler) localStorage.setItem(SKEY, JSON.stringify(speler)); else localStorage.removeItem(SKEY); } catch (e) {} };
+
+  // instellingen.json staat in de map van de site en wordt door de werkplaats beheerd
+  const klaar = fetch('instellingen.json?' + Math.floor(Date.now() / 600000), { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : {})).catch(() => ({}))
+    .then(inst => {
+      inst = inst || {};
+      // bezoekersteller van Cloudflare: geen cookies, geen persoonsgegevens
+      if (inst.analyticsToken && /^[a-f0-9]{16,64}$/i.test(inst.analyticsToken) && !document.querySelector('script[src*="cloudflareinsights"]')) {
+        const s = document.createElement('script');
+        s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js?token=' + encodeURIComponent(inst.analyticsToken);
+        document.head.appendChild(s);
+      }
+      return inst;
+    });
+  const adres = inst => (inst.scoreUrl || '').replace(/\/+$/, '');
+  function nieuwGeheim() {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
+    return Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  async function mijnId() {
+    if (!speler || !window.crypto || !crypto.subtle) return null;
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rommelhoekje:' + speler.geheim));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  const laatst = {};
+  // ---------- alle spellen bijwerken, vanaf elke pagina van de site
+  // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
+  // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
+  const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const BRONNEN = {
+    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
+    poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    bel: () => { const s = lees('rommelbel-v1'); return s && s.eindeloos ? [s.eindeloos, Object.values(s.sterren || {}).reduce((a, b) => a + b, 0)] : null; },
+    rob: () => { const s = lees('rommelrob-v1'); return s && s.best ? [s.best, s.totaal || 0] : null; },
+    arend: () => { const s = lees('rommelarend-v1'); if (!s) return null; const p = (s.ontdekt || []).length * 100 + (s.veren || []).length * 25 + Object.values(s.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0); return p ? [p, (s.ontdekt || []).length] : null; },
+    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
+    vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
+    beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
+  };
+  const VKEY = 'rommelhoekje-verstuurd';
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  let bezig = false;
+  async function synchroniseer() {
+    if (bezig || !speler || !speler.naam) return; bezig = true;
+    try {
+      const inst = await klaar; if (!adres(inst)) return;
+      const v = lees(VKEY) || {};
+      for (const [spel, bron] of Object.entries(BRONNEN)) {
+        let w = null; try { w = bron(); } catch (e) {}
+        if (!w) continue;
+        const o = v[spel];
+        if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
+        await API.stuur(spel, w[0], w[1]);
+      }
+    } finally { bezig = false; }
+  }
+
+  const API = {
+    klaar,
+    actief: () => klaar.then(inst => !!adres(inst)),
+    doetMee: () => !!(speler && speler.naam),
+    naam: () => (speler && speler.naam) || '',
+    mijnId,
+    // meedoen of je naam veranderen; een lege naam = stoppen
+    async zetNaam(naam) {
+      naam = String(naam || '').replace(/\s+/g, ' ').trim().slice(0, 16);
+      if (!naam) { speler = null; bewaar(); return { ok: true }; }
+      const bestond = !!(speler && speler.geheim);
+      speler = { geheim: (speler && speler.geheim) || nieuwGeheim(), naam };
+      bewaar();
+      let uitslag = { ok: true };
+      const inst = await klaar;
+      if (bestond && adres(inst)) {
+        try { const r = await fetch(adres(inst) + '/naam', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim, naam }) }); const j = await r.json().catch(() => ({})); if (!r.ok) { uitslag = { ok: false, fout: j.fout || 'Naam veranderen lukte niet.' }; document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: uitslag.fout })); } } catch (e) {}
+      }
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+      for (const [spel, w] of Object.entries(laatst)) { delete laatst[spel]; await API.stuur(spel, w[0], w[1], true); }
+      await synchroniseer();
+      return uitslag;
+    },
+    // een score insturen (de server bewaart alleen je beste)
+    async stuur(spel, score, extra, direct) {
+      laatst[spel] = [score, extra || 0];
+      if (!API.doetMee()) return null;
+      const inst = await klaar; if (!adres(inst)) return null;
+      try {
+        const r = await fetch(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) onthoud(spel, score, extra || 0);
+        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        return r.ok ? j : null;
+      } catch (e) { return null; }
+    },
+    async lijsten() {
+      const inst = await klaar; if (!adres(inst)) return null;
+      const r = await fetch(adres(inst) + '/scores', { cache: 'no-store' });
+      return r.ok ? r.json() : null;
+    },
+    async stopEnVerwijder() {
+      const inst = await klaar;
+      if (speler && adres(inst)) { try { await fetch(adres(inst) + '/verwijder', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ geheim: speler.geheim }) }); } catch (e) {} }
+      speler = null; bewaar();
+      document.dispatchEvent(new CustomEvent('scorebord-naam'));
+    },
+    // een klein blokje om mee te doen, voor in een spel
+    async blokje(el, wat) {
+      if (!el) return;
+      el.dataset.sbWat = wat || 'je score';
+      if (!(await API.actief())) { el.hidden = true; return; }
+      tekenBlok(el);
+    },
+  };
+  function tekenBlok(el) {
+    el.hidden = false; el.innerHTML = '';
+    el.classList.add('sb-blok');
+    const p = document.createElement('p');
+    if (API.doetMee()) {
+      p.innerHTML = 'Je doet mee aan het <a href="scorebord.html">scorebord</a> als <b></b>.';
+      p.querySelector('b').textContent = speler.naam;
+      el.appendChild(p);
+      return;
+    }
+    p.textContent = 'Zet ' + el.dataset.sbWat + ' op het scorebord van het rommelhoekje. Kies een naam:';
+    const f = document.createElement('form'); f.className = 'sb-mee';
+    f.innerHTML = '<input maxlength="16" placeholder="Je naam" aria-label="Je naam voor het scorebord" autocomplete="nickname"><button type="submit">Doe mee</button>';
+    f.addEventListener('submit', async e => { e.preventDefault(); const n = f.querySelector('input').value.trim(); if (n.length < 2) { f.querySelector('input').focus(); return; } await API.zetNaam(n); });
+    const k = document.createElement('small'); k.textContent = 'We bewaren alleen je naam en je beste score. Je kunt altijd stoppen op de scorebordpagina.';
+    el.appendChild(p); el.appendChild(f); el.appendChild(k);
+  }
+  document.addEventListener('scorebord-naam', () => document.querySelectorAll('[data-sb-wat]').forEach(el => { if (!el.hidden) tekenBlok(el); }));
+  // stijl voor het blokje, met de kleuren van de site
+  const st = document.createElement('style');
+  st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
+  document.head.appendChild(st);
+
+  // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
+  // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
+  const KKEY = 'rommelhoekje-koppel';
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const MAX = 380000;
+  const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
+  const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
+  const hash = t => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ':' + t.length; };
+  const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+  const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
+  let bezigK = false, eersteK = true;
+  async function koppelSync(stil) {
+    const K = leesK(); if (!K || !K.code || bezigK) return null;
+    const inst = await klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null;
+    bezigK = true;
+    try {
+      K.staat = K.staat || {}; const items = {}, bekend = {};
+      for (const k of SLEUTELS) {
+        let v = null; try { v = localStorage.getItem(k); } catch (e) {}
+        const st = K.staat[k];
+        if (v !== null) { const h = hash(v); if (!st || st.h !== h) { K.staat[k] = { h, t: Date.now() }; if (v.length <= MAX) items[k] = { t: K.staat[k].t, data: v }; } }
+        bekend[k] = K.staat[k] ? K.staat[k].t : 0;
+      }
+      const r = await fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend }) });
+      const j = await r.json(); if (!j.ok) return null;
+      const herstel = {}; let nieuwHier = false, geweigerdHier = '';
+      for (const [k, it] of Object.entries(j.items || {})) {
+        const weg = j.geweigerd && j.geweigerd[k];
+        if (weg) { K.staat[k] = { h: hash(it.data), t: it.t }; if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; geweigerdHier = weg; } else { try { localStorage.setItem(k, it.data); } catch (e) {} } continue; }
+        if (!SLEUTELS.includes(k) || (K.staat[k] && K.staat[k].t >= it.t)) continue;
+        K.staat[k] = { h: hash(it.data), t: it.t };
+        if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} }
+      }
+      K.laatst = Date.now(); schrijfK(K);
+      // nieuwe voortgang voor het spel dat nu open is: bij het openen meteen herladen, later alleen met een knop (anders gaan twee apparaten om de beurt herladen)
+      if (nieuwHier) {
+        try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
+        if (geweigerdHier) { try { sessionStorage.setItem('koppel-geweigerd', geweigerdHier); } catch (e) {} location.reload(); return j; }
+        if (eersteK && !stil) { location.reload(); return j; }
+        toonKoppelMelding('Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', () => location.reload());
+      }
+      return j;
+    } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
+  }
+  const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
+  const WOORD2 = ['vlaai', 'raket', 'zolder', 'kraan', 'lamp', 'vos', 'uil', 'beer', 'trommel', 'vlieger', 'ster', 'koepel', 'piano', 'wolk', 'kikker', 'draak', 'tram', 'molen', 'sok', 'hoed', 'fiets', 'toren', 'boot', 'pinguin'];
+  function maakCode() { const a = new Uint32Array(5); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], WOORD2[a[3] % WOORD2.length], 1000 + a[4] % 9000].join('-'); }
+  const schoon = c => (c || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  async function maakKoppeling() { const K = { code: maakCode(), staat: {} }; schrijfK(K); await koppelSync(true); return K.code; }
+  async function gebruikCode(code) {
+    code = schoon(code); if (code.length < 12) return 'Die code is te kort.';
+    // eerst kijken wat er op de server staat: de voortgang van je andere apparaat wint
+    const K = { code, staat: {} };
+    for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v !== null) K.staat[k] = { h: hash(v), t: 0 }; }
+    schrijfK(K);
+    const j = await koppelSync(true);
+    if (!j) { schrijfK(null); return 'Koppelen lukte niet. Controleer je internet en probeer het opnieuw.'; }
+    if (!j.aantal) { schrijfK(null); return 'Bij deze code staat nog niets. Klopt hij wel? Maak hem anders op je andere apparaat.'; }
+    // wat alleen op dit apparaat staat, sturen we daarna mee
+    const K2 = leesK(); for (const k of SLEUTELS) if (K2.staat[k] && K2.staat[k].t === 0) delete K2.staat[k]; schrijfK(K2);
+    setTimeout(() => koppelSync(true), 300);
+    if (Object.keys(j.items || {}).some(vanDezePagina)) setTimeout(() => location.reload(), 600);
+    return '';
+  }
+  // ---------- het venster
+  let dlg = null;
+  function stijl() { if (document.getElementById('kp-stijl')) return; const st = document.createElement('style'); st.id = 'kp-stijl'; st.textContent = `
+    .kp-dlg { border: 0; border-radius: 14px; padding: 0; max-width: min(30rem, 94vw); background: #F2DDA0; color: #231A26; box-shadow: 0 0 0 4px #231A26, 0 10px 0 4px rgba(0,0,0,.35); font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+    .kp-dlg::backdrop { background: rgba(10,14,30,.6); } .kp-in { padding: 1.1rem 1.3rem 1.2rem; } .kp-in h2 { margin: 0 0 .4rem; } .kp-in p { margin: .4rem 0; line-height: 1.45; }
+    .kp-code { font-size: 1.4rem; font-weight: 800; letter-spacing: .02em; background: #FBF6E9; border-radius: 8px; padding: .6rem .8rem; text-align: center; margin: .6rem 0; user-select: all; }
+    .kp-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .6rem; } .kp-rij input { flex: 1 1 12rem; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid #C9A24E; background: #FBF6E9; }
+    .kp-knop { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.3); } .kp-knop.hoofd { background: #C8323C; color: #fff; }
+    .kp-klein { font-size: .82rem; color: #5E5643; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
+    .kp-melding { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 9999; background: #FBF6E9; color: #231A26; font: 700 .92rem 'Bricolage Grotesque', system-ui, sans-serif; padding: .6rem .9rem; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.3); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
+    .kp-knopje { position: fixed; right: .9rem; bottom: .9rem; z-index: 50; font: 800 .88rem 'Bricolage Grotesque', system-ui, sans-serif; border: 0; border-radius: 999px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 0 0 3px #231A26, 0 4px 0 3px rgba(0,0,0,.3); }`; document.head.appendChild(st); }
+  function toonKoppelMelding(tekst, knop, doe) { stijl(); const m = document.createElement('div'); m.className = 'kp-melding'; m.setAttribute('role', 'status'); m.innerHTML = `<span>${tekst}</span>${knop ? `<button class="kp-knop hoofd" type="button">${knop}</button>` : ''}`; if (knop) m.querySelector('button').onclick = () => { m.remove(); doe(); }; document.body.appendChild(m); setTimeout(() => m.remove(), knop ? 20000 : 4000); }
+  function openKoppel() {
+    stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
+    const K = leesK();
+    const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
+      : `<div class="kp-in"><h2>Koppel je apparaten</h2><p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
+    const q = id => dlg.querySelector('#' + id);
+    q('kp-dicht').onclick = () => dlg.close();
+    if (q('kp-maak')) q('kp-maak').onclick = async () => { q('kp-maak').disabled = true; q('kp-fout').textContent = 'Even bezig...'; await maakKoppeling(); openKoppel(); };
+    if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
+    if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
+    if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); openKoppel(); };
+    if (!dlg.open) dlg.showModal();
+  }
+  API.koppel = openKoppel; API.koppelSync = koppelSync;
+  // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
+  setTimeout(() => { const K = leesK(); if (!K || !K.code) maakKoppeling().catch(() => {}); }, 2500);
+  // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
+  try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang is teruggezet naar de laatste eerlijke stand op de server (' + w + '). Valsspelen telt niet mee!'), 400)); } } catch (e) {}
+  // op de homepage en het scorebord een knopje
+  if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
+  try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
+  klaar.then(() => setTimeout(() => koppelSync(false), 600));
+  setInterval(() => { if (!document.hidden) koppelSync(true); }, 30000);
+  // eerst het spel laten opslaan, dan pas meesturen
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => koppelSync(true), 400); });
+  // bij het sluiten: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is
+  addEventListener('load', () => addEventListener('pagehide', () => {
+    const K = leesK(); if (!K || !K.code) return;
+    klaar.then(inst => { const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return; const items = {}; let grootte = 0;
+      for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v === null) continue; const h = hash(v), st = (K.staat || {})[k]; if (st && st.h === h) continue; if (grootte + v.length > 60000) continue; grootte += v.length; const t = Date.now(); items[k] = { t, data: v }; K.staat[k] = { h, t }; }
+      if (!Object.keys(items).length) return; schrijfK(K);
+      try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend: {} }), keepalive: true }); } catch (e) {}
+    });
+  }));
+  API.synchroniseer = synchroniseer;
+  window.Scorebord = API;
+  // bij elk bezoek, en als je even naar een ander tabblad gaat
+  klaar.then(() => setTimeout(synchroniseer, 1500));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) synchroniseer(); });
+})();
+
+</script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const KEY = 'rommelbel-v1';
+  let opslag = { open: 1, sterren: {}, scores: {}, eindeloos: 0, geluid: true, gespeeld: 0 };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  // ---------------- het speelveld: een honingraat van bellen
+  const COLS = 11, R = 20, RH = R * Math.sqrt(3), W = COLS * 2 * R, H = 640, SCHIET_Y = H - 46, LIJN_Y = SCHIET_Y - 56;
+  const KLEUREN = [['#E8414E', '#FFB0B6', '#8E1F2A'], ['#F5C330', '#FFF0B0', '#9A7408'], ['#3A86E8', '#B8D8FF', '#1A4A8E'], ['#3DB06A', '#B8F0CC', '#1A6A3A'], ['#9A5CE0', '#E0C8FF', '#5A2A8E'], ['#FF8A30', '#FFD2A8', '#A84A0A']];
+  const BOM = 8, REGENBOOG = 9;
+  let G = null; // de stand van één potje
+  const doek = $('doek'), g = doek.getContext('2d');
+  let schaal = 1;
+  function maat() { const v = $('veld').getBoundingClientRect(), s = Math.min((v.width - 16) / W, (v.height - 16) / H); schaal = Math.max(0.4, s); const dpr = Math.min(2, window.devicePixelRatio || 1); doek.style.width = W * schaal + 'px'; doek.style.height = H * schaal + 'px'; doek.width = W * schaal * dpr; doek.height = H * schaal * dpr; g.setTransform(schaal * dpr, 0, 0, schaal * dpr, 0, 0); }
+  addEventListener('resize', maat);
+  const kolommen = r => (oneven(r) ? COLS - 1 : COLS);
+  const oneven = r => ((r + (G ? G.pariteit : 0)) % 2) === 1;
+  const posVan = (r, c) => [R + c * 2 * R + (oneven(r) ? R : 0), R + r * RH + (G ? G.zak : 0)];
+  const buren = (r, c) => { const o = oneven(r); return [[r, c - 1], [r, c + 1], [r - 1, o ? c : c - 1], [r - 1, o ? c + 1 : c], [r + 1, o ? c : c - 1], [r + 1, o ? c + 1 : c]].filter(([rr, cc]) => rr >= 0 && cc >= 0 && cc < kolommen(rr)); };
+  const cel = (r, c) => (G.raster[r] ? G.raster[r][c] : undefined);
+  const zet = (r, c, v) => { while (G.raster.length <= r) G.raster.push([]); G.raster[r][c] = v; };
+  // ---------------- toevalsgetallen met een zaadje (levels zijn altijd hetzelfde)
+  const maakRnd = s => () => (s = (s * 16807) % 2147483647) / 2147483647;
+  // ---------------- levels: steeds meer rijen en kleuren, met patronen en groepjes
+  function maakLevel(n) {
+    const rnd = maakRnd(n * 7919 + 13), rijen = Math.min(10, 4 + Math.floor(n / 4)), kl = Math.min(6, 3 + Math.floor(n / 7)), patroon = n % 5;
+    const raster = [];
+    for (let r = 0; r < rijen; r++) { raster.push([]); const k = (r % 2) ? COLS - 1 : COLS; for (let c = 0; c < k; c++) {
+      let vol = true; if (patroon === 1) vol = (r + c) % 3 !== 0 || r < 2; else if (patroon === 2) vol = Math.abs(c - k / 2) < k / 2 - r * 0.35 + 1.5; else if (patroon === 3) vol = !(r > 1 && c % 4 === 1); else if (patroon === 4) vol = r < 2 || rnd() < 0.82;
+      if (!vol) continue;
+      // groepjes: neem vaak de kleur van een buur over
+      let v = Math.floor(rnd() * kl); if (c > 0 && raster[r][c - 1] !== undefined && rnd() < 0.45) v = raster[r][c - 1]; else if (r > 0 && raster[r - 1][c] !== undefined && rnd() < 0.35) v = raster[r - 1][c];
+      raster[r][c] = v; } }
+    return { raster, kleuren: kl, zakElke: Math.max(6, 10 - Math.floor(n / 6)) };
+  }
+  // ---------------- een potje beginnen
+  function start(modus, level) {
+    opslag.gespeeld++; bewaar(); audio();
+    const L = modus === 'avontuur' ? maakLevel(level) : { raster: [], kleuren: 5, zakElke: 7 };
+    G = { modus, level, raster: [], pariteit: 0, zak: 0, kleuren: L.kleuren, zakElke: L.zakElke, schoten: 0, sindsZak: 0, score: 0, bal: null, huidig: null, volgende: null, hoek: -Math.PI / 2, deeltjes: [], teksten: [], vallers: [], knallers: [], klaar: false, combo: 0, rnd: maakRnd((Date.now() % 100000) + 7) };
+    if (modus === 'eindeloos') { for (let i = 0; i < 6; i++) nieuweRij(); } else G.raster = L.raster.map(r => r.slice());
+    G.start = telBellen();
+    G.huidig = nieuweBel(); G.volgende = nieuweBel();
+    $('menu').hidden = true;
+  }
+  function telBellen() { let n = 0; for (const rij of G.raster) for (const v of rij || []) if (v !== undefined) n++; return n; }
+  function aanwezigeKleuren() { const s = new Set(); for (const rij of G.raster) for (const v of rij || []) if (v !== undefined && v < 6) s.add(v); return [...s]; }
+  function nieuweBel() {
+    // af en toe een bom of een regenboog (na een mooie combo vaker)
+    const x = G.rnd(); if (G.schoten > 3 && x < (G.combo >= 2 ? 0.12 : 0.035)) return G.rnd() < 0.5 ? BOM : REGENBOOG;
+    const k = aanwezigeKleuren(); return k.length ? k[Math.floor(G.rnd() * k.length)] : Math.floor(G.rnd() * G.kleuren);
+  }
+  function nieuweRij() {
+    // alles een rij omlaag, en bovenaan een nieuwe rij
+    G.raster.unshift([]); G.pariteit = (G.pariteit + 1) % 2;
+    for (let c = 0; c < kolommen(0); c++) { let v = Math.floor(G.rnd() * G.kleuren); if (c > 0 && G.rnd() < 0.4) v = G.raster[0][c - 1]; G.raster[0][c] = v; }
+  }
+  // ---------------- mikken en schieten
+  const MIN = -Math.PI + 0.12, MAX = -0.12;
+  function richtOp(px, py) { const [sx, sy] = [W / 2, SCHIET_Y]; G.hoek = Math.max(MIN, Math.min(MAX, Math.atan2(py - sy, px - sx))); }
+  function schiet() {
+    if (!G || G.klaar || G.bal || $('menu').hidden === false) return;
+    G.bal = { x: W / 2, y: SCHIET_Y, vx: Math.cos(G.hoek) * 1150, vy: Math.sin(G.hoek) * 1150, v: G.huidig };
+    G.huidig = G.volgende; G.volgende = nieuweBel(); G.schoten++; geluid.schiet();
+  }
+  function wissel() { if (!G || G.bal || G.klaar) return; [G.huidig, G.volgende] = [G.volgende, G.huidig]; geluid.tik(); }
+  const naarVeld = e => { const r = doek.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; };
+  let ingedrukt = false;
+  doek.addEventListener('pointerdown', e => { if (!G) return; e.preventDefault(); const [x, y] = naarVeld(e); if (Math.hypot(x - (W / 2 + 70), y - SCHIET_Y) < 26) { wissel(); return; } ingedrukt = true; doek.setPointerCapture(e.pointerId); richtOp(x, y); });
+  doek.addEventListener('pointermove', e => { if (!G) return; if (e.pointerType === 'mouse' || ingedrukt) richtOp(...naarVeld(e)); });
+  doek.addEventListener('pointerup', e => { if (!ingedrukt) return; ingedrukt = false; const [, y] = naarVeld(e); if (y < SCHIET_Y + 10) schiet(); });
+  doek.addEventListener('pointercancel', () => { ingedrukt = false; });
+  const toets = {};
+  addEventListener('keydown', e => { if (!G || !$('menu').hidden) return; if (['ArrowLeft', 'ArrowRight', 'Space', 'ArrowUp'].includes(e.code)) e.preventDefault(); toets[e.code] = true; if ((e.code === 'Space' || e.code === 'ArrowUp') && !e.repeat) schiet(); if (e.code === 'KeyX' || e.code === 'KeyS') wissel(); if (e.code === 'Escape') toonMenu(); });
+  addEventListener('keyup', e => { toets[e.code] = false; });
+  // ---------------- de vliegende bel: kaatst tegen de wanden en blijft plakken
+  function beweeg(dt) {
+    const b = G.bal; if (!b) return;
+    const stappen = Math.ceil(Math.hypot(b.vx, b.vy) * dt / 4);
+    for (let i = 0; i < stappen; i++) {
+      b.x += b.vx * dt / stappen; b.y += b.vy * dt / stappen;
+      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx); geluid.kaats(); } if (b.x > W - R) { b.x = W - R; b.vx = -Math.abs(b.vx); geluid.kaats(); }
+      let raak = b.y - R <= G.zak;
+      if (!raak) for (let r = 0; r < G.raster.length && !raak; r++) for (let c = 0; c < kolommen(r); c++) { if (cel(r, c) === undefined) continue; const [x, y] = posVan(r, c); if (Math.hypot(b.x - x, b.y - y) < 2 * R * 0.86) { raak = true; break; } }
+      if (raak) { plak(b); G.bal = null; return; }
+    }
+  }
+  function plak(b) {
+    // de dichtstbijzijnde vrije plek in het raster
+    let beste = null, bd = 1e9;
+    const r0 = Math.max(0, Math.round((b.y - G.zak - R) / RH));
+    for (let r = Math.max(0, r0 - 1); r <= r0 + 1; r++) for (let c = 0; c < kolommen(r); c++) { if (cel(r, c) !== undefined) continue; const [x, y] = posVan(r, c), d = Math.hypot(b.x - x, b.y - y); if (d < bd && (r === 0 || buren(r, c).some(([rr, cc]) => cel(rr, cc) !== undefined))) { bd = d; beste = [r, c]; } }
+    if (!beste) { for (let c = 0; c < kolommen(r0); c++) { const [x, y] = posVan(r0, c), d = Math.hypot(b.x - x, b.y - y); if (cel(r0, c) === undefined && d < bd) { bd = d; beste = [r0, c]; } } }
+    if (!beste) return;
+    const [r, c] = beste; zet(r, c, b.v); geluid.plak();
+    let weg = [];
+    if (b.v === BOM) { weg = [[r, c]]; for (let rr = r - 2; rr <= r + 2; rr++) for (let cc = c - 2; cc <= c + 2; cc++) { if (rr < 0 || cel(rr, cc) === undefined) continue; const [x1, y1] = posVan(rr, cc), [x0, y0] = posVan(r, c); if (Math.hypot(x1 - x0, y1 - y0) < R * 4.3) weg.push([rr, cc]); } geluid.bom(); }
+    else {
+      let kleur = b.v;
+      if (b.v === REGENBOOG) { const tel = {}; for (const [rr, cc] of buren(r, c)) { const v = cel(rr, cc); if (v !== undefined && v < 6) tel[v] = (tel[v] || 0) + groep(rr, cc, v).length; } const k = Object.keys(tel).sort((a, b2) => tel[b2] - tel[a])[0]; kleur = k === undefined ? Math.floor(G.rnd() * G.kleuren) : +k; zet(r, c, kleur); }
+      const gr = groep(r, c, kleur); if (gr.length >= 3) weg = gr;
+    }
+    if (weg.length) {
+      const uniek = new Set(); weg = weg.filter(([rr, cc]) => { const k = rr + ',' + cc; if (uniek.has(k) || cel(rr, cc) === undefined) return false; uniek.add(k); return true; });
+      G.combo++;
+      for (const [rr, cc] of weg) { const v = cel(rr, cc), [x, y] = posVan(rr, cc); G.knallers.push({ x, y, v, t: 0 }); spat(x, y, v); zet(rr, cc, undefined); }
+      const los = losseBellen();
+      for (const [rr, cc] of los) { const v = cel(rr, cc), [x, y] = posVan(rr, cc); G.vallers.push({ x, y, v, vy: -60 - Math.random() * 80, vx: (Math.random() - 0.5) * 120 }); zet(rr, cc, undefined); }
+      const punten = weg.length * 10 + los.length * 20 * Math.pow(2, Math.min(5, Math.floor(los.length / 4))) + (G.combo > 1 ? G.combo * 15 : 0);
+      G.score += punten; const [x, y] = posVan(r, c);
+      G.teksten.push({ x, y, t: 0, tekst: '+' + punten + (los.length ? '  ' + los.length + ' vallen!' : '') + (G.combo > 1 ? '  combo ×' + G.combo : '') });
+      geluid.knal(weg.length); if (los.length) setTimeout(() => geluid.val(los.length), 120);
+    } else { G.combo = 0; G.sindsZak++; }
+    opruimen();
+    // het plafond zakt na een aantal schoten zonder knal
+    if (!weg.length && G.sindsZak >= G.zakElke) { G.sindsZak = 0; if (G.modus === 'eindeloos') nieuweRij(); else G.zak += RH; geluid.zak(); }
+    controleerEinde();
+  }
+  function groep(r, c, v) { const gezien = new Set([r + ',' + c]), lijst = [[r, c]], uit = []; while (lijst.length) { const [rr, cc] = lijst.pop(); uit.push([rr, cc]); for (const [nr, nc] of buren(rr, cc)) { const k = nr + ',' + nc; if (!gezien.has(k) && cel(nr, nc) === v) { gezien.add(k); lijst.push([nr, nc]); } } } return uit; }
+  function losseBellen() { const vast = new Set(), lijst = []; for (let c = 0; c < kolommen(0); c++) if (cel(0, c) !== undefined) { vast.add('0,' + c); lijst.push([0, c]); } while (lijst.length) { const [r, c] = lijst.pop(); for (const [nr, nc] of buren(r, c)) { const k = nr + ',' + nc; if (!vast.has(k) && cel(nr, nc) !== undefined) { vast.add(k); lijst.push([nr, nc]); } } } const los = []; G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined && !vast.has(r + ',' + c)) los.push([r, c]); })); return los; }
+  function opruimen() { while (G.raster.length && !(G.raster[G.raster.length - 1] || []).some(v => v !== undefined)) G.raster.pop(); if (!aanwezigeKleuren().includes(G.huidig) && G.huidig < 6) G.huidig = nieuweBel(); if (!aanwezigeKleuren().includes(G.volgende) && G.volgende < 6) G.volgende = nieuweBel(); }
+  function controleerEinde() {
+    if (G.klaar) return;
+    let laagst = 0; G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined) laagst = Math.max(laagst, posVan(r, c)[1] + R); }));
+    if (G.modus === 'avontuur' && telBellen() === 0) { G.klaar = true; return setTimeout(() => winst(), 700); }
+    if (laagst > LIJN_Y) { G.klaar = true; geluid.verlies(); setTimeout(() => verlies(), 800); }
+  }
+  // ---------------- einde van een potje
+  function winst() {
+    geluid.winst();
+    const ster = G.schoten <= G.start / 3 ? 3 : G.schoten <= G.start / 2.2 ? 2 : 1, bonus = Math.max(0, Math.round(G.start * 1.5 - G.schoten)) * 25; G.score += bonus;
+    const l = G.level; opslag.sterren[l] = Math.max(opslag.sterren[l] || 0, ster); opslag.scores[l] = Math.max(opslag.scores[l] || 0, G.score); opslag.open = Math.max(opslag.open, l + 1); bewaar(); stuurScore();
+    venster(`<h2>Level ${l} gehaald!</h2><p class="sterren">${'★'.repeat(ster)}${'☆'.repeat(3 - ster)}</p><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>In ${G.schoten} schoten${bonus ? `, met ${bonus.toLocaleString('nl-NL')} bonuspunten voor de schoten die je over had` : ''}. ${ster < 3 ? 'Voor drie sterren: maximaal ' + Math.floor(G.start / 3) + ' schoten.' : 'Perfect!'}</p><div class="rij">${l < 30 ? `<button class="knop hoofd" data-start="avontuur" data-level="${l + 1}" type="button">Volgend level</button>` : ''}<button class="knop" data-start="avontuur" data-level="${l}" type="button">Nog een keer</button><button class="knop" data-menu="levels" type="button">Levels</button></div>`);
+  }
+  function verlies() {
+    const eind = G.modus === 'eindeloos', record = eind && G.score > opslag.eindeloos; if (record) { opslag.eindeloos = G.score; bewaar(); stuurScore(); }
+    venster(`<h2>${eind ? 'De bellen zijn beneden!' : 'Net niet...'}</h2><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>${eind ? (record ? 'Een nieuw record!' : 'Je record is ' + opslag.eindeloos.toLocaleString('nl-NL') + '.') : 'De bellen kwamen bij de rode lijn. Probeer groepjes hoog in het veld weg te schieten, dan valt alles eronder mee.'}</p><div class="rij"><button class="knop hoofd" data-start="${G.modus}" data-level="${G.level || 0}" type="button">Opnieuw</button><button class="knop" data-menu="${eind ? 'hoofd' : 'levels'}" type="button">Menu</button></div>`);
+  }
+  // ---------------- tekenen
+  function bel(x, y, v, s = 1, a = 1) {
+    g.save(); g.globalAlpha = a; g.translate(x, y); g.scale(s, s);
+    if (v === BOM) { g.fillStyle = '#2A2630'; g.beginPath(); g.arc(0, 0, R - 1, 0, 7); g.fill(); g.strokeStyle = '#E9B949'; g.lineWidth = 3; g.beginPath(); g.moveTo(4, -R + 4); g.quadraticCurveTo(10, -R - 6, 15, -R - 2); g.stroke(); g.fillStyle = '#FF8A30'; g.beginPath(); g.arc(15, -R - 2, 3.5, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.arc(-6, -6, 6, 0, 7); g.fill(); }
+    else if (v === REGENBOOG) { for (let i = 0; i < 6; i++) { g.fillStyle = KLEUREN[i][0]; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R - 1, i / 6 * 6.283, (i + 1) / 6 * 6.283); g.fill(); } g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(0, 0, R * 0.45, 0, 7); g.fill(); }
+    else { const [k, licht, donker] = KLEUREN[v]; const gr = g.createRadialGradient(-R * 0.35, -R * 0.4, R * 0.1, 0, 0, R); gr.addColorStop(0, licht); gr.addColorStop(0.45, k); gr.addColorStop(1, donker); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, R - 1, 0, 7); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-R * 0.35, -R * 0.45, R * 0.28, R * 0.16, -0.6, 0, 7); g.fill();
+    g.restore();
+  }
+  function spat(x, y, v) { const k = v < 6 ? KLEUREN[v][0] : '#FFFFFF'; for (let i = 0; i < 8; i++) { const a = Math.random() * 6.283, s = 80 + Math.random() * 160; G.deeltjes.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, k }); } }
+  function teken(dt) {
+    g.clearRect(0, 0, W, H);
+    const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2C3A72'); bg.addColorStop(1, '#141C3E'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 30; i++) { g.beginPath(); g.arc((i * 97) % W, (i * 173) % H, 2 + (i % 3), 0, 7); g.fill(); }
+    if (!G) return;
+    // het zakkende plafond
+    if (G.zak > 0) { g.fillStyle = '#3E2A1A'; g.fillRect(0, 0, W, G.zak); g.fillStyle = '#5E4030'; for (let x = 0; x < W; x += 24) g.fillRect(x, G.zak - 6, 20, 6); }
+    // de rode lijn
+    g.strokeStyle = 'rgba(232,65,78,.55)'; g.setLineDash([8, 8]); g.lineWidth = 2; g.beginPath(); g.moveTo(0, LIJN_Y); g.lineTo(W, LIJN_Y); g.stroke(); g.setLineDash([]);
+    G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined) { const [x, y] = posVan(r, c); bel(x, y, v); } }));
+    // hulplijn met kaatsen tegen de wand
+    if (!G.klaar) { let x = W / 2, y = SCHIET_Y, vx = Math.cos(G.hoek), vy = Math.sin(G.hoek); g.fillStyle = 'rgba(255,255,255,.55)'; for (let i = 0; i < 70; i++) { x += vx * 9; y += vy * 9; if (x < R || x > W - R) { vx = -vx; x = Math.max(R, Math.min(W - R, x)); } if (y < G.zak + R) break; let raak = false; for (let r = 0; r < G.raster.length && !raak; r++) for (let c = 0; c < kolommen(r); c++) { if (cel(r, c) === undefined) continue; const [bx, by] = posVan(r, c); if (Math.hypot(x - bx, y - by) < 2 * R * 0.86) { raak = true; break; } } if (raak) break; if (i % 2 === 0) { g.beginPath(); g.arc(x, y, i < 40 ? 3 : 2, 0, 7); g.fill(); } } }
+    // het kanon, de huidige en de volgende bel
+    g.save(); g.translate(W / 2, SCHIET_Y); g.rotate(G.hoek + Math.PI / 2); g.fillStyle = '#C9C2B2'; g.strokeStyle = '#231A26'; g.lineWidth = 3; g.beginPath(); g.roundRect ? g.roundRect(-9, -48, 18, 40, 6) : g.rect(-9, -48, 18, 40); g.fill(); g.stroke(); g.restore();
+    g.fillStyle = '#5E5643'; g.beginPath(); g.arc(W / 2, SCHIET_Y + 8, 30, Math.PI, 0); g.fill();
+    if (!G.bal && !G.klaar) bel(W / 2, SCHIET_Y, G.huidig);
+    bel(W / 2 + 70, SCHIET_Y + 6, G.volgende, 0.7); g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '700 11px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('wissel', W / 2 + 70, SCHIET_Y + 34);
+    if (G.bal) bel(G.bal.x, G.bal.y, G.bal.v);
+    // knallen, vallen, deeltjes en teksten
+    for (const k of G.knallers) { k.t += dt; bel(k.x, k.y, k.v, 1 + k.t * 3, Math.max(0, 1 - k.t * 5)); } G.knallers = G.knallers.filter(k => k.t < 0.2);
+    for (const v of G.vallers) { v.vy += 1400 * dt; v.x += v.vx * dt; v.y += v.vy * dt; bel(v.x, v.y, v.v, 1, Math.max(0, 1 - (v.y - LIJN_Y) / 200)); } G.vallers = G.vallers.filter(v => v.y < H + R);
+    for (const d of G.deeltjes) { d.t += dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 500 * dt; g.globalAlpha = Math.max(0, 1 - d.t * 2); g.fillStyle = d.k; g.beginPath(); g.arc(d.x, d.y, 3, 0, 7); g.fill(); } g.globalAlpha = 1; G.deeltjes = G.deeltjes.filter(d => d.t < 0.5);
+    g.textAlign = 'center'; for (const t of G.teksten) { t.t += dt; g.globalAlpha = Math.max(0, 1 - t.t / 1.2); g.font = '800 17px system-ui, sans-serif'; g.lineWidth = 4; g.strokeStyle = '#231A26'; g.strokeText(t.tekst, Math.max(80, Math.min(W - 80, t.x)), t.y - t.t * 50); g.fillStyle = '#FFE76A'; g.fillText(t.tekst, Math.max(80, Math.min(W - 80, t.x)), t.y - t.t * 50); } g.globalAlpha = 1; G.teksten = G.teksten.filter(t => t.t < 1.2);
+    // de tellers
+    g.textAlign = 'left'; g.font = '800 18px system-ui, sans-serif'; g.fillStyle = '#FBF6E9'; g.fillText(G.score.toLocaleString('nl-NL'), 12, H - 16);
+    g.font = '700 12px system-ui, sans-serif'; g.fillStyle = 'rgba(251,246,233,.75)'; g.fillText(G.modus === 'avontuur' ? 'Level ' + G.level : 'Eindeloos', 12, H - 36);
+    g.textAlign = 'right'; g.fillText(G.modus === 'eindeloos' ? 'nieuwe rij over' : 'plafond zakt over', W - 12, H - 36);
+    for (let i = 0; i < G.zakElke; i++) { g.fillStyle = i < G.zakElke - G.sindsZak ? '#FFE76A' : 'rgba(255,255,255,.2)'; g.beginPath(); g.arc(W - 16 - i * 13, H - 20, 4.5, 0, 7); g.fill(); }
+  }
+  // ---------------- de lus
+  let vorige = performance.now();
+  function lus(nu) { requestAnimationFrame(lus); const dt = Math.min(0.033, (nu - vorige) / 1000); vorige = nu; if (G && !G.klaar && $('menu').hidden) { if (toets.ArrowLeft) G.hoek = Math.max(MIN, G.hoek - dt * 1.6); if (toets.ArrowRight) G.hoek = Math.min(MAX, G.hoek + dt * 1.6); beweeg(dt); } teken(dt); }
+  // ---------------- geluid: zacht
+  let ac = null, hoofd = null;
+  function audio() { if (ac || !opslag.geluid) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); hoofd = ac.createGain(); hoofd.gain.value = 0.5; hoofd.connect(ac.destination); } catch (e) {} }
+  const toon = (f, t0, duur, type, vol, glij) => { if (!ac || !opslag.geluid) return; const o = ac.createOscillator(), gn = ac.createGain(), t = ac.currentTime + t0; o.type = type; o.frequency.setValueAtTime(f, t); if (glij) o.frequency.exponentialRampToValueAtTime(glij, t + duur); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + duur); o.connect(gn); gn.connect(hoofd); o.start(t); o.stop(t + duur + 0.03); };
+  const geluid = {
+    schiet: () => toon(500, 0, 0.12, 'sine', 0.08, 900), tik: () => toon(900, 0, 0.05, 'sine', 0.05), kaats: () => toon(300, 0, 0.05, 'triangle', 0.04),
+    plak: () => toon(220, 0, 0.08, 'sine', 0.06, 160), knal: n => { for (let i = 0; i < Math.min(6, n); i++) toon(700 + i * 120 + Math.random() * 80, i * 0.035, 0.09, 'sine', 0.06, 1400); },
+    val: n => { for (let i = 0; i < Math.min(8, n); i++) toon(1200 - i * 90, i * 0.05, 0.12, 'triangle', 0.035); }, bom: () => toon(120, 0, 0.4, 'sawtooth', 0.06, 40),
+    zak: () => toon(160, 0, 0.3, 'triangle', 0.08, 90), winst: () => [523, 659, 784, 1046].forEach((f, i) => toon(f, i * 0.12, 0.4, 'triangle', 0.06)), verlies: () => [392, 330, 262].forEach((f, i) => toon(f, i * 0.18, 0.4, 'triangle', 0.06)),
+  };
+  $('b-geluid').addEventListener('click', () => { opslag.geluid = !opslag.geluid; bewaar(); $('b-geluid').setAttribute('aria-pressed', String(opslag.geluid)); if (opslag.geluid) audio(); });
+  $('b-geluid').setAttribute('aria-pressed', String(opslag.geluid));
+  // ---------------- menu's
+  function venster(html) { $('menu-in').innerHTML = html; $('menu').hidden = false; }
+  function toonMenu(welk) {
+    if (welk === 'levels') { let h = '<h2>Avontuur</h2><p class="klein">Schiet het hele veld leeg. Drie sterren als je het in weinig schoten doet.</p><div class="levels">'; for (let i = 1; i <= 30; i++) { const s = opslag.sterren[i] || 0; h += `<button class="lvl" data-start="avontuur" data-level="${i}" type="button" ${i > opslag.open ? 'disabled' : ''}>${i}<small>${s ? '★'.repeat(s) : i > opslag.open ? 'dicht' : ''}</small></button>`; } venster(h + '</div><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
+    if (welk === 'regels') { venster('<h2>Zo speel je</h2><p>Mik met je muis of vinger, en laat los (of klik) om te schieten. Op een toetsenbord: pijltjes om te mikken, spatie om te schieten, X om te wisselen.</p><p>Raak je <b>drie of meer bellen van dezelfde kleur</b>, dan knallen ze. Bellen die daarna nergens meer aan vastzitten, <b>vallen</b>: dat levert extra veel punten op.</p><p>Na een paar schoten zonder knal <b>zakt het plafond</b> (de stippen rechtsonder tellen af). Raken de bellen de rode lijn, dan is het afgelopen.</p><p>Een <b>bom</b> laat alles eromheen knallen, een <b>regenboogbel</b> past bij elke kleur. Tik op de kleine bel rechts om te wisselen.</p><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
+    const sterren = Object.values(opslag.sterren).reduce((a, b) => a + b, 0);
+    venster(`<h1>Rommelbel<small>Schiet, knal en laat ze vallen</small></h1><p class="klein">${sterren} van 90 sterren · record eindeloos: ${opslag.eindeloos.toLocaleString('nl-NL')}</p><div class="rij"><button class="knop hoofd" data-menu="levels" type="button">Avontuur (level ${Math.min(30, opslag.open)})</button><button class="knop" data-start="eindeloos" data-level="0" type="button">Eindeloos</button><button class="knop" data-menu="regels" type="button">Zo speel je</button></div>${G && !G.klaar ? '<div class="rij"><button class="knop" data-verder type="button">Verder spelen</button></div>' : ''}<div id="sb-bel"></div>`);
+    if (window.Scorebord) Scorebord.blokje($('sb-bel'), 'punten in Eindeloos');
+  }
+  document.addEventListener('click', e => { const s = e.target.closest('[data-start]'), m = e.target.closest('[data-menu]'), v = e.target.closest('[data-verder]'); if (s && !s.disabled) start(s.dataset.start, +s.dataset.level); if (m) toonMenu(m.dataset.menu); if (v) $('menu').hidden = true; });
+  $('b-menu').addEventListener('click', () => toonMenu());
+  function stuurScore() { if (window.Scorebord && opslag.eindeloos > 0) Scorebord.stuur('bel', opslag.eindeloos, Object.values(opslag.sterren).reduce((a, b) => a + b, 0)); }
+  maat(); toonMenu(); requestAnimationFrame(lus); stuurScore();
+  window.__bel = { get G() { return G; }, start, schiet, richtOp, beweeg, posVan, kolommen, buren, opslag, losseBellen, BOM, REGENBOOG };
+})();
+</script>
+<script>
+(function () {
+  // GRAPJES: verborgen grapjes op het rommelhoekje. Geen teller, geen hints: wie ze vindt, vindt ze.
+  if (window.Grapjes) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const opHome = !!document.querySelector('.haak-rij');
+
+  const stijl = document.createElement('style');
+  stijl.textContent = `
+    .gr-vallen { position: fixed; top: -40px; z-index: 9998; pointer-events: none; }
+    .gr-groot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9998; pointer-events: none; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(3rem, 14vw, 9rem); color: #F6CB2F; text-shadow: 0 6px 0 #C8323C, 0 12px 0 #2E8B62; }
+    dialog.gr-boek { border: 0; border-radius: 12px; padding: 1.2rem 1.3rem; background: #F2DDA0; color: #1F2333; max-width: min(28rem, 94vw); font-family: "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+    dialog.gr-boek::backdrop { background: rgba(10,14,30,.7); }
+    .gr-boek h2 { margin: 0 0 .4rem; } .gr-boek ul { list-style: none; padding: 0; margin: .6rem 0; }
+    .gr-boek li { display: flex; gap: .6rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid #D9BE78; }
+    .gr-boek li small { display: block; color: #5E5643; }
+    .gr-boek button { font: inherit; font-weight: 700; border: 0; border-radius: 6px; padding: .5rem 1rem; background: #C8323C; color: #fff; cursor: pointer; }
+    .gr-gat { position: absolute; width: 34px; height: 20px; border-radius: 17px 17px 0 0; background: #0E1630; box-shadow: inset 0 4px 0 #070B18; z-index: 2; cursor: pointer; }
+    .gr-muis { position: absolute; left: 6px; bottom: 0; width: 22px; height: 14px; transform: translateY(14px); transition: transform .35s ease; }
+    .gr-gat.uit .gr-muis { transform: translateY(2px); }
+    .gr-gat { overflow: hidden; }
+    .gr-uil { position: absolute; z-index: 3; width: 56px; cursor: pointer; }
+    .gr-ballon { position: absolute; z-index: 4; background: #FBF6E9; color: #1F2333; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: .9rem; padding: .3rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; pointer-events: none; }
+    .gr-vlaggen { position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 50; pointer-events: none; }
+    @keyframes gr-schud { 10%, 50%, 90% { transform: translate(-6px, 2px); } 30%, 70% { transform: translate(6px, -2px); } }
+  `;
+  document.head.appendChild(stijl);
+
+  // ---------- geluidje
+  let ac = null;
+  function toon(f, t0, d, type, v) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0); o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(v || 0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {} }
+  
+  const boek = document.createElement('dialog'); boek.className = 'gr-boek';
+  document.body.appendChild(boek);
+  const vind = () => {};
+
+  // ---------- vlaaienregen
+  const VLAAI = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#C98A43" stroke="#7A4E2D" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="#A8162B"/><path d="M8 20h24M20 8v24M11 11l18 18M29 11L11 29" stroke="#E0B07A" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#E0B07A"/></svg>';
+  function regen(html, n) {
+    for (let i = 0; i < (reduce ? 6 : n); i++) {
+      const v = document.createElement('div'); v.className = 'gr-vallen'; v.innerHTML = html;
+      v.style.left = (Math.random() * 96) + 'vw'; document.body.appendChild(v);
+      const duur = 2200 + Math.random() * 1600, draai = (Math.random() - 0.5) * 720;
+      if (v.animate) v.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(${innerHeight + 80}px) rotate(${draai}deg)` }], { duration: duur, delay: Math.random() * 900, easing: 'ease-in', fill: 'both' }).onfinish = () => v.remove();
+      else setTimeout(() => v.remove(), 3000);
+    }
+  }
+  function confetti() {
+    const kl = ['#C8323C', '#F6CB2F', '#2E8B62'];
+    for (let i = 0; i < (reduce ? 10 : 90); i++) regen(`<span style="display:block;width:9px;height:14px;background:${kl[i % 3]};border-radius:2px"></span>`, 1);
+  }
+  function grootWoord(t) { const g = document.createElement('div'); g.className = 'gr-groot'; g.textContent = t; document.body.appendChild(g); if (g.animate) g.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .35 }, { transform: 'scale(1)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 2000 }).onfinish = () => g.remove(); else setTimeout(() => g.remove(), 1800); }
+
+  // ---------- typen
+  let getypt = '';
+  document.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key.length !== 1) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-14);
+    if (getypt.endsWith('vlaai')) { regen(VLAAI, 34); [523, 659, 784].forEach((f, i) => toon(f, i * 0.12, 0.25)); vind('vlaai'); getypt = ''; }
+    else if (getypt.endsWith('alaaf')) { confetti(); grootWoord('Alaaf!'); [392, 523, 659, 784, 659, 784].forEach((f, i) => toon(f, i * 0.13, 0.22, 'square', 0.03)); vind('alaaf'); getypt = ''; }
+    else if (getypt.endsWith('ejkeohlemmor')) {
+      getypt = ''; vind('spiegel');
+      document.documentElement.style.transition = 'transform .6s ease'; document.documentElement.style.transform = 'scaleX(-1)';
+      setTimeout(() => { document.documentElement.style.transform = ''; setTimeout(() => { document.documentElement.style.transition = ''; }, 700); }, 3500);
+    }
+  });
+
+  // ---------- klik-reeksen
+  const tellers = {};
+  function tel(id, nodig, venster) { const nu = Date.now(), t = (tellers[id] || []).filter(x => nu - x < venster); t.push(nu); tellers[id] = t; if (t.length >= nodig) { tellers[id] = []; return true; } return false; }
+  document.addEventListener('click', e => {
+    const st = e.target.closest && e.target.closest('.sticker');
+    if (st && tel('sticker', 10, 8000)) {
+      vind('sticker');
+      if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
+      const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
+    }
+    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    if (ham && tel('hamer', 6, 3500)) {
+      vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
+      if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
+      grootWoord('Au!');
+    }
+    const ver = e.target.closest && e.target.closest('.versie');
+    if (ver && tel('versie', 5, 3000)) {
+      vind('bouwplaats');
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
+    }
+  });
+
+  // ---------- alleen op de homepage: het muisje, de nachtuil en de elfde van de elfde
+  function homepage() {
+    if (!opHome) return;
+    const main = document.querySelector('main') || document.body;
+    // muizengat onder aan de pagina
+    const gat = document.createElement('div'); gat.className = 'gr-gat'; gat.setAttribute('aria-label', 'Een muizengaatje'); gat.setAttribute('role', 'button'); gat.tabIndex = 0;
+    gat.innerHTML = '<svg class="gr-muis" viewBox="0 0 22 14" aria-hidden="true"><ellipse cx="11" cy="10" rx="9" ry="6" fill="#9AA0A6"/><circle cx="5" cy="5" r="3" fill="#C9CED6"/><circle cx="17" cy="5" r="3" fill="#C9CED6"/><circle cx="8" cy="9" r="1.2" fill="#1F2333"/><circle cx="14" cy="9" r="1.2" fill="#1F2333"/><circle cx="11" cy="12" r="1.3" fill="#E8577A"/></svg>';
+    const zetGat = () => { const voet = document.querySelector('footer') || main; const r = voet.getBoundingClientRect(); gat.style.left = Math.max(10, r.right + scrollX - 70) + 'px'; gat.style.top = (r.top + scrollY - 20) + 'px'; };
+    document.body.appendChild(gat); zetGat(); addEventListener('resize', zetGat); setTimeout(zetGat, 1500);
+    let uit = false;
+    const kijk = () => { uit = true; gat.classList.add('uit'); setTimeout(() => { uit = false; gat.classList.remove('uit'); }, 2600); setTimeout(kijk, 9000 + Math.random() * 12000); };
+    setTimeout(kijk, 5000 + Math.random() * 6000);
+    const pak = () => { if (!uit) return; vind('muis'); toon(2200, 0, 0.08, 'sine', 0.05); toon(2600, 0.08, 0.08, 'sine', 0.05); gat.classList.remove('uit'); uit = false; const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Piep!'; b.style.left = (parseFloat(gat.style.left) - 40) + 'px'; b.style.top = (parseFloat(gat.style.top) - 30) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2000); };
+    gat.addEventListener('click', pak); gat.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pak(); });
+    // nachtuil tussen middernacht en vijf uur
+    const uur = new Date().getHours();
+    if (uur < 5) {
+      const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
+      uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
+      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
+      document.body.appendChild(uil);
+      const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
+      uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
+    }
+    // de elfde van de elfde: vlaggetjes in rood, geel en groen
+    const d = new Date();
+    if (d.getMonth() === 10 && d.getDate() === 11) {
+      const v = document.createElement('div'); v.className = 'gr-vlaggen';
+      let svg = '<svg width="100%" height="34" preserveAspectRatio="none" viewBox="0 0 1000 34" aria-hidden="true"><path d="M0 4Q500 22 1000 4" stroke="#F2DDA0" stroke-width="2" fill="none"/>';
+      for (let i = 0; i < 40; i++) { const x = i * 25 + 5, y = 4 + Math.sin(Math.PI * x / 1000) * 14; svg += `<path d="M${x} ${y.toFixed(1)}l14 0l-7 16z" fill="${['#C8323C', '#F6CB2F', '#2E8B62'][i % 3]}"/>`; }
+      v.innerHTML = svg + '</svg>'; document.body.appendChild(v);
+      setTimeout(() => { grootWoord('Alaaf!'); vind('elfelf'); }, 1200);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', homepage); else homepage();
+
+  // ---------- voor wie in de console kijkt
+  try { console.log('%cHé, nieuwsgierig aagje!', 'font: 800 20px sans-serif; color: #C8323C'); console.log('%cHier valt niks te zien. Of toch wel?', 'font: 600 13px sans-serif; color: #2F4C8F'); } catch (e) {}
+  window.Grapjes = true;
+})();
+
+</script>
+</body>
+</html>

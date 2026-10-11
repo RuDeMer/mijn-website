@@ -218,6 +218,12 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Sterren: elke 5 sterren in een vlucht geven een extra vouw (maximaal 3). Gevangen sterren gaan in de spaarpot (`spaar`) en zijn te besteden in de sterrenwinkel: uiterlijken voor het vliegtuigje (`SKINS`: wit, krant, kraanvogel, neon, bladgoud, regenboog) en voordelen (`UPG`: start met een extra vouw, sterrenmagneet, dubbele sterren).
 - Medailles bij 10 (brons), 25 (zilver), 50 (goud) en 100 (regenboog). Opslag: localStorage `vouwvlieger-v1` (best, sterren, spaar, skins, skin, upg, gespeeld, geluid). Scorebord: spel `vlieger` (score = beste aantal punten, extra = totaal gevangen sterren). Testhaak: `window.__vk`.
 
+## Rommelbel (bubble shooter)
+
+- `rommelbel.html` (bron `bel_template.html`, alles in één bestand, getekend op een canvas van 440 bij 640 dat meeschaalt). Honingraat van 11 kolommen met verschoven oneven rijen (`buren()`, `pariteit` wisselt als er in Eindeloos bovenaan een rij bij komt). Mikken met muis, vinger (drukken, slepen, loslaten) of pijltjes en spatie; X of tikken op de kleine bel om te wisselen. De bel kaatst tegen de wanden en plakt op de dichtstbijzijnde vrije plek. Drie of meer van dezelfde kleur knallen; bellen die nergens meer aan vastzitten vallen (20 punten per stuk, verdubbeld per vier). Na `zakElke` schoten zonder knal zakt het plafond (Avontuur) of komt er een rij bij (Eindeloos); de rode lijn is het einde. Bom (alles binnen ruim twee bellen) en regenboog (neemt de kleur van de grootste groep ernaast) komen af en toe, vaker na een combo.
+- **Avontuur**: 30 levels uit een vast zaadje (`maakLevel`): 4 tot 10 rijen, 3 tot 6 kleuren, vijf patronen. Sterren: 1 voor uitspelen, 2 bij maximaal bellen/2,2 schoten, 3 bij maximaal bellen/3. **Eindeloos**: zo lang mogelijk, voor de hoogste score.
+- Opslag: localStorage `rommelbel-v1` (open, sterren, scores, eindeloos, geluid). Gaat mee naar de server. Scorebord: spel `bel` (score = record Eindeloos, extra = sterren). Homepage: categorie Puzzels. Testhaak: `window.__bel` (`start`, `richtOp`, `schiet`, `beweeg(dt)` om een schot door te rekenen).
+
 ## Rob 👍 (rob.html)
 
 - Idee van Rob uit de ideeënbox, een grap uit de musicalgroep: de meme waarin je een duimpje omhoog geeft aan brood, maar dan aan Rob. Bron `rob_template.html`, alles in één bestand.

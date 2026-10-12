@@ -348,9 +348,9 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   // ---------------- een potje beginnen
   function start(modus, level) {
     opslag.gespeeld++; bewaar(); audio();
-    const L = modus === 'avontuur' ? maakLevel(level) : { raster: [], kleuren: 5, zakElke: 7 };
+    const L = modus === 'avontuur' ? maakLevel(level) : { raster: [], kleuren: 4, zakElke: 7 };
     G = { modus, level, raster: [], pariteit: 0, zak: 0, kleuren: L.kleuren, zakElke: L.zakElke, schoten: 0, sindsZak: 0, score: 0, bal: null, huidig: null, volgende: null, hoek: -Math.PI / 2, deeltjes: [], teksten: [], vallers: [], knallers: [], klaar: false, combo: 0, rnd: maakRnd((Date.now() % 100000) + 7) };
-    if (modus === 'eindeloos') { for (let i = 0; i < 6; i++) nieuweRij(); } else G.raster = L.raster.map(r => r.slice());
+    if (modus === 'eindeloos') { G.golf = 1; G.rijen = 0; G.klok = 0; for (let i = 0; i < 5; i++) nieuweRij(); } else G.raster = L.raster.map(r => r.slice());
     G.start = telBellen();
     G.huidig = nieuweBel(); G.volgende = nieuweBel();
     $('menu').hidden = true;
@@ -362,7 +362,10 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
     const x = G.rnd(); if (G.schoten > 3 && x < (G.combo >= 2 ? 0.12 : 0.035)) return G.rnd() < 0.5 ? BOM : REGENBOOG;
     const k = aanwezigeKleuren(); return k.length ? k[Math.floor(G.rnd() * k.length)] : Math.floor(G.rnd() * G.kleuren);
   }
+  const golfTempo = () => ({ schoten: Math.max(3, 7 - Math.floor((G.golf - 1) / 2)), seconden: Math.max(6, 18 - (G.golf - 1) * 1.5) });
+  function volgendeGolf() { G.golf++; G.kleuren = Math.min(6, 4 + Math.floor((G.golf - 1) / 2)); G.zakElke = golfTempo().schoten; const [x] = [W / 2]; G.teksten.push({ x, y: H / 2, t: 0, tekst: 'Golf ' + G.golf + '! Sneller en meer kleuren' }); geluid.zak(); }
   function nieuweRij() {
+    if (G.modus === 'eindeloos' && G.golf) { G.rijen++; if (G.rijen > 5 && (G.rijen - 5) % 8 === 0) volgendeGolf(); }
     // alles een rij omlaag, en bovenaan een nieuwe rij
     G.raster.unshift([]); G.pariteit = (G.pariteit + 1) % 2;
     for (let c = 0; c < kolommen(0); c++) { let v = Math.floor(G.rnd() * G.kleuren); if (c > 0 && G.rnd() < 0.4) v = G.raster[0][c - 1]; G.raster[0][c] = v; }
@@ -423,9 +426,12 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
       G.teksten.push({ x, y, t: 0, tekst: '+' + punten + (los.length ? '  ' + los.length + ' vallen!' : '') + (G.combo > 1 ? '  combo ×' + G.combo : '') });
       geluid.knal(weg.length); if (los.length) setTimeout(() => geluid.val(los.length), 120);
     } else { G.combo = 0; G.sindsZak++; }
+    if (weg.length && G.modus === 'eindeloos') G.sindsZak++;
     opruimen();
     // het plafond zakt na een aantal schoten zonder knal
-    if (!weg.length && G.sindsZak >= G.zakElke) { G.sindsZak = 0; if (G.modus === 'eindeloos') nieuweRij(); else G.zak += RH; geluid.zak(); }
+    if (G.sindsZak >= G.zakElke && (G.modus === 'eindeloos' || !weg.length)) { G.sindsZak = 0; G.klok = 0; if (G.modus === 'eindeloos') nieuweRij(); else G.zak += RH; geluid.zak(); }
+    // veld leeg in Eindeloos: een bonus, en meteen een nieuwe lading
+    if (G.modus === 'eindeloos' && telBellen() === 0) { const bonus = 500 * G.golf; G.score += bonus; G.teksten.push({ x: W / 2, y: H / 3, t: 0, tekst: 'Leeg! +' + bonus }); for (let i = 0; i < 5; i++) nieuweRij(); geluid.winst(); }
     controleerEinde();
   }
   function groep(r, c, v) { const gezien = new Set([r + ',' + c]), lijst = [[r, c]], uit = []; while (lijst.length) { const [rr, cc] = lijst.pop(); uit.push([rr, cc]); for (const [nr, nc] of buren(rr, cc)) { const k = nr + ',' + nc; if (!gezien.has(k) && cel(nr, nc) === v) { gezien.add(k); lijst.push([nr, nc]); } } } return uit; }
@@ -434,8 +440,9 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   function controleerEinde() {
     if (G.klaar) return;
     let laagst = 0; G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined) laagst = Math.max(laagst, posVan(r, c)[1] + R); }));
-    if (G.modus === 'avontuur' && telBellen() === 0) { G.klaar = true; return setTimeout(() => winst(), 700); }
-    if (laagst > LIJN_Y) { G.klaar = true; geluid.verlies(); setTimeout(() => verlies(), 800); }
+    const spel = G;
+    if (G.modus === 'avontuur' && telBellen() === 0) { G.klaar = true; return setTimeout(() => { if (G === spel) winst(); }, 700); }
+    if (laagst > LIJN_Y) { G.klaar = true; geluid.verlies(); setTimeout(() => { if (G === spel) verlies(); }, 800); }
   }
   // ---------------- einde van een potje
   function winst() {
@@ -483,13 +490,14 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
     g.textAlign = 'center'; for (const t of G.teksten) { t.t += dt; g.globalAlpha = Math.max(0, 1 - t.t / 1.2); g.font = '800 17px system-ui, sans-serif'; g.lineWidth = 4; g.strokeStyle = '#231A26'; g.strokeText(t.tekst, Math.max(80, Math.min(W - 80, t.x)), t.y - t.t * 50); g.fillStyle = '#FFE76A'; g.fillText(t.tekst, Math.max(80, Math.min(W - 80, t.x)), t.y - t.t * 50); } g.globalAlpha = 1; G.teksten = G.teksten.filter(t => t.t < 1.2);
     // de tellers
     g.textAlign = 'left'; g.font = '800 18px system-ui, sans-serif'; g.fillStyle = '#FBF6E9'; g.fillText(G.score.toLocaleString('nl-NL'), 12, H - 16);
-    g.font = '700 12px system-ui, sans-serif'; g.fillStyle = 'rgba(251,246,233,.75)'; g.fillText(G.modus === 'avontuur' ? 'Level ' + G.level : 'Eindeloos', 12, H - 36);
+    g.font = '700 12px system-ui, sans-serif'; g.fillStyle = 'rgba(251,246,233,.75)'; g.fillText(G.modus === 'avontuur' ? 'Level ' + G.level : 'Eindeloos · golf ' + G.golf, 12, H - 36);
+    if (G.modus === 'eindeloos') { const f = Math.min(1, G.klok / golfTempo().seconden); g.fillStyle = 'rgba(255,255,255,.15)'; g.fillRect(W - 98, H - 10, 86, 4); g.fillStyle = f > 0.75 ? '#E8414E' : '#FFE76A'; g.fillRect(W - 98, H - 10, 86 * f, 4); }
     g.textAlign = 'right'; g.fillText(G.modus === 'eindeloos' ? 'nieuwe rij over' : 'plafond zakt over', W - 12, H - 36);
     for (let i = 0; i < G.zakElke; i++) { g.fillStyle = i < G.zakElke - G.sindsZak ? '#FFE76A' : 'rgba(255,255,255,.2)'; g.beginPath(); g.arc(W - 16 - i * 13, H - 20, 4.5, 0, 7); g.fill(); }
   }
   // ---------------- de lus
   let vorige = performance.now();
-  function lus(nu) { requestAnimationFrame(lus); const dt = Math.min(0.033, (nu - vorige) / 1000); vorige = nu; if (G && !G.klaar && $('menu').hidden) { if (toets.ArrowLeft) G.hoek = Math.max(MIN, G.hoek - dt * 1.6); if (toets.ArrowRight) G.hoek = Math.min(MAX, G.hoek + dt * 1.6); beweeg(dt); } teken(dt); }
+  function lus(nu) { requestAnimationFrame(lus); const dt = Math.min(0.033, (nu - vorige) / 1000); vorige = nu; if (G && !G.klaar && $('menu').hidden) { if (toets.ArrowLeft) G.hoek = Math.max(MIN, G.hoek - dt * 1.6); if (toets.ArrowRight) G.hoek = Math.min(MAX, G.hoek + dt * 1.6); beweeg(dt); if (G.modus === 'eindeloos' && !G.bal) { G.klok += dt; if (G.klok >= golfTempo().seconden) { G.klok = 0; G.sindsZak = 0; nieuweRij(); geluid.zak(); controleerEinde(); } } } teken(dt); }
   // ---------------- geluid: zacht
   let ac = null, hoofd = null;
   function audio() { if (ac || !opslag.geluid) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); hoofd = ac.createGain(); hoofd.gain.value = 0.5; hoofd.connect(ac.destination); } catch (e) {} }
@@ -506,7 +514,7 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   function venster(html) { $('menu-in').innerHTML = html; $('menu').hidden = false; }
   function toonMenu(welk) {
     if (welk === 'levels') { let h = '<h2>Avontuur</h2><p class="klein">Schiet het hele veld leeg. Drie sterren als je het in weinig schoten doet.</p><div class="levels">'; for (let i = 1; i <= 30; i++) { const s = opslag.sterren[i] || 0; h += `<button class="lvl" data-start="avontuur" data-level="${i}" type="button" ${i > opslag.open ? 'disabled' : ''}>${i}<small>${s ? '★'.repeat(s) : i > opslag.open ? 'dicht' : ''}</small></button>`; } venster(h + '</div><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
-    if (welk === 'regels') { venster('<h2>Zo speel je</h2><p>Mik met je muis of vinger, en laat los (of klik) om te schieten. Op een toetsenbord: pijltjes om te mikken, spatie om te schieten, X om te wisselen.</p><p>Raak je <b>drie of meer bellen van dezelfde kleur</b>, dan knallen ze. Bellen die daarna nergens meer aan vastzitten, <b>vallen</b>: dat levert extra veel punten op.</p><p>Na een paar schoten zonder knal <b>zakt het plafond</b> (de stippen rechtsonder tellen af). Raken de bellen de rode lijn, dan is het afgelopen.</p><p>Een <b>bom</b> laat alles eromheen knallen, een <b>regenboogbel</b> past bij elke kleur. Tik op de kleine bel rechts om te wisselen.</p><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
+    if (welk === 'regels') { venster('<h2>Zo speel je</h2><p>Mik met je muis of vinger, en laat los (of klik) om te schieten. Op een toetsenbord: pijltjes om te mikken, spatie om te schieten, X om te wisselen.</p><p>Raak je <b>drie of meer bellen van dezelfde kleur</b>, dan knallen ze. Bellen die daarna nergens meer aan vastzitten, <b>vallen</b>: dat levert extra veel punten op.</p><p>In <b>Avontuur</b> zakt het plafond na een paar schoten zonder knal (de stippen rechtsonder tellen af). In <b>Eindeloos</b> komt er na elke paar schoten een nieuwe rij bij, raak of mis, en ook als je te lang wacht (het balkje). Elke golf gaat sneller en brengt meer kleuren. Raken de bellen de rode lijn, dan is het afgelopen.</p><p>Een <b>bom</b> laat alles eromheen knallen, een <b>regenboogbel</b> past bij elke kleur. Tik op de kleine bel rechts om te wisselen.</p><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
     const sterren = Object.values(opslag.sterren).reduce((a, b) => a + b, 0);
     venster(`<h1>Rommelbel<small>Schiet, knal en laat ze vallen</small></h1><p class="klein">${sterren} van 90 sterren · record eindeloos: ${opslag.eindeloos.toLocaleString('nl-NL')}</p><div class="rij"><button class="knop hoofd" data-menu="levels" type="button">Avontuur (level ${Math.min(30, opslag.open)})</button><button class="knop" data-start="eindeloos" data-level="0" type="button">Eindeloos</button><button class="knop" data-menu="regels" type="button">Zo speel je</button></div>${G && !G.klaar ? '<div class="rij"><button class="knop" data-verder type="button">Verder spelen</button></div>' : ''}<div id="sb-bel"></div>`);
     if (window.Scorebord) Scorebord.blokje($('sb-bel'), 'punten in Eindeloos');

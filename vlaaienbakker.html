@@ -740,6 +740,13 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     ['bestel100', 'Bakker van het jaar', 'Lever 100 bestellingen.', S => S.besteld, 100, 'bestellingen geleverd'],
     ['week', 'Een week bakken', 'Bak al een week lang vlaaien.', S => (Date.now() - S.gestart) / 86400000, 7, 'dagen'],
     ['maand', 'Een maand bakken', 'Bak al een maand lang vlaaien.', S => (Date.now() - S.gestart) / 86400000, 30, 'dagen'],
+    ['maan', 'Op de maan', 'Koop een Maanbakkerij.', S => S.bakkers.maan || 0, 1, 'maanbakkerijen'],
+    ['tijdreis', 'Tijdreiziger', 'Koop een Tijdmachine-oven.', S => S.bakkers.tijdmachine || 0, 1, 'tijdmachines'],
+    ['heelal', 'Een heel heelal', 'Koop een Vlaaienheelal.', S => S.bakkers.heelal || 0, 1, 'heelallen'],
+    ['meesterwerk', 'Meesterwerk', 'Heb 350 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 350, 'van je grootste bakker'],
+    ['eeuwig', 'Eeuwig bakker', 'Heb 500 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 500, 'van je grootste bakker'],
+    ['sextiljoen', 'Sextiljoen', 'Bak er in totaal 1 triljard (10^21).', S => S.ooit, 1e21, 'ooit gebakken'],
+    ['heelalvol', 'Het heelal eet mee', 'Bak er in totaal 10^24.', S => S.ooit, 1e24, 'ooit gebakken'],
   ].map(([id, naam, tekst, meet, doel, eenheid]) => ({ id, naam, tekst, meet, doel, eenheid, test: S => meet(S) >= doel }));
 
   // ---------- staat
@@ -752,13 +759,6 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     { id: 'korting', naam: 'Uitverkoop', tekst: 'Alle bakkers zijn 30% goedkoper.' },
     { id: 'kermis', naam: 'Kermisweek', tekst: 'Elke drie minuten begint er vanzelf een kermis.' },
     { id: 'smaak', naam: 'Smakenweek', tekst: 'Smaken geven drie keer zoveel bonus.' },
-    ['maan', 'Op de maan', 'Koop een Maanbakkerij.', S => S.bakkers.maan || 0, 1, 'maanbakkerijen'],
-    ['tijdreis', 'Tijdreiziger', 'Koop een Tijdmachine-oven.', S => S.bakkers.tijdmachine || 0, 1, 'tijdmachines'],
-    ['heelal', 'Een heel heelal', 'Koop een Vlaaienheelal.', S => S.bakkers.heelal || 0, 1, 'heelallen'],
-    ['meesterwerk', 'Meesterwerk', 'Heb 350 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 350, 'van je grootste bakker'],
-    ['eeuwig', 'Eeuwig bakker', 'Heb 500 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 500, 'van je grootste bakker'],
-    ['sextiljoen', 'Sextiljoen', 'Bak er in totaal 1 triljard (10^21).', S => S.ooit, 1e21, 'ooit gebakken'],
-    ['heelalvol', 'Het heelal eet mee', 'Bak er in totaal 10^24.', S => S.ooit, 1e24, 'ooit gebakken'],
   ];
   const MOD = MODS[((WEEKNR % MODS.length) + MODS.length) % MODS.length], mod = id => WEEK && MOD.id === id;
   const KEY = WEEK ? 'vlaaienbakker-week-v1' : 'vlaaienbakker-v1';

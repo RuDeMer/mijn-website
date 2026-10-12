@@ -33,6 +33,19 @@ body { background: #06060E; color: var(--papier); font-family: "Bricolage Grotes
 .rr-tip { font-size: .85rem; color: #5E5643; }
 #rr-melding { position: absolute; left: 50%; top: 3.4rem; transform: translateX(-50%); background: var(--papier); color: var(--inkt); font-weight: 800; padding: .35rem .8rem; border-radius: 8px; z-index: 5; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
 #sb-ritme { margin-top: .8rem; }
+/* geen scrollen of zoomen als je op het speelveld tikt */
+.rr-veld, #rr-doek { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior: none; }
+/* staand scherm: compacte kop, menu's over de hele breedte */
+@media (max-width: 640px) {
+  .kop, header { padding: .35rem .55rem !important; gap: .4rem !important; flex-wrap: wrap; }
+  .kop a, header a { font-size: .78rem; }
+  .rr-knop { font-size: .8rem; padding: .38rem .6rem; }
+  .rr-scherm { padding: .6rem !important; align-items: start !important; overflow-y: auto; }
+  .rr-kaart { max-width: 100% !important; width: 100%; padding: .9rem 1rem !important; }
+  .rr-levels { grid-template-columns: 1fr !important; }
+  #rr-melding { left: .5rem !important; right: .5rem !important; transform: none !important; max-width: none !important; text-align: center; }
+}
 </style>
 </head>
 <body data-pagina="rommelritme">
@@ -472,6 +485,43 @@ const RRM = (function () {
         { tellen: 12, schip: true, gat: 3.6, punten: [2.5, 3.5, 4.5, 3.2, 4.6, 3.2, 4.6, 3.4, 4.4, 3.2, 2.6, 2.5, 2.5] },
         { tellen: 16, invoer: 'j...j.j.j...o...o...j...j.j.j...', spijkers: 'vol' },
       ] },
+    // ---------- nieuwe levels: langer, met liedjes in delen (m: A = couplet, B = refrein, C/D = brug of vliegstuk); de sprongen vallen op de melodie
+    { id: 'kermis', naam: 'Kermiskoorts', bpm: 124, sterren: 2, marge: 0.28, kleuren: ['#2B1240', '#FF8A30', '#5EE6FF'],
+      delen: [
+        { tellen: 16, m: 'A', invoer: 'j.......j.......j...j...j.......', spijkers: 'enkel' },
+        { tellen: 16, m: 'A', invoer: 'j.......^.......j...j...v.......', spijkers: 'enkel' },
+        { tellen: 16, m: 'B', invoer: 'j..j..j.j...j...j..j..j.j.j.....', spijkers: 'enkel' },
+        { tellen: 16, m: 'B', invoer: 'j...o.......p.......j..j..j.....', spijkers: 'dubbel' },
+        { tellen: 16, m: 'C', schip: true, gat: 5, punten: [2.5, 3, 4, 4.5, 4, 3, 2.5, 3, 4, 5, 4.5, 3.5, 3, 3.5, 3, 2.5, 2.5] },
+        { tellen: 16, m: 'A', invoer: 'j...j.......^...j...v...j...j...', spijkers: 'dubbel' },
+        { tellen: 16, m: 'B', invoer: 'j..j..j.j...j...j..j..j.j.j.....', spijkers: 'dubbel' },
+        { tellen: 16, m: 'B', invoer: 'j...o...j...p.......j.j.j...j...', spijkers: 'dubbel' },
+      ] },
+    { id: 'vastelaovend', naam: 'Vastelaovend', bpm: 132, sterren: 3, marge: 0.24, kleuren: ['#1E0E2E', '#F6CB2F', '#2E8B62'],
+      delen: [
+        { tellen: 16, m: 'A', invoer: 'j...j...j.......j...j...j.......', spijkers: 'dubbel' },
+        { tellen: 16, m: 'A', invoer: '^.......j...v...j...j...j.......', spijkers: 'dubbel' },
+        { tellen: 16, m: 'B', invoer: 'j.j.j...j.j.j...j...j...j.......', spijkers: 'dubbel' },
+        { tellen: 16, m: 'B', invoer: 'j...o...o.......p.......j.j.j...', spijkers: 'drie' },
+        { tellen: 16, m: 'C', schip: true, gat: 4.6, punten: [2.5, 3.5, 4.5, 4.5, 3.5, 2.5, 3, 4.5, 5.5, 5, 4, 3, 2.5, 3.5, 4, 3, 2.5] },
+        { tellen: 16, m: 'A', invoer: 'j...j...^...j...v...j...j...j...', spijkers: 'drie' },
+        { tellen: 16, m: 'B', invoer: 'j.j.j...j.j.j...^...j...v...j...', spijkers: 'drie' },
+        { tellen: 12, m: 'C', schip: true, gat: 4.2, punten: [2.5, 3.5, 4.5, 3.5, 4.5, 3.5, 4.5, 3.5, 3, 2.5, 2.5, 2.5, 2.5] },
+        { tellen: 16, m: 'B', invoer: 'j...o...j...p.......j.j.j...j...', spijkers: 'drie' },
+      ] },
+    { id: 'hyper', naam: 'Hyperrommel', bpm: 150, sterren: 5, marge: 0.17, kleuren: ['#05010F', '#B88AFF', '#FF3A6A'],
+      delen: [
+        { tellen: 16, m: 'A', invoer: 'j.......j.......j...j...j...j...', spijkers: 'dubbel' },
+        { tellen: 16, m: 'A', invoer: '^...^...j...v...j...v...j...j...', spijkers: 'drie' },
+        { tellen: 16, m: 'C', invoer: 'j...j...j...j...j...j...j...j...', spijkers: 'drie' },
+        { tellen: 16, m: 'B', invoer: 'j.j.j...o...o...p.......j.j.j...', spijkers: 'vol' },
+        { tellen: 16, m: 'B', invoer: 'j...j.j.j...^...^...v...v...j...', spijkers: 'vol' },
+        { tellen: 16, m: 'D', schip: true, gat: 3.8, punten: [2.5, 4, 5.5, 3.5, 2, 4.5, 6, 4, 2.5, 2, 4.5, 5.5, 3, 4.5, 3.5, 2.5, 2.5] },
+        { tellen: 16, m: 'A', invoer: 'j.j.j...j.j.j...o...o...j...j...', spijkers: 'vol' },
+        { tellen: 16, m: 'B', invoer: 'j...o...j...o...p.......j.j.j...', spijkers: 'vol' },
+        { tellen: 12, m: 'D', schip: true, gat: 3.6, punten: [2.5, 3.6, 4.6, 3.2, 4.6, 3.2, 4.6, 3.4, 4.4, 3.2, 2.6, 2.5, 2.5] },
+        { tellen: 16, m: 'B', invoer: 'j...j.j.j...o...o...j...j.j.j...', spijkers: 'vol' },
+      ] },
   ];
   return { bouw, stap, LEVELS, DT, BW, BH, G, V0 };
 })();
@@ -501,8 +551,31 @@ if (typeof module !== 'undefined') module.exports = RRM;
     zolder: { grond: 57, akk: [0, 5, 2, 6], melodie: [[4, 3, 2, 0, 2, -1, 4, 2], [5, 4, 2, 4, 7, -1, 6, 4]], lead: 'square' },
     neon: { grond: 50, akk: [0, 5, 3, 4], melodie: [[7, -1, 4, 5, 7, 9, 7, 4], [8, 7, 4, 2, 4, -1, 2, 0]], lead: 'sawtooth' },
     storm: { grond: 52, akk: [0, 5, 2, 6], melodie: [[7, 7, 6, 4, 7, 7, 9, 11], [9, 7, 6, 4, 2, 4, 6, 4]], lead: 'sawtooth' },
+    // vrolijke pop in majeur: het bekende I-V-vi-IV
+    kermis: { grond: 55, ladder: 'majeur', lead: 'square', secties: {
+      I: { akk: [0, 4, 5, 3], drums: 'stil', mel: [[4, -1, -1, -1, 2, -1, -1, -1], [5, -1, -1, -1, 4, -1, -1, -1]] },
+      A: { akk: [0, 4, 5, 3], drums: 'half', mel: [[4, -1, 4, 5, 4, 2, 0, -1], [2, -1, 2, 4, 2, 1, -1, 1], [4, -1, 4, 5, 7, 5, 4, -1], [5, 4, 2, 1, 2, -1, -1, -1]] },
+      B: { akk: [0, 4, 5, 3], drums: 'vier', hook: true, mel: [[7, -1, -1, 9, 7, -1, 4, 5], [4, -1, 2, 4, 5, 4, 2, -1], [7, -1, -1, 9, 11, 9, 7, -1], [9, 8, 7, 4, 7, -1, -1, -1]] },
+      C: { akk: [5, 3, 0, 4], drums: 'half', mel: [[2, -1, -1, -1, 4, -1, -1, -1], [3, -1, -1, -1, 2, -1, 1, -1], [2, -1, -1, -1, 4, -1, 5, -1], [4, -1, -1, -1, -1, -1, -1, -1]] },
+      E: { akk: [0, 4, 5, 0], drums: 'stil', mel: [[7, -1, -1, -1, 4, -1, -1, -1], [2, -1, -1, -1, 0, -1, -1, -1]] } } },
+    // Limburgse carnaval: hoempa-bas, blazers op de naslag en een meezingrefrein
+    vastelaovend: { grond: 58, ladder: 'majeur', lead: 'square', secties: {
+      I: { akk: [0, 4, 4, 0], drums: 'stil', mel: [[0, -1, 2, -1, 4, -1, 7, -1], [4, -1, -1, -1, -1, -1, -1, -1]] },
+      A: { akk: [0, 4, 4, 0], drums: 'oempa', mel: [[0, -1, 2, 4, 7, -1, 4, 2], [1, -1, 3, 4, 6, -1, 4, 1], [0, -1, 2, 4, 7, -1, 9, 7], [6, 4, 1, 3, 2, -1, -1, -1]] },
+      B: { akk: [3, 0, 4, 0], drums: 'vier', hook: true, oempa: true, mel: [[5, -1, 5, 5, 7, 5, 4, -1], [4, -1, 4, 4, 7, 4, 2, -1], [3, -1, 3, 3, 5, 3, 1, -1], [2, 1, 0, 1, 0, -1, -1, -1]] },
+      C: { akk: [5, 3, 4, 4], drums: 'half', mel: [[4, -1, -1, 5, 4, -1, 2, -1], [3, -1, -1, 4, 3, -1, 1, -1], [2, -1, -1, 3, 2, -1, 0, -1], [1, -1, 2, -1, 4, -1, -1, -1]] },
+      E: { akk: [3, 0, 4, 0], drums: 'stil', mel: [[5, -1, -1, -1, 4, -1, -1, -1], [0, -1, -1, -1, -1, -1, -1, -1]] } } },
+    // snelle dansmuziek in mineur, met een opbouw en een drop
+    hyper: { grond: 50, ladder: 'mineur', lead: 'sawtooth', secties: {
+      I: { akk: [0, 5, 2, 6], drums: 'stil', mel: [[0, -1, -1, -1, 3, -1, -1, -1], [4, -1, -1, -1, 2, -1, -1, -1]] },
+      A: { akk: [0, 5, 2, 6], drums: 'vier', mel: [[0, -1, 0, 2, 3, -1, 2, 0], [-1, 0, -1, 2, 3, 4, 3, 2], [0, -1, 0, 2, 3, -1, 5, 4], [3, 2, 0, -1, -1, -1, -1, -1]] },
+      C: { akk: [5, 6, 0, 0], drums: 'opbouw', mel: [[4, -1, 4, -1, 4, -1, 4, -1], [5, -1, 5, -1, 5, -1, 5, -1], [6, -1, 6, -1, 6, 6, 6, 6], [7, 7, 7, 7, 7, 7, 7, 7]] },
+      B: { akk: [0, 5, 2, 6], drums: 'drop', hook: true, mel: [[7, 7, -1, 7, 9, -1, 7, 6], [4, -1, 4, 6, 7, -1, 6, 4], [7, 7, -1, 7, 9, -1, 11, 9], [7, 6, 4, 2, 4, -1, -1, -1]] },
+      D: { akk: [0, 5, 2, 6], drums: 'half', mel: [[7, -1, -1, -1, 6, -1, -1, -1], [4, -1, -1, -1, 2, -1, -1, -1], [7, -1, -1, -1, 9, -1, -1, -1], [7, -1, -1, -1, -1, -1, -1, -1]] },
+      E: { akk: [0, 5, 2, 6], drums: 'stil', mel: [[7, -1, -1, -1, 4, -1, -1, -1], [0, -1, -1, -1, -1, -1, -1, -1]] } } },
   };
-  const graad = (L0, d) => L0.grond + MINEUR[((d % 7) + 7) % 7] + 12 * Math.floor(d / 7);
+  const MAJEUR = [0, 2, 4, 5, 7, 9, 11];
+  const graad = (L0, d) => L0.grond + (L0.ladder === 'majeur' ? MAJEUR : MINEUR)[((d % 7) + 7) % 7] + 12 * Math.floor(d / 7);
   let muziek = null;
   function startMuziek(lev, vanaf) {
     stopMuziek(); const a = audio(); if (!a) return null;
@@ -524,7 +597,36 @@ if (typeof module !== 'undefined') module.exports = RRM;
       if ((kracht === 2 || kracht === 3) && i % 2 === 0) { const mel = liedje.melodie[maat % 2][(i / 2) % 8]; if (mel >= 0) toon(t, graad(liedje, mel) + 12, zestiende * 1.7, liedje.lead, 0.06, 4200); }
       if (deel.soort !== 'intro' && tel >= deel.tot - 1 && deel.tot - deel.van >= 8) geruis(t, 0.06, 2400, 'bandpass', 0.25); // roffel naar het volgende deel
     }
-    m.timer = setInterval(() => { while (m.begin + m.volgende * zestiende < a.currentTime + 0.15) { const t = m.begin + m.volgende * zestiende; if (t >= a.currentTime - 0.02) speel(m.volgende, t); m.volgende++; } }, 25);
+    // liedjes met delen: elk stuk van het level speelt zijn eigen deel van het liedje, met opbouw en bekken op het refrein
+    const secNaam = d => (!d ? 'E' : d.soort === 'intro' ? 'I' : d.soort === 'eind' ? 'E' : (lev.spec.delen[d.n] && lev.spec.delen[d.n].m) || (d.soort === 'schip' ? 'C' : 'A'));
+    function speelDelen(i, t) {
+      const tel = i / 4, inMaat = i % 16, di = delen.findIndex(d => tel >= d.van && tel < d.tot), deel = delen[di < 0 ? delen.length - 1 : di], volg = delen[di + 1];
+      const naam = secNaam(deel), sec = liedje.secties[naam] || liedje.secties.A, volgNaam = volg ? secNaam(volg) : null, volgSec = volgNaam ? liedje.secties[volgNaam] : null;
+      const maatIn = Math.floor((tel - deel.van) / 4), akk = sec.akk[maatIn % sec.akk.length], wortel = graad(liedje, akk) - 12, dr = sec.drums, laatsteMaat = tel >= deel.tot - 4, eindDeel = deel.soort === 'eind';
+      const naarRefrein = volgSec && volgSec.hook && !sec.hook, refrein = !!sec.hook;
+      // drums
+      const kickHier = dr === 'vier' || dr === 'drop' ? inMaat % 4 === 0 : dr === 'half' || dr === 'oempa' ? inMaat === 0 || inMaat === 8 : dr === 'opbouw' ? (maatIn < 2 ? inMaat % 4 === 0 : maatIn === 2 ? inMaat % 2 === 0 : true) : false;
+      if (kickHier && !(eindDeel && tel > deel.van + 8)) kick(t, dr === 'opbouw' && maatIn === 3 ? 0.55 + inMaat / 40 : 0.9);
+      if (dr === 'drop' && inMaat === 14 && maatIn % 2 === 1) kick(t, 0.6);
+      if (dr !== 'stil' && dr !== 'opbouw' && (inMaat === 4 || inMaat === 12)) { geruis(t, 0.16, 1700, 'bandpass', 0.5); if (refrein) geruis(t + 0.012, 0.09, 1100, 'bandpass', 0.32); }
+      if (dr !== 'stil' && (i % 2 === 0 || dr === 'drop')) geruis(t, 0.035, 8000, 'highpass', i % 4 === 2 ? 0.22 : 0.09);
+      // opbouw naar het refrein: een ruis die aanzwelt en een roffel
+      if ((naarRefrein || dr === 'opbouw') && laatsteMaat) { geruis(t, zestiende * 1.1, 700 + inMaat * 380, 'bandpass', 0.05 + inMaat * 0.017); if (inMaat >= 8) geruis(t, 0.05, 1900, 'bandpass', 0.18 + (inMaat - 8) * 0.03); }
+      // bekken op de eerste tel van het refrein
+      if (refrein && tel === deel.van) { geruis(t, 1.6, 5200, 'highpass', 0.38); kick(t, 1); }
+      // bas: pompend met octaafsprong, of hoempa (laag op 1 en 3, akkoord op 2 en 4)
+      if (dr !== 'stil' || naam === 'E') {
+        if (dr === 'oempa' || sec.oempa) { if (inMaat === 0 || inMaat === 8) toon(t, wortel - (inMaat === 8 ? 5 : 0), slag * 0.55, 'triangle', 0.3, 700); if (inMaat === 4 || inMaat === 12) for (const d of [0, 2, 4]) toon(t, graad(liedje, akk + d), slag * 0.28, 'square', 0.035, 2600); }
+        if (dr !== 'oempa' && dr !== 'stil' && i % 2 === 0) toon(t, wortel + (i % 4 === 2 ? 12 : 0), zestiende * 1.7, 'sawtooth', refrein ? 0.17 : 0.13, refrein || dr === 'drop' ? 1700 : 850);
+      }
+      // akkoorden als zachte pad, en in het refrein een arpeggio
+      if (inMaat === 0) for (const d of [0, 2, 4]) toon(t, graad(liedje, akk + d), slag * 3.8, 'triangle', refrein ? 0.022 : 0.03);
+      if (refrein || dr === 'drop') { const arp = [0, 2, 4, 7][i % 4]; toon(t, graad(liedje, akk + arp) + 12, zestiende * 0.85, 'square', 0.022, 3400); }
+      // de melodie: in het refrein dubbel, een octaaf lager erbij
+      if (i % 2 === 0 && sec.mel) { const mel = sec.mel[maatIn % sec.mel.length][(i / 2) % 8]; if (mel >= 0) { const v = refrein ? 0.075 : naam === 'I' || naam === 'E' ? 0.045 : 0.055; toon(t, graad(liedje, mel) + 12, zestiende * 1.8, liedje.lead, v, 4200); if (refrein) toon(t, graad(liedje, mel), zestiende * 1.8, 'triangle', 0.04, 2400); } }
+    }
+    const speler = liedje.secties ? speelDelen : speel;
+    m.timer = setInterval(() => { while (m.begin + m.volgende * zestiende < a.currentTime + 0.15) { const t = m.begin + m.volgende * zestiende; if (t >= a.currentTime - 0.02) speler(m.volgende, t); m.volgende++; } }, 25);
     muziek = m; return m;
   }
   function stopMuziek() { if (muziek) { clearInterval(muziek.timer); muziek = null; } }
@@ -569,7 +671,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
     const L = S.lev.L, doel = nu();
     let stappen = 0;
     while (S.sim + RRM.DT <= doel && stappen < 400) {
-      RRM.stap(S.st, L, S.druk, RRM.DT); S.sim += RRM.DT; stappen++;
+      RRM.stap(S.st, L, S.druk || S.tikBuffer, RRM.DT); S.tikBuffer = false; S.sim += RRM.DT; stappen++;
       if (S.oefen) for (const c of L.checks) if (S.st.x >= c.x && (!S.check || S.check.x < c.x) && (S.st.grond || S.st.modus === 'schip')) { S.check = { x: c.x, tijd: S.sim, st: Object.assign({}, S.st, { gebruikt: new Set(S.st.gebruikt) }) }; melding('Checkpoint!'); }
       if (S.st.dood) { sterf(); return; }
       if (S.st.klaar) { gehaald(); return; }
@@ -579,7 +681,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
 
   // ---------------- tekenen
   let B = 40, W = 0, H = 0;
-  function maat() { const r = veld.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); W = cv.width; H = cv.height; B = H / 11; }
+  function maat() { const r = veld.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); W = cv.width; H = cv.height; B = Math.min(H / 11, W / 14); }
   addEventListener('resize', maat);
   const hexMix = (a, b, f) => { const p = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; const x = p(a), y = p(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * f)).join(',')})`; };
   function teken(dt) {
@@ -589,7 +691,8 @@ if (typeof module !== 'undefined') module.exports = RRM;
     const lucht = ctx.createLinearGradient(0, 0, 0, H); lucht.addColorStop(0, hexMix(K[0], '#000000', 0.35)); lucht.addColorStop(1, hexMix(K[0], K[1], 0.18 + puls * 0.12)); ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, H);
     // camera
     const doelY = st.modus === 'schip' ? 3 : Math.max(2.5, st.y - 1); S.camY += (doelY - S.camY) * Math.min(1, dt * 4);
-    const camX = st.x - 7, sx = x => (x - camX) * B, sy = y => H - (y - S.camY + 4.2) * B;
+    // op een smal (staand) scherm: kleinere blokjes, de speler meer naar links en de speelstrook in het midden
+    const zicht = W / B, camX = st.x - (zicht < 21 ? 3.6 : 7), basis = Math.min(H, (H + 13 * B) / 2), sx = x => (x - camX) * B, sy = y => basis - (y - S.camY + 4.2) * B;
     // achtergrondvormen die langzaam meeschuiven
     ctx.save(); ctx.globalAlpha = 0.16; ctx.strokeStyle = K[1]; ctx.lineWidth = 3;
     for (let i = 0; i < 12; i++) { const px = ((i * 260 - camX * B * 0.2) % (W + 300) + W + 300) % (W + 300) - 150, py = H * (0.15 + (i * 37 % 50) / 100), s = B * (1.2 + (i % 3)); ctx.save(); ctx.translate(px, py); ctx.rotate(tel * 0.08 * (i % 2 ? 1 : -1) + i); ctx.strokeRect(-s / 2, -s / 2, s, s); ctx.restore(); }
@@ -650,7 +753,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
   });
   function naarMenu() { stopMuziek(); S.scherm = 'menu'; S.st = null; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; tekenMenu(); $('rr-menu').hidden = false; }
   function pauze(aan) { if (aan && S.scherm === 'spel' && S.st && !S.st.dood) { S.scherm = 'pauze'; S.pauzeT = nu(); stopMuziek(); $('rr-pauze').hidden = false; } else if (!aan && S.scherm === 'pauze') { $('rr-pauze').hidden = true; S.scherm = 'spel'; const m = startMuziek(S.lev, S.sim); S.klok0 = m ? null : performance.now() / 1000 - S.sim; } }
-  const druk = aan => { if (aan) audio(); S.druk = aan; };
+  const druk = aan => { if (aan) { audio(); S.druk = true; S.tikBuffer = true; } else S.druk = false; };
   addEventListener('keydown', e => { if (e.repeat) { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) e.preventDefault(); return; } if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) { e.preventDefault(); if (S.scherm === 'spel') druk(true); } if (e.code === 'Escape' || e.code === 'KeyP') pauze(S.scherm === 'spel'); if (e.code === 'KeyR' && S.scherm === 'spel') { S.poging++; herstart(); } });
   addEventListener('keyup', e => { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) druk(false); });
   veld.addEventListener('pointerdown', e => { if (e.target.closest('.rr-kaart')) return; e.preventDefault(); if (S.scherm === 'spel') druk(true); });

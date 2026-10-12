@@ -306,6 +306,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
+    bel: () => { const s = lees('rommelbel-v1'); return s && s.eindeloos ? [s.eindeloos, Object.values(s.sterren || {}).reduce((a, b) => a + b, 0)] : null; },
     rob: () => { const s = lees('rommelrob-v1'); return s && s.best ? [s.best, s.totaal || 0] : null; },
     arend: () => { const s = lees('rommelarend-v1'); if (!s) return null; const p = (s.ontdekt || []).length * 100 + (s.veren || []).length * 25 + Object.values(s.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0); return p ? [p, (s.ontdekt || []).length] : null; },
     kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
@@ -412,7 +413,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
   // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
   const KKEY = 'rommelhoekje-koppel';
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -622,11 +623,14 @@ details.stats summary { cursor: pointer; font-weight: 700; }
 
   const ICO = {
     kasteel: '<path d="M8 42V18h6v5h6v-5h8v5h6v-5h6v24z" fill="#F2DDA0" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M20 42v-9a4 4 0 0 1 8 0v9z" fill="#7A4E2D" stroke="#1F2333" stroke-width="1.6"/><path d="M8 18l3-8 3 8M34 18l3-8 3 8" fill="#C8323C" stroke="#1F2333" stroke-width="1.6" stroke-linejoin="round"/><circle cx="24" cy="15" r="3" fill="#A8162B"/>',
-    tijd: '<circle cx="24" cy="24" r="17" fill="#FBF6E9" stroke="#1F2333" stroke-width="2.4"/><path d="M24 12v12l8 5" stroke="#C8323C" stroke-width="2.6" stroke-linecap="round"/><path d="M8 10l5 4M40 10l-5 4" stroke="#1F2333" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="#1F2333"/>',
+    tijdmachine: '<circle cx="24" cy="24" r="17" fill="#FBF6E9" stroke="#1F2333" stroke-width="2.4"/><path d="M24 12v12l8 5" stroke="#C8323C" stroke-width="2.6" stroke-linecap="round"/><path d="M8 10l5 4M40 10l-5 4" stroke="#1F2333" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="#1F2333"/>',
     portaal: '<ellipse cx="24" cy="24" rx="15" ry="19" fill="#7A4E9A" stroke="#1F2333" stroke-width="2.2"/><ellipse cx="24" cy="24" rx="10" ry="13" fill="#B88AFF"/><ellipse cx="24" cy="24" rx="5" ry="7" fill="#FBF6E9"/><circle cx="24" cy="24" r="3" fill="#A8162B"/>',
     kosmos: '<circle cx="24" cy="24" r="11" fill="#F6CB2F" stroke="#1F2333" stroke-width="2"/><ellipse cx="24" cy="24" rx="21" ry="7" fill="none" stroke="#5EC2E8" stroke-width="2.4" transform="rotate(-20 24 24)"/><circle cx="9" cy="12" r="2" fill="#FBF6E9"/><circle cx="40" cy="38" r="1.6" fill="#FBF6E9"/>',
     multi: '<circle cx="17" cy="20" r="10" fill="#E8577A" stroke="#1F2333" stroke-width="2" opacity=".9"/><circle cx="31" cy="20" r="10" fill="#5EC2E8" stroke="#1F2333" stroke-width="2" opacity=".9"/><circle cx="24" cy="31" r="10" fill="#8AFF8A" stroke="#1F2333" stroke-width="2" opacity=".9"/>',
     rommel: '<rect x="6" y="22" width="16" height="18" fill="#C98A43" stroke="#1F2333" stroke-width="2"/><rect x="24" y="14" width="18" height="26" fill="#2F4C8F" stroke="#1F2333" stroke-width="2"/><path d="M10 22l4-12 4 12" fill="#F6CB2F" stroke="#1F2333" stroke-width="1.6"/><circle cx="33" cy="24" r="4" fill="#E9B949" stroke="#1F2333" stroke-width="1.4"/><path d="M28 34h10" stroke="#FBF6E9" stroke-width="2"/>',
+    maan: '<circle cx="24" cy="24" r="17" fill="#E2DCCB" stroke="#1F2333" stroke-width="2"/><circle cx="17" cy="19" r="4" fill="#C9C2B2"/><circle cx="29" cy="30" r="5" fill="#C9C2B2"/><circle cx="30" cy="16" r="2.5" fill="#C9C2B2"/><path d="M34 40l6-12 3 2-6 12z" fill="#C8323C" stroke="#1F2333" stroke-width="1.6"/><ellipse cx="14" cy="34" rx="6" ry="3" fill="#F6CB2F" stroke="#1F2333" stroke-width="1.6"/>',
+    tijd: '<circle cx="24" cy="24" r="17" fill="#FBF6E9" stroke="#1F2333" stroke-width="2.4"/><path d="M24 12v12l8 5" stroke="#1F2333" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M10 10a20 20 0 0 1 10-4" stroke="#7A4E9A" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M8 6l2 4 4-2" stroke="#7A4E9A" stroke-width="2.4" fill="none"/><circle cx="24" cy="24" r="2" fill="#C8323C"/>',
+    heelal: '<circle cx="24" cy="24" r="20" fill="#1A2248" stroke="#1F2333" stroke-width="2"/><path d="M24 24c8-6 12 4 4 8-10 5-18-6-10-14 9-9 24 0 18 14" fill="none" stroke="#B88AFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="24" r="4" fill="#F6CB2F"/><circle cx="12" cy="14" r="1.4" fill="#fff"/><circle cx="36" cy="12" r="1.2" fill="#fff"/><circle cx="34" cy="36" r="1.4" fill="#fff"/><circle cx="13" cy="35" r="1" fill="#fff"/>',
     oma: '<rect x="9" y="19" width="30" height="11" rx="5.5" fill="#E0AE66" stroke="#7A4E2D" stroke-width="2"/><rect x="2" y="21.5" width="8" height="6" rx="3" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.6"/><rect x="38" y="21.5" width="8" height="6" rx="3" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.6"/><path d="M14 24h20" stroke="#F3D49A" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="38" r="3" fill="#F2DDA0"/><circle cx="20" cy="41" r="2" fill="#F2DDA0"/>',
     leerling: '<path d="M12 28a8 8 0 0 1 4-14 9 9 0 0 1 16 0 8 8 0 0 1 4 14z" fill="#FBF6E9" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><rect x="13" y="27" width="22" height="9" rx="2" fill="#FBF6E9" stroke="#1F2333" stroke-width="2"/><path d="M19 30v4M24 30v4M29 30v4" stroke="#D9BE78" stroke-width="2"/>',
     oven: '<path d="M6 40V26a18 18 0 0 1 36 0v14z" fill="#B5543A" stroke="#1F2333" stroke-width="2"/><path d="M10 26h28M8 33h32M18 19v7M30 19v7M14 26v7M24 26v7M34 26v7" stroke="#8E3A28" stroke-width="1.4"/><path d="M15 40v-6a9 9 0 0 1 18 0v6z" fill="#2B1A12"/><path d="M20 40c0-4 2-5 2-8 2 2 3 4 2 6 1-1 2-2 2-4 2 2 2 4 2 6z" fill="#E9B949"/><rect x="3" y="40" width="42" height="4" rx="1" fill="#7A4E2D"/>',
@@ -660,8 +664,11 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     { id: 'kosmos', naam: 'Kosmische bakkerij', prijs: 1.4e13, vps: 3e9, tekst: 'Een oven zo groot als een zon.', t: ['Sterrenstofsuiker', 'Melkwegmixer'] },
     { id: 'multi', naam: 'Multiversummixer', prijs: 2e14, vps: 2.4e10, tekst: 'Mixt het deeg van duizend werelden tegelijk.', t: ['Duizend en één werelden', 'Oneindige garde'] },
     { id: 'rommel', naam: 'Rubens rommelhoekje', prijs: 3e15, vps: 2e11, tekst: 'Niemand weet wat er gebeurt, maar er komen heel veel vlaaien uit.', t: ['Extra rommel', 'Een hoekje erbij'] },
+    { id: 'maan', naam: 'Maanbakkerij', prijs: 5e17, vps: 2.8e13, tekst: 'Op de maan rijst het deeg vanzelf: er is bijna geen zwaartekracht.', t: ['Maanstofsuiker', 'Raketbezorging'] },
+    { id: 'tijdmachine', naam: 'Tijdmachine-oven', prijs: 8e19, vps: 4e15, tekst: 'Bakt de vlaaien van morgen, zodat je ze gisteren al kunt opeten.', t: ['Vlaaien van overmorgen', 'Tijdlusdeeg'] },
+    { id: 'heelal', naam: 'Vlaaienheelal', prijs: 1.2e22, vps: 5e17, tekst: 'Een heel heelal waarin alle sterren vlaaien zijn.', t: ['Melkwegroom', 'Oerknaloven'] },
   ];
-  BAKKERS.forEach(b => { b.t.push(b.naam + ': turbostand', b.naam + ': gouden editie', b.naam + ': legendarisch'); });
+  BAKKERS.forEach(b => { b.t.push(b.naam + ': turbostand', b.naam + ': gouden editie', b.naam + ': legendarisch', b.naam + ': meesterwerk', b.naam + ': eeuwig'); });
   const GROEI = 1.14;
   const UPGRADES = [];
   SMAKEN.slice(1).forEach((s, i) => UPGRADES.push({ id: 'smaak-' + s.id, soort: 'smaak', smaak: s.id, naam: s.naam, effect: 'Klik ×2 en alles +10%', prijs: s.prijs, eis: S => S.smaken.length >= i + 1 }));
@@ -671,6 +678,8 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     UPGRADES.push({ id: b.id + '-3', soort: 'bakker', bakker: b.id, naam: b.t[2], effect: b.naam + ' ×2', prijs: b.prijs * 1e5, eis: S => (S.bakkers[b.id] || 0) >= 80 });
     UPGRADES.push({ id: b.id + '-4', soort: 'bakker', bakker: b.id, naam: b.t[3], effect: b.naam + ' ×3', prijs: b.prijs * 1e7, eis: S => (S.bakkers[b.id] || 0) >= 150 });
     UPGRADES.push({ id: b.id + '-5', soort: 'bakker', bakker: b.id, naam: b.t[4], effect: b.naam + ' ×3', prijs: b.prijs * 1e9, eis: S => (S.bakkers[b.id] || 0) >= 250 });
+    UPGRADES.push({ id: b.id + '-6', soort: 'bakker', bakker: b.id, naam: b.t[5], effect: b.naam + ' ×2', prijs: b.prijs * 1e11, eis: S => (S.bakkers[b.id] || 0) >= 350 });
+    UPGRADES.push({ id: b.id + '-7', soort: 'bakker', bakker: b.id, naam: b.t[6], effect: b.naam + ' ×2', prijs: b.prijs * 1e13, eis: S => (S.bakkers[b.id] || 0) >= 500 });
   });
   UPGRADES.push({ id: 'mixer', soort: 'klik', icoon: 'mixer', naam: 'Keukenmixer', effect: 'Klik ×2', prijs: 600, eis: S => S.kliks >= 30 });
   UPGRADES.push({ id: 'want', soort: 'klik', icoon: 'want', naam: 'Ovenwant', effect: 'Elke klik +1% van je productie', prijs: 50000, eis: S => S.kliks >= 200 });
@@ -734,21 +743,42 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   ].map(([id, naam, tekst, meet, doel, eenheid]) => ({ id, naam, tekst, meet, doel, eenheid, test: S => meet(S) >= doel }));
 
   // ---------- staat
-  const KEY = 'vlaaienbakker-v1';
+  // ---------- de Bakwedstrijd van de week: iedereen begint gelijk, 30 minuten baktijd, elke week een andere regel
+  const WEEK = location.hash === '#wedstrijd', WEEKNR = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000 / 7 + 3 / 7), BAKTIJD = 1800;
+  const MODS = [
+    { id: 'oma', naam: "Omaweek", tekst: "Oma's bakken vijf keer zo snel." },
+    { id: 'goud', naam: 'Gouden week', tekst: 'Gouden vlaaien komen drie keer zo vaak.' },
+    { id: 'klik', naam: 'Klikweek', tekst: 'Elke klik is vijf keer zoveel waard.' },
+    { id: 'korting', naam: 'Uitverkoop', tekst: 'Alle bakkers zijn 30% goedkoper.' },
+    { id: 'kermis', naam: 'Kermisweek', tekst: 'Elke drie minuten begint er vanzelf een kermis.' },
+    { id: 'smaak', naam: 'Smakenweek', tekst: 'Smaken geven drie keer zoveel bonus.' },
+    ['maan', 'Op de maan', 'Koop een Maanbakkerij.', S => S.bakkers.maan || 0, 1, 'maanbakkerijen'],
+    ['tijdreis', 'Tijdreiziger', 'Koop een Tijdmachine-oven.', S => S.bakkers.tijdmachine || 0, 1, 'tijdmachines'],
+    ['heelal', 'Een heel heelal', 'Koop een Vlaaienheelal.', S => S.bakkers.heelal || 0, 1, 'heelallen'],
+    ['meesterwerk', 'Meesterwerk', 'Heb 350 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 350, 'van je grootste bakker'],
+    ['eeuwig', 'Eeuwig bakker', 'Heb 500 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 500, 'van je grootste bakker'],
+    ['sextiljoen', 'Sextiljoen', 'Bak er in totaal 1 triljard (10^21).', S => S.ooit, 1e21, 'ooit gebakken'],
+    ['heelalvol', 'Het heelal eet mee', 'Bak er in totaal 10^24.', S => S.ooit, 1e24, 'ooit gebakken'],
+  ];
+  const MOD = MODS[((WEEKNR % MODS.length) + MODS.length) % MODS.length], mod = id => WEEK && MOD.id === id;
+  const KEY = WEEK ? 'vlaaienbakker-week-v1' : 'vlaaienbakker-v1';
   const nieuweStaat = () => ({ v: 1, vlaaien: 0, totaal: 0, ooit: 0, kliks: 0, goud: 0, bakkers: {}, upg: [], smaken: ['kersen'], smaak: 'kersen', pres: [], gestart: Date.now(), tijd: Date.now(), gilde: { sterren: 0, verdiend: 0, resets: 0, perks: [] }, dag: null, besteld: 0 });
   let S = nieuweStaat();
   try { const r = localStorage.getItem(KEY); if (r) { const o = JSON.parse(r); if (o && o.v === 1) S = Object.assign(nieuweStaat(), o); } } catch (e) {}
+  if (WEEK && S.week !== WEEKNR) { S = nieuweStaat(); S.week = WEEKNR; S.tijdOver = BAKTIJD; S.gilde = { sterren: 0, verdiend: 0, resets: 0, perks: [], v2: true }; S.inlog = { laatst: 1e9, reeks: 0 }; }
+  const weekKlaar = () => WEEK && S.tijdOver <= 0;
   if (!S.ooit) S.ooit = S.totaal; S.gilde = Object.assign({ sterren: 0, verdiend: 0, resets: 0, perks: [] }, S.gilde || {});
+  if (!WEEK && !S.pionier && (S.gildeHerzien || S.ooit >= 1e15 || (S.gilde.v2 === undefined && S.gilde.verdiend > Math.floor(Math.cbrt(S.ooit / 1e12))))) { S.pionier = true; S.gilde.sterren += 25; S.pionierMelding = true; }
   if (!S.gilde.v2) { const nieuwPot = Math.floor(Math.cbrt(S.ooit / 1e12)), oudV = S.gilde.verdiend; S.gilde.verdiend = Math.min(oudV, nieuwPot); S.gilde.sterren = Math.min(S.gilde.sterren, S.gilde.verdiend + 5); S.gilde.v2 = true; if (oudV > S.gilde.verdiend) S.gildeHerzien = [oudV, S.gilde.verdiend]; }
   const bewaar = () => { S.tijd = Date.now(); try { S.vpsNu = Math.floor(vps(true)); } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   let buffs = [];
   let stuks = 1;
 
   // ---------- rekenen
-  function vermenigvuldiger(bid) { let m = 1; for (const [n, f] of [[1, 2], [2, 2], [3, 2], [4, 3], [5, 3]]) if (S.upg.includes(bid + '-' + n)) m *= f; return m; }
-  const heeftPerk = p => S.gilde.perks.includes(p);
-  function gildeBonus() { return (1 + 0.02 * S.gilde.verdiend) * (heeftPerk('meester') ? 1.5 : 1) * (heeftPerk('groot') ? 2 : 1); }
-  function algemeen() { return (1 + 0.1 * (S.smaken.length - 1)) * (1 + 0.02 * S.pres.length) * gildeBonus(); }
+  function vermenigvuldiger(bid) { let m = mod('oma') && bid === 'oma' ? 5 : 1; for (const [n, f] of [[1, 2], [2, 2], [3, 2], [4, 3], [5, 3], [6, 2], [7, 2]]) if (S.upg.includes(bid + '-' + n)) m *= f; return m; }
+  const heeftPerk = p => !WEEK && S.gilde.perks.includes(p);
+  function gildeBonus() { if (WEEK) return 1; return (1 + 0.02 * S.gilde.verdiend) * (heeftPerk('meester') ? 1.5 : 1) * (heeftPerk('groot') ? 2 : 1); }
+  function algemeen() { return (1 + 0.1 * (S.smaken.length - 1) * (mod('smaak') ? 3 : 1)) * (1 + 0.02 * S.pres.length) * gildeBonus(); }
   function vpsVan(b) { return (S.bakkers[b.id] || 0) * b.vps * vermenigvuldiger(b.id) * algemeen(); }
   function vps(zonderBuff) {
     let t = 0; for (const b of BAKKERS) t += vpsVan(b);
@@ -762,7 +792,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     if (buffs.some(x => x.id === 'alaaf')) k *= 15;
     return k;
   }
-  const prijsVan = (b, n) => { const k = S.bakkers[b.id] || 0; return Math.ceil(b.prijs * (heeftPerk('korting') ? 0.9 : 1) * Math.pow(GROEI, k) * (Math.pow(GROEI, n) - 1) / (GROEI - 1) - 1e-6); };
+  const prijsVan = (b, n) => { const k = S.bakkers[b.id] || 0; return Math.ceil(b.prijs * (heeftPerk('korting') ? 0.9 : 1) * (mod('korting') ? 0.7 : 1) * Math.pow(GROEI, k) * (Math.pow(GROEI, n) - 1) / (GROEI - 1) - 1e-6); };
 
   // ---------- vlaai en klikken
   function zetVlaai() {
@@ -774,8 +804,9 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   let zwevers = 0;
   let laatsteKlik = 0;
   function klik(x, y) {
+    if (weekKlaar()) return;
     const nu0 = performance.now(); if (nu0 - laatsteKlik < 60) return; laatsteKlik = nu0;
-    const k = klikWaarde();
+    const k = klikWaarde() * (mod('klik') ? 5 : 1);
     S.vlaaien += k; S.totaal += k; S.ooit += k; S.kliks++; telDag('klik', 1);
     const knop = $('vlaai');
     if (!reduce && knop.animate) knop.animate([{ transform: 'translate(-50%, -50%) scale(.94)' }, { transform: 'translate(-50%, -50%) scale(1)' }], { duration: 170, easing: 'cubic-bezier(.3, 1.6, .5, 1)' });
@@ -936,7 +967,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     goudWeg = Date.now() + 13000;
     meld('Er is een gouden vlaai verschenen!');
   }
-  function haalGoudWeg() { if (goudEl) { goudEl.remove(); goudEl = null; } goudVolgende = Date.now() + (70 + Math.random() * 110) * 1000 * (heeftPerk('goud') ? 0.5 : 1); }
+  function haalGoudWeg() { if (goudEl) { goudEl.remove(); goudEl = null; } goudVolgende = Date.now() + (70 + Math.random() * 110) * 1000 * (heeftPerk('goud') ? 0.5 : 1) / (mod('goud') ? 3 : 1); }
   function vangGoud() {
     S.goud++; telDag('goud', 1);
     const r = Math.random();
@@ -975,7 +1006,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   function telDag(soort, n) {
     const D = dagboek();
     for (const o of D.orders) if (o.soort === soort && !o.klaar) { o.stand = Math.min(o.n, o.stand + n); if (o.stand >= o.n) { o.klaar = true; S.besteld++; const x = Math.max(50, vps(true) * 1200); S.vlaaien += x; S.totaal += x; S.ooit += x; meld('Bestelling geleverd! Je krijgt ' + fmt(x) + ' vlaaien.'); } }
-    if (!D.bonus && D.orders.every(o => o.klaar)) { D.bonus = true; S.gilde.sterren++; meld('Alle bestellingen van vandaag geleverd: +1 gildester!'); }
+    if (!D.bonus && D.orders.every(o => o.klaar)) { D.bonus = true; if (!WEEK) { S.gilde.sterren++; meld('Alle bestellingen van vandaag geleverd: +1 gildester!'); } else meld('Alle bestellingen geleverd!'); }
   }
   function tekenBestel() {
     const D = dagboek();
@@ -1022,6 +1053,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
 
   // ---------- dagelijkse bonus: elke dag terugkomen levert meer op (een gemiste dag zet de reeks terug op 1)
   (function dagBonus() {
+    if (WEEK) return;
     const vandaag = vandaagNr(), I = S.inlog = S.inlog || { laatst: 0, reeks: 0 };
     if (I.laatst === vandaag) return;
     I.reeks = I.laatst === vandaag - 1 ? I.reeks + 1 : 1; I.laatst = vandaag;
@@ -1033,6 +1065,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   if (S.gildeHerzien) { const [o, n] = S.gildeHerzien; delete S.gildeHerzien; setTimeout(() => meld(`Het Bakkersgilde is eerlijker gemaakt: gildesterren zijn nu zeldzamer, maar elke ster is meer waard om te verdienen. Je hebt er nu ${n} (was ${o}). Je gekochte voordelen houd je.`), 3200); }
   // ---------- welkom terug
   (function welkomTerug() {
+    if (WEEK) return;
     const weg = (Date.now() - (S.tijd || Date.now())) / 1000;
     if (weg < 60 || vps(true) <= 0) return;
     const sec = Math.min(weg, (heeftPerk('offline') ? 12 : 8) * 3600), x = vps(true) * sec * (heeftPerk('offline') ? 1 : 0.5);
@@ -1047,7 +1080,8 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   function lus() {
     const nu = Date.now(), dt = Math.min(5, (nu - laatste) / 1000); laatste = nu;
     buffs = buffs.filter(b => b.tot > nu);
-    const p = vps() * dt; S.vlaaien += p; S.totaal += p; S.ooit += p; telDag('bak', p);
+    if (WEEK && !weekKlaar() && document.visibilityState === 'visible') { S.tijdOver = Math.max(0, S.tijdOver - dt); if (mod('kermis') && Math.floor((BAKTIJD - S.tijdOver) / 180) > (S.kermisNr || 0)) { S.kermisNr = Math.floor((BAKTIJD - S.tijdOver) / 180); buffs.push({ id: 'kermis', naam: 'Kermis: productie ×5', tot: nu + 30000, duur: 30000 }); meld('Kermisweek: de kermis begint!'); } if (S.tijdOver <= 0) wedstrijdKlaar(); }
+    const p = weekKlaar() ? 0 : vps() * dt; S.vlaaien += p; S.totaal += p; S.ooit += p; telDag('bak', p);
     tekenTeller();
     if (++tik % 3 === 0) { tekenBakkers(); tekenUpgrades(); tekenBuffs(); controleerPrestaties(); }
     if (tik % 10 === 0) { tekenStats(); if (gekozenPres) toonPrestatie(gekozenPres); document.title = fmt(S.vlaaien) + ' vlaaien – Vlaaienbakker'; }
@@ -1056,13 +1090,25 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     if (!goudEl && nu > goudVolgende && !document.hidden) toonGoud();
     if (goudEl && nu > goudWeg) haalGoudWeg();
   }
+  function wedstrijdKlaar() { if (S.klaarGemeld) return; S.klaarGemeld = true; bewaar(); if (window.Scorebord) Scorebord.stuur('vw' + WEEKNR, Math.floor(S.totaal), WEEKNR); meld(`De baktijd is om! Je bakte ${fmt(S.totaal)} vlaaien in de Bakwedstrijd. Kijk op het scorebord hoe je het deed tegen de anderen.`); }
+  (function balk() {
+    const b = document.createElement('div'); b.className = 'week-balk'; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Bakwedstrijd van de week');
+    const st = document.createElement('style'); st.textContent = `.week-balk { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; margin: .6rem auto 0; max-width: 72rem; padding: .6rem 1rem; border-radius: 12px; background: linear-gradient(135deg, #FFE9A8, #F2C66A); color: #231A26; box-shadow: 0 4px 0 rgba(0,0,0,.25); font-weight: 600; } .week-balk b { font-weight: 800; } .week-balk .wk-knop { margin-left: auto; font: inherit; font-weight: 800; border: 0; border-radius: 8px; padding: .5rem .9rem; background: #C8323C; color: #fff; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.3); } .week-balk .wk-tijd { font-variant-numeric: tabular-nums; font-weight: 800; background: #FBF6E9; padding: .2rem .6rem; border-radius: 6px; } .week .gilde-paneel { display: none !important; } .pionier { display: inline-block; margin-left: .5rem; background: #2F4C8F; color: #FBF6E9; font-size: .75rem; font-weight: 800; padding: .15rem .5rem; border-radius: 999px; vertical-align: middle; }`;
+    document.head.appendChild(st);
+    const kop = document.querySelector('header.kop'); kop.after(b);
+    const naar = h => { location.hash = h; location.reload(); };
+    if (WEEK) { document.body.classList.add('week'); const teken = () => { const m = Math.floor(S.tijdOver / 60), sec = Math.floor(S.tijdOver % 60); b.innerHTML = `<span>🏆 <b>Bakwedstrijd van de week: ${MOD.naam}.</b> ${MOD.tekst} Iedereen begint gelijk, zonder gilde.</span><span class="wk-tijd">${weekKlaar() ? 'Klaar: ' + fmt(S.totaal) + ' vlaaien' : 'Baktijd: ' + m + ':' + String(sec).padStart(2, '0')}</span><button class="wk-knop" type="button">Terug naar je bakkerij</button>`; b.querySelector('.wk-knop').onclick = () => naar(''); }; teken(); setInterval(teken, 1000); }
+    else { b.innerHTML = `<span>🏆 <b>Bakwedstrijd van de week: ${MOD.naam}.</b> ${MOD.tekst} Iedereen begint gelijk met 30 minuten baktijd.</span><button class="wk-knop" type="button">Doe mee</button>`; b.querySelector('.wk-knop').onclick = () => naar('#wedstrijd'); if (S.pionier) { const t = document.querySelector('header.kop h1, header.kop .titel'); if (t) t.insertAdjacentHTML('beforeend', '<span class="pionier" title="Voor wie het eerste Bakkersgilde nog meemaakte">Pionier van het gilde</span>'); } }
+    if (S.pionierMelding) { delete S.pionierMelding; setTimeout(() => meld('Bedankt dat je al zo lang bakt! Als Pionier van het gilde krijg je 25 gildesterren om te besteden. En doe mee aan de Bakwedstrijd van de week: daar begint iedereen gelijk.'), 4500); }
+  })();
+  addEventListener('hashchange', () => location.reload());
   setInterval(lus, 100);
   // naar het scorebord, als je meedoet: hoogstens elke minuut, en alleen als je flink verder bent
   let gestuurd = 0;
   function stuurScore(altijd) {
     if (!window.Scorebord || !Scorebord.doetMee() || S.totaal < 1) return;
     if (!altijd && S.totaal < gestuurd * 1.02 + 10) return;
-    gestuurd = S.totaal; Scorebord.stuur('vlaai', Math.floor(S.totaal), Math.floor(vps(true)));
+    gestuurd = S.totaal; if (WEEK) Scorebord.stuur('vw' + WEEKNR, Math.floor(S.totaal), WEEKNR); else Scorebord.stuur('vlaai', Math.floor(S.totaal), Math.floor(vps(true)));
   }
   if (window.Scorebord) { Scorebord.blokje($('sb-vlaai'), 'je vlaaien'); document.addEventListener('scorebord-naam', () => stuurScore(true)); setTimeout(() => stuurScore(true), 3000); }
   document.addEventListener('visibilitychange', () => { if (document.hidden) { bewaar(); stuurScore(false); } });

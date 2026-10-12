@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://*.workers.dev; img-src 'self' data:; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://*.workers.dev https://*.rubensrommelhoekje.nl; img-src 'self' data:; form-action 'none'; base-uri 'none'">
 <title>Werkplaats – Ruben's rommelhoekje</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cg%20transform%3D%22rotate%28-35%2032%2032%29%22%3E%3Crect%20x%3D%2228%22%20y%3D%2220%22%20width%3D%228%22%20height%3D%2240%22%20rx%3D%223%22%20fill%3D%22%23B5793F%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%2214%22%20y%3D%228%22%20width%3D%2236%22%20height%3D%2214%22%20rx%3D%223%22%20fill%3D%22%238C939E%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%2244%22%20y%3D%226%22%20width%3D%228%22%20height%3D%2218%22%20rx%3D%222%22%20fill%3D%22%236F7785%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -411,7 +411,7 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
     async function api(pad, opties) {
       const basis = await server(); if (!basis) throw new Error('Ik kan het adres van je scoreserver niet vinden. Vul het in bij het tabblad Scorebord en ideeën.');
       const c = new AbortController(), t = setTimeout(() => c.abort(), 15000);
-      try { const r = await fetch(basis + pad, Object.assign({ signal: c.signal, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + ww() } }, opties || {})); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.fout || ('Fout ' + r.status)); return j; } finally { clearTimeout(t); }
+      try { let r; try { r = await fetch(basis + pad, Object.assign({ signal: c.signal, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + ww() } }, opties || {})); } catch (e) { throw new Error(e.name === 'AbortError' ? 'De scoreserver reageert niet (na 15 seconden opgegeven). Probeer het zo nog eens.' : 'Kon de scoreserver niet bereiken op ' + basis + '. Staat de nieuwste servercode in Cloudflare (Deploy)? Werkt ' + basis + '/status in je browser?'); } const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.fout || ('Fout ' + r.status)); return j; } finally { clearTimeout(t); }
     }
     const NAMEN = { alles: 'Alles (alle onderdelen)', scores: 'Scores insturen', sync: 'Voortgang opslaan', ideeen: 'Ideeënbox', beesten: 'Rommelbeesten-cadeaus' };
     async function laad() {

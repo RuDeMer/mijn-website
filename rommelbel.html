@@ -348,9 +348,9 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   // ---------------- een potje beginnen
   function start(modus, level) {
     opslag.gespeeld++; bewaar(); audio();
-    const L = modus === 'avontuur' ? maakLevel(level) : { raster: [], kleuren: 4, zakElke: 7 };
+    const L = modus === 'avontuur' ? maakLevel(level) : { raster: [], kleuren: 5, zakElke: 5 };
     G = { modus, level, raster: [], pariteit: 0, zak: 0, kleuren: L.kleuren, zakElke: L.zakElke, schoten: 0, sindsZak: 0, score: 0, bal: null, huidig: null, volgende: null, hoek: -Math.PI / 2, deeltjes: [], teksten: [], vallers: [], knallers: [], klaar: false, combo: 0, rnd: maakRnd((Date.now() % 100000) + 7) };
-    if (modus === 'eindeloos') { G.golf = 1; G.rijen = 0; G.klok = 0; for (let i = 0; i < 5; i++) nieuweRij(); } else G.raster = L.raster.map(r => r.slice());
+    if (modus === 'eindeloos') { G.golf = 1; G.rijen = 0; G.klok = 0; for (let i = 0; i < 6; i++) nieuweRij(); } else G.raster = L.raster.map(r => r.slice());
     G.start = telBellen();
     G.huidig = nieuweBel(); G.volgende = nieuweBel();
     $('menu').hidden = true;
@@ -359,16 +359,16 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   function aanwezigeKleuren() { const s = new Set(); for (const rij of G.raster) for (const v of rij || []) if (v !== undefined && v < 6) s.add(v); return [...s]; }
   function nieuweBel() {
     // af en toe een bom of een regenboog (na een mooie combo vaker)
-    const x = G.rnd(); if (G.schoten > 3 && x < (G.combo >= 2 ? 0.12 : 0.035)) return G.rnd() < 0.5 ? BOM : REGENBOOG;
+    const x = G.rnd(), eind = G.modus === 'eindeloos'; if (G.schoten > 3 && x < (G.combo >= 2 ? (eind ? 0.05 : 0.12) : (eind ? 0.012 : 0.035))) return G.rnd() < 0.5 ? BOM : REGENBOOG;
     const k = aanwezigeKleuren(); return k.length ? k[Math.floor(G.rnd() * k.length)] : Math.floor(G.rnd() * G.kleuren);
   }
-  const golfTempo = () => ({ schoten: Math.max(3, 7 - Math.floor((G.golf - 1) / 2)), seconden: Math.max(6, 18 - (G.golf - 1) * 1.5) });
-  function volgendeGolf() { G.golf++; G.kleuren = Math.min(6, 4 + Math.floor((G.golf - 1) / 2)); G.zakElke = golfTempo().schoten; const [x] = [W / 2]; G.teksten.push({ x, y: H / 2, t: 0, tekst: 'Golf ' + G.golf + '! Sneller en meer kleuren' }); geluid.zak(); }
+  const golfTempo = () => ({ schoten: Math.max(2, 5 - (G.golf - 1)), seconden: Math.max(4, 12 - (G.golf - 1) * 1.5) });
+  function volgendeGolf() { G.golf++; G.kleuren = Math.min(6, 4 + G.golf); G.zakElke = golfTempo().schoten; const [x] = [W / 2]; G.teksten.push({ x, y: H / 2, t: 0, tekst: 'Golf ' + G.golf + '! Sneller en meer kleuren' }); geluid.zak(); }
   function nieuweRij() {
-    if (G.modus === 'eindeloos' && G.golf) { G.rijen++; if (G.rijen > 5 && (G.rijen - 5) % 8 === 0) volgendeGolf(); }
+    if (G.modus === 'eindeloos' && G.golf) { G.rijen++; if (G.rijen > 6 && (G.rijen - 6) % 6 === 0) volgendeGolf(); }
     // alles een rij omlaag, en bovenaan een nieuwe rij
     G.raster.unshift([]); G.pariteit = (G.pariteit + 1) % 2;
-    for (let c = 0; c < kolommen(0); c++) { let v = Math.floor(G.rnd() * G.kleuren); if (c > 0 && G.rnd() < 0.4) v = G.raster[0][c - 1]; G.raster[0][c] = v; }
+    const plak = G.modus === 'eindeloos' ? Math.max(0.12, 0.4 - (G.golf || 1) * 0.05) : 0.4; for (let c = 0; c < kolommen(0); c++) { let v = Math.floor(G.rnd() * G.kleuren); if (c > 0 && G.rnd() < plak) v = G.raster[0][c - 1]; G.raster[0][c] = v; }
   }
   // ---------------- mikken en schieten
   const MIN = -Math.PI + 0.12, MAX = -0.12;
@@ -422,16 +422,16 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
       const los = losseBellen();
       for (const [rr, cc] of los) { const v = cel(rr, cc), [x, y] = posVan(rr, cc); G.vallers.push({ x, y, v, vy: -60 - Math.random() * 80, vx: (Math.random() - 0.5) * 120 }); zet(rr, cc, undefined); }
       const punten = weg.length * 10 + los.length * 20 * Math.pow(2, Math.min(5, Math.floor(los.length / 4))) + (G.combo > 1 ? G.combo * 15 : 0);
-      G.score += punten; const [x, y] = posVan(r, c);
-      G.teksten.push({ x, y, t: 0, tekst: '+' + punten + (los.length ? '  ' + los.length + ' vallen!' : '') + (G.combo > 1 ? '  combo ×' + G.combo : '') });
+      const punten2 = G.modus === 'eindeloos' ? punten * (G.golf || 1) : punten; G.score += punten2; const [x, y] = posVan(r, c);
+      G.teksten.push({ x, y, t: 0, tekst: '+' + punten2 + (G.modus === 'eindeloos' && G.golf > 1 ? ' (×' + G.golf + ')' : '') + (los.length ? '  ' + los.length + ' vallen!' : '') + (G.combo > 1 ? '  combo ×' + G.combo : '') });
       geluid.knal(weg.length); if (los.length) setTimeout(() => geluid.val(los.length), 120);
     } else { G.combo = 0; G.sindsZak++; }
     if (weg.length && G.modus === 'eindeloos') G.sindsZak++;
     opruimen();
     // het plafond zakt na een aantal schoten zonder knal
-    if (G.sindsZak >= G.zakElke && (G.modus === 'eindeloos' || !weg.length)) { G.sindsZak = 0; G.klok = 0; if (G.modus === 'eindeloos') nieuweRij(); else G.zak += RH; geluid.zak(); }
+    if (G.sindsZak >= G.zakElke && (G.modus === 'eindeloos' || !weg.length)) { G.sindsZak = 0; G.klok = 0; if (G.modus === 'eindeloos') { nieuweRij(); if (G.golf >= 4 && G.rnd() < Math.min(0.85, 0.3 + (G.golf - 4) * 0.1)) nieuweRij(); } else G.zak += RH; geluid.zak(); }
     // veld leeg in Eindeloos: een bonus, en meteen een nieuwe lading
-    if (G.modus === 'eindeloos' && telBellen() === 0) { const bonus = 500 * G.golf; G.score += bonus; G.teksten.push({ x: W / 2, y: H / 3, t: 0, tekst: 'Leeg! +' + bonus }); for (let i = 0; i < 5; i++) nieuweRij(); geluid.winst(); }
+    if (G.modus === 'eindeloos' && telBellen() === 0) { const bonus = 500 * G.golf; G.score += bonus; G.teksten.push({ x: W / 2, y: H / 3, t: 0, tekst: 'Leeg! +' + bonus }); for (let i = 0; i < 6; i++) nieuweRij(); geluid.winst(); }
     controleerEinde();
   }
   function groep(r, c, v) { const gezien = new Set([r + ',' + c]), lijst = [[r, c]], uit = []; while (lijst.length) { const [rr, cc] = lijst.pop(); uit.push([rr, cc]); for (const [nr, nc] of buren(rr, cc)) { const k = nr + ',' + nc; if (!gezien.has(k) && cel(nr, nc) === v) { gezien.add(k); lijst.push([nr, nc]); } } } return uit; }
@@ -497,7 +497,7 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   }
   // ---------------- de lus
   let vorige = performance.now();
-  function lus(nu) { requestAnimationFrame(lus); const dt = Math.min(0.033, (nu - vorige) / 1000); vorige = nu; if (G && !G.klaar && $('menu').hidden) { if (toets.ArrowLeft) G.hoek = Math.max(MIN, G.hoek - dt * 1.6); if (toets.ArrowRight) G.hoek = Math.min(MAX, G.hoek + dt * 1.6); beweeg(dt); if (G.modus === 'eindeloos' && !G.bal) { G.klok += dt; if (G.klok >= golfTempo().seconden) { G.klok = 0; G.sindsZak = 0; nieuweRij(); geluid.zak(); controleerEinde(); } } } teken(dt); }
+  function lus(nu) { requestAnimationFrame(lus); const dt = Math.min(0.033, (nu - vorige) / 1000); vorige = nu; if (G && !G.klaar && $('menu').hidden) { if (toets.ArrowLeft) G.hoek = Math.max(MIN, G.hoek - dt * 1.6); if (toets.ArrowRight) G.hoek = Math.min(MAX, G.hoek + dt * 1.6); beweeg(dt); if (G.modus === 'eindeloos' && !G.bal) { G.klok += dt; if (G.klok >= golfTempo().seconden) { G.klok = 0; G.sindsZak = 0; nieuweRij(); if (G.golf >= 4) nieuweRij(); geluid.zak(); controleerEinde(); } } } teken(dt); }
   // ---------------- geluid: zacht
   let ac = null, hoofd = null;
   function audio() { if (ac || !opslag.geluid) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); hoofd = ac.createGain(); hoofd.gain.value = 0.5; hoofd.connect(ac.destination); } catch (e) {} }
@@ -514,7 +514,7 @@ body { display: flex; flex-direction: column; background: #24305E; color: var(--
   function venster(html) { $('menu-in').innerHTML = html; $('menu').hidden = false; }
   function toonMenu(welk) {
     if (welk === 'levels') { let h = '<h2>Avontuur</h2><p class="klein">Schiet het hele veld leeg. Drie sterren als je het in weinig schoten doet.</p><div class="levels">'; for (let i = 1; i <= 30; i++) { const s = opslag.sterren[i] || 0; h += `<button class="lvl" data-start="avontuur" data-level="${i}" type="button" ${i > opslag.open ? 'disabled' : ''}>${i}<small>${s ? '★'.repeat(s) : i > opslag.open ? 'dicht' : ''}</small></button>`; } venster(h + '</div><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
-    if (welk === 'regels') { venster('<h2>Zo speel je</h2><p>Mik met je muis of vinger, en laat los (of klik) om te schieten. Op een toetsenbord: pijltjes om te mikken, spatie om te schieten, X om te wisselen.</p><p>Raak je <b>drie of meer bellen van dezelfde kleur</b>, dan knallen ze. Bellen die daarna nergens meer aan vastzitten, <b>vallen</b>: dat levert extra veel punten op.</p><p>In <b>Avontuur</b> zakt het plafond na een paar schoten zonder knal (de stippen rechtsonder tellen af). In <b>Eindeloos</b> komt er na elke paar schoten een nieuwe rij bij, raak of mis, en ook als je te lang wacht (het balkje). Elke golf gaat sneller en brengt meer kleuren. Raken de bellen de rode lijn, dan is het afgelopen.</p><p>Een <b>bom</b> laat alles eromheen knallen, een <b>regenboogbel</b> past bij elke kleur. Tik op de kleine bel rechts om te wisselen.</p><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
+    if (welk === 'regels') { venster('<h2>Zo speel je</h2><p>Mik met je muis of vinger, en laat los (of klik) om te schieten. Op een toetsenbord: pijltjes om te mikken, spatie om te schieten, X om te wisselen.</p><p>Raak je <b>drie of meer bellen van dezelfde kleur</b>, dan knallen ze. Bellen die daarna nergens meer aan vastzitten, <b>vallen</b>: dat levert extra veel punten op.</p><p>In <b>Avontuur</b> zakt het plafond na een paar schoten zonder knal (de stippen rechtsonder tellen af). In <b>Eindeloos</b> komt er na elke paar schoten een nieuwe rij bij, raak of mis, en ook als je te lang wacht (het balkje). Elke golf gaat sneller en brengt meer kleuren, en vanaf golf 4 komen er soms twee rijen tegelijk. Je punten tellen keer je golf. Raken de bellen de rode lijn, dan is het afgelopen.</p><p>Een <b>bom</b> laat alles eromheen knallen, een <b>regenboogbel</b> past bij elke kleur. Tik op de kleine bel rechts om te wisselen.</p><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
     const sterren = Object.values(opslag.sterren).reduce((a, b) => a + b, 0);
     venster(`<h1>Rommelbel<small>Schiet, knal en laat ze vallen</small></h1><p class="klein">${sterren} van 90 sterren · record eindeloos: ${opslag.eindeloos.toLocaleString('nl-NL')}</p><div class="rij"><button class="knop hoofd" data-menu="levels" type="button">Avontuur (level ${Math.min(30, opslag.open)})</button><button class="knop" data-start="eindeloos" data-level="0" type="button">Eindeloos</button><button class="knop" data-menu="regels" type="button">Zo speel je</button></div>${G && !G.klaar ? '<div class="rij"><button class="knop" data-verder type="button">Verder spelen</button></div>' : ''}<div id="sb-bel"></div>`);
     if (window.Scorebord) Scorebord.blokje($('sb-bel'), 'punten in Eindeloos');

@@ -193,6 +193,12 @@ details.stats summary { cursor: pointer; font-weight: 700; }
 .perks { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: .4rem; }
 .perks li { background: var(--papier); border-radius: 6px; padding: .45rem .6rem; display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; }
 .perks li.heb { box-shadow: 0 0 0 2px #2E8B62; } .perks li b { font-size: .92rem; } .perks .knop { align-self: flex-start; padding: .3rem .7rem; font-size: .82rem; }
+  .wonder-uitleg { font-size: .88rem; line-height: 1.4; margin: 0 0 .6rem; }
+  .wonder-rij { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .6rem; } .wonder-af { font-size: 1.5rem; background: #FBF6E9; border-radius: 10px; padding: .15rem .35rem; box-shadow: 0 2px 0 rgba(0,0,0,.2); }
+  .wonder { display: grid; grid-template-columns: auto 1fr; gap: .7rem; background: #FBF6E9; border-radius: 10px; padding: .7rem; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+  .wonder-ico { font-size: 2.2rem; line-height: 1; } .wonder-tekst { display: flex; flex-direction: column; gap: .2rem; min-width: 0; } .wonder-tekst small { font-size: .8rem; color: #5E5643; }
+  .wonder-balk { height: .6rem; border-radius: 999px; background: #E2D8BE; overflow: hidden; margin-top: .2rem; } .wonder-balk i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #E9B949, #C8323C); }
+  .wonder-knoppen { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .35rem; } .wonder-knoppen button { font: inherit; font-weight: 800; font-size: .82rem; border: 0; border-radius: 999px; padding: .35rem .75rem; background: #2F4C8F; color: #fff; cursor: pointer; box-shadow: 0 2px 0 #1A2A5A; }
 </style>
 </head>
 <body data-gat="26" data-pagina="vlaaienbakker">
@@ -233,6 +239,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
         <div class="upgrades" id="upgrades"></div>
       </div>
       <div class="paneel"><div class="paneel-kop"><h2>Bestellingen van vandaag</h2></div><div id="bestel"></div></div>
+      <div class="paneel wonder-paneel" id="wonder-paneel" hidden><div class="paneel-kop"><h2>Vlaaienwonderen</h2></div><div id="wonderen"></div></div>
       <div class="paneel gilde-paneel"><div class="paneel-kop"><h2>Het Bakkersgilde</h2></div><div id="gilde"></div></div>
       <div class="paneel">
         <div class="paneel-kop"><h2 id="prestatie-kop">Prestaties</h2></div>
@@ -535,10 +542,11 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------- getallen
-  const NAMEN = [[1e24, 'quadriljoen'], [1e21, 'triljard'], [1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']];
+  const NAMEN = [[1e63, 'deciljard'], [1e60, 'deciljoen'], [1e57, 'noniljard'], [1e54, 'noniljoen'], [1e51, 'octiljard'], [1e48, 'octiljoen'], [1e45, 'septiljard'], [1e42, 'septiljoen'], [1e39, 'sextiljard'], [1e36, 'sextiljoen'], [1e33, 'quintiljard'], [1e30, 'quintiljoen'], [1e27, 'quadriljard'], [1e24, 'quadriljoen'], [1e21, 'triljard'], [1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']];
   function fmt(n) {
     n = Math.floor(n);
     if (n < 1e6) return n.toLocaleString('nl-NL');
+    if (n >= 1e66) { const e = Math.floor(Math.log10(n)), m = n / Math.pow(10, e); return m.toLocaleString('nl-NL', { maximumFractionDigits: 2 }) + ' × 10^' + e; }
     for (const [v, naam] of NAMEN) if (n >= v) { const x = n / v; return x.toLocaleString('nl-NL', { maximumFractionDigits: x < 100 ? 2 : 1 }) + ' ' + naam; }
     return n.toExponential(2);
   }
@@ -745,10 +753,25 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     ['heelal', 'Een heel heelal', 'Koop een Vlaaienheelal.', S => S.bakkers.heelal || 0, 1, 'heelallen'],
     ['meesterwerk', 'Meesterwerk', 'Heb 350 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 350, 'van je grootste bakker'],
     ['eeuwig', 'Eeuwig bakker', 'Heb 500 van één soort bakker.', S => Math.max(0, ...Object.values(S.bakkers)), 500, 'van je grootste bakker'],
-    ['sextiljoen', 'Sextiljoen', 'Bak er in totaal 1 triljard (10^21).', S => S.ooit, 1e21, 'ooit gebakken'],
-    ['heelalvol', 'Het heelal eet mee', 'Bak er in totaal 10^24.', S => S.ooit, 1e24, 'ooit gebakken'],
+    ['heelalvol', 'Een miljoen quadriljoen', 'Bak ooit 1 quintiljoen vlaaien: een miljoen quadriljoen.', S => S.ooit, 1e30, 'vlaaien ooit gebakken'],
+    ['sextiljoen', 'Het heelal eet mee', 'Bak ooit 1 sextiljoen vlaaien.', S => S.ooit, 1e36, 'vlaaien ooit gebakken'],
+    ['wonder1', 'Wonderbakker', 'Maak je eerste Vlaaienwonder af.', S => Object.keys(S.wonderen || {}).filter(id => wonderAf(id, S)).length, 1, 'wonderen'],
+    ['wonder8', 'Alle wonderen van het heelal', 'Maak alle acht Vlaaienwonderen af.', S => Object.keys(S.wonderen || {}).filter(id => wonderAf(id, S)).length, 8, 'wonderen'],
   ].map(([id, naam, tekst, meet, doel, eenheid]) => ({ id, naam, tekst, meet, doel, eenheid, test: S => meet(S) >= doel }));
 
+  // ---------- Vlaaienwonderen: enorme bouwwerken voor wie heel ver is; elk afgemaakt wonder geeft blijvend +25%
+  const WONDEREN = [
+    { id: 'vrijthof', naam: 'Vlaaienbeeld op het Vrijthof', tekst: 'Een gouden vlaai van twintig meter hoog midden op het plein.', prijs: 1e27, ico: '🏛️' },
+    { id: 'brug', naam: 'Vlaaienbrug over de Maas', tekst: 'Een brug van korstdeeg, met kersen als lantaarns.', prijs: 1e29, ico: '🌉' },
+    { id: 'mergel', naam: 'Mergelpaleis in de Sint-Pietersberg', tekst: 'Duizend gangen vol ovens, diep in de berg.', prijs: 1e31, ico: '🏰' },
+    { id: 'maan', naam: 'De Vlaaienmaan', tekst: 'Iemand heeft de maan in een vlaaivorm gezet. Hij past precies.', prijs: 1e33, ico: '🌕' },
+    { id: 'ring', naam: 'Ring van vlaaien om de aarde', tekst: 'Een ring van vlaaien die je overdag aan de hemel ziet staan.', prijs: 1e35, ico: '💫' },
+    { id: 'zon', naam: 'De Vlaaienzon', tekst: 'Een zon die nooit ondergaat, zodat het deeg altijd rijst.', prijs: 1e37, ico: '☀️' },
+    { id: 'melkweg', naam: 'Melkweg van slagroom', tekst: 'Honderd miljard sterren, allemaal met een toefje room.', prijs: 1e39, ico: '🌌' },
+    { id: 'heelal', naam: 'Rubens rommelhoekje van het heelal', tekst: 'Het allergrootste rommelhoekje dat er ooit was. Vol vlaai.', prijs: 1e42, ico: '🧰' },
+  ];
+  const wonderAf = (id, St) => { const w = WONDEREN.find(x => x.id === id); return !!w && ((St || S).wonderen || {})[id] >= w.prijs; };
+  const wonderBonus = () => (WEEK ? 1 : Math.pow(1.25, WONDEREN.filter(w => wonderAf(w.id)).length));
   // ---------- staat
   // ---------- de Bakwedstrijd van de week: iedereen begint gelijk, 30 minuten baktijd, elke week een andere regel
   const WEEK = location.hash === '#wedstrijd', WEEKNR = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000 / 7 + 3 / 7), BAKTIJD = 1800;
@@ -767,6 +790,8 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   try { const r = localStorage.getItem(KEY); if (r) { const o = JSON.parse(r); if (o && o.v === 1) S = Object.assign(nieuweStaat(), o); } } catch (e) {}
   if (WEEK && S.week !== WEEKNR) { S = nieuweStaat(); S.week = WEEKNR; S.tijdOver = BAKTIJD; S.gilde = { sterren: 0, verdiend: 0, resets: 0, perks: [], v2: true }; S.inlog = { laatst: 1e9, reeks: 0 }; }
   const weekKlaar = () => WEEK && S.tijdOver <= 0;
+  if (!S.wonderen) S.wonderen = {};
+  if (!S.presV2) { S.pres = S.pres.filter(id => !((id === 'sextiljoen' && S.ooit < 1e36) || (id === 'heelalvol' && S.ooit < 1e30))); S.presV2 = true; }
   if (!S.ooit) S.ooit = S.totaal; S.gilde = Object.assign({ sterren: 0, verdiend: 0, resets: 0, perks: [] }, S.gilde || {});
   if (!WEEK && !S.pionier && (S.gildeHerzien || S.ooit >= 1e15 || (S.gilde.v2 === undefined && S.gilde.verdiend > Math.floor(Math.cbrt(S.ooit / 1e12))))) { S.pionier = true; S.gilde.sterren += 25; S.pionierMelding = true; }
   if (!S.gilde.v2) { const nieuwPot = Math.floor(Math.cbrt(S.ooit / 1e12)), oudV = S.gilde.verdiend; S.gilde.verdiend = Math.min(oudV, nieuwPot); S.gilde.sterren = Math.min(S.gilde.sterren, S.gilde.verdiend + 5); S.gilde.v2 = true; if (oudV > S.gilde.verdiend) S.gildeHerzien = [oudV, S.gilde.verdiend]; }
@@ -778,7 +803,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   function vermenigvuldiger(bid) { let m = mod('oma') && bid === 'oma' ? 5 : 1; for (const [n, f] of [[1, 2], [2, 2], [3, 2], [4, 3], [5, 3], [6, 2], [7, 2]]) if (S.upg.includes(bid + '-' + n)) m *= f; return m; }
   const heeftPerk = p => !WEEK && S.gilde.perks.includes(p);
   function gildeBonus() { if (WEEK) return 1; return (1 + 0.02 * S.gilde.verdiend) * (heeftPerk('meester') ? 1.5 : 1) * (heeftPerk('groot') ? 2 : 1); }
-  function algemeen() { return (1 + 0.1 * (S.smaken.length - 1) * (mod('smaak') ? 3 : 1)) * (1 + 0.02 * S.pres.length) * gildeBonus(); }
+  function algemeen() { return (1 + 0.1 * (S.smaken.length - 1) * (mod('smaak') ? 3 : 1)) * (1 + 0.02 * S.pres.length) * gildeBonus() * wonderBonus(); }
   function vpsVan(b) { return (S.bakkers[b.id] || 0) * b.vps * vermenigvuldiger(b.id) * algemeen(); }
   function vps(zonderBuff) {
     let t = 0; for (const b of BAKKERS) t += vpsVan(b);
@@ -1028,9 +1053,33 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   const potentieel = () => Math.floor(Math.cbrt(S.ooit / 1e12));
   const nieuweSterren = () => Math.max(0, potentieel() - S.gilde.verdiend);
   function volgendeSter() { const p = potentieel() + 1; return p * p * p * 1e12 - S.ooit; }
+  // ---------- het paneel met wonderen: het volgende wonder, met investeerknoppen
+  let wonderVorm = '';
+  function tekenWonderen() {
+    const paneel = $('wonder-paneel'); if (!paneel) return;
+    const zicht = !WEEK && (S.ooit >= 1e25 || Object.keys(S.wonderen).length > 0); paneel.hidden = !zicht; if (!zicht) return;
+    const af = WONDEREN.filter(w => wonderAf(w.id)), volgende = WONDEREN.find(w => !wonderAf(w.id));
+    const vorm = af.length + ':' + (volgende ? volgende.id : '');
+    if (vorm !== wonderVorm) {
+      wonderVorm = vorm;
+      $('wonderen').innerHTML = `<p class="wonder-uitleg">Bouw de grootste bouwwerken ooit. Elk afgemaakt wonder laat je voor altijd 25% meer bakken, ook nadat je je bakkerij aan het gilde verkoopt.${af.length ? ` Nu: <b>+${Math.round((wonderBonus() - 1) * 100)}%</b>.` : ''}</p>
+        ${af.length ? `<div class="wonder-rij">${af.map(w => `<span class="wonder-af" title="${w.naam}">${w.ico}</span>`).join('')}</div>` : ''}
+        ${volgende ? `<div class="wonder"><span class="wonder-ico">${volgende.ico}</span><div class="wonder-tekst"><b>${volgende.naam}</b><small>${volgende.tekst}</small><div class="wonder-balk"><i id="wonder-vul"></i></div><small id="wonder-stand"></small><div class="wonder-knoppen"><button type="button" data-wonder="0.1">Investeer 10%</button><button type="button" data-wonder="0.5">50%</button><button type="button" data-wonder="1">Alles</button></div></div></div>` : '<p class="wonder-uitleg"><b>Alle acht wonderen staan er!</b> Je bent de grootste bakker van het heelal.</p>'}`;
+    }
+    if (volgende) { const v = S.wonderen[volgende.id] || 0, f = Math.min(1, v / volgende.prijs); const vul = $('wonder-vul'), st = $('wonder-stand'); if (vul) vul.style.width = (f * 100).toFixed(2) + '%'; if (st) st.textContent = `${fmt(v)} van ${fmt(volgende.prijs)} vlaaien (${(f * 100).toFixed(f < 0.1 ? 2 : 1)}%)`; }
+  }
+  document.addEventListener('click', e => {
+    const k = e.target.closest('[data-wonder]'); if (!k) return;
+    const w = WONDEREN.find(x => !wonderAf(x.id)); if (!w) return;
+    const rest = w.prijs - (S.wonderen[w.id] || 0), x = Math.min(rest, Math.floor(S.vlaaien * +k.dataset.wonder)); if (x <= 0) return;
+    S.vlaaien -= x; S.wonderen[w.id] = (S.wonderen[w.id] || 0) + x;
+    if (wonderAf(w.id)) meld(`${w.ico} ${w.naam} is af! Alles bakt nu ${Math.round((wonderBonus() - 1) * 100)}% meer.`);
+    bewaar(); tekenWonderen(); if (typeof alles === 'function') alles();
+  });
+  setInterval(tekenWonderen, 1000); setTimeout(tekenWonderen, 300);
   function verkoop() {
     const n = nieuweSterren(); if (!n) return;
-    if (!confirm(`Je verkoopt je bakkerij aan het Bakkersgilde en begint opnieuw. Je krijgt ${n} gildester${n > 1 ? 'ren' : ''}, en elke gildester laat je voor altijd 3% meer bakken. Je prestaties blijven bewaard. Doorgaan?`)) return;
+    if (!confirm(`Je verkoopt je bakkerij aan het Bakkersgilde en begint opnieuw. Je krijgt ${n} gildester${n > 1 ? 'ren' : ''}, en elke gildester laat je voor altijd 2% meer bakken. Je Vlaaienwonderen blijven staan. Je prestaties blijven bewaard. Doorgaan?`)) return;
     S.gilde.verdiend += n; S.gilde.sterren += n; S.gilde.resets++;
     S.vlaaien = 0; S.totaal = 0; S.bakkers = heeftPerk('start') ? { oma: 10, leerling: 5 } : {};
     S.upg = heeftPerk('upg') ? S.upg.filter(u => /-(1|2)$/.test(u)) : [];

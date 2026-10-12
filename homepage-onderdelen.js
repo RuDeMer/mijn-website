@@ -29,7 +29,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   const groot = x => { const n = [[1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']]; for (const [v, w] of n) if (x >= v) return (x / v).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' ' + w; return Math.round(x).toLocaleString('nl-NL'); };
   // voortgang per spel, uit de opslag van dat spel
   const VOORTGANG = {
-    rommelkroon: () => { const s = leesJSON('rommelkroon-v1'); const n = s && s.opgelost ? Object.keys(s.opgelost).length : 0; return n ? [n + ' van 120 puzzels', n / 120] : null; },
+    rommelkroon: () => { const s = leesJSON('rommelkroon-v1'); const n = s && s.opgelost ? Object.keys(s.opgelost).length : 0; return n ? [n + ' van 370 puzzels', n / 370] : null; },
     rommelbeesten: () => { const s = leesJSON('rommelbeesten-v1'); const n = s && s.bezit ? Object.keys(s.bezit).filter(k => s.bezit[k] && (s.bezit[k].n || s.bezit[k] > 0 || s.bezit[k].g)).length : 0; return n ? [n + ' kaarten verzameld', Math.min(1, n / 350)] : null; },
     vlaaienbakker: () => { const s = leesJSON('vlaaienbakker-v1'); const t = s ? (s.ooit || s.totaal || 0) : 0; return t >= 1 ? [groot(t) + ' vlaaien', null] : null; },
     vouwvlieger: () => { const s = leesJSON('vouwvlieger-v1'); return s && s.best ? ['Record: ' + s.best, Math.min(1, s.best / 100)] : null; },

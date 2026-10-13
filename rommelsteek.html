@@ -315,6 +315,27 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
     if (!dlg.open) dlg.showModal();
   }
   API.koppel = openKoppel; API.koppelSync = koppelSync;
+  // ---------- betrouwbaarheid: hetzelfde spel maar in één tabblad tegelijk, anders overschrijven ze elkaars voortgang
+  (function tabbladBewaker() {
+    if (!('BroadcastChannel' in window)) return;
+    const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+    const naam = pagina + (location.hash === '#wedstrijd' ? '-wedstrijd' : '');
+    if (!SLEUTELS.some(k => k.startsWith(pagina.replace(/^rommel/, 'rommel')) || (pagina === 'vlaaienbakker' && k.startsWith('vlaaienbakker')))) return;
+    const ik = Math.random().toString(36).slice(2), kanaal = new BroadcastChannel('rommelhoekje-tabbladen');
+    const stopHier = () => { try { sessionStorage.setItem('ander-tabblad', '1'); } catch (e) {} location.replace('./'); };
+    kanaal.onmessage = e => { const d = e.data || {}; if (d.pagina !== naam || d.van === ik) return;
+      if (d.soort === 'hallo') kanaal.postMessage({ soort: 'ik-ben-hier', pagina: naam, van: ik });
+      if (d.soort === 'ik-ben-hier' && !vraagOpen) vraag();
+      if (d.soort === 'neem-over' && d.naar !== ik) stopHier(); };
+    let vraagOpen = false;
+    function vraag() { vraagOpen = true; const w = document.createElement('div'); w.setAttribute('role', 'alertdialog'); w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(10,14,30,.75);display:grid;place-items:center;padding:1rem;font-family:system-ui,sans-serif';
+      w.innerHTML = '<div style="background:#FBF6E9;color:#231A26;border-radius:14px;padding:1.2rem 1.3rem;max-width:26rem;box-shadow:0 10px 40px rgba(0,0,0,.4)"><h2 style="margin:0 0 .4rem">Dit spel staat al open</h2><p style="margin:0 0 .9rem;line-height:1.45">Je speelt dit spel al in een ander tabblad. Als je in twee tabbladen tegelijk speelt, overschrijven ze elkaars voortgang. Waar wil je verder spelen?</p><p style="display:flex;gap:.5rem;flex-wrap:wrap;margin:0"><button type="button" data-hier style="font:inherit;font-weight:800;border:0;border-radius:8px;padding:.6rem .9rem;background:#C8323C;color:#fff;cursor:pointer">Hier verder spelen</button><button type="button" data-daar style="font:inherit;font-weight:800;border:0;border-radius:8px;padding:.6rem .9rem;background:#E3D9CA;color:#231A26;cursor:pointer">In het andere tabblad</button></p></div>';
+      document.body.appendChild(w);
+      w.querySelector('[data-hier]').onclick = () => { kanaal.postMessage({ soort: 'neem-over', pagina: naam, van: ik, naar: ik }); w.remove(); vraagOpen = false; };
+      w.querySelector('[data-daar]').onclick = stopHier; }
+    kanaal.postMessage({ soort: 'hallo', pagina: naam, van: ik });
+  })();
+  try { if (sessionStorage.getItem('ander-tabblad')) { sessionStorage.removeItem('ander-tabblad'); addEventListener('load', () => setTimeout(() => alert('Je speelt dit spel nu verder in een ander tabblad. Hier is het gestopt, zodat je voortgang niet wordt overschreven.'), 300)); } } catch (e) {}
   // ---------- betrouwbaarheid: een reservekopie van elke opslag; is een opslag kapot, dan komt de laatste goede terug
   (function reserve() {
     const RES = '~reserve';
@@ -332,7 +353,7 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
   // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
   setTimeout(() => { const K = leesK(); if (!K || !K.code) maakKoppeling().catch(() => {}); }, 2500);
   // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
-  try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang is teruggezet naar de laatste eerlijke stand op de server (' + w + '). Valsspelen telt niet mee!'), 400)); } } catch (e) {}
+  try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang ging sneller dan de server kon controleren (' + w + '), dus hij is teruggezet naar de laatste goedgekeurde stand.\n\nSpeel je hetzelfde spel in twee tabbladen of op twee apparaten tegelijk? Gebruik er dan één tegelijk, dan gebeurt dit niet meer. Klopt er iets niet, laat het Ruben weten via de ideeënbox.'), 400)); } } catch (e) {}
   // op de homepage en het scorebord een knopje
   if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
   try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}

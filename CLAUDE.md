@@ -20,7 +20,6 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Nooit wachtwoorden, API-sleutels of andere geheimen in de repo zetten. De repo is openbaar.
 - Werkt goed op telefoon (vanaf 360 px breed) en ondersteunt `prefers-reduced-motion`.
 - Bij een nieuwe tool: voeg een label toe op de homepage met een link en een korte beschrijving. Het "Binnenkort"-label blijft als laatste staan.
-- Gebruik geen namen, plaatjes of personages van bestaande merken, games of films. Eigen namen en eigen ontwerpen.
 
 ## Huisstijl
 
@@ -413,3 +412,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Elke nieuwe puzzel heeft precies één oplossing (opnieuw opgelost, en de opgeslagen oplossing nagelopen), en geen enkele vorm komt dubbel voor, ook niet gedraaid, gespiegeld of met andere kleurletters (`vorm()`). De allerzwaarste gokpuzzels zijn weggelaten (grens per grootte), dus alles is met nadenken op te lossen.
 - Vrijspelen: zoals vroeger (de eerste 'opgelost + 3' van de hele lijst), of per grootte drie verder dan je daar hebt opgelost. Nooit minder open dan vroeger. De puzzel van de dag komt nog steeds uit de eerste 120 (7×7 tot 9×9), zodat hij niet veranderde.
 - De sprongetjes van de kronen na het oplossen raken alleen vakjes die er nog zijn (anders een fout als je snel een kleinere puzzel start). Homepage: 'x van 370 puzzels'. Scorebord `kroon` (max 500) is ruim genoeg.
+
+
+## Ideeën uit de ideeënbox (oktober 2026)
+- **Vlaaienbakker, bakkers verkopen** (idee van Marciano): knop **Verkoop** naast 1× en 10× zet de verkoopstand aan (rode rand om de lijst). Verkopen geeft de helft terug van wat de laatste bakkers kostten (`terugVan`, met dezelfde kortingen als `prijsVan`), nooit meer dan je hebt. `S.totaal` en `S.ooit` blijven gelijk, dus het gilde, de prestaties en de servercontrole kloppen. Eenmalige melding met dank aan Marciano (`S.verkoopUitleg`).
+- **Rommelbeesten, Rommelgevecht** (tabblad Gevecht, code in `beesten_spel.js` voor `kiesTab`): kies 3 beesten uit je verzameling (of 'sterkste team'), vecht tegen 8 Rommelmeesters (`MEESTERS`, teams uit vaste zaadjes per zeldzaamheid en element). Levenspunten = `kr`, aanvallen = `aan` ([naam, energie, schade]). Elke beurt +1 energie (max 5); wisselen met de bank kost 1 energie. Elementen (`STERK`): sterk ×1,5, zwak ×0,75, schade afgerond op tientallen. De computer wisselt als hij zwak staat, maakt af als dat kan, en spaart soms. Elke eerste overwinning geeft een trofee en speelt de volgende meester vrij. Opslag in `S.gevecht` (verslagen, winst, verlies, team). **Bewust geen munten of pakjes als beloning**: de servercontrole van Rommelbeesten (te veel muntjes of pakjes) zou dat afkeuren; als dat ooit moet, eerst de worker aanpassen. Testhaak: `window.__gv`.

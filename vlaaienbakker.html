@@ -200,6 +200,9 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   .wonder-ico { font-size: 2.2rem; line-height: 1; } .wonder-tekst { display: flex; flex-direction: column; gap: .2rem; min-width: 0; } .wonder-tekst small { font-size: .8rem; color: #5E5643; }
   .wonder-balk { height: .6rem; border-radius: 999px; background: #E2D8BE; overflow: hidden; margin-top: .2rem; } .wonder-balk i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #E9B949, #C8323C); }
   .wonder-knoppen { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .35rem; } .wonder-knoppen button { font: inherit; font-weight: 800; font-size: .82rem; border: 0; border-radius: 999px; padding: .35rem .75rem; background: #2F4C8F; color: #fff; cursor: pointer; box-shadow: 0 2px 0 #1A2A5A; }
+  #bakkers.verkoopstand { outline: 3px solid #C8323C; outline-offset: 4px; border-radius: 10px; }
+  #bakkers.verkoopstand .prijs { background: #F6D5D5; color: #8E1F2A; }
+  .hoeveel [data-verkoop][aria-pressed="true"] { background: #C8323C; color: #fff; }
 </style>
 </head>
 <body data-gat="26" data-pagina="vlaaienbakker">
@@ -230,7 +233,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     <section class="winkel" aria-label="Winkel">
       <div class="paneel">
         <div class="paneel-kop"><h2>Bakkers</h2>
-          <div class="hoeveel" role="group" aria-label="Hoeveel tegelijk kopen"><button data-n="1" aria-pressed="true">1×</button><button data-n="10" aria-pressed="false">10×</button></div>
+          <div class="hoeveel" role="group" aria-label="Hoeveel tegelijk kopen of verkopen"><button data-n="1" aria-pressed="true">1×</button><button data-n="10" aria-pressed="false">10×</button><button data-verkoop aria-pressed="false" title="Verkoop bakkers voor de helft van wat je ervoor betaalde">Verkoop</button></div>
         </div>
         <ul class="bakkers" id="bakkers"></ul>
         <p class="uitleg-regel" id="uitleg-regel" aria-live="polite">Ga met je muis over een bakker om te zien wat hij oplevert.</p>
@@ -423,7 +426,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   const KKEY = 'rommelhoekje-koppel';
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -808,6 +811,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   if (WEEK && S.week !== WEEKNR) { S = nieuweStaat(); S.week = WEEKNR; S.tijdOver = BAKTIJD; S.gilde = { sterren: 0, verdiend: 0, resets: 0, perks: [], v2: true }; S.inlog = { laatst: 1e9, reeks: 0 }; }
   const weekKlaar = () => WEEK && S.tijdOver <= 0;
   if (!S.wonderen) S.wonderen = {};
+  if (!WEEK && !S.verkoopUitleg) { S.verkoopUitleg = true; setTimeout(() => meld('Nieuw: je kunt nu bakkers verkopen voor de helft van wat je ervoor betaalde. Een idee van Marciano uit de ideeënbox!'), 2500); }
   if (!S.presV2) { S.pres = S.pres.filter(id => !((id === 'sextiljoen' && S.ooit < 1e36) || (id === 'heelalvol' && S.ooit < 1e30))); S.presV2 = true; }
   if (!S.ooit) S.ooit = S.totaal; S.gilde = Object.assign({ sterren: 0, verdiend: 0, resets: 0, perks: [] }, S.gilde || {});
   if (!WEEK && !S.pionier && (S.gildeHerzien || S.ooit >= 1e15 || (S.gilde.v2 === undefined && S.gilde.verdiend > Math.floor(Math.cbrt(S.ooit / 1e12))))) { S.pionier = true; S.gilde.sterren += 25; S.pionierMelding = true; }
@@ -889,17 +893,25 @@ details.stats summary { cursor: pointer; font-weight: 700; }
       const geheim = !zichtbaar;
       if (geheim) volgendeGeheim = true;
       el.classList.toggle('geheim', geheim);
-      const p = prijsVan(b, stuks);
-      el.classList.toggle('te-duur', geheim || S.vlaaien < p);
-      el.setAttribute('aria-disabled', geheim || S.vlaaien < p ? 'true' : 'false');
+      const p = prijsVan(b, stuks), terug = terugVan(b, stuks), kanNiet = verkopen ? (geheim || heeft === 0) : (geheim || S.vlaaien < p);
+      el.classList.toggle('te-duur', kanNiet);
+      el.setAttribute('aria-disabled', kanNiet ? 'true' : 'false');
       el.querySelector('b').textContent = geheim ? '???' : b.naam;
       el.querySelector('small').textContent = geheim ? 'Nog onbekend' : fmtD(b.vps * vermenigvuldiger(b.id) * algemeen()) + ' per seconde per stuk';
       el.querySelector('.stuks').textContent = heeft;
-      el.querySelector('.prijs').textContent = (stuks > 1 ? stuks + ' voor ' : '') + fmt(p);
-      el.setAttribute('aria-label', geheim ? 'Onbekende bakker' : `${b.naam}, je hebt er ${heeft}. Koop ${stuks} voor ${fmt(p)} vlaaien.`);
+      el.querySelector('.prijs').textContent = verkopen ? (heeft ? '+' + (Math.min(stuks, heeft) > 1 ? Math.min(stuks, heeft) + ' voor ' : '') + fmt(terug) : '—') : (stuks > 1 ? stuks + ' voor ' : '') + fmt(p);
+      el.setAttribute('aria-label', geheim ? 'Onbekende bakker' : verkopen ? `${b.naam}, je hebt er ${heeft}. Verkoop ${Math.min(stuks, heeft)} voor ${fmt(terug)} vlaaien.` : `${b.naam}, je hebt er ${heeft}. Koop ${stuks} voor ${fmt(p)} vlaaien.`);
     });
   }
+  let verkopen = false;
+  const terugVan = (b, n) => { const k = S.bakkers[b.id] || 0; n = Math.min(n, k); if (n <= 0) return 0; return Math.floor(0.5 * b.prijs * (heeftPerk('korting') ? 0.9 : 1) * (mod('korting') ? 0.7 : 1) * Math.pow(GROEI, k - n) * (Math.pow(GROEI, n) - 1) / (GROEI - 1)); };
+  function verkoopBakker(id) {
+    const b = BAKKERS.find(x => x.id === id); if (!b) return; const n = Math.min(stuks, S.bakkers[id] || 0); if (n <= 0) return;
+    const terug = terugVan(b, n); S.bakkers[id] -= n; S.vlaaien += terug;   // totaal en ooit blijven gelijk: verkopen is geen bakken
+    alles(); meld(`${n === 1 ? 'Een ' + b.naam.toLowerCase() : n + '× ' + b.naam.toLowerCase()} verkocht voor ${fmt(terug)} vlaaien.`);
+  }
   function koopBakker(id) {
+    if (verkopen) return verkoopBakker(id);
     const b = BAKKERS.find(x => x.id === id); if (!b) return;
     const p = prijsVan(b, stuks);
     if (S.vlaaien < p || (S.totaal < b.prijs * 0.5 && !(S.bakkers[id] > 0))) return;
@@ -916,9 +928,10 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   $('bakkers').addEventListener('pointerover', e => { const b = e.target.closest('[data-b]'); if (b) toonUitleg(b); });
   $('bakkers').addEventListener('focusin', e => { const b = e.target.closest('[data-b]'); if (b) toonUitleg(b); });
   document.querySelector('.hoeveel').addEventListener('click', e => {
+    const v = e.target.closest('[data-verkoop]'); if (v) { verkopen = !verkopen; v.setAttribute('aria-pressed', String(verkopen)); $('bakkers').classList.toggle('verkoopstand', verkopen); tekenBakkers(); return; }
     const b = e.target.closest('[data-n]'); if (!b) return;
     stuks = +b.dataset.n;
-    document.querySelectorAll('.hoeveel button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    document.querySelectorAll('.hoeveel [data-n]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
     tekenBakkers();
   });
 

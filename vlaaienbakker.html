@@ -52,6 +52,9 @@ body {
 .buff { position: relative; overflow: hidden; background: var(--goud); color: var(--inkt); font-weight: 800; font-size: .9rem; padding: .25rem .7rem; border-radius: 999px; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
 .buff i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--rood); }
 .podium { position: relative; height: clamp(17rem, 34vw, 23rem); margin-top: .2rem; }
+.vlaai-knop { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+.vlaai-knop.vasthouden { filter: brightness(1.08) drop-shadow(0 0 14px rgba(246,203,47,.7)); }
 .vlaai-knop {
   position: absolute; left: 50%; top: 50%; width: clamp(14rem, 30vw, 20rem); aspect-ratio: 1; transform: translate(-50%, -50%);
   border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
@@ -735,6 +738,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     UPGRADES.push({ id: b.id + '-7', soort: 'bakker', bakker: b.id, naam: b.t[6], effect: b.naam + ' ×2', prijs: b.prijs * 1e13, eis: S => (S.bakkers[b.id] || 0) >= 500 });
   });
   UPGRADES.push({ id: 'mixer', soort: 'klik', icoon: 'mixer', naam: 'Keukenmixer', effect: 'Klik ×2', prijs: 600, eis: S => S.kliks >= 30 });
+  UPGRADES.push({ id: 'vasthouden', soort: 'klik', icoon: 'want', naam: 'Bakkershandschoen', effect: 'Houd de vlaai ingedrukt om vanzelf door te bakken', prijs: 2500, eis: S => S.kliks >= 100 });
   UPGRADES.push({ id: 'want', soort: 'klik', icoon: 'want', naam: 'Ovenwant', effect: 'Elke klik +1% van je productie', prijs: 50000, eis: S => S.kliks >= 200 });
   UPGRADES.push({ id: 'deegroller', soort: 'klik', icoon: 'deegroller', naam: 'Gouden deegroller', effect: 'Elke klik nog eens +2%', prijs: 5e6, eis: S => S.upg.includes('want') });
   UPGRADES.push({ id: 'garde', soort: 'klik', icoon: 'mixer', naam: 'Zilveren garde', effect: 'Elke klik nog eens +3%', prijs: 5e10, eis: S => S.kliks >= 3000 });
@@ -902,6 +906,16 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     tekenTeller();
   }
   $('vlaai').addEventListener('click', e => { klik(e.detail ? e.clientX : null, e.detail ? e.clientY : null); });
+  let houd = null, houdPunt = null;
+  const stopHouden = () => { if (houd) { clearTimeout(houd.start); clearInterval(houd.tik); houd = null; } $('vlaai').classList.remove('vasthouden'); };
+  $('vlaai').addEventListener('pointerdown', e => {
+    if (!S.upg.includes('vasthouden') || e.button > 0) return; stopHouden(); houdPunt = [e.clientX, e.clientY];
+    houd = { start: setTimeout(() => { $('vlaai').classList.add('vasthouden'); houd.tik = setInterval(() => klik(houdPunt[0], houdPunt[1]), 125); }, 250) };
+  });
+  $('vlaai').addEventListener('pointermove', e => { if (houd) houdPunt = [e.clientX, e.clientY]; });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('vlaai').addEventListener(ev, stopHouden);
+  addEventListener('blur', stopHouden); document.addEventListener('visibilitychange', () => { if (document.hidden) stopHouden(); });
+  $('vlaai').addEventListener('contextmenu', e => { if (S.upg.includes('vasthouden')) e.preventDefault(); });
 
   // ---------- winkel: bakkers
   function bouwBakkers() {
@@ -1277,7 +1291,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   const PAGINA = document.body.dataset.pagina || location.pathname;
   const KEY = 'gereedschap-v2';
   // dingen waar gereedschap nooit overheen mag hangen
-  const HINDER = '.sticker, .coulissen, .prop, .kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
+  const HINDER = '.teaser-houder, .teaser, .nieuwtje, .doos, .sticker, .coulissen, .prop, .kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
   let opgeslagen = {};
   try { opgeslagen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { opgeslagen = {}; }
   const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opgeslagen)); } catch (e) {} };

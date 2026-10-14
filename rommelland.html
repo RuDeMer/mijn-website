@@ -1420,7 +1420,6 @@ const RL3 = (function () {
   function vrij(t, i, j, r) {
     const c = CAT[t], w = r % 2 ? c.d : c.w, d = r % 2 ? c.w : c.d;
     for (let a = i; a < i + w; a++) for (let b = j; b < j + d; b++) if (!binnen(a, b) || S.paden[idx(a, b)] || S.bezet[idx(a, b)]) return false;
-    if (c.soort !== 'decor' && !ingangen({ i, j, w, d }).length) return 'pad';
     return true;
   }
   function ingangen(it) { const uit = []; for (let a = it.i - 1; a <= it.i + it.w; a++) for (let b = it.j - 1; b <= it.j + it.d; b++) { const rand = (a === it.i - 1 || a === it.i + it.w) !== (b === it.j - 1 || b === it.j + it.d); if (rand && isPad(a, b)) uit.push([a, b]); } return uit; }
@@ -1447,11 +1446,23 @@ const RL3 = (function () {
     for (const gid of it.rij.concat(it.inRit)) { const gs = gasten.find(x => x.id === gid); if (gs) { gs.toestand = 'denk'; gs.verborgen = false; } }
     if (selectie === it) sluitInfo();
   }
+  let richtTimer = null; const richtLater = () => { clearTimeout(richtTimer); richtTimer = setTimeout(richtIngangen, 350); };
+  function richtIngangen() {
+    for (const it of S.items) {
+      if (CAT[it.t].soort !== 'attractie' || bereikbaar(it)) continue;
+      const oud = it.kant;
+      for (const [a, b, v] of it.poortVoorheen || []) { if (binnen(a, b)) { S.paden[idx(a, b)] = v; if (S.bezet[idx(a, b)] === it.uid) S.bezet[idx(a, b)] = 0; } }
+      it.poortVoorheen = [];
+      let beste = null;
+      for (let k = 0; k < 4; k++) { const p = poorten(Object.assign({}, it, { kant: k })); if ([p.in, p.uit].every(([a, b]) => binnen(a, b) && !S.bezet[idx(a, b)] && VIER.some(([da, db]) => isPad(a + da, b + db)))) { beste = k; if (k === oud) break; } }
+      zetPoorten(it, beste === null ? oud : beste);
+    }
+  }
   function zetPad(i, j, aan, soort) {
     if (!binnen(i, j) || S.bezet[idx(i, j)]) return false;
     if (!aan && j === GD - 1 && (i === POORT_I || i === POORT_I + 1)) return false;
     const nieuw = aan ? (soort || 1) : 0; if (S.paden[idx(i, j)] === nieuw) return false;
-    S.paden[idx(i, j)] = nieuw; grondVies = true; S.versie = (S.versie || 0) + 1; return true;
+    S.paden[idx(i, j)] = nieuw; grondVies = true; S.versie = (S.versie || 0) + 1; richtLater(); return true;
   }
   // ---------- in- en uitgangen en wachtrijen
   const isPad = (a, b) => binnen(a, b) && S.paden[idx(a, b)] === 1, isRij = (a, b) => binnen(a, b) && S.paden[idx(a, b)] === 2, VIER = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -1469,11 +1480,11 @@ const RL3 = (function () {
     // de oude poorten weghalen
     for (const m of it.poortModellen || []) scene.remove(m);
     if (it.kant !== undefined && it.poortTegels) for (const [a, b] of it.poortTegels) if (binnen(a, b) && S.bezet[idx(a, b)] === it.uid) S.bezet[idx(a, b)] = 0;
-    it.kant = kant; it.poortModellen = []; it.poortTegels = [];
+    it.kant = kant; it.poortModellen = []; it.poortTegels = []; it.poortVoorheen = [];
     if (kant === null || kant === undefined) return;
     const p = poorten(it);
     for (const [[a, b], soort, tekst, kleur] of [[p.in, 2, 'IN', '#2E8B62'], [p.uit, 1, 'UIT', '#C8323C']]) {
-      if (!binnen(a, b)) continue; S.paden[idx(a, b)] = soort; S.bezet[idx(a, b)] = it.uid; it.poortTegels.push([a, b]);
+      if (!binnen(a, b)) continue; it.poortVoorheen.push([a, b, S.paden[idx(a, b)]]); S.paden[idx(a, b)] = soort; S.bezet[idx(a, b)] = it.uid; it.poortTegels.push([a, b]);
       const m = poortModel(tekst, kleur); m.position.set(wx(a), 0, wz(b)); const [ci, cj] = [it.i + it.w / 2 - 0.5, it.j + it.d / 2 - 0.5]; m.rotation.y = Math.abs(a - ci) > Math.abs(b - cj) ? Math.PI / 2 : 0; m.traverse(o => { o.userData.item = it; }); scene.add(m); it.poortModellen.push(m);
     }
     grondVies = true; S.versie = (S.versie || 0) + 1;
@@ -1834,6 +1845,7 @@ const RL3 = (function () {
       if (v === 'pad') { melding(c.naam + ' moet naast een pad staan, anders kunnen de bezoekers er niet bij.', 'fout'); return; }
       if (!v) { melding('Daar is geen plek.', 'fout'); return; }
       S.geld -= c.kost; S.vandaag.uit += c.kost; const it = plaats(bouwType, spookPlek.i, spookPlek.j, draaiing); geluid('bouw'); bewaarLater(); checkDoelen();
+      if (!heeftPad(it)) setTimeout(() => melding(c.naam + ' staat er! Leg nog een pad naar de ' + (c.soort === 'attractie' ? 'ingang' : 'kraam') + ', dan komen er bezoekers.'), 600);
       if (c.soort !== 'decor') { kiesGereedschap('kijk'); toonInfo(it); }
       return;
     }
@@ -1918,7 +1930,7 @@ const RL3 = (function () {
   function melding(tekst, soort) { const t = document.createElement('div'); t.className = 'rl-toast ' + (soort || ''); t.textContent = tekst; t.setAttribute('role', 'status'); toasts.appendChild(t); setTimeout(() => t.remove(), 4500); while (toasts.children.length > 4) toasts.firstChild.remove(); }
   const dlg = $('rl-dialoog');
   function toonRapport(kop, html) { dlg.innerHTML = `<h2>${kop}</h2>${html}<button type="button" class="rl-groot">Verder</button>`; dlg.querySelector('button').onclick = () => dlg.close(); if (!dlg.open) dlg.showModal(); }
-  function toonHelp() { toonRapport('Welkom in je pretpark!', `<p>Jij bent de baas van een gloednieuw pretpark. Zo begin je:</p><ol><li>Leg <b>paden</b> vanaf de poort. Bezoekers lopen alleen over paden.</li><li>Zet een <b>attractie</b> neer. Elke attractie heeft een groene <b>ingang</b> en een rode <b>uitgang</b>. Leg met <b>Wachtrij leggen</b> een wachtrij van de ingang naar een pad, en zorg dat de uitgang aan een pad ligt. Een langere wachtrij heeft plek voor meer bezoekers. Draaien doe je met R of de draaiknop.</li><li>Zet <b>kraampjes</b> neer voor eten, drinken en de wc.</li><li>Maak je park mooi met <b>bomen, bloemen en meer</b>, en zet prullenbakken neer tegen de rommel.</li><li>Neem <b>personeel</b> aan: een schoonmaker, een monteur, of een Rommelbeest als mascotte.</li></ol><p>Klik op een bezoeker om te zien wat hij denkt. Haal <b>doelen</b> om nieuwe attracties vrij te spelen. 's Avonds kun je een vuurwerkshow geven.</p>`); }
+  function toonHelp() { toonRapport('Welkom in je pretpark!', `<p>Jij bent de baas van een gloednieuw pretpark. Zo begin je:</p><ol><li>Leg <b>paden</b> vanaf de poort. Bezoekers lopen alleen over paden.</li><li>Zet een <b>attractie</b> neer. Elke attractie heeft een groene <b>ingang</b> en een rode <b>uitgang</b>. Leg met <b>Wachtrij leggen</b> een wachtrij van de ingang naar een pad, en zorg dat de uitgang aan een pad ligt. Een langere wachtrij heeft plek voor meer bezoekers. Je mag ook eerst bouwen en daarna de paden leggen: zolang er geen pad is, hangt er een bordje boven, en de in- en uitgang draaien vanzelf naar je pad. Draaien doe je met R of de draaiknop.</li><li>Zet <b>kraampjes</b> neer voor eten, drinken en de wc.</li><li>Maak je park mooi met <b>bomen, bloemen en meer</b>, en zet prullenbakken neer tegen de rommel.</li><li>Neem <b>personeel</b> aan: een schoonmaker, een monteur, of een Rommelbeest als mascotte.</li></ol><p>Klik op een bezoeker om te zien wat hij denkt. Haal <b>doelen</b> om nieuwe attracties vrij te spelen. 's Avonds kun je een vuurwerkshow geven.</p>`); }
   // ================= GELUID
   let ac = null;
   function geluid(wat) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const n = (f, t0, d, ty, v) => { const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + t0; o.type = ty; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d + 0.05); }; if (wat === 'bouw') { n(392, 0, 0.12, 'square', 0.03); n(523, 0.08, 0.16, 'square', 0.03); } if (wat === 'sloop') n(150, 0, 0.25, 'sawtooth', 0.03); } catch (e) {} }
@@ -1960,7 +1972,19 @@ const RL3 = (function () {
     $('rl-parknaam').textContent = S.naam;
     if (selectie && !info.hidden) { if (selectie === 'park') {} else if (selectie.t) { if (!document.activeElement || !info.contains(document.activeElement)) toonInfo(selectie); } else if (selectie.naam && gasten.includes(selectie)) toonGast(selectie); }
   }
+  const padBordjes = new Map(); let padVersie = -1;
+  const heeftPad = it => { const c = CAT[it.t]; if (c.soort === 'decor') return true; if (c.soort === 'attractie') return bereikbaar(it); return ingangen(it).length > 0; };
+  function werkPadBordjes() {
+    for (const [uid, b] of padBordjes) if (!S.items.some(x => x.uid === uid)) { scene.remove(b); padBordjes.delete(uid); }
+    for (const it of S.items) {
+      const nodig = !heeftPad(it); let b = padBordjes.get(it.uid);
+      if (nodig && !b) { b = new THREE.Sprite(new THREE.SpriteMaterial({ map: RL3.tekstTex('🚧 Nog geen pad', '#231A26', '#F6CB2F'), depthTest: false, transparent: true })); b.scale.set(7, 1.64, 1); const doos = new THREE.Box3().setFromObject(it.groep); b.position.set((doos.min.x + doos.max.x) / 2, doos.max.y + 1.8, (doos.min.z + doos.max.z) / 2); b.renderOrder = 10; b.userData.y = b.position.y; scene.add(b); padBordjes.set(it.uid, b); }
+      if (b) b.visible = nodig;
+    }
+  }
   function lus() {
+    if ((S.versie || 0) !== padVersie) { padVersie = S.versie || 0; werkPadBordjes(); }
+    for (const b of padBordjes.values()) if (b.visible) b.position.y = b.userData.y + Math.sin(performance.now() / 400) * 0.15;
     luchtBol.position.copy(camera.position);
     const echteDt = Math.min(0.05, klok.getDelta());
     const dt = echteDt * S.snel;
@@ -1984,7 +2008,7 @@ const RL3 = (function () {
   if (nieuw) setTimeout(toonHelp, 400);
   lus();
   // voor tests
-  window.__rlq = { poorten, wachtrij, bereikbaar, zetPoorten, zetRij: (i, j) => zetPad(i, j, true, 2), rijRoute };
+  window.__rlq = { plaats, zetPad, heeftPad, richtIngangen, padBordjes, vrij, poorten, wachtrij, bereikbaar, zetPoorten, zetRij: (i, j) => zetPad(i, j, true, 2), rijRoute };
   window.__rl = { zon: () => zon.position.toArray(), doel: () => doel.toArray(), scherm: (x, z) => { const v = new THREE.Vector3(x, 0, z).project(camera), r = renderer.domElement.getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, grond: (px, py) => { const g = opGrond({ clientX: px, clientY: py }); return g ? [g.p.x, g.p.z] : null; }, S, gasten, rommel, CAT, plaats, zetPad: (i, j) => zetPad(i, j, true), sim: (sec) => { for (let k = 0; k < sec * 10; k++) { update(0.1); updatePersoneel(0.1); } S.waard = waardering(); checkDoelen(); }, neemAan, waardering, kijk: (a, e, d, x, z) => { doelAz = az = a; doelEl = el = e; doelAf = afstand = d; doelDoel.set(x || 0, 0, z || 0); doel.copy(doelDoel); }, ingangen, startShow, vrij };
 })();
 

@@ -451,3 +451,9 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - `rommelhotel-online.html`: niet meer geheim (`HOTEL_GEHEIM = False`, geen noindex); tot de opening een label 'Nog niet open · opent zaterdag 17 oktober om 12:00' (verdwijnt vanzelf). Geen kaartje op de homepage zetten: het doosje komt vanzelf bij de opening.
 - Getest met de echte homepage van GitHub (versie 0.49) en een verzette klok: nu (teaser), zaterdag 11:59:58 (live omslag met confetti), zondag (meteen 0.5), telefoon; nergens gereedschap over de nieuwe onderdelen; lampje open en dicht.
 - Na de opening kan het versienummer in index.html zelf ook op 0.5 (de code zet het al op het scherm).
+
+
+## Ideeënbox (14 oktober 2026, tweede ronde)
+- **Vlaaienbakker, Bakkershandschoen** (vlaai vasthouden): verbetering `vasthouden` (soort klik, na 100 tikken, 2.500 vlaaien). Na een kwart seconde ingedrukt houden bakt de vlaai 8 keer per seconde door (binnen de 16 per seconde waarmee de server rekent); stopt bij loslaten, wegschuiven, ander tabblad. Geen menu of tekstselectie bij lang indrukken; de vlaai gloeit zacht zolang je vasthoudt.
+- **Rommelland, eerst bouwen en dan paden** (idee van Nadia): `vrij()` eist geen pad meer. Boven alles wat nog niet bereikbaar is (attractie niet `bereikbaar`, kraam zonder ingang) zweeft een bordje '🚧 Nog geen pad' (`padBordjes`, bijgewerkt bij elke `S.versie`). Na het leggen van paden (`zetPad` → `richtLater` → `richtIngangen`) draaien onbereikbare attracties hun in- en uitgang vanzelf naar een kant waar beide poorten aan een pad liggen; de poorten onthouden wat er eerst lag (`poortVoorheen`) en zetten dat terug. Melding bij bouwen zonder pad, en uitleg in de hulp.
+- **Spel met de productiefiets** (idee van Joop, Subway Surfers-achtig): nog niet gebouwd, eerst gevraagd wat de productiefiets is.

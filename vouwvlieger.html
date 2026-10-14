@@ -239,6 +239,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
   const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
   const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
   let bezigK = false, eersteK = true;
+  const APPARAAT = (() => { try { let a = localStorage.getItem('rommel-apparaat'); if (!a) { a = Array.from(crypto.getRandomValues(new Uint8Array(12)), x => x.toString(16).padStart(2, '0')).join(''); localStorage.setItem('rommel-apparaat', a); } return a; } catch (e) { return ''; } })();
   async function koppelSync(stil) {
     const K = leesK(); if (!K || !K.code || bezigK) return null;
     const inst = await klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null;
@@ -251,11 +252,12 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
         if (v !== null) { const h = hash(v); if (!st || st.h !== h) { K.staat[k] = { h, t: Date.now() }; if (v.length <= MAX) items[k] = { t: K.staat[k].t, data: v }; } }
         bekend[k] = K.staat[k] ? K.staat[k].t : 0;
       }
-      const r = await metTijd(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend }) });
+      const r = await metTijd(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend, apparaat: APPARAAT }) });
       const j = await r.json(); if (!j.ok) return null;
-      const herstel = {}; let nieuwHier = false, geweigerdHier = '';
+      const herstel = {}; let nieuwHier = false, geweigerdHier = '', vervangenHier = false;
       for (const [k, it] of Object.entries(j.items || {})) {
-        const weg = j.geweigerd && j.geweigerd[k];
+        const weg = j.geweigerd && j.geweigerd[k], verv = j.vervangen && j.vervangen[k];
+        if (verv && !weg) { K.staat[k] = { h: hash(it.data), t: it.t }; if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; vervangenHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} } continue; }
         if (weg) { K.staat[k] = { h: hash(it.data), t: it.t }; if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; geweigerdHier = weg; } else { try { localStorage.setItem(k, it.data); } catch (e) {} } continue; }
         if (!SLEUTELS.includes(k) || (K.staat[k] && K.staat[k].t >= it.t)) continue;
         K.staat[k] = { h: hash(it.data), t: it.t };
@@ -266,6 +268,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
       if (nieuwHier) {
         try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
         if (geweigerdHier) { try { sessionStorage.setItem('koppel-geweigerd', geweigerdHier); } catch (e) {} location.reload(); return j; }
+        if (vervangenHier) { try { sessionStorage.setItem('koppel-vervangen', '1'); } catch (e) {} location.reload(); return j; }
         if (eersteK && !stil) { location.reload(); return j; }
         toonKoppelMelding('Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', () => location.reload());
       }
@@ -357,6 +360,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
   // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
   setTimeout(() => { const K = leesK(); if (!K || !K.code) maakKoppeling().catch(() => {}); }, 2500);
   // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
+  try { if (sessionStorage.getItem('koppel-vervangen')) { sessionStorage.removeItem('koppel-vervangen'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald: daar was je verder.'), 900)); } } catch (e) {}
   try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang ging sneller dan de server kon controleren (' + w + '), dus hij is teruggezet naar de laatste goedgekeurde stand.\n\nSpeel je hetzelfde spel in twee tabbladen of op twee apparaten tegelijk? Gebruik er dan één tegelijk, dan gebeurt dit niet meer. Klopt er iets niet, laat het Ruben weten via de ideeënbox.'), 400)); } } catch (e) {}
   // op de homepage en het scorebord een knopje
   if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
@@ -371,7 +375,7 @@ body { background: #0B0E22; color: var(--papier); font-family: "Bricolage Grotes
     klaar.then(inst => { const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return; const items = {}; let grootte = 0;
       for (const k of SLEUTELS) { let v = null; try { v = localStorage.getItem(k); } catch (e) {} if (v === null) continue; const h = hash(v), st = (K.staat || {})[k]; if (st && st.h === h) continue; if (grootte + v.length > 60000) continue; grootte += v.length; const t = Date.now(); items[k] = { t, data: v }; K.staat[k] = { h, t }; }
       if (!Object.keys(items).length) return; schrijfK(K);
-      try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend: {} }), keepalive: true }); } catch (e) {}
+      try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend: {}, apparaat: APPARAAT }), keepalive: true }); } catch (e) {}
     });
   }));
   API.synchroniseer = synchroniseer;

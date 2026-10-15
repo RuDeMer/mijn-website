@@ -172,6 +172,14 @@ body.verbonden[data-wptab="upload"] .wp-deel[data-tab="upload"], body.verbonden[
 .ht-deur::after { content: '🏨'; font-size: 2.6rem; filter: drop-shadow(0 2px 0 rgba(0,0,0,.2)); }
 .ht-luik { position: absolute; left: 10%; right: 10%; top: 32%; height: 0; background: repeating-linear-gradient(180deg, #B8C0C8 0 9px, #8E98A3 9px 11px, #D0D6DC 11px 13px); box-shadow: inset 0 -6px 0 #5F6A75, 0 2px 0 rgba(0,0,0,.3); transition: height 1.4s cubic-bezier(.5,0,.3,1); }
 .ht-gevel.dicht .ht-luik { height: 68%; }
+.ht-gevel.half .ht-luik { height: 30%; } .ht-gevel.half .ht-bord { opacity: 1; top: 40%; font-size: .95rem; color: #2F6FB5; }
+.ht-gevel.half .ht-open { opacity: 0; }
+.ht-standen { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; margin-top: .3rem; }
+.ht-stand-knop { font: inherit; font-weight: 800; font-size: .82rem; border: 2px solid #C9A24E; background: #FFFCF6; color: #231A26; border-radius: 10px; padding: .5rem .3rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .15rem; transition: transform .1s, background .2s; }
+.ht-stand-knop b { font-size: 1.3rem; } .ht-stand-knop:hover { background: #FFF3D1; } .ht-stand-knop:active { transform: translateY(1px); }
+.ht-stand-knop[aria-pressed="true"][data-stand="open"] { background: #2E8B62; border-color: #1E6B48; color: #fff; } .ht-stand-knop[aria-pressed="true"][data-stand="admin_only"] { background: #2F6FB5; border-color: #1F4F85; color: #fff; } .ht-stand-knop[aria-pressed="true"][data-stand="closed"] { background: #C8323C; border-color: #8E1F2A; color: #fff; }
+.ht-stand-knop:disabled { opacity: .6; cursor: wait; }
+.ht-sleutel { margin-top: .6rem; } .ht-sleutel summary { cursor: pointer; font-weight: 700; font-size: .85rem; }
 .ht-bord { position: absolute; left: 50%; top: 54%; transform: translate(-50%, -50%) rotate(-4deg); background: #FBF6E9; color: #C8323C; border: 3px solid #231A26; border-radius: 8px; padding: .35rem .9rem; font-weight: 900; font-size: 1.4rem; letter-spacing: .08em; box-shadow: 0 4px 0 rgba(0,0,0,.3); opacity: 0; transition: opacity .4s 1.1s; }
 .ht-bord::before { content: ''; position: absolute; left: 50%; top: -22px; width: 40px; height: 22px; transform: translateX(-50%); border: 2px solid #231A26; border-bottom: 0; border-radius: 20px 20px 0 0; }
 .ht-gevel.dicht .ht-bord { opacity: 1; }
@@ -302,13 +310,21 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
     <p class="hint">Gebruikt hetzelfde beheerwachtwoord als het tabblad Veiligheid.</p>
     <div class="vg-raster">
       <div class="vg-blok">
-        <h3>Open of dicht</h3>
-        <div class="ht-gevel" id="ht-gevel" aria-hidden="true"><div class="ht-dak"></div><div class="ht-naam">ROMMELHOTEL</div><span class="ht-open">● OPEN</span><div class="ht-deur"></div><div class="ht-luik"></div><div class="ht-bord">GESLOTEN</div></div>
-        <p id="ht-stand" class="hint" style="text-align:center;font-weight:700" role="status">Stand ophalen…</p>
-        <label class="hint" for="ht-bericht" style="display:block;margin:.2rem 0">Bericht voor bezoekers als het hotel dicht is</label>
+        <h3>Toegang tot het hotel</h3>
+        <div class="ht-gevel" id="ht-gevel" aria-hidden="true"><div class="ht-dak"></div><div class="ht-naam">ROMMELHOTEL</div><span class="ht-open">● OPEN</span><div class="ht-deur"></div><div class="ht-luik"></div><div class="ht-bord" id="ht-bord">GESLOTEN</div></div>
+        <div class="ht-standen" role="group" aria-label="Stand van het hotel">
+          <button type="button" class="ht-stand-knop" data-stand="open" aria-pressed="false"><b>🔓</b>Hotel open</button>
+          <button type="button" class="ht-stand-knop" data-stand="admin_only" aria-pressed="false"><b>🛡️</b>Alleen rank 7</button>
+          <button type="button" class="ht-stand-knop" data-stand="closed" aria-pressed="false"><b>🚧</b>Rolluik dicht</button>
+        </div>
+        <p id="ht-stand" class="hint" style="text-align:center;font-weight:700;margin:.5rem 0" role="status">Stand ophalen…</p>
+        <label class="hint" for="ht-bericht" style="display:block;margin:.2rem 0">Bericht voor bezoekers als het rolluik dicht is</label>
         <input id="ht-bericht" maxlength="200" placeholder="Bijvoorbeeld: even onderhoud, om 20:00 zijn we weer open!" style="font:inherit;width:100%;padding:.45rem .55rem;border-radius:8px;border:2px solid #C9A24E">
-        <p style="display:flex;gap:.4rem;flex-wrap:wrap;margin:.6rem 0 0"><button class="vg-knop rood" id="ht-dicht" type="button">Rolluik omlaag (sluiten)</button><button class="vg-knop" id="ht-open" type="button">Rolluik omhoog (openen)</button></p>
-        <p class="hint" style="margin-top:.5rem">Dicht betekent: je Rommelhotel-pagina toont het rolluik, en alle knoppen naar het hotel staan uit. Wie het adres van het hotel zelf intypt, komt er nog wel in, en wie al in het hotel is, blijft binnen.</p>
+        <details class="ht-sleutel" id="ht-sleutel-blok"><summary>Hotelsleutel <span id="ht-sleutel-stand"></span></summary>
+          <p class="hint" style="margin:.4rem 0">De sleutel uit <code>/root/habbo/status_api_sleutel.txt</code> op je VPS. Hij wordt alleen op dit apparaat bewaard, nooit in je site.</p>
+          <p style="display:flex;gap:.4rem;flex-wrap:wrap;margin:0"><input id="ht-sleutel" type="password" autocomplete="off" placeholder="Plak hier je hotelsleutel" style="font:inherit;flex:1;min-width:12rem;padding:.4rem .5rem;border-radius:8px;border:2px solid #C9A24E"><button class="vg-knop" id="ht-sleutel-bewaar" type="button">Bewaar</button><button class="vg-knop" id="ht-sleutel-vergeet" type="button">Vergeet</button></p>
+        </details>
+        <p class="hint" style="margin-top:.5rem"><b>Open</b>: iedereen kan inloggen en zich aanmelden. <b>Alleen rank 7</b>: de inlogpagina blijft zichtbaar, maar alleen beheerders komen binnen, en aanmelden kan niet. <b>Rolluik dicht</b>: bezoekers zien het rolluik, en je Rommelhotel-pagina en homepage tonen het ook (als het beheerwachtwoord bij Veiligheid is ingevuld). Wie al in het hotel is, blijft binnen.</p>
       </div>
       <div class="vg-blok">
         <h3>Beheer</h3>
@@ -499,11 +515,40 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
       catch (x) { alert('Terugzetten lukte niet: ' + x.message); }
     });
     // ---------- Rommelhotel: het rolluik
-    const htStand = (open, bericht) => { $('ht-gevel').classList.toggle('dicht', !open); $('ht-stand').textContent = open ? 'Het hotel is open.' : 'Het hotel is gesloten.' + (bericht ? ' Bericht: ' + bericht : ''); if (!open && bericht && !$('ht-bericht').value) $('ht-bericht').value = bericht; };
-    async function htLaad() { try { const basis = await server(); if (!basis) throw new Error('Ik kan het adres van je scoreserver niet vinden.'); const r = await fetch(basis + '/status', { cache: 'no-store' }); const j = await r.json(); htStand(!j.hotel || j.hotel.open, j.hotel && j.hotel.bericht); } catch (e) { $('ht-stand').textContent = 'Stand niet op te halen: ' + e.message; } }
-    async function htZet(dicht) { if (dicht && !confirm('Het rolluik omlaag doen? Bezoekers zien dan het bordje "Gesloten", en niemand kan meer inloggen behalve beheerders.')) return; $('ht-stand').textContent = dicht ? 'Rolluik gaat omlaag…' : 'Rolluik gaat omhoog…'; try { const j = await api('/beheer/hotel', { method: 'POST', body: JSON.stringify({ dicht, bericht: $('ht-bericht').value.trim() }) }); htStand(j.open, j.bericht); } catch (e) { $('ht-stand').textContent = e.message; } }
-    if ($('vg-geweigerd')) $('vg-geweigerd').addEventListener('click', async e => { const k = e.target.closest('[data-goedkeuren]'); if (!k) return; if (!confirm('Deze stand toch goedkeuren? Hij wordt dan de stand van dit account, en alle apparaten van deze speler nemen hem over. Doe dit alleen als je de speler vertrouwt.')) return; k.disabled = true; k.textContent = 'Bezig…'; try { await api('/beheer/goedkeuren', { method: 'POST', body: JSON.stringify({ nr: +k.dataset.goedkeuren }) }); k.textContent = 'Goedgekeurd ✓'; } catch (x) { k.disabled = false; k.textContent = 'Toch goedkeuren'; alert(x.message); } });
-    $('ht-dicht').addEventListener('click', () => htZet(true)); $('ht-open').addEventListener('click', () => htZet(false));
+    // ---------- Rommelhotel: drie standen via de status-API op de VPS
+    const HT_API = 'https://hotel.rubensrommelhoekje.nl/status_api.php';
+    const htSleutel = () => { try { return localStorage.getItem('hotel-api-sleutel') || ''; } catch (e) { return ''; } };
+    const htSleutelStand = () => { $('ht-sleutel-stand').textContent = htSleutel() ? '· bewaard op dit apparaat ✓' : '· nog niet ingevuld'; if (!htSleutel()) $('ht-sleutel-blok').open = true; };
+    const HT_NAAM = { open: 'Het hotel is open voor iedereen.', admin_only: 'Alleen beheerders (rank 7) kunnen inloggen. Aanmelden staat uit.', closed: 'Het rolluik is dicht.' };
+    function htToon(j) {
+      const stand = j && j.stand; $('ht-gevel').classList.toggle('dicht', stand === 'closed'); $('ht-gevel').classList.toggle('half', stand === 'admin_only'); $('ht-bord').textContent = stand === 'admin_only' ? 'ALLEEN RANK 7' : 'GESLOTEN';
+      document.querySelectorAll('.ht-stand-knop').forEach(k => k.setAttribute('aria-pressed', String(k.dataset.stand === stand)));
+      const sinds = j && j.sinds ? ' Sinds ' + new Date(j.sinds).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '.' : '';
+      $('ht-stand').textContent = (HT_NAAM[stand] || 'Onbekende stand.') + sinds + (stand === 'closed' && j.bericht ? ' Bericht: ' + j.bericht : '');
+      if (stand === 'closed' && j.bericht && !$('ht-bericht').value) $('ht-bericht').value = j.bericht;
+    }
+    async function htVps(methode, body) {
+      const s = htSleutel(); if (!s) throw new Error('Vul eerst je hotelsleutel in (hieronder).');
+      let r; try { r = await fetch(HT_API, { method: methode, cache: 'no-store', headers: Object.assign({ Authorization: 'Bearer ' + s }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined }); }
+      catch (e) { throw new Error('Het hotel is niet bereikbaar. Draait de VPS, en staat status_api.php erop?'); }
+      const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.fout || ('Fout ' + r.status)); return j;
+    }
+    async function htLaad() { htSleutelStand(); if (!htSleutel()) { $('ht-stand').textContent = 'Vul je hotelsleutel in om de stand te zien.'; return; } $('ht-stand').textContent = 'Stand ophalen…'; try { htToon(await htVps('GET')); } catch (e) { $('ht-stand').textContent = e.message; } }
+    async function htZet(stand) {
+      if (stand === 'closed' && !confirm('Het rolluik omlaag doen? Bezoekers zien dan het bordje "Gesloten", en alleen beheerders komen nog binnen.')) return;
+      const knoppen = document.querySelectorAll('.ht-stand-knop'); knoppen.forEach(k => { k.disabled = true; });
+      $('ht-stand').textContent = { open: 'Rolluik gaat omhoog…', admin_only: 'Alleen rank 7 wordt ingesteld…', closed: 'Rolluik gaat omlaag…' }[stand];
+      try {
+        const j = await htVps('POST', { stand, bericht: $('ht-bericht').value.trim() }); htToon(j);
+        // de Rommelhotel-pagina en de homepage kijken naar de scoreserver: die meteen meezetten
+        if ($('vg-wachtwoord') && $('vg-wachtwoord').value) { try { await api('/beheer/hotel', { method: 'POST', body: JSON.stringify({ dicht: stand === 'closed', bericht: $('ht-bericht').value.trim() }) }); } catch (x) { $('ht-stand').textContent += ' (Let op: de scoreserver kon niet worden bijgewerkt: ' + x.message + ')'; } }
+        else if (stand === 'closed' || stand === 'open') $('ht-stand').textContent += ' Vul bij Veiligheid je beheerwachtwoord in, dan tonen je Rommelhotel-pagina en homepage dit ook.';
+      } catch (e) { $('ht-stand').textContent = e.message; }
+      knoppen.forEach(k => { k.disabled = false; });
+    }
+    document.querySelectorAll('.ht-stand-knop').forEach(k => k.addEventListener('click', () => htZet(k.dataset.stand)));
+    $('ht-sleutel-bewaar').addEventListener('click', () => { const v = $('ht-sleutel').value.trim(); if (v.length < 24) { alert('Deze sleutel is te kort. Plak de hele sleutel uit status_api_sleutel.txt.'); return; } try { localStorage.setItem('hotel-api-sleutel', v); } catch (e) {} $('ht-sleutel').value = ''; $('ht-sleutel-blok').open = false; htLaad(); });
+    $('ht-sleutel-vergeet').addEventListener('click', () => { try { localStorage.removeItem('hotel-api-sleutel'); } catch (e) {} htLaad(); });
     document.querySelector('[data-wptab="hotel"]').addEventListener('click', htLaad);
     $('p-hotel').addEventListener('click', async e => { const k = e.target.closest('[data-kopieer]'); if (!k) return; try { await navigator.clipboard.writeText(k.dataset.kopieer); const oud = k.textContent; k.textContent = 'Gekopieerd'; setTimeout(() => { k.textContent = oud; }, 1200); } catch (x) {} });
   })();

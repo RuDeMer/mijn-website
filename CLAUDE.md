@@ -482,3 +482,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 ## Uit de coulissen: Dokter de Groot en Winston Darius (idee van Joop)
 - In `hebbedingen.js` (PROPS en SVG en DOEN): `klembord` (Dokter de Groot, Kliniek Rozenveld, Graywood en de Geheime Goden van Ostarus): klembord met 'KLINIEK ROZENVELD', rood kruis, pen en naamkaartje 'Dr. de Groot'; bij een klik krabbelt de pen ('Kom je, Caroline?'). `sigaar` (Winston Darius, dezelfde voorstelling): sigaar met rood-goud bandje en gloeiend puntje; bij een klik gloeit hij op en kringelt rook omhoog ('Een sigaartje, heren?'). Ze hangen naast Caspian Darius. Let op: bij Caspian staat de voorstelling als '... van Ostarus en Gifgroeve'.
 - **Steigerstress**: Ruben twijfelt nog of hij het spel online zet ('speelt nog niet echt lekker'). Nog niet uploaden tot dat besloten is; `scorebord.html` bevat het spel al wel in de lijst.
+
+
+## Bakwedstrijd op het scorebord (opgelost 15 oktober 2026)
+- Melding uit de ideeënbox: de Bakwedstrijd van de week werkte niet op het scorebord. Oorzaak: `GET /scores` gaf alleen de spellen uit `SPELLEN` terug, en de Bakwedstrijd heeft elke week een eigen naam (`vw` + weeknummer, `WEEKBORD`). De scores werden wel opgeslagen, maar nooit teruggegeven.
+- Opgelost in de worker: `GET /scores` geeft ook de twee nieuwste weekborden mee (`SELECT DISTINCT spel FROM scores WHERE spel LIKE 'vw%'`), zodat ook de wissel rond maandag middernacht (weeknummer in Nederlandse tijd) goed gaat. Alleen de scoreserver hoefde opnieuw gedeployd te worden; scores die al ingestuurd waren, verschijnen dan vanzelf.

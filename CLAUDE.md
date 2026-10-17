@@ -481,9 +481,47 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 ## Uit de coulissen: Dokter de Groot en Winston Darius (idee van Joop)
 - In `hebbedingen.js` (PROPS en SVG en DOEN): `klembord` (Dokter de Groot, Kliniek Rozenveld, Graywood en de Geheime Goden van Ostarus): klembord met 'KLINIEK ROZENVELD', rood kruis, pen en naamkaartje 'Dr. de Groot'; bij een klik krabbelt de pen ('Kom je, Caroline?'). `sigaar` (Winston Darius, dezelfde voorstelling): sigaar met rood-goud bandje en gloeiend puntje; bij een klik gloeit hij op en kringelt rook omhoog ('Een sigaartje, heren?'). Ze hangen naast Caspian Darius. Let op: bij Caspian staat de voorstelling als '... van Ostarus en Gifgroeve'.
-- **Steigerstress**: Ruben twijfelt nog of hij het spel online zet ('speelt nog niet echt lekker'). Nog niet uploaden tot dat besloten is; `scorebord.html` bevat het spel al wel in de lijst.
+- **Steigerstress**: Ruben twijfelt nog of hij het spel online zet ('speelt nog niet echt lekker'). Nog niet uploaden tot dat besloten is. Het staat voorlopig niet op de scorebordpagina (wel nog in de worker en de homepagecategorie, waar het geen kwaad kan).
 
 
 ## Bakwedstrijd op het scorebord (opgelost 15 oktober 2026)
 - Melding uit de ideeënbox: de Bakwedstrijd van de week werkte niet op het scorebord. Oorzaak: `GET /scores` gaf alleen de spellen uit `SPELLEN` terug, en de Bakwedstrijd heeft elke week een eigen naam (`vw` + weeknummer, `WEEKBORD`). De scores werden wel opgeslagen, maar nooit teruggegeven.
 - Opgelost in de worker: `GET /scores` geeft ook de twee nieuwste weekborden mee (`SELECT DISTINCT spel FROM scores WHERE spel LIKE 'vw%'`), zodat ook de wissel rond maandag middernacht (weeknummer in Nederlandse tijd) goed gaat. Alleen de scoreserver hoefde opnieuw gedeployd te worden; scores die al ingestuurd waren, verschijnen dan vanzelf.
+
+- **Foutenlogboek (17 oktober 2026)**: meldingen die van browserextensies van bezoekers komen (bijvoorbeeld 'Invalid call to runtime.sendMessage(). Tab not found.', extensie-adressen, 'Extension context invalidated') worden in `POST /fout` genegeerd en niet meer bewaard. Echte fouten van de site komen er gewoon in.
+
+
+## Rommelwheels (ragdoll-racespel)
+- `rommelwheels.html`: alles in één bestand. Een eigen 2D-slapstickspel: een slap poppetje in een raar voertuig over een baan vol valkuilen. Het is in de stijl van bekende ragdoll-racespellen, maar er is niets van overgenomen.
+- Natuurkunde met Planck.js 1.5.0 van cdnjs (SRI), met een vaste stap van 1/60 s.
+- **Personages**: alleen de negen uit de coulissen, elk met een eigen voertuig en een eigen actie. Bij elk level kies je zelf wie er rijdt.
+- **Schade**: harde klappen breken ledematen af op de plek van de klap. Zonder armen leun je minder of niet. Buiten je voertuig kruip je verder. Bloed staat op veel, weinig of uit.
+- **Levels**: 12 levels en een bonuslevel achter de coulissen, elk in een eigen wereld. Per level drie sterren: gehaald, binnen de doeltijd en alle sterretjes. De levels gaan op volgorde open.
+  - Een testrobot (`RW.piloot`) haalt alle 13 levels met alle 9 personages, inclusief alle sterretjes.
+  - Test dat na elke wijziging aan de natuurkunde of de levels opnieuw.
+- **Leveleditor** (Levels bouwen): bouwstenen neerzetten, slepen, draaien en schalen, de grond vormen, meteen testen en bewaren op het apparaat.
+  - Delen gaat met een levelcode: `RW1.` + base64url van met deflate-raw ingepakte JSON.
+  - Codes van anderen worden streng gecontroleerd.
+  - Eigen levels tellen niet mee voor het scorebord.
+- **Besturing**:
+  - ↑/W gas, ↓/S remmen en achteruit, ←→ (A/D) leunen; buiten het voertuig is dat kruipen.
+  - Spatie is de actie, Z uitspringen, R opnieuw, Esc/P pauze.
+  - Op een telefoon zijn er aanraakknoppen.
+  - In de editor: slepen, Q/E draaien, +/− schalen, Delete weghalen, Ctrl+Z/Y ongedaan en opnieuw, T testen.
+- **Opslag**: localStorage `rommelwheels-v1` (`levels`, `eigen`, `inst`, `pers`, `bezig`). Gaat mee met koppelen.
+- **Scorebord**: spel-id `wheels` via `Scorebord.stuur('wheels', totaalPunten, aantalSterren)`. Score = alle punten opgeteld (max 33.150), extra = sterren (max 39). In de worker: max 40.000.
+- **Testhaak**: `window.__wheels`.
+
+### Ingebouwd in de site (18 oktober 2026)
+- Gemaakt door Claude Code; ingebouwd in het bouwproces als `wheels_template.html`: de kopieën van `scorebord.js` en `grapjes.js` zijn eruit gehaald. Op hun plek zet de bouw het gedeelde scorebord-script (Rommelwheels staat in `SB_PAGINAS`), en de grapjes komen via `EI_PAGINAS`. Het eigen veiligheidsbeleid van de pagina blijft staan (`veilig()` slaat pagina's met een eigen CSP over). Planck.js 1.5.0 met SRI; het bestand van npm is byte-gelijk aan dat van cdnjs.
+- Gedeeld script: `'rommelwheels-v1'` in `SLEUTELS`, `wheels` in `BRONNEN`. Worker: `wheels` in `SPELLEN` (max 40.000). Scorebordpagina: regel `wheels` met icoon `wheels` (de favicon van Claude Code: een snel rollend wiel met een gezichtje). Homepage: eerste in 'Snel een potje', voortgang 'x van 39 sterren'. Werkplaats raadt het icoon.
+- Getest: de testrobot rijdt level 1 uit (24,5 s, Juan Martinez); een gewone rit wordt bewaard en stuurt `Scorebord.stuur('wheels', punten, sterren)`.
+
+### Samenwerken met Claude Code
+- Claude Code maakt en verbetert spellen; deze Claude beheert alles wat de hele site raakt: het gedeelde `scorebord.js`, `grapjes.js`, `homepage-onderdelen.js` (home_v8, home_v05, muur, hebbedingen), de worker, de scorebordpagina, de werkplaats en de bouw.
+- Verandert Claude Code later iets aan Rommelwheels, dan levert het een nieuwe `rommelwheels.html` aan deze Claude, die er opnieuw een bron van maakt (`wheels_template.html`). Anders overschrijft de volgende bouw de wijzigingen, of krijgt het spel een verouderde kopie van het gedeelde script.
+- Claude Code haalt eerst de nieuwste versie van GitHub op (`git pull`) voordat het verder werkt.
+
+## Versie 0.5: de doosjes slimmer (18 oktober 2026)
+- `home_v05.js`: vaste korte onderschriften per spel (`ONDERSCHRIFT`), en voor nieuwe spellen een slimmere `kort()` (afknippen bij een komma of woordgrens, zonder losse woordjes aan het eind, zonder '…'). De volledige beschrijving staat in een gelinieerde 'Bijsluiter' die uit het doosje schuift (met een deksel dat opengaat) bij aanwijzen of toetsenbordfocus; elk doosje heeft een `aria-label` met naam en beschrijving. Kaartjes met het stempel 'Nieuw' krijgen vanzelf de sticker 'Nieuw!' (het woord verdwijnt uit het soort-label). Lange namen (meer dan 15 tekens) krijgen een kleinere letter.
+- Het versienummer onderaan wordt alleen naar 0.5 gezet als de homepage zelf nog onder 0.5 staat; een eigen nummer zoals 0.51 blijft staan.

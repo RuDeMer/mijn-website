@@ -525,3 +525,5 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 ## Versie 0.5: de doosjes slimmer (18 oktober 2026)
 - `home_v05.js`: vaste korte onderschriften per spel (`ONDERSCHRIFT`), en voor nieuwe spellen een slimmere `kort()` (afknippen bij een komma of woordgrens, zonder losse woordjes aan het eind, zonder '…'). De volledige beschrijving staat in een gelinieerde 'Bijsluiter' die uit het doosje schuift (met een deksel dat opengaat) bij aanwijzen of toetsenbordfocus; elk doosje heeft een `aria-label` met naam en beschrijving. Kaartjes met het stempel 'Nieuw' krijgen vanzelf de sticker 'Nieuw!' (het woord verdwijnt uit het soort-label). Lange namen (meer dan 15 tekens) krijgen een kleinere letter.
 - Het versienummer onderaan wordt alleen naar 0.5 gezet als de homepage zelf nog onder 0.5 staat; een eigen nummer zoals 0.51 blijft staan.
+
+- **Rommelwheels nog niet op het scorebord** (besluit van Ruben, 18 oktober 2026): de regel `wheels` staat voorlopig niet in `scorebord_template.html`, net als Steigerstress. Het spel stuurt wel al scores in (de worker kent `wheels`), dus zodra de regel terugkomt, staan de scores er meteen.

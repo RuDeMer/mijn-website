@@ -109,6 +109,8 @@ button { font: inherit; }
 
 @media (max-width: 560px) { .kaart { padding: 1.1rem .9rem 1rem; } .hud .actie { display: none; } .hud .vak { padding: .3rem .5rem; font-size: .88rem; } }
 @media (max-width: 400px) { .hud .naam { display: none; } }
+@media (max-height: 460px) { .titel { font-size: 2.3rem; margin: 0 0 .3rem; } .kaart { padding-top: .9rem; } .kaart p { margin: .3rem 0; } .knop.groot { padding: .6rem 1.6rem; font-size: 1.15rem; } }
+@media (pointer: coarse) { #s-menu .uitleg { display: none; } }
 @media (prefers-reduced-motion: reduce) { .knop:active, .hud button:active, #touch .knop-t.in { transform: none; } }
 /* ---------- de leveleditor */
 .ed { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
@@ -1093,14 +1095,20 @@ button { font: inherit; }
       inv = inv || {};
       const dt = STAP * this.tijdSchaal;
       if (this.status === 'rijden') this._invoer(inv, dt);
+      // na de finish remt het voertuig vanzelf (anders rijdt het van de baan af)
+      else if (this.status === 'finish') for (const j of this.voertuig.vering) { j.setMotorSpeed(0); j.setMaxMotorTorque(this.V.rem * 0.5); }
       this._effecten(dt);
       for (const d of this.dingen) if (d.stap) d.stap.call(this, d, dt);
       this._aanslag();
       this._houding(inv);
       this.raak.clear();
+      // snelheid van elk lichaamsdeel vóór de stap: zo weten we hoe hard een klap echt was
+      this._vv = this._vv || new Map(); for (const b of Object.values(this.rijder.delen)) { const vv = b.getLinearVelocity(); this._vv.set(b, [vv.x, vv.y]); }
       this.w.step(dt, 9, 4);
       const q = this.wacht; this.wacht = []; for (const f of q) f();
       this._schade(dt);
+      // geen armen en geen benen meer, en niet meer in je voertuig: dan is het over
+      if (this.status === 'rijden' && !this.zit && this.rijder.armen === 0 && this.rijder.benen === 0) { this._losT = (this._losT || 0) + STAP; if (this._losT > 1.5) this._ko('Helemaal uit elkaar!'); }
       this.stappen++;
       if (this.status === 'rijden') this.t += STAP;
       // ver weg gevallen = ko
@@ -1153,11 +1161,13 @@ button { font: inherit; }
         const ri = (inv.rechts ? 1 : 0) - (inv.links ? 1 : 0);
         this.leun = ri;
         if (ri && this.status === 'rijden') {
-          const kr = 0.25 + 0.3 * this.rijder.armen + 0.45 * this.rijder.benen;
+          let kr = 0.25 + 0.3 * this.rijder.armen + 0.45 * this.rijder.benen;
           const romp = this.rijder.delen.romp;
           let raakt = false;
           for (const b of this.rijderLichamen()) for (let ce = b.getContactList(); ce; ce = ce.next) if (ce.contact.isTouching()) { raakt = true; break; }
-          if (raakt) { romp.applyForceToCenter(v(ri * 520 * kr, -140 * kr), true); romp.applyTorque(ri * 40 * kr, true); }
+          // zonder armen en benen kom je nergens meer; kruipen gaat hooguit zo'n 2 m/s
+          if (!this.rijder.armen && !this.rijder.benen) kr = 0;
+          if (raakt && kr && romp.getLinearVelocity().x * ri < 2.2) { romp.applyForceToCenter(v(ri * 520 * kr, -140 * kr), true); romp.applyTorque(ri * 40 * kr, true); }
         }
       }
     }
@@ -1279,12 +1289,17 @@ button { font: inherit; }
         const d = h.d;
         if (d.soort === 'voertuig' || d.soort === 'wiel') { if (h.dv > 7) this.ev.push({ t: 'bots', x: h.x, y: h.y, sterkte: h.dv, voertuig: true }); continue; }
         if (d.soort === 'voorwerp') { if (h.dv > 11 && R.voorwerp && !R.voorwerp.los) this._voorwerpLos(); continue; }
+        // een licht deel (onderbeen) dat het gewicht van het hele lijf opvangt, krijgt een grote stoot maar remt zelf niet harder af dan het lijf:
+        // reken dan met de echte snelheidsverandering (anders breken je benen al als je na het uitspringen op je voeten landt)
+        const vb = this._vv && this._vv.get(b); if (vb) { const vn = b.getLinearVelocity(); h.dv = Math.min(h.dv, Math.hypot(vn.x - vb[0], vn.y - vb[1]) * 1.7 + 2); }
         const deel = d.deel; if (R.los.has(deel) && deel !== 'hoofd') { if (h.dv > 8) this.ev.push({ t: 'bots', x: h.x, y: h.y, sterkte: h.dv * 0.6 }); continue; }
         if (h.dv > 6) this.ev.push({ t: 'bots', x: h.x, y: h.y, sterkte: h.dv, deel, nx: h.nx, ny: h.ny });
         if (schild) continue;
         if (h.ander && h.ander.soort === 'vloer' && h.dv < 26) continue;
         const spijker = h.ander && h.ander.soort === 'spijkers';
-        const dv = (spijker ? h.dv * 4 + 9 : h.dv) / zacht;
+        // tegen je eigen voertuig aan vallen (na het uitstappen) is minder erg dan tegen de grond
+        const eigenVt = h.ander && (h.ander.soort === 'voertuig' || h.ander.soort === 'wiel');
+        const dv = (spijker ? h.dv * 4 + 9 : h.dv) / zacht * (eigenVt ? 0.55 : 1);
         const kort = deel.replace(/[VA]$/, '');
         if (kort === 'hoofd') {
           if (dv > BREEK.nek && R.gewrichten.nek.j) this._breek('nek', h);
@@ -1323,9 +1338,18 @@ button { font: inherit; }
       for (const k of ['handV', 'handA']) if (R.grip[k] && gem(k, R.grip[k].getReactionForce(inv).length()) > TREK.hand * sterk) this._laatLos(k);
       if (R.voorwerp && !R.voorwerp.los && R.voorwerp.j.getReactionForce(inv).length() > TREK.voorwerp) this._voorwerpLos();
       // na het uitstappen mag je weer tegen je eigen voertuig botsen
+      // (per lichaamsdeel, pas als dat deel echt los van het voertuig is: anders schiet een been dat nog in de stoel zit er met een klap uit)
       if (!this.zit && this._uitT != null && this.t - this._uitT > 0.3 && !this._botstEigen) {
-        this._botstEigen = true;
-        for (const b of Object.values(R.delen)) for (let f = b.getFixtureList(); f; f = f.getNext()) f.setFilterMaskBits(f.getFilterMaskBits() | CAT.VOERTUIG);
+        const vt = []; for (const b of [this.voertuig.romp, ...this.voertuig.wielen]) for (let f = b.getFixtureList(); f; f = f.getNext()) if (!f.isSensor() && (f.getFilterCategoryBits() & CAT.VOERTUIG)) vt.push(f.getAABB(0));
+        const raak = (a, b) => a.lowerBound.x < b.upperBound.x + 0.05 && b.lowerBound.x < a.upperBound.x + 0.05 && a.lowerBound.y < b.upperBound.y + 0.05 && b.lowerBound.y < a.upperBound.y + 0.05;
+        let klaar = true;
+        for (const b of Object.values(R.delen)) {
+          if (b._botst) continue;
+          let vrij = true;
+          for (let f = b.getFixtureList(); f && vrij; f = f.getNext()) { const a = f.getAABB(0); if (vt.some(q => raak(a, q))) vrij = false; }
+          if (vrij) { b._botst = true; for (let f = b.getFixtureList(); f; f = f.getNext()) f.setFilterMaskBits(f.getFilterMaskBits() | CAT.VOERTUIG); } else klaar = false;
+        }
+        if (klaar) this._botstEigen = true;
       }
     }
     _laatLos(k) {
@@ -1374,7 +1398,8 @@ button { font: inherit; }
       for (const k of ['zit', 'handV', 'handA']) if (R.grip[k]) { this.w.destroyJoint(R.grip[k]); R.grip[k] = null; }
       this.zit = false; this._uitT = this.t;
       for (const b of Object.values(R.delen)) for (let f = b.getFixtureList(); f; f = f.getNext()) f.setFilterMaskBits(f.getFilterMaskBits() & ~CAT.VLOER);
-      if (zelf) { for (const b of this.rijderLichamen()) { const vv = b.getLinearVelocity(); b.setLinearVelocity(v(vv.x * 0.9 + 1, vv.y - 6.5)); } }
+      // zelf uitspringen: omhoog en naar voren, zodat je niet weer in je eigen voertuig valt
+      if (zelf) { const [fx] = this.vooruit(); for (const b of this.rijderLichamen()) { const vv = b.getLinearVelocity(); b.setLinearVelocity(v(vv.x * 0.9 + (fx >= 0 ? 3.4 : -3.4), vv.y - 6.2)); } }
       for (const b of Object.values(R.delen)) b.setGravityScale(1);
       this.ev.push({ t: 'uit', zelf: !!zelf });
       if (!zelf && this.status === 'rijden') this.ev.push({ t: 'zin', tekst: 'Wooaah!', kort: true });
@@ -2130,6 +2155,14 @@ button { font: inherit; }
       if (beste != null && Math.abs(beste - o.y) < 6) o.y = r2(beste);
     }
   };
+  // ---------- na de finish nog een flink stuk uitloop met een oprit, zodat niemand van de baan af rijdt
+  for (const lv of L) {
+    const fin = lv.obj.find(o => o.t === 'finish'); if (!fin) continue;
+    const g = lv.obj.find(o => o.t === 'grond' && o.stijl !== 'plafond' && o.p[0] <= fin.x && o.p[o.p.length - 2] >= fin.x); if (!g) continue;
+    const lx = g.p[g.p.length - 2], ly = g.p[g.p.length - 1];
+    for (const pf of lv.obj.filter(o => o.t === 'grond' && o.stijl === 'plafond' && Math.abs(o.p[o.p.length - 2] - lx) < 12)) pf.p.push(r2(lx + 60), pf.p[pf.p.length - 1]);
+    g.p.push(r2(lx + 34), ly, r2(lx + 40), r2(ly - 0.4), r2(lx + 46), r2(ly - 2), r2(lx + 52), r2(ly - 5), r2(lx + 60), r2(ly - 5));
+  }
   for (const lv of L) RW.zetOpGrond(lv);
   // ---------- de sterretjes liggen op de route: plekken die alle negen personages raken (uitgerekend met de robot, test/autoSter.js)
   const STERPLEK = {
@@ -4703,7 +4736,7 @@ button { font: inherit; }
       }
       $('e-titel').textContent = 'Gehaald!';
       const eigenRecord = L.eigen && !S.test && RW.editor ? RW.editor.gehaald(L, R.t) : false;
-      $('e-sterren').innerHTML = S.test || L.eigen ? '' : ['Gehaald', 'Binnen ' + tijd(L.doel), 'Alle sterretjes'].map((n, i) => `<span class="${[r.gehaald, r.snel, r.alle][i] ? 'aan' : ''}"><b>★</b>${n}</span>`).join('');
+      $('e-sterren').innerHTML = S.test || L.eigen ? '' : ['Gehaald', 'Binnen ' + L.doel + ' s', 'Alle sterretjes'].map((n, i) => `<span class="${[r.gehaald, r.snel, r.alle][i] ? 'aan' : ''}"><b>★</b>${n}</span>`).join('');
       $('e-tekst').innerHTML = `Tijd: <b>${tijd(R.t)}</b>${(L.eigen ? eigenRecord : nieuwRecord && !S.test) ? ' · nieuw record!' : ''}<br>Sterretjes: ${R.sterren} van ${R.sterTotaal}${R.heel ? ' · nog helemaal heel!' : ' · ' + verlies(R)}<br>${S.test ? 'Test van je eigen level.' : L.eigen ? 'Een eigen level: dit telt niet mee voor het scorebord.' : `<b>${p.toLocaleString('nl-NL')}</b> punten`}`;
       const volg = RW.LEVELS.indexOf(L) + 1;
       $('b-volgende').hidden = S.test || L.eigen || volg >= RW.LEVELS.length || !open(volg);
@@ -4722,7 +4755,7 @@ button { font: inherit; }
   function verlies(R) { const n = R.verloren.length; return n === 1 ? 'wel ' + DELEN[R.verloren[0]] + ' kwijt' : n + ' lichaamsdelen kwijt'; }
   function koZin(R) {
     const n = R.P.naam.split(' ')[0];
-    const zinnen = R.reden === 'Vergiftigd!' ? [`${n} heeft van het gif gedronken. Niet doen!`] : R.reden === 'Hoofd eraf!' ? [`${n} is zijn hoofd kwijt. Dat zoeken we straks wel even.`, `Kop eraf! ${n} ziet het even niet meer zitten.`] : R.reden === 'Uit de wereld gevallen' ? [`${n} is uit de wereld gevallen. Zoek het randje!`] : [`${n} ligt even te slapen. Met sterretjes.`, `Au. Dat was een flinke klap voor ${n}.`, `${n} ziet allemaal vogeltjes.`];
+    const zinnen = R.reden === 'Helemaal uit elkaar!' ? [`${n} heeft geen armen en benen meer. Dat wordt lastig rijden.`] : R.reden === 'Vergiftigd!' ? [`${n} heeft van het gif gedronken. Niet doen!`] : R.reden === 'Hoofd eraf!' ? [`${n} is zijn hoofd kwijt. Dat zoeken we straks wel even.`, `Kop eraf! ${n} ziet het even niet meer zitten.`] : R.reden === 'Uit de wereld gevallen' ? [`${n} is uit de wereld gevallen. Zoek het randje!`] : [`${n} ligt even te slapen. Met sterretjes.`, `Au. Dat was een flinke klap voor ${n}.`, `${n} ziet allemaal vogeltjes.`];
     return zinnen[(R.stappen >> 3) % zinnen.length];
   }
   const tijd = s => { const m = Math.floor(s / 60), r = s - m * 60; return (m ? m + ':' + (r < 10 ? '0' : '') : '') + r.toFixed(m ? 1 : 2).replace('.', ',') + (m ? '' : ' s'); };

@@ -1562,18 +1562,27 @@ Muur + Water = Dijk 🚧`;
     setTimeout(() => { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 320); }, 2400);
   }
   // de eerste ontdekking ter wereld: 1e druk!
-  let feestTimer = 0;
+  let feestWeg = null;
   function feest(i) {
     Klank.eerste();
     const [n] = S.el[i];
+    if (feestWeg) feestWeg();
     let f = $('#feest'); if (f) f.remove();
     f = document.createElement('div'); f.className = 'feest'; f.id = 'feest'; f.setAttribute('role', 'status');
     f.innerHTML = `<div class="feest-kaart" tabindex="-1"><div class="stempel">1e druk!</div><div class="st-plek"></div><p><b>Niemand ter wereld had dit nog gemaakt.</b></p><p>Jij bent de allereerste die <b>${ontsnap(n)}</b> van de pers haalt. Hij staat nu met een stempel in je drukwerk.</p><div class="knoppen" style="justify-content:center;margin-top:.8rem"><button class="knop hoofd" type="button">Hoera, verder drukken!</button></div></div>`;
     const st = stickerNode(i); st.tabIndex = -1; st.removeAttribute('aria-describedby'); f.querySelector('.st-plek').replaceWith(st);
     vlak.appendChild(f);
-    const weg = () => { clearTimeout(feestTimer); f.remove(); };
-    f.querySelector('button').onclick = weg;
-    feestTimer = setTimeout(weg, 7000);
+    let klok = 0;
+    const weg = () => { clearTimeout(klok); document.removeEventListener('keydown', toets, true); document.removeEventListener('pointerdown', ernaast, true); f.remove(); if (feestWeg === weg) feestWeg = null; };
+    const toets = e => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); weg(); } };
+    const ernaast = e => { if (!e.target.closest || !e.target.closest('.feest-kaart')) weg(); };   // ergens naast de kaart tikken sluit hem
+    // de kaart staat op het werkvlak: zonder dit pakt het werkvlak de klik al (om te schuiven) voordat de knop hem krijgt
+    for (const soort of ['pointerdown', 'pointerup', 'mousedown', 'touchstart', 'wheel']) f.addEventListener(soort, e => e.stopPropagation(), { passive: true });
+    f.querySelector('button').addEventListener('click', e => { e.stopPropagation(); weg(); });
+    document.addEventListener('keydown', toets, true);
+    setTimeout(() => { if (f.isConnected) document.addEventListener('pointerdown', ernaast, true); }, 0);
+    klok = setTimeout(weg, 4000);
+    feestWeg = weg;
     meld('Eerste ontdekking! Niemand had ' + n + ' nog gemaakt.');
     if (beweging()) confetti(f);
   }

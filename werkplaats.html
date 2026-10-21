@@ -200,6 +200,7 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
 /* scorebord */
 .wp-sub { margin: 1.6rem 0 .4rem; padding-top: 1rem; border-top: 2px dashed var(--manila-d); }
 @media (max-width: 640px) { .verder-balk { position: static; box-shadow: 0 0 0 2px var(--manila-d); } .wp-tabs { margin-left: 0; } .wp-tabs button { padding: .45rem .6rem; font-size: .85rem; } }
+.h-niet-op { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; } .h-niet-op li { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; } .h-niet-op code { font-weight: 700; }
 </style>
 </head>
 <body data-gat="30" data-pagina="werkplaats">
@@ -919,6 +920,33 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
     return Object.assign({}, mijn, { labels: mijn.labels.concat(vers.labels.filter(l => !bekend.has(l.href))) });
   }
 
+  // pagina's die wel online staan maar (nog) geen label op de homepage hebben; deze horen er bewust niet op
+  const NOOIT_OP_HOME = /^(index|404|werkplaats|rommelhotel-online|homepage-.*|.*-opzet|.*-oud|.*test.*)\.html?$/i;
+  function nietOpHome() {
+    if (!home) return [];
+    const op = new Set(home.labels.map(l => l.href));
+    return [...repoNamen].filter(n => /\.html?$/i.test(n) && !NOOIT_OP_HOME.test(n) && !op.has(n)).sort();
+  }
+  function nietOpHomeBlok() {
+    const lijst = nietOpHome(); if (!lijst.length) return '';
+    return `<div class="h-blok"><h3>Nog niet op de homepage</h3>
+      <p class="hint" style="margin:.2rem 0 .6rem">Deze pagina's staan wel online, maar hebben nog geen label op je homepage. Bijvoorbeeld omdat het vinkje uit stond bij het uploaden.</p>
+      <ul class="h-niet-op">${lijst.map(n => `<li><code>${esc(n)}</code> <button class="mini" type="button" data-hz="opzetten" data-naam="${esc(n)}">Zet op de homepage</button></li>`).join('')}</ul></div>`;
+  }
+  async function labelVoorBestaand(naam) {
+    const basis = naam.replace(/\.html?$/i, ''), gok = basis.charAt(0).toUpperCase() + basis.slice(1).replace(/-/g, ' ');
+    let titel = gok, beschr = '';
+    try {
+      const j = await gh(repoPad() + '/contents/' + encodeURIComponent(naam) + '?ref=' + encodeURIComponent(cfg.branch));
+      if (j && j.content) {   // GitHub geeft de inhoud alleen mee als het bestand kleiner is dan 1 MB
+        const doc = new DOMParser().parseFromString(b64NaarTekst(j.content), 'text/html');
+        const t = (doc.querySelector('title') || {}).textContent || ''; if (t.trim()) titel = t.split(/\s+[–-]\s+/)[0].trim();
+        beschr = ((doc.querySelector('meta[name="description"]') || {}).content || '').trim();
+      }
+    } catch (e) {}
+    return { href: naam, icoon: SPELICONEN[raadIcoon(naam)] ? raadIcoon(naam) : 'doos', soort: 'Spel', nieuw: true, naam: titel, tekst: beschr || 'Beschrijving volgt.', doe: 'Probeer het', zichtbaar: true };
+  }
+
   function laadHome(tekst) {
     if (homeVies) return;
     homeBasis = tekst;
@@ -965,7 +993,7 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
             <label class="veld">Icoon<select data-hl="icoon" data-i="${i}">${opties(L.icoon)}</select></label>
           </div>
           <div class="rij-knoppen" style="margin-top:.7rem"><button class="mini rood" data-hz="weg" data-i="${i}">Haal dit label van de homepage</button></div>
-        </li>`).join('')}</ol>` +
+        </li>`).join('')}</ol>` + nietOpHomeBlok() +
       (home.leeg ? `<div class="h-blok"><h3>Het lege label aan het eind</h3>
         <label class="check" style="margin-top:.2rem"><input type="checkbox" data-h="leeg-tonen"${home.leeg.tonen ? ' checked' : ''}><span>Laat het lege label zien</span></label>
         <div class="velden2"><label class="veld">Kopje<input type="text" data-h="leeg-soort" value="${esc(home.leeg.soort.trim())}"></label>
@@ -1012,6 +1040,17 @@ body.slepen::after { content: "Laat los om te uploaden"; position: fixed; inset:
   $('home-inhoud').addEventListener('click', e => {
     const b = e.target.closest('[data-hz]'); if (!b || !home) return;
     if (b.dataset.hz === 'bijwerken') { b.disabled = true; homeVies = true; zetHomeOnline(); return; }
+    if (b.dataset.hz === 'opzetten') {
+      const naam = b.dataset.naam; b.disabled = true; b.textContent = 'Even kijken…';
+      labelVoorBestaand(naam).then(L => {
+        if (home.labels.some(x => x.href === naam)) return;
+        home.labels.push(L); home.verwijderd = home.verwijderd.filter(h => h !== naam);
+        renderHome(); markeerVies();
+        melding('home-melding', 'ok', L.naam + ' staat nu onderaan in je lijstje, met het stempel Nieuw. Kijk de naam en beschrijving even na, en klik daarna op Zet online.');
+        const li = [...$('home-inhoud').querySelectorAll('.h-label')].pop(); if (li) { li.scrollIntoView({ block: 'center', behavior: 'smooth' }); const veld = li.querySelector('input, textarea'); if (veld) veld.focus({ preventScroll: true }); }
+      });
+      return;
+    }
     const i = +b.dataset.i, L = home.labels;
     if (b.dataset.hz === 'op' && i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]];
     else if (b.dataset.hz === 'neer' && i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]];

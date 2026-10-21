@@ -1421,6 +1421,9 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     if (Date.now() >= opening()) zet05(false);
     else { plaatsBord(); tik(); klok = setInterval(tik, 250); hangOpnieuw(); }
   }
-  if ($('.v8-cat')) start(); else { const w = new MutationObserver(() => { if ($('.v8-cat')) { w.disconnect(); start(); } }); w.observe(document.documentElement, { childList: true, subtree: true }); }
+  // de homepage wacht onzichtbaar (zie index.html) tot de planken staan; daarna zacht in beeld
+  const klaar = () => requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('hp-klaar')));
+  const begin = () => { try { start(); } finally { klaar(); } };
+  if ($('.v8-cat')) begin(); else { const w = new MutationObserver(() => { if ($('.v8-cat')) { w.disconnect(); begin(); } }); w.observe(document.documentElement, { childList: true, subtree: true }); }
   window.__v05 = { zet05, get open() { return open05; }, testOpening: ms => { testOpening = Date.now() + ms; } };
 })();

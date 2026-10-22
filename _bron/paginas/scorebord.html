@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scorebord – Ruben's rommelhoekje</title>
+<meta name="description" content="Wie bakt de meeste vlaaien, wie heeft de langste reeks in Rommelwoord en wie komt het verst in Rommelpoker?">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M20%2010h24v14a12%2012%200%200%201-24%200z%22%20fill%3D%22%23E9B949%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M20%2014h-6a6%206%200%200%200%206%2010M44%2014h6a6%206%200%200%201-6%2010%22%20fill%3D%22none%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.5%22/%3E%3Cpath%20d%3D%22M29%2036h6v8h-6z%22%20fill%3D%22%23C99A2E%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%2222%22%20y%3D%2244%22%20width%3D%2220%22%20height%3D%227%22%20rx%3D%221.5%22%20fill%3D%22%237A4E2D%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M27%2015v9%22%20stroke%3D%22%23FFF3C4%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M32%2052v0%22%20/%3E%3Crect%20x%3D%2227%22%20y%3D%2246%22%20width%3D%2210%22%20height%3D%223%22%20fill%3D%22%23E9B949%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bord: #2F4C8F; --gat: #1E3263; --manila: #F2DDA0; --manila-d: #D9BE78; --papier: #FBF6E9;
+  --inkt: #1F2333; --zacht: #5E5643; --rood: #C8323C; --rood-d: #9E2430; --tape: #23252B; --munt: #E9B949;
+  --inhoud: 66rem;
+}
+@media (prefers-color-scheme: dark) { :root { --bord: #1F3466; --gat: #12204A; --manila: #E6D094; --papier: #F1E9D6; } }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; position: relative; background: var(--bord) radial-gradient(circle, var(--gat) 2.5px, transparent 3px) 0 0 / 26px 26px; font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif; }
+.wrap { max-width: var(--inhoud); margin: 0 auto; padding: 1rem 1rem 3rem; position: relative; z-index: 1; }
+:focus-visible { outline: 3px solid var(--munt); outline-offset: 2px; }
+.kop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.terug { color: var(--manila); font-weight: 600; text-underline-offset: .2em; }
+.terug:hover { color: #fff; }
+.kop h1 { margin: 0; display: flex; align-items: center; gap: .55rem; }
+.kop-icoon { display: inline-block; width: 3.1rem; height: 3.1rem; flex: none; }
+.kop-icoon svg { display: block; width: 100%; height: 100%; filter: drop-shadow(2px 3px 0 rgba(0,0,0,.25)); }
+.tape { display: inline-block; background: var(--tape); color: #F4F1EC; font-weight: 800; font-stretch: 75%; font-variation-settings: "wdth" 75; text-transform: uppercase; letter-spacing: .07em; font-size: clamp(1.4rem, 4vw, 2rem); padding: .12em .45em .06em; border-radius: 3px; --r: -1.5deg; transform: rotate(var(--r)); text-shadow: 0 1px 0 rgba(255,255,255,.3), 0 -1px 0 rgba(0,0,0,.6); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.paneel { background: var(--manila); border-radius: 8px; padding: 1rem 1.1rem 1.1rem; box-shadow: 0 4px 0 rgba(0,0,0,.28); }
+.paneel h2 { margin: 0 0 .5rem; font-size: 1.25rem; display: flex; align-items: center; gap: .5rem; }
+.paneel h2 svg { width: 1.8rem; height: 1.8rem; flex: none; }
+.ik { margin-bottom: 1.2rem; }
+.ik p { margin: .2rem 0 .7rem; }
+.ik form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ik input { flex: 1 1 12rem; min-width: 0; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid var(--manila-d); background: var(--papier); }
+.knop { font: inherit; font-weight: 700; padding: .55rem 1rem; border: 0; border-radius: 6px; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.knop.hoofd { background: var(--rood); color: #fff; }
+.knop:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+.ik .klein { font-size: .85rem; color: var(--zacht); margin-top: .6rem; }
+.ik .klein button { font: inherit; background: none; border: 0; color: var(--rood-d); text-decoration: underline; cursor: pointer; padding: 0; font-weight: 600; }
+.lijsten { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; align-items: start; }
+.lijst { list-style: none; padding: 0; margin: 0; counter-reset: plek; }
+.lijst li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .5rem; align-items: center; padding: .4rem .55rem; border-radius: 6px; background: var(--papier); margin-bottom: .3rem; font-variant-numeric: tabular-nums; }
+.lijst li .plek { font-weight: 800; color: var(--zacht); text-align: center; }
+.lijst li:nth-child(1) .plek { color: #fff; background: #C99A2E; border-radius: 999px; }
+.lijst li:nth-child(2) .plek { color: #fff; background: #9AA0A6; border-radius: 999px; }
+.lijst li:nth-child(3) .plek { color: #fff; background: #B5793F; border-radius: 999px; }
+.lijst li .wie { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lijst li .wie small { display: block; font-weight: 500; color: var(--zacht); font-size: .78rem; }
+.lijst li .hoeveel { font-weight: 800; text-align: right; }
+.lijst li.jij { outline: 3px solid var(--rood); outline-offset: -3px; }
+.leeg { color: var(--zacht); margin: .3rem 0; }
+.melding { color: var(--manila); background: rgba(10,18,40,.35); border-radius: 8px; padding: .8rem 1rem; }
+.uitleg { margin-top: 1.4rem; }
+.uitleg details { background: rgba(10,18,40,.35); color: var(--manila); border-radius: 8px; padding: .8rem 1rem; }
+.uitleg summary { cursor: pointer; font-weight: 700; }
+.uitleg li { margin: .35rem 0; }
+
+
+.rek { position: relative; }
+.rek.zijkant { position: absolute; top: 7rem; height: 50rem; width: calc((100% - var(--inhoud)) / 2 - 2rem); display: none; z-index: 0; }
+.rek.zijkant.links { left: 1rem; }
+.rek.zijkant.rechts { right: 1rem; }
+.muurlaag { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 3; }
+.gs { position: absolute; pointer-events: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(3px 5px 0 rgba(0,0,0,.25)); z-index: 1; }
+.gs svg { display: block; pointer-events: none; overflow: visible; }
+.gs svg * { pointer-events: visiblePainted; cursor: grab; }
+.gs.sleept { z-index: 30; filter: drop-shadow(9px 16px 0 rgba(0,0,0,.22)); }
+.gs.sleept svg * { cursor: grabbing; }
+.gs-haak { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #A8B3CC; box-shadow: 0 2px 0 rgba(0,0,0,.45); pointer-events: none; z-index: 2; transition: opacity .2s; }
+@media (pointer: coarse) { .gs svg * { cursor: pointer; } }
+.gs-sleept, .gs-sleept * { -webkit-user-select: none !important; user-select: none !important; cursor: grabbing !important; }
+
+@media (min-width: 1420px) { .rek.zijkant { display: block; } }
+.dag b { display: inline-block; }
+.label-icoon svg { transform-origin: 50% 80%; }
+
+
+/* ---------- erehal */
+.lijsten { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)) !important; gap: 1.2rem !important; }
+.bord { background: linear-gradient(#22183A, #140E26); color: #FBF6E9; border-radius: 14px; padding: 0 0 1rem; box-shadow: 0 0 0 4px #E9B949, 0 0 0 7px #231A26, 0 10px 0 7px rgba(0,0,0,.3); overflow: hidden; }
+.bord-kop { display: flex; align-items: center; gap: .6rem; padding: .7rem 1rem; background: repeating-linear-gradient(90deg, #C8323C 0 18px, #B82E3A 18px 36px); position: relative; }
+.bord-kop::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 6px; background: radial-gradient(circle, #FFF3C4 0 2.5px, transparent 3px) 0 0 / 18px 6px repeat-x; animation: bord-lampjes 1.2s steps(2) infinite; }
+@keyframes bord-lampjes { 50% { background-position: 9px 0; } }
+.bord-kop h2 { margin: 0; font-size: 1.25rem; color: #FBF6E9; text-shadow: 0 2px 0 rgba(0,0,0,.35); display: flex; align-items: center; gap: .5rem; }
+.bord-kop h2 svg { width: 1.8rem; height: 1.8rem; background: #FBF6E9; border-radius: 50%; padding: .15rem; }
+.bord-kop a { margin-left: auto; color: #FFF3C4; font-weight: 800; font-size: .85rem; white-space: nowrap; }
+.podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: .5rem; padding: 1.4rem .9rem 0; }
+.trede { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+.trede .pop { position: relative; width: 3.4rem; height: 3.4rem; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.5rem; color: #fff; box-shadow: 0 0 0 3px #FBF6E9, 0 4px 0 3px rgba(0,0,0,.35); margin-bottom: .45rem; }
+.trede.p1 .pop { width: 4.2rem; height: 4.2rem; font-size: 1.9rem; box-shadow: 0 0 0 3px #FFE76A, 0 0 22px rgba(255,231,106,.55), 0 4px 0 3px rgba(0,0,0,.35); }
+.trede .kroon { position: absolute; top: -1.35rem; left: 50%; width: 2.3rem; transform: translateX(-50%) rotate(-8deg); filter: drop-shadow(0 2px 0 rgba(0,0,0,.4)); animation: kroon-zwaai 2.4s ease-in-out infinite; }
+@keyframes kroon-zwaai { 50% { transform: translateX(-50%) rotate(8deg) translateY(-2px); } }
+.trede .naam { font-weight: 800; font-size: .95rem; line-height: 1.2; overflow-wrap: anywhere; max-width: 100%; }
+.trede .naam em { display: inline-block; font-style: normal; font-size: .68rem; background: #C8323C; padding: .05rem .4rem; border-radius: 999px; vertical-align: middle; margin-left: .2rem; }
+.trede .score { font-weight: 800; font-size: 1.05rem; color: #FFE76A; margin-top: .15rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.trede .score small { font-size: .72rem; color: #DCE4F5; font-weight: 600; }
+.trede .extra { font-size: .72rem; color: #B9C4DE; margin-top: .1rem; }
+.trede .blok { width: 100%; margin-top: .55rem; border-radius: 8px 8px 0 0; display: grid; place-items: center; font-weight: 800; font-size: 1.6rem; color: rgba(0,0,0,.35); text-shadow: 0 1px 0 rgba(255,255,255,.4); }
+.trede.p1 .blok { height: 5rem; background: linear-gradient(#FFE76A, #C99A2E); }
+.trede.p2 .blok { height: 3.6rem; background: linear-gradient(#E6EAF0, #9AA0A6); }
+.trede.p3 .blok { height: 2.6rem; background: linear-gradient(#E0A26A, #9A5E2A); }
+.trede.leeg-trede .pop { background: rgba(255,255,255,.08); box-shadow: 0 0 0 2px rgba(255,255,255,.25); color: rgba(255,255,255,.4); }
+.trede.jij .pop { box-shadow: 0 0 0 3px #FF7FB0, 0 0 18px rgba(255,127,176,.6), 0 4px 0 3px rgba(0,0,0,.35); }
+.rest { list-style: none; margin: 0; padding: .6rem .9rem 0; border-top: 3px solid #E9B949; display: flex; flex-direction: column; gap: .3rem; }
+.rest li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .55rem; align-items: center; background: rgba(255,255,255,.06); border-radius: 8px; padding: .4rem .6rem; }
+.rest li.jij { background: rgba(255,127,176,.18); box-shadow: 0 0 0 2px #FF7FB0; }
+.rest .plek { font-weight: 800; color: #B9C4DE; text-align: center; }
+.rest .wie { font-weight: 700; overflow-wrap: anywhere; } .rest .wie small { display: block; font-weight: 500; font-size: .74rem; color: #B9C4DE; }
+.rest .hoeveel { font-weight: 800; text-align: right; color: #FFE76A; font-variant-numeric: tabular-nums; } .rest .hoeveel small { color: #DCE4F5; font-weight: 600; font-size: .74rem; }
+.bord .leeg { color: #DCE4F5; padding: 1rem; margin: 0; } .bord .leeg a { color: #FFE76A; }
+.mijn { background: linear-gradient(135deg, #FFF3C4, #F2DDA0); color: #231A26; border-radius: 12px; padding: .8rem 1rem; margin: 0 0 1.2rem; box-shadow: 0 4px 0 rgba(0,0,0,.3); }
+.mijn h2 { margin: 0 0 .5rem; font-size: 1.1rem; } .mijn ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.mijn li { display: flex; align-items: center; gap: .45rem; background: #FFFDF6; border-radius: 999px; padding: .3rem .8rem .3rem .35rem; font-weight: 700; font-size: .9rem; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.mijn li b { display: grid; place-items: center; min-width: 1.9rem; height: 1.9rem; border-radius: 999px; background: #231A26; color: #FFE76A; font-size: .9rem; padding: 0 .35rem; }
+.mijn li.goud b { background: linear-gradient(#FFE76A, #C99A2E); color: #231A26; } .mijn li.zilver b { background: linear-gradient(#E6EAF0, #9AA0A6); color: #231A26; } .mijn li.brons b { background: linear-gradient(#E0A26A, #9A5E2A); color: #fff; }
+.mijn li a { color: inherit; } .mijn li.niet b { background: #C9CED6; color: #5E5643; }
+.bijgewerkt { font-size: .8rem; color: #B9C4DE; margin: -.4rem 0 1rem; }
+@media (prefers-reduced-motion: reduce) { .bord-kop::after, .trede .kroon { animation: none; } }
+
+/* ---------- het nieuwe overzicht */
+.sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mijn { background: var(--manila); border-radius: 14px; padding: .8rem 1rem .9rem; margin: 0 0 1rem; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.mijn h2 { margin: 0 0 .5rem; font-size: 1.1rem; }
+.mijn-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip { display: inline-flex; align-items: center; gap: .45rem; background: var(--papier); color: var(--inkt); text-decoration: none; border-radius: 999px; padding: .3rem .75rem .3rem .4rem; box-shadow: 0 2px 0 rgba(0,0,0,.2); font-weight: 700; font-size: .88rem; }
+.chip b { min-width: 2.1rem; text-align: center; font-size: .95rem; } .chip small { display: block; font-weight: 500; font-size: .7rem; color: var(--zacht); line-height: 1.1; } .chip span { line-height: 1.15; }
+.chip.goud { box-shadow: 0 0 0 2px #E9B949, 0 2px 0 rgba(0,0,0,.2); } .chip:hover, .chip:focus-visible { transform: translateY(-1px); }
+.nog-niet { margin: .55rem 0 0; } .nog-niet a { color: var(--rood-d); }
+.week { background: linear-gradient(135deg, #2B1D4A, #1A1230); color: #FBF6E9; border-radius: 16px; margin: 0 0 1.2rem; box-shadow: 0 0 0 4px #E9B949, 0 0 0 7px #231A26, 0 10px 0 rgba(0,0,0,.25); overflow: hidden; }
+.week-kop { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .7rem 1rem; background: repeating-linear-gradient(90deg, #C8323C 0 18px, #B82E3A 18px 36px); }
+.week-kop h2 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: .5rem; } .week-kop h2 svg { width: 1.8rem; height: 1.8rem; background: #FBF6E9; border-radius: 50%; padding: .15rem; }
+.week-tijd { margin-left: auto; font-weight: 800; font-size: .9rem; background: rgba(0,0,0,.25); padding: .2rem .6rem; border-radius: 999px; }
+.week-inhoud { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 1rem; padding: .9rem 1rem 1rem; align-items: center; }
+.week-acties p { margin: 0 0 .6rem; color: #DCE4F5; } .week-acties .knop { margin: .15rem .3rem .15rem 0; }
+.week .leeg { margin: 0; color: #DCE4F5; }
+.top3 { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+.top3 li { display: grid; grid-template-columns: 1.6rem 1.9rem minmax(0, 1fr) auto; align-items: center; gap: .45rem; background: rgba(255,255,255,.07); border-radius: 9px; padding: .35rem .55rem; }
+.top3 li.jij { background: rgba(255,127,176,.2); box-shadow: 0 0 0 2px #FF7FB0; }
+.top3 .med { font-size: 1.15rem; text-align: center; } .top3 .wie { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .top3 em { font-style: normal; font-size: .7rem; background: #FF7FB0; color: #231A26; border-radius: 999px; padding: 0 .35rem; margin-left: .2rem; }
+.top3 .hoeveel { font-weight: 800; color: #FFE76A; font-variant-numeric: tabular-nums; white-space: nowrap; } .top3 .hoeveel small { color: #DCE4F5; font-weight: 600; font-size: .72rem; }
+.pop.klein { width: 1.9rem; height: 1.9rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: .9rem; border: 2px solid #231A26; }
+.bediening { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: 0 0 1rem; }
+.naamzoek input { flex: none !important; }
+.bediening input, .naamzoek input { font: inherit; flex: 1 1 14rem; padding: .5rem .8rem; border-radius: 999px; border: 3px solid #231A26; background: var(--papier); color: var(--inkt); }
+.filters { display: flex; gap: .3rem; } .filters button { font: inherit; font-weight: 800; border: 3px solid #231A26; background: var(--papier); color: var(--inkt); border-radius: 999px; padding: .35rem .85rem; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: #231A26; color: #FFE76A; }
+.lijsten.overzicht { grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)) !important; gap: 1rem !important; }
+.mini { background: linear-gradient(#22183A, #140E26); color: #FBF6E9; border-radius: 14px; box-shadow: 0 0 0 3px #E9B949, 0 0 0 6px #231A26, 0 8px 0 rgba(0,0,0,.25); display: flex; flex-direction: column; overflow: hidden; }
+.mini-kop { display: flex; align-items: center; gap: .5rem; padding: .55rem .8rem; background: repeating-linear-gradient(90deg, #C8323C 0 16px, #B82E3A 16px 32px); }
+.mini-kop h3 { margin: 0; font-size: 1rem; display: flex; align-items: center; gap: .4rem; min-width: 0; } .mini-kop h3 span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-kop h3 svg { width: 1.5rem; height: 1.5rem; flex: none; background: #FBF6E9; border-radius: 50%; padding: .12rem; }
+.mini-aantal { margin-left: auto; font-size: .74rem; font-weight: 800; background: rgba(0,0,0,.25); border-radius: 999px; padding: .12rem .5rem; white-space: nowrap; }
+.mini .top3 { padding: .7rem .7rem 0; } .mini .leeg { margin: 0; padding: .9rem .8rem 0; color: #DCE4F5; font-size: .9rem; flex: 1; }
+.mini-jij { margin: .55rem .8rem 0; font-size: .82rem; color: #FFB3CF; font-weight: 700; min-height: 1.1em; }
+.mini-acties { display: flex; gap: .4rem; padding: .6rem .7rem .8rem; margin-top: auto; } .mini-acties .knop { font-size: .85rem; padding: .4rem .75rem; }
+.lijsten.detail { display: block !important; max-width: 46rem; margin: 0 auto; }
+.terug-borden { margin: 0 0 .8rem; } .terug-borden a { display: inline-block; background: var(--papier); color: var(--inkt); font-weight: 800; text-decoration: none; border-radius: 999px; padding: .4rem .9rem; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
+.bord-sub { margin: .7rem 1rem 0; color: #DCE4F5; font-size: .9rem; }
+.naamzoek { padding: .9rem .9rem 0; display: flex; flex-direction: column; gap: .3rem; } .naamzoek label { font-size: .8rem; font-weight: 700; color: #DCE4F5; }
+.rest li.vast { position: sticky; bottom: .5rem; background: #3A2550; box-shadow: 0 0 0 2px #FF7FB0, 0 -6px 14px rgba(0,0,0,.35); margin-top: .4rem; }
+.rest li.geen { display: block; text-align: center; color: #DCE4F5; background: none; }
+.meer { text-align: center; margin: .8rem 0 0; } .bord-voet { text-align: center; color: #B9C4DE; margin: .6rem 1rem 0; }
+.bord.groot .podium { padding-top: 1.8rem; }
+@media (max-width: 640px) { .week-inhoud { grid-template-columns: 1fr; } .week-tijd { margin-left: 0; } }
+
+.ik.compact { padding: .55rem 1rem; } .ik-details summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .7rem; }
+.ik-details summary::-webkit-details-marker { display: none; } .ik-wijzig { font-size: .82rem; font-weight: 700; color: var(--rood-d); text-decoration: underline; }
+.ik-details[open] summary { margin-bottom: .6rem; }
+.nog-niet summary { cursor: pointer; font-size: .85rem; font-weight: 700; color: var(--zacht); margin-top: .5rem; } .nog-niet p { margin: .3rem 0 0; }
+.nog-leeg { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .2rem 0 0; background: var(--manila); border-radius: 12px; padding: .6rem .8rem; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+.nog-leeg a { display: inline-flex; align-items: center; gap: .3rem; background: var(--papier); color: var(--inkt); text-decoration: none; font-weight: 700; font-size: .85rem; border-radius: 999px; padding: .2rem .65rem .2rem .25rem; }
+.nog-leeg a svg { width: 1.3rem; height: 1.3rem; } .nog-leeg .klein { color: var(--zacht); }
+</style>
+<!--BOUW:V6-KOP--></head>
+<body data-gat="26" data-pagina="scorebord">
+<div class="rek zijkant links" id="rek-links" data-gereedschap="schroevendraaier,kwast,waterpas,ijzerzaag" aria-hidden="true"></div>
+<div class="rek zijkant rechts" id="rek-rechts" data-gereedschap="tang,duimstok,schaar,klem" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="kop">
+    <a class="terug" href="./">Terug naar het rommelhoekje</a>
+    <h1><span class="kop-icoon" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><path d="M20 10h24v14a12 12 0 0 1-24 0z" fill="#E9B949" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M20 14h-6a6 6 0 0 0 6 10M44 14h6a6 6 0 0 1-6 10" fill="none" stroke="#1F2333" stroke-width="2.5"/><path d="M29 36h6v8h-6z" fill="#C99A2E" stroke="#1F2333" stroke-width="2"/><rect x="22" y="44" width="20" height="7" rx="1.5" fill="#7A4E2D" stroke="#1F2333" stroke-width="2"/><path d="M27 15v9" stroke="#FFF3C4" stroke-width="2.5" stroke-linecap="round"/><path d="M32 52v0" /><rect x="27" y="46" width="10" height="3" fill="#E9B949"/></svg></span><span class="tape">Scorebord</span></h1>
+  </header>
+  <main>
+    <section class="paneel ik" id="ik" aria-labelledby="ik-titel">
+      <h2 id="ik-titel">Doe mee</h2>
+      <div id="ik-inhoud"><p>Even laden...</p></div>
+    </section>
+    <div id="mijn"></div>
+    <div id="week"></div>
+    <div class="bediening" id="bediening">
+      <label class="sr" for="spelzoek">Zoek een spel</label><input id="spelzoek" type="search" autocomplete="off" placeholder="Zoek een spel…">
+      <div class="filters" role="group" aria-label="Welke borden"><button type="button" data-filter="alles" aria-pressed="true">Alles</button><button type="button" data-filter="mijn" aria-pressed="false">Waar ik op sta</button></div>
+    </div>
+    <div id="lijsten" class="lijsten"></div>
+    <p class="bijgewerkt" id="bijgewerkt"></p>
+  </main>
+  <section class="uitleg" aria-label="Uitleg">
+    <details>
+      <summary>Hoe werkt het scorebord?</summary>
+      <ul>
+        <li>Je doet alleen mee als je zelf een naam kiest. Dan sturen de spellen je beste score naar het scorebord.</li>
+        <li>Vlaaienbakker: het totaal aantal vlaaien dat je ooit hebt gebakken. Rommelwoord: je langste reeks dagen achter elkaar goed, en bij gelijke stand het aantal gewonnen spellen. Rommelpoker: het aantal kraampjes dat je het verst bent gekomen, en bij gelijke stand je beste hand. Rommelbeesten: hoeveel verschillende kaarten je hebt verzameld.</li>
+        <li>We bewaren alleen je naam en je scores, geen andere gegevens. Je kunt je naam altijd veranderen, of stoppen en je scores weghalen.</li>
+        <li>Je scores horen bij deze browser. Speel je op een ander apparaat, dan kun je daar dezelfde naam kiezen, maar je staat er dan als aparte speler.</li>
+      </ul>
+    </details>
+  </section>
+</div>
+<!--BOUW:SCOREBORD-->
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const ICO = {"vlaai": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><defs><clipPath id=\"vlaai-icoon-knip\"><circle cx=\"31\" cy=\"32\" r=\"19\"/><\/clipPath><\/defs><ellipse cx=\"34\" cy=\"37\" rx=\"28\" ry=\"25\" fill=\"#1F2333\" opacity=\".18\"/><circle cx=\"31\" cy=\"32\" r=\"27\" fill=\"#C98A43\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"31\" cy=\"32\" r=\"23.5\" fill=\"none\" stroke=\"#E0AE66\" stroke-width=\"3.2\" stroke-dasharray=\"4 2.6\"/><circle cx=\"31\" cy=\"32\" r=\"19\" fill=\"#A8162B\"/><g clip-path=\"url(#vlaai-icoon-knip)\" stroke=\"#E0AE66\" stroke-width=\"3.6\"><g transform=\"rotate(45 31 32)\"><path d=\"M8 24h46M8 32h46M8 40h46\"/><\/g><g transform=\"rotate(-45 31 32)\"><path d=\"M8 24h46M8 32h46M8 40h46\"/><\/g><\/g><\/svg>", "woord": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><g transform=\"rotate(-8 18 34)\"><rect x=\"5\" y=\"20\" width=\"24\" height=\"24\" rx=\"4\" fill=\"#5F6470\" stroke=\"#1F2333\" stroke-width=\"2\"/><path d=\"M12 27h10M17 27v11\" stroke=\"#E6E3DA\" stroke-width=\"3\" stroke-linecap=\"round\"/><\/g><g transform=\"rotate(6 46 30)\"><rect x=\"35\" y=\"16\" width=\"24\" height=\"24\" rx=\"4\" fill=\"#F2DDA0\" stroke=\"#C8323C\" stroke-width=\"2.4\" stroke-dasharray=\"4 2.4\"/><path d=\"M41 34l6-12 6 12M43.2 29.6h7.6\" stroke=\"#9E2430\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><\/g><rect x=\"20\" y=\"30\" width=\"26\" height=\"26\" rx=\"4\" fill=\"#2E8B62\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"41\" cy=\"35\" r=\"2\" fill=\"#fff\"/><path d=\"M25 37l3 12 5-8 5 8 3-12\" stroke=\"#fff\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><\/svg>", "kaarten": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><g transform=\"rotate(-14 26 36)\"><rect x=\"10\" y=\"12\" width=\"28\" height=\"40\" rx=\"4\" fill=\"#2F4C8F\" stroke=\"#1F2333\" stroke-width=\"2\"/><rect x=\"14\" y=\"16\" width=\"20\" height=\"32\" rx=\"2\" fill=\"none\" stroke=\"#F2DDA0\" stroke-width=\"1.6\"/><path d=\"M24 25l5 7-5 7-5-7z\" fill=\"#F2DDA0\"/><\/g><g transform=\"rotate(11 40 34)\"><rect x=\"25\" y=\"12\" width=\"28\" height=\"40\" rx=\"4\" fill=\"#FBF6E9\" stroke=\"#1F2333\" stroke-width=\"2\"/><path d=\"M39 41c-6.5-4.2-9.5-7.6-9.5-10.8a4.8 4.8 0 0 1 9.5-1.2 4.8 4.8 0 0 1 9.5 1.2c0 3.2-3 6.6-9.5 10.8z\" fill=\"#C8323C\"/><path d=\"M29 15.5v6M29 15.5l3 6M29 18.5h2.4\" stroke=\"#C8323C\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\"/><\/g><\/svg>", "pakje": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14 8l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4v52l-4 4-4-4-4 4-4-4-4 4-4-4-4 4-4-4-4 4z\" fill=\"#2F8BD6\" stroke=\"#1F2333\" stroke-width=\"2\" stroke-linejoin=\"round\"/><rect x=\"16\" y=\"14\" width=\"34\" height=\"8\" rx=\"1.5\" fill=\"#23252B\"/><rect x=\"17\" y=\"25\" width=\"32\" height=\"26\" rx=\"3\" fill=\"#FBF6E9\" stroke=\"#1F2333\" stroke-width=\"1.5\"/><path d=\"M33 30l2.5 5.5 6 .6-4.5 4 1.3 5.9L33 43l-5.3 3 1.3-5.9-4.5-4 6-.6z\" fill=\"#E9B949\" stroke=\"#8C6A0A\" stroke-width=\"1.2\"/><path d=\"M14 8h40\" stroke=\"#6EE8F0\" stroke-width=\"2\" stroke-dasharray=\"3 3\"/><rect x=\"22\" y=\"54\" width=\"22\" height=\"5\" rx=\"2.5\" fill=\"#1E4F8C\"/><\/svg>", "vlieger": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M6 34L58 8 34 56l-6-16z\" fill=\"#FBF6E9\" stroke=\"#1F2333\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M58 8L28 40l-22-6z\" fill=\"#DCE4F5\" stroke=\"#1F2333\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M58 8L28 40l6 16\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M4 50q8-4 14 0M10 58q6-3 12 0\" fill=\"none\" stroke=\"#5EC2E8\" stroke-width=\"3\" stroke-linecap=\"round\"/><\/svg>", "ritme": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"8\" y=\"22\" width=\"26\" height=\"26\" rx=\"3\" fill=\"#8AFF6A\" stroke=\"#1F2333\" stroke-width=\"3\"/><rect x=\"14\" y=\"30\" width=\"4\" height=\"5\" fill=\"#1F2333\"/><rect x=\"24\" y=\"30\" width=\"4\" height=\"5\" fill=\"#1F2333\"/><rect x=\"15\" y=\"39\" width=\"12\" height=\"2.6\" fill=\"#1F2333\"/><path d=\"M44 10v24\" stroke=\"#1F2333\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M44 10l12 4v7l-12-4\" fill=\"#FF5AA8\" stroke=\"#1F2333\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><ellipse cx=\"40\" cy=\"35\" rx=\"5.5\" ry=\"4.2\" fill=\"#FF5AA8\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><path d=\"M4 56h56\" stroke=\"#5EE6FF\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M44 56l6-8 6 8z\" fill=\"#1F2333\"/><\/svg>", "rommelkroon": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"6\" y=\"6\" width=\"52\" height=\"52\" rx=\"5\" fill=\"#FBF6E9\" stroke=\"#1F2333\" stroke-width=\"3\"/><path d=\"M6 23h52M6 40h52M23 6v52M40 6v52\" stroke=\"#1F2333\" stroke-width=\"2\"/><rect x=\"7.5\" y=\"7.5\" width=\"15\" height=\"15\" fill=\"#F4A6A6\"/><rect x=\"40.5\" y=\"24\" width=\"16\" height=\"15\" fill=\"#A9C4F5\"/><rect x=\"24\" y=\"41\" width=\"15\" height=\"15.5\" fill=\"#B8E0A0\"/><path d=\"M27 34l-1.5-10 5 4 3.5-7 3.5 7 5-4-1.5 10z\" fill=\"#E9B949\" stroke=\"#1F2333\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M45 13l7 7M52 13l-7 7\" stroke=\"#1F2333\" stroke-width=\"2.4\" stroke-linecap=\"round\" opacity=\".6\"/><\/svg>", "arend": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"32\" cy=\"32\" r=\"26\" fill=\"#8EC5EE\" stroke=\"#1F2333\" stroke-width=\"3\"/><path d=\"M14 50h36\" stroke=\"#1F2333\" stroke-width=\"2.4\"/><path d=\"M28 50l4-30 4 30z\" fill=\"#7A6248\" stroke=\"#1F2333\" stroke-width=\"2\"/><path d=\"M27 40h10M29 30h6\" stroke=\"#1F2333\" stroke-width=\"1.8\"/><path d=\"M10 26q10-8 18-2l4 3 4-3q8-6 18 2q-8 0-12 6l-10 2-10-2q-4-6-12-6z\" fill=\"#5A3A22\" stroke=\"#1F2333\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"27\" r=\"3.2\" fill=\"#F4F0E6\" stroke=\"#1F2333\" stroke-width=\"1.6\"/><path d=\"M32 29l1.6 2.4h-3.2z\" fill=\"#E9B949\"/><\/svg>", "rob": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M6 12q0-6 6-6h40q6 0 6 6v20q0 6-6 6H26l-10 9v-9h-4q-6 0-6-6z\" fill=\"#FFE76A\" stroke=\"#1F2333\" stroke-width=\"3\" stroke-linejoin=\"round\"/><text x=\"32\" y=\"29\" text-anchor=\"middle\" font-family=\"Impact, Arial Black, sans-serif\" font-size=\"16\" font-weight=\"900\" fill=\"#C8323C\" transform=\"rotate(-6 32 26)\">ROB<\/text><path d=\"M38 60h14q3 0 3-3l2-10q0-3-3-3h-7l1-6q0-4-3-4l-6 9v17z\" fill=\"#F2C2A8\" stroke=\"#1F2333\" stroke-width=\"2.4\" stroke-linejoin=\"round\"/><rect x=\"32\" y=\"45\" width=\"6\" height=\"15\" rx=\"1.5\" fill=\"#2F6FD6\" stroke=\"#1F2333\" stroke-width=\"2.4\"/><\/svg>", "bel": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"20\" cy=\"18\" r=\"10\" fill=\"#E8414E\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><circle cx=\"40\" cy=\"18\" r=\"10\" fill=\"#3A86E8\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><circle cx=\"30\" cy=\"34\" r=\"10\" fill=\"#F5C330\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><circle cx=\"16\" cy=\"14\" r=\"3\" fill=\"#fff\" opacity=\".7\"/><circle cx=\"36\" cy=\"14\" r=\"3\" fill=\"#fff\" opacity=\".7\"/><circle cx=\"26\" cy=\"30\" r=\"3\" fill=\"#fff\" opacity=\".7\"/><path d=\"M32 60V50\" stroke=\"#1F2333\" stroke-width=\"7\" stroke-linecap=\"round\"/><circle cx=\"32\" cy=\"48\" r=\"7\" fill=\"#3DB06A\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><path d=\"M22 60h20\" stroke=\"#1F2333\" stroke-width=\"3\" stroke-linecap=\"round\"/><\/svg>", "steek": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"31\" cy=\"33\" r=\"27\" fill=\"#E2B47E\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><circle cx=\"31\" cy=\"33\" r=\"21.5\" fill=\"#FBF7EF\" stroke=\"#1F2333\" stroke-width=\"2.2\"/><path d=\"M10 25a22 22 0 0 1 12-13\" fill=\"none\" stroke=\"#F6D9A8\" stroke-width=\"2\" stroke-linecap=\"round\"/><rect x=\"25\" y=\"1.5\" width=\"12\" height=\"8\" rx=\"2.5\" fill=\"#B5652F\" stroke=\"#1F2333\" stroke-width=\"2.2\"/><circle cx=\"31\" cy=\"5.5\" r=\"1.6\" fill=\"#F6CB2F\"/><circle cx=\"17\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"17\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"17\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"22\" cy=\"22\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"22\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"22\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"22\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"22\" cy=\"42\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"17\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"22\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"42\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"27\" cy=\"47\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"17\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"22\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"42\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"32\" cy=\"47\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"17\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"22\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"42\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"37\" cy=\"47\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"42\" cy=\"22\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"42\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"42\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"42\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"42\" cy=\"42\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"47\" cy=\"27\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"47\" cy=\"32\" r=\".6\" fill=\"#C9B79A\"/><circle cx=\"47\" cy=\"37\" r=\".6\" fill=\"#C9B79A\"/><path d=\"M18.7 22.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#F28CA0\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M23.7 22.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#F28CA0\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M33.7 22.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M38.7 22.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M18.7 27.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#F28CA0\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M23.7 27.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M28.7 27.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M33.7 27.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M38.7 27.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M23.7 32.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M28.7 32.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M33.7 32.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M28.7 37.7l4.6 4.6m0-4.6l-4.6 4.6\" stroke=\"#D9455F\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M31 41c4 6 10 9 17 8\" fill=\"none\" stroke=\"#E8577A\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M46 50l13 9\" stroke=\"#1F2333\" stroke-width=\"4.2\" stroke-linecap=\"round\"/><path d=\"M46 50l13 9\" stroke=\"#D8DEE4\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><ellipse cx=\"48.4\" cy=\"51.7\" rx=\"1.6\" ry=\".8\" transform=\"rotate(35 48.4 51.7)\" fill=\"#1F2333\"/><\/svg>", "fiets": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"17\" cy=\"42\" r=\"11\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"4\"/><circle cx=\"47\" cy=\"42\" r=\"11\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"4\"/><circle cx=\"17\" cy=\"42\" r=\"2.5\" fill=\"#8C939E\"/><circle cx=\"47\" cy=\"42\" r=\"2.5\" fill=\"#8C939E\"/><path d=\"M17 42l10-18h16l4 18M27 24l8 18h-18M43 24l-2-7h-6\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M17 42l10-18h16l4 18M27 24l8 18h-18M43 24l-2-7h-6\" fill=\"none\" stroke=\"#8E1F2A\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22 20h10\" stroke=\"#1F2333\" stroke-width=\"4.5\" stroke-linecap=\"round\"/><path d=\"M33 13h8\" stroke=\"#1F2333\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M46 8c3 0 6 2 6 5\" fill=\"none\" stroke=\"#E9B949\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><path d=\"M49 4c5 1 8 4 8 9\" fill=\"none\" stroke=\"#E9B949\" stroke-width=\"2.4\" stroke-linecap=\"round\"/><\/svg>", "steiger": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14 58V12M50 58V12M14 26h36M14 44h36M14 26l36 18\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M14 58V12M50 58V12M14 26h36M14 44h36M14 26l36 18\" fill=\"none\" stroke=\"#B8C0C8\" stroke-width=\"3.6\" stroke-linecap=\"round\"/><rect x=\"6\" y=\"6\" width=\"52\" height=\"9\" rx=\"2.5\" fill=\"#E0A64E\" stroke=\"#1F2333\" stroke-width=\"3\"/><path d=\"M18 10.5h6M32 10.5h6M46 10.5h4\" stroke=\"#B07A2E\" stroke-width=\"2\" stroke-linecap=\"round\"/><circle cx=\"14\" cy=\"26\" r=\"3.2\" fill=\"#2F6FB5\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"44\" r=\"3.2\" fill=\"#2F6FB5\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"14\" cy=\"44\" r=\"3.2\" fill=\"#2F6FB5\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"26\" r=\"3.2\" fill=\"#2F6FB5\" stroke=\"#1F2333\" stroke-width=\"2\"/><\/svg>", "wheels": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 24h14M2 33h12M5 42h11\" stroke=\"#1F2333\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"38\" cy=\"33\" r=\"23\" fill=\"#1F2333\"/><circle cx=\"38\" cy=\"33\" r=\"18\" fill=\"#F28C28\"/><circle cx=\"38\" cy=\"33\" r=\"13\" fill=\"#4A2818\"/><path d=\"M38 20v26M25 33h26M29 24l18 18M47 24L29 42\" stroke=\"#F2DDA0\" stroke-width=\"3.2\" stroke-linecap=\"round\"/><circle cx=\"38\" cy=\"33\" r=\"6\" fill=\"#F6F0E4\" stroke=\"#1F2333\" stroke-width=\"2\"/><circle cx=\"36\" cy=\"32\" r=\"1.4\" fill=\"#1F2333\"/><circle cx=\"40\" cy=\"32\" r=\"1.4\" fill=\"#1F2333\"/><\/svg>", "mengelmoes": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><g transform=\"rotate(-9 21 37)\"><rect x=\"7.5\" y=\"24.5\" width=\"29\" height=\"29\" rx=\"8\" fill=\"#2F5BD3\"/><rect x=\"5\" y=\"22\" width=\"29\" height=\"29\" rx=\"8\" fill=\"#A9C8FF\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><path d=\"M19.5 28.5c-4 4.8-6.2 8-6.2 11a6.2 6.2 0 0 0 12.4 0c0-3-2.2-6.2-6.2-11z\" fill=\"#2F5BD3\" stroke=\"#1F2333\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M16.6 39.6a3 3 0 0 0 2.2 2.8\" fill=\"none\" stroke=\"#FBF6E9\" stroke-width=\"1.8\" stroke-linecap=\"round\"/><\/g><g transform=\"rotate(10 43 29)\"><rect x=\"31.5\" y=\"16.5\" width=\"29\" height=\"29\" rx=\"8\" fill=\"#FF4FA3\"/><rect x=\"29\" y=\"14\" width=\"29\" height=\"29\" rx=\"8\" fill=\"#FFE27A\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><path d=\"M43.6 19.5c.8 4 6.4 6.3 6.4 12.2a6.4 6.4 0 0 1-12.8 0c0-3.2 1.9-4.6 3-6.6 1 1.9 1.8 2.8 2.9 3.1.9-2.9.9-5.6.5-8.7z\" fill=\"#FF7A2E\" stroke=\"#1F2333\" stroke-width=\"2.2\" stroke-linejoin=\"round\"/><path d=\"M43.2 35.7c-1.4 0-2.4-1-2.4-2.4 0-1.2.8-2 1.5-3 .5 1 1 1.4 1.7 1.6.6-.6.9-1.3 1-2.1.7.9 1.1 1.8 1.1 2.8 0 1.8-1.3 3.1-2.9 3.1z\" fill=\"#FFD60A\"/><\/g><path d=\"M50.5 47.5l2.2 5.4 5.4 2.2-5.4 2.2-2.2 5.4-2.2-5.4-5.4-2.2 5.4-2.2z\" fill=\"#FF4FA3\" stroke=\"#1F2333\" stroke-width=\"2\" stroke-linejoin=\"round\"/><circle cx=\"9\" cy=\"10\" r=\"2.2\" fill=\"#00A57A\"/><circle cx=\"16\" cy=\"6.5\" r=\"1.5\" fill=\"#FF4FA3\"/><circle cx=\"14.5\" cy=\"13\" r=\"1.2\" fill=\"#2F5BD3\"/><\/svg>", "opgevoel": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M2.5 46a29.5 29.5 0 0 1 59 0z\" fill=\"#FBF6E9\" stroke=\"#1F2333\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M9 46a23 23 0 0 1 6.74-16.26\" fill=\"none\" stroke=\"#C8323C\" stroke-width=\"7.5\"/><path d=\"M15.74 29.74a23 23 0 0 1 32.52 0\" fill=\"none\" stroke=\"#E9B949\" stroke-width=\"7.5\"/><path d=\"M48.26 29.74A23 23 0 0 1 55 46\" fill=\"none\" stroke=\"#2E8B62\" stroke-width=\"7.5\"/><path d=\"M32 46l15.5-13.5\" stroke=\"#1F2333\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"32\" cy=\"46\" r=\"5.5\" fill=\"#C8323C\" stroke=\"#1F2333\" stroke-width=\"2.6\"/><rect x=\"1.5\" y=\"46\" width=\"61\" height=\"10\" rx=\"3.5\" fill=\"#2F4C8F\" stroke=\"#1F2333\" stroke-width=\"2.8\"/><path d=\"M54 3l2.3 5.2 5.2 2.3-5.2 2.3L54 18l-2.3-5.2-5.2-2.3 5.2-2.3z\" fill=\"#E9B949\" stroke=\"#1F2333\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/><\/svg>", "recht": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\"><rect x=\"12\" y=\"20\" width=\"40\" height=\"32\" rx=\"2.5\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"2\" stroke-dasharray=\"3.2 3\" opacity=\".4\"/><g transform=\"rotate(-13 32 9)\"><path d=\"M32 9L19 21M32 9L45 21\" fill=\"none\" stroke=\"#1F2333\" stroke-width=\"1.8\" stroke-linecap=\"round\"/><rect x=\"12\" y=\"20\" width=\"40\" height=\"32\" rx=\"2.5\" fill=\"#C99566\" stroke=\"#1F2333\" stroke-width=\"2.4\"/><rect x=\"17.5\" y=\"25.5\" width=\"29\" height=\"21\" fill=\"#C3D8EB\" stroke=\"#1F2333\" stroke-width=\"1.6\"/><path d=\"M17.5 39.5c5-4.5 10-5.5 15-3s9.5 2.5 14 .5v9.5h-29z\" fill=\"#9CC6A6\"/><path d=\"M22 39v-5l3.5-3 3.5 3v5\" fill=\"#E0857A\" stroke=\"#1F2333\" stroke-width=\"1.2\" stroke-linejoin=\"round\"/><circle cx=\"40.5\" cy=\"30.5\" r=\"3\" fill=\"#F2D58C\" stroke=\"#1F2333\" stroke-width=\"1.2\"/><\/g><circle cx=\"32\" cy=\"9\" r=\"2.8\" fill=\"#BDC5CD\" stroke=\"#1F2333\" stroke-width=\"1.6\"/><path d=\"M38 60.5c7 1.2 13.5-.8 18-6.5\" fill=\"none\" stroke=\"#7FB08F\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M51.5 53.2l4.8.6.4 4.6\" fill=\"none\" stroke=\"#7FB08F\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><\/svg>"};
+  const SPELLEN = [
+    { id: 'vw' + Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000 / 7 + 3 / 7), naam: 'Bakwedstrijd van de week', icoon: 'vlaai', link: 'vlaaienbakker.html#wedstrijd', eenheid: 'vlaaien', extra: () => 'deze week' },
+    { id: 'vlaai', naam: 'Vlaaienbakker', icoon: 'vlaai', link: 'vlaaienbakker.html', eenheid: 'vlaaien', extra: r => fmtGroot(r.extra) + ' per seconde' },
+    { id: 'woord', naam: 'Rommelwoord', icoon: 'woord', link: 'rommelwoord.html', eenheid: r => (r.score === 1 ? 'dag' : 'dagen'), extra: r => r.extra + ' gewonnen' },
+    { id: 'poker', naam: 'Rommelpoker', icoon: 'kaarten', link: 'rommelpoker.html', eenheid: r => (r.score === 1 ? 'kraampje' : 'kraampjes'), extra: r => 'beste hand ' + Math.round(r.extra).toLocaleString('nl-NL') },
+    { id: 'beest', naam: 'Rommelbeesten', icoon: 'pakje', link: 'rommelbeesten.html', eenheid: 'van 130', extra: r => Math.round(r.extra) + ' kaarten in totaal' },
+    { id: 'vlieger', naam: 'Vouwvlieger', icoon: 'vlieger', link: 'vouwvlieger.html', eenheid: r => (r.score === 1 ? 'punt' : 'punten'), extra: r => Math.round(r.extra) + ' sterren gevangen' },
+    { id: 'ritme', naam: 'Rommelritme', icoon: 'ritme', link: 'rommelritme.html', eenheid: 'van 600%', extra: r => Math.round(r.extra) + ' pogingen' },
+    { id: 'kroon', naam: 'Rommelkroon', icoon: 'rommelkroon', link: 'rommelkroon.html', eenheid: 'puzzels', extra: r => { const m = Math.round(r.extra / 60); return m + ' minuten gepuzzeld'; } },
+    { id: 'arend', naam: 'Rommelarend', icoon: 'arend', link: 'rommelarend.html', eenheid: 'punten', extra: r => Math.round(r.extra) + ' bezienswaardigheden' },
+    { id: 'rob', naam: 'Rob 👍', icoon: 'rob', link: 'rob.html', eenheid: 'duimpjes', extra: r => Math.round(r.extra) + ' duimpjes ooit' },
+    { id: 'fiets', naam: 'JAJA Productiefiets', icoon: 'fiets', link: 'productiefiets.html', eenheid: 'punten', extra: r => Math.round(r.extra) + ' m' },
+    { id: 'gevoel', naam: 'Op Gevoel', icoon: 'opgevoel', link: 'opgevoel.html', eenheid: 'van 500', extra: r => { const d = Math.round(r.extra); return 'beste dagronde · ' + d + (d === 1 ? ' dag' : ' dagen') + ' op rij'; } },
+    { id: 'bel', naam: 'Rommelbel', icoon: 'bel', link: 'rommelbel.html', eenheid: 'punten', extra: r => Math.round(r.extra) + ' sterren' },
+  ];
+  const NAMEN = [[1e24, 'quadriljoen'], [1e21, 'triljard'], [1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']];
+  function fmtGroot(n) { n = Math.floor(n || 0); if (n < 1e6) return n.toLocaleString('nl-NL'); for (const [v, w] of NAMEN) if (n >= v) return (n / v).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' ' + w; return n.toExponential(1); }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  async function tekenIk() {
+    const el = $('ik-inhoud');
+    if (Scorebord.doetMee()) {
+      $('ik').classList.add('compact'); $('ik-titel').style.display = 'none';
+      el.innerHTML = `<details class="ik-details"><summary>Je doet mee als <b>${esc(Scorebord.naam())}</b> <span class="ik-wijzig">Naam veranderen of stoppen</span></summary>
+        <form id="f-naam"><input id="i-naam" maxlength="16" value="${esc(Scorebord.naam())}" aria-label="Je naam"><button class="knop hoofd" type="submit">Naam veranderen</button></form>
+        <p class="klein">Wil je niet meer meedoen? <button type="button" id="b-stop">Stop en haal mijn scores weg</button></p></details>`;
+      $('b-stop').addEventListener('click', async () => { if (!confirm('Weet je het zeker? Je naam en al je scores verdwijnen van het scorebord.')) return; await Scorebord.stopEnVerwijder(); tekenIk(); laad(); });
+    } else {
+      $('ik').classList.remove('compact'); $('ik-titel').style.display = '';
+      el.innerHTML = `<p>Kies een naam om mee te doen. Je naam en je beste scores verschijnen dan op deze pagina. Verder bewaren we niets.</p>
+        <form id="f-naam"><input id="i-naam" maxlength="16" placeholder="Je naam (2 tot 16 tekens)" aria-label="Je naam"><button class="knop hoofd" type="submit">Doe mee</button></form>`;
+    }
+    $('f-naam').addEventListener('submit', async e => {
+      e.preventDefault();
+      const n = $('i-naam').value.trim();
+      if (n.length < 2) { $('i-naam').focus(); return; }
+      await Scorebord.zetNaam(n); tekenIk(); setTimeout(laad, 600);
+    });
+  }
+  document.addEventListener('scorebord-fout', e => { const p = document.createElement('p'); p.className = 'klein'; p.style.color = 'var(--rood-d)'; p.textContent = e.detail; $('ik-inhoud').appendChild(p); });
+
+  // ================= het scorebord: een overzicht met kaartjes, en per spel het hele bord
+  let DATA = null, TELLERS = {}, PLEKKEN = {}, IK = null, FILTER = 'alles', ZOEK = '', NAAMZOEK = '', TONEN = {}, geteld = false;
+  const KLEUREN = ['#C8323C', '#2F8BD6', '#2E8B62', '#7A4E9A', '#E8702A', '#E8577A', '#3E8E9A', '#B8862F'];
+  const kleurVan = n => KLEUREN[[...String(n)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % KLEUREN.length];
+  const KROON = '<svg class="kroon" viewBox="0 0 40 26" aria-hidden="true"><path d="M3 23l-1-17 10 8 8-12 8 12 10-8-1 17z" fill="#FFE76A" stroke="#231A26" stroke-width="2.5" stroke-linejoin="round"/><circle cx="20" cy="16" r="3" fill="#C8323C" stroke="#231A26" stroke-width="1.5"/></svg>';
+  const MEDAILLE = ['🥇', '🥈', '🥉'];
+  const toonScore = (s, r) => (s.id === 'vlaai' || s.id.startsWith('vw') ? fmtGroot(r.score) : Math.round(r.score).toLocaleString('nl-NL'));
+  const eenheid = (s, r) => (typeof s.eenheid === 'function' ? s.eenheid(r) : s.eenheid);
+  const isWeek = s => s.id.startsWith('vw');
+  const rijenVan = s => (DATA && DATA[s.id]) || [];
+  const aantal = s => (TELLERS[s.id] != null ? TELLERS[s.id] : rijenVan(s).length);
+  const mijnPlek = s => { const p = PLEKKEN[s.id]; if (p) return p; const i = rijenVan(s).findIndex(r => r.id === IK); return i >= 0 ? { plek: i + 1, totaal: aantal(s), score: rijenVan(s)[i].score, extra: rijenVan(s)[i].extra } : null; };
+  const spelers = n => n + (n === 1 ? ' speler' : ' spelers');
+  const pop = (r, groot) => `<span class="pop${groot ? '' : ' klein'}" style="background:${kleurVan(r.naam)}" aria-hidden="true">${esc([...r.naam][0] || '?').toUpperCase()}</span>`;
+  async function haal(pad) { try { const inst = await Scorebord.klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null; const r = await fetch(url + pad, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch (e) { return null; } }
+
+  async function laad() {
+    if (!(await Scorebord.actief())) { $('lijsten').innerHTML = '<p class="melding">Het scorebord is nog niet aangezet. Kom straks nog eens kijken!</p>'; $('ik').hidden = true; return; }
+    let data = null;
+    try { data = await Scorebord.lijsten(); } catch (e) {}
+    if (!data) { if (!DATA) $('lijsten').innerHTML = '<p class="melding">Het scorebord kon even niet geladen worden. Probeer het zo nog eens.</p>'; return; }
+    IK = await Scorebord.mijnId();
+    const [tel, plek] = await Promise.all([haal('/tellers'), Scorebord.doetMee() && IK ? haal('/plek?id=' + encodeURIComponent(IK)) : null]);
+    DATA = data; TELLERS = tel || {}; PLEKKEN = (plek && plek.plekken) || {};
+    teken();
+    $('bijgewerkt').textContent = 'Bijgewerkt om ' + new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) + '. Het bord ververst zich elke minuut.';
+  }
+  function teken() {
+    const m = location.hash.match(/^#bord-([\w-]+)$/), s = m && SPELLEN.find(x => (m[1] === 'week' ? isWeek(x) : x.id === m[1]));
+    document.body.classList.toggle('sb-detail', !!s);
+    if (s) tekenDetail(s); else tekenOverzicht();
+    if (!geteld && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) { geteld = true; telOp(); }
+  }
+  addEventListener('hashchange', () => { if (!DATA) return; NAAMZOEK = ''; teken(); const h = document.querySelector(document.body.classList.contains('sb-detail') ? '#detail-titel' : '#overzicht-titel'); if (h) { h.focus({ preventScroll: true }); h.scrollIntoView({ block: 'start', behavior: 'smooth' }); } });
+
+  // ---------- jouw plekken, in één regel per spel
+  function tekenMijn() {
+    if (!Scorebord.doetMee()) { $('mijn').innerHTML = ''; return; }
+    const op = [], niet = [];
+    for (const s of SPELLEN) { const p = mijnPlek(s); if (p) op.push({ s, p }); else if (!isWeek(s)) niet.push(s); }
+    op.sort((a, b) => a.p.plek - b.p.plek);
+    $('mijn').innerHTML = `<section class="mijn" aria-labelledby="mijn-titel"><h2 id="mijn-titel">Jouw plekken, ${esc(Scorebord.naam())}</h2>
+      ${op.length ? `<ul class="mijn-chips">${op.map(({ s, p }) => `<li><a class="chip ${['goud', 'zilver', 'brons'][p.plek - 1] || ''}" href="#bord-${isWeek(s) ? 'week' : s.id}"><b>${p.plek <= 3 ? MEDAILLE[p.plek - 1] : '#' + p.plek}</b><span>${esc(s.naam)}<small>van ${spelers(p.totaal || aantal(s))}</small></span></a></li>`).join('')}</ul>` : '<p class="klein">Je staat nog op geen enkel bord. Speel een spel, en je beste score komt vanzelf hier.</p>'}
+      ${niet.length ? `<details class="nog-niet"><summary>Nog niet op het bord bij ${niet.length === 1 ? '1 spel' : niet.length + ' spellen'}</summary><p class="klein">${niet.map(s => `<a href="${s.link}">${esc(s.naam)}</a>`).join(', ')}</p></details>` : ''}</section>`;
+  }
+  // ---------- de Bakwedstrijd van de week, uitgelicht
+  function weekEinde() { const n = new Date(), d = (n.getDay() + 6) % 7; return new Date(n.getFullYear(), n.getMonth(), n.getDate() - d + 7, 0, 0, 0); }
+  function nogTijd() { const ms = weekEinde() - Date.now(), d = Math.floor(ms / 864e5), u = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60; return d ? `nog ${d} ${d === 1 ? 'dag' : 'dagen'} en ${u} uur` : u ? `nog ${u} uur en ${m} minuten` : `nog ${m} minuten`; }
+  function tekenWeek() {
+    const s = SPELLEN.find(isWeek); if (!s) { $('week').innerHTML = ''; return; }
+    const r = rijenVan(s), p = mijnPlek(s);
+    $('week').innerHTML = `<section class="week" aria-labelledby="week-titel"><div class="week-kop"><h2 id="week-titel">${ICO[s.icoon] || ''}${esc(s.naam)}</h2><span class="week-tijd">⏳ ${nogTijd()}</span></div>
+      <div class="week-inhoud">${r.length ? `<ol class="top3">${r.slice(0, 3).map((x, i) => `<li${x.id === IK ? ' class="jij"' : ''}><span class="med">${MEDAILLE[i]}</span>${pop(x)}<span class="wie">${esc(x.naam)}${x.id === IK ? ' <em>jij</em>' : ''}</span><span class="hoeveel">${toonScore(s, x)} <small>${esc(eenheid(s, x))}</small></span></li>`).join('')}</ol>` : '<p class="leeg">Nog niemand deze week. Bak jij de eerste vlaaien?</p>'}
+      <div class="week-acties"><p>${spelers(aantal(s))} deze week${p ? ` · jij staat op plek <b>${p.plek}</b>` : ''}</p><a class="knop hoofd" href="${s.link}">Bak mee</a> <a class="knop" href="#bord-week">Het hele bord</a></div></div></section>`;
+  }
+  // ---------- het overzicht: per spel een kaartje
+  function tekenOverzicht() {
+    tekenMijn(); tekenWeek(); $('bediening').hidden = false;
+    const z = ZOEK.trim().toLowerCase(), alles = SPELLEN.filter(s => !isWeek(s) && (!z || s.naam.toLowerCase().includes(z)) && (FILTER !== 'mijn' || mijnPlek(s)));
+    const lijst = alles.filter(s => rijenVan(s).length), leeg = alles.filter(s => !rijenVan(s).length);
+    $('lijsten').className = 'lijsten overzicht';
+    $('lijsten').innerHTML = `<h2 id="overzicht-titel" class="sr" tabindex="-1">Alle borden</h2>` + (lijst.length ? lijst.map(s => {
+      const r = rijenVan(s), p = mijnPlek(s);
+      return `<article class="mini" aria-labelledby="m-${s.id}"><header class="mini-kop"><h3 id="m-${s.id}">${ICO[s.icoon] || ''}<span>${esc(s.naam)}</span></h3><span class="mini-aantal">${spelers(aantal(s))}</span></header>
+        ${r.length ? `<ol class="top3">${r.slice(0, 3).map((x, i) => `<li${x.id === IK ? ' class="jij"' : ''}><span class="med">${MEDAILLE[i]}</span>${pop(x)}<span class="wie">${esc(x.naam)}${x.id === IK ? ' <em>jij</em>' : ''}</span><span class="hoeveel">${toonScore(s, x)} <small>${esc(eenheid(s, x))}</small></span></li>`).join('')}</ol>` : `<p class="leeg">Nog niemand op dit bord. Word jij de eerste?</p>`}
+        <p class="mini-jij">${p ? (p.plek <= 3 ? `Jij staat op het podium: plek ${p.plek}` : `Jij staat op plek <b>${p.plek}</b>`) : Scorebord.doetMee() ? 'Jij staat hier nog niet op' : '&nbsp;'}</p>
+        <div class="mini-acties">${r.length > 3 || aantal(s) > 3 ? `<a class="knop" href="#bord-${s.id}">Het hele bord</a>` : ''}<a class="knop licht" href="${s.link}">Speel</a></div></article>`;
+    }).join('') : (leeg.length ? '' : `<p class="melding">${FILTER === 'mijn' ? 'Je staat nog op geen enkel bord.' : 'Geen spel gevonden met die naam.'}</p>`))
+      + (leeg.length ? `<p class="nog-leeg"><b>Nog niemand op:</b> ${leeg.map(s => `<a href="${s.link}">${ICO[s.icoon] || ''}${esc(s.naam)}</a>`).join('')}<span class="klein"> Word jij de eerste?</span></p>` : '');
+  }
+  // ---------- één spel: het hele bord, met zoeken en 'toon meer'
+  function tekenDetail(s) {
+    $('mijn').innerHTML = ''; $('week').innerHTML = ''; $('bediening').hidden = true;
+    const r = rijenVan(s), p = mijnPlek(s), tonen = TONEN[s.id] || 10, z = NAAMZOEK.trim().toLowerCase(), weekId = isWeek(s) ? 'week' : s.id;
+    const trede = (x, n) => {
+      if (!x) return `<div class="trede p${n} leeg-trede"><div class="pop">?</div><div class="naam">Nog vrij</div><div class="blok">${n}</div></div>`;
+      const jij = x.id === IK;
+      return `<div class="trede p${n}${jij ? ' jij' : ''}"><div class="pop" style="background:${kleurVan(x.naam)}">${n === 1 ? KROON : ''}${esc([...x.naam][0] || '?').toUpperCase()}</div><div class="naam">${esc(x.naam)}${jij ? '<em>jij</em>' : ''}</div><div class="score" data-tel="${s.id === 'vlaai' || isWeek(s) ? '' : x.score}">${toonScore(s, x)} <small>${esc(eenheid(s, x))}</small></div><div class="extra">${esc(s.extra(x))}</div><div class="blok">${n}</div></div>`;
+    };
+    const rij = (x, plek, vast) => `<li class="${x.id === IK ? 'jij' : ''}${vast ? ' vast' : ''}"><span class="plek">${plek}</span><span class="wie">${esc(x.naam)}${x.id === IK ? ' (jij)' : ''}<small>${esc(s.extra(x))}</small></span><span class="hoeveel">${toonScore(s, x)} <small>${esc(eenheid(s, x))}</small></span></li>`;
+    const rest = r.map((x, i) => ({ x, plek: i + 1 })).slice(3), gefilterd = z ? r.map((x, i) => ({ x, plek: i + 1 })).filter(o => o.x.naam.toLowerCase().includes(z)) : rest.slice(0, Math.max(0, tonen - 3));
+    const mijInBeeld = gefilterd.some(o => o.x.id === IK) || r.slice(0, 3).some(x => x.id === IK);
+    const vast = p && !z && !mijInBeeld ? rij({ id: IK, naam: Scorebord.naam(), score: p.score, extra: p.extra }, p.plek, true) : '';
+    const meer = !z && rest.length > gefilterd.length;
+    $('lijsten').className = 'lijsten detail';
+    $('lijsten').innerHTML = `<p class="terug-borden"><a href="#">← Alle borden</a></p>
+      <section class="bord groot" aria-labelledby="detail-titel"><div class="bord-kop"><h2 id="detail-titel" tabindex="-1">${ICO[s.icoon] || ''}${esc(s.naam)}</h2><a href="${s.link}">Speel mee</a></div>
+        <p class="bord-sub">${spelers(aantal(s))}${isWeek(s) ? ' · ' + nogTijd() : ''}${p ? ` · jij staat op plek <b>${p.plek}</b>` : ''}</p>
+        ${r.length ? `<div class="podium">${trede(r[1], 2)}${trede(r[0], 1)}${trede(r[2], 3)}</div>
+          ${r.length > 3 ? `<div class="naamzoek"><label for="naamzoek">Zoek een naam op dit bord</label><input id="naamzoek" type="search" autocomplete="off" placeholder="Bijvoorbeeld Marciano" value="${esc(NAAMZOEK)}"></div>` : ''}
+          <ol class="rest" aria-label="Ranglijst">${gefilterd.map(o => rij(o.x, o.plek)).join('')}${z && !gefilterd.length ? '<li class="geen">Niemand gevonden met die naam.</li>' : ''}${vast}</ol>
+          ${meer ? `<p class="meer"><button class="knop" type="button" id="b-meer">Toon meer (nog ${rest.length - gefilterd.length})</button></p>` : ''}
+          ${aantal(s) > r.length ? `<p class="klein bord-voet">Hier staan de beste ${r.length} van de ${spelers(aantal(s))}.</p>` : ''}`
+        : `<p class="leeg">Nog niemand op dit bord. Word jij de eerste? <a href="${s.link}">Speel ${esc(s.naam)}</a></p>`}
+      </section>`;
+    const zoekveld = $('naamzoek');
+    if (zoekveld) zoekveld.addEventListener('input', () => { NAAMZOEK = zoekveld.value; const pos = zoekveld.selectionStart; tekenDetail(s); const n = $('naamzoek'); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} });
+    const bm = $('b-meer'); if (bm) bm.addEventListener('click', () => { TONEN[s.id] = tonen + 15; tekenDetail(s); const l = document.querySelectorAll('.rest li:not(.vast)'); const e = l[Math.max(0, tonen - 3)]; if (e) e.scrollIntoView({ block: 'nearest' }); });
+  }
+  // de scores op het podium tellen even op (alleen de eerste keer)
+  function telOp() { document.querySelectorAll('.trede .score[data-tel]').forEach(el => { const doel = +el.dataset.tel; if (!doel) return; const kl = el.querySelector('small').outerHTML, t0 = performance.now(); const stap = nu => { const f = Math.min(1, (nu - t0) / 900); el.innerHTML = Math.round(doel * (1 - Math.pow(1 - f, 3))).toLocaleString('nl-NL') + ' ' + kl; if (f < 1) requestAnimationFrame(stap); }; requestAnimationFrame(stap); }); }
+  // zoeken en filteren in het overzicht
+  $('spelzoek').addEventListener('input', e => { ZOEK = e.target.value; if (DATA) tekenOverzicht(); });
+  document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { FILTER = b.dataset.filter; document.querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); if (DATA) tekenOverzicht(); }));
+  tekenIk(); laad();
+  setInterval(() => { if (!document.hidden) laad(); }, 60000);
+  setInterval(() => { if (DATA && !document.hidden && !document.body.classList.contains('sb-detail')) { const t = document.querySelector('.week-tijd'); if (t) t.textContent = '⏳ ' + nogTijd(); } }, 30000);
+})();
+</script>
+<script>
+(function () {
+  // Elk stuk gereedschap hangt aan een haakje op punt (px, py) van zijn eigen tekening.
+  const D = '#23252B';
+  const TANDEN = 'M44 50' + 'l4 5l4-5'.repeat(15);
+  const GEREEDSCHAP = {
+    hamer: { w: 70, h: 152, px: 35, py: 6, svg: `<circle cx="35" cy="6" r="5" fill="none" stroke="#3A2A1E" stroke-width="2.5"/><path d="M35 11v4" stroke="#3A2A1E" stroke-width="2.5"/><rect x="29" y="14" width="12" height="108" rx="5" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><rect x="29" y="18" width="12" height="34" rx="4" fill="#2E2E33"/><path d="M31 24h8M31 30h8M31 36h8M31 42h8" stroke="#55555C" stroke-width="1.5"/><rect x="6" y="118" width="58" height="24" rx="3" fill="#8C939E" stroke="#5F6470" stroke-width="1.5"/><rect x="56" y="115" width="10" height="30" rx="2" fill="#6F7785" stroke="#4A4F59" stroke-width="1.5"/><path d="M6 121l-5-5M6 139l-5 5" stroke="#5F6470" stroke-width="4" stroke-linecap="round"/>` },
+    schroevendraaier: { w: 34, h: 150, px: 17, py: 7, svg: `<rect x="7" y="0" width="20" height="56" rx="8" fill="#C8323C" stroke="#9E2430" stroke-width="1.5"/><circle cx="17" cy="7" r="3.4" fill="${D}"/><path d="M12 17v32M17 17v32M22 17v32" stroke="#9E2430" stroke-width="2" stroke-linecap="round"/><rect x="11" y="55" width="12" height="9" rx="2" fill="#C9CED6" stroke="#8C939E"/><rect x="15" y="64" width="4" height="76" fill="#A9AFB8"/><path d="M14.5 140h5l-1.5 9h-2z" fill="#8C939E"/>` },
+    zaag: { w: 170, h: 70, px: 23, py: 24, svg: `<path d="M44 14L166 24V50H44z" fill="#C9CED6" stroke="#8C939E" stroke-width="1.5"/><path d="${TANDEN}" fill="none" stroke="#8C939E" stroke-width="1.5" stroke-linejoin="round"/><path d="M60 22l90 7" stroke="#E6EAEF" stroke-width="2"/><path d="M4 8h42v54H4q-4 0-4-4V12q0-4 4-4z" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><rect x="12" y="20" width="22" height="28" rx="7" fill="${D}"/><circle cx="40" cy="18" r="2" fill="#8C939E"/><circle cx="40" cy="52" r="2" fill="#8C939E"/>` },
+    tang: { w: 60, h: 150, px: 30, py: 26, svg: `<path d="M15 4q-5 42 13 86" stroke="#2F7A6E" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M45 4q5 42-13 86" stroke="#C8323C" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M24 92l2 48 4 6 4-6 2-48z" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5" stroke-linejoin="round"/><path d="M30 100v40" stroke="#6F7785" stroke-width="1.2"/><circle cx="30" cy="92" r="7" fill="#8C939E" stroke="#5F6470" stroke-width="1.5"/><circle cx="30" cy="92" r="2.4" fill="#5F6470"/>` },
+    steeksleutel: { w: 44, h: 168, px: 22, py: 9, svg: `<circle cx="22" cy="20" r="17" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><rect x="15" y="0" width="14" height="20" rx="2" fill="${D}"/><rect x="16" y="32" width="12" height="108" rx="4" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><path d="M19 46v80" stroke="#C9CED6" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="150" r="15" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><circle cx="22" cy="150" r="7" fill="${D}"/>` },
+    duimstok: { w: 40, h: 166, px: 20, py: 10, svg: `<rect x="10" y="4" width="24" height="158" rx="2" fill="#E0AE1E" stroke="#B8901A" stroke-width="1.5"/><rect x="6" y="2" width="24" height="158" rx="2" fill="#F2C230" stroke="#B8901A" stroke-width="1.5"/><circle cx="20" cy="10" r="3" fill="${D}"/><path d="M6 24h7M6 34h5M6 44h7M6 54h5M6 64h7M6 74h5M6 84h7M6 94h5M6 104h7M6 114h5M6 124h7M6 134h5M6 144h7" stroke="#3A3D46" stroke-width="1.4"/><circle cx="18" cy="152" r="2.4" fill="#B8862F"/>` },
+    schaar: { w: 62, h: 132, px: 20, py: 11, svg: `<path d="M26 28L37 124l5-2L31 28z" fill="#C9CED6" stroke="#8C939E" stroke-width="1.5" stroke-linejoin="round"/><path d="M36 28L25 124l-5-2L31 28z" fill="#DDE1E6" stroke="#8C939E" stroke-width="1.5" stroke-linejoin="round"/><circle cx="20" cy="18" r="10" fill="none" stroke="#2F4C8F" stroke-width="6"/><circle cx="42" cy="18" r="10" fill="none" stroke="#2F4C8F" stroke-width="6"/><circle cx="31" cy="48" r="3.2" fill="#6F7785"/>` },
+    plakband: { w: 72, h: 72, px: 36, py: 24, svg: `<circle cx="36" cy="36" r="31" fill="#D9BE78" stroke="#B8862F" stroke-width="1.5"/><circle cx="36" cy="36" r="25" fill="none" stroke="#C9A85E" stroke-width="1"/><circle cx="36" cy="36" r="17" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><circle cx="36" cy="36" r="13" fill="${D}"/><path d="M66 40l3 18-12 2z" fill="#E4CC8E" stroke="#B8862F" stroke-width="1.2"/>` },
+    kwast: { w: 40, h: 150, px: 20, py: 9, svg: `<rect x="13" y="0" width="14" height="82" rx="7" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><circle cx="20" cy="9" r="3.4" fill="${D}"/><rect x="8" y="78" width="24" height="20" rx="2" fill="#C9CED6" stroke="#8C939E" stroke-width="1.5"/><path d="M8 84h24M8 90h24" stroke="#A9AFB8"/><path d="M8 98h24l2 42q-14 7-28 0z" fill="#3A3D46"/><path d="M6 132q14 8 28 0l0 8q-14 7-28 0z" fill="#C8323C"/>` },
+    waterpas: { w: 190, h: 40, px: 95, py: 11, svg: `<rect x="2" y="4" width="186" height="30" rx="4" fill="#E9B949" stroke="#B8862F" stroke-width="1.5"/><rect x="2" y="4" width="14" height="30" rx="3" fill="#3A3D46"/><rect x="174" y="4" width="14" height="30" rx="3" fill="#3A3D46"/><circle cx="95" cy="11" r="3.4" fill="${D}"/><rect x="118" y="12" width="40" height="14" rx="7" fill="#CDEFE0" stroke="#5E7F8C" stroke-width="1.5"/><path d="M131 12v14M145 12v14" stroke="#5E7F8C" stroke-width="1"/><circle class="bel" cx="138" cy="19" r="4.5" fill="#fff" stroke="#9FD3C7"/><rect x="40" y="14" width="34" height="10" rx="5" fill="#CDEFE0" stroke="#5E7F8C" stroke-width="1.2"/>` },
+    boor: { w: 132, h: 110, px: 50, py: 8, svg: `<circle cx="50" cy="8" r="5" fill="none" stroke="#3A2A1E" stroke-width="2.5"/><path d="M50 13v2" stroke="#3A2A1E" stroke-width="2.5"/><rect x="18" y="14" width="80" height="34" rx="11" fill="#2E8B62" stroke="#1E5E42" stroke-width="1.5"/><rect x="20" y="16" width="30" height="30" rx="9" fill="#23252B"/><path d="M26 24h18M26 30h18M26 36h18" stroke="#45495A" stroke-width="1.6"/><rect x="96" y="20" width="14" height="22" rx="3" fill="#3A3D46" stroke="#23252B" stroke-width="1.5"/><path d="M99 22v18M103 22v18" stroke="#5F6470"/><rect x="110" y="27" width="20" height="8" rx="2" fill="#A9AFB8" stroke="#6F7785"/><path d="M112 31h16" stroke="#6F7785" stroke-dasharray="2 2"/><path d="M44 46h24l-5 46H48z" fill="#23252B" stroke="#1F2333" stroke-width="1.5" stroke-linejoin="round"/><rect x="62" y="50" width="8" height="13" rx="2" fill="#E9B949"/><rect x="30" y="90" width="52" height="18" rx="4" fill="#2E8B62" stroke="#1E5E42" stroke-width="1.5"/><rect x="36" y="95" width="12" height="4" rx="1" fill="#CDEFE0"/><rect x="51" y="95" width="5" height="4" rx="1" fill="#CDEFE0"/>` },
+    verfroller: { w: 84, h: 130, px: 40, py: 7, svg: `<rect x="33" y="0" width="14" height="70" rx="7" fill="#C8323C" stroke="#9E2430" stroke-width="1.5"/><circle cx="40" cy="7" r="3.4" fill="${D}"/><path d="M36 18v44M44 18v44" stroke="#9E2430" stroke-width="1.5"/><path d="M40 70v8q0 6 6 6h22q6 0 6 6v12" fill="none" stroke="#A9AFB8" stroke-width="4" stroke-linecap="round"/><rect x="6" y="100" width="72" height="27" rx="11" fill="#FBF6E9" stroke="#C9B58A" stroke-width="1.5"/><path d="M12 107q30 4 60 0M12 114q30 4 60 0M12 121q30 4 60 0" stroke="#E9DFC4" stroke-width="1.5" fill="none"/><path d="M8 118q14 8 26-1q10 6 18 1" stroke="#2F4C8F" stroke-width="6" fill="none" stroke-linecap="round" opacity=".85"/>` },
+    klem: { w: 70, h: 148, px: 14, py: 7, svg: `<rect x="9" y="0" width="10" height="146" rx="2" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5"/><circle cx="14" cy="7" r="3" fill="${D}"/><path d="M12 30v112" stroke="#C9CED6" stroke-width="1.5"/><path d="M14 16h44v14H14z" fill="#3A3D46" stroke="#23252B" stroke-width="1.5" stroke-linejoin="round"/><rect x="47" y="30" width="12" height="6" rx="1" fill="#C8323C"/><path d="M14 96h44v14H14z" fill="#3A3D46" stroke="#23252B" stroke-width="1.5" stroke-linejoin="round"/><rect x="49" y="58" width="8" height="38" fill="#C9CED6" stroke="#8C939E"/><path d="M49 64h8M49 70h8M49 76h8M49 82h8M49 88h8" stroke="#8C939E"/><rect x="46" y="52" width="14" height="6" rx="1" fill="#C8323C"/><rect x="44" y="110" width="18" height="34" rx="7" fill="#C8323C" stroke="#9E2430" stroke-width="1.5"/>` },
+    beitel: { w: 30, h: 150, px: 15, py: 8, svg: `<rect x="7" y="0" width="16" height="64" rx="7" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><circle cx="15" cy="8" r="3.4" fill="${D}"/><path d="M11 20v36M19 20v36" stroke="#9A6438" stroke-width="1.2"/><rect x="6" y="58" width="18" height="8" rx="2" fill="#C9A85E" stroke="#8C6A2A"/><path d="M11 66h8v66l3 14H8l3-14z" fill="#A9AFB8" stroke="#6F7785" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 72v58" stroke="#DDE1E6" stroke-width="1.5"/>` },
+    rolmaat: { w: 84, h: 80, px: 38, py: 8, svg: `<rect x="30" y="2" width="16" height="16" rx="2" fill="#3A3D46"/><circle cx="38" cy="8" r="3" fill="${D}"/><rect x="4" y="14" width="68" height="62" rx="14" fill="#E9B949" stroke="#B8862F" stroke-width="1.5"/><circle cx="38" cy="45" r="18" fill="#23252B"/><circle cx="38" cy="45" r="11" fill="#3A3D46"/><circle cx="38" cy="45" r="3" fill="#E9B949"/><rect x="64" y="61" width="16" height="10" rx="1" fill="#F2DDA0" stroke="#B8862F"/><path d="M67 61v10M71 61v4M75 61v10" stroke="#3A3D46"/><rect x="78" y="58" width="4" height="16" fill="#8C939E"/><rect x="10" y="20" width="22" height="8" rx="3" fill="#F6D27A" opacity=".7"/>` },
+    ijzerzaag: { w: 170, h: 66, px: 92, py: 8, svg: `<circle cx="92" cy="8" r="5" fill="none" stroke="#3A2A1E" stroke-width="2.5"/><path d="M92 13v3" stroke="#3A2A1E" stroke-width="2.5"/><path d="M34 46V18h124v28" fill="none" stroke="#2F4C8F" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><rect x="34" y="42" width="124" height="6" fill="#C9CED6" stroke="#8C939E"/><path d="M36 48l3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4" fill="none" stroke="#8C939E" stroke-width="1.2"/><circle cx="158" cy="45" r="3" fill="#E9B949" stroke="#8C6A2A"/><path d="M8 32h28v28H16q-8 0-8-8z" fill="#C8323C" stroke="#9E2430" stroke-width="1.5" stroke-linejoin="round"/><rect x="14" y="40" width="14" height="12" rx="5" fill="${D}"/>` },
+  };
+
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = +(document.body.dataset.gat || 30), OFF = G / 2;
+  const PAGINA = document.body.dataset.pagina || location.pathname;
+  const KEY = 'gereedschap-v2';
+  // dingen waar gereedschap nooit overheen mag hangen
+  const HINDER = '.teaser-houder, .teaser, .nieuwtje, .doos, .sticker, .coulissen, .prop, .kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
+  let opgeslagen = {};
+  try { opgeslagen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { opgeslagen = {}; }
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opgeslagen)); } catch (e) {} };
+
+  const laag = document.createElement('div');
+  laag.className = 'muurlaag'; laag.setAttribute('aria-hidden', 'true');
+  laag.style.cssText = 'position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:3;';
+  document.body.prepend(laag);
+  const stijl = document.createElement('style');
+  stijl.textContent = '.gs-sleept, .gs-sleept * { -webkit-user-select: none !important; user-select: none !important; cursor: grabbing !important; }';
+  document.head.appendChild(stijl);
+
+  const stukken = [];
+  const actief = new Set();
+  let laatste = 0, loopt = false;
+  const snap = v => Math.round((v - OFF) / G) * G + OFF;
+  const GRAAD = 180 / Math.PI;
+  const breedte = () => document.documentElement.clientWidth;
+  const hoogte = () => Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+
+  function hindernissen() {
+    const sx = window.scrollX, sy = window.scrollY, uit = [];
+    document.querySelectorAll(HINDER).forEach(el => {
+      if (laag.contains(el)) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return;
+      uit.push({ l: r.left + sx, t: r.top + sy, r: r.right + sx, b: r.bottom + sy });
+    });
+    return uit;
+  }
+  function kader(T, px, py) { return { l: px - T.px, t: py - T.py, r: px - T.px + T.w, b: py - T.py + T.h }; }
+  function botst(k, lijst, marge) { return lijst.some(h => k.l < h.r + marge && k.r > h.l - marge && k.t < h.b + marge && k.b > h.t - marge); }
+  function past(T, px, py, lijst, zelf) {
+    const k = kader(T, px, py);
+    if (k.l < 2 || k.r > breedte() - 2 || k.t < 2) return false;
+    if (botst(k, lijst, 8)) return false;
+    return !stukken.some(s => s !== zelf && botst(k, [kader(s.T, s.px, s.py)], 4));
+  }
+  // zoek het dichtstbijzijnde vrije gaatje rond (x, y)
+  function vrijGaatje(T, x, y, zelf, lijst) {
+    x = snap(x); y = snap(y);
+    if (past(T, x, y, lijst, zelf)) return [x, y];
+    for (let ring = 1; ring <= 14; ring++) {
+      let beste = null, bd = Infinity;
+      for (let dx = -ring; dx <= ring; dx++) for (let dy = -ring; dy <= ring; dy++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+        const cx = x + dx * G, cy = y + dy * G, d = dx * dx + dy * dy;
+        if (d < bd && past(T, cx, cy, lijst, zelf)) { beste = [cx, cy]; bd = d; }
+      }
+      if (beste) return beste;
+    }
+    return null;
+  }
+
+  function bouw() {
+    laag.innerHTML = ''; stukken.length = 0; actief.clear();
+    laag.style.height = hoogte() + 'px';
+    const lijst = hindernissen(), W = breedte(), midden = W / 2;
+    const bewaard = opgeslagen[PAGINA] || {};
+    const orde = z => (z.classList.contains('verspreid') ? 2 : z.classList.contains('zijkant') ? 1 : 0);
+    const zones = Array.from(document.querySelectorAll('.rek[data-gereedschap]')).sort((p, q) => orde(p) - orde(q));
+    zones.forEach(zone => {
+      const r = zone.getBoundingClientRect();
+      if (r.width < 40 || r.height < 40) return;
+      const bx = r.left + window.scrollX, by = r.top + window.scrollY;
+      const ids = (zone.dataset.gereedschap || '').split(',').map(s => s.trim()).filter(id => GEREEDSCHAP[id]);
+      if (zone.classList.contains('verspreid')) {
+        // los over de hele pagina: zoek per stuk een vrij plekje, zo ver mogelijk van de rest
+        for (const id of ids) {
+          if (stukken.some(s => s.id === id)) continue;
+          const T = GEREEDSCHAP[id], b = bewaard[id];
+          let plek = null;
+          if (b) { const px = snap(midden + b[0]), py = snap(b[1]); if (past(T, px, py, lijst, null)) plek = [px, py]; }
+          if (!plek) {
+            let zaad = [...id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 2147483647, 7) || 7, beste = -1;
+            const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
+            for (let k = 0; k < 140; k++) {
+              const px = snap(bx + 16 + rnd() * Math.max(0, r.width - 32 - T.w) + T.px), py = snap(by + 16 + rnd() * Math.max(0, r.height - 32 - T.h) + T.py);
+              if (!past(T, px, py, lijst, null)) continue;
+              const afstand = stukken.length ? Math.min(...stukken.map(s => Math.hypot(s.px - px, (s.py - py) * 1.3))) : 1e6;
+              if (afstand > beste) { beste = afstand; plek = [px, py]; }
+            }
+            if (!plek || beste < 90) continue;
+          }
+          maakStuk(id, T, plek[0], plek[1]);
+        }
+        return;
+      }
+      let x = 12, y = 14, rij = 0;
+      for (const id of ids) {
+        if (stukken.some(s => s.id === id)) continue;
+        const T = GEREEDSCHAP[id];
+        let plek = null;
+        const b = bewaard[id];
+        if (b) { const px = snap(midden + b[0]), py = snap(b[1]); if (past(T, px, py, lijst, null)) plek = [px, py]; }
+        if (!plek) {
+          if (x + T.w > r.width - 8) { x = 12; y += rij + 34; rij = 0; }
+          if (y + T.h > r.height) continue;
+          const px = snap(bx + x + T.px), py = snap(by + y + T.py);
+          x += T.w + 26; rij = Math.max(rij, T.h);
+          plek = past(T, px, py, lijst, null) ? [px, py] : vrijGaatje(T, px, py, null, lijst);
+          if (!plek) continue;
+        }
+        maakStuk(id, T, plek[0], plek[1]);
+      }
+    });
+    if (!begroet && !reduce && stukken.length && window.name !== 'voorbeeld') { begroet = true; stukken.forEach((s, i) => setTimeout(() => duw(s, (i % 2 ? 1 : -1) * (14 + Math.random() * 14)), 300 + i * 110)); }
+  }
+  let begroet = false;
+
+  function maakStuk(id, T, px, py) {
+    const haak = document.createElement('span'); haak.className = 'gs-haak';
+    const el = document.createElement('div'); el.className = 'gs gs-' + id;
+    el.style.width = T.w + 'px'; el.style.height = T.h + 'px';
+    el.style.transformOrigin = T.px + 'px ' + T.py + 'px';
+    el.innerHTML = `<svg viewBox="0 0 ${T.w} ${T.h}" width="${T.w}" height="${T.h}" aria-hidden="true" focusable="false">${T.svg}</svg>`;
+    laag.appendChild(el); laag.appendChild(haak);
+    const s = { id, T, el, haak, px, py, a: 0, v: 0, sleep: false, bel: el.querySelector('.bel'), vorig: [px, py] };
+    zet(s); stukken.push(s);
+
+    el.addEventListener('pointerenter', e => {
+      if (e.pointerType !== 'mouse' || s.sleep || reduce) return;
+      const nu = performance.now();
+      if (nu - (s.laatsteDuw || 0) < 150 || Math.abs(s.v) > 300) return;
+      s.laatsteDuw = nu;
+      const mx = e.movementX || (e.clientX - pivotScherm(s).x) / 4;
+      duw(s, (mx > 0 ? -1 : 1) * (14 + Math.min(1, Math.abs(mx) / 25) * 30));
+    });
+    el.addEventListener('mousedown', e => e.preventDefault());
+    el.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const p = pivotScherm(s);
+      s.start = { x: e.clientX, y: e.clientY, dx: e.clientX - p.x, dy: e.clientY - p.y, t: e.pointerType };
+      s.bewogen = false;
+      if (e.pointerType === 'mouse' || e.pointerType === 'pen') { el.setPointerCapture(e.pointerId); e.preventDefault(); }
+    });
+    el.addEventListener('pointermove', e => {
+      if (!s.start || s.start.t === 'touch') return;
+      if (!s.bewogen && Math.hypot(e.clientX - s.start.x, e.clientY - s.start.y) < 5) return;
+      if (!s.bewogen) { s.bewogen = true; s.sleep = true; s.vorig = [s.px, s.py]; el.classList.add('sleept'); haak.style.opacity = '0'; document.documentElement.classList.add('gs-sleept'); const sel = window.getSelection && window.getSelection(); if (sel) sel.removeAllRanges(); }
+      const W = breedte(), H = hoogte();
+      const nx = Math.min(W - (T.w - T.px), Math.max(T.px, e.clientX + window.scrollX - s.start.dx));
+      const ny = Math.min(H - (T.h - T.py), Math.max(T.py, e.clientY + window.scrollY - s.start.dy));
+      if (!reduce) s.v += (nx - s.px) * 7 * Math.cos(s.a / GRAAD) - (ny - s.py) * 7 * Math.sin(s.a / GRAAD);
+      s.px = nx; s.py = ny; zet(s); start(s);
+    });
+    const los = e => {
+      if (!s.start) return;
+      if (!s.bewogen) {
+        s.laatsteDuw = performance.now();
+        // zwaait hij al, dan geeft een klik extra vaart in dezelfde richting, zoals een schommel aanduwen
+        const richting = Math.abs(s.v) > 30 ? Math.sign(s.v) : (e.clientX > pivotScherm(s).x ? 1 : -1);
+        duw(s, richting * (Math.abs(s.v) > 30 ? 320 : 160));
+      } else {
+        const lijst = hindernissen();
+        const plek = vrijGaatje(T, s.px, s.py, s, lijst) || s.vorig;
+        s.px = plek[0]; s.py = plek[1];
+        s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; document.documentElement.classList.remove('gs-sleept');
+        zet(s); start(s);
+        opgeslagen[PAGINA] = opgeslagen[PAGINA] || {};
+        opgeslagen[PAGINA][id] = [Math.round(s.px - breedte() / 2), Math.round(s.py)];
+        bewaar();
+      }
+      s.start = null;
+    };
+    el.addEventListener('pointerup', los);
+    el.addEventListener('pointercancel', () => { s.start = null; document.documentElement.classList.remove('gs-sleept'); if (s.sleep) { s.sleep = false; el.classList.remove('sleept'); haak.style.opacity = ''; s.px = s.vorig[0]; s.py = s.vorig[1]; zet(s); } });
+  }
+
+  function pivotScherm(s) { return { x: s.px - window.scrollX, y: s.py - window.scrollY }; }
+  function zet(s) {
+    s.el.style.left = (s.px - s.T.px) + 'px';
+    s.el.style.top = (s.py - s.T.py) + 'px';
+    s.el.style.transform = 'rotate(' + s.a.toFixed(2) + 'deg)';
+    s.haak.style.left = s.px + 'px'; s.haak.style.top = s.py + 'px';
+    if (s.bel) s.bel.setAttribute('cx', (138 - Math.max(-13, Math.min(13, s.a * 1.6))).toFixed(1));
+  }
+  function duw(s, v) { if (reduce) return; s.v = Math.max(-2400, Math.min(2400, s.v + v)); start(s); }
+  function start(s) { actief.add(s); if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); } }
+  function tik(t) {
+    const dt = Math.min(0.04, (t - laatste) / 1000); laatste = t;
+    for (const s of actief) {
+      if (!reduce) {
+        // slinger: zwaartekracht trekt naar beneden, demping laat hem rustig uitzwaaien
+        const stappen = 4, h = dt / stappen;
+        for (let i = 0; i < stappen; i++) { s.v += (-38 * GRAAD * Math.sin(s.a / GRAAD) - 1.3 * s.v) * h; s.a += s.v * h; }
+        s.a = ((s.a + 180) % 360 + 360) % 360 - 180;   // na een rondje over de kop weer netjes tussen -180 en 180
+      }
+      zet(s);
+      if (!s.sleep && Math.abs(s.a) < 0.05 && Math.abs(s.v) < 0.08) { s.a = 0; s.v = 0; zet(s); actief.delete(s); }
+    }
+    if (actief.size) requestAnimationFrame(tik); else loopt = false;
+  }
+  // als de pagina verandert (bijvoorbeeld een nieuw paneel), schuift gereedschap opzij
+  function ruimOp() {
+    laag.style.height = hoogte() + 'px';
+    const lijst = hindernissen();
+    for (const s of stukken) {
+      if (s.sleep) continue;
+      if (!botst(kader(s.T, s.px, s.py), lijst, 4)) continue;
+      const plek = vrijGaatje(s.T, s.px, s.py, s, lijst);
+      if (plek) { s.px = plek[0]; s.py = plek[1]; zet(s); duw(s, 40); }
+      else { s.el.style.display = 'none'; s.haak.style.display = 'none'; }
+    }
+  }
+  setInterval(ruimOp, 1500);
+
+  let wachtR = null, oudeB = breedte();
+  window.addEventListener('resize', () => { if (breedte() === oudeB) return; oudeB = breedte(); clearTimeout(wachtR); wachtR = setTimeout(bouw, 200); });
+  window.gereedschapBouw = () => bouw();
+  window.gereedschapTerug = () => { delete opgeslagen[PAGINA]; bewaar(); bouw(); stukken.forEach(s => duw(s, (Math.random() - .5) * 60)); };
+  bouw();
+  window.addEventListener('load', bouw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(bouw);
+})();
+
+</script>
+<script>
+(function () {
+  // Veerkrachtige hover-animaties. Elke keer dat je muis een element raakt, krijgt het
+  // meteen een zetje. Een veer brengt het daarna altijd rustig terug naar zijn plek.
+  // Er wordt nooit een animatie opnieuw gestart, dus het blijft vloeiend, ook als je
+  // snel heen en weer gaat of op het randje blijft hangen.
+  const SOORTEN = [
+    // [selector, soort]
+    ['.stempel', 'stempel'],
+    ['.label', 'zwaai'],
+    ['.briefje', 'zwaai'],
+    ['.tape', 'wiebel'],
+    ['.sticker', 'wiebel'],
+    ['.prop', 'zwaai'],
+    ['.kaartje', 'zwaai'],
+    ['h2 > span', 'wiebel'],
+    ['.versie', 'wiebel'],
+    ['.legenda li', 'hop'],
+    ['.dag b', 'hop'],
+  ];
+  // veren per soort: k = stijfheid, d = demping, max = grootste uitslag
+  const VEER = {
+    wiebel: { a: { k: 90, d: 7, max: 4, duw: 70 }, y: { k: 160, d: 13, max: 5, duw: 90 } },
+    zwaai: { a: { k: 26, d: 2.4, max: 5, duw: 34 } },
+    hop: { a: { k: 120, d: 9, max: 5, duw: 60 }, y: { k: 170, d: 12, max: 6, duw: 120 } },
+    stempel: { a: { k: 130, d: 9, max: 9, duw: 120 }, s: { k: 220, d: 14, max: 0.16, duw: 3 } },
+    icoon: { a: { k: 110, d: 8, max: 7, duw: 80 }, y: { k: 150, d: 11, max: 7, duw: 130 } },
+  };
+  const KIES = SOORTEN.map(s => s[0]).join(', ');
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+
+  const staat = new WeakMap();
+  const actief = new Set();
+  let loopt = false, laatste = 0;
+
+  function soortVan(el) { for (const [sel, s] of SOORTEN) if (el.matches(sel)) return s; return null; }
+  function st(el, soort) {
+    let s = staat.get(el);
+    if (!s) { s = { el, soort, a: 0, va: 0, y: 0, vy: 0, s: 0, vs: 0, rust: 0 }; staat.set(el, s); }
+    return s;
+  }
+  function zet(s) {
+    if (Math.abs(s.a) < 0.01 && Math.abs(s.y) < 0.01 && Math.abs(s.s) < 0.0005) { s.el.style.transform = ''; return; }
+    s.el.style.transform = `translateY(${s.y.toFixed(2)}px) rotate(calc(var(--r, 0deg) + ${s.a.toFixed(3)}deg)) scale(${(1 + s.s).toFixed(4)})`;
+  }
+  function duw(el, soort, richting, kracht) {
+    const s = st(el, soort), V = VEER[soort];
+    kracht = kracht == null ? 1 : kracht;
+    if (V.a) s.va += richting * V.a.duw * kracht;
+    if (V.y) s.vy -= V.y.duw * kracht;
+    if (V.s) s.vs += V.s.duw * kracht;
+    actief.add(s);
+    if (!loopt) { loopt = true; laatste = performance.now(); requestAnimationFrame(tik); }
+  }
+  const klem = (v, m) => Math.max(-m, Math.min(m, v));
+  function stap(x, v, V, dt) { v += (-V.k * x - V.d * v) * dt; x += v * dt; if (Math.abs(x) > V.max) { x = klem(x, V.max); v *= 0.5; } return [x, v]; }
+  function tik(t) {
+    const dt = Math.min(0.033, (t - laatste) / 1000); laatste = t;
+    for (const s of actief) {
+      const V = VEER[s.soort];
+      if (V.a) [s.a, s.va] = stap(s.a, s.va, V.a, dt);
+      if (V.y) [s.y, s.vy] = stap(s.y, s.vy, V.y, dt);
+      if (V.s) [s.s, s.vs] = stap(s.s, s.vs, V.s, dt);
+      zet(s);
+      if (Math.abs(s.a) + Math.abs(s.va) / 20 < 0.02 && Math.abs(s.y) + Math.abs(s.vy) / 20 < 0.02 && Math.abs(s.s) + Math.abs(s.vs) / 20 < 0.0008) {
+        s.a = s.va = s.y = s.vy = s.s = s.vs = 0; zet(s); actief.delete(s);
+      }
+    }
+    if (actief.size) requestAnimationFrame(tik); else loopt = false;
+  }
+
+  document.addEventListener('pointerover', e => {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    const el = e.target.closest && e.target.closest(KIES);
+    if (!el || (e.relatedTarget && el.contains(e.relatedTarget))) return;
+    const soort = soortVan(el); if (!soort) return;
+    const s = st(el, soort), nu = performance.now();
+    if (nu - s.rust < 120) return;   // tegen haperen op het randje
+    s.rust = nu;
+    const mx = e.movementX || 0;
+    const kracht = 0.55 + Math.min(1, Math.abs(mx) / 30) * 0.65;   // snel langs = iets meer zwaai
+    duw(el, soort, mx >= 0 ? -1 : 1, kracht);
+    if (soort === 'zwaai') { const ic = el.querySelector('.label-icoon svg'); if (ic) duw(ic, 'icoon', mx >= 0 ? 1 : -1, kracht); }
+  });
+
+  // binnenkomst: labels zwaaien even als de pagina opent
+  if (window.name !== 'voorbeeld') document.querySelectorAll('.label').forEach((l, i) => setTimeout(() => duw(l, 'zwaai', i % 2 ? 1 : -1, 1.6), 250 + i * 160));
+})();
+
+</script>
+<!--BOUW:GRAPJES-->
+<!--BOUW:V6-->
+</body>
+</html>

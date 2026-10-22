@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Rommelbel – Ruben's rommelhoekje</title>
+<meta name="description" content="Schiet bellen, maak groepjes van drie en laat het plafond niet te laag zakken. 30 levels en een eindeloze stand.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2218%22%20r%3D%2210%22%20fill%3D%22%23E8414E%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2218%22%20r%3D%2210%22%20fill%3D%22%233A86E8%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2234%22%20r%3D%2210%22%20fill%3D%22%23F5C330%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%23fff%22%20opacity%3D%22.7%22/%3E%3Ccircle%20cx%3D%2236%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%23fff%22%20opacity%3D%22.7%22/%3E%3Ccircle%20cx%3D%2226%22%20cy%3D%2230%22%20r%3D%223%22%20fill%3D%22%23fff%22%20opacity%3D%22.7%22/%3E%3Cpath%20d%3D%22M32%2060V50%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2248%22%20r%3D%227%22%20fill%3D%22%233DB06A%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Cpath%20d%3D%22M22%2060h20%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
+<style>
+:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { display: flex; flex-direction: column; background: #24305E; color: var(--inkt); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.kop { display: flex; align-items: center; gap: .7rem; padding: .45rem .8rem; background: var(--nacht); color: var(--papier); z-index: 5; }
+.kop a { color: var(--manila); font-weight: 700; font-size: .85rem; }
+.titel { display: flex; align-items: center; gap: .4rem; font-weight: 800; } .titel svg { width: 26px; height: 26px; }
+.kop .rechts { margin-left: auto; display: flex; gap: .35rem; }
+.knop { font: inherit; font-weight: 800; font-size: .9rem; border: 0; border-radius: 8px; padding: .5rem .85rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.knop.hoofd { background: var(--rood); color: #fff; } .knop[aria-pressed="false"] { opacity: .6; }
+#veld { position: relative; flex: 1; display: grid; place-items: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+#doek { display: block; border-radius: 14px; box-shadow: 0 0 0 4px var(--inkt), 0 10px 0 4px rgba(0,0,0,.3); cursor: crosshair; touch-action: none; }
+.scherm { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; z-index: 6; background: rgba(14,20,48,.55); overflow: auto; }
+.kaart { background: var(--manila); border-radius: 16px; padding: 1.2rem 1.4rem; max-width: 30rem; width: 100%; box-shadow: 0 6px 0 rgba(0,0,0,.35); max-height: calc(100% - 1rem); overflow: auto; }
+.kaart h1 { margin: 0; font-size: clamp(2.2rem, 9vw, 3.2rem); line-height: 1; } .kaart h1 small { display: block; font-size: 1rem; color: #5E5643; margin-top: .3rem; }
+.kaart h2 { margin: 0 0 .4rem; } .kaart p { margin: .4rem 0; line-height: 1.45; }
+.rij { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .8rem; } .rij .knop { font-size: 1rem; padding: .7rem 1rem; }
+.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.3rem, 1fr)); gap: .4rem; margin-top: .6rem; }
+.lvl { font: inherit; font-weight: 800; border: 0; border-radius: 10px; aspect-ratio: 1; cursor: pointer; background: var(--papier); box-shadow: 0 3px 0 rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1rem; }
+.lvl small { font-size: .7rem; color: #C99A2E; letter-spacing: -.05em; } .lvl:disabled { background: #D9CFB4; color: #9A8F7A; cursor: default; box-shadow: none; }
+.klein { font-size: .85rem; color: #5E5643; }
+.groot { font-size: 2.2rem; font-weight: 800; margin: .2rem 0; } .sterren { font-size: 2rem; letter-spacing: .1em; color: #C99A2E; }
+#sb-bel { margin-top: .8rem; }
+</style>
+</head>
+<body data-pagina="rommelbel">
+<div class="kop">
+  <a href="./">Terug</a>
+  <span class="titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><circle cx="20" cy="18" r="10" fill="#E8414E" stroke="#1F2333" stroke-width="2.6"/><circle cx="40" cy="18" r="10" fill="#3A86E8" stroke="#1F2333" stroke-width="2.6"/><circle cx="30" cy="34" r="10" fill="#F5C330" stroke="#1F2333" stroke-width="2.6"/><circle cx="16" cy="14" r="3" fill="#fff" opacity=".7"/><circle cx="36" cy="14" r="3" fill="#fff" opacity=".7"/><circle cx="26" cy="30" r="3" fill="#fff" opacity=".7"/><path d="M32 60V50" stroke="#1F2333" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="48" r="7" fill="#3DB06A" stroke="#1F2333" stroke-width="2.6"/><path d="M22 60h20" stroke="#1F2333" stroke-width="3" stroke-linecap="round"/></svg></span>Rommelbel</span>
+  <div class="rechts"><button class="knop" id="b-geluid" type="button" aria-pressed="true">Geluid</button><button class="knop" id="b-menu" type="button">Menu</button></div>
+</div>
+<div id="veld">
+  <canvas id="doek" aria-label="Speelveld: mik met de muis of je vinger en laat los om te schieten"></canvas>
+  <div class="scherm" id="menu"><div class="kaart" id="menu-in"></div></div>
+</div>
+<!--BOUW:SCOREBORD-->
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const KEY = 'rommelbel-v1';
+  let opslag = { open: 1, sterren: {}, scores: {}, eindeloos: 0, geluid: true, gespeeld: 0 };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  // ---------------- het speelveld: een honingraat van bellen
+  const COLS = 11, R = 20, RH = R * Math.sqrt(3), W = COLS * 2 * R, H = 640, SCHIET_Y = H - 46, LIJN_Y = SCHIET_Y - 56;
+  const KLEUREN = [['#E8414E', '#FFB0B6', '#8E1F2A'], ['#F5C330', '#FFF0B0', '#9A7408'], ['#3A86E8', '#B8D8FF', '#1A4A8E'], ['#3DB06A', '#B8F0CC', '#1A6A3A'], ['#9A5CE0', '#E0C8FF', '#5A2A8E'], ['#FF8A30', '#FFD2A8', '#A84A0A']];
+  const BOM = 8, REGENBOOG = 9;
+  let G = null; // de stand van één potje
+  const doek = $('doek'), g = doek.getContext('2d');
+  let schaal = 1;
+  function maat() { const v = $('veld').getBoundingClientRect(), s = Math.min((v.width - 16) / W, (v.height - 16) / H); schaal = Math.max(0.4, s); const dpr = Math.min(2, window.devicePixelRatio || 1); doek.style.width = W * schaal + 'px'; doek.style.height = H * schaal + 'px'; doek.width = W * schaal * dpr; doek.height = H * schaal * dpr; g.setTransform(schaal * dpr, 0, 0, schaal * dpr, 0, 0); }
+  addEventListener('resize', maat);
+  const kolommen = r => (oneven(r) ? COLS - 1 : COLS);
+  const oneven = r => ((r + (G ? G.pariteit : 0)) % 2) === 1;
+  const posVan = (r, c) => [R + c * 2 * R + (oneven(r) ? R : 0), R + r * RH + (G ? G.zak : 0)];
+  const buren = (r, c) => { const o = oneven(r); return [[r, c - 1], [r, c + 1], [r - 1, o ? c : c - 1], [r - 1, o ? c + 1 : c], [r + 1, o ? c : c - 1], [r + 1, o ? c + 1 : c]].filter(([rr, cc]) => rr >= 0 && cc >= 0 && cc < kolommen(rr)); };
+  const cel = (r, c) => (G.raster[r] ? G.raster[r][c] : undefined);
+  const zet = (r, c, v) => { while (G.raster.length <= r) G.raster.push([]); G.raster[r][c] = v; };
+  // ---------------- toevalsgetallen met een zaadje (levels zijn altijd hetzelfde)
+  const maakRnd = s => () => (s = (s * 16807) % 2147483647) / 2147483647;
+  // ---------------- levels: steeds meer rijen en kleuren, met patronen en groepjes
+  function maakLevel(n) {
+    const rnd = maakRnd(n * 7919 + 13), rijen = Math.min(10, 4 + Math.floor(n / 4)), kl = Math.min(6, 3 + Math.floor(n / 7)), patroon = n % 5;
+    const raster = [];
+    for (let r = 0; r < rijen; r++) { raster.push([]); const k = (r % 2) ? COLS - 1 : COLS; for (let c = 0; c < k; c++) {
+      let vol = true; if (patroon === 1) vol = (r + c) % 3 !== 0 || r < 2; else if (patroon === 2) vol = Math.abs(c - k / 2) < k / 2 - r * 0.35 + 1.5; else if (patroon === 3) vol = !(r > 1 && c % 4 === 1); else if (patroon === 4) vol = r < 2 || rnd() < 0.82;
+      if (!vol) continue;
+      // groepjes: neem vaak de kleur van een buur over
+      let v = Math.floor(rnd() * kl); if (c > 0 && raster[r][c - 1] !== undefined && rnd() < 0.45) v = raster[r][c - 1]; else if (r > 0 && raster[r - 1][c] !== undefined && rnd() < 0.35) v = raster[r - 1][c];
+      raster[r][c] = v; } }
+    return { raster, kleuren: kl, zakElke: Math.max(6, 10 - Math.floor(n / 6)) };
+  }
+  // ---------------- een potje beginnen
+  function start(modus, level) {
+    opslag.gespeeld++; bewaar(); audio();
+    const L = modus === 'avontuur' ? maakLevel(level) : { raster: [], kleuren: 5, zakElke: 5 };
+    G = { modus, level, raster: [], pariteit: 0, zak: 0, kleuren: L.kleuren, zakElke: L.zakElke, schoten: 0, sindsZak: 0, score: 0, bal: null, huidig: null, volgende: null, hoek: -Math.PI / 2, deeltjes: [], teksten: [], vallers: [], knallers: [], klaar: false, combo: 0, rnd: maakRnd((Date.now() % 100000) + 7) };
+    if (modus === 'eindeloos') { G.golf = 1; G.rijen = 0; G.klok = 0; for (let i = 0; i < 6; i++) nieuweRij(); } else G.raster = L.raster.map(r => r.slice());
+    G.start = telBellen();
+    G.huidig = nieuweBel(); G.volgende = nieuweBel();
+    $('menu').hidden = true;
+  }
+  function telBellen() { let n = 0; for (const rij of G.raster) for (const v of rij || []) if (v !== undefined) n++; return n; }
+  function aanwezigeKleuren() { const s = new Set(); for (const rij of G.raster) for (const v of rij || []) if (v !== undefined && v < 6) s.add(v); return [...s]; }
+  function nieuweBel() {
+    // af en toe een bom of een regenboog (na een mooie combo vaker)
+    const x = G.rnd(), eind = G.modus === 'eindeloos'; if (G.schoten > 3 && x < (G.combo >= 2 ? (eind ? 0.05 : 0.12) : (eind ? 0.012 : 0.035))) return G.rnd() < 0.5 ? BOM : REGENBOOG;
+    const k = aanwezigeKleuren(); return k.length ? k[Math.floor(G.rnd() * k.length)] : Math.floor(G.rnd() * G.kleuren);
+  }
+  const golfTempo = () => ({ schoten: Math.max(2, 5 - (G.golf - 1)), seconden: Math.max(4, 12 - (G.golf - 1) * 1.5) });
+  function volgendeGolf() { G.golf++; G.kleuren = Math.min(6, 4 + G.golf); G.zakElke = golfTempo().schoten; const [x] = [W / 2]; G.teksten.push({ x, y: H / 2, t: 0, tekst: 'Golf ' + G.golf + '! Sneller en meer kleuren' }); geluid.zak(); }
+  function nieuweRij() {
+    if (G.modus === 'eindeloos' && G.golf) { G.rijen++; if (G.rijen > 6 && (G.rijen - 6) % 6 === 0) volgendeGolf(); }
+    // alles een rij omlaag, en bovenaan een nieuwe rij
+    G.raster.unshift([]); G.pariteit = (G.pariteit + 1) % 2;
+    const plak = G.modus === 'eindeloos' ? Math.max(0.12, 0.4 - (G.golf || 1) * 0.05) : 0.4; for (let c = 0; c < kolommen(0); c++) { let v = Math.floor(G.rnd() * G.kleuren); if (c > 0 && G.rnd() < plak) v = G.raster[0][c - 1]; G.raster[0][c] = v; }
+  }
+  // ---------------- mikken en schieten
+  const MIN = -Math.PI + 0.12, MAX = -0.12;
+  function richtOp(px, py) { const [sx, sy] = [W / 2, SCHIET_Y]; G.hoek = Math.max(MIN, Math.min(MAX, Math.atan2(py - sy, px - sx))); }
+  function schiet() {
+    if (!G || G.klaar || G.bal || $('menu').hidden === false) return;
+    G.bal = { x: W / 2, y: SCHIET_Y, vx: Math.cos(G.hoek) * 1150, vy: Math.sin(G.hoek) * 1150, v: G.huidig };
+    G.huidig = G.volgende; G.volgende = nieuweBel(); G.schoten++; geluid.schiet();
+  }
+  function wissel() { if (!G || G.bal || G.klaar) return; [G.huidig, G.volgende] = [G.volgende, G.huidig]; geluid.tik(); }
+  const naarVeld = e => { const r = doek.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; };
+  let ingedrukt = false;
+  doek.addEventListener('pointerdown', e => { if (!G) return; e.preventDefault(); const [x, y] = naarVeld(e); if (Math.hypot(x - (W / 2 + 70), y - SCHIET_Y) < 26) { wissel(); return; } ingedrukt = true; doek.setPointerCapture(e.pointerId); richtOp(x, y); });
+  doek.addEventListener('pointermove', e => { if (!G) return; if (e.pointerType === 'mouse' || ingedrukt) richtOp(...naarVeld(e)); });
+  doek.addEventListener('pointerup', e => { if (!ingedrukt) return; ingedrukt = false; const [, y] = naarVeld(e); if (y < SCHIET_Y + 10) schiet(); });
+  doek.addEventListener('pointercancel', () => { ingedrukt = false; });
+  const toets = {};
+  addEventListener('keydown', e => { if (!G || !$('menu').hidden) return; if (['ArrowLeft', 'ArrowRight', 'Space', 'ArrowUp'].includes(e.code)) e.preventDefault(); toets[e.code] = true; if ((e.code === 'Space' || e.code === 'ArrowUp') && !e.repeat) schiet(); if (e.code === 'KeyX' || e.code === 'KeyS') wissel(); if (e.code === 'Escape') toonMenu(); });
+  addEventListener('keyup', e => { toets[e.code] = false; });
+  // ---------------- de vliegende bel: kaatst tegen de wanden en blijft plakken
+  function beweeg(dt) {
+    const b = G.bal; if (!b) return;
+    const stappen = Math.ceil(Math.hypot(b.vx, b.vy) * dt / 4);
+    for (let i = 0; i < stappen; i++) {
+      b.x += b.vx * dt / stappen; b.y += b.vy * dt / stappen;
+      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx); geluid.kaats(); } if (b.x > W - R) { b.x = W - R; b.vx = -Math.abs(b.vx); geluid.kaats(); }
+      let raak = b.y - R <= G.zak;
+      if (!raak) for (let r = 0; r < G.raster.length && !raak; r++) for (let c = 0; c < kolommen(r); c++) { if (cel(r, c) === undefined) continue; const [x, y] = posVan(r, c); if (Math.hypot(b.x - x, b.y - y) < 2 * R * 0.86) { raak = true; break; } }
+      if (raak) { plak(b); G.bal = null; return; }
+    }
+  }
+  function plak(b) {
+    // de dichtstbijzijnde vrije plek in het raster
+    let beste = null, bd = 1e9;
+    const r0 = Math.max(0, Math.round((b.y - G.zak - R) / RH));
+    for (let r = Math.max(0, r0 - 1); r <= r0 + 1; r++) for (let c = 0; c < kolommen(r); c++) { if (cel(r, c) !== undefined) continue; const [x, y] = posVan(r, c), d = Math.hypot(b.x - x, b.y - y); if (d < bd && (r === 0 || buren(r, c).some(([rr, cc]) => cel(rr, cc) !== undefined))) { bd = d; beste = [r, c]; } }
+    if (!beste) { for (let c = 0; c < kolommen(r0); c++) { const [x, y] = posVan(r0, c), d = Math.hypot(b.x - x, b.y - y); if (cel(r0, c) === undefined && d < bd) { bd = d; beste = [r0, c]; } } }
+    if (!beste) return;
+    const [r, c] = beste; zet(r, c, b.v); geluid.plak();
+    let weg = [];
+    if (b.v === BOM) { weg = [[r, c]]; for (let rr = r - 2; rr <= r + 2; rr++) for (let cc = c - 2; cc <= c + 2; cc++) { if (rr < 0 || cel(rr, cc) === undefined) continue; const [x1, y1] = posVan(rr, cc), [x0, y0] = posVan(r, c); if (Math.hypot(x1 - x0, y1 - y0) < R * 4.3) weg.push([rr, cc]); } geluid.bom(); }
+    else {
+      let kleur = b.v;
+      if (b.v === REGENBOOG) { const tel = {}; for (const [rr, cc] of buren(r, c)) { const v = cel(rr, cc); if (v !== undefined && v < 6) tel[v] = (tel[v] || 0) + groep(rr, cc, v).length; } const k = Object.keys(tel).sort((a, b2) => tel[b2] - tel[a])[0]; kleur = k === undefined ? Math.floor(G.rnd() * G.kleuren) : +k; zet(r, c, kleur); }
+      const gr = groep(r, c, kleur); if (gr.length >= 3) weg = gr;
+    }
+    if (weg.length) {
+      const uniek = new Set(); weg = weg.filter(([rr, cc]) => { const k = rr + ',' + cc; if (uniek.has(k) || cel(rr, cc) === undefined) return false; uniek.add(k); return true; });
+      G.combo++;
+      for (const [rr, cc] of weg) { const v = cel(rr, cc), [x, y] = posVan(rr, cc); G.knallers.push({ x, y, v, t: 0 }); spat(x, y, v); zet(rr, cc, undefined); }
+      const los = losseBellen();
+      for (const [rr, cc] of los) { const v = cel(rr, cc), [x, y] = posVan(rr, cc); G.vallers.push({ x, y, v, vy: -60 - Math.random() * 80, vx: (Math.random() - 0.5) * 120 }); zet(rr, cc, undefined); }
+      const punten = weg.length * 10 + los.length * 20 * Math.pow(2, Math.min(5, Math.floor(los.length / 4))) + (G.combo > 1 ? G.combo * 15 : 0);
+      const punten2 = G.modus === 'eindeloos' ? punten * (G.golf || 1) : punten; G.score += punten2; const [x, y] = posVan(r, c);
+      G.teksten.push({ x, y, t: 0, tekst: '+' + punten2 + (G.modus === 'eindeloos' && G.golf > 1 ? ' (×' + G.golf + ')' : '') + (los.length ? '  ' + los.length + ' vallen!' : '') + (G.combo > 1 ? '  combo ×' + G.combo : '') });
+      geluid.knal(weg.length); if (los.length) setTimeout(() => geluid.val(los.length), 120);
+    } else { G.combo = 0; G.sindsZak++; }
+    if (weg.length && G.modus === 'eindeloos') G.sindsZak++;
+    opruimen();
+    // het plafond zakt na een aantal schoten zonder knal
+    if (G.sindsZak >= G.zakElke && (G.modus === 'eindeloos' || !weg.length)) { G.sindsZak = 0; G.klok = 0; if (G.modus === 'eindeloos') { nieuweRij(); if (G.golf >= 4 && G.rnd() < Math.min(0.85, 0.3 + (G.golf - 4) * 0.1)) nieuweRij(); } else G.zak += RH; geluid.zak(); }
+    // veld leeg in Eindeloos: een bonus, en meteen een nieuwe lading
+    if (G.modus === 'eindeloos' && telBellen() === 0) { const bonus = 500 * G.golf; G.score += bonus; G.teksten.push({ x: W / 2, y: H / 3, t: 0, tekst: 'Leeg! +' + bonus }); for (let i = 0; i < 6; i++) nieuweRij(); geluid.winst(); }
+    controleerEinde();
+  }
+  function groep(r, c, v) { const gezien = new Set([r + ',' + c]), lijst = [[r, c]], uit = []; while (lijst.length) { const [rr, cc] = lijst.pop(); uit.push([rr, cc]); for (const [nr, nc] of buren(rr, cc)) { const k = nr + ',' + nc; if (!gezien.has(k) && cel(nr, nc) === v) { gezien.add(k); lijst.push([nr, nc]); } } } return uit; }
+  function losseBellen() { const vast = new Set(), lijst = []; for (let c = 0; c < kolommen(0); c++) if (cel(0, c) !== undefined) { vast.add('0,' + c); lijst.push([0, c]); } while (lijst.length) { const [r, c] = lijst.pop(); for (const [nr, nc] of buren(r, c)) { const k = nr + ',' + nc; if (!vast.has(k) && cel(nr, nc) !== undefined) { vast.add(k); lijst.push([nr, nc]); } } } const los = []; G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined && !vast.has(r + ',' + c)) los.push([r, c]); })); return los; }
+  function opruimen() { while (G.raster.length && !(G.raster[G.raster.length - 1] || []).some(v => v !== undefined)) G.raster.pop(); if (!aanwezigeKleuren().includes(G.huidig) && G.huidig < 6) G.huidig = nieuweBel(); if (!aanwezigeKleuren().includes(G.volgende) && G.volgende < 6) G.volgende = nieuweBel(); }
+  function controleerEinde() {
+    if (G.klaar) return;
+    let laagst = 0; G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined) laagst = Math.max(laagst, posVan(r, c)[1] + R); }));
+    const spel = G;
+    if (G.modus === 'avontuur' && telBellen() === 0) { G.klaar = true; return setTimeout(() => { if (G === spel) winst(); }, 700); }
+    if (laagst > LIJN_Y) { G.klaar = true; geluid.verlies(); setTimeout(() => { if (G === spel) verlies(); }, 800); }
+  }
+  // ---------------- einde van een potje
+  function winst() {
+    geluid.winst();
+    const ster = G.schoten <= G.start / 3 ? 3 : G.schoten <= G.start / 2.2 ? 2 : 1, bonus = Math.max(0, Math.round(G.start * 1.5 - G.schoten)) * 25; G.score += bonus;
+    const l = G.level; opslag.sterren[l] = Math.max(opslag.sterren[l] || 0, ster); opslag.scores[l] = Math.max(opslag.scores[l] || 0, G.score); opslag.open = Math.max(opslag.open, l + 1); bewaar(); stuurScore();
+    venster(`<h2>Level ${l} gehaald!</h2><p class="sterren">${'★'.repeat(ster)}${'☆'.repeat(3 - ster)}</p><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>In ${G.schoten} schoten${bonus ? `, met ${bonus.toLocaleString('nl-NL')} bonuspunten voor de schoten die je over had` : ''}. ${ster < 3 ? 'Voor drie sterren: maximaal ' + Math.floor(G.start / 3) + ' schoten.' : 'Perfect!'}</p><div class="rij">${l < 30 ? `<button class="knop hoofd" data-start="avontuur" data-level="${l + 1}" type="button">Volgend level</button>` : ''}<button class="knop" data-start="avontuur" data-level="${l}" type="button">Nog een keer</button><button class="knop" data-menu="levels" type="button">Levels</button></div>`);
+  }
+  function verlies() {
+    const eind = G.modus === 'eindeloos', record = eind && G.score > opslag.eindeloos; if (record) { opslag.eindeloos = G.score; bewaar(); stuurScore(); }
+    venster(`<h2>${eind ? 'De bellen zijn beneden!' : 'Net niet...'}</h2><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>${eind ? (record ? 'Een nieuw record!' : 'Je record is ' + opslag.eindeloos.toLocaleString('nl-NL') + '.') : 'De bellen kwamen bij de rode lijn. Probeer groepjes hoog in het veld weg te schieten, dan valt alles eronder mee.'}</p><div class="rij"><button class="knop hoofd" data-start="${G.modus}" data-level="${G.level || 0}" type="button">Opnieuw</button><button class="knop" data-menu="${eind ? 'hoofd' : 'levels'}" type="button">Menu</button></div>`);
+  }
+  // ---------------- tekenen
+  function bel(x, y, v, s = 1, a = 1) {
+    g.save(); g.globalAlpha = a; g.translate(x, y); g.scale(s, s);
+    if (v === BOM) { g.fillStyle = '#2A2630'; g.beginPath(); g.arc(0, 0, R - 1, 0, 7); g.fill(); g.strokeStyle = '#E9B949'; g.lineWidth = 3; g.beginPath(); g.moveTo(4, -R + 4); g.quadraticCurveTo(10, -R - 6, 15, -R - 2); g.stroke(); g.fillStyle = '#FF8A30'; g.beginPath(); g.arc(15, -R - 2, 3.5, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.arc(-6, -6, 6, 0, 7); g.fill(); }
+    else if (v === REGENBOOG) { for (let i = 0; i < 6; i++) { g.fillStyle = KLEUREN[i][0]; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R - 1, i / 6 * 6.283, (i + 1) / 6 * 6.283); g.fill(); } g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(0, 0, R * 0.45, 0, 7); g.fill(); }
+    else { const [k, licht, donker] = KLEUREN[v]; const gr = g.createRadialGradient(-R * 0.35, -R * 0.4, R * 0.1, 0, 0, R); gr.addColorStop(0, licht); gr.addColorStop(0.45, k); gr.addColorStop(1, donker); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, R - 1, 0, 7); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-R * 0.35, -R * 0.45, R * 0.28, R * 0.16, -0.6, 0, 7); g.fill();
+    g.restore();
+  }
+  function spat(x, y, v) { const k = v < 6 ? KLEUREN[v][0] : '#FFFFFF'; for (let i = 0; i < 8; i++) { const a = Math.random() * 6.283, s = 80 + Math.random() * 160; G.deeltjes.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, k }); } }
+  function teken(dt) {
+    g.clearRect(0, 0, W, H);
+    const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2C3A72'); bg.addColorStop(1, '#141C3E'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 30; i++) { g.beginPath(); g.arc((i * 97) % W, (i * 173) % H, 2 + (i % 3), 0, 7); g.fill(); }
+    if (!G) return;
+    // het zakkende plafond
+    if (G.zak > 0) { g.fillStyle = '#3E2A1A'; g.fillRect(0, 0, W, G.zak); g.fillStyle = '#5E4030'; for (let x = 0; x < W; x += 24) g.fillRect(x, G.zak - 6, 20, 6); }
+    // de rode lijn
+    g.strokeStyle = 'rgba(232,65,78,.55)'; g.setLineDash([8, 8]); g.lineWidth = 2; g.beginPath(); g.moveTo(0, LIJN_Y); g.lineTo(W, LIJN_Y); g.stroke(); g.setLineDash([]);
+    G.raster.forEach((rij, r) => (rij || []).forEach((v, c) => { if (v !== undefined) { const [x, y] = posVan(r, c); bel(x, y, v); } }));
+    // hulplijn met kaatsen tegen de wand
+    if (!G.klaar) { let x = W / 2, y = SCHIET_Y, vx = Math.cos(G.hoek), vy = Math.sin(G.hoek); g.fillStyle = 'rgba(255,255,255,.55)'; for (let i = 0; i < 70; i++) { x += vx * 9; y += vy * 9; if (x < R || x > W - R) { vx = -vx; x = Math.max(R, Math.min(W - R, x)); } if (y < G.zak + R) break; let raak = false; for (let r = 0; r < G.raster.length && !raak; r++) for (let c = 0; c < kolommen(r); c++) { if (cel(r, c) === undefined) continue; const [bx, by] = posVan(r, c); if (Math.hypot(x - bx, y - by) < 2 * R * 0.86) { raak = true; break; } } if (raak) break; if (i % 2 === 0) { g.beginPath(); g.arc(x, y, i < 40 ? 3 : 2, 0, 7); g.fill(); } } }
+    // het kanon, de huidige en de volgende bel
+    g.save(); g.translate(W / 2, SCHIET_Y); g.rotate(G.hoek + Math.PI / 2); g.fillStyle = '#C9C2B2'; g.strokeStyle = '#231A26'; g.lineWidth = 3; g.beginPath(); g.roundRect ? g.roundRect(-9, -48, 18, 40, 6) : g.rect(-9, -48, 18, 40); g.fill(); g.stroke(); g.restore();
+    g.fillStyle = '#5E5643'; g.beginPath(); g.arc(W / 2, SCHIET_Y + 8, 30, Math.PI, 0); g.fill();
+    if (!G.bal && !G.klaar) bel(W / 2, SCHIET_Y, G.huidig);
+    bel(W / 2 + 70, SCHIET_Y + 6, G.volgende, 0.7); g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '700 11px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('wissel', W / 2 + 70, SCHIET_Y + 34);
+    if (G.bal) bel(G.bal.x, G.bal.y, G.bal.v);
+    // knallen, vallen, deeltjes en teksten
+    for (const k of G.knallers) { k.t += dt; bel(k.x, k.y, k.v, 1 + k.t * 3, Math.max(0, 1 - k.t * 5)); } G.knallers = G.knallers.filter(k => k.t < 0.2);
+    for (const v of G.vallers) { v.vy += 1400 * dt; v.x += v.vx * dt; v.y += v.vy * dt; bel(v.x, v.y, v.v, 1, Math.max(0, 1 - (v.y - LIJN_Y) / 200)); } G.vallers = G.vallers.filter(v => v.y < H + R);
+    for (const d of G.deeltjes) { d.t += dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 500 * dt; g.globalAlpha = Math.max(0, 1 - d.t * 2); g.fillStyle = d.k; g.beginPath(); g.arc(d.x, d.y, 3, 0, 7); g.fill(); } g.globalAlpha = 1; G.deeltjes = G.deeltjes.filter(d => d.t < 0.5);
+    g.textAlign = 'center'; for (const t of G.teksten) { t.t += dt; g.globalAlpha = Math.max(0, 1 - t.t / 1.2); g.font = '800 17px system-ui, sans-serif'; g.lineWidth = 4; g.strokeStyle = '#231A26'; g.strokeText(t.tekst, Math.max(80, Math.min(W - 80, t.x)), t.y - t.t * 50); g.fillStyle = '#FFE76A'; g.fillText(t.tekst, Math.max(80, Math.min(W - 80, t.x)), t.y - t.t * 50); } g.globalAlpha = 1; G.teksten = G.teksten.filter(t => t.t < 1.2);
+    // de tellers
+    g.textAlign = 'left'; g.font = '800 18px system-ui, sans-serif'; g.fillStyle = '#FBF6E9'; g.fillText(G.score.toLocaleString('nl-NL'), 12, H - 16);
+    g.font = '700 12px system-ui, sans-serif'; g.fillStyle = 'rgba(251,246,233,.75)'; g.fillText(G.modus === 'avontuur' ? 'Level ' + G.level : 'Eindeloos · golf ' + G.golf, 12, H - 36);
+    if (G.modus === 'eindeloos') { const f = Math.min(1, G.klok / golfTempo().seconden); g.fillStyle = 'rgba(255,255,255,.15)'; g.fillRect(W - 98, H - 10, 86, 4); g.fillStyle = f > 0.75 ? '#E8414E' : '#FFE76A'; g.fillRect(W - 98, H - 10, 86 * f, 4); }
+    g.textAlign = 'right'; g.fillText(G.modus === 'eindeloos' ? 'nieuwe rij over' : 'plafond zakt over', W - 12, H - 36);
+    for (let i = 0; i < G.zakElke; i++) { g.fillStyle = i < G.zakElke - G.sindsZak ? '#FFE76A' : 'rgba(255,255,255,.2)'; g.beginPath(); g.arc(W - 16 - i * 13, H - 20, 4.5, 0, 7); g.fill(); }
+  }
+  // ---------------- de lus
+  let vorige = performance.now();
+  function lus(nu) { requestAnimationFrame(lus); const dt = Math.min(0.033, (nu - vorige) / 1000); vorige = nu; if (G && !G.klaar && $('menu').hidden) { if (toets.ArrowLeft) G.hoek = Math.max(MIN, G.hoek - dt * 1.6); if (toets.ArrowRight) G.hoek = Math.min(MAX, G.hoek + dt * 1.6); beweeg(dt); if (G.modus === 'eindeloos' && !G.bal) { G.klok += dt; if (G.klok >= golfTempo().seconden) { G.klok = 0; G.sindsZak = 0; nieuweRij(); if (G.golf >= 4) nieuweRij(); geluid.zak(); controleerEinde(); } } } teken(dt); }
+  // ---------------- geluid: zacht
+  let ac = null, hoofd = null;
+  function audio() { if (ac || !opslag.geluid) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); hoofd = ac.createGain(); hoofd.gain.value = 0.5; hoofd.connect(ac.destination); } catch (e) {} }
+  const toon = (f, t0, duur, type, vol, glij) => { if (!ac || !opslag.geluid) return; const o = ac.createOscillator(), gn = ac.createGain(), t = ac.currentTime + t0; o.type = type; o.frequency.setValueAtTime(f, t); if (glij) o.frequency.exponentialRampToValueAtTime(glij, t + duur); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + duur); o.connect(gn); gn.connect(hoofd); o.start(t); o.stop(t + duur + 0.03); };
+  const geluid = {
+    schiet: () => toon(500, 0, 0.12, 'sine', 0.08, 900), tik: () => toon(900, 0, 0.05, 'sine', 0.05), kaats: () => toon(300, 0, 0.05, 'triangle', 0.04),
+    plak: () => toon(220, 0, 0.08, 'sine', 0.06, 160), knal: n => { for (let i = 0; i < Math.min(6, n); i++) toon(700 + i * 120 + Math.random() * 80, i * 0.035, 0.09, 'sine', 0.06, 1400); },
+    val: n => { for (let i = 0; i < Math.min(8, n); i++) toon(1200 - i * 90, i * 0.05, 0.12, 'triangle', 0.035); }, bom: () => toon(120, 0, 0.4, 'sawtooth', 0.06, 40),
+    zak: () => toon(160, 0, 0.3, 'triangle', 0.08, 90), winst: () => [523, 659, 784, 1046].forEach((f, i) => toon(f, i * 0.12, 0.4, 'triangle', 0.06)), verlies: () => [392, 330, 262].forEach((f, i) => toon(f, i * 0.18, 0.4, 'triangle', 0.06)),
+  };
+  $('b-geluid').addEventListener('click', () => { opslag.geluid = !opslag.geluid; bewaar(); $('b-geluid').setAttribute('aria-pressed', String(opslag.geluid)); if (opslag.geluid) audio(); });
+  $('b-geluid').setAttribute('aria-pressed', String(opslag.geluid));
+  // ---------------- menu's
+  function venster(html) { $('menu-in').innerHTML = html; $('menu').hidden = false; }
+  function toonMenu(welk) {
+    if (welk === 'levels') { let h = '<h2>Avontuur</h2><p class="klein">Schiet het hele veld leeg. Drie sterren als je het in weinig schoten doet.</p><div class="levels">'; for (let i = 1; i <= 30; i++) { const s = opslag.sterren[i] || 0; h += `<button class="lvl" data-start="avontuur" data-level="${i}" type="button" ${i > opslag.open ? 'disabled' : ''}>${i}<small>${s ? '★'.repeat(s) : i > opslag.open ? 'dicht' : ''}</small></button>`; } venster(h + '</div><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
+    if (welk === 'regels') { venster('<h2>Zo speel je</h2><p>Mik met je muis of vinger, en laat los (of klik) om te schieten. Op een toetsenbord: pijltjes om te mikken, spatie om te schieten, X om te wisselen.</p><p>Raak je <b>drie of meer bellen van dezelfde kleur</b>, dan knallen ze. Bellen die daarna nergens meer aan vastzitten, <b>vallen</b>: dat levert extra veel punten op.</p><p>In <b>Avontuur</b> zakt het plafond na een paar schoten zonder knal (de stippen rechtsonder tellen af). In <b>Eindeloos</b> komt er na elke paar schoten een nieuwe rij bij, raak of mis, en ook als je te lang wacht (het balkje). Elke golf gaat sneller en brengt meer kleuren, en vanaf golf 4 komen er soms twee rijen tegelijk. Je punten tellen keer je golf. Raken de bellen de rode lijn, dan is het afgelopen.</p><p>Een <b>bom</b> laat alles eromheen knallen, een <b>regenboogbel</b> past bij elke kleur. Tik op de kleine bel rechts om te wisselen.</p><div class="rij"><button class="knop" data-menu="hoofd" type="button">Terug</button></div>'); return; }
+    const sterren = Object.values(opslag.sterren).reduce((a, b) => a + b, 0);
+    venster(`<h1>Rommelbel<small>Schiet, knal en laat ze vallen</small></h1><p class="klein">${sterren} van 90 sterren · record eindeloos: ${opslag.eindeloos.toLocaleString('nl-NL')}</p><div class="rij"><button class="knop hoofd" data-menu="levels" type="button">Avontuur (level ${Math.min(30, opslag.open)})</button><button class="knop" data-start="eindeloos" data-level="0" type="button">Eindeloos</button><button class="knop" data-menu="regels" type="button">Zo speel je</button></div>${G && !G.klaar ? '<div class="rij"><button class="knop" data-verder type="button">Verder spelen</button></div>' : ''}<div id="sb-bel"></div>`);
+    if (window.Scorebord) Scorebord.blokje($('sb-bel'), 'punten in Eindeloos');
+  }
+  document.addEventListener('click', e => { const s = e.target.closest('[data-start]'), m = e.target.closest('[data-menu]'), v = e.target.closest('[data-verder]'); if (s && !s.disabled) start(s.dataset.start, +s.dataset.level); if (m) toonMenu(m.dataset.menu); if (v) $('menu').hidden = true; });
+  $('b-menu').addEventListener('click', () => toonMenu());
+  function stuurScore() { if (window.Scorebord && opslag.eindeloos > 0) Scorebord.stuur('bel', opslag.eindeloos, Object.values(opslag.sterren).reduce((a, b) => a + b, 0)); }
+  maat(); toonMenu(); requestAnimationFrame(lus); stuurScore();
+  window.__bel = { get G() { return G; }, start, schiet, richtOp, beweeg, posVan, kolommen, buren, opslag, losseBellen, BOM, REGENBOOG };
+})();
+</script>
+<!--BOUW:GRAPJES-->
+</body>
+</html>

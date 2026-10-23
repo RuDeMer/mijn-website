@@ -193,7 +193,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Opslag: localStorage `rommelland-v1` (elke 30 seconden en bij weggaan). Testhaak: `window.__rl` (o.a. `sim(seconden)`).
 
 ## Rommelblok (blokkenwereld, derde ronde 22 oktober 2026)
-- `rommelblok.html`, gemaakt door Claude Code. Bron: `_bron/rommelblok/` (README, `bouw.js` maakt `_bron/paginas/rommelblok.html`; tests in `test/`, `alles.sh`). Eigen blokkenspel, zonder iets van Minecraft over te nemen. Eigen WebGL2-motor, geen scripts van buiten; web workers via Blob-URL.
+- `rommelblok.html`, gemaakt door Claude Code. De pagina is de bron. Claude Code houdt zijn eigen losse stukken en tests (`gedeeld.js`, `src/`, `test/`, `bouw.js`) op Rubens Mac; ze staan niet in de repository.
 - Wereld: eindeloos, stukken van 16 x 16 x 128 (zee op 56), uit een zaadje. Versie 3 van de wereldmaker (`gen: 3`): meer land (zee ongeveer 17%), rivieren in dalen zonder kloven, start altijd op land. Een oudere wereld houdt het oude landschap waar je al was (`oud|wereldId` in IndexedDB) met een overgang van 40 blokken. Grottenstelsels, ruïnes, mijnen (in nieuwe mijnen spoor met bochten en soms een karretje), sterrenkraters.
 - Dorpjes (`dorpVan`/`dorp` in gedeeld.js): hooguit één per 256 x 256 blokken, plein met put en marktkraampjes, klinkerstraten met halve treden, huizen, bakkerij, smederij, bibliotheek, akkers met een sloot; stijlen vakwerk/mergel, blokhut en leem. Nooit binnen 72 blokken van stukken die al bestonden.
 - Bewoners (`p6c_bewoners.js`): één per bed, met eigen nummer, naam, beroep (boer, bakker, smid, bibliothecaris, dorpeling) en dagritme (slapen, werken, middagpauze bij de put, naar huis), route met A*, doen deuren open en dicht. Ruilen: spullen tegen spullen (`RUIL`, 35 ruilen, 4 per bewoner, voorraad per dag); elke ruil kost 1,02 tot 1,8 keer wat je krijgt (`test/ruilen.js` met `test/waarde.js`), nooit robijn of sterrensplinter.
@@ -205,7 +205,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - Talen NL en EN (`rommelblok-taal`, `EN_ZIN`, `data-t`).
 - Opslag: localStorage `rommelblok-v3` (instellingen, laatste wereld, `bouwBalk`; gaat mee met koppelen). Werelden in IndexedDB `rommelblok` versie 1 (`werelden` met o.a. `karren`, `bewoners`, `dorpen`; `stukken` met veranderde stukken, kaartjes `kaart|id|cx|cz` en `oud|id`). Exporteren en importeren als `.rommelblok`.
 - Testhaak `window.__rommelblok`; testwereld via `?test=1&zaad=..&stand=..`.
-- **Ingebouwd (22 oktober 2026)**: `_bron/paginas/rommelblok.html` gemaakt uit de gebouwde pagina van Claude Code (de gedeelde blokken waren gelijk aan `_bron/gedeeld/`); `python3 _bron/bouw.py rommelblok.html` geeft byte voor byte dezelfde pagina. Claude Codes eigen bronnen staan in `_bron/rommelblok/` (met `bouw.js`, `src/` en `test/`); `node _bron/rommelblok/bouw.js` maakt de bronpagina, daarna maakt `bouw.py` de pagina in de hoofdmap. Tegelijk zijn de 19 pagina's opnieuw gebouwd die nog een scorebord-script zonder `'rommelblok-v3'` hadden. Getest: overleven (rugzak in de stijl Glas, receptenboek), bouwen (bouwmenu met 316 voorwerpen in groepen), lopen, geen fouten of CSP-overtredingen.
+- **Ingebouwd (22 oktober 2026, derde ronde)**: de gedeelde blokken (scorebord-script en grapjes) waren gelijk aan die in de andere pagina's, dus `rommelblok.html` is ongewijzigd overgenomen. Tegelijk zijn de 19 pagina's bijgewerkt die nog een scorebord-script zonder `'rommelblok-v3'` hadden. Getest: overleven (rugzak in de stijl Glas, receptenboek), bouwen (bouwmenu met 316 voorwerpen), lopen, geen fouten of CSP-overtredingen.
 
 
 ## Vlaaienbakker: lange termijn
@@ -588,10 +588,36 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 
 
-## De bron en het bouwscript: `_bron/` (sinds 22 oktober 2026)
-- **Alle bronnen staan nu in de repository, in `_bron/`** (niet op de website: GitHub Pages zet mappen met een `_` niet online; de repo heeft geen `.nojekyll`). Teruggehaald uit de gebouwde pagina's nadat de oude bouwmap van de beherende Claude (`/home/claude/rp`, met `bouw.py` en de losse `*_template.html`) gewist was. `python3 _bron/bouw.py` maakt alle 24 pagina's en `homepage-onderdelen.js` byte voor byte gelijk aan de gebouwde versie; dat is getest. Lees `_bron/README.md`.
-- **Opbouw:** `_bron/paginas/` (elke pagina met plaatshouders `<!--BOUW:SCOREBORD-->`, `<!--BOUW:GRAPJES-->`, `<!--BOUW:V6-KOP-->`, `<!--BOUW:V6-->`), `_bron/gedeeld/` (`scorebord.js`, `grapjes.js`, `v6-kop.html`, `v6.js`), `_bron/homepage-onderdelen.js` (met `/*BOUW:SCOREBORD*/` en `/*BOUW:GRAPJES*/`), `_bron/workers/` (scoreserver en drukpers), `_bron/vps/` (PHP van het hotel), `_bron/geparkeerd/` (Steigerstress). Welke blokken een pagina krijgt, bepalen de plaatshouders in die pagina (geen lijsten meer zoals `SB_PAGINAS` of `V6_SUB`).
-- **Regels:** werk in `_bron/paginas/` of `_bron/gedeeld/`, nooit alleen in een gebouwde pagina in de hoofdmap; bouw daarna, en upload de pagina's die het script noemt. `index.html` staat niet in de bron en wordt nooit gebouwd (de werkplaats houdt hem bij). `python3 _bron/bouw.py --controleer` laat zien of de hoofdmap en de bron uit elkaar lopen.
-- **Voor Claude Code:** na `git pull` werk je in `_bron/`, en draai je `python3 _bron/bouw.py` zelf. Lever daarna, zoals afgesproken, de veranderde bestanden en een overdracht aan Ruben (stuur niets naar GitHub, tenzij Ruben dat vraagt).
-- **Voor de beherende Claude:** haal de repo op met `https://codeload.github.com/RuDeMer/mijn-website/zip/refs/heads/main` (de GitHub-API is vaak overbelast), werk in `_bron/`, en bouw met `--naar` in de map met resultaten.
-- **Wat het script niet bijwerkt:** de kopie van de homepage-onderdelen en de iconen binnen in de werkplaats (`HOME_ONDERDELEN`). Die gebruikt de werkplaats alleen als `homepage-onderdelen.js` nog niet op GitHub staat, of bij een homepage met de heel oude opbouw. Bij 'Zet online' in het tabblad Homepage stuurt hij hem verder niet mee.
+## De pagina's zijn de bron (sinds 23 oktober 2026)
+- **Er is geen aparte bronmap meer.** De map `_bron/` (met `bouw.py` en een kopie van elke pagina) is weer weggehaald, omdat hij GitHub en Claude Code traag maakte. **De pagina's in de repository zijn de bron.** Werk rechtstreeks in de pagina, bijvoorbeeld `rommelbeesten.html`. Er gaat niets verloren: elke pagina bevat alles wat nodig is.
+- **Waar oudere notities `bouw.py`, `_bron` of een `*_template.html` noemen:** dat bouwproces bestaat niet meer. Wat het deed, staat nu gewoon in de pagina's zelf.
+- **De gedeelde blokken** staan letterlijk in elke pagina, en moeten overal **precies gelijk** blijven:
+  - **het scorebord-script**: het `<script>`-blok met `const SLEUTELS` (koppelen, scorebord, tabbladbewaker, de knop "Koppel je apparaten"). Het staat in 20 pagina's, en ook in `homepage-onderdelen.js` (daar zonder `<script>`-tags). Niet in de ideeënbox, de 404-pagina, Rommelhotel Online, de werkplaats en `index.html`.
+  - **de grapjes**: het `<script>`-blok met `GRAPJES: verborgen grapjes`, in 19 pagina's en in `homepage-onderdelen.js`. Niet in Mengelmoes en Op Gevoel (eigen stijl).
+  - **versie 0.6, in de `<head>`**: van `<!-- versie 0.6: dezelfde stijl` tot en met de `</style>` daarna. In de werkplaats, het scorebord, de ideeënbox, de 404-pagina, de Vlaaienbakker, Rommelpoker, Rommelbeesten, Rommelwoord, Rommelhotel Solo en Rommelrecht.
+  - **versie 0.6, onderaan**: het `<script>`-blok met `__v6sub`, in dezelfde pagina's.
+- **Regels:** verander een gedeeld blok nooit in één pagina alleen. Moet het anders, vervang het dan in alle pagina's tegelijk (zie hieronder), en upload al die pagina's. `index.html` beheert de werkplaats: die verander je niet zomaar.
+- **Een gedeeld blok overal vervangen** (vanuit de hoofdmap van de repository; alleen Python 3 nodig). Zet het nieuwe blok in een bestand, zonder `<script>`-tags, en draai bijvoorbeeld `python3 vervang.py scorebord nieuw-scorebord.js`:
+
+```python
+import glob, re, sys
+soort, nieuw_pad = sys.argv[1], sys.argv[2]                     # soort: scorebord, grapjes of v6
+MERK = {'scorebord': 'const SLEUTELS', 'grapjes': 'GRAPJES: verborgen grapjes', 'v6': '__v6sub'}
+voorbeeld = open('rommelbel.html' if soort == 'grapjes' else 'scorebord.html', encoding='utf-8').read()
+oud = next(m.group(1) for m in re.finditer(r'<script>(.*?)</script>', voorbeeld, re.S)
+           if MERK[soort] in m.group(1) and len(m.group(1)) < 100000)   # < 100000: niet het grote eigen script van de werkplaats
+nieuw = open(nieuw_pad, encoding='utf-8').read()
+for f in sorted(glob.glob('*.html')) + ['homepage-onderdelen.js']:
+    t = open(f, encoding='utf-8', newline='').read(); n = t.count(oud)
+    if n:
+        open(f, 'w', encoding='utf-8', newline='').write(t.replace(oud, nieuw)); print('bijgewerkt:', f, f'({n}x)')
+```
+
+- **Controleren of de blokken overal gelijk zijn:** zoek per soort alle blokken op (zoals hierboven), en kijk of er maar één versie van is. Is er meer dan één, dan loopt een pagina achter.
+- **Voor Claude Code:** werk in de pagina zelf, laat de gedeelde blokken precies staan, en lever de pagina met een overdracht aan Ruben (stuur niets naar GitHub, tenzij Ruben dat vraagt). Je eigen hulpbestanden, zoals de losse stukken en tests van Rommelblok, mag je op Rubens Mac houden, maar ze horen niet in de repository.
+- **Voor de beherende Claude:** haal de repository op met `https://codeload.github.com/RuDeMer/mijn-website/zip/refs/heads/main` (de GitHub-API is vaak overbelast), werk in de pagina's, en controleer na een wijziging of de gedeelde blokken overal gelijk zijn.
+
+## Rommelbeesten: levendiger (23 oktober 2026)
+> **Levendiger (23 oktober 2026, Claude Code)**: het pakje hangt aan een wasknijper, scheuren geeft snippers en geluid, het lipje tolt weg, de spanning bouwt op met lichtringen in de kleur van de beste kaart (`spanning`, `plof`), de kaarten vliegen op de stapel, en elke kaart komt naar voren, kleurt het licht alvast en draait in 3D om met de naam op labeltape (`naarVoren`, `draaiOm`, `.naam-tape`). Griezelkaarten laten een vleermuis of spookje los, Coulissenkaarten rozenblaadjes (`seizoen`). **Overslaan** en **Snel openen** (per apparaat in `rommelbeesten-snel`, niet in `SLEUTELS`). Glans per zeldzaamheid en fonkeltjes voor glimmend; meekantelen met de muis; het grote kaartscherm zoomt open, is rond te draaien (slepen, pijltjes, telefoon kantelen) en heeft een achterkant. Album: ringen per zeldzaamheid, inschuiven, bladzijde omslaan. Muntjes vliegen naar de teller; verkopen en ruilen gaan via een doos met een stempel (`LV.inDoos`). Feestvensters krijgen stralen en een stempel (`FEEST`, klasse `feest` bij `dialoog`). Gevecht: aanval, schokgolf, Sterk/Zwak, knock-out (`naStrijd`). De animaties veranderen niets aan het spel of de opslag. Bij prefers-reduced-motion staat alles stil of is het kort.
+- **Ingebouwd (23 oktober 2026)**: de gebouwde `rommelbeesten.html` van Claude Code, met de gedeelde blokken gelijk aan die in de andere pagina's. Veiligheidsbeleid gelijk aan de vorige versie, geen scripts van buiten. Getest: dagbonus, gratis pakje openen met Overslaan, in licht en in donker met de rustige stand, geen fouten of CSP-overtredingen. De opslag `rommelbeesten-v1` heeft na dezelfde stappen precies dezelfde opbouw als in de oude versie (31 velden, zelfde soorten; alleen de getrokken kaarten verschillen). `rommelbeesten-snel` staat bewust niet in `SLEUTELS`.
+

@@ -11,8 +11,11 @@ Dit is een plan, nog geen bouwwerk. Rommelblok is nu een spel voor één speler,
   - `['w', x, y, z]`: de inhoud van een kist of oven is weg;
   - `['v', x, y, z, v]`: een oude kist vult zich met buit;
   - `['l', x, y, z, id, n, dur]`: er valt iets op de grond.
+  - `['e', 'kar', id, gegevens]`: een karretje komt erbij, verandert of is weg (`null`);
+  - `['e', 'bewoner', id, gegevens]`: een bewoner van een dorpje komt erbij of verandert (bijvoorbeeld na een ruil).
 - **Meeluisteren en uitvoeren kan al.** `acties.luister(f)` geeft elke actie door. `acties.ontvang(a)` voert een actie van iemand anders uit, zonder hem opnieuw te melden.
 - **Getest.** De test `test/acties.js` speelt een paar dingen (hakken, bouwen, een kist vullen, een deur openen, een kist kapotmaken). Dan opent hij dezelfde wereld opnieuw en voert alleen de acties uit. Elk blok en elke kist is daarna precies hetzelfde. Zo weten we: **zaadje + acties = de hele wereld**.
+- **Karretjes en bewoners hebben een eigen nummer** (`WD.karren`, `WD.bewoners`), zodat iedereen het over hetzelfde karretje of dezelfde bewoner heeft. Het rijden van een karretje en het lopen van een bewoner rekent nu de pagina zelf uit. Bij samen spelen doet de server dat (of de speler die het dichtstbij is) en stuurt hij de plek een paar keer per seconde rond. Deuren die een bewoner opendoet, gaan als gewone blokken (`['b', ...]`) mee.
 - **Wat geen actie is:** water dat stroomt, gewassen en bomen die groeien, gras dat uitloopt en een oven die bakt. Dat doet de wereld zelf. Bij samen spelen rekent de server dat uit en stuurt hij het resultaat naar iedereen (in hetzelfde formaat als de wereldbaas nu naar de pagina stuurt: `blokken`).
 
 ## 2. Twee manieren om het te bouwen

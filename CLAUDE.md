@@ -211,6 +211,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - **Ingebouwd (23 oktober 2026, stap 5)**: gedeelde blokken letterlijk gelijk aan de andere pagina's, veiligheidsbeleid alleen met `wss://blok.rubensrommelhoekje.nl` erbij in `connect-src`, geen scripts van buiten; de knop Samen spelen staat uit. Getest: beginscherm (met "Mijn poppetje"), alleen spelen in een testwereld (grond, lopen), geen fouten of CSP-overtredingen; de servertests van het project (`server/`, `npm test`) slagen allemaal, ook de grenzen (andere site, te grote berichten, duwen, geen hallo, 4 verbindingen per adres, 3 werelden per adres per dag, 8 foute codes). Server nagekeken: luistert op 127.0.0.1, voorbereide SQL-opdrachten, `BEHEER` uit de omgeving (minstens 12 tekens), geen `perMessageDeflate`, bestanden uitdelen alleen bij testen en beschermd tegen `..`.
 - **Let op bij stap 7 (Docker op de VPS)**: de server gelooft `X-Real-IP` alleen als de verbinding van 127.0.0.1 of ::1 komt (`adresVan` in `server/src/server.js`). Draait hij in een Docker-container met een poortkoppeling, dan komt nginx binnen via het netwerk van Docker (bijvoorbeeld 172.17.0.1). Dan lijken alle spelers van één adres te komen, en geldt de grens van 4 verbindingen per adres voor iedereen samen. Oplossing: de container met `network_mode: host` op 127.0.0.1 laten luisteren, of het adres van de proxy instelbaar maken (bijvoorbeeld `VERTROUWDE_PROXY=172.17.0.1`). nginx moet `proxy_set_header X-Real-IP $remote_addr;` meegeven, en de upgrade voor WebSockets (`Upgrade` en `Connection`). Raak de configuratie van het hotel niet aan.
 - **Water op een trap en dieren (24 oktober 2026)**: stromend water over een getrapte helling had geen zichtbare zijkanten (ze werden gemaakt, maar de tekenaar liet `CULL_FACE` aan staan voor het water). Nu tekent water buiten water alleen zijn buitenkant, lopen zijkanten door tot het lagere water, en zien ze eruit als het oppervlak; alleen een echte waterval (minstens 3 blokken vallend water) heeft witte strepen. Dieren en griezels liepen achterstevoren: de modellen hebben de kop aan +z, maar `doelYaw` en `kijk()` in `shared/wezens.js` rekenden met de camera-regel (vooruit = −z). Ingebouwd: de pagina is door de beherende Claude zelf gebouwd uit het project (`node site/maak-pagina.js`, zonder `--samen`), omdat de losse `rommelblok.html` niet was meegestuurd. Gedeelde blokken en veiligheidsbeleid letterlijk gelijk aan de live versie (stap 5). Zelf gedraaid: `test/water_vorm.js` (5 trappen, 0 fouten) en `test/kop_voor.js` (alles goed), en alleen spelen in de browser. `test/water_zijkant.js` is te traag zonder grafische kaart; Claude Code meldde hem als geslaagd (57 van 57).
+- **Water van alle kanten, en stroming (24 oktober 2026, tweede ronde)**: een waterval en de zijkanten zijn nu hetzelfde water als het oppervlak (zelfde kleur, golfjes, reflectie, licht en doorzichtigheid); een echte waterval (minstens 3 blokken) krijgt alleen zachte lichte strepen. Schuine stukjes boven je ooghoogte vielen weg, omdat de tekenaar bij het weglaten van achterkanten met de rechte richting van een vlak rekende in plaats van de echte schuinte (`ng` uit `dFdx`/`dFdy`); van onderen is water op een trap nu één dichte laag. De stroming staat op één plek (`stroming` en `STROOM` in `shared/wezens.js`): spelers, dieren en griezels (wie zweeft niet) en bewoners drijven mee met stromend water. Tests: `test/water_zijkant.js` (de zijkant door een ruit, en een trap van onderen: 90% water in beeld, de vorige versie 53%), `test/stroming.js`, en een bewoner in stromend water in `test/kop_voor.js`. Door Claude Code zelf gecommit en gepusht.
+- **Samen spelen staat aan (24 oktober 2026)**: de spelserver draait op de VPS (`https://blok.rubensrommelhoekje.nl/status` geeft `{"ok":true}`; WebSockets op `wss://blok.rubensrommelhoekje.nl/samen`). **Bouw `rommelblok.html` voortaan altijd met `node site/maak-pagina.js --samen wss://blok.rubensrommelhoekje.nl/samen`**: zonder `--samen` staat de knop Samen spelen weer uit. Controle: een bouw met en zonder `--samen` mag alleen verschillen in de regel `const SAMEN_SERVER = ...`. Het veiligheidsbeleid hoeft daarvoor niet te veranderen (`wss://blok.rubensrommelhoekje.nl` staat al in `connect-src`).
 
 
 ## Vlaaienbakker: lange termijn
@@ -619,10 +621,44 @@ for f in sorted(glob.glob('*.html')) + ['homepage-onderdelen.js']:
 ```
 
 - **Controleren of de blokken overal gelijk zijn:** zoek per soort alle blokken op (zoals hierboven), en kijk of er maar één versie van is. Is er meer dan één, dan loopt een pagina achter.
-- **Voor Claude Code:** werk in de pagina zelf, laat de gedeelde blokken precies staan, en lever de pagina met een overdracht aan Ruben (stuur niets naar GitHub, tenzij Ruben dat vraagt). Je eigen hulpbestanden, zoals de losse stukken en tests van Rommelblok, mag je op Rubens Mac houden, maar ze horen niet in de repository.
+- **Voor Claude Code:** werk in de pagina zelf, laat de gedeelde blokken precies staan, en commit en push zelf, volgens het hoofdstuk "Claude Code commit en pusht zelf" hieronder. Je eigen hulpbestanden, zoals de losse stukken en tests van Rommelblok, horen niet in deze repository (die gaan naar de eigen repository van Rommelblok).
 - **Voor de beherende Claude:** haal de repository op met `https://codeload.github.com/RuDeMer/mijn-website/zip/refs/heads/main` (de GitHub-API is vaak overbelast), werk in de pagina's, en controleer na een wijziging of de gedeelde blokken overal gelijk zijn.
 
 ## Rommelbeesten: levendiger (23 oktober 2026)
 > **Levendiger (23 oktober 2026, Claude Code)**: het pakje hangt aan een wasknijper, scheuren geeft snippers en geluid, het lipje tolt weg, de spanning bouwt op met lichtringen in de kleur van de beste kaart (`spanning`, `plof`), de kaarten vliegen op de stapel, en elke kaart komt naar voren, kleurt het licht alvast en draait in 3D om met de naam op labeltape (`naarVoren`, `draaiOm`, `.naam-tape`). Griezelkaarten laten een vleermuis of spookje los, Coulissenkaarten rozenblaadjes (`seizoen`). **Overslaan** en **Snel openen** (per apparaat in `rommelbeesten-snel`, niet in `SLEUTELS`). Glans per zeldzaamheid en fonkeltjes voor glimmend; meekantelen met de muis; het grote kaartscherm zoomt open, is rond te draaien (slepen, pijltjes, telefoon kantelen) en heeft een achterkant. Album: ringen per zeldzaamheid, inschuiven, bladzijde omslaan. Muntjes vliegen naar de teller; verkopen en ruilen gaan via een doos met een stempel (`LV.inDoos`). Feestvensters krijgen stralen en een stempel (`FEEST`, klasse `feest` bij `dialoog`). Gevecht: aanval, schokgolf, Sterk/Zwak, knock-out (`naStrijd`). De animaties veranderen niets aan het spel of de opslag. Bij prefers-reduced-motion staat alles stil of is het kort.
 - **Ingebouwd (23 oktober 2026)**: de gebouwde `rommelbeesten.html` van Claude Code, met de gedeelde blokken gelijk aan die in de andere pagina's. Veiligheidsbeleid gelijk aan de vorige versie, geen scripts van buiten. Getest: dagbonus, gratis pakje openen met Overslaan, in licht en in donker met de rustige stand, geen fouten of CSP-overtredingen. De opslag `rommelbeesten-v1` heeft na dezelfde stappen precies dezelfde opbouw als in de oude versie (31 velden, zelfde soorten; alleen de getrokken kaarten verschillen). `rommelbeesten-snel` staat bewust niet in `SLEUTELS`.
 
+## Claude Code commit en pusht zelf (sinds 24 oktober 2026)
+- Claude Code commit en pusht zelf naar deze repository (`RuDeMer/mijn-website`, branch `main`) en naar de eigen repository van Rommelblok (`RuDeMer/rommelblok`). Ruben hoeft dan niets meer te uploaden. Dit vervangt de oude regel "stuur niets naar GitHub".
+- De afspraken:
+  1. **Eerst de nieuwste versie ophalen**: vlak voor elke commit `git pull --rebase`. Rubens werkplaats schrijft ook naar `main`.
+  2. **Controleren vóór elke push**:
+     - de gedeelde blokken (het scorebord-script met `const SLEUTELS`, de grapjes, en de twee blokken van versie 0.6) zijn in alle pagina's precies gelijk (de controle hieronder, uit "De pagina's zijn de bron");
+     - het veiligheidsbeleid van een pagina is alleen veranderd als dat de bedoeling was;
+     - er zijn geen scripts van buiten bijgekomen;
+     - de tests slagen, en de pagina opent in een browser zonder fouten of overtredingen van het veiligheidsbeleid.
+  3. **Ruben eerst laten zien** welke bestanden er in de commit gaan en wat er veranderd is. Pas pushen als hij akkoord geeft.
+  4. **Alleen de bestanden die bij de wijziging horen.** Nooit geheimen (`.env`, sleutels, wachtwoorden). Nooit `node_modules` of andere hulpbestanden in deze repository.
+  5. **`index.html` beheert de werkplaats** (de labels op de homepage). Niet aanraken, behalve het versienummer onderaan ("Versie 0.xx"), en alleen als Ruben daarom vraagt.
+  6. **Nooit `git push --force`.** Wordt een push geweigerd, haal dan eerst opnieuw de nieuwste versie op en probeer het daarna nog een keer.
+  7. **Een duidelijke beschrijving bij elke commit**, in het Nederlands, bijvoorbeeld "Rommelblok: watervallen en dieren gerepareerd".
+  8. **De server op de VPS werkt Claude Code niet zelf bij**: dat doet Ruben.
+- **De controle van de gedeelde blokken** (vanuit de hoofdmap; alleen Python 3). Per soort moet er precies één versie zijn; anders noemt hij de pagina's die afwijken:
+
+```python
+import glob, re
+MERK = {'scorebord': 'const SLEUTELS', 'grapjes': 'GRAPJES: verborgen grapjes', 'v6 onderaan': '__v6sub'}
+blokken = {k: {} for k in list(MERK) + ['v6 kop']}
+for f in sorted(glob.glob('*.html')) + ['homepage-onderdelen.js']:
+    t = open(f, encoding='utf-8').read()
+    for soort, merk in MERK.items():
+        for m in re.finditer(r'<script>(.*?)</script>', t, re.S):
+            if merk in m.group(1) and len(m.group(1)) < 100000: blokken[soort].setdefault(m.group(1), []).append(f)
+    m = re.search(r'<!-- versie 0\.6: dezelfde stijl.*?</style>', t, re.S)
+    if m: blokken['v6 kop'].setdefault(m.group(0), []).append(f)
+for soort, versies in blokken.items():
+    print(soort + ':', 'gelijk in ' + str(sum(map(len, versies.values()))) + ' bestanden' if len(versies) == 1 else 'VERSCHILLEND: ' + ' | '.join(', '.join(v) for v in versies.values()))
+```
+
+  (`homepage-onderdelen.js` heeft het scorebord-script en de grapjes zonder `<script>`-tags; die controle doet hij dus niet mee. Vergelijk dat bestand apart als het scorebord-script of de grapjes veranderen.)
+- **Rommelblok**: het project (`shared/`, `client/`, `server/`, `site/`, `test/`) staat in `RuDeMer/rommelblok`; in deze repository staat alleen de gebouwde `rommelblok.html` (`node site/maak-pagina.js --samen wss://blok.rubensrommelhoekje.nl/samen`, zie het hoofdstuk Rommelblok). Op 24 oktober 2026 bestond die repository nog niet, of had Claude er geen toegang toe: Ruben maakt hem aan en geeft de Claude-app op GitHub toegang.

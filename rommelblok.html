@@ -3509,6 +3509,23 @@ function RB_GEDEELD() {
   }
   const isW = v => v >= 0 && (v & 255) === W;
   const inWater = (W, x, y, z) => isW(W.blok(Math.floor(x), Math.floor(y + 0.2), Math.floor(z)));
+  // Welke kant stroomt het water op in blok X, Y, Z? [fx, fz], met lengte 1 in stromend water en klein in stilstaand water.
+  // blok(x, y, z) geeft de blokwaarde. Gedeeld: spelers, dieren en griezels, en bewoners worden er allemaal door meegenomen.
+  const WHOOGTE = [14, 12, 11, 9, 7, 5, 4, 2], BUREN4 = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  function stroming(blok, X, Y, Z) {
+    const hoogte = (x, y, z) => { const v = blok(x, y, z); if (!isW(v)) return -1; return isW(blok(x, y + 1, z)) ? 1 : WHOOGTE[(v >> 8) & 7] / 16; };
+    const h = hoogte(X, Y, Z); if (h < 0) return [0, 0];
+    let fx = 0, fz = 0;
+    for (const [dx, dz] of BUREN4) {
+      const n = hoogte(X + dx, Y, Z + dz);
+      if (n >= 0) { fx += (h - n) * dx; fz += (h - n) * dz; }
+      else { const b = blok(X + dx, Y, Z + dz); if (b === 0 || (b > 0 && !VAST[b & 255])) { if (hoogte(X + dx, Y - 1, Z + dz) >= 0 || blok(X + dx, Y - 1, Z + dz) === 0) { fx += dx * 0.6; fz += dz * 0.6; } } }
+    }
+    const v = blok(X, Y, Z), lv = (v >> 8) & 7;
+    if (!lv && !((v >> 8) & 8)) return [fx * 0.2, fz * 0.2];
+    const l = Math.hypot(fx, fz); return l > 0.01 ? [fx / l, fz / l] : [0, 0];
+  }
+  const STROOM = 2.4; // hoe hard stromend water een dier of bewoner meeneemt (blokken per seconde)
   // de grond onder een plek: hoe ver omlaag is het (0 = je staat erop), en is het water? (tot 4 diep)
   function grondOnder(W, x, y, z) {
     const X = Math.floor(x), Z = Math.floor(z);
@@ -3615,7 +3632,10 @@ function RB_GEDEELD() {
     }
     // de kant op kijken waar je heen gaat (zacht draaien)
     if (snel > 0 && (w.dx || w.dz)) { const doelYaw = Math.atan2(w.dx, w.dz); let d = doelYaw - w.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); w.yaw += d * Math.min(1, dt * 8); }
-    const tx = w.dx * snel, tz = w.dz * snel, k = Math.min(1, dt * (w.grond || S.zweeft || water ? 10 : 2));
+    let tx = w.dx * snel, tz = w.dz * snel;
+    // stromend water neemt je mee (wie zweeft niet)
+    if (water && !S.zweeft) { const [fx, fz] = stroming(W.blok, Math.floor(w.x), Math.floor(w.y + 0.2), Math.floor(w.z)); tx += fx * STROOM; tz += fz * STROOM; }
+    const k = Math.min(1, dt * (w.grond || S.zweeft || water ? 10 : 2));
     w.vx += (tx - w.vx) * k; w.vz += (tz - w.vz) * k;
     if (S.zweeft) {
       // zweven: zacht op en neer, en naar de hoogte van de speler die het zoekt
@@ -3729,6 +3749,7 @@ function RB_GEDEELD() {
     __proto__: null,
     MOEILIJK: MOEILIJK,
     MOEILIJK_NAMEN: MOEILIJK_NAMEN,
+    STROOM: STROOM,
     WEZENS: WEZENS,
     WI: WI,
     buitVan: buitVan,
@@ -3739,6 +3760,7 @@ function RB_GEDEELD() {
     raakt: raakt,
     slagSchade: slagSchade,
     stap: stap,
+    stroming: stroming,
     stukDieren: stukDieren,
     verdwijnt: verdwijnt,
     zetTeller: zetTeller
@@ -4559,10 +4581,9 @@ function RB_WERELD(G, ctx) {
       if (dir === 2) continue;
       const nb = P[c + PO[dir]], ni = nb & 255;
       if (ni === W || DICHT[ni] || ni === B.ijs) continue;
-      // strepen alleen op een echte waterval (minstens drie blokken vallend water boven elkaar), met het licht van ernaast;
-      // de rand van een stromend laagje, en water dat maar één treetje af valt, is hetzelfde water als het oppervlak
-      // erboven, met hetzelfde licht: zo is een trap één egale laag
-      const valt = waterval, nz = valt ? PL[c + PO[dir]] >> 4 : zon, nf = valt ? PL[c + PO[dir]] & 15 : fak;
+      // Een zijkant is hetzelfde water als het oppervlak erboven, met hetzelfde licht: zo is een trap één egale laag.
+      // Zachte strepen alleen op een echte waterval (minstens drie blokken vallend water boven elkaar).
+      const valt = waterval, nz = zon, nf = fak;
       const exz = (valt ? 0x80 : 0) | diep;
       if (dir === 3) { vert(L, X, Y, Z, 3, 0, 3, nz, nf, vl, exz); vert(L, X + 16, Y, Z, 3, 0, 3, nz, nf, vl, exz); vert(L, X + 16, Y, Z + 16, 3, 0, 3, nz, nf, vl, exz); vert(L, X, Y, Z + 16, 3, 0, 3, nz, nf, vl, exz); continue; }
       const [ha, hb, xa, za, xb, zb, oxa, oza, oxb, ozb] = zijH[dir];
@@ -6647,8 +6668,11 @@ function RB_TEKENAAR(G, canvas, T, opt) {
       }
       // Van buitenaf alleen de buitenkant van elk watervlak: anders zie je door een zijkant heen de binnenkant van het
       // oppervlak erachter (donkere driehoekjes, dubbele lagen). Onder water ook de binnenkant: het oppervlak van onderen.
+      // (de echte richting van het vlak uit de afgeleiden, want een bovenkant kan schuin liggen: een schuin stukje boven je
+      // ooghoogte dat naar je toe helt, zie je van buiten)
       vec3 nv = vN == 0u ? vec3(1.0, 0.0, 0.0) : vN == 1u ? vec3(-1.0, 0.0, 0.0) : vN == 2u ? vec3(0.0, 1.0, 0.0) : vN == 3u ? vec3(0.0, -1.0, 0.0) : vN == 4u ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
-      if (uOnderWater < 0.5 && dot(vRel, nv) > 0.0) discard;
+      vec3 ng = cross(dFdx(vRel), dFdy(vRel)); if (dot(ng, nv) < 0.0) ng = -ng;
+      if (uOnderWater < 0.5 && dot(vRel, ng) > 0.0) discard;
       vec3 wk = texture(uTint, vec3(vTuv, 2.0)).rgb;
       uint diep = vEx & 15u, rdir = (vEx >> 4u) & 7u; bool stroomt = (vEx & 128u) != 0u;
       // golfjes: twee lagen ruis die meedrijven met de stroming
@@ -6656,42 +6680,38 @@ function RB_TEKENAAR(G, canvas, T, opt) {
       float ang = float(rdir) * 0.785398;
       vec2 sd = stroomt ? vec2(cos(ang), sin(ang)) * 1.4 : vec2(0.18, 0.11);
       vec3 N; float val = 0.0;
-      // De zijkant van een stromend laagje (geen waterval) is hetzelfde water als het oppervlak erboven: dezelfde golfjes,
-      // dezelfde reflectie en dezelfde doorzichtigheid, zodat het van boven en van opzij één egale laag is.
-      bool alsBoven = vN == 2u || (vN != 3u && !stroomt);
-      if (alsBoven) {
+      // Alle zijkanten (ook een waterval) zijn hetzelfde water als het oppervlak erboven: dezelfde golfjes, dezelfde
+      // reflectie en dezelfde doorzichtigheid, zodat het van boven en van opzij één egale laag is.
+      if (vN != 3u) {
         vec2 a = wp * 0.11 + uRuisOfs - sd * uTijd * 0.11, b = wp * 0.23 + uRuisOfs * 1.7 + vec2(0.37, 0.71) - sd.yx * uTijd * 0.17;
         float h0 = texture(uRuis, a).r + texture(uRuis, b).r * 0.5;
         float hx = texture(uRuis, a + vec2(0.02, 0.0)).r + texture(uRuis, b + vec2(0.02, 0.0)).r * 0.5;
         float hz = texture(uRuis, a + vec2(0.0, 0.02)).r + texture(uRuis, b + vec2(0.0, 0.02)).r * 0.5;
         N = normalize(vec3((h0 - hx) * 2.2, 1.0, (h0 - hz) * 2.2));
       } else {
-        // vallend water en de onderkant: de richting van het vlak, een beetje verstoord
-        vec3 n0 = vN == 0u ? vec3(1.0, 0.0, 0.0) : vN == 1u ? vec3(-1.0, 0.0, 0.0) : vN == 4u ? vec3(0.0, 0.0, 1.0) : vN == 5u ? vec3(0.0, 0.0, -1.0) : vec3(0.0, -1.0, 0.0);
-        float u = (vN == 0u || vN == 1u) ? wp.y : wp.x;
-        if (stroomt && vN != 3u) {
-          // vallend water: strepen die naar beneden vallen (twee lagen ruis, lang en smal), met wit schuim
-          float y = vLp.y;
-          float s1 = texture(uRuis, vec2(u * 0.55, y * 0.045 + uTijd * 0.2)).r, s2 = texture(uRuis, vec2(u * 1.1 + 0.31, y * 0.09 + uTijd * 0.46)).r;
-          val = smoothstep(0.5, 0.72, s1 * 0.6 + s2 * 0.5);
-          N = normalize(n0 + vec3(0.0, (s1 - 0.5) * 0.5, 0.0) + (vN < 2u ? vec3(0.0, 0.0, s2 - 0.5) : vec3(s2 - 0.5, 0.0, 0.0)) * 0.6);
-        } else {
-          float s = texture(uRuis, vec2(u * 0.13 + vLp.z * 0.13, vLp.y * 0.08 + uTijd * 0.5)).r;
-          N = normalize(n0 + vec3(0.0, (s - 0.5) * 0.4, 0.0));
-        }
+        // de onderkant: naar beneden, een beetje verstoord
+        float s = texture(uRuis, vec2(wp.x * 0.13 + vLp.z * 0.13, vLp.y * 0.08 + uTijd * 0.5)).r;
+        N = normalize(vec3(0.0, -1.0, 0.0) + vec3(0.0, (s - 0.5) * 0.4, 0.0));
       }
       if (uOnderWater > 0.5) N = -N;
-      float fr = pow(1.0 - max(dot(-V, N), 0.0), 4.0) * 0.85 + 0.08;
-      vec3 refl = lucht(reflect(V, N)) * (0.35 + 0.65 * zon);
-      float glim = pow(max(dot(reflect(V, N), uZonRicht), 0.0), 120.0) * zon * step(0.0, uZonRicht.y) * 3.0;
+      // (van onderen gezien, zoals een zijkant boven je ooghoogte, net zo als van boven: anders spiegelt hij de bleke grond van de lucht)
+      vec3 rv = reflect(V, N); if (uOnderWater < 0.5) rv.y = abs(rv.y);
+      float fr = pow(1.0 - (uOnderWater < 0.5 ? abs(dot(-V, N)) : max(dot(-V, N), 0.0)), 4.0) * 0.85 + 0.08;
+      vec3 refl = lucht(rv) * (0.35 + 0.65 * zon);
+      float glim = pow(max(dot(rv, uZonRicht), 0.0), 120.0) * zon * step(0.0, uZonRicht.y) * 3.0;
       vec3 diepK = wk * vec3(0.55, 0.75, 0.9);
       float d = float(diep);
       vec3 c = mix(wk * 1.05, diepK, clamp(d / 8.0, 0.0, 1.0)) * L;
       c = mix(c, refl, fr) + uZonGloed * glim;
       if (stroomt && vN == 2u) c += vec3(0.16) * smoothstep(0.62, 0.8, texture(uRuis, wp * 0.3 - sd * uTijd * 0.3).r) * L;
       float a = mix(0.42, 0.86, clamp(d / 6.0, 0.0, 1.0));
-      // een waterval is goed te zien: minder doorzichtig, en de strepen zijn wit schuim
-      if (stroomt && vN != 2u && vN != 3u) { c = mix(wk * vec3(0.62, 0.8, 0.95) * L, vec3(0.93, 0.97, 1.0) * L, val * 0.85); a = max(a, 0.8) + val * 0.15; }
+      // een waterval: hetzelfde water, met zachte lichte strepen die naar beneden vallen
+      if (stroomt && vN != 2u && vN != 3u) {
+        float u = (vN == 0u || vN == 1u) ? wp.y : wp.x, y = vLp.y;
+        float s1 = texture(uRuis, vec2(u * 0.55, y * 0.045 + uTijd * 0.2)).r, s2 = texture(uRuis, vec2(u * 1.1 + 0.31, y * 0.09 + uTijd * 0.46)).r;
+        val = smoothstep(0.52, 0.78, s1 * 0.6 + s2 * 0.5);
+        c = mix(c, vec3(0.86, 0.93, 1.0) * L, val * 0.3); a += val * 0.08;
+      }
       a = clamp(a + fr * 0.4, 0.0, 0.95);
       if (uOnderWater > 0.5) { c = mix(wk * L * 0.7, refl * 0.5, 0.3); a = 0.55; }
       float m = uOnderWater > 0.5 ? clamp(1.0 - exp(-length(vRel) * 0.075), 0.0, 1.0) : smoothstep(uMist.x, uMist.y, length(vRel.xz));
@@ -7633,18 +7653,7 @@ function staatOp(x, y, z) { return raakt(x, y - 0.05, z, 0.05); }
 // water rond een punt: hoe hoog staat het en welke kant stroomt het op
 const WH = [14, 12, 11, 9, 7, 5, 4, 2];
 function waterHoogte(X, Y, Z) { const v = blokOp(X, Y, Z); if ((v & 255) !== G.W) return -1; if ((blokOp(X, Y + 1, Z) & 255) === G.W) return 1; return WH[(v >> 8) & 7] / 16; }
-function stroming(X, Y, Z) {
-  const h = waterHoogte(X, Y, Z); if (h < 0) return [0, 0];
-  let fx = 0, fz = 0;
-  for (const [dx, dz] of G.RICHTING) {
-    const n = waterHoogte(X + dx, Y, Z + dz);
-    if (n >= 0) { fx += (h - n) * dx; fz += (h - n) * dz; }
-    else { const b = blokOp(X + dx, Y, Z + dz); if (b === 0 || (b > 0 && !G.VAST[b & 255])) { const o = waterHoogte(X + dx, Y - 1, Z + dz); if (o >= 0 || blokOp(X + dx, Y - 1, Z + dz) === 0) { fx += dx * 0.6; fz += dz * 0.6; } } }
-  }
-  const v = blokOp(X, Y, Z), lv = (v >> 8) & 7;
-  if (!lv && !((v >> 8) & 8)) return [fx * 0.2, fz * 0.2];
-  const l = Math.hypot(fx, fz); return l > 0.01 ? [fx / l, fz / l] : [0, 0];
-}
+function stroming(X, Y, Z) { return G.WEZENS.stroming(blokOp, X, Y, Z); }
 function cel(id) { return (x, y, z) => (blokOp(Math.floor(x), Math.floor(y), Math.floor(z)) & 255) === id; }
 const isWaterOp = cel(G.W);
 function ladderBij(x, y, z, h) {
@@ -9418,6 +9427,19 @@ function bewonersTik(dt) {
     if (bij(sp.x, sp.z) || WD.bewoners.some(k => bij(k.x, k.z) && Math.abs(k.y - d.y) < 1.5)) continue;
     const w = blokOp(d.x, d.y, d.z); bwDeuren.delete(sl);
     if (w > 0 && (w & 255) === B.deur && ((w >> 8) & 4)) deurBewoner(d.x, d.y, d.z, w, false);
+  }
+  // in stromend water (bijvoorbeeld uit je emmer): het water neemt de bewoner mee, en in vallend water zakt hij
+  const vastBlok = v => v < 0 || (v > 0 && G.VAST[v & 255] && (v & 255) !== G.W && BL[v & 255].vorm !== 'deur');
+  for (const k of WD.bewoners) {
+    const s = bwRust.get(k.id); if (!s || s.weg || s.ligt) continue;
+    const X = Math.floor(k.x), Y = Math.floor(k.y + 0.01), Z = Math.floor(k.z), v = blokOp(X, Y, Z);
+    if (v <= 0 || (v & 255) !== G.W) continue;
+    const [fx, fz] = G.WEZENS.stroming(blokOp, X, Y, Z), st = G.WEZENS.STROOM * dt;
+    const kan = (x, z) => !vastBlok(blokOp(Math.floor(x), Y, Math.floor(z))) && !vastBlok(blokOp(Math.floor(x), Y + 1, Math.floor(z)));
+    if (fx && kan(k.x + fx * (st + 0.3), k.z)) k.x += fx * st;
+    if (fz && kan(k.x, k.z + fz * (st + 0.3))) k.z += fz * st;
+    if (!vastBlok(blokOp(X, Y - 1, Z)) || k.y > Y + 0.001) k.y = Math.max(vastBlok(blokOp(X, Y - 1, Z)) ? Y : Y - 1, k.y - 3 * dt);
+    s.pad = null; s.wacht = Math.max(s.wacht, 0.5); // daarna een nieuwe route
   }
   // niet door de speler heen: een beetje opzij
   for (const k of WD.bewoners) {
@@ -12338,7 +12360,7 @@ function popStudio(dt, C0) {
 // - Dieren, karretjes en bewoners blijven in stap 5 nog op je eigen pagina (stap 6 zet ze op de server).
 // ============================================================================
 // het adres van de spelserver; leeg = de knop Samen spelen staat uit (site/maak-pagina.js --samen vult het in)
-const SAMEN_SERVER = '';
+const SAMEN_SERVER = "wss://blok.rubensrommelhoekje.nl/samen";
 function samenAdres() {
   // om te testen: ?samen=lokaal verbindt met de spelserver op hetzelfde adres als de pagina
   try { if (new URLSearchParams(location.search).get('samen') === 'lokaal' && /^https?:$/.test(location.protocol)) return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/samen'; } catch (e) {}

@@ -27,25 +27,27 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   const pagina = a => ((a.getAttribute('href') || '').split('/').pop() || '').replace(/\.html?$/, '').toLowerCase();
   const leesJSON = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const groot = x => { const n = [[1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']]; for (const [v, w] of n) if (x >= v) return (x / v).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' ' + w; return Math.round(x).toLocaleString('nl-NL'); };
-  // voortgang per spel, uit de opslag van dat spel
+  // voortgang per spel, uit de opslag van dat spel. Elk spel bewaart zelf hoeveel er in totaal is (voortgangTotaal);
+  // het getal erachter is de terugval voor opslag van vóór die tijd.
+  const totaal = (s, n) => (s && s.voortgangTotaal > 0 ? s.voortgangTotaal : n);
   const VOORTGANG = {
-    rommelkroon: () => { const s = leesJSON('rommelkroon-v1'); const n = s && s.opgelost ? Object.keys(s.opgelost).length : 0; return n ? [n + ' van 370 puzzels', n / 370] : null; },
-    rommelbeesten: () => { const s = leesJSON('rommelbeesten-v1'); const n = s && s.bezit ? Object.keys(s.bezit).filter(k => s.bezit[k] && (s.bezit[k].n || s.bezit[k] > 0 || s.bezit[k].g)).length : 0; return n ? [n + ' kaarten verzameld', Math.min(1, n / 350)] : null; },
+    rommelkroon: () => { const s = leesJSON('rommelkroon-v1'), t = totaal(s, 500); const n = s && s.opgelost ? Object.keys(s.opgelost).length : 0; return n ? [n + ' van ' + t + ' puzzels', Math.min(1, n / t)] : null; },
+    rommelbeesten: () => { const s = leesJSON('rommelbeesten-v1'), t = totaal(s, 350); const heb = b => (Array.isArray(b) ? (b[0] || 0) + (b[1] || 0) > 0 : !!(b && (b.n || b.g || b > 0))); const n = s && s.bezit ? Object.values(s.bezit).filter(heb).length : 0; return n ? [n + ' van ' + t + ' kaarten', Math.min(1, n / t)] : null; },
     vlaaienbakker: () => { const s = leesJSON('vlaaienbakker-v1'); const t = s ? (s.ooit || s.totaal || 0) : 0; return t >= 1 ? [groot(t) + ' vlaaien', null] : null; },
     vouwvlieger: () => { const s = leesJSON('vouwvlieger-v1'); return s && s.best ? ['Record: ' + s.best, Math.min(1, s.best / 100)] : null; },
-    rommelritme: () => { const s = leesJSON('rommelritme-v1'); if (!s || !s.best) return null; const w = Object.values(s.best); const som = w.reduce((a, b) => a + b, 0); return som ? ['Gemiddeld ' + Math.round(som / Math.max(3, w.length)) + '% per level', som / (Math.max(3, w.length) * 100)] : null; },
+    rommelritme: () => { const s = leesJSON('rommelritme-v1'); if (!s || !s.best) return null; const w = Object.values(s.best), lv = Math.max(totaal(s, 6), w.length); const som = w.reduce((a, b) => a + b, 0); return som ? ['Gemiddeld ' + Math.round(som / lv) + '% per level', Math.min(1, som / (lv * 100))] : null; },
     rommelwoord: () => { const s = leesJSON('rommelwoord-stats-v1'); if (!s) return null; const r = s.reeks || s.streak || 0, g = s.gespeeld || s.played || 0; return g ? [r ? 'Reeks van ' + r + ' dagen' : g + ' keer gespeeld', null] : null; },
-    rommelhotel: () => { const s = leesJSON('rommelhotel-v1'); const n = s && s.verhaal && s.verhaal.opgelost ? Object.keys(s.verhaal.opgelost).length : 0; return n ? [n + ' puzzels opgelost', Math.min(1, n / 39)] : s ? ['Ga verder in het hotel', null] : null; },
-    rommelpoker: () => { const r = +localStorage.getItem('rommelpoker-record') || 0; return r ? ['Record: ronde ' + r, null] : null; },
-    rommelarend: () => { const s = leesJSON('rommelarend-v1'); const n = s && s.ontdekt ? s.ontdekt.length : 0; return n ? [n + ' van 18 plekken in Parijs', n / 18] : null; },
-    rommelsteek: () => { const s = leesJSON('rommelsteek-v1'); if (!s) return null; const af = Object.keys(s.af || {}).length, bezig = Object.values(s.werk || {}).filter(w => w.includes('1') && w.includes('0')).length; return af || bezig ? [af ? af + ' borduurwerk' + (af === 1 ? '' : 'en') + ' af' : 'Borduurwerk onderhanden', Math.min(1, (af + bezig * 0.5) / 8)] : null; },
+    rommelhotel: () => { const s = leesJSON('rommelhotel-v1'), t = totaal(s, 39); const n = s && s.verhaal && s.verhaal.opgelost ? Object.keys(s.verhaal.opgelost).length : 0; return n ? [n + ' van ' + t + ' puzzels opgelost', Math.min(1, n / t)] : s ? ['Ga verder in het hotel', null] : null; },
+    rommelpoker: () => { const s = leesJSON('rommelpoker-record'); if (!s || typeof s !== 'object') return null; const t = totaal(s, 24); return s.verst > 0 ? ['Verst: ' + Math.min(s.verst, t) + ' van ' + t + ' kraampjes' + (s.verst > t ? ' en verder' : ''), Math.min(1, s.verst / t)] : s.beste > 0 ? ['Beste hand: ' + Math.round(s.beste).toLocaleString('nl-NL') + ' punten', null] : null; },
+    rommelarend: () => { const s = leesJSON('rommelarend-v1'), t = totaal(s, 18); const n = s && s.ontdekt ? s.ontdekt.length : 0; return n ? [n + ' van ' + t + ' plekken in Parijs', Math.min(1, n / t)] : null; },
+    rommelsteek: () => { const s = leesJSON('rommelsteek-v1'); if (!s) return null; const ids = Object.keys(s.af || {}), af = ids.length, vast = ids.filter(k => !/^dag/.test(k)).length, bezig = Object.values(s.werk || {}).filter(w => w.includes('1') && w.includes('0')).length; return af || bezig ? [af ? af + ' borduurwerk' + (af === 1 ? '' : 'en') + ' af' : 'Borduurwerk onderhanden', Math.min(1, vast / totaal(s, 113)) || null] : null; },
     opgevoel: () => { const s = leesJSON('opgevoel-v1'); if (!s || !s.stat || !s.stat.dag || !s.stat.dag.n) return null; const d = new Date(), k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'), v = s.dagen && s.dagen[k]; return [v ? 'Vandaag ' + v.t + ' van 500' : 'De dagronde van vandaag staat klaar', (v ? v.t : s.stat.dag.best) / 500]; },
-    rommelrecht: () => { const s = leesJSON('rommelrecht-v1'); if (!s) return null; const n = Object.keys(s.gehaald || {}).filter(k => !k.startsWith('dag-')).length; return n ? [n + ' van 139 puzzels netjes', n / 139] : null; },
+    rommelrecht: () => { const s = leesJSON('rommelrecht-v1'), t = totaal(s, 139); if (!s) return null; const n = Object.keys(s.gehaald || {}).filter(k => !k.startsWith('dag-')).length; return n ? [n + ' van ' + t + ' puzzels netjes', Math.min(1, n / t)] : null; },
     mengelmoes: () => { const s = leesJSON('mengelmoes-v1'); if (!s || !Array.isArray(s.el) || s.el.length <= 4) return null; const n = s.el.length, e = s.el.filter(x => x && x[4]).length; return [n + ' stickers' + (e ? ' · ' + e + '× 1e druk' : ''), Math.min(1, n / 500)]; },
-    rommelwheels: () => { const s = leesJSON('rommelwheels-v1'); if (!s || !s.levels) return null; let st = 0; for (const r of Object.values(s.levels)) st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); return st ? [st + ' van 39 sterren', st / 39] : null; },
+    rommelwheels: () => { const s = leesJSON('rommelwheels-v1'); if (!s || !s.levels) return null; let st = 0; for (const r of Object.values(s.levels)) st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); const t = totaal(s, 39); return st ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
     steigerstress: () => { const s = leesJSON('steiger-v1'); if (!s || !s.sterren) return null; const st = Object.values(s.sterren).reduce((a, b) => a + b, 0); return st ? [st + ' van 36 sterren', st / 36] : null; },
     productiefiets: () => { const s = leesJSON('productiefiets-v1'); if (!s || !s.best) return null; return ['Verste rit ' + s.bestMeter + ' m', Math.min(1, s.bestMeter / 5000)]; },
-    rommelbel: () => { const s = leesJSON('rommelbel-v1'); if (!s) return null; const st = Object.values(s.sterren || {}).reduce((a, b) => a + b, 0); return st || s.eindeloos ? [st + ' van 90 sterren', st / 90] : null; },
+    rommelbel: () => { const s = leesJSON('rommelbel-v1'); if (!s) return null; const st = Object.values(s.sterren || {}).reduce((a, b) => a + b, 0), t = totaal(s, 90); return st || s.eindeloos ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
     rob: () => { const s = leesJSON('rommelrob-v1'); return s && s.best ? ['Record: ' + s.best + ' duimpjes', null] : null; },
     rommelland: () => (localStorage.getItem('rommelland-v1') ? ['Ga verder in je wereld', null] : null),
     rommelblok: () => { try { const o = JSON.parse(localStorage.getItem('rommelblok-v3') || 'null'); return o && o.laatste ? ['Ga verder met bouwen', null] : null; } catch (e) { return null; } },
@@ -76,7 +78,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   // ---------- verder spelen
   const verder = [];
   for (const l of labels) { const a = l.querySelector('.label-kaart'); if (!a || l.classList.contains('leeg')) continue; const p = pagina(a), f = VOORTGANG[p]; if (!f) continue; let v = null; try { v = f(); } catch (e) {} if (v) verder.push({ a, p, v }); }
-  if (verder.length) h += `<section class="v8-verder" aria-labelledby="v8-verder-kop"><h2 id="v8-verder-kop"><span>Verder spelen</span></h2><div class="v8-verder-rij">${verder.slice(0, 8).map(({ a, v }) => `<a class="v8-mini" href="${a.getAttribute('href')}"><span class="v8-mini-icoon" data-icoon="${a.dataset.icoon || ''}"></span><span class="v8-mini-tekst"><b>${(a.querySelector('.naam') || {}).textContent || ''}</b><small>${v[0]}</small>${v[1] != null ? `<i><em style="width:${Math.round(Math.max(0.03, v[1]) * 100)}%"></em></i>` : ''}</span></a>`).join('')}</div></section>`;
+  if (verder.length) h += `<section class="v8-verder" aria-labelledby="v8-verder-kop"><h2 id="v8-verder-kop"><span>Verder spelen</span></h2><div class="v8-verder-rij">${verder.map(({ a, v }) => `<a class="v8-mini" href="${a.getAttribute('href')}"><span class="v8-mini-icoon" data-icoon="${a.dataset.icoon || ''}"></span><span class="v8-mini-tekst"><b>${(a.querySelector('.naam') || {}).textContent || ''}</b><small>${v[0]}</small>${v[1] != null ? `<i><em style="width:${Math.round(Math.max(0.03, v[1]) * 100)}%"></em></i>` : ''}</span></a>`).join('')}</div></section>`;
   // ---------- uitgelicht: het nieuwste spel
   if (nieuwste) { const a = nieuwste.querySelector('.label-kaart'); h += `<section class="v8-uitgelicht" aria-label="Nieuw in het rommelhoekje"><a href="${a.getAttribute('href')}"><span class="v8-uit-icoon" data-icoon="${a.dataset.icoon || ''}"></span><span class="v8-uit-tekst"><span class="v8-uit-stempel">Nieuw in het rommelhoekje</span><b>${(a.querySelector('.naam') || {}).textContent || ''}</b><span>${(a.querySelector('p') || {}).textContent || ''}</span></span><span class="v8-uit-doe">${(a.querySelector('.doe') || {}).textContent || 'Probeer het'}</span></a></section>`; }
   plek.innerHTML = h;
@@ -1292,7 +1294,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
       const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
     }
-    const ham = e.target.closest && e.target.closest('.gs-hamer');
+    const ham = e.target.closest && e.target.closest('.gs-hamer, .tg-rommel[aria-label="Geef de dobbelsteen een zetje"]'); // vroeger de hamer, nu het rommeltje dobbelsteen
     if (ham && tel('hamer', 6, 3500)) {
       vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
       if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
@@ -1301,7 +1303,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     const ver = e.target.closest && e.target.closest('.versie');
     if (ver && tel('versie', 5, 3000)) {
       vind('bouwplaats');
-      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Gereedschap dat over de kop is geslagen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
+      boek.innerHTML = `<h2>De geheime bouwplaats</h2><p>Welkom achter de schermen van het rommelhoekje. Een paar eerlijke cijfers:</p><ul><li>Vlaaien gegeten tijdens het bouwen: 37</li><li>Kopjes koffie: veel te veel</li><li>Keren dat Harrie zijn sok kwijt was: 15</li><li>Rommeltjes die een zetje kregen: ${Math.floor(Date.now() / 86400000) % 900 + 120}</li><li>Rommelbeesten die op een theepot lijken: 2</li></ul><button type="button">Terug naar de voorkant</button>`;
       boek.querySelector('button').addEventListener('click', () => boek.close()); boek.showModal();
     }
   });
@@ -1399,9 +1401,10 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
 html[data-thema="donker"] { --tg-bg: #1C1A24; --tg-stip: rgba(255,255,255,.07); --tg-tekst: #F6F2EA; --tg-zacht: #CFC5B4; --tg-knop: #2B2733; --tg-knop-tekst: #F6F2EA; --tg-knop-rand: #F6F2EA; --tg-actief: #FFE76A; --tg-actief-tekst: #231A26; --tg-rand: #0E0C12; --tg-schaduw: 0 6px 0 rgba(0,0,0,.45); --tg-zweef: 0 14px 0 -4px rgba(0,0,0,.55); --tg-brief: #FBF6E9; --tg-focus: #FFE76A; color-scheme: dark; }
 html, body.v6-body { background-color: var(--tg-bg) !important; background-image: radial-gradient(circle at 1px 1px, var(--tg-stip) 1.4px, transparent 0) !important; background-size: 24px 24px !important; }
 body.v6-body { color: var(--tg-tekst); transition: background-color .3s ease; }
-.v6-body .rek, .v6-body .gs, .v6-body .v8 { display: none !important; }
+.v6-body .rek, .v6-body .gs, .v6-body .muurlaag, .v6-body .v8, .v6-body .terughangen { display: none !important; }
 .v6-body .briefje { background: var(--tg-brief) !important; color: #1F2333; }
-.v6-body footer, .v6-body footer .versie { color: var(--tg-zacht) !important; }
+.v6-body footer { color: var(--tg-zacht) !important; }
+.v6-body footer .versie { color: #F6F2EA !important; }
 .v6-body footer a, .v6-body .v8-links a, .v6-body .v8-links button { color: var(--tg-tekst) !important; }
 .v6-body .held { position: relative; }
 .tg-balk { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin: 0 0 2rem; }

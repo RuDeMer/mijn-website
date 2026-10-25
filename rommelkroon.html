@@ -5,74 +5,247 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rommelkroon – Ruben's rommelhoekje</title>
-<meta name="description" content="Zet in elke rij, elke kolom en elk gekleurd vlak precies één kroon, zonder dat kronen elkaar raken. 120 puzzels, van 5×5 tot 10×10.">
+<meta name="description" content="Zet in elke rij, elke kolom en elk gekleurd vlak precies één kroon, zonder dat kronen elkaar raken. 500 puzzels van 5×5 tot 12×12, vijf hoofdstukken met nieuwe regels en elke dag een nieuwe puzzel van de dag.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%2252%22%20height%3D%2252%22%20rx%3D%225%22%20fill%3D%22%23FBF6E9%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22/%3E%3Cpath%20d%3D%22M6%2023h52M6%2040h52M23%206v52M40%206v52%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Crect%20x%3D%227.5%22%20y%3D%227.5%22%20width%3D%2215%22%20height%3D%2215%22%20fill%3D%22%23F4A6A6%22/%3E%3Crect%20x%3D%2240.5%22%20y%3D%2224%22%20width%3D%2216%22%20height%3D%2215%22%20fill%3D%22%23A9C4F5%22/%3E%3Crect%20x%3D%2224%22%20y%3D%2241%22%20width%3D%2215%22%20height%3D%2215.5%22%20fill%3D%22%23B8E0A0%22/%3E%3Cpath%20d%3D%22M27%2034l-1.5-10%205%204%203.5-7%203.5%207%205-4-1.5%2010z%22%20fill%3D%22%23E9B949%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M45%2013l7%207M52%2013l-7%207%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.6%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<script>/* licht of donker: de keuze van de homepage, anders die van het apparaat (al voor het tekenen, zonder flits) */(function () { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); })();</script>
 <style>
-:root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+:root { --nacht: #1A2248; --inkt: #231A26; --rood: #C8323C; --goud: #E9B949; --manila: #F2DDA0; --papier: #FBF6E9; --tape: #23252B;
+  --bg: #FBF6E9; --stip: rgba(35,26,38,.07); --tekst: #231A26; --zacht: #5A4A3C; --kaart: #FFFFFF; --kaart-rand: #231A26; --schaduw: 0 5px 0 rgba(35,26,38,.85);
+  --knop: #FFFFFF; --knop-tekst: #231A26; --knop-rand: #231A26; --actief: #231A26; --actief-tekst: #FBF6E9; --focus: #2F6FB5;
+  --lvl: #FBF6E9; --lvl-klaar: #CFE8B8; --lvl-bezig: #FFE9A8; --lvl-dicht: #EAE2CC; --lvl-dicht-tekst: #8C826C; --balk: #E8DFC8; --balk-vol: #3F8F4E;
+  --dag1: #FFE9A8; --dag2: #F2C66A; --hint: #FFF6C9; box-sizing: border-box; }
+html[data-thema="donker"] { --bg: #1C1A24; --stip: rgba(255,255,255,.07); --tekst: #F6F2EA; --zacht: #CFC5B4; --kaart: #2B2733; --kaart-rand: #0E0C12; --schaduw: 0 6px 0 rgba(0,0,0,.45);
+  --knop: #2B2733; --knop-tekst: #F6F2EA; --knop-rand: #F6F2EA; --actief: #FFE76A; --actief-tekst: #231A26; --focus: #FFE76A;
+  --lvl: #3A3445; --lvl-klaar: #2F5A3A; --lvl-bezig: #6A5524; --lvl-dicht: #25212C; --lvl-dicht-tekst: #6F6878; --balk: #403A4A; --balk-vol: #7BCB86;
+  --dag1: #4A3E1E; --dag2: #3A2F17; --hint: #3B3524; color-scheme: dark; }
 *, *::before, *::after { box-sizing: inherit; }
-body { margin: 0; min-height: 100vh; background: #2F3A6B radial-gradient(rgba(255,255,255,.07) 1px, transparent 1.6px) 0 0 / 22px 22px; color: var(--inkt); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; }
-.kop { display: flex; align-items: center; gap: .8rem; padding: .6rem 1rem; background: var(--nacht); color: var(--papier); flex-wrap: wrap; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
-.kop a { color: var(--manila); font-weight: 700; font-size: .9rem; }
-.titel { display: flex; align-items: center; gap: .45rem; font-weight: 800; font-size: 1.15rem; } .titel svg { width: 28px; height: 28px; }
+[hidden] { display: none !important; }
+html { background: var(--bg); }
+body { margin: 0; min-height: 100vh; background: var(--bg) radial-gradient(circle at 1px 1px, var(--stip) 1.4px, transparent 0) 0 0 / 24px 24px; color: var(--tekst); font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; padding-bottom: env(safe-area-inset-bottom, 0px); }
+button { font: inherit; touch-action: manipulation; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.kop { display: flex; align-items: center; gap: .6rem .8rem; padding: .55rem 1rem; padding-top: calc(.55rem + env(safe-area-inset-top, 0px)); background: var(--nacht); color: var(--papier); flex-wrap: wrap; box-shadow: 0 3px 0 rgba(0,0,0,.3); position: relative; z-index: 2; }
+.kop a { color: var(--manila); font-weight: 700; font-size: .92rem; text-decoration: none; } .kop a:hover { text-decoration: underline; }
+.titel { display: flex; align-items: center; gap: .45rem; font-weight: 800; font-size: 1.15rem; margin: 0; } .titel svg { width: 28px; height: 28px; display: block; }
 .kop .rechts { margin-left: auto; display: flex; gap: .4rem; }
-.knop { font: inherit; font-weight: 800; font-size: .9rem; border: 0; border-radius: 7px; padding: .5rem .85rem; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.3); }
-.knop.hoofd { background: var(--rood); color: #fff; } .knop[aria-pressed="true"] { background: var(--goud); } .knop:disabled { opacity: .5; cursor: default; }
-main { max-width: 46rem; margin: 0 auto; padding: 1rem; }
-.paneel { background: var(--manila); border-radius: 12px; padding: 1rem 1.1rem 1.2rem; box-shadow: 0 5px 0 rgba(0,0,0,.3); margin-bottom: 1rem; }
-.paneel h2 { margin: 0 0 .3rem; } .paneel p { margin: .3rem 0; line-height: 1.45; }
-.dag { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; background: linear-gradient(135deg, #FFE9A8, #F2C66A); }
-.groep h3 { margin: 1rem 0 .4rem; font-size: 1rem; display: flex; justify-content: space-between; gap: .5rem; } .groep h3 small { font-weight: 600; color: #5E5643; }
-.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr)); gap: .4rem; }
-.lvl { font: inherit; font-weight: 800; border: 0; border-radius: 8px; aspect-ratio: 1; cursor: pointer; background: var(--papier); color: var(--inkt); box-shadow: 0 3px 0 rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; font-size: 1rem; }
-.lvl small { font-size: .62rem; font-weight: 700; color: #5E5643; }
-.lvl.klaar { background: #CFE8B8; } .lvl.bezig { background: #FFE9A8; } .lvl:disabled { background: #D9CFB4; color: #9A8F7A; cursor: default; box-shadow: none; }
-.spelkop { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .6rem; }
-.spelkop h2 { margin: 0; font-size: 1.2rem; } .tijd { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; background: var(--papier); padding: .3rem .6rem; border-radius: 6px; }
-.bord { --n: 5; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); width: min(100%, 34rem); aspect-ratio: 1; margin: 0 auto; border: 3px solid var(--inkt); border-radius: 6px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--inkt); }
-.cel { border: 0; padding: 0; margin: 0; position: relative; cursor: pointer; display: block; min-width: 0; min-height: 0; width: 100%; height: 100%; overflow: hidden; box-shadow: inset 0 0 0 .5px rgba(35,26,38,.35); }
+.kop .rechts .knop { background: transparent; color: var(--papier); border-color: rgba(251,246,233,.55); box-shadow: none; min-height: 38px; padding: .35rem .75rem; }
+.kop .rechts .knop:hover { border-color: var(--papier); }
+.knop { font-weight: 800; font-size: .92rem; border: 2.5px solid var(--knop-rand); border-radius: 999px; padding: .45rem .95rem; min-height: 44px; cursor: pointer; background: var(--knop); color: var(--knop-tekst); display: inline-flex; align-items: center; justify-content: center; gap: .4rem; line-height: 1.1; }
+.knop svg { width: 1.15em; height: 1.15em; flex: none; }
+.knop.hoofd { background: var(--rood); border-color: var(--rood); color: #fff; }
+.knop[aria-pressed="true"] { background: var(--actief); color: var(--actief-tekst); }
+.knop:disabled { opacity: .45; cursor: default; }
+main { max-width: 50rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+.paneel { background: var(--kaart); border: 2.5px solid var(--kaart-rand); border-radius: 18px; padding: 1rem 1.15rem 1.2rem; box-shadow: var(--schaduw); margin-bottom: 1.2rem; }
+.paneel h2 { margin: 0 0 .3rem; font-size: 1.25rem; } .paneel p { margin: .3rem 0; line-height: 1.45; }
+.klein { font-size: .88rem; color: var(--zacht); }
+.tape { display: inline-block; background: var(--tape); color: #F6F2EA; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; padding: .25rem .6rem; border-radius: 3px; transform: rotate(-1.5deg); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+/* puzzel van de dag */
+.dag { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1.1rem; align-items: center; background: linear-gradient(135deg, var(--dag1), var(--dag2)); }
+.dag .mini-plek { grid-row: span 3; width: 6.2rem; height: 6.2rem; border-radius: 10px; overflow: hidden; border: 2.5px solid var(--inkt); background: var(--papier); position: relative; }
+.dag .mini-plek svg { width: 100%; height: 100%; display: block; }
+.dag .mini-plek .dicht { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(35,26,38,.55); color: #fff; font-weight: 800; font-size: 1.6rem; }
+.dag h2 { font-size: 1.35rem; margin-top: .3rem; }
+.dag .status { font-weight: 700; }
+.reeks { display: inline-flex; align-items: center; gap: .3rem; font-weight: 800; }
+.reeks svg { width: 1.2em; height: 1.2em; }
+.dag .balk { justify-content: flex-start; grid-column: 1 / -1; margin-top: .3rem; }
+.verder { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+/* tabbladen */
+.tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin: 0 0 1rem; }
+.tabs button { font-weight: 800; font-size: .95rem; padding: .45rem .95rem; min-height: 44px; border-radius: 999px; border: 2.5px solid var(--knop-rand); background: var(--knop); color: var(--knop-tekst); cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--actief); color: var(--actief-tekst); }
+.stand-regel { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; flex-wrap: wrap; }
+.voortgang { height: .55rem; border-radius: 99px; background: var(--balk); overflow: hidden; margin: .35rem 0 .2rem; }
+.voortgang i { display: block; height: 100%; background: var(--balk-vol); border-radius: 99px; }
+/* groepen en levels */
+details.groep { border-top: 2px dashed var(--balk); padding: .2rem 0; }
+details.groep:first-of-type { border-top: 0; }
+details.groep > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 0 .6rem; align-items: center; padding: .55rem .1rem; border-radius: 8px; }
+details.groep > summary::-webkit-details-marker { display: none; }
+details.groep > summary b { font-size: 1.02rem; }
+details.groep > summary b::before { content: '▸ '; display: inline-block; transition: transform .15s; }
+details.groep[open] > summary b::before { transform: rotate(90deg); }
+details.groep > summary .voortgang { grid-column: 1 / -1; margin: .25rem 0 0; }
+details.groep > summary small { font-weight: 700; color: var(--zacht); }
+.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.3rem, 1fr)); gap: .45rem; padding: .3rem 0 .8rem; }
+.lvl { font-weight: 800; border: 2px solid var(--kaart-rand); border-radius: 10px; aspect-ratio: 1; cursor: pointer; background: var(--lvl); color: var(--tekst); box-shadow: 0 3px 0 rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .05rem; font-size: 1rem; position: relative; padding: 0; }
+.lvl small { font-size: .62rem; font-weight: 700; color: var(--zacht); }
+.lvl.klaar { background: var(--lvl-klaar); } .lvl.bezig { background: var(--lvl-bezig); }
+.lvl.zonder::after { content: ''; position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M6 30l-2-18 9 7 7-13 7 13 9-7-2 18z' fill='%23E9B949' stroke='%23231A26' stroke-width='3.4' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.lvl:disabled { background: var(--lvl-dicht); color: var(--lvl-dicht-tekst); cursor: default; box-shadow: none; border-style: dashed; border-color: var(--lvl-dicht-tekst); }
+.lvl:disabled small { color: var(--lvl-dicht-tekst); }
+/* hoofdstukken */
+.hst { display: grid; grid-template-columns: 5.4rem 1fr; gap: .3rem 1rem; align-items: start; }
+.hst + .hst { margin-top: 1rem; }
+.hst .mini-plek { width: 5.4rem; height: 5.4rem; border-radius: 10px; overflow: hidden; border: 2.5px solid var(--inkt); grid-row: span 2; }
+.hst .mini-plek svg { width: 100%; height: 100%; display: block; }
+.hst h3 { margin: .3rem 0 .15rem; font-size: 1.15rem; }
+.hst .levels { grid-column: 1 / -1; }
+.hst.dicht .mini-plek { filter: grayscale(1) opacity(.55); }
+.slot { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; color: var(--zacht); }
+/* archief */
+.maand h3 { margin: .9rem 0 .4rem; text-transform: capitalize; }
+.kalender { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; }
+.kalender .wd { text-align: center; font-size: .75rem; font-weight: 800; color: var(--zacht); }
+.kdag { font-weight: 800; border: 2px solid var(--kaart-rand); border-radius: 9px; min-height: 3rem; cursor: pointer; background: var(--lvl); color: var(--tekst); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .15rem 0; position: relative; }
+.kdag small { font-size: .6rem; font-weight: 700; color: var(--zacht); }
+.kdag.klaar { background: var(--lvl-klaar); } .kdag.bezig { background: var(--lvl-bezig); }
+.kdag.optijd::after { content: ''; position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M6 30l-2-18 9 7 7-13 7 13 9-7-2 18z' fill='%23E9B949' stroke='%23231A26' stroke-width='3.4' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.kdag.vandaag { outline: 3px solid var(--rood); outline-offset: 1px; }
+.kdag:disabled { background: transparent; border-style: dashed; border-color: var(--balk); color: var(--lvl-dicht-tekst); cursor: default; }
+/* mijlpalen en statistieken */
+.cijfers { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .6rem; margin: .6rem 0 1rem; }
+.cijfer { background: var(--lvl); border: 2px solid var(--kaart-rand); border-radius: 12px; padding: .55rem .7rem; }
+.cijfer b { display: block; font-size: 1.45rem; line-height: 1.15; } .cijfer span { font-size: .82rem; color: var(--zacht); font-weight: 700; }
+table.tabel { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .4rem 0 1rem; }
+.tabel th, .tabel td { text-align: left; padding: .35rem .3rem; border-bottom: 1.5px dashed var(--balk); }
+.tabel td:not(:first-child), .tabel th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.medailles { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: .6rem; }
+.medaille { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: .1rem .6rem; align-items: center; background: var(--lvl); border: 2px solid var(--kaart-rand); border-radius: 12px; padding: .5rem .6rem; }
+.medaille svg { width: 2.6rem; height: 2.6rem; grid-row: span 2; }
+.medaille b { font-size: .92rem; line-height: 1.15; overflow-wrap: anywhere; hyphens: auto; } .medaille span { font-size: .76rem; color: var(--zacht); line-height: 1.25; }
+.medaille.nog svg { filter: grayscale(1) opacity(.45); }
+.medaille .voortgang { grid-column: 1 / -1; margin: .25rem 0 0; height: .4rem; }
+/* het spel */
+.spelkop { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .7rem; }
+.spelkop h2 { margin: 0; font-size: 1.15rem; line-height: 1.2; }
+.spelkop .sub { display: block; font-size: .8rem; font-weight: 700; color: var(--zacht); }
+.tijd { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; background: var(--tape); color: #F6F2EA; padding: .35rem .7rem; border-radius: 6px; font-size: 1.05rem; }
+.regelband { display: flex; gap: .55rem; align-items: center; background: var(--hint); border: 2px dashed var(--kaart-rand); border-radius: 10px; padding: .45rem .7rem; margin: 0 auto .7rem; max-width: 34rem; font-weight: 700; font-size: .9rem; }
+.regelband svg { width: 1.7rem; height: 1.7rem; flex: none; }
+.bord { --n: 5; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); width: min(100%, 34rem); aspect-ratio: 1; margin: 0 auto; border: 3px solid var(--inkt); border-radius: 6px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; background: var(--inkt); position: relative; }
+html[data-thema="donker"] .bord { box-shadow: 0 0 0 3px #F2DDA0; }
+.bord .rij { display: contents; }
+.cel { border: 0; padding: 0; margin: 0; position: relative; cursor: pointer; display: block; min-width: 0; min-height: 0; width: 100%; height: 100%; overflow: hidden; box-shadow: inset 0 0 0 .5px rgba(35,26,38,.35); -webkit-tap-highlight-color: transparent; }
 .cel.t { border-top: 2.5px solid var(--inkt); } .cel.l { border-left: 2.5px solid var(--inkt); } .cel.r { border-right: 2.5px solid var(--inkt); } .cel.b { border-bottom: 2.5px solid var(--inkt); }
-.cel svg { position: absolute; left: 15%; top: 15%; width: 70%; height: 70%; pointer-events: none; }
-.cel .x { left: 33%; top: 33%; width: 34%; height: 34%; }
-.cel.fout { background-image: repeating-linear-gradient(45deg, rgba(200,50,60,.38) 0 6px, transparent 6px 12px) !important; }
-.cel.hint svg { filter: drop-shadow(0 0 4px #fff); }
-.cel.pop svg { animation: pop .5s ease both; }
-@keyframes pop { 0% { transform: scale(.3) rotate(-20deg); } 70% { transform: scale(1.2) rotate(6deg); } 100% { transform: none; } }
+.bord.groot .cel.t { border-top-width: 2px; } .bord.groot .cel.l { border-left-width: 2px; } .bord.groot .cel.r { border-right-width: 2px; } .bord.groot .cel.b { border-bottom-width: 2px; }
+.cel:focus-visible { outline: 3px solid var(--focus); outline-offset: -4px; z-index: 2; }
+.cel svg { position: absolute; left: 14%; top: 14%; width: 72%; height: 72%; pointer-events: none; }
+.cel svg.x { left: 32%; top: 32%; width: 36%; height: 36%; }
+.cel svg.x.auto { opacity: .55; }
+.cel.doos, .cel.kaart { cursor: default; }
+.cel.doos svg, .cel.kaart svg { left: 6%; top: 6%; width: 88%; height: 88%; }
+.cel svg.spook { opacity: .4; }
+.cel .lt { position: absolute; left: 2px; top: 0; font-size: clamp(.5rem, 2.3vw, .78rem); font-weight: 800; color: rgba(35,26,38,.8); pointer-events: none; line-height: 1.2; }
+.cel.fout { background-image: repeating-linear-gradient(45deg, rgba(200,50,60,.4) 0 6px, transparent 6px 12px) !important; }
+.cel.hl::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.28); box-shadow: inset 0 0 0 2px rgba(47,111,181,.75); pointer-events: none; }
+.cel.doel::after { content: ''; position: absolute; inset: 8%; border-radius: 50%; box-shadow: 0 0 0 3px #2F6FB5, 0 0 0 6px rgba(255,255,255,.7); pointer-events: none; }
 .balk { display: flex; gap: .45rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
-.regels { font-size: .9rem; color: #3A3226; }
+.hintvak { max-width: 34rem; margin: .9rem auto 0; background: var(--hint); color: var(--tekst); border: 2.5px solid var(--kaart-rand); border-radius: 4px 14px 14px 14px; padding: .7rem .9rem .8rem; position: relative; box-shadow: 0 4px 0 rgba(0,0,0,.2); }
+.hintvak::before { content: ''; position: absolute; top: -9px; left: 18px; width: 16px; height: 16px; border-radius: 50%; background: var(--rood); border: 2.5px solid var(--inkt); }
+.hintvak p { margin: 0 0 .5rem; line-height: 1.45; }
+.hintvak .balk { justify-content: flex-start; margin-top: .3rem; }
+.hintvak .knop { min-height: 38px; padding: .3rem .8rem; font-size: .88rem; }
+.regels { font-size: .88rem; color: var(--zacht); text-align: center; max-width: 34rem; margin: .8rem auto 0; line-height: 1.45; }
+.toets { display: inline-block; border: 1.5px solid currentColor; border-radius: 4px; padding: 0 .3rem; font-size: .8em; font-weight: 800; }
+/* vensters */
+dialog { border: 2.5px solid var(--kaart-rand); border-radius: 18px; padding: 0; width: min(30rem, 94vw); max-height: 92vh; background: var(--kaart); box-shadow: 0 10px 0 rgba(0,0,0,.35); font-family: inherit; color: var(--tekst); }
+dialog::backdrop { background: rgba(10,14,30,.6); }
+dialog > div { padding: 1.1rem 1.3rem 1.2rem; }
+dialog h2 { margin: .2rem 0 .5rem; }
+dialog p { line-height: 1.45; }
 .klaar-kaart { text-align: center; }
-.klaar-kaart .groot { font-size: 2.2rem; font-weight: 800; margin: .2rem 0; }
-dialog { border: 0; border-radius: 14px; padding: 0; max-width: min(28rem, 94vw); background: var(--manila); box-shadow: 0 0 0 4px var(--inkt), 0 10px 0 4px rgba(0,0,0,.35); font-family: inherit; color: var(--inkt); }
-dialog::backdrop { background: rgba(10,14,30,.6); } dialog > div { padding: 1.1rem 1.3rem 1.2rem; }
+.klaar-kaart .groot { font-size: 2.6rem; font-weight: 800; margin: .1rem 0; font-variant-numeric: tabular-nums; }
+.klaar-kaart .spoor { font-size: 1.3rem; letter-spacing: .05em; word-break: break-all; }
+.uitleg-plaat { display: flex; justify-content: center; gap: .8rem; margin: .4rem 0 .8rem; }
+.uitleg-plaat svg { width: min(11rem, 40vw); height: auto; border-radius: 8px; border: 2.5px solid var(--inkt); }
+.stippen { display: flex; justify-content: center; gap: .35rem; margin: .5rem 0 0; }
+.stippen i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--balk); } .stippen i.aan { background: var(--rood); }
+.schakel { display: flex; align-items: center; gap: .7rem; padding: .55rem 0; font-weight: 700; cursor: pointer; border-bottom: 1.5px dashed var(--balk); }
+.schakel input { width: 1.4rem; height: 1.4rem; accent-color: var(--rood); flex: none; }
+.schakel span small { display: block; font-weight: 500; color: var(--zacht); font-size: .82rem; }
+textarea.deel { width: 100%; min-height: 8rem; font: inherit; font-size: .9rem; border: 2px solid var(--kaart-rand); border-radius: 8px; padding: .5rem; background: var(--lvl); color: var(--tekst); }
+.toasts { position: fixed; left: 50%; top: calc(.6rem + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: .4rem; align-items: center; pointer-events: none; width: max-content; max-width: 94vw; }
+.toast { background: var(--tape); color: #F6F2EA; font-weight: 800; padding: .5rem .9rem; border-radius: 4px; box-shadow: 0 4px 0 rgba(0,0,0,.3); display: flex; align-items: center; gap: .5rem; transition: opacity .4s, transform .4s; }
+.toast svg { width: 1.6rem; height: 1.6rem; flex: none; }
+.toast.weg { opacity: 0; transform: translateY(-8px); }
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
+.confetti i { position: absolute; top: -20px; width: 9px; height: 14px; border-radius: 2px; }
 #sb-kroon { margin-top: .8rem; }
-@media (prefers-reduced-motion: reduce) { .cel.pop svg { animation: none; } }
+.verborgen { display: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+  .cel.pop svg:not(.x) { animation: pop .45s cubic-bezier(.3,1.6,.5,1) both; }
+  .cel.zet svg.x { animation: kruisje .18s ease-out both; }
+  .cel.schud svg { animation: schud .35s ease both; }
+  .cel.doel::after { animation: puls 1.1s ease-in-out infinite; }
+  .bord.gewonnen { animation: glans 1.2s ease both; }
+  .confetti i { animation: val var(--duur, 2.2s) cubic-bezier(.25,.6,.5,1) var(--wacht, 0s) forwards; }
+  .hintvak:not([hidden]) { animation: binnen .25s ease-out both; }
+  .tape.wiebel:hover { transform: rotate(1deg); transition: transform .2s; }
+  .lvl:not(:disabled), .kdag:not(:disabled) { transition: transform .12s; }
+  .lvl:not(:disabled):active, .kdag:not(:disabled):active { transform: translateY(2px); }
+  @keyframes pop { 0% { transform: scale(.3) rotate(-20deg); } 70% { transform: scale(1.18) rotate(6deg); } 100% { transform: none; } }
+  @keyframes kruisje { from { transform: scale(.4); opacity: 0; } to { transform: none; } }
+  @keyframes schud { 0%, 100% { transform: none; } 25% { transform: translateX(-12%) rotate(-8deg); } 75% { transform: translateX(12%) rotate(8deg); } }
+  @keyframes puls { 0%, 100% { transform: scale(.92); opacity: .75; } 50% { transform: scale(1.04); opacity: 1; } }
+  @keyframes glans { 0% { box-shadow: 0 0 0 0 rgba(233,185,73,0); } 40% { box-shadow: 0 0 0 10px rgba(233,185,73,.75); } 100% { box-shadow: 0 0 0 0 rgba(233,185,73,0); } }
+  @keyframes val { to { transform: translate(var(--x, 0), 105vh) rotate(var(--r, 540deg)); } }
+  @keyframes binnen { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+@media (max-width: 640px) {
+  main { padding: .7rem .6rem 3rem; }
+  .paneel { padding: .85rem .8rem 1rem; border-radius: 14px; }
+  .dag { grid-template-columns: 1fr; } .dag .mini-plek { display: none; }
+  .hst { grid-template-columns: 4rem 1fr; } .hst .mini-plek { width: 4rem; height: 4rem; }
+  .levels { grid-template-columns: repeat(auto-fill, minmax(2.9rem, 1fr)); gap: .38rem; }
+  .tabs { flex-wrap: nowrap; gap: .35rem; overflow-x: auto; scrollbar-width: none; padding: 2px; margin-left: -2px; margin-right: -2px; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: 1 0 auto; padding: .4rem .5rem; font-size: .84rem; min-height: 42px; }
+  .kop { padding-left: .7rem; padding-right: .7rem; gap: .5rem; flex-wrap: nowrap; } .kop .terug-lang { display: none; } .kop a { font-size: .85rem; white-space: nowrap; }
+  .titel { font-size: 1rem; gap: .3rem; } .titel svg { width: 22px; height: 22px; }
+  .kop .rechts { gap: .3rem; } .kop .rechts .knop { min-height: 36px; min-width: 36px; padding: .25rem .55rem; }
+  .balk.gereedschap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .35rem; }
+  .balk.gereedschap .knop { flex-direction: column; gap: .15rem; border-radius: 14px; min-height: 56px; padding: .3rem .2rem; font-size: .74rem; }
+  .balk.gereedschap .knop svg { width: 1.35em; height: 1.35em; }
+  .balk .knop { padding: .4rem .75rem; font-size: .88rem; }
+  .spelkop { flex-wrap: nowrap; gap: .5rem; } .spelkop h2 { font-size: .98rem; flex: 1; min-width: 0; } .spelkop .knop { min-height: 40px; min-width: 40px; padding: .3rem .55rem; } .tijd { font-size: .95rem; padding: .3rem .5rem; }
+  .knop .lang { display: none; }
+}
+@media (max-width: 400px) { .tabs button { font-size: .78rem; padding: .35rem .4rem; } .tabs { gap: .3rem; } }
+@media (min-width: 641px) { .knop .kort { display: none; } .kop .terug-kort { display: none; } }
 </style>
 </head>
 <body data-pagina="rommelkroon">
 <div class="kop">
-  <a href="./">Terug naar het rommelhoekje</a>
-  <span class="titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="6" y="6" width="52" height="52" rx="5" fill="#FBF6E9" stroke="#1F2333" stroke-width="3"/><path d="M6 23h52M6 40h52M23 6v52M40 6v52" stroke="#1F2333" stroke-width="2"/><rect x="7.5" y="7.5" width="15" height="15" fill="#F4A6A6"/><rect x="40.5" y="24" width="16" height="15" fill="#A9C4F5"/><rect x="24" y="41" width="15" height="15.5" fill="#B8E0A0"/><path d="M27 34l-1.5-10 5 4 3.5-7 3.5 7 5-4-1.5 10z" fill="#E9B949" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M45 13l7 7M52 13l-7 7" stroke="#1F2333" stroke-width="2.4" stroke-linecap="round" opacity=".6"/></svg></span>Rommelkroon</span>
-  <div class="rechts"><button class="knop" id="b-regels" type="button">Spelregels</button></div>
+  <a href="./" aria-label="Terug naar het rommelhoekje"><span class="terug-lang">← Terug naar het rommelhoekje</span><span class="terug-kort">← Rommelhoekje</span></a>
+  <h1 class="titel"><span aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="6" y="6" width="52" height="52" rx="5" fill="#FBF6E9" stroke="#1F2333" stroke-width="3"/><path d="M6 23h52M6 40h52M23 6v52M40 6v52" stroke="#1F2333" stroke-width="2"/><rect x="7.5" y="7.5" width="15" height="15" fill="#F4A6A6"/><rect x="40.5" y="24" width="16" height="15" fill="#A9C4F5"/><rect x="24" y="41" width="15" height="15.5" fill="#B8E0A0"/><path d="M27 34l-1.5-10 5 4 3.5-7 3.5 7 5-4-1.5 10z" fill="#E9B949" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M45 13l7 7M52 13l-7 7" stroke="#1F2333" stroke-width="2.4" stroke-linecap="round" opacity=".6"/></svg></span>Rommelkroon</h1>
+  <div class="rechts"><button class="knop" id="b-uitleg" type="button" aria-label="Uitleg"><span class="lang">Uitleg</span><span class="kort" aria-hidden="true">?</span></button><button class="knop" id="b-inst" type="button" aria-label="Instellingen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="15" cy="7" r="2.3" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="9" cy="17" r="2.3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button></div>
 </div>
 <main>
   <section id="overzicht">
-    <div class="paneel dag"><div><h2>Puzzel van de dag</h2><p id="dag-tekst">Elke dag een nieuwe.</p></div><button class="knop hoofd" id="b-dag" type="button">Spelen</button></div>
-    <div class="paneel"><h2>Alle puzzels</h2><p id="stand">0 van 120 opgelost.</p><div id="groepen"></div><div id="sb-kroon"></div></div>
+    <div class="paneel dag" id="dag"></div>
+    <div class="paneel verder" id="verder" hidden></div>
+    <div class="tabs" role="tablist" aria-label="Onderdelen">
+      <button type="button" role="tab" id="tab-puzzels" data-tab="puzzels" aria-controls="paneel-tab">Puzzels</button>
+      <button type="button" role="tab" id="tab-hoofdstukken" data-tab="hoofdstukken" aria-controls="paneel-tab">Hoofdstukken</button>
+      <button type="button" role="tab" id="tab-archief" data-tab="archief" aria-controls="paneel-tab">Archief</button>
+      <button type="button" role="tab" id="tab-mijlpalen" data-tab="mijlpalen" aria-controls="paneel-tab">Mijlpalen</button>
+    </div>
+    <div class="paneel" id="paneel-tab" role="tabpanel"></div>
+    <div class="paneel"><div class="stand-regel"><b id="stand">0 van 500 opgelost.</b></div><div id="sb-kroon"></div></div>
   </section>
   <section id="spel" hidden>
     <div class="paneel">
-      <div class="spelkop"><button class="knop" id="b-terug" type="button">Puzzels</button><h2 id="spel-titel">Puzzel 1</h2><span class="tijd" id="tijd" aria-live="off">0:00</span></div>
+      <div class="spelkop"><button class="knop" id="b-terug" type="button" aria-label="Terug naar de puzzels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lang">Puzzels</span></button><h2 id="spel-titel">Puzzel 1</h2><span class="tijd" id="tijd" role="timer" aria-label="Tijd">0:00</span></div>
+      <div class="regelband" id="regelband" hidden></div>
       <div class="bord" id="bord" role="grid" aria-label="Puzzelbord"></div>
-      <div class="balk">
-        <button class="knop" id="b-ongedaan" type="button">Ongedaan maken</button>
-        <button class="knop" id="b-hint" type="button">Hint</button>
-        <button class="knop" id="b-opnieuw" type="button">Opnieuw</button>
-        <button class="knop" id="b-auto" type="button" aria-pressed="false">Automatische kruisjes</button>
+      <div class="hintvak" id="hintvak" hidden aria-live="polite"><p id="hint-tekst"></p><div class="balk"><button class="knop" id="hint-doe" type="button">Zet het voor me</button><button class="knop" id="hint-dicht" type="button">Begrepen</button></div></div>
+      <div class="balk gereedschap">
+        <button class="knop" id="b-ongedaan" type="button" aria-keyshortcuts="Z"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4V2M4.5 7A8.5 8.5 0 1 1 6 17.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lang">Ongedaan maken</span><span class="kort">Ongedaan</span></button>
+        <button class="knop" id="b-hint" type="button" aria-keyshortcuts="H"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Hint</button>
+        <button class="knop" id="b-opnieuw" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lang">Bord leegmaken</span><span class="kort">Leeg</span></button>
+        <button class="knop" id="b-auto" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l6 6M11 5l-6 6M13 13l6 6M19 13l-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="lang">Automatische kruisjes</span><span class="kort">Auto-kruisjes</span></button>
       </div>
-      <p class="regels">Tik één keer voor een kruisje, nog eens voor een kroon, en nog eens om het vakje leeg te maken. Sleep over het bord om snel kruisjes te zetten.</p>
+      <p class="regels" id="speluitleg">Tik één keer voor een kruisje, nog eens voor een kroon, en nog eens om het vakje leeg te maken. Sleep over het bord om snel kruisjes te zetten.</p>
     </div>
   </section>
 </main>
-<dialog id="dlg"><div id="dlg-in"></div></dialog>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<dialog id="dlg" aria-labelledby="dlg-titel"><div id="dlg-in"></div></dialog>
 <script>
 (function () {
   try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) localStorage.setItem(k, v); sessionStorage.removeItem('koppel-herstel'); sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
@@ -384,152 +557,997 @@ dialog::backdrop { background: rgba(10,14,30,.6); } dialog > div { padding: 1.1r
 </script>
 <script>
 const PUZZELS = [{"n":5,"v":"aaaaaaabaaddddcddddddeeee","o":"02413"},{"n":5,"v":"aaaaaabbaaaabcceadccecccc","o":"31420"},{"n":5,"v":"abbbbccbbbccbbbeeebdeeeee","o":"03142"},{"n":5,"v":"bbbaabbbaabbbcadddcaddeea","o":"41302"},{"n":5,"v":"aaabbaaabbacabbacaddaaeed","o":"03142"},{"n":5,"v":"aaaabaaaabccabbeddddedddd","o":"24130"},{"n":5,"v":"bbaaabbaaaddacadaaaadeeea","o":"41302"},{"n":5,"v":"aaabbaaabbacebbccedbeeeeb","o":"24130"},{"n":5,"v":"caeeecaabeccceeccddeeeeee","o":"13024"},{"n":5,"v":"eaaabebbbbecbbbeeedeeeeee","o":"24130"},{"n":5,"v":"baaaabbaaabbacceeddceeecc","o":"31420"},{"n":5,"v":"aabbbaabbdacbbdaeebdaaeee","o":"03142"},{"n":5,"v":"ccaaaccbbbccbbbeccddeccdd","o":"24130"},{"n":5,"v":"abbbbecbbdecdddeeeedeeeed","o":"03142"},{"n":5,"v":"cccaabbcaaebccceddcceeeec","o":"31420"},{"n":5,"v":"bbcaabbccabeccaeeccdeeecc","o":"30241"},{"n":5,"v":"baaadbbcddcccddccccdceccd","o":"30241"},{"n":5,"v":"bbaaacbbaaccdddeddddeeddd","o":"42031"},{"n":5,"v":"bbaacbbddceddcceddddeeedd","o":"31420"},{"n":5,"v":"bbbaabbbaaeedcceeddeeeeee","o":"31420"},{"n":6,"v":"bbbabbbbbbbbbbbccbdbccccbbcceeffffee","o":"314052"},{"n":6,"v":"bbabbbbbbbbbbbcccdeecdddeecfffcccfff","o":"203514"},{"n":6,"v":"acccccacbcccbbbcccdddcfcdffeffdfffff","o":"024135"},{"n":6,"v":"bbbaaabbbbaabbbaacbbddcceeeccceefccc","o":"415302"},{"n":6,"v":"cabbbbccbbbbcccbbbccdddecccceecccfee","o":"140253"},{"n":6,"v":"caaabbccccbcdcccccddccccdddeccdddccf","o":"142035"},{"n":6,"v":"ccaaccbcccccbfccccffdcceffdccefffeee","o":"304251"},{"n":6,"v":"bbbbaabbbbbbccddbdceddddceddddceddfd","o":"520314"},{"n":6,"v":"aaacccaaccdbaaccdbaaccddaeeeddeeefff","o":"052413"},{"n":6,"v":"aabbbbcaabbbcabbdbaaeddbaaeaddaaaadf","o":"130425"},{"n":6,"v":"ccaaaacccbaacccbdacfcddaefffdafffaaa","o":"531402"},{"n":6,"v":"aaeeeeaaabbeccaaeeccdeeeffffeefffffe","o":"140253"},{"n":6,"v":"aaabbbddabbcddddbcddddddddeffddddffd","o":"135024"},{"n":6,"v":"caaaaacbbfaacffffacfffdaeeffdaeeffff","o":"520413"},{"n":6,"v":"baaaaabcaaaacccccccddcceffdcceffdcce","o":"304251"},{"n":6,"v":"bbaaacbbcaacbbccccbbccdfbeefffbeeeff","o":"302415"},{"n":6,"v":"bbbddabbbdddcebdddeeddffeeefffeeefff","o":"520314"},{"n":6,"v":"ccaaaacccabbcccebbecceddeeeeeeeefeee","o":"351402"},{"n":6,"v":"daabbbddabbbdddcbbfdddeefffeeeffffff","o":"253140"},{"n":6,"v":"ffabbbfdaabbfddcbbfddddbfffeebfffffb","o":"253140"},{"n":6,"v":"bfaaaabfaeeaffaeecffdeecffeeeeffffff","o":"305241"},{"n":6,"v":"feeaaafcebddfcedddffedddffedddfffddd","o":"531420"},{"n":7,"v":"abbbbbbbbbbbbbbbbbccbddcccccdcccfecdgcffegggggggg","o":"0241536"},{"n":7,"v":"cccbbbaccccbbbcccccbbcccddbfceeeddfeeeedffggggfff","o":"6403152"},{"n":7,"v":"bbbbbaabbbbbaaddbbbcaddbbbbaddeeefadgeefffggeeeff","o":"6350241"},{"n":7,"v":"aaaaaaabaaaaaaeeccaaaeeecafdeeecafdeeggfffeeegggf","o":"4026153"},{"n":7,"v":"aaaccccabbbbccaacccccaddccccdddceecfccceecfffeegc","o":"1362405"},{"n":7,"v":"aabbbbbccbbbbbccccbbbeeccfdbgeccfffgefffffgggffff","o":"0635142"},{"n":7,"v":"bbbbaacbdbccccbddccccdddddccedddfccggdgfccggggfcc","o":"5263041"},{"n":7,"v":"acccbeecccbbbecceeeeecceeeedeeegeedeeeggfdggggggd","o":"0416253"},{"n":7,"v":"bbaccccbbbccccdddccccddddeecfdfdeecfffdgeefffggee","o":"2063514"},{"n":7,"v":"aaaaaccaaabbccdaddccedddddcedddddeedfdddeeffgggee","o":"0352614"},{"n":7,"v":"aaabbbbcccbbbbccbbbdbfcebddbfceeeddfeegggdfegggdd","o":"2615304"},{"n":7,"v":"caaaaabcaaabbbcccadbbeddaddbeddddbbdddddbfddgdfff","o":"3514062"},{"n":7,"v":"caaaaaacaaaadbceeddddceeddddeeeddddeefffddeefffgg","o":"2604135"},{"n":7,"v":"acbbdddaccbbbdaccbdddaedddddeefggddefffgddffffggd","o":"0426135"},{"n":7,"v":"ddaaacbdaacccbdaacbbbddccceeddcceeefffceeegfffeee","o":"4631520"},{"n":7,"v":"bbaaaaabbgaacabbgaacfdggaaffdgeefffdggffffdggffff","o":"4150362"},{"n":7,"v":"aaabbddaaabbddcaaeeddgggedddgeeefgdgeggfggggggggg","o":"1305246"},{"n":7,"v":"afbdddcffbddccffbddcefffdeeefffeeeefffggggggggggg","o":"0253614"},{"n":7,"v":"aaaaaaagbggadcgggdddcffgddegffggeegffgggggggggggg","o":"4163502"},{"n":7,"v":"aaaaaaaaaabbcaaaabccadddcccaeedfccceggfffcgggffff","o":"6352041"},{"n":7,"v":"aaaaaabcacabbbcacccbbccccddbegccddbgggccfbggcccff","o":"3624051"},{"n":7,"v":"ccaaabbccaeeebcceeeeedddeeeefffeeeefffeeggffeeegg","o":"3602415"},{"n":7,"v":"aaaaabeaaccbbeddcfeeedddfffedddfeeeddffeeedddffeg","o":"1420536"},{"n":7,"v":"bbbbaacbbbbbacbbbbbccbddddddddeeeefdgggeefdgggfff","o":"4051362"},{"n":8,"v":"bbbbbbbabbbbbbbbbbbbcfddbbbeefddbeeeefddbeeeefddhhgeeffdhheeeffd","o":"71463520"},{"n":8,"v":"bbbbbaaabdbbbbaabdbaaaacddbaccccdddcccechfgggceehhhgggeehhhhhgge","o":"53706142"},{"n":8,"v":"eabbbbbbeebbbbbbeeeebdcceeeebddheeeeehhhheefhhghhhhhhhghhhhhhhhh","o":"14750362"},{"n":8,"v":"eaaaaaaaeebaaaaaeeedadaceeedddcceeedddcceegfccccgegfccccgggfchcc","o":"62741305"},{"n":8,"v":"dbbbbaaadddbbcccddddbbccddddbccceddddcccggddhccfggddhccfddddhhcc","o":"53620714"},{"n":8,"v":"aaaaadddbaaacdddeeeacdddeeeaaaddheeaaaddheeeefgdheeeffgghheeffff","o":"30462571"},{"n":8,"v":"aaaaaaabaaaaaabbcagaaabbccggadbbcgggffeecgggfffegggghhhhhhhhhhhh","o":"26057413"},{"n":8,"v":"aaaaaaffbaaaccffeaaacddfeeaaaddfeeaaaaffeeeaaaffeeehhgffeeehhfff","o":"20461753"},{"n":8,"v":"ddbbaaccdbbaaaccddbbccccddebccccddeeccccddeeefccddghhhhcdgghhhhc","o":"41703526"},{"n":8,"v":"aaabbbbbaabbbcccabbbdcccddbddccceddddcffddddcccfhhhdcgcchhcccccc","o":"24630751"},{"n":8,"v":"cbbbbaabccbbbbbbcccdbbbbfccdddeefccdeeeefffffeeeffffggeefffhheee","o":"62047153"},{"n":8,"v":"aabbccccabbbccccbbbccccceeeeecddeeeeeeddhgeeeefdhggeeeddhheeeedd","o":"13574620"},{"n":8,"v":"aaaacbbbaaaacbbbfdcccbbbfddcccbbfcccccebfccgcgebhccggggbhhgggggg","o":"37426051"},{"n":8,"v":"aaabbbbcabbbbbccfbbbbbcdfffbdbddeffdddddfffggdggffffggggfffffggh","o":"13640257"},{"n":8,"v":"cccccaaacbbccaaaccdgccffccdgccffeeggffffgeggggffgggggghhgggggggh","o":"51420637"},{"n":8,"v":"ccccaaadbcgcedddbcgcedddgggeededggeeeeedgeeegefdgggeggffggggghhf","o":"40372615"},{"n":8,"v":"eebaaaaaebbdaacceeddaaaceedffccceeefgccceeefggggeeeffgggefffhggg","o":"51720364"},{"n":8,"v":"bbbbbaaabbccbbbgbbcccccgdfceeeegffcceeggffffeeggffefegggeeeeehgg","o":"61304275"},{"n":8,"v":"ccccbbbaccccdbbbgcceddddgeeeddddgeeffdddgggffdddggggfffdgggghhdd","o":"75261304"},{"n":8,"v":"cccaaaaacccadbbaffcdddddfffdddddffhhddgefhhhhdgeffhhhdgghhhhhhhg","o":"35247061"},{"n":8,"v":"aaaaaaaaaddbffccdddffffcgdgfeeeegggffeefgggfffffgggggghhgggghhhh","o":"03716425"},{"n":8,"v":"bbbbaaaabbbbcccabbbbcccaeeedddcceeeggccceffggcccffffggcchhfggggc","o":"73640251"},{"n":8,"v":"bbaaaaaabbbaaaacbbbaaaccbdbaacccddbbfcecddfffeecdhffgggchhfffggc","o":"42716350"},{"n":8,"v":"ccaaabbbcffaddbdcffeedddhfeeggddhffegggghffggggghfhggggghhhggggg","o":"46073152"},{"n":9,"v":"aaaaaaaaaaaaaaabaaaaccaabbaaafbbbbdafffffedddfffffhhhdffgffhhhhfiiffhhhhiifffhhhh","o":"463750281"},{"n":9,"v":"bbbaaacccbbbbbacccbbbbbbcccdbbbbbcccbbbbbccceigggfceeeigggeeeeeiiggeeeheiiggeeeee","o":"536084271"},{"n":9,"v":"aaaaaaaaaaaaabbbbbaaacbbbbbeeecbbddbeeeccccibeeffcccibeeffcggiieeeehhiiieeeeeeeii","o":"153702648"},{"n":9,"v":"bbbbbbccabbbbcccccbbbccccccefdcgccccefffgccgcefffgggggeefigggghiffiggghhiiiiiiiii","o":"816203574"},{"n":9,"v":"aaaaaabbbaaaaabbbbaeccbbbbbaeeceebedaeeeeeeeeeeeegefheeeeggihhhegggiihhhggggiiiii","o":"052816374"},{"n":9,"v":"bbbbbbccabbbbbbcccbebbbdcdceeedddcddeffddddddeeffddggdegggggggigghgggggihhhhhgiii","o":"816403527"},{"n":9,"v":"aaaaabbbbaaaaddbbbacaadbbdbfccaddddbfeeeddddbfeegddgbbiieggdggbiiiigggghiiigggggg","o":"471530682"},{"n":9,"v":"aabbbbbccbabbbbcccbbbbbbcccbbbddgcccfffgggeecfffggggecfffhgggccfffhgccccfifhgggcc","o":"058472631"},{"n":9,"v":"aacccccbbacccfbbbdacccffdddccccfddddeeecffdddeefffddddgffffffddgfffffhhdgfiiiiihh","o":"163824075"},{"n":9,"v":"ddaabbbbbdddabbcccdddaaccffdddcccfffdddecccfiddddiiffidgdhiiiiidgghhhiiiddghiiiii","o":"246037158"},{"n":9,"v":"bbbbbaaaagbbbbbbaaggcbbaaadgaaaaaaddgaaeaaaddgagfffahhggggfhhhhgiiiiiiihgiiiiiihh","o":"642735081"},{"n":9,"v":"fffffabbbfcccfebbbfcccceedbffccceedbffffeedddfffffeeddggfffeehdiifeeehhdiieeeeedd","o":"583742061"},{"n":9,"v":"caaeeebbdcaaeebbbdcceeeedddceeeeddddheeedddddhhheidffdhhhiiggffhiiiiiiiihiiiiiiii","o":"261837504"},{"n":9,"v":"aaaaaaaaabaaaaaccadaddaaccedddffffcedggfffffegggffffffhgggfffffhhhgfffiihffffffii","o":"406285317"},{"n":9,"v":"dddaaccccddddacccbddddacfccddfdffffiefffffgiiffffffgiifhhfffgiifhffgggiihhhhhiiii","o":"485302617"},{"n":9,"v":"bbbccceadbbbccceedbbccceeediieeeedddiiieeegfdiiieeggffiiigggggfiiigihhffiiiiiiiii","o":"702648351"},{"n":9,"v":"bbbdaafffbbdddffccbbdefffcfhddeeffffhheefffffheefffgfghhefggggghhhfffiighhiiiiigg","o":"407135826"},{"n":9,"v":"aaaddbbbbaadddccbbaaddhceeeidddheeeeiighhfffeigghhffffighhhfhhfihhhhhhhfihhhhhhhf","o":"275386140"},{"n":10,"v":"babbbbbbbbbbbbdddddbcdddddddddccddddddddcccdddedddhhcdfeeeedhhddggggddhhhdiiigggjjjdjiggggjjjjjggggg","o":"1908647253"},{"n":10,"v":"bbbbbbbaabcccbbbbbbbcccbbbbbbbcccbdbdbbbccccdddeeefccccddieefiiigiiiheiiiiiiiihiiiiiiiiiiiiiijjiiiii","o":"7526904813"},{"n":10,"v":"ddddbbaaaadddddbbbaaccdddbbaaagddddaaaaaggdgddaeffggdgddafffgggggdaaafiiijhjjaffijjjjjjaaajjjjjjaaaa","o":"8613792405"},{"n":10,"v":"cccccaaabbcccccabbbbccccccdddbcccceeddddceeeeeeeddhffeeeedddhheeegeeedhheeggeeedhhhhggeeeijhhhgeeiii","o":"6837425190"},{"n":10,"v":"bbbbbaaaaabbbbbbeaaabbbbbbeaacbbbgbeedccbbfgeeddecbffggeeeeeffgggeeeeifffgeehieifffjeihiiifjjjjiiiii","o":"5097413682"},{"n":10,"v":"bbbbbbbaacbbbbbbbbacibbbibdaaciiiiibddaaifgiidddeaffgiiiidaajigiiiaaaajiiiihhhaajiiihhhhhajjiiihhhha","o":"7496802531"},{"n":10,"v":"bbbbbbcccabbbbbcccccebbbfcccffeeedfffcffeeefffffffeeefffiiifhgggffffiihhhffjjjjihjjjjjjjiijjjjjjjjji","o":"9473152086"},{"n":10,"v":"bbccccccaabbbccdeccadbbcddeccadddddeeecafddddeeecaffddeegaaaffdfgggaaafffffgggghjjiiggggghjiiggggggg","o":"8274615930"},{"n":10,"v":"ccccccaaabcccaaaabbbcccceaaaabeeceeddddbecceeehhhheeeeeehfffhhhhhhhgffhihiijjjjfhiiiiijjjfhiijjjjjjf","o":"6815397024"},{"n":10,"v":"cbbbbaddddcbbbbbddeeccbdbbddeecbbdddddeeffffddgeegffffdfggggffffffhghgiiiifihhhgiiiiiihgggjiiiiihhgg","o":"5316829740"},{"n":10,"v":"aaabbbccccajjebbbcccajjebebdccajjeeebddfajjjefffdfajjjefffffgjjjjfffffjjjjiiffhfjjiiiiiiiijjjjiiiiii","o":"2597460831"},{"n":10,"v":"ddbbbbbbaadddddbfaaaddbbbbffcadgggbeefaadgggeeefafjgggefffffjgggihhhhhjgigihihhhjjiiiiihhhjjjjjhhhhh","o":"9580462731"},{"n":5,"v":"aaaaaabaaadcccadcecadceaa","o":"41302"},{"n":5,"v":"aaaaaaabbacaabaceabdeeeee","o":"13042"},{"n":5,"v":"aaaaaaabacaaeecddeeeddeee","o":"02413"},{"n":5,"v":"accccccbbdccbddcceddeeedd","o":"03142"},{"n":5,"v":"bbaaabbaaabbcaabecadbeaad","o":"30241"},{"n":5,"v":"bbaaabbbaabbbcaddbaaeeeea","o":"41302"},{"n":5,"v":"aaaaabbbbabbccaddecaddeca","o":"41302"},{"n":5,"v":"dabbbddbbbcddddeddddeeedd","o":"13042"},{"n":5,"v":"bbbaabbaaabbccaddccadeeaa","o":"41302"},{"n":5,"v":"bbaacbbbccbbbbcdddbcdeebb","o":"31402"},{"n":5,"v":"bccaabccaabbcaabbccdbecdd","o":"30241"},{"n":5,"v":"aaaaabcaadcccadcceddceedd","o":"30241"},{"n":5,"v":"bbbaabbdacbbddcbddeeeeeee","o":"31420"},{"n":5,"v":"aaaaacacbbcccbbccdbbcceee","o":"13024"},{"n":5,"v":"caaabcabbbcdbbbddddbeeedd","o":"24031"},{"n":5,"v":"aaebbaaeebdecebdeeeedeeee","o":"14203"},{"n":5,"v":"caaaacbbbacceedeeeedeeeee","o":"13042"},{"n":5,"v":"aaaabdaaebddcebddceeddeee","o":"14203"},{"n":5,"v":"caabbceebbcceedceeedeeeee","o":"13042"},{"n":5,"v":"bbaaabbaaabccddbddddeeddd","o":"30241"},{"n":6,"v":"bbbbbabbbbbbbbbcbbbddceebdfceebbfeee","o":"503142"},{"n":6,"v":"aaaaaaaaabccaaabccaadbccbbbbecbffeee","o":"035241"},{"n":6,"v":"aaaaaaaaaabbaccabbdccaaadceeaadcffff","o":"142035"},{"n":6,"v":"aaccccaaabccaaaaccadaeecafaaecafffec","o":"035142"},{"n":6,"v":"bbbbbabbbcccbbccccbccdddbecdddeeffdd","o":"502413"},{"n":6,"v":"cccccaccbbccfccbccfdccccfddeccffffcc","o":"524130"},{"n":6,"v":"aaaaaaaabdccaaddccaaddcceeeddfeeddff","o":"025314"},{"n":6,"v":"bcccacbbccacbbccccdddcccdeecfcdeeeff","o":"413025"},{"n":6,"v":"aaccccaabbccbbbcccbdccccddccecddffcc","o":"035142"},{"n":6,"v":"aaaaaaaabbacabbaacfdbeacfffeacfffeec","o":"425130"},{"n":6,"v":"aabbbbccccbbccccccccccdfceefffceffff","o":"052413"},{"n":6,"v":"bbbbacbbbcccbbccccffffddfefffdfffffd","o":"402513"},{"n":6,"v":"bbbbcabbbcccdcccccdcfcccddfeccdffffc","o":"524031"},{"n":6,"v":"aaabbbcaabbbcbbbbbcddddbdddddeddfeee","o":"140352"},{"n":6,"v":"aaaaccaaabbcdaacccdddcccefffffffffff","o":"135204"},{"n":6,"v":"dddabbddcabbddcabbdddbbeddddeedffffe","o":"352041"},{"n":6,"v":"fffffabbbfffbccddfeefddfeeffffeeffff","o":"502413"},{"n":6,"v":"aaaaaabbcdaacccddaccfddaeeffdaffffdd","o":"502413"},{"n":6,"v":"cacdbbcccdbecccdeecccdeecccdeeccfffe","o":"140352"},{"n":6,"v":"aaaabbaaabbbadabccaddeccaddeecafdeec","o":"035241"},{"n":6,"v":"bbbaaaccbcaadccccaddcccadcceccdfeeec","o":"524031"},{"n":6,"v":"cabbbbcccbbbceeeebeeeedfeeeeefeeffff","o":"130425"},{"n":6,"v":"cccccadbcccfdbbcffddeccfddecffdfffff","o":"513024"},{"n":6,"v":"ccaaaaccabbfcccccfedddffedffffffffff","o":"241305"},{"n":6,"v":"aaddbbeeddbdeecdddeecdddfeefffffffff","o":"042513"},{"n":6,"v":"cabbddccbbddceedddeeedddeeedddeeeeef","o":"130425"},{"n":6,"v":"ccccaabccccaeeccddeeccdffeefffffffff","o":"502413"},{"n":6,"v":"baaaaabdaaaadddcccdfddccdffffeffffff","o":"304251"},{"n":6,"v":"aabbbcbbbbccbbbddceeedfcfeefffffffff","o":"025314"},{"n":6,"v":"fffbaaffbbaafeeeacfdeeeeffeeeeffeeee","o":"425130"},{"n":6,"v":"aabbeecddbbecdddeefdddeefddddefffdde","o":"140352"},{"n":6,"v":"aaffffaebbffcebbdfeeeddfeeefffeeefff","o":"130425"},{"n":6,"v":"ccaaaacbbbaaccbbaecffdeeffffeeffffff","o":"420351"},{"n":6,"v":"bbfaaabbfaaabbfccdfffeedffeeffffffff","o":"413520"},{"n":6,"v":"baaaaabbbbaabbbccabbecddeeeffdeeefff","o":"203514"},{"n":7,"v":"bbabbbbbbbbbbbbddbbcbddddccbddddeccdddeeefddgggff","o":"2051463"},{"n":7,"v":"bbbbbaabbbbbaabbbbaacbbddaacbeddfffbbddfffgbddfff","o":"5263140"},{"n":7,"v":"ddbbbbaddbdddddddddccdddccccfddeccefdeeeeeffeeggg","o":"6251304"},{"n":7,"v":"aaaaaabaaaabbbccaaabaccdaaaaccdfaeecgdfaaegggggaa","o":"4602531"},{"n":7,"v":"aaaaaabdaaabbbddaabbcddddbbbdddebbgdffebbgffggggg","o":"2460315"},{"n":7,"v":"bbaabbbbbbbbbbdeeeccbdeeeeebdeeeeebffeeeegffeeggg","o":"2640315"},{"n":7,"v":"aadccccaadbcccaadcccceeddccceeedccceeedfggeeegggg","o":"1352046"},{"n":7,"v":"cccbaadcccbdddcccddddccdddddeeeddddeeffffdeffffgg","o":"5314026"},{"n":7,"v":"abbbbbcbbbbbbcbbbbbecfbddbegffffeegffffgggfffffgg","o":"0362415"},{"n":7,"v":"bbbbffabbbbfffbbccfffbbbddffeeddfffeegdfffeeggfff","o":"6024153"},{"n":7,"v":"bbbbccabbbbcccddcccccddcccccddcceeeddffeeedgfffee","o":"6240531"},{"n":7,"v":"aaaaaaabbaaaccbbcccccbcdccccbcccceefceeeeefcceege","o":"3142605"},{"n":7,"v":"bbbcaaabbccccabccccccbeccccdbeeeeeefeeeeeeeeeeege","o":"4136205"},{"n":7,"v":"aaabbbbadddbdbacdddddacdddddaaeedddeeeeddfeeegggf","o":"0415263"},{"n":7,"v":"aaabbbbaacccbbadcccccadcccccdddecccfdeegggdddeegg","o":"2641305"},{"n":7,"v":"ecaabbbecbbbbbeccbbbbeeeedbbeeeeebfeeeffbfegeffff","o":"3524061"},{"n":7,"v":"aaaaabdaacabbdaccaaddaeeadddaeeaaddeeefagdeeeaagd","o":"0426135"},{"n":7,"v":"eeaaaabeecaaabeecedabeeeedaaeeeedaaeggegffegggggf","o":"3624051"},{"n":7,"v":"bbdddaadbbdaaadbddacadddddcceedddfceeeefffgeeeeff","o":"6253140"},{"n":7,"v":"baaaaaabbaacaabbaacccfffcccdffecccgffffccgffffggg","o":"3146205"},{"n":7,"v":"aaaabbbaaabbccaaaabcfaddbbbfddddeefdggggffddggggg","o":"0351462"},{"n":7,"v":"aaaacccaaabccceedbccceeddccceeedddceeefffgeeegggg","o":"1352046"},{"n":7,"v":"dddcaaaddbccaadddccaafddcccafdeeeeafeeegeafffegga","o":"6241305"},{"n":7,"v":"aaaaaaacccbdaaccddddacedddfageddffagggdffagggdffa","o":"6304152"},{"n":7,"v":"aaaaabeaaaaabefcaaabefffadbeffffeeeffffgggfffgggg","o":"2514603"},{"n":7,"v":"aaaaaabaaeaaabcaeaaabceeddddceeegggffeegggeeeeggg","o":"2605314"},{"n":7,"v":"cccaaaecccabbecccdeeecdddeeecggfeeeccgffeegggffee","o":"3502641"},{"n":7,"v":"bbbbbgabcbbbggccbbbggfbbdddgfeffddgffffddgffffdgg","o":"6204135"},{"n":7,"v":"eeeaaabeeccaabeeccaddeeecaddeeeeafdeeeeffdgefffdd","o":"3625140"},{"n":7,"v":"aaaccccaabbceeaabcceeadfcceeaffceeegfffggegggggge","o":"0241635"},{"n":7,"v":"bbaaaccfbaccccffdccecffdcceeffffffeffffgeeffffggg","o":"3142605"},{"n":7,"v":"daabbbcddadbccddadcccddddcffdddefffddgefffddgefff","o":"1460352"},{"n":7,"v":"eeaabbcdeeebbcdeeeebcdeeeeegdeeegggffeegggfeegggg","o":"2460315"},{"n":7,"v":"bbcccaafbbcccaffcccaaffcccedfeeeeeefefeegeffffggg","o":"5136204"},{"n":7,"v":"bbbbaaabcbbbddbcceeddeeeeedgeeeegggeeeffggeeegggg","o":"4025136"},{"n":7,"v":"ddbeeaaddbeeccddbeeecdggeeeedfggeeeffgggggggggggg","o":"5260413"},{"n":7,"v":"aabbbbbabbbbbcadddddcggddfdfegggfffggfffffgggffff","o":"1463052"},{"n":7,"v":"aabbbbbaaaffbbaccdfeeffddfeeffffffefffffggfffgggg","o":"0513624"},{"n":7,"v":"eeeeeaadbbbeacdfbbeacdfbeeggffeegggffeeeggfffgggg","o":"5260314"},{"n":7,"v":"bbbbccabbbbcccbbbbcccddddfccddeffffddefgfgdgggggg","o":"6140253"},{"n":7,"v":"aabbbbbaccbbbbeeccbdbeeeccdbeeeccddffeecddfffegdd","o":"1635204"},{"n":7,"v":"caabbddcaaabbdcccbbbdecceeedeeeeeffeeeeeffeegeeff","o":"1406352"},{"n":7,"v":"ddaceebddaccebdddccebdddfeegdfffeggdfffeggffffggg","o":"2630415"},{"n":7,"v":"ccccaadbccccddccccdddcceeedgccceeegcffeeggccceggg","o":"4025316"},{"n":7,"v":"caeeebbcaeebbdccebbddccebgddeeeggffggggggfgggggff","o":"1405263"},{"n":8,"v":"aaaaaaaaaaaaaaabdaaacabbdaaacebbdaaccebbfffcceebfffgchehfffgchhh","o":"27405136"},{"n":8,"v":"dddaaaaadaabbaaaddaaaaacdddddaaadddddaeaddfffeeefffgggeefhhhhgee","o":"53706241"},{"n":8,"v":"aaaaaaaaabbaaaccabccacccccccccddccceccfdccheeefdghhhhfffhhhhhfff","o":"41573602"},{"n":8,"v":"aaaaccccbaaaaccccccccccccceffdccceeeffffeeefffhhgegghffhggghhhhh","o":"30751426"},{"n":8,"v":"baaaaaaabddaaaaabbdaacaafbdddcaafddddcegffdcccggfddddgggfhhdgggg","o":"40536172"},{"n":8,"v":"ddddddadcccbddadeccdddddeeeeddddeffeeeddfffgeeedfhfggeedfhhhgddd","o":"63175042"},{"n":8,"v":"bbbbbaaabbbbbacabbbbbbcadggbbfcagggeffccggghfffcgghhhffhggghhhhh","o":"72603514"},{"n":8,"v":"caaccccccccccccbcccccccbeeeccdcceeccfffheeecfhhhgeeefhhheeeeehhh","o":"27351406"},{"n":8,"v":"baaaddddbccccdddccccccddcccfddddeeffddddefffddddeffffhdgfffffhhh","o":"20461375"},{"n":8,"v":"bbbbbaaabbbbbeeebbbbbeecbbbfdfeebbhfffeegbhffffeghhffffegghhffff","o":"51746302"},{"n":8,"v":"dddddccadbbdccccdbbdcdcceebdddcceebdddcdeffdfdddgffffffhgggffhhh","o":"72631405"},{"n":8,"v":"adddbgggddddbbggddddbbcgddddegggdddeegggdddeffggdddgggggddhggggg","o":"04613572"},{"n":8,"v":"ccccaaaaccccbbaecccccdeeccedddeeceedeeeecfeeeeeehfffeeeghhhheegg","o":"64035172"},{"n":8,"v":"aaaaaaaabaaacaccbddacaccbbddccccbegdhccceegdhccfegghhccfgghhhccc","o":"50631724"},{"n":8,"v":"ccccccacbbbcccccbbbbbeccbdddeeccdddeeecgffdddeegdddggggghddggggg","o":"62735140"},{"n":8,"v":"aaccccccacccbcccacccbdddaccdddddaaffddeeaaffhhheafffgghhffffghhh","o":"04136257"},{"n":8,"v":"baaaaaaabbbaccaadbddcccadbddcccaddddddcedddddfceddgdddheddggdhhh","o":"31407526"},{"n":8,"v":"cccaaaaaccaaaabaccccddffeeccdfffecccffffeecfffffeeccffggeehhffgg","o":"36140572"},{"n":8,"v":"ccddaaaacdddabaacddddddddddffdddggdffdehgfffffehgggghhehgggghhhh","o":"75026314"},{"n":8,"v":"aaaaabbbaaaabbbcaaabbbccaadhbbceafhhheeeafhhhheeafhhhhhghhhhhhhh","o":"04625173"},{"n":8,"v":"ccbaaaaaccbbbaaaccccaaafccccdaafecccddafeeccddffeegcdcfhgggcccfh","o":"53140627"},{"n":8,"v":"ddbaaaccddbbacccddddacccdddddcccdddhheecgdfhhhccggghccccghhhhccc","o":"53716204"},{"n":8,"v":"caaaabbbccacccbfcccccfffcccedfffcceedfffcceegfffceeggfffggggghff","o":"16042735"},{"n":8,"v":"aaaaccccaffdbcccaffdgcccffddgcccfggggccefgffgcccfffggghcfffgghhc","o":"14627035"},{"n":8,"v":"cccaabbbccaabbbbfcccbbbbffccdddbffcddddeffddddddfffdgdddhggggddd","o":"36257140"},{"n":8,"v":"bbbaddddfbbfddecffbffdecfbbfddeefbffeeeefffffffeggfgfffeggggfhfe","o":"31746205"},{"n":8,"v":"dccccaaadccccaabddceccaafddeeeaeffeeeeeeffgggeeeffgggeeeffgggghe","o":"57413026"},{"n":8,"v":"dbbaaeeedbbcceeedbcccceeddffeeeeffffeeeeffffeeegfffeeeegfffehegg","o":"31506274"},{"n":8,"v":"ccccaaabdcccccebdeeeeceedfeeeeeefffeeggefffeegggfffeegggffhhhggg","o":"47503162"},{"n":8,"v":"bbbcccafbccccccfdccceccfddeeeccfdeeehfffgggehfffggghhhhfhhhhhhhf","o":"60513724"},{"n":8,"v":"bbbcacccbbbcccccddccccggdffcfcegdffffeegdfffggggdfffggggdfhffggg","o":"41506372"},{"n":8,"v":"hdaaaaaahddbbaaahddbccaehhddddeehddddddehfffddeehhffgdfehhhfffff","o":"63527140"},{"n":8,"v":"bbbbffaahbbfffffhhhffccchhhdfeechhffffechhfffgeehhfggghhhhhhhhhh","o":"71536240"},{"n":8,"v":"ccaaaaaacccabbbacccddbbaccfddeeaccfdffehcfffffehfffghhhhfffhhhhh","o":"25046137"},{"n":8,"v":"aaaaaaeeaaaabbeeaccbbeeecccdeeeefffheeegffhhggggffhhggggffhhhggg","o":"25136074"},{"n":8,"v":"aaaabbccadbbbcceadbgbcceaddgbbeeaadggbbeaadgffbbaaggggggaggggghg","o":"03517426"},{"n":8,"v":"aaabbbbbaaccccdbeecccdddefffddddeefdddddeefffdddhefffgddhfffffdd","o":"27461350"},{"n":8,"v":"cccaaaaaddccebaadccceaaeddgceeeehhggeeeehhhgffffhhhgffffhhhhhhhf","o":"75204631"},{"n":8,"v":"ccaaaabbcccaabbbcccabbhhcccdddhhceefddhhhefffhhhhhhffghhhhhhhhhh","o":"26041357"},{"n":8,"v":"bbaaaaaabaaaaaaabaaaaadcbbaaadddeeeeddddeeeeffddgghfffdfgghhffff","o":"60752413"},{"n":8,"v":"dbbbbaaadbdbbcccdddbbdccddddddccddgegccfdggggggfgggghggggghhhhhg","o":"51603724"},{"n":8,"v":"aaaabbddacbbbbddacbbbdddccbbbdddffffbddeffffbfdefhffffgehhffffgg","o":"24157360"},{"n":8,"v":"hhhbbaaahhbbbcachhbbbccchffggggdhffgeegdhffggggghfgggggghhgggggg","o":"62574130"},{"n":8,"v":"hhbbaaaahhbbddccfhhddcccffhhdccgffhddeeghfhggggghhhggghghhhhhhhg","o":"52746130"},{"n":8,"v":"aaffffffabbbffffddhhfccfgddhccffgddheeffgdhhhhfhghhhhhfhgghhhhhh","o":"13524607"},{"n":8,"v":"dddbbccadddbbcccdddbccecdhdddceehhfffeeehfffgegehggggggghggggggg","o":"73526140"},{"n":8,"v":"bbbbbaaabbbbddaabbbbdddcbbdbdcccdddddgeedfdddgeehffhgggehhhhhggg","o":"53726140"},{"n":8,"v":"aaaaabeeaccbbbeeccffbdeefffggddeffhggeeefhhggggghhhghggghhhhhggg","o":"24157063"},{"n":8,"v":"aaaacbbbaaaacbebdcccceebddceeebbfffeeeebfffeeeeghhfeeegghffeeeeg","o":"37415260"},{"n":8,"v":"ffaaaaaaffbaaaaafbbaaacaffbdaeccfdddaeccffhhhgggfhhhhgggfhhhhhgg","o":"42635071"},{"n":9,"v":"bbbbbbaaabbbbbbbbacbbbbbbaacccddebaacccddebeaccccfeeeehffffieeghhfffiiighffffiiii","o":"620374815"},{"n":9,"v":"bbbbbbaaabbbbbbccabbbbcbcaabbbccccadbggcfceddggfffheddgihhhhhddiihhhhhddiihhhhhhh","o":"724863051"},{"n":9,"v":"aaaaaaaaaacaaaaebbccaaaaeeegccaeaedeggcaeeeeegfgageeeegfggghehhgggiihhhhggggiihhh","o":"280751364"},{"n":9,"v":"aaaaaaaadaaaaabaadcaaaabdddaaafabdddeeeffddddffffffgddffffggggdiffffhgghiifffhhhh","o":"350724681"},{"n":9,"v":"bbbbbcccabbbbbbccebbbccbcceffddccceefffdccceeffffccceefffgcccceifffhhheeifffffeee","o":"846271350"},{"n":9,"v":"aaadddbbdaaaddbbddacaddddddggfddddddgfffddddegfffdddgggggggggggggghgggggggggggigg","o":"051482736"},{"n":9,"v":"bbbbbbdaabcccbddddfccddddddfccddddddffeffddddffffiddddffffiigggffffiggghffiiihhhh","o":"741520683"},{"n":9,"v":"bbbaaaaaabcbbaaaaaccbaaaaaacccaaaaddgcgffeeddgggfffdddgggggidddhhgiiiiddgggiiiidd","o":"731864205"},{"n":9,"v":"abbbbbbbbbbbbbbbebbbbbcceedbffffeeddbbfffegggbfffeegggbfffiggghffifiiighffiiiiigg","o":"024751683"},{"n":9,"v":"dddddaddddbdddadccdddddddfceddddffffeeeedfiiieeeedffiieeeggggiieehhggggieegggiiii","o":"518306427"},{"n":9,"v":"aaaaaaabbaaccabbbbacccaddbbccecedbbbcceeeddbbcceeeedffccgeeddffccgggggfhciiiighhh","o":"061537284"},{"n":9,"v":"ddddaaaaadddbbbbaaddddddccadddddeecaffddeeeeefdddeeeeeideeegeeeiieeeggheiieeeeggg","o":"836240571"},{"n":9,"v":"dddddaaaabddaaaaaadddddaccadedeeaeffdeeeeeefhddeggeefhdeegggghhdegggghhhiigghhhhh","o":"506247381"},{"n":9,"v":"aaacccccbacaaccccbaccccccebcccdcceegcccddieggddddfiigiddhhhiigiddhdhiiiiddddiiiii","o":"081364725"},{"n":9,"v":"bbccccaddbbbcccaddbbbccccddbbcceccddbbeeeddddfheeeggdghheeeggdghhhheggggiiigggggg","o":"625740831"},{"n":9,"v":"fffddaaaafffdbbaacfffddaaacffdddaaccffdffeeecffffffhehfffggghhhffffggghhfiiggghhh","o":"648250371"},{"n":9,"v":"bbbbbaaahbbbbbcchhbbbbccchhdbbbbbchhbbeggffhhbbgghfhhhbbgghhhhhbbiiihhhhbbbiihhhh","o":"716025384"},{"n":9,"v":"bbbaaaaaabbbaccdaabbbacddddbebbbbdddeeebbbddfgeebeeeffgeeeeehhfgggeehhhigggggghhi","o":"314627058"},{"n":9,"v":"aabbeeeeebbbeeeeeebccccedddbfffeedddfffeeeeedffffhffddfffhhfgiiffhhffiiiffffffffi","o":"024751638"},{"n":9,"v":"cbaaaaaaacbbaaaaaacaaaccaaaccccccdaaecccccdfaeecccccffggcccccifgghhhiiifgggghhiif","o":"524608137"},{"n":9,"v":"eaaaabbbbecddbbbbdeccdddbddeeefdddddeeffdddddeggfffdddeggggfdddigggghhddiggggggdd","o":"472815360"},{"n":9,"v":"bbcccaaddbbbbccaddbfbeccdddbffeccdddfffeeedddfffffedddfffffegdghffffeggghfffffigg","o":"524731806"},{"n":9,"v":"bbbbbbbacddddbbbccddddbbcchdddeeeeehddfdeehhhddfdeehhhgdddieehhddddihhhhdddiihhhh","o":"746152083"},{"n":9,"v":"cdadbbbbdcdddbddddcccddddddcddddffedccdfdffedccfffffffgcfffiihfgffffihhhgffiiiihh","o":"241375086"},{"n":9,"v":"aaaaaaccdbaaacccddaaaacedddaaaeeedeeaaeeeeeeeffeeeeegeffffieegeffhiigggghhhiiiiig","o":"304681725"},{"n":9,"v":"bbbbddddacbbbbdaaaccbbbddaaccebddddfceebdddffcegbddfffcgggdffffgggddffhhiggddffhh","o":"841526370"},{"n":9,"v":"aaaacccccaaaccccbcecccccccceccgggcddeeefggcddffffggiddhfggggiiihgggigiiigggiiiiii","o":"274813506"},{"n":9,"v":"aaaaaaaaaaaaaaabbbffgggaccbfgggddecbfhggggeeefhggggggehhgggggiehhhggigiihgggiiiii","o":"286470315"},{"n":9,"v":"bbbaaaaadbbbacaaadbbbbccaadbbbbbbaadbebhhgggdheehhfggdhehhhgggdhehhhigiihhhhiiiii","o":"304815726"},{"n":9,"v":"ffeeaaaacffbeeeeecfffeeecccfffdeeecchffeeeggghfffeeggghfffehghhhhhhhhhhhhhhiihhhh","o":"728351604"},{"n":9,"v":"ccccaabbbcccccadbdcccccadbdgcccaadddgcfcaehhdgifchhhhhgiiihhhhhgiihhhhhhiiihhhhhh","o":"473852061"},{"n":9,"v":"ccccacbbbdcccaccbedccccceeeddfcfeeeefffffeeeeffffffeeeffgffeeehffgiieehhffiiieehh","o":"475160283"},{"n":9,"v":"caaaaahhhcccaahhdbcceehhddheeeehhdhheefhhhhhhfffgghhhhggggghgghgggiggghhggiiigghh","o":"581602473"},{"n":9,"v":"bbbbbbaacbbbbdcaccbbbddccccddbddfeccddddffeeeddddffffhgddiiffhhddddiifhfdddiiifff","o":"625184073"},{"n":9,"v":"aaaaaaaaaaaaaccbbaaaaacccbbdcccccccedcccccceeddcfceeeedddffeeeghhdfigggghhhfiiigg","o":"264073815"},{"n":9,"v":"ccaaaabbbccccabbbbccccabbdbccccabbdbccecaaaddeeeffaiddgeeefaiidgeeeehiiigeeeeiiii","o":"361724058"},{"n":9,"v":"ccaaabbbbcceeebbbbceeeeebddcceeeedddcceehehddffeehhhhgeeehhhhggeehhhhhigeeeehhhig","o":"250631847"},{"n":9,"v":"bbbbbbaaabbbbbbddacbbbbddaacccddddaacfeedddeefffeeeeeghhfieeeegfhfieeeggfffieeegg","o":"640572813"},{"n":9,"v":"aaabbbdddcccbbddddcchbbbdddhhhhdddeefhhhhgggefhhhhgggghhhhhgggghihhhhhggiiiihhhgg","o":"241680753"},{"n":9,"v":"dddafffbbdaaaffbbcdddddffccddeeeefffeeegiifffeeggiiiffehhggiiffhhiiiiiiihhiiiiiii","o":"368027415"},{"n":9,"v":"dddddaaaaddbdddaaaddddddaccdddfdiaaeddfffieeedfffgiiiiffgggiiiifgggiiihiggggiihhi","o":"528061374"},{"n":9,"v":"bbbaaccccbffffccccffffffcggdddeffgggdeeefffggeeehfffggehhhfiffghhhffiigghhiiiiiii","o":"406135827"},{"n":9,"v":"aaaaccciibeaaacciieeccccdiieeccdddiieeccddggiehffffggiehffggggihhhfiiiiiiiiiiiiii","o":"304615728"},{"n":9,"v":"ddddaaaaaddcccaabbddeecfaffddeegffffheeeggfffhhgggffffhhiiggfifhiiiiiiiiiiiiiiiii","o":"684137502"},{"n":9,"v":"cccbbbdaaccfbbbdddcffeeeeddfffeeeeedfffheggeiffhhhgggifhhhggiiihhhhhiiiihhhhhiiii","o":"730841526"},{"n":10,"v":"abbbbbbbbeabbbbbbbbeccbbbbbbbecccbdbbbeecccbbeeeeecccbbbfeegcccbbbfjegcccbbhjjegccibbhjjeecccbbbjjjj","o":"0314869527"},{"n":10,"v":"aaaaaaaaaaaabbabaaaadaebbbabcaddebbbbbccfeeebbbbccfeeeeebbccfggeijjbhjggiiijjhhjgiiiijjjjjiiiiiijjjj","o":"9581302746"},{"n":10,"v":"cbbbbbbaaacbbbbbbbaaccbdbbbaaaccddbbbaaaedddbbbaaaehdddfbfaahhhdffffgghhhhjjffgghhhhjjjjighhjjjjjjjj","o":"7413059286"},{"n":10,"v":"dddaacccccddbbbcccccdddbbbccccddbbbbbcccdddebbbcccdddebbccfhdgdebbbihhggddibiihhgdddiiihhhdddddiijjh","o":"4260381957"},{"n":10,"v":"ccbbbaaaaacccbbbaaaacccbbbbaaaceccbbdaaaceccbbdffagcccbfffaaggbbbbbaaabbbbhbbbaabjjbhhhiiabbjjjhiiii","o":"9526170483"},{"n":10,"v":"bbbbcaaeeebbbbcccceebbbccccceebdbccceeeebddccceeeebbfcccheeebccccchegibbcccchggibbbcciiiiibjjjciiiii","o":"5041728693"},{"n":10,"v":"aaaaaaaaaaabbaaaaddaaabbaacdaaaggccccdddffgggggeddffgggggdddgggggghdddgggghhhhddigggghhhddgggjjhhhdd","o":"8269713504"},{"n":10,"v":"bbbccaaaaabbbcccacaabbbbccacccbdecccccccbeeeeccccceeeeeeggfiehhheigiiiehhhhiiiiieehhhhiiiieehhhhiiij","o":"5041386279"},{"n":10,"v":"bbbbabbccgbbbbbbbccgbdbbbbbcggbdddebbccgbddeeefgggbbddeefgggbddhehggggbddhhhhgggiddhhhhgggiiiiiihggj","o":"4271368509"},{"n":10,"v":"daaaaceeebdaaaccceebdaaacaceeedddaaaeeeeddaaaaeeeeddaaffeeeejgghfffeeejjhhffeeeejjhfffiieejjffffieee","o":"4962851370"},{"n":10,"v":"aaaaaaaaacabbaaaaaacbbbbadaaccbbbbbddddfbbebbbfddfeeeeeeffffgggeffffffgiiiiifiihgiggiifiiiggggjiiiii","o":"3185260974"},{"n":10,"v":"ddddccaaaadddbbcaaaadddbbccacaddddddccccddeeeddcccddggedddffdggggggdhhdggggggddhdgggiggghhdddiiggjjh","o":"6350281947"},{"n":10,"v":"abbbbbbbbbiibbbbbbbcidddbbbbcciidffbbbeciifffbeeeciiiffeeeeeiiiffeeeegiiiihieeegiiiiiieeejiiiiiiijjj","o":"0582639417"},{"n":10,"v":"dfffffbaaadffffcbbaadfffecccaadddfecfffafdffeeffffffffffffiiggfffffiiiggffffhiiiggiifiiiijgggiiijjjj","o":"9751420638"},{"n":10,"v":"aaaaaaacccaabaaaacccaaaaaadddcaaaaaddddceeiidddccceeiiddfffgeeiiiiiggghiiiiiggggiiiiiiigjjiiiiiiijjj","o":"4295168037"},{"n":10,"v":"ccccccaaabccccccdbbbccccccdddbccccddddbbehccdddfffhhcccccfffhcccffffgghchcjfiiighhhcjiiigghhjjjiiiig","o":"6814079253"},{"n":10,"v":"aaaaaaaaaaadfffbaaaaddffcaaacadddfcccccaeeffcccaaageffffcaajggjfffhhhjjjjifjjhjjjjjijjjjjjjjjjjjjjjj","o":"9582041736"},{"n":10,"v":"bbbbbbaaaabbbbbbbaaabbbcaaaaaadbbcccaggadffffhheggdffhhhhhggddfhhhjjgjdjhhhjjjjjdjjjjjjjjijjjjjjjjjj","o":"6130728495"},{"n":10,"v":"aaaccccccceaaddccccbeeedcccccceeddddfggceedffffgggefffggffggeeffgggggghfffiiggggjfjiiiiiggjjjjiiiggg","o":"2974168053"},{"n":10,"v":"aaaaaaabbbdaaaaabbbbdadafbbccedddffbbceedfdfffbceefffffbbbbbffgfffbibbhhgjjjbiiijjjjjjjijijjjjjjjjji","o":"3681942075"},{"n":10,"v":"aaabbbbbbcaadbbbbbcceddbbbbbccedddbfffcfeddbbfffffdddfffffffhdggfgffffhhggggifffhhhgggijjfggggggjjjf","o":"2493075168"},{"n":10,"v":"cccccceabbccdceeebbbdddccceeebdddceeeebbdfddeeeeebffdddddgebffffffggebfhfffjjgggfhiijjjjjgiiijjjjjgg","o":"7942806135"},{"n":10,"v":"aaaabbbbbbaaaabbbbbbaaacbbbbbbdaccffbbbbddiiffeeebdgiiffffebggiiiieeeegjjiihhhhejjjjiiihhhjjjjjiiiih","o":"2930751864"},{"n":10,"v":"fffdadddggfffdadbbbgcffdddbeegffffdddeegfffffgeeggfhfhfggggifhfhggggiifhhhggggiiffhhjgiiiiffjjjjiiii","o":"4805726193"},{"n":10,"v":"bbbbaaadddbbbbbaaaddbbbffdcdddbbeefdddddebeefffffdebeffffgggebeeffhhhgeeeffhhhhgeeiihhhjhgeeeiihhjjg","o":"4168039527"},{"n":10,"v":"ddddbbbbcaddddbebcccdddddebeccdddddeeeecfddddgeeecffddgggeechhhdgggccchggggiggjchhhiiiijjchhhhiiijjj","o":"9482615037"},{"n":10,"v":"accbbbbbffaacbbbbbffcccccbbbffccccdbdfffcccedddfffgggghfffffgjgghhhfjfjjjgghhhjjjjjjjjhijjjjjjjjjjjj","o":"0416382579"},{"n":10,"v":"aaaaaabbbbcaaaabbdbbccccgbbddbecgggbbddbeeegbbddbbeeeggffdddeeeegggdddjjjgggghddijjgggghhdjjjgggggdd","o":"5938164702"},{"n":10,"v":"ccbbbaaaaaccbbcaaaiaccccccadiiecccccddiieccccccdiieefcccggiieeehhiigiijeejhiiiiijjjjhjjjjijjjjjjiiii","o":"8316027495"},{"n":10,"v":"ccccceeeaacccceebbaaciiieeebdaiiiiieeedeiiiijheeeeiiifjhehjjigifjhehjjiiifjhhhjjiiijjjjjjjiijjjjjjjj","o":"9708631524"},{"n":10,"v":"ccccaaaaaedddcaabbeeddccabbbeedddaabeeeeiidaabeeeeiiiffgeeeeiiggggeeeeiggggghheeiiiighheeeiiijjhhhhe","o":"8620935714"},{"n":10,"v":"aaacbbbbbbaaccbbeeebacccbbbeeeddhcggbeeeddhcggbbeefdhhggbeeefdhhhgggeefhhhhhiiiefhhhhiiieefhhhjjiiii","o":"2931806475"},{"n":10,"v":"dddaaaaccbddaaaaccbbddddffccgeddddfffggedidddfgggedidddfffggiiffffggggihhhffjjggiiihhfjjggiihhjjjjjg","o":"3861957204"},{"n":10,"v":"aaaaddgbbbddddddgggbcddddeeggbddddeeggjjdeeeeeigjjddhfeiiggjdhhhhiiggjdhhhhiiigjdhhhiiiigjiiiiiiiijj","o":"1902537468"},{"n":10,"v":"bbbbaaaaeebdbbfaaaaebdbfffceeebdddffeeeebjjdfgggeebjjjfgggegbjjjffggggbjjjjgghggbijjjghhgjjjjjjjjjjj","o":"5062849713"},{"n":11,"v":"bbbbbbaabbbbbbbbbbbbbbbbccbbbbbbbbbbcbbbbbbdbbbeeebedddfffeeeeegggffeeeeeehggfeeeeehhhggieeejeheeggikejjeeegggikjjjjjeegg","o":"683a5297041"},{"n":11,"v":"ddccbbbccacddccbbbccccdccccccccccddcccccccecdddccccceecfffcffcgeeeihfffgggeeeihfhhkggeeeihhhhkkkkeeihhhjkkkkeehhhkkkkeeee","o":"95a18273046"},{"n":11,"v":"aaacccccccbaaaaaccccbbddaaddccccbdddddcccccbdedddcccbcbeedddcfbbbbeeedggfbbhbeejjbbbbihheejjjbbbiiieekkjjbbbbbeekjjbbbbbb","o":"0973164a852"},{"n":11,"v":"eeddddddacceebdddddaaceeeeddddddceeeddddddddeeeedddddddeeeeedfddddegghedffffiggjhhdfiffigjjhhffiiiijjjkhfffiiijjkkkkfffii","o":"82a73614905"},{"n":11,"v":"ccgdddddddacgggfbddddacgggffdddgggggffffdddggggefffddggggggffffggggggggggfggghhkkkggggggkkkkgggggigkkkkjjiiiiikkkkkjiiiii","o":"a5073681942"},{"n":11,"v":"aaaaaaaaaaaaaaaaabbaaafaaaaaccccaffgggddddcaffgggedddccffgggddgddcfgggggggddcgggggggghdcigggggghhhhijjjgkghhhhiiikkkkkkkh","o":"a6975138024"},{"n":11,"v":"ffffaaaaaabffffaaaaabbddffcaabbbbdgffffababbggfffaaaabegggfffgggbeiggggffggghiigggggghhhiiiggggggghiiiiiiijjhhikiiiijjjhh","o":"6940a538271"},{"n":11,"v":"ffcccaabbbbfccccdbbdbdfccdcddddddfceddddddddfceeeedddddffffeddddddffeeeeegdhdfffeeiighhhkkfeiiighhhkkfeiejjhhhkeeeeehhhhh","o":"5928317a460"},{"n":11,"v":"aaaaaaaaabbaaaaaaaabbbdaaaaacabbbddaddecccgbdddddeegggbdddfffeegbbddddffigggbddffffigghbddffiiihhhhddffiijjhhjkfffiiijjjj","o":"286153794a0"},{"n":11,"v":"aaaaaaaaaaaaabbadaaaacaaaaaddaaacaaahhdddaagaehhddfdaggeeehhhfffgiehhhhhffggihhhhhhhffiihhhhhhhffiihhhhhhjjjiihhkhhhjjjii","o":"03a51684972"},{"n":11,"v":"gggaaddddccggaaaddddcbggggddddcccgggeddddddcgeeededdcccggeeeehdfffggeeeehdhhhgeeieehhhhhieeiihhhhhhiiiiihjhjjhiiiikjjjjjh","o":"3a852917064"},{"n":11,"v":"bbbdaaaaaccbbbddacccccbbbddacccccbbddeacccccbbddeecccccddddeeefffcdhddghhjcccihhhhhhjccciihhhihjccciihiiijjccckiiiiiiiiii","o":"82a35946170"},{"n":11,"v":"aaaaabbbbbbaaaaaaaabbbaccaaabbbbbddcchabbibbddhhhaaiieedddhhhiiffeggdhhhhiiiigdddhhiiiiigdddjkkiikkgdddjkkkikkdddkkkkkkkk","o":"3920a815746"},{"n":11,"v":"aaabbbbbcccaeebbbbbcchaeeebbbdccheeeebbddccheeeeeeeeecheeeegeeeefheeeeggeehhheeggggihhhheeggjiihhhhegggjiijjhhkgjjjjjjhhh","o":"1386294a570"},{"n":11,"v":"fdddddddaaafffddddddabfffdcdddddbfffeededdeefffheeeeeegfffheeeggggkffhheggggikhfhheggggikhhhheggiiikkkjjjjjjiikkkkkkkkkki","o":"8a475261930"},{"n":11,"v":"bbbbaaggggdbbbccaggggdbbcccggggddbccgggggggdfccccggeggdfcjkccggggdfcjkkhggggdjjjkkhggggdjjjkkkgkkikjjjkkkkkkkkjjkkkkkkkkk","o":"413a7085926"},{"n":11,"v":"ddbbbabbbbbdddfbbbccbbdddffbcccccdddffbccceeddddfccceeeffffffchieefggffcchiiefggghhhhijefggggiihijifggggihhijifkkgiiiiiii","o":"5a708314692"},{"n":11,"v":"fffffaabbbbffffccbbggbffffccdgggefffcccdgeeefffficcgggefffiiccggggffiiicggggghfiiicjjjjgkiijjjjjgggkkiiiikjjgjkkkkkkkjjjj","o":"5746a190283"},{"n":11,"v":"acbccccccccdcbcccceccfdccccceefffdddcccgefffdhdggggeeffdhhgggggfffdhhggggffgghhhhiiggggjhhhhiiggjgjhiiiikggjjjhhhiikkkjjj","o":"02418a63597"},{"n":11,"v":"edddaaaaaaaedddbccaaaaeeedfccaacaeefdffccccceeffffffiiieeffffffiiieefffhffgiieefffhhhhiijeeeeeehiiijjeeeeeiiiijjjeeeiiiik","o":"7463028591a"}];
-
-(function () {
-  const $ = id => document.getElementById(id);
-  const KEY = 'rommelkroon-v1', N = PUZZELS.length;
-  let opslag = { opgelost: {}, bezig: {}, auto: false };
-  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
-  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
-  const KLEUREN = ['#F4A6A6', '#F7C98B', '#F6E58D', '#B8E0A0', '#9ED8D8', '#A9C4F5', '#C9B3F2', '#F2B5D9', '#D9C2A6', '#BFC7D1', '#E8E2A8'];
-  const KROON = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 30l-2-18 9 7 7-13 7 13 9-7-2 18z" fill="#E9B949" stroke="#231A26" stroke-width="2.6" stroke-linejoin="round"/><rect x="6" y="30" width="28" height="5" rx="1.5" fill="#C99A2E" stroke="#231A26" stroke-width="2.4"/><circle cx="20" cy="22" r="2.6" fill="#C8323C"/></svg>';
-  const KRUIS = '<svg class="x" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="#231A26" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg>';
-  const GROEPEN = [[5, 'Opwarmen'], [6, 'Makkelijk'], [7, 'Gemiddeld'], [8, 'Pittig'], [9, 'Lastig'], [10, 'Meester'], [11, 'Kroonmeester']];
-  const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-  const dagNr = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
-  const dagPuzzel = () => { const kandidaten = PUZZELS.map((p, i) => i).filter(i => i < 120 && PUZZELS[i].n >= 7 && PUZZELS[i].n <= 9); return kandidaten[(dagNr() * 37) % kandidaten.length]; };
-  // ---------------- overzicht
-  const aantalKlaar = () => Object.keys(opslag.opgelost).length;
-  const PER_MAAT = {}; PUZZELS.forEach((p, i) => { (PER_MAAT[p.n] = PER_MAAT[p.n] || []).push(i); });
-  const open = i => { if (i < aantalKlaar() + 3 || opslag.opgelost[i] || opslag.bezig[i]) return true; const lijst = PER_MAAT[PUZZELS[i].n], klaarHier = lijst.filter(j => opslag.opgelost[j]).length; return lijst.indexOf(i) < klaarHier + 3; };
-  function tekenOverzicht() {
-    $('stand').textContent = `${aantalKlaar()} van ${N} opgelost.` + (aantalKlaar() < N ? ' Los er een op om er weer een vrij te spelen.' : ' Je bent een echte Rommelkroon-meester!');
-    let h = '', i0 = 0;
-    for (const [n, naam] of GROEPEN) {
-      const idx = PUZZELS.map((p, i) => i).filter(i => PUZZELS[i].n === n);
-      if (!idx.length) continue;
-      const klaar = idx.filter(i => opslag.opgelost[i]).length;
-      h += `<div class="groep"><h3>${naam} · ${n}×${n}<small>${klaar} van ${idx.length}</small></h3><div class="levels">${idx.map(i => { const o = opslag.opgelost[i]; return `<button class="lvl ${o ? 'klaar' : opslag.bezig[i] ? 'bezig' : ''}" type="button" data-lvl="${i}" ${open(i) ? '' : 'disabled'} aria-label="Puzzel ${i + 1}${o ? ', opgelost in ' + fmt(o.tijd) : ''}">${i + 1}<small>${o ? fmt(o.tijd) : open(i) ? '' : 'dicht'}</small></button>`; }).join('')}</div></div>`;
-      i0 += idx.length;
-    }
-    $('groepen').innerHTML = h;
-    const d = dagPuzzel(), dk = opslag.opgelost[d];
-    $('dag-tekst').textContent = `Vandaag: puzzel ${d + 1} (${PUZZELS[d].n}×${PUZZELS[d].n}).` + (dk ? ` Opgelost in ${fmt(dk.tijd)}!` : '');
+// hoofdstukken (puzzel 371 tot en met 500): 1 rommel op het bord, 2 prijskaartjes, 3 reuzenborden, 4 dubbele kronen, 5 rommelmeester
+PUZZELS.push(...[{"n":6,"v":"aaaaaaaaaabaCcCcbaccccddeccfdfEeffff","o":"241503"},{"n":6,"v":"abbbccAacccCacccccadeeeeadDefffffFff","o":"240315"},{"n":6,"v":"abbccdabbcddAccccdAaadddEeedddffffff","o":"203514"},{"n":6,"v":"abbcccabbbdcabbddcAdDdDeaFffeeffeeee","o":"420351"},{"n":7,"v":"aabbbbCaabbdccaeeedfgaeffffgaafFfggAaFffggaafffgg","o":"2641530"},{"n":7,"v":"aaBbcCcaabbcccaaddeffaddeeffddddggfddgggggDggggGg","o":"3514602"},{"n":7,"v":"aabbCccadDbCccadDbBceffdbbbeffdbbbeffbbbggggggGgg","o":"5062413"},{"n":7,"v":"aaAabBBaaaaccbDaDaccCdddecccdddefffdgeeeffddeEeff","o":"4250316"},{"n":7,"v":"aabbbBbAabbbbbabbbcbdabbbbddeeefffdgggfffdggGffdd","o":"3146250"},{"n":7,"v":"abccccCabbcbbcaabbBcCdDeEbbcdddebffddddfffdddggff","o":"3502614"},{"n":8,"v":"abbbBbbCaaabbbbcaaabbbbcdaeebffcdeeebffgeehhbgggeeehhgggeEEhHggg","o":"37205146"},{"n":8,"v":"aaaabBccaaDdbbbcaadbbbbeaaaffEeeaaafFeEeagghfeeeagghhHheaagggggg","o":"75263140"},{"n":8,"v":"aaabBcccdaadbbccddddbccCedddcccfeddDdfffeedddfffggggghgggGGGgggG","o":"24637150"},{"n":8,"v":"aaaaabbbcCaAabbbccaadbbbcceadbbbFeeadbbgfeeddbbgFeEddgggfeedhhgg","o":"36142075"},{"n":8,"v":"aaaabbbcddAabbecddbbbbecddddfbEcgdhhfFccGHhhhHcCghhhhcccghhccccC","o":"53614270"},{"n":8,"v":"aaaaabbbaaaccccbdaacccebdffggeebfffggehhfFFgeeHhfgfgeeHHfgggEEEH","o":"61402753"},{"n":8,"v":"aBbbccccaaadCcccaaaddeccfffddefffffddffghhffffgGhhfffffghHffFfff","o":"27153640"},{"n":8,"v":"AaAaaaabaaaaacabDdDeaCbbeedeacbbeeeefgggeeeffgGgEhhffffgEhHhhfff","o":"35726041"},{"n":9,"v":"aaaaaaaaaaaaabbbcCbbbBbbdddEbbbbbbddeEbbbbdddefbbbghddfffgggggggffggigggggGGggggg","o":"374806251"},{"n":9,"v":"AAbccdeedaabccdeddAbbcFddddbbbcfcdddbgcccccddbgcccCcddgggCcCccdhgcccHccihhhhhhcci","o":"602473185"},{"n":9,"v":"aAbbbBbBbaabbbbbbbcabbbbdEeccdddddefcccgddddfhccggGdffhcgGgGfffhiiiiIfffiiiIiffff","o":"618524037"},{"n":9,"v":"aaabCCccdaaEbBCCddaaEebbdddaaeebbfffaaaabbbffaaaaaafFFagaahiiifagghhhhiiaGhhHhhii","o":"684270513"},{"n":9,"v":"aaaabbbbcddeaababceeeaaaaacfeEaAaAgCffehhhhgcffhhhhHgcfffffffGgfifffffggiifffffff","o":"602538471"},{"n":9,"v":"aaaaaaabBcccaaaabbCaAaaaabbdeefaghhbdeeFfgHgbddegggggbeeegggiggeeggeeiigEeEEeEeIi","o":"528640371"},{"n":10,"v":"aaabbccdddaaaaccddDeaaaaacaaaeaaaaaCaeeefFaaaaaeeEffaaaaaeeeffggaaaeeefffgahHeiijffaahhhiijJfffffiii","o":"4752813960"},{"n":10,"v":"aAaaaaBbbCaaaabBbbbcaaaaaabbccaadaaaEeEcaadaaaafEgahggfFFfgghhgggggggghhgggggggghhgggiiiJjhhgggijjjj","o":"0697241358"},{"n":10,"v":"aaabbCccddaaabbbCcddaaaabeCffDaaaaeeffffaaaaeeffffaaaaeEeegghiaajjeegghhjjjjjGgGhhjjjjjggghhhhjjjggg","o":"6947531820"},{"n":10,"v":"aAaaaaaaabbaaaacbbbbbaaaaabbDdbbbbbbbeedbBbbbfbeeebbbbfffggebbbffffhggiIbJfhHhggiibjhhhgggiibjjjHhhg","o":"2591748063"},{"n":10,"v":"aabccCddeeaabdddddeeaabbdddeeeafbbBgdeeeffffggdeeeffFgggdhhhigggddddhhIdddddJdddidddjdjdddiiddjjjddd","o":"4138259706"},{"n":10,"v":"aaBBbbbccdaaabbbbbcdaaabbbbbCdEaabFbbbcdEeabffbbcdEaafffbgGdeeafahbbgdeaaaahhbbbeiIihhhbjbeiihhhjjjb","o":"8392470516"},{"n":6,"v":"aaabbbaaacbbdaccbbddceeeddcceeddfcce","o":"403152","t":[[7,1],[27,1]]},{"n":6,"v":"aaaabbcaaabbccaaddccceddcceeeefceeee","o":"524130","t":[[4,1],[29,0]]},{"n":6,"v":"aabbbbaabbccdaaaecdfaaecffffecffffee","o":"253041","t":[[22,2],[27,1],[29,1]]},{"n":6,"v":"aaabccaaabccddbbecddbbeedddfeedddfff","o":"502413","t":[[11,1],[27,2],[34,1]]},{"n":7,"v":"aabbcccaabccccbabdddcbbbedddbbfgdddbffggggbffgggg","o":"6153042","t":[[7,1],[33,1],[41,0]]},{"n":7,"v":"aabbbbcaaabbbcadecbbcaeeccccaeecccfeeeecgfeeggggg","o":"0514263","t":[[20,1],[31,2],[48,1]]},{"n":7,"v":"aabccccaabddccaaaadccaaeeeccaffeeecffffffgffffggg","o":"5241306","t":[[11,2],[21,1],[28,2]]},{"n":7,"v":"aaaaabbcaaddbbcddddefccdggefccdgeefcceeeefeeeeeee","o":"1520364","t":[[3,0],[10,1],[14,1],[22,2]]},{"n":7,"v":"abbccccabbccddaaeecddaaeeefdgaaefffggaffffggaafff","o":"5263140","t":[[4,1],[11,1],[38,1],[48,0]]},{"n":7,"v":"aaaabbcaaddbbcaedddbcaeefbbcaeeffccgggffffggggfff","o":"0531642","t":[[19,1],[32,1],[41,1],[45,2]]},{"n":8,"v":"abbcccccabbbcccdaabbcecdfaaeeegdfaaheegdaaaheggdaaaaaaggaaaaaagg","o":"52740316","t":[[2,1],[35,2],[54,1]]},{"n":8,"v":"aaabccddabbbccccaabbbcccabbbecccaaeeecccfafeggggfffhhhhhfffhhhhh","o":"72063514","t":[[0,0],[5,0],[34,1],[38,2],[52,2]]},{"n":8,"v":"aaaabbbbacacbbbbdcccccbbddccccbeddcceeeedffggeeegffggeehggggghhh","o":"17305246","t":[[10,2],[13,0],[16,1],[31,0],[32,1]]},{"n":8,"v":"aaaaabbcaaabbbbcaddeeebbadddeebbafffeeebgffffffbgfffhfbbgggfhbbb","o":"71625304","t":[[32,0],[40,1],[44,2]]},{"n":8,"v":"aaabbbccaabbbcccaaadbceeaaddffeeadddeeeeaaddgeeeaaggghhhaggghhhh","o":"73041625","t":[[3,1],[5,0],[39,1],[42,2],[51,1]]},{"n":8,"v":"aaabccccaabbccccaaabddccaaaaddeeffffgdeehhfggeeehhfgggeehhgggggg","o":"63502714","t":[[13,2],[25,2],[42,2],[62,0]]},{"n":8,"v":"abbbbbbbabbbbbbcaabdbeccaabdeeccafdddcccaffddgggaaagggggaagggghh","o":"02537146","t":[[16,0],[43,1],[45,1]]},{"n":8,"v":"aaaabbccaaabbcccaddbbbccdddbeeeefdffeegefffheeggfffhhgggfffhgggg","o":"26315047","t":[[18,2],[21,1],[23,1],[28,2],[33,2],[34,1],[45,2]]},{"n":9,"v":"abbbbcdddaabbcccddaabccddddaaccccdddeeefcddgdeefffffggeeffffgggfffhiiigifffiiiiii","o":"208415736","t":[[18,1],[35,1],[36,1],[38,1],[43,0],[60,2]]},{"n":9,"v":"aaaaaabbbaaacaabbbdeccaabbbdeeeebbbbdeeeebfbbeeeeegfbbeeeeggghbeiegggghbeiggggghb","o":"582063741","t":[[23,0],[55,0],[65,1],[78,0]]},{"n":9,"v":"aabbbbcccaabbbccccdaaebccccdddeeecccdddefeeecgffffffhhggfffffhhggiifffhhhhhhhhhhh","o":"418520637","t":[[6,0],[23,1],[28,1],[47,1],[65,1],[69,2]]},{"n":9,"v":"aaaabbbbbaaaaabbbbaaaaacccbaddaaeeeeddfggeeeefffggggeefffggghhhiiffghhhhifffghhhh","o":"536814207","t":[[34,2],[36,1],[46,2],[54,1],[77,0]]},{"n":9,"v":"aaaabbbbbaacccbbbbadccccceedddccffeeddddddfeeddddddffeddgggddfhddggddddhdddddiihh","o":"402716385","t":[[27,1],[48,1],[56,1]]},{"n":9,"v":"aaabbbcddaabbbccddabbbbeccdbbbbbecccbbffeecgghhhfeeegehhhffeeeehhhifeeeehhiiieeee","o":"172685304","t":[[12,1],[30,1],[56,1],[65,1],[69,0]]},{"n":10,"v":"aaaaaaabccadddaabbbcaeeaabbcbcaeeeaabcccaeeeeffcccaeeeffccccggeeffcchcgggffiijhcgggggjjjjjggggjjjjjj","o":"3152948607","t":[[6,0],[24,1],[51,0],[74,0],[96,1]]},{"n":10,"v":"aaaaaabbbbaaacccdbbbaaaacddddbeeafggddddeeefggddddeeefggddddhehggggdiihhhhgggiiihhhhgjjiiihhhhhjjiii","o":"0849315726","t":[[20,0],[38,1],[53,1],[62,1],[75,1],[76,2],[78,1],[90,0],[98,0]]},{"n":10,"v":"aabbbbccccaadbbbccccddddeffcccdddfefgggcdddfffggggdddfffhgggddifffhhggiiijjfhjggiiijjjhjjjiiiijjjjjj","o":"3049158627","t":[[34,1],[52,1],[66,2],[75,1],[83,1],[96,1],[98,1]]},{"n":10,"v":"aaaaabbbbbaaacaaabbbaaaccaabbdaaaccaabbdeeeefffffdeeggggfffdheeggggggghhhhggggggiiiijjjjggiiiiiijjjg","o":"8639175042","t":[[3,0],[24,1],[48,2],[62,0],[85,1],[91,1]]},{"n":10,"v":"aaaabbbcccaaaabbbccdaaaebbccddaaaebddcdfgggddddddfgggdhhhdddgggdhhhdddiiiijjddddiiiijjjdddiiijjjdddd","o":"0537961824","t":[[26,2],[47,2],[62,1],[72,2],[99,0]]},{"n":10,"v":"aabbbbbbccaabbbcccccbabdbbccccbbbddccceebbbddcfffeggggdffffegghhhffffegghhhhffffggiihijjffgiiiiijjff","o":"5184970263","t":[[7,0],[58,2],[69,0],[71,2],[82,2]]},{"n":12,"v":"aaabcccccccdaaabbbcccccdeaaacccccccdeeecccccccddfgggccggccccfffgggggggccfhhhgggggiijfhhhggghhhiifhhhhhhhhiiiffhkhhhihiiifffkkkhiiiiiffflkkhiiiii","o":"240a86b79153"},{"n":12,"v":"aaabbbbbbbbcaaabbdbbbbbbaaaaaddbebbbaaaaaaeeebbbaaaaaeeeeeffghhageeeefffghiggeefefffghiggjffffffggggjjffffffgggggjjfffffggggggjjfkffgggggljjjkff","o":"b86371a24095"},{"n":12,"v":"aaaabbbbbbbbcaaddbbbbbebcaddddbbffffcccdddbbffffggddddbffhffgggggdbbfhffggggddibhhhhgjjhhdhhhhhhjjjhhhhhhhhhjhhhhhhhhhhhjjjjhkkkhhhhjjjjkklllhhh","o":"3a714b602958"},{"n":12,"v":"abbbbbcccdddaaabeeeeccddaaabeeeeccddaabbffeeccddaaafffgggcddhaaffggggggihhhfggggggjjhhhfggggggjjkhkkggggggljkkkkggggllljkkkkkggggljjkkkkgggllllj","o":"95820b3a1647"},{"n":12,"v":"aaaaaaaaaaaaaaaaaaaaaaabcdddaeeaeabbccddeeeeefffccddeggehhhfcdddgggiiiifjddgggiiiiifjjdgkkkiiiiijjkkkkkkiiiijkkkkkiiikikjjkkkkkikkkkjjkklkkkkkkk","o":"7b6a80529314"},{"n":12,"v":"aabbccccccddaaabccccccddaaaaaeccffddggaheecccfddghhhhgccccdiggghggcccciiggggggcccciiggggcccccciijgjggccciiiijgjggkkkiikkjjjjgglkkkkkjjjjgkkkkkkk","o":"2084a3579b61"},{"n":12,"v":"aaaaaaabbbbcaaaddebbbcccaaadaeebbfffaaaaaaebffffaaaaaeeeefffaaaaggeeefhijaaageeeffhijajjggggkfhijjjjjjgkkhhijjjljjgkkhhijjjlljgkkhiijjlliiiiiiii","o":"b638514097a2"},{"n":12,"v":"abbbbbbbbbbbaaacdbbbbbbbeecccbbbbbbbeecccbbbbfffeeeccccbbggfeecccccbbbbfeeececccbbffeeeeecccbhhheeeeecicbbhheeeejjickkhhlljjjiikkkkhljjjjiikkkkh","o":"047b952a6813"},{"n":12,"v":"aaaabbbccccdaaaebbcccccdaafebbbccccdggffbccccccdgggfbhhhciidgggbbhhhhiddgjggghhhhikdgjjjjhhiiiklgjjjjhhhikkkgggjjjhhikkkggjjjhhhkkkkhhhhhhhhhhkk","o":"13724a0b8596"},{"n":12,"v":"aaaaaaaabbbbaaacbbbbbbbbdaacbbbbbbbbaabbbbbbbebbaaaffbbeeebbaaafggeeebbhaaafgggeiihhaaafjjgiihhhjjjjjjjjiihhjjjjjjjjiikjjjljjjjjjijjjlljjjjjjjjj","o":"1306475b8a29"},{"n":12,"v":"aaaabbbbbbbbaaaaabbccbdbeeebbbbcddddebbbbbffffgdeebbfffffgggeeeffffffgggefffffffffggeeehfhffggggeihhhhhjgjggiiiihjhjjjjjkkiiijjjjjjlkiiijjjjjjjj","o":"379462a518b0"},{"n":12,"v":"aaaaaaabbbbbaaaaaaccbbbbaaaaaacbbbbbdeaaaffbbbbgdeeeaffbbbbgdeefafhgbbggdeefffhgggggdeeffihhhhhhffffhhhhhhhhffjjhhhhhhhkfffjjhhhhhhkjjjjhhlhhhkk","o":"17902a358b46"},{"n":12,"v":"aaaaaaaaabbcaaadaabbbbccaaadaaaefbccgaadaaeeffchaaadddeeffhhaadddeeehffhaidhhhhhhhhhiihhhhhhhhhjihhhhhkhhhhjiiihhhkhhjjjiiihhkkhhjjjiiiiiikhhjlj","o":"37b08524691a"},{"n":12,"v":"aaaaabbbbbccdddaaabbbecfdddaaaaabeffdddeaaeeeeefeedeeggeeeefeeeeeeeeefffeeehheeeffifehehhefffiiihhhhffffjkkjhhhhfflfjjjjhhhffflljjjjhhhhhfllljjj","o":"b73052a19486"},{"n":12,"v":"aaabbbcdeeeeaabbcccdddeefaaccccddeeefaaccccdddddfaacccggddhdfffccccgdghgffcccccgggggfffcciigggggfffcciiiggggfffciiijggggfffciijjkggkflfffiiikkkk","o":"93826a4057b1"},{"n":12,"v":"aaaaaaabbbbbaaaaaaacbbbbdadaaacccbbbdddaccceebebdddaacceeeefdgggaahieeffdgggghhiejkkddggghiiejjkdggiiiijjjkkddggjjjjjjjjddjljjjjjjjjddjjjjjjjjjj","o":"9718b6a24035"},{"n":12,"v":"aaaaaabbbbccaaddaeeebcccafddggggbcccaffdggggggcchffffgcgcgichhhfffccccichjhfffcccccckjjffffccccckkjjflflccllkkjlllllclllkkjjllllllllkkkjllllllll","o":"46837a0592b1"},{"n":12,"v":"aaaaaaabbbbbaacaaabbbbbbadccaaabebbbaddaaaaeeeebaaddfaafgebbafffffffgehhaffffiiggehgaafffiigggggaafffiiiiiigajjjjiiiigggjjjkjiiliiggjjjkiiillllg","o":"02b195a86473"},{"n":12,"v":"aaaaaaabbcccaaadababbcccaaaddbbbefccggdddbbbefffgddddbbeeeehgiiibbbbeeehiiiiibbbbeeeiiibbbbbeeeeiibbibbbbeeejiiiibkleelejiiilbklellljjllllllllll","o":"a2913b584607"},{"n":12,"v":"abbbbbbbbbccaabbbbbbcccdaaabbbbbbbcdeaabbabbfbbdeeaaaabgfbbbeeeeeaagffbheeeeaaaghfbhieeeeegghfhhiiieejjjhhhhiiiiejijiihhkiliiiiiiihhkkkiiiiiiiii","o":"69b8473a1520"},{"n":8,"v":"abbbaaaaaaaaaaacdeeeaaacddeeaaccddffaggcddffhggcdfffhgggdfffhggg","o":"1357135702460246","k":2},{"n":8,"v":"aaaaabbcaaaaabbcddddabccaaaaabbceafaabgheffggggheffggggheefghhhh","o":"1357135702460246","k":2},{"n":8,"v":"aaabbcccaaabbdccaabbddcceeeeddcceeeffggchheffggghhhhfggghhfffggg","o":"1357135702460246","k":2},{"n":8,"v":"aaabbbbbaaaaabbbaaaaccccdddcceeeffgceeeeffggeeeeffggghhhffggghhh","o":"4602460257135713","k":2},{"n":8,"v":"aabbbccdaabbbcddaabbccddeebbccddeeebccddefeggggdfffghhhdfffghhhd","o":"1357135702460246","k":2},{"n":8,"v":"aabbbbbbaaccbbbbaaccddddaeeccfdfaecccfffeeeccfffegecchhheggggghh","o":"4602460257135713","k":2},{"n":8,"v":"aabbbcccaaabbcccaaabaaddeaaaadddefffgddheffgghhhefffghhheeffghhh","o":"1357135702460246","k":2},{"n":8,"v":"aaabbcccaaabbcccdadbbbccdddeeeccddddeeeedfffegeeffhheggghhhhhhgg","o":"4602460257135713","k":2},{"n":9,"v":"aaaabbbbbcaadbbbeecaedbbeeeccedbeefecceeeeefeccghhheficgghhiiiichghhiiiichhhhhhii","o":"163815370527042648","k":2},{"n":9,"v":"aaabbbbccdaabbbcccddabbeeecddabbccccdfabbcgggffhhhcgggfffhhciigffhhcciiifffhcccci","o":"470257024618361835","k":2},{"n":9,"v":"aaabbccccaaabbbccdaaabbedcdaaabbedddaafbbedddffffbgdddfhgggggdihhhgggiiihhhhiiiii","o":"681358135702460247","k":2},{"n":9,"v":"aabbbbcccaaaabbcccaaaaaacccdeeaffffcdeefffffgdeeeffffgeeeeeeggghhhhhhigghhhhhiiig","o":"351846024702681357","k":2},{"n":9,"v":"aabbbccccaaabbbddddddbbbbdddddddddddeeeeffdggeeeeffggghhhhffggghhhhffggghiiiigggg","o":"680246183517350724","k":2},{"n":9,"v":"aaaaaaabbcaaaabbbbcaaabbbddcaeeeeeddcceedddddcffffgdddhhhffgiidhhhffgiidhhhffgiii","o":"240648260835173517","k":2},{"n":9,"v":"aaabcccddaaebbbcddaaeecccddaaeecffffaaeccfgggaaeccfgggffffffggghiiiiihgghhhhhhhhh","o":"370528460246183517","k":2},{"n":9,"v":"abbbbccccaaabbdcccaaabdddceaabbddffeaggbbfffeggghhfffeigiihfffeiiihheeeeiiiieeeee","o":"381537052704264816","k":2},{"n":9,"v":"aabbbbbbbaaaaabcccaaaddbcccddadbbecedddddbeeefgggghiieffgghhhiiffffhhiiiffffhiiii","o":"351846026813570247","k":2},{"n":9,"v":"aabbcccccaaabcccccaaabdddceaaabdddeeafabbbbeefffffbbbeggggfbbhegiigghhheiiiiihhhh","o":"370528461846025713","k":2},{"n":10,"v":"aabcccccccadbbccccccadbeeeccccddeeeefffgdddeeefhggddeeehhhggddddehhhhgddiiiihhhgddjiihhhggddjjjjjhgg","o":"02680248164917357935","k":2},{"n":10,"v":"abbbbcccdeaffbbbccdeaffbfbfcdeaffffffcceafffcccceeffffccggeehhiijjjgeeihiiijggggihijjjggggiiiiijgggg","o":"28460826094719351735","k":2},{"n":10,"v":"aaaabcccccaaabbbccccaaabbbbbcbaaaadddbbbeefaddddddeefagdddhheifgggddhheiigigjjhhiiiiiiijjhiiiiiijjjh","o":"18361946024802573957","k":2},{"n":10,"v":"aaabbcddeeabbbbcddeeaabbfcddecaabbfcccccaabbfcccccghhhficccjghhiiicccjghhiiijccjgggggijccjggggiijjjj","o":"68036824072479153915","k":2},{"n":10,"v":"aabcccccccabbcccccddabbeccddddaabeeeffddggeeeeffddgggeeeffdhgggeeeehhhgggeeiehhjggeeiiiijjgggggijjjj","o":"24082406381639571957","k":2},{"n":10,"v":"aaaaaabbbbacadabbbbbacddaaaebbccfdddaeggfcffddaeegfffhhhaaggifffffjaagifffffjaagiiiifjjaajiiiiijjjjj","o":"08351749173509264826","k":2},{"n":10,"v":"aabbbccccdaabbbcccddaaabbecccdaaabbeccccfafgbeecccfffgbeecccfffgggeehhfgggiijhhhfggiiijhhhfgggijjjjj","o":"29073915370528461846","k":2},{"n":10,"v":"aaabbbbbccaaaaaabcccaaddaaccccdddecccecfdgdeecceefggeeeeeeefgghhieeeefhghhiejjjfhhhhiejjjfhhhhjjjjjj","o":"36183579250749164802","k":2},{"n":10,"v":"aabccccdddaabbcccccdaebbccddddeebbbddffdgedddddhffgeddhhhhffgeeddhhdfigggdddddiigggjjdiiiiggjjjjjiii","o":"15390537194702682468","k":2},{"n":10,"v":"aabbbbcdddaaabbbccddabbbbeeccdaabffeeccdagbffecccdaggfhhcccdaggfhhddddagiiihhhjdaaiiihhjjdaaaaajjjjd","o":"02490638153715792468","k":2},{"n":10,"v":"aaaaaaaabbaacaaaabbbdccccebbbbdccceeeeeedcfcfeeggedfffffegggffffhhegggfhhfhheiggfhhhhjiiigfhjjjjjjjj","o":"15790428063957136824","k":2},{"n":10,"v":"aaabbbbbbbaaaabbccbbadddbcccbeaddccccceeadccffffeeaagffffhhhaagifihhhhaigiiijjhhaiiiijjjhhaiiiiiijhh","o":"48063915792468025713","k":2},{"n":10,"v":"aaaaaaaabbaaaaaaaaccddaaaaacceddfffggceehhfffggccehhiiiggceehhhiiggccehhhhiggcgghhjiigGgggjjjjgggggg","o":"8513970426","t":[[12,1],[28,0],[37,0],[41,0],[45,0],[81,1],[97,1]]},{"n":10,"v":"aaabBcddddaaabbcceedaaccbcceedacccccfedDacccggfhddaccgggghddiicgghhhddgiggghhhddggggghhjjdggghhhhhhh","o":"3072691485","t":[[17,1],[24,0],[49,1],[62,1],[81,0],[86,1]]},{"n":10,"v":"aAaaabbbbbaaaaacbbbbaaddacbbeeffdddcccceffdcccceeeffdggcceeeffgggghieegggggiiieejjgggiiieejjjiiiiiee","o":"9130586472","t":[[2,1],[47,1],[50,0],[93,1]]},{"n":10,"v":"aabbbcccccaaBbbbbcccabbbbbbcccdbbeeebffcdbbeeeefffdddgehhffiddggghhjiiddggghjjiidggggjjjiidggjjjjjii","o":"7024815369","t":[[28,0],[49,1],[76,2],[81,0],[85,1],[95,1]]},{"n":10,"v":"aabbbcccddeaaabccccdeaaaaaaCcdeeaaaafffdeggaafffddggaaaffffdggaaaffffdhhhaaaffidhhhajjjfiihhhhhjjiii","o":"3790416852","t":[[4,1],[23,0],[48,0],[61,1],[62,1],[70,0],[74,1],[75,2],[87,1]]},{"n":10,"v":"abbbbcddddaabccccddebbbfcccfdebbbfffffdebbbbggffdebbbggggggEhgggggiigehhhgjiiigghhhgjjjjgghhhhjjjjgg","o":"0857913642","t":[[27,2],[42,1],[45,0],[82,1]]},{"n":11,"v":"AaaaaabbbbcaaaadaabbccaaddddaacccddddddeecccdddddffeeeeddggggfeeeedddhhffiEeeddhhhjiiiiidkHhjJjiiiikkhhjjjiiiikkjjjjjjjii","o":"7192846a350","t":[[1,1],[11,1],[32,1],[64,1],[65,0],[68,0],[99,1]]},{"n":11,"v":"aabbcccccccaabbaccccddaaaaacccccdeeeeccccccdeeeeeceeccdeeeeeeeffgdehheeiiffggehhhhiiffggeeHhhiijfggeehehijjgggkeeehhjjggg","o":"2a164859370","t":[[8,0],[26,0],[53,1],[60,2],[72,1],[98,1],[107,1],[118,1]]},{"n":11,"v":"aaaabbbbcccaaabbbbccccaaaaDbbccccaddddbDccceafdddddcceeafggddddheeafigdddhhheaiijjjhhhhhaaijjjhhhhhiiiijjhhkkkjjjjjjjkkkk","o":"805a1637429","t":[[18,1],[22,1],[38,1],[68,1],[81,2],[96,1],[106,0]]},{"n":11,"v":"abbbbbcddddaaabbccddddaaaabcccdddaaaabbcddeefaaabbbbeegffahhhhgeegffiihhggeegjjjigggggggjjjikkkkgggijjikkkKgggiiiiikkkggg","o":"694205813a7","t":[[25,2],[30,1],[32,1],[41,0],[49,1],[70,1],[86,1],[116,1],[119,1]]},{"n":11,"v":"aaabcccddddaaabccccdddaeabbcccdddeeebffccddgeeebfffhgggeebbifhhgghbbbiiihhhhhbjjjihhHhhhjjjjiihhhhhjjjiiiiikkhjjjiiiiiikh","o":"2695a170384","t":[[3,1],[19,1],[27,2],[36,0],[82,0],[87,0],[117,1]]},{"n":11,"v":"aaabbbccdddaaabbcccdDdeeaaccccdddeeafcfccdddeeafffcddddeegfffddddheeggddddihheeggdjjiihheeggddjjihhekkgjjjjjhhkkkggjjjjhh","o":"57394a82061","t":[[58,1],[64,2],[71,0],[80,1],[90,1],[101,1]]},{"n":10,"v":"aaabbbccddaabbbbcdddaaebbccdddeeebbccddfeeeeddddffeeeddggggfeeddddhfffedddhhhhffiiiijjjjjjiiiijjjjjj","o":"04681369135729470258","k":2,"t":[[2,0],[34,2],[66,3]]},{"n":10,"v":"aabbcccdddaabbbbcdddaebbbccdffaecccccdffeeggghhddfegggghhhdfeeeeeehhddeiijeehhddiiijjjjhddiiiijjhhdd","o":"69042806247935173518","k":2,"t":[[21,3],[29,1],[31,3],[46,2],[74,4],[99,1]]},{"n":10,"v":"abbbcccccdabbbbccccdaabccccccdaacccefccdggeeeefffdgggffffffdggghiiijjjgghhiiijjjggghhiiijjggghhiiiij","o":"27047905294618361835","k":2,"t":[[12,1],[39,2],[47,1],[94,2]]},{"n":10,"v":"aaaabccccdaaaabccccdabbbbbbbbdeeebbbbbddeeebbffdddggehbfddddggghiffiddgghhiiiiiiggghijiiiiggggjjjjii","o":"68024802593715371946","k":2,"t":[[20,2],[22,2],[67,2],[71,2],[82,2]]},{"n":10,"v":"aaaaabbbbbaaaaabbbbbcadddbbeebcccddddeebffcddddebbffccggggggfffgghhhiiffggjhhhiijjggjjhiiijjjjjjjiii","o":"07250835173916492648","k":2,"t":[[27,1],[55,1],[57,2],[64,2],[89,2],[97,2]]},{"n":10,"v":"aaabbbbbbbaacddbbbeeaacddbbbeecccddeeeeecccffeggggffcffehggiffffeehhiiffffehhhiifjjjeeehiifjjeeeiiii","o":"07390624682479153815","k":2,"t":[[8,2],[62,2],[87,1]]},{"n":10,"v":"aaaaabbcccaaaddebcccddddeebcccddddeebbbcddffeeeebcffffeeeggchffieegggghhiiiejggghhiiijjjjghhhhhhgggg","o":"36092705381579246814","k":2,"t":[[2,1],[14,1],[40,2],[46,2],[56,2],[97,2],[99,1]]},{"n":10,"v":"aaaaabbbbcaaaddbbbbceaddddbbcceeedddbbcceeefgghhcceeefgghhhiejfffgghhiejffffggiijjgggggiiijjggggiiii","o":"27093759024618351846","k":2,"t":[[21,1],[22,1],[45,3],[46,2],[52,2],[70,2],[74,2],[83,2]]}]);
+// ==== MOTOR begin (rekenwerk zonder pagina: oplossen met uitleg, oplossingen tellen en puzzels maken)
+const KM = (function () {
+  const LETTERS = 'abcdefghijkl';
+  const KLEURNAAM = ['rode', 'oranje', 'gele', 'groene', 'blauwgroene', 'blauwe', 'paarse', 'roze', 'bruine', 'grijze', 'witte', 'limoengroene'];
+  // een puzzel { n, v, o, k?, t? } omzetten naar alles wat de motor nodig heeft
+  // v: per vakje de letter van het vlak (hoofdletter = er staat rommel, daar kan geen kroon)
+  // o: per rij de kolom(men) van de kroon(en) in hex, k: kronen per rij, kolom en vlak (standaard 1)
+  // t: tellers [[vakje, getal], ...]: het getal zegt hoeveel kronen er om dat vakje heen staan
+  function lees(P) {
+    const n = P.n, k = P.k || 1, nn = n * n, reg = new Int8Array(nn), vast = new Uint8Array(nn), tel = new Int8Array(nn).fill(-1);
+    for (let i = 0; i < nn; i++) { const c = P.v[i], l = c.toLowerCase(); reg[i] = LETTERS.indexOf(l); if (c !== l) vast[i] = 1; }
+    for (const [i, g] of P.t || []) { tel[i] = g; vast[i] = 2; }
+    const opl = [];
+    for (let r = 0; r < n; r++) for (let j = 0; j < k; j++) opl.push(r * n + parseInt(P.o[r * k + j], 16));
+    return maakBord(n, k, reg, vast, tel, opl);
   }
-  document.addEventListener('click', e => { const b = e.target.closest('[data-lvl]'); if (b && !b.disabled) start(+b.dataset.lvl); });
-  $('b-dag').addEventListener('click', () => start(dagPuzzel()));
-  // ---------------- het spel
-  let P = null, nr = 0, n = 0, reg = [], cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set();
-  function start(i) {
-    nr = i; P = PUZZELS[i]; n = P.n; reg = [...P.v].map(c => 'abcdefghijk'.indexOf(c));
-    const b = opslag.bezig[i];
-    cel = b ? b.cel.slice() : Array(n * n).fill(0); tijd = b ? b.tijd : 0; hints = b ? b.hints || 0 : 0; autoX = new Set(b && b.auto ? b.auto : []);
-    gesch = []; klaar = !!opslag.opgelost[i] && !b;
-    if (klaar) { cel = Array(n * n).fill(0); tijd = 0; klaar = false; }
-    $('overzicht').hidden = true; $('spel').hidden = false;
-    $('spel-titel').textContent = `Puzzel ${i + 1} · ${n}×${n}`;
-    bouwBord(); teken(); startKlok(); window.scrollTo(0, 0);
-  }
-  function bouwBord() {
-    const B = $('bord'); B.style.setProperty('--n', n); B.innerHTML = '';
+  const BUREN = {};
+  function burenVan(n) {
+    if (BUREN[n]) return BUREN[n];
+    const b = [];
     for (let i = 0; i < n * n; i++) {
-      const r = Math.floor(i / n), c = i % n, g = reg[i], d = document.createElement('button');
-      d.type = 'button'; d.className = 'cel' + (r === 0 || reg[i - n] !== g ? ' t' : '') + (c === 0 || reg[i - 1] !== g ? ' l' : '') + (c === n - 1 || reg[i + 1] !== g ? ' r' : '') + (r === n - 1 || reg[i + n] !== g ? ' b' : '');
-      d.style.background = KLEUREN[g]; d.dataset.i = i; d.setAttribute('role', 'gridcell');
-      B.appendChild(d);
+      const r = (i / n) | 0, c = i % n, x = [];
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (!dr && !dc) continue; const rr = r + dr, cc = c + dc; if (rr >= 0 && rr < n && cc >= 0 && cc < n) x.push(rr * n + cc); }
+      b.push(x);
     }
+    return (BUREN[n] = b);
   }
-  function conflicten() {
-    const fout = new Set(), kronen = [];
-    for (let i = 0; i < n * n; i++) if (cel[i] === 2) kronen.push(i);
-    for (let a = 0; a < kronen.length; a++) for (let b = a + 1; b < kronen.length; b++) {
-      const i = kronen[a], j = kronen[b], ri = Math.floor(i / n), ci = i % n, rj = Math.floor(j / n), cj = j % n;
-      if (ri === rj || ci === cj || reg[i] === reg[j] || (Math.abs(ri - rj) <= 1 && Math.abs(ci - cj) <= 1)) {
-        fout.add(i); fout.add(j);
-        if (ri === rj) for (let c = 0; c < n; c++) fout.add(ri * n + c);
-        if (ci === cj) for (let r = 0; r < n; r++) fout.add(r * n + ci);
-        if (reg[i] === reg[j]) for (let k = 0; k < n * n; k++) if (reg[k] === reg[i]) fout.add(k);
+  function maakBord(n, k, reg, vast, tel, opl) {
+    const nn = n * n, buren = burenVan(n), eenh = [], perCel = [];
+    let nVlak = 0; for (let i = 0; i < nn; i++) { perCel.push([]); if (reg[i] + 1 > nVlak) nVlak = reg[i] + 1; }
+    const rijen = [], kolommen = [], vlakken = [];
+    for (let x = 0; x < n; x++) { rijen.push([]); kolommen.push([]); }
+    for (let g = 0; g < nVlak; g++) vlakken.push([]);
+    for (let i = 0; i < nn; i++) { if (vast[i]) continue; rijen[(i / n) | 0].push(i); kolommen[i % n].push(i); vlakken[reg[i]].push(i); }
+    for (let r = 0; r < n; r++) eenh.push({ soort: 'rij', nr: r, cellen: rijen[r], nodig: k });
+    for (let c = 0; c < n; c++) eenh.push({ soort: 'kolom', nr: c, cellen: kolommen[c], nodig: k });
+    for (let g = 0; g < nVlak; g++) eenh.push({ soort: 'vlak', nr: g, cellen: vlakken[g], nodig: k });
+    for (let i = 0; i < nn; i++) if (tel[i] >= 0) eenh.push({ soort: 'teller', nr: i, cellen: buren[i].filter(j => !vast[j]), nodig: tel[i] });
+    eenh.forEach((e, u) => { e.u = u; for (const i of e.cellen) perCel[i].push(u); });
+    const oplSet = new Uint8Array(nn); for (const i of opl) oplSet[i] = 1;
+    return { n, k, nn, reg, vast, tel, opl, oplSet, buren, eenh, perCel, nVlak };
+  }
+  const rc = (B, i) => [(i / B.n) | 0, i % B.n];
+  // namen voor in de uitleg (vlakNaam kan de pagina aanpassen, bijvoorbeeld met een letter erbij)
+  const vlakNaam = { f: g => 'het ' + KLEURNAAM[g] + ' vlak' };
+  const naam = (B, e, hoofd) => {
+    const s = e.soort === 'rij' ? 'rij ' + (e.nr + 1) : e.soort === 'kolom' ? 'kolom ' + (e.nr + 1) : e.soort === 'vlak' ? vlakNaam.f(e.nr) : 'het kaartje met een ' + B.tel[e.nr];
+    return hoofd ? s[0].toUpperCase() + s.slice(1) : s;
+  };
+  const vakNaam = (B, i) => { const [r, c] = rc(B, i); return 'rij ' + (r + 1) + ', kolom ' + (c + 1); };
+  const lijst = xs => xs.length === 1 ? xs[0] : xs.slice(0, -1).join(', ') + ' en ' + xs[xs.length - 1];
+  const TAL = ['nul', 'één', 'twee', 'drie', 'vier', 'vijf', 'zes'];
+  const kronenWoord = m => (m === 1 ? 'één kroon' : TAL[m] + ' kronen');
+  // begintoestand: 0 open, 1 kruisje, 2 kroon (rommel en kaartjes tellen als kruisje)
+  const begin = B => { const s = new Int8Array(B.nn); for (let i = 0; i < B.nn; i++) if (B.vast[i]) s[i] = 1; return s; };
+  function telEenh(B, s, e) { let kr = 0, op = 0; for (const i of e.cellen) { if (s[i] === 2) kr++; else if (s[i] === 0) op++; } return [kr, op]; }
+  // wat een kroon op vakje i wegstreept: de buren, en de rest van elke eenheid die dan vol is
+  function gevolgen(B, s, i, uit) {
+    for (const j of B.buren[i]) if (s[j] === 0) uit.add(j);
+    for (const u of B.perCel[i]) { const e = B.eenh[u]; let kr = 0; for (const j of e.cellen) if (s[j] === 2 || j === i) kr++; if (kr >= e.nodig) for (const j of e.cellen) if (s[j] === 0 && j !== i) uit.add(j); }
+    uit.delete(i); return uit;
+  }
+  // alle gevolgen van alle kronen tegelijk
+  function alleGevolgen(B, s) { const uit = new Set(); for (let i = 0; i < B.nn; i++) if (s[i] === 2) gevolgen(B, s, i, uit); for (const j of uit) s[j] = 1; return uit.size; }
+  // in een rij of kolom: hoeveel kronen passen er hooguit in de open vakjes zonder elkaar te raken
+  function maxInLijn(B, s, e) { let m = 0, vorige = -9; for (const i of e.cellen) { if (s[i] !== 0) continue; const p = e.soort === 'rij' ? i % B.n : (i / B.n) | 0; if (p > vorige + 1) { m++; vorige = p; } } return m; }
+  // klopt er iets niet meer? (te veel kronen, te weinig plek, of kronen die elkaar raken)
+  function tegenspraak(B, s) {
+    for (const e of B.eenh) {
+      const [kr, op] = telEenh(B, s, e);
+      if (kr > e.nodig || kr + op < e.nodig) return e;
+      if (B.k > 1 && (e.soort === 'rij' || e.soort === 'kolom') && kr + maxInLijn(B, s, e) < e.nodig) return e;
+    }
+    for (let i = 0; i < B.nn; i++) if (s[i] === 2) for (const j of B.buren[i]) if (s[j] === 2) return { soort: 'raak', nr: i, cellen: [i, j] };
+    return null;
+  }
+  const klaar = (B, s) => { let kr = 0; for (let i = 0; i < B.nn; i++) if (s[i] === 2) kr++; return kr === B.n * B.k && !tegenspraak(B, s); };
+  // ---------------- de regels, van makkelijk naar moeilijk
+  // niveau 0: wat een kroon die er al staat wegstreept
+  function regelGevolg(B, s) {
+    for (let i = 0; i < B.nn; i++) {
+      if (s[i] !== 2) continue;
+      const uit = gevolgen(B, s, i, new Set());
+      if (uit.size) return { niveau: 0, soort: 'gevolg', eenheden: B.perCel[i], cellen: [i], zet: [...uit].map(j => [j, 1]), tekst: `Rond de kroon op ${vakNaam(B, i)} kan geen andere kroon staan, ook niet schuin.` + (B.k === 1 ? ' En zijn rij, kolom en vlak hebben hun kroon al.' : '') };
+    }
+    return null;
+  }
+  // niveau 1: de laatste plek(ken) in een rij, kolom, vlak of rond een kaartje
+  function regelLaatste(B, s) {
+    for (const e of B.eenh) {
+      const [kr, op] = telEenh(B, s, e), nog = e.nodig - kr;
+      if (nog > 0 && op === nog) {
+        const t = e.soort === 'teller'
+          ? `Rond ${naam(B, e)} moet${nog > 1 ? 'en' : ''} nog ${kronenWoord(nog)} staan, en er ${op === 1 ? 'is nog maar één vakje' : 'zijn nog maar ' + TAL[op] + ' vakjes'} over. ${op === 1 ? 'Daar moet dus een kroon.' : 'Allemaal kronen dus.'}`
+          : op === 1 ? `In ${naam(B, e)} is nog maar één vakje over waar een kroon kan. Daar moet hij dus staan.`
+          : `In ${naam(B, e)} zijn nog precies ${TAL[op]} vakjes over, en er moeten nog ${kronenWoord(nog)} in. Allemaal kronen dus.`;
+        return { niveau: 1, soort: 'laatste', eenheden: [e.u], cellen: e.cellen, zet: e.cellen.filter(i => s[i] === 0).map(i => [i, 2]), tekst: t };
       }
     }
-    return { fout, kronen };
-  }
-  function teken(pop) {
-    const { fout } = conflicten(), B = $('bord').children;
-    for (let i = 0; i < n * n; i++) {
-      const d = B[i], r = Math.floor(i / n) + 1, c = (i % n) + 1;
-      d.innerHTML = cel[i] === 2 ? KROON : cel[i] === 1 ? KRUIS : '';
-      d.classList.toggle('fout', fout.has(i)); d.classList.toggle('pop', pop === i);
-      d.setAttribute('aria-label', `Rij ${r}, kolom ${c}, ${cel[i] === 2 ? 'kroon' : cel[i] === 1 ? 'kruisje' : 'leeg'}`);
+    for (const e of B.eenh) {
+      if (e.soort !== 'teller') continue;
+      const [kr, op] = telEenh(B, s, e);
+      if (kr === e.nodig && op) return { niveau: 1, soort: 'teller-vol', eenheden: [e.u], cellen: e.cellen, zet: e.cellen.filter(i => s[i] === 0).map(i => [i, 1]), tekst: e.nodig === 0 ? `Op het kaartje staat 0: rond dit kaartje staat geen enkele kroon.` : `Rond ${naam(B, e)} ${e.nodig === 1 ? 'staat de kroon' : 'staan de ' + TAL[e.nodig] + ' kronen'} al. De andere vakjes eromheen krijgen kruisjes.` };
     }
-    $('b-ongedaan').disabled = !gesch.length;
+    return null;
+  }
+  // niveau 2 (één) en 3 (twee of drie): vlakken die samen helemaal in evenveel rijen (of kolommen) liggen, en andersom
+  const PAREN = [['vlak', 'rij'], ['vlak', 'kolom'], ['rij', 'vlak'], ['kolom', 'vlak'], ['rij', 'kolom'], ['kolom', 'rij']];
+  function regelGroep(B, s, van, tot) {
+    const info = B.eenh.map(e => { const [kr, op] = telEenh(B, s, e); return { kr, op, nog: e.nodig - kr }; });
+    for (let m = van; m <= tot; m++) {
+      for (const [a, b] of PAREN) {
+        const A = B.eenh.filter(e => e.soort === a && info[e.u].nog > 0);
+        if (A.length <= m) continue;
+        const keus = [];
+        const probeer = () => {
+          const binnen = new Set(), raakt = new Set();
+          let nodigA = 0;
+          for (const e of keus) { nodigA += info[e.u].nog; for (const i of e.cellen) if (s[i] === 0) { binnen.add(i); for (const u of B.perCel[i]) if (B.eenh[u].soort === b) { raakt.add(u); if (raakt.size > m) return null; } } }
+          if (raakt.size !== m) return null;
+          let nodigB = 0; for (const u of raakt) nodigB += info[u].nog;
+          if (nodigB !== nodigA) return null;
+          const weg = [];
+          for (const u of raakt) for (const i of B.eenh[u].cellen) if (s[i] === 0 && !binnen.has(i)) weg.push(i);
+          if (!weg.length) return null;
+          const Bs = [...raakt].map(u => B.eenh[u]).sort((x, y) => x.nr - y.nr);
+          const noem = (soort, es) => soort === 'vlak' ? lijst(es.map(e => naam(B, e))) : (soort === 'rij' ? 'rij ' : 'kolom ') + lijst(es.map(e => e.nr + 1));
+          const aT = noem(a, keus.slice().sort((x, y) => x.nr - y.nr)), bT = noem(b, Bs);
+          const zij = m === 1 ? 'die ' + (b === 'vlak' ? 'vlak' : b) : 'die ' + (b === 'vlak' ? 'vlakken' : b === 'rij' ? 'rijen' : 'kolommen');
+          let t;
+          if (m === 1) t = `Alle open vakjes van ${aT} liggen in ${bT}. ${B.k > 1 ? 'De kronen' : 'De kroon'} van ${bT} ${B.k > 1 ? 'komen' : 'komt'} dus uit ${aT}: de rest van ${bT} krijgt kruisjes.`;
+          else {
+            const meer = a === 'vlak' ? 'vlakken' : a === 'rij' ? 'rijen' : 'kolommen', bMeer = b === 'vlak' ? 'vlakken' : b === 'rij' ? 'rijen' : 'kolommen';
+            t = `${aT[0].toUpperCase() + aT.slice(1)} liggen samen helemaal in ${bT}. ${TAL[m][0].toUpperCase() + TAL[m].slice(1)} ${meer} in ${TAL[m]} ${bMeer}: alle kronen van ${zij} komen dus uit deze ${meer}. De rest van ${bT} krijgt kruisjes.`;
+          }
+          return { niveau: m === 1 ? 2 : 3, soort: 'groep', eenheden: keus.map(e => e.u).concat(Bs.map(e => e.u)), cellen: [...binnen], zet: weg.map(i => [i, 1]), tekst: t };
+        };
+        const zoek = start => {
+          if (keus.length === m) return probeer();
+          for (let x = start; x < A.length; x++) { keus.push(A[x]); const r = zoek(x + 1); keus.pop(); if (r) return r; }
+          return null;
+        };
+        const r = zoek(0);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+  // niveau 3: een kroon hier zou een andere rij, kolom of vlak helemaal wegstrepen
+  function regelRaakt(B, s) {
+    for (let i = 0; i < B.nn; i++) {
+      if (s[i] !== 0) continue;
+      const t = s.slice(); t[i] = 2;
+      for (const j of gevolgen(B, t, i, new Set())) t[j] = 1;
+      const e = tegenspraak(B, t);
+      if (e && e.soort !== 'raak') {
+        const [kr, op] = telEenh(B, t, e);
+        const tekst = kr > e.nodig ? `Een kroon hier zou ${naam(B, e)} te veel kronen geven. Hier kan dus geen kroon.`
+          : op === 0 && kr === 0 ? `Een kroon hier zou alle open vakjes van ${naam(B, e)} wegstrepen. Dan kan daar geen kroon meer komen, dus hier kan geen kroon.`
+          : `Een kroon hier laat in ${naam(B, e)} te weinig plek over voor de kronen die er nog in moeten. Hier kan dus geen kroon.`;
+        return { niveau: 3, soort: 'raakt', eenheden: [e.u], cellen: e.cellen, zet: [[i, 1]], tekst, doel: i };
+      }
+    }
+    return null;
+  }
+  // niveau 4: doordenken (een kroon hier leidt na een paar zekere stappen tot iets wat niet kan)
+  function regelDoordenk(B, s, diepte) {
+    for (let i = 0; i < B.nn; i++) {
+      if (s[i] !== 0) continue;
+      const t = s.slice(); t[i] = 2;
+      const keten = [];
+      let tegen = null;
+      for (let stap = 0; stap < diepte; stap++) {
+        alleGevolgen(B, t);
+        tegen = tegenspraak(B, t);
+        if (tegen) break;
+        const st = regelLaatste(B, t) || regelGroep(B, t, 1, 1);
+        if (!st) break;
+        if (st.soort === 'laatste' && keten.length < 3) keten.push(st.zet[0][0]);
+        for (const [j, w] of st.zet) t[j] = w;
+      }
+      if (!tegen) { alleGevolgen(B, t); tegen = tegenspraak(B, t); }
+      if (tegen) {
+        const via = keten.length ? ' Dan moet er ook een kroon komen op ' + keten.map(j => vakNaam(B, j)).join(', daarna op ') + '.' : '';
+        const eind = tegen.soort === 'raak' ? ' Maar dan raken twee kronen elkaar.' : ` Maar dan klopt ${naam(B, tegen)} niet meer.`;
+        return { niveau: 4, soort: 'doordenk', eenheden: tegen.u !== undefined ? [tegen.u] : [], cellen: keten, zet: [[i, 1]], tekst: `Denk even door: stel dat hier een kroon staat.${via}${eind} Hier kan dus geen kroon.`, doel: i };
+      }
+    }
+    return null;
+  }
+  // de makkelijkste volgende stap (max = de zwaarste regel die mag; zonderGevolg: kronen zijn al verwerkt)
+  function stap(B, s, max = 4) {
+    return regelGevolg(B, s) || regelLaatste(B, s) || regelGroep(B, s, 1, 1) || (max >= 3 && (regelRaakt(B, s) || regelGroep(B, s, 2, 3))) || (max >= 4 && regelDoordenk(B, s, 12)) || null;
+  }
+  // helemaal oplossen met logica; zegt of het lukt en hoe zwaar het was
+  function losOp(B, max = 4, s0) {
+    const s = s0 ? s0.slice() : begin(B), tel = [0, 0, 0, 0, 0];
+    let st, stappen = 0;
+    while (!klaar(B, s) && (st = stap(B, s, max))) {
+      for (const [i, w] of st.zet) s[i] = w;
+      tel[st.niveau]++; stappen++;
+      if (tegenspraak(B, s)) return { gelukt: false, fout: true, s, tel };
+    }
+    const gelukt = klaar(B, s) && B.opl.every(i => s[i] === 2);
+    return { gelukt, s, tel, stappen, zwaar: tel[1] + tel[2] * 2 + tel[3] * 5 + tel[4] * 14, max: tel[4] ? 4 : tel[3] ? 3 : tel[2] ? 2 : 1 };
+  }
+  // oplossingen tellen (om te controleren dat er precies één is)
+  function telOplossingen(B, grens = 2) { return zoekOplossingen(B, grens).length; }
+  function zoekOplossingen(B, grens = 2) {
+    // telkens de eenheid kiezen met de minste open plekken, en het eerste open vakje daarvan: kroon of geen kroon
+    const { nn, eenh, perCel, buren } = B, U = eenh.length;
+    const open = new Uint8Array(nn), kroon = new Uint8Array(nn), nodig = new Int16Array(U), aant = new Int16Array(U), spoor = [];
+    for (let i = 0; i < nn; i++) open[i] = B.vast[i] ? 0 : 1;
+    for (const e of eenh) { nodig[e.u] = e.nodig; let a = 0; for (const i of e.cellen) if (open[i]) a++; aant[e.u] = a; }
+    const gevonden = [];
+    const weg = i => { open[i] = 0; spoor.push(i); for (const u of perCel[i]) aant[u]--; };
+    const terug = tot => { while (spoor.length > tot) { const i = spoor.pop(); if (i < 0) { const j = ~i; kroon[j] = 0; for (const u of perCel[j]) nodig[u]++; } else { open[i] = 1; for (const u of perCel[i]) aant[u]++; } } };
+    function zetKroon(i) {
+      weg(i); kroon[i] = 1; spoor.push(~i); for (const u of perCel[i]) nodig[u]--;
+      for (const j of buren[i]) if (open[j]) weg(j);
+      for (const u of perCel[i]) if (nodig[u] === 0) for (const j of eenh[u].cellen) if (open[j]) weg(j);
+    }
+    // tellers met 0: alles eromheen weg
+    for (const e of eenh) if (e.nodig === 0) for (const j of e.cellen) if (open[j]) weg(j);
+    spoor.length = 0;
+    function zoek() {
+      if (gevonden.length >= grens) return;
+      let best = -1, bestOpen = 1e9;
+      for (let u = 0; u < U; u++) {
+        if (nodig[u] < 0 || aant[u] < nodig[u]) return;
+        if (nodig[u] > 0 && aant[u] < bestOpen) { bestOpen = aant[u]; best = u; }
+      }
+      if (best < 0) { const o = []; for (let i = 0; i < nn; i++) if (kroon[i]) o.push(i); gevonden.push(o); return; }
+      let c = -1; for (const i of eenh[best].cellen) if (open[i]) { c = i; break; }
+      const st = spoor.length;
+      zetKroon(c); zoek(); terug(st);
+      if (gevonden.length >= grens) return;
+      weg(c); zoek(); terug(st);
+    }
+    zoek();
+    return gevonden;
+  }
+  // ---------------- puzzels maken (met een vast zaadje: iedereen krijgt dezelfde)
+  function rng(zaad) { let a = zaad >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const schud = (R, xs) => { for (let i = xs.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [xs[i], xs[j]] = [xs[j], xs[i]]; } return xs; };
+  // kronen neerzetten: k per rij en kolom, en ze raken elkaar niet
+  function kronen(n, k, R) {
+    const kol = new Int8Array(n), rijen = [];
+    let pogingen = 0;
+    function rij(r, vorige) {
+      if (++pogingen > 20000) return false;
+      if (r === n) return true;
+      let opties = [];
+      if (k === 1) for (let c = 0; c < n; c++) opties.push([c]);
+      else for (let a = 0; a < n; a++) for (let b = a + 2; b < n; b++) opties.push([a, b]);
+      schud(R, opties);
+      for (const o of opties) {
+        if (o.some(c => kol[c] >= k || vorige.some(v => Math.abs(v - c) <= 1))) continue;
+        // genoeg plek over in de kolommen voor de rijen die nog komen
+        o.forEach(c => kol[c]++);
+        let rest = 0; for (let c = 0; c < n; c++) rest += k - kol[c];
+        if (rest === (n - r - 1) * k && rij(r + 1, o)) { rijen[r] = o; return true; }
+        o.forEach(c => kol[c]--);
+      }
+      return false;
+    }
+    return rij(0, []) ? rijen : null;
+  }
+  // vlakken laten groeien rond de kronen
+  function groei(n, k, rijen, R, vorm) {
+    const nn = n * n, reg = new Int8Array(nn).fill(-1), kr = [];
+    rijen.forEach((o, r) => o.forEach(c => kr.push(r * n + c)));
+    const buur4 = i => { const r = (i / n) | 0, c = i % n, b = []; if (r) b.push(i - n); if (r < n - 1) b.push(i + n); if (c) b.push(i - 1); if (c < n - 1) b.push(i + 1); return b; };
+    if (k === 1) kr.forEach((i, g) => { reg[i] = g; });
+    else {
+      // twee kronen per vlak: koppel kronen die dicht bij elkaar liggen en verbind ze met een pad
+      const vrij = new Set(kr); let g = 0;
+      const afst = (a, b) => Math.abs(((a / n) | 0) - ((b / n) | 0)) + Math.abs(a % n - b % n);
+      for (const a of schud(R, kr.slice())) {
+        if (!vrij.has(a)) continue; vrij.delete(a);
+        let best = null, bd = 99;
+        for (const b of vrij) { const d = afst(a, b) + R() * 1.5; if (d < bd) { bd = d; best = b; } }
+        vrij.delete(best);
+        // pad zoeken (breedte eerst) door vakjes die nog van niemand zijn
+        const van = new Map([[a, -1]]), rij = [a];
+        while (rij.length) { const x = rij.shift(); if (x === best) break; for (const y of schud(R, buur4(x))) if (!van.has(y) && (reg[y] === -1) && (y === best || !kr.includes(y))) { van.set(y, x); rij.push(y); } }
+        if (!van.has(best)) return null;
+        for (let x = best; x !== -1; x = van.get(x)) reg[x] = g;
+        g++;
+      }
+    }
+    const groot = Array.from({ length: n }, () => (vorm === 'gelijk' ? 1 : 0.35 + R() * R() * 3));
+    let over = reg.filter(x => x === -1).length;
+    let veilig = 0;
+    while (over && veilig++ < nn * 50) {
+      // kies een vlak (gewogen) en een vrij buurvakje
+      let tot = 0; for (const w of groot) tot += w;
+      let x = R() * tot, g = 0; while (x > groot[g] && g < n - 1) { x -= groot[g]; g++; }
+      const rand = [];
+      for (let i = 0; i < nn; i++) if (reg[i] === g) for (const j of buur4(i)) if (reg[j] === -1) rand.push(j);
+      if (!rand.length) { groot[g] = 0.0001; if (groot.every(w => w < 0.001)) break; continue; }
+      reg[rand[Math.floor(R() * rand.length)]] = g; over--;
+    }
+    // losse vakjes die nergens bij konden: bij een buur
+    for (let ronde = 0; ronde < nn && reg.includes(-1); ronde++) for (let i = 0; i < nn; i++) if (reg[i] === -1) { const b = buur4(i).filter(j => reg[j] >= 0); if (b.length) reg[i] = reg[b[Math.floor(R() * b.length)]]; }
+    return reg;
+  }
+  function naarPuzzel(n, k, reg, rijen, vast, tellers) {
+    let v = '';
+    for (let i = 0; i < n * n; i++) { const l = LETTERS[reg[i]]; v += vast && vast[i] === 1 ? l.toUpperCase() : l; }
+    const P = { n, v, o: rijen.map(o => o.map(c => c.toString(16)).join('')).join('') };
+    if (k > 1) P.k = k;
+    if (tellers && tellers.length) P.t = tellers.slice().sort((a, b) => a[0] - b[0]);
+    return P;
+  }
+  // de vlakletters op volgorde van lezen (a eerst), zodat dezelfde vorm altijd dezelfde letters heeft
+  function hernoem(P) {
+    const map = {}; let volg = 0, v = '';
+    for (const c of P.v) { const l = c.toLowerCase(); if (!(l in map)) map[l] = LETTERS[volg++]; const m = map[l]; v += c === l ? m : m.toUpperCase(); }
+    return Object.assign({}, P, { v });
+  }
+  // een vlak blijft één geheel als je vakje x eruit haalt?
+  function heelZonder(n, reg, x) {
+    const g = reg[x], cellen = []; for (let i = 0; i < n * n; i++) if (reg[i] === g && i !== x) cellen.push(i);
+    if (!cellen.length) return false;
+    const gezien = new Set([cellen[0]]), rij = [cellen[0]];
+    while (rij.length) { const i = rij.pop(), r = (i / n) | 0, c = i % n; for (const j of [r ? i - n : -1, r < n - 1 ? i + n : -1, c ? i - 1 : -1, c < n - 1 ? i + 1 : -1]) if (j >= 0 && j !== x && reg[j] === g && !gezien.has(j)) { gezien.add(j); rij.push(j); } }
+    return gezien.size === cellen.length;
+  }
+  // vakjes naar een buurvlak schuiven tot alleen de bedoelde oplossing overblijft
+  function herstel(n, k, reg, opl, R, max) {
+    const nn = n * n, isKroon = new Uint8Array(nn); for (const i of opl) isKroon[i] = 1;
+    const leeg = new Uint8Array(nn), geenTel = new Int8Array(nn).fill(-1);
+    for (let ronde = 0; ronde < max; ronde++) {
+      const B = maakBord(n, k, reg, leeg, geenTel, opl), sols = zoekOplossingen(B, 2);
+      if (sols.length === 1) return true;
+      const alt = sols.find(o => o.some(i => !isKroon[i]));
+      if (!alt) return false;
+      const kand = schud(R, alt.filter(i => !isKroon[i]));
+      let gelukt = false;
+      for (const x of kand) {
+        const r = (x / n) | 0, c = x % n, opties = [];
+        for (const j of [r ? x - n : -1, r < n - 1 ? x + n : -1, c ? x - 1 : -1, c < n - 1 ? x + 1 : -1]) if (j >= 0 && reg[j] !== reg[x] && !opties.includes(reg[j])) opties.push(reg[j]);
+        if (!opties.length || !heelZonder(n, reg, x)) continue;
+        reg[x] = opties[Math.floor(R() * opties.length)]; gelukt = true; break;
+      }
+      if (!gelukt) return false;
+    }
+    return false;
+  }
+  // één puzzel maken. opties: { soort: 'klassiek' | 'rommel' | 'teller' | 'mix', k, min, max (moeilijkheid), niveau (hoogste regel) }
+  function maak(n, zaad, opties = {}) {
+    const R = rng(zaad), k = opties.k || 1, niveau = opties.niveau || 4, soort = opties.soort || 'klassiek';
+    for (let poging = 0; poging < (opties.pogingen || 400); poging++) {
+      const rijen = kronen(n, k, R); if (!rijen) continue;
+      const reg = groei(n, k, rijen, R, opties.vorm); if (!reg) continue;
+      const nn = n * n, vast = new Uint8Array(nn), tel = new Int8Array(nn).fill(-1), opl = [];
+      rijen.forEach((o, r) => o.forEach(c => opl.push(r * n + c)));
+      if (soort === 'klassiek' && !herstel(n, k, reg, opl, R, opties.herstel || n * 8)) continue;
+      let B = maakBord(n, k, reg, vast, tel, opl), res = losOp(B, niveau);
+      if (soort !== 'klassiek') {
+        // rommel of tellers erbij zetten tot de puzzel met logica op te lossen is
+        if (res.gelukt && !opties.altijd) continue;
+        let extra = 0;
+        while (!res.gelukt && extra < n * 2) {
+          const s = res.s, kand = [];
+          for (let i = 0; i < nn; i++) if (!vast[i] && !B.oplSet[i] && (soort === 'rommel' ? s[i] === 0 : true)) kand.push(i);
+          if (!kand.length) break;
+          const i = kand[Math.floor(R() * kand.length)];
+          if (soort === 'rommel' || (soort === 'mix' && res.s[i] === 0 && R() < 0.5)) vast[i] = 1;
+          else { vast[i] = 2; let g = 0; for (const j of B.buren[i]) if (B.oplSet[j]) g++; tel[i] = g; }
+          extra++;
+          B = maakBord(n, k, reg, vast, tel, opl); res = losOp(B, niveau);
+        }
+        if (!res.gelukt) continue;
+        // weghalen wat niet nodig is
+        for (let i = 0; i < nn; i++) {
+          if (!vast[i]) continue;
+          const oudV = vast[i], oudT = tel[i]; vast[i] = 0; tel[i] = -1;
+          const B2 = maakBord(n, k, reg, vast, tel, opl), r2 = losOp(B2, niveau);
+          if (r2.gelukt) { B = B2; res = r2; } else { vast[i] = oudV; tel[i] = oudT; }
+        }
+        B = maakBord(n, k, reg, vast, tel, opl); res = losOp(B, niveau);
+        if (!res.gelukt) continue;
+        if (opties.minExtra && [...vast].filter(x => x).length < opties.minExtra) continue;
+      }
+      if (!res.gelukt) continue;
+      if (opties.min !== undefined && res.zwaar < opties.min) continue;
+      if (opties.max !== undefined && res.zwaar > opties.max) continue;
+      if (opties.minNiveau && res.max < opties.minNiveau) continue;
+      const tellers = []; for (let i = 0; i < nn; i++) if (tel[i] >= 0) tellers.push([i, tel[i]]);
+      const P = hernoem(naarPuzzel(n, k, reg, rijen, vast, tellers));
+      P._zwaar = res.zwaar; P._max = res.max; P._poging = poging;
+      return P;
+    }
+    return null;
+  }
+  // de puzzel van de dag vanaf 26 oktober 2026 (dag 20752): elke dag een nieuwe, voor iedereen dezelfde.
+  // Let op: verander je iets aan de maker of de regels hierboven, dan veranderen ook de dagpuzzels.
+  // Laat zo'n wijziging dan pas vanaf een nieuwe datum gelden (zie DAG_VANAF in het spel).
+  const DAG_MATEN = [10, 7, 7, 8, 8, 9, 9];   // zondag, maandag, ..., zaterdag
+  function dagMaat(d) { return DAG_MATEN[(d + 4) % 7]; }
+  function dagPuzzel(d) {
+    const n = dagMaat(d);
+    return maak(n, (Math.imul(d, 2654435761) ^ 0x6b726f6e) >>> 0, { niveau: 3, min: n * 2, pogingen: 400 });
+  }
+  return { dagPuzzel, dagMaat, lees, begin, stap, losOp, telOplossingen, zoekOplossingen, tegenspraak, klaar, gevolgen, alleGevolgen, maak, rng, naam, vakNaam, vlakNaam, KLEURNAAM, hernoem };
+})();
+// ==== MOTOR eind
+(function () {
+  const $ = id => document.getElementById(id);
+  const KEY = 'rommelkroon-v1', N = PUZZELS.length, KLASSIEK = 370;
+  const DAG_VANAF = 20752;      // 26 oktober 2026: vanaf dan een eigen puzzel van de dag (daarvoor een puzzel uit de lijst, zoals altijd)
+  const ARCHIEF_VANAF = 20727;  // 1 oktober 2026: het archief begint hier
+  let nieuweSpeler = false;
+  try { nieuweSpeler = !localStorage.getItem(KEY); } catch (e) {}
+  let opslag = { opgelost: {}, bezig: {}, auto: false };
+  try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  // de oude velden blijven zoals ze waren; de nieuwe komen er netjes bij
+  const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+  if (!isObj(opslag.opgelost)) opslag.opgelost = {};
+  if (!isObj(opslag.bezig)) opslag.bezig = {};
+  if (!isObj(opslag.dag)) opslag.dag = {};     // puzzels van de dag: { dagnummer: [tijd, hints, op de dag zelf 1/0, spoor] }
+  if (!isObj(opslag.inst)) opslag.inst = {};   // { geluid, patroon }
+  const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  const STANDAARD = { geluid: true, patroon: false };
+  const inst = k => (opslag.inst[k] === undefined ? STANDAARD[k] : !!opslag.inst[k]);
+  const zachtBewegen = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------------- tekeningen
+  const KLEUREN = ['#F4A6A6', '#F7C98B', '#F6E58D', '#B8E0A0', '#9ED8D8', '#A9C4F5', '#C9B3F2', '#F2B5D9', '#D9C2A6', '#BFC7D1', '#E8E8E8', '#C4D96F'];
+  const LETTER = 'ABCDEFGHIJKL';
+  KM.vlakNaam.f = g => 'het ' + KM.KLEURNAAM[g] + ' vlak' + (inst('patroon') ? ' (' + LETTER[g] + ')' : '');
+  const KROON_PAD = '<path d="M6 30l-2-18 9 7 7-13 7 13 9-7-2 18z" fill="#E9B949" stroke="#231A26" stroke-width="2.6" stroke-linejoin="round"/><rect x="6" y="30" width="28" height="5" rx="1.5" fill="#C99A2E" stroke="#231A26" stroke-width="2.4"/><circle cx="20" cy="22" r="2.6" fill="#C8323C"/>';
+  const KROON = '<svg viewBox="0 0 40 40" aria-hidden="true">' + KROON_PAD + '</svg>';
+  const KROON_SPOOK = '<svg class="spook" viewBox="0 0 40 40" aria-hidden="true">' + KROON_PAD + '</svg>';
+  const KRUIS_PAD = '<path d="M4 4l12 12M16 4L4 16" stroke="#231A26" stroke-width="2.6" stroke-linecap="round" opacity=".6"/>';
+  const KRUIS = (extra = '') => '<svg class="x' + extra + '" viewBox="0 0 20 20" aria-hidden="true">' + KRUIS_PAD + '</svg>';
+  const DOOS = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 14l14-6 14 6v15l-14 6-14-6z" fill="#C9965C" stroke="#231A26" stroke-width="2.2" stroke-linejoin="round"/><path d="M6 14l14 6 14-6" fill="none" stroke="#231A26" stroke-width="2.2" stroke-linejoin="round"/><path d="M20 20v15" stroke="#231A26" stroke-width="2.2"/><path d="M6 14l14 6v15l-14-6z" fill="#B07D45"/><path d="M6 14l14 6v15l-14-6z" fill="none" stroke="#231A26" stroke-width="2.2" stroke-linejoin="round"/><path d="M13 11l14 6" stroke="#EBD9A8" stroke-width="3.2"/><path d="M27 17v5" stroke="#EBD9A8" stroke-width="3.2"/></svg>';
+  const KAARTJE = g => '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 12h22l9 8-9 8H4a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2z" fill="#FBF6E9" stroke="#231A26" stroke-width="2.2" stroke-linejoin="round" transform="rotate(-6 20 20)"/><circle cx="28" cy="18.7" r="2.1" fill="#231A26"/><text x="14" y="26.5" text-anchor="middle" font-size="17" font-weight="800" fill="#C8323C" font-family="Bricolage Grotesque, system-ui, sans-serif" transform="rotate(-6 20 20)">' + g + '</text></svg>';
+  const VLAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7 0 3 2 4 3 4-1-3 0-6 0-9z" fill="#E9B949" stroke="#231A26" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 13c1 2 3 3 3 5a3 3 0 0 1-6 0c0-2 2-3 3-5z" fill="#C8323C"/></svg>';
+  const SLOT = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>';
+  // patronen per vlak (stand voor kleurenblinden)
+  const PATROON = ['<circle cx="6" cy="6" r="1.6"/>', '<path d="M0 3h12M0 9h12"/>', '<path d="M3 0v12M9 0v12"/>', '<path d="M0 12L12 0M-3 3l6-6M9 15l6-6"/>', '<path d="M0 0l12 12M-3 9l6 6M9-3l6 6"/>', '<path d="M0 6h12M6 0v12"/>', '<path d="M0 0l12 12M12 0L0 12"/>', '<circle cx="3" cy="3" r="1.3"/><circle cx="9" cy="9" r="1.3"/>', '<path d="M0 8l3-4 3 4 3-4 3 4"/>', '<rect x="3.5" y="3.5" width="5" height="5"/>', '<circle cx="6" cy="6" r="3.2" fill="none"/>', '<path d="M6 2v8M2 6h8"/>'];
+  const patroonCss = () => PATROON.map((p, g) => `.bord.patroon .cel[data-p="${g}"]{background-image:url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="rgba(35,26,38,.42)" stroke="rgba(35,26,38,.42)" stroke-width="1.2">${p}</svg>`)}");background-size:${g === 9 || g === 10 ? 14 : 12}px}`).join('\n');
+  { const st = document.createElement('style'); st.textContent = patroonCss(); document.head.appendChild(st); }
+  // een klein plaatje van een bord (voor het overzicht en de uitleg)
+  function plaatje(P, opt = {}) {
+    const B = KM.lees(P), n = P.n, w = 100 / n, kronen = opt.kronen === true ? B.opl : opt.kronen || [];
+    let s = '<svg viewBox="-1.5 -1.5 103 103" aria-hidden="true">';
+    for (let i = 0; i < n * n; i++) { const r = (i / n) | 0, c = i % n; s += `<rect x="${(c * w).toFixed(2)}" y="${(r * w).toFixed(2)}" width="${(w + .2).toFixed(2)}" height="${(w + .2).toFixed(2)}" fill="${KLEUREN[B.reg[i]]}"/>`; }
+    let lijn = '';
+    for (let i = 0; i < n * n; i++) {
+      const r = (i / n) | 0, c = i % n;
+      if (c < n - 1 && B.reg[i] !== B.reg[i + 1]) lijn += `M${((c + 1) * w).toFixed(2)} ${(r * w).toFixed(2)}v${w.toFixed(2)}`;
+      if (r < n - 1 && B.reg[i] !== B.reg[i + n]) lijn += `M${(c * w).toFixed(2)} ${((r + 1) * w).toFixed(2)}h${w.toFixed(2)}`;
+    }
+    let dun = ''; for (let x = 1; x < n; x++) dun += `M${(x * w).toFixed(2)} 0v100M0 ${(x * w).toFixed(2)}h100`;
+    s += `<path d="${dun}" stroke="#231A26" stroke-width=".35" opacity=".5"/><path d="${lijn}" stroke="#231A26" stroke-width="${n > 9 ? 1.6 : 2.2}" stroke-linecap="square"/><rect x="0" y="0" width="100" height="100" fill="none" stroke="#231A26" stroke-width="3"/>`;
+    const teken = (i, inhoud, schaal = 1) => { const r = (i / n) | 0, c = i % n, z = w * schaal; return `<g transform="translate(${(c * w + (w - z) / 2).toFixed(2)} ${(r * w + (w - z) / 2).toFixed(2)}) scale(${(z / 40).toFixed(3)})">${inhoud}</g>`; };
+    for (let i = 0; i < n * n; i++) {
+      if (B.vast[i] === 1) s += teken(i, DOOS.replace(/^<svg[^>]*>|<\/svg>$/g, ''), .95);
+      if (B.vast[i] === 2) s += teken(i, KAARTJE(B.tel[i]).replace(/^<svg[^>]*>|<\/svg>$/g, ''), .95);
+    }
+    for (const i of opt.kruisjes || []) s += teken(i, '<path d="M14 14l12 12M26 14L14 26" stroke="#231A26" stroke-width="3.4" stroke-linecap="round" opacity=".6"/>');
+    for (const i of kronen) s += teken(i, KROON_PAD, .8);
+    return s + '</svg>';
+  }
+
+  // ---------------- puzzels, groepen en hoofdstukken
+  const GROEPEN = [[5, 'Opwarmen'], [6, 'Makkelijk'], [7, 'Gemiddeld'], [8, 'Pittig'], [9, 'Lastig'], [10, 'Meester'], [11, 'Kroonmeester']];
+  const HOOFDSTUKKEN = [
+    { nr: 1, naam: 'Rommel op het bord', van: 370, tot: 400, regel: 'Op sommige vakjes staat een doos. Daar kan geen kroon staan.', kort: 'Op een doos kan geen kroon.', mijl: 'Opgeruimd' },
+    { nr: 2, naam: 'Prijskaartjes', van: 400, tot: 430, regel: 'Een kaartje vertelt hoeveel kronen er in de acht vakjes eromheen staan (ook schuin). Op het kaartje zelf kan geen kroon.', kort: 'Het getal op een kaartje is het aantal kronen eromheen.', mijl: 'Prijsbewust' },
+    { nr: 3, naam: 'Reuzenborden', van: 430, tot: 450, regel: 'Twaalf bij twaalf. Dezelfde regels, maar veel meer om over na te denken.', kort: '', mijl: 'Reus' },
+    { nr: 4, naam: 'Dubbele kronen', van: 450, tot: 480, regel: 'In elke rij, elke kolom en elk vlak staan nu precies twee kronen. Ze mogen elkaar nog steeds niet raken, ook niet schuin.', kort: 'Twee kronen per rij, kolom en vlak.', mijl: 'Dubbel zo goed' },
+    { nr: 5, naam: 'Rommelmeester', van: 480, tot: 500, regel: 'Alles door elkaar: dozen, kaartjes en dubbele kronen. Voor echte meesters.', kort: '', mijl: 'Rommelmeester' },
+  ];
+  const hoofdstukVan = i => (typeof i === 'number' ? HOOFDSTUKKEN.find(h => i >= h.van && i < h.tot) : null);
+  const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const fmtLang = s => s >= 3600 ? Math.floor(s / 3600) + ' u ' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ' min' : Math.floor(s / 60) + ' min';
+  const normId = x => (typeof x === 'string' && /^\d+$/.test(x) ? +x : x);
+  const aantalKlaar = () => Object.keys(opslag.opgelost).length;
+  const PER_MAAT = {}; for (let i = 0; i < KLASSIEK; i++) (PER_MAAT[PUZZELS[i].n] = PER_MAAT[PUZZELS[i].n] || []).push(i);
+  const klaarIn = h => { let x = 0; for (let j = h.van; j < h.tot; j++) if (opslag.opgelost[j]) x++; return x; };
+  function hoofdstukOpen(h) {
+    for (let j = h.van; j < h.tot; j++) if (opslag.opgelost[j] || opslag.bezig[j]) return true;
+    if (h.nr === 1) { let x = 0; for (let j = 0; j < KLASSIEK; j++) if (opslag.opgelost[j]) x++; return x >= 5; }
+    return klaarIn(HOOFDSTUKKEN[h.nr - 2]) >= 5;
+  }
+  // welke puzzels open zijn (bij de eerste 370 precies zoals vroeger)
+  function isOpen(i) {
+    if (opslag.opgelost[i] || opslag.bezig[i]) return true;
+    if (i < KLASSIEK) { if (i < aantalKlaar() + 3) return true; const lijst = PER_MAAT[PUZZELS[i].n], hier = lijst.filter(j => opslag.opgelost[j]).length; return lijst.indexOf(i) < hier + 3; }
+    const h = hoofdstukVan(i);
+    return hoofdstukOpen(h) && i - h.van < klaarIn(h) + 3;
+  }
+  // de puzzel van de dag
+  const dagNr = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+  const OUDE_DAG = PUZZELS.map((p, i) => i).filter(i => i < 120 && PUZZELS[i].n >= 7 && PUZZELS[i].n <= 9);
+  const oudeDag = d => OUDE_DAG[(d * 37) % OUDE_DAG.length];
+  const dagId = d => (d < DAG_VANAF ? oudeDag(d) : 'd' + d);
+  const dagMaat = d => (d < DAG_VANAF ? PUZZELS[oudeDag(d)].n : KM.dagMaat(d));
+  const dagCache = {};
+  function dagPuzzel(d) {
+    if (d < DAG_VANAF) return PUZZELS[oudeDag(d)];
+    if (!dagCache[d]) dagCache[d] = KM.dagPuzzel(d) || PUZZELS[oudeDag(d)];
+    return dagCache[d];
+  }
+  const datum = (d, opt) => new Date(d * 86400000).toLocaleDateString('nl-NL', Object.assign({ timeZone: 'UTC' }, opt || { weekday: 'long', day: 'numeric', month: 'long' }));
+  const LES = { n: 5, v: 'abbbbacbbbccbbdcddddcdedd', o: '03142' };
+  function puzzelVan(id) { if (id === 'les') return LES; if (typeof id === 'string' && id[0] === 'd') return dagPuzzel(+id.slice(1)); return PUZZELS[id]; }
+  function titelVan(id) {
+    if (id === 'les') return ['Oefenpuzzel', ''];
+    if (typeof id === 'string') return ['Puzzel van de dag', datum(+id.slice(1))];
+    const h = hoofdstukVan(id);
+    if (h) return [`Hoofdstuk ${h.nr} · puzzel ${id - h.van + 1}`, h.naam];
+    const g = GROEPEN.find(x => x[0] === PUZZELS[id].n);
+    return ['Puzzel ' + (id + 1), g ? g[1] : ''];
+  }
+  const regelVan = P => [P.k > 1 ? 'Twee kronen per rij, kolom en vlak.' : '', /[A-Z]/.test(P.v) ? 'Op een doos kan geen kroon.' : '', P.t && P.t.length ? 'Het getal op een kaartje is het aantal kronen eromheen.' : ''].filter(Boolean).join(' ');
+
+  // ---------------- statistieken, reeks en mijlpalen
+  function reeksen() {
+    const op = new Set(), vandaag = dagNr();
+    let archief = 0, aantal = 0;
+    for (const [d, e] of Object.entries(opslag.dag)) { if (!Array.isArray(e)) continue; aantal++; if (e[2]) op.add(+d); else archief++; }
+    let nu = 0, d = op.has(vandaag) ? vandaag : vandaag - 1;
+    while (op.has(d)) { nu++; d--; }
+    let beste = 0; for (const x of op) if (!op.has(x - 1)) { let l = 0; while (op.has(x + l)) l++; beste = Math.max(beste, l); }
+    return { nu, beste, aantal, archief, vandaag: op.has(vandaag) };
+  }
+  function stand() {
+    const st = { opgelost: 0, zonder: 0, tijd: 0, perMaat: {}, perH: {}, snel: {}, ...reeksen() };
+    for (const [k, o] of Object.entries(opslag.opgelost)) {
+      const i = +k; if (!(i >= 0 && i < N) || !o) continue;
+      st.opgelost++; st.tijd += +o.tijd || 0; if (!o.hints) st.zonder++;
+      if (i < KLASSIEK) { const n = PUZZELS[i].n; (st.perMaat[n] = st.perMaat[n] || []).push(o); if (!o.hints) st.snel[n] = Math.min(st.snel[n] || 1e9, o.tijd); }
+      else { const h = hoofdstukVan(i); st.perH[h.nr] = (st.perH[h.nr] || 0) + 1; }
+    }
+    return st;
+  }
+  const MIJLPALEN = [
+    ['eerste', 'Eerste kroon', 'Los je eerste puzzel op.', st => st.opgelost, 1],
+    ['tien', 'Kroonverzamelaar', 'Los 10 puzzels op.', st => st.opgelost, 10],
+    ['vijftig', 'Halve eeuw', 'Los 50 puzzels op.', st => st.opgelost, 50],
+    ['honderd', 'Honderd kronen', 'Los 100 puzzels op.', st => st.opgelost, 100],
+    ['juwelen', 'Kroonjuwelen', 'Los 250 puzzels op.', st => st.opgelost, 250],
+    ['alles', 'Rommelkroon-meester', 'Los alle ' + N + ' puzzels op.', st => st.opgelost, N],
+    ['opwarmen', 'Opgewarmd', 'Los alle ' + PER_MAAT[5].length + ' puzzels van 5×5 op.', st => (st.perMaat[5] || []).length, PER_MAAT[5].length],
+    ['kroonmeester', 'Kroonmeester', 'Los alle ' + PER_MAAT[11].length + ' puzzels van 11×11 op.', st => (st.perMaat[11] || []).length, PER_MAAT[11].length],
+    ['zonder10', 'Zonder hulp', 'Los 10 puzzels op zonder hint.', st => st.zonder, 10],
+    ['zonder100', 'Eigen kracht', 'Los 100 puzzels op zonder hint.', st => st.zonder, 100],
+    ['snel6', 'Bliksem', 'Los een 6×6 op binnen 30 seconden, zonder hint.', st => (st.snel[6] <= 30 ? 1 : 0), 1],
+    ['snel8', 'Vlotte vingers', 'Los een 8×8 op binnen een minuut, zonder hint.', st => (st.snel[8] <= 60 ? 1 : 0), 1],
+    ['snel10', 'Razendsnel', 'Los een 10×10 op binnen twee minuten, zonder hint.', st => (st.snel[10] <= 120 ? 1 : 0), 1],
+    ['dag1', 'Dagjesmens', 'Los een puzzel van de dag op.', st => st.aantal, 1],
+    ['reeks3', 'Drie op een rij', 'Los drie dagen achter elkaar de puzzel van de dag op.', st => st.beste, 3],
+    ['reeks7', 'Een hele week', 'Zeven dagen achter elkaar de puzzel van de dag.', st => st.beste, 7],
+    ['reeks30', 'Maandkroon', 'Dertig dagen achter elkaar de puzzel van de dag.', st => st.beste, 30],
+    ['archief', 'Terug in de tijd', 'Los 5 puzzels uit het archief op.', st => st.archief, 5],
+    ...HOOFDSTUKKEN.map(h => ['h' + h.nr, h.mijl, `Maak hoofdstuk ${h.nr} af: ${h.naam}.`, st => st.perH[h.nr] || 0, h.tot - h.van]),
+    ['uren', 'Doorzetter', 'Puzzel in totaal vijf uur.', st => Math.floor(st.tijd / 60), 300],
+  ];
+  const behaald = st => new Set(MIJLPALEN.filter(m => m[3](st) >= m[4]).map(m => m[0]));
+  const MEDAILLE = (kleur = '#E9B949') => `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 2h8l4 12h-8zM34 2h-8l-4 12h8z" fill="#C8323C" stroke="#231A26" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="30" r="15" fill="${kleur}" stroke="#231A26" stroke-width="2.5"/><circle cx="24" cy="30" r="10.5" fill="none" stroke="#231A26" stroke-width="1.4" opacity=".45"/><path d="M16.5 35l-1-10 4.5 3.6 4-7 4 7 4.5-3.6-1 10z" fill="#FBF6E9" stroke="#231A26" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+
+  // ---------------- geluid (zacht, en uit te zetten)
+  let ac = null;
+  function audio() { if (!inst('geluid')) return null; try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } }
+  function noot(f, wacht, duur, vol, type = 'triangle') {
+    const a = audio(); if (!a) return;
+    try {
+      const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + wacht;
+      o.type = type; o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + duur);
+      o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + duur + 0.05);
+    } catch (e) {}
+  }
+  const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26];
+  const GELUID = {
+    kroon: c => { const f = 392 * Math.pow(2, PENTA[c % PENTA.length] / 12); noot(f, 0, .32, .12); noot(f * 2, .01, .18, .035, 'sine'); },
+    kruis: () => noot(1250, 0, .045, .035, 'square'),
+    leeg: () => noot(520, 0, .06, .03, 'sine'),
+    fout: () => { noot(220, 0, .16, .09, 'sawtooth'); noot(165, .1, .22, .08, 'sawtooth'); },
+    hint: () => { noot(784, 0, .25, .07, 'sine'); noot(1175, .09, .35, .06, 'sine'); },
+    klaar: () => { [523, 659, 784, 1047, 1319].forEach((f, k) => noot(f, k * .085, .45, .12)); noot(2093, .5, .6, .05, 'sine'); },
+    mijl: () => { [988, 1319, 1568].forEach((f, k) => noot(f, k * .07, .4, .06, 'sine')); },
+  };
+
+  // ---------------- licht en donker volgen de keuze van de homepage
+  function zetThema() { let k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} const d = k === 'donker' || (k !== 'licht' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); }
+  window.addEventListener('storage', e => { if (e.key === 'rommelhoekje-thema') zetThema(); });
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', zetThema); } catch (e) {}
+
+  // ---------------- overzicht
+  let tab = 'puzzels';
+  try { tab = sessionStorage.getItem('kroon-tab') || 'puzzels'; } catch (e) {}
+  function tekenOverzicht() {
+    tekenDag(); tekenVerder(); tekenTab();
+    $('stand').textContent = `${aantalKlaar()} van ${N} puzzels opgelost.` + (aantalKlaar() >= N ? ' Je bent een echte Rommelkroon-meester!' : '');
+  }
+  function tekenDag() {
+    const d = dagNr(), id = dagId(d), e = opslag.dag[d], b = opslag.bezig[id], r = reeksen(), n = dagMaat(d);
+    const oudOpgelost = d < DAG_VANAF && opslag.opgelost[id];
+    let status = 'Nog niet gespeeld.', knop = 'Spelen';
+    if (e) { status = `Opgelost in ${fmt(e[0])}` + (e[1] ? ` met ${e[1]} hint${e[1] > 1 ? 's' : ''}.` : ', zonder hint!'); knop = 'Nog eens'; }
+    else if (b) { status = `Bezig · ${fmt(b.tijd || 0)}`; knop = 'Verder spelen'; }
+    else if (oudOpgelost) { status = `Deze puzzel had je al eens opgelost (${fmt(oudOpgelost.tijd)}). Los hem vandaag nog eens op voor je reeks.`; }
+    const reeksTekst = r.nu ? `<span class="reeks">${VLAM}${r.nu} dag${r.nu > 1 ? 'en' : ''} op rij</span>` + (r.vandaag ? '' : ' · los vandaag op om je reeks te houden') : `<span class="klein">Los hem vandaag op en begin een reeks.</span>`;
+    const P = e ? dagPuzzel(d) : null;
+    $('dag').innerHTML = `<div class="mini-plek">${P ? plaatje(P, { kronen: true }) : `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FBF6E9"/>${Array.from({ length: n - 1 }, (x, k) => `<path d="M${(k + 1) * 100 / n} 0v100M0 ${(k + 1) * 100 / n}h100" stroke="#231A26" stroke-width=".8" opacity=".35"/>`).join('')}</svg><span class="dicht">${n}×${n}</span>`}</div>
+      <div><span class="tape">Puzzel van de dag</span><h2>${datum(d)}</h2></div>
+      <p class="status">${n}×${n} · ${status}</p>
+      <p>${reeksTekst}</p>
+      <div class="balk"><button class="knop hoofd" type="button" data-dag="${d}">${knop}</button>${e ? '<button class="knop" type="button" data-deel="' + d + '">Deel je tijd</button>' : ''}<button class="knop" type="button" data-naartab="archief">Archief</button></div>`;
+  }
+  function tekenVerder() {
+    const v = $('verder');
+    let l = normId(opslag.laatste);
+    // oude opslag weet niet wat het laatst gespeeld is: dan een puzzel die nog bezig is
+    if (l === undefined || l === null || !opslag.bezig[l]) l = normId(Object.keys(opslag.bezig).find(k => normId(k) !== dagId(dagNr()) && puzzelVan(normId(k))));
+    if (l === undefined || l === null || !opslag.bezig[l] || l === dagId(dagNr()) || !puzzelVan(l)) { v.hidden = true; return; }
+    const [t1, t2] = titelVan(l), P = puzzelVan(l);
+    v.hidden = false;
+    v.innerHTML = `<div><b>Verder waar je was</b><p class="klein">${t1}${t2 ? ' · ' + t2 : ''} · ${P.n}×${P.n} · ${fmt(opslag.bezig[l].tijd || 0)}</p></div><button class="knop hoofd" type="button" data-start="${l}">Verder spelen</button>`;
+  }
+  const knopLvl = (i, label) => { const o = opslag.opgelost[i], open = isOpen(i); return `<button class="lvl ${o ? 'klaar' + (o.hints ? '' : ' zonder') : opslag.bezig[i] ? 'bezig' : ''}" type="button" data-start="${i}" ${open ? '' : 'disabled'} aria-label="${label}${o ? ', opgelost in ' + fmt(o.tijd) + (o.hints ? '' : ', zonder hint') : opslag.bezig[i] ? ', bezig' : open ? '' : ', nog dicht'}">${label.replace(/^.* /, '')}<small>${o ? fmt(o.tijd) : open ? '' : 'dicht'}</small></button>`; };
+  function tekenTab() {
+    document.querySelectorAll('[data-tab]').forEach(b => { b.setAttribute('aria-selected', String(b.dataset.tab === tab)); b.tabIndex = b.dataset.tab === tab ? 0 : -1; });
+    $('paneel-tab').setAttribute('aria-labelledby', 'tab-' + tab);
+    const P = $('paneel-tab');
+    if (tab === 'puzzels') {
+      const eerste = GROEPEN.find(([n]) => PER_MAAT[n].some(i => !opslag.opgelost[i] && isOpen(i)));
+      P.innerHTML = '<h2>Klassieke puzzels</h2><p class="klein">Eén kroon per rij, kolom en vlak. Los een puzzel op en er gaat een nieuwe open.</p>' + GROEPEN.map(([n, naam]) => {
+        const idx = PER_MAAT[n], klaar = idx.filter(i => opslag.opgelost[i]).length;
+        return `<details class="groep"${eerste && eerste[0] === n ? ' open' : ''}><summary><b>${naam} · ${n}×${n}</b><small>${klaar} van ${idx.length}</small><div class="voortgang" aria-hidden="true"><i style="width:${(100 * klaar / idx.length).toFixed(1)}%"></i></div></summary><div class="levels">${idx.map(i => knopLvl(i, 'Puzzel ' + (i + 1))).join('')}</div></details>`;
+      }).join('');
+    } else if (tab === 'hoofdstukken') {
+      P.innerHTML = '<h2>Hoofdstukken</h2><p class="klein">Elk hoofdstuk brengt iets nieuws op het bord. Los 5 puzzels op in een hoofdstuk en het volgende gaat open.</p>' + HOOFDSTUKKEN.map(h => {
+        const open = hoofdstukOpen(h), klaar = klaarIn(h), tot = h.tot - h.van;
+        const eis = h.nr === 1 ? 'Los eerst 5 klassieke puzzels op.' : `Los eerst 5 puzzels op in hoofdstuk ${h.nr - 1}.`;
+        return `<div class="hst${open ? '' : ' dicht'}"><div class="mini-plek">${plaatje(PUZZELS[h.van], { kronen: opslag.opgelost[h.van] ? true : [] })}</div><div><span class="tape">Hoofdstuk ${h.nr}</span><h3>${h.naam}</h3><p class="klein">${h.regel}</p>${open ? `<div class="voortgang" aria-hidden="true"><i style="width:${(100 * klaar / tot).toFixed(1)}%"></i></div><small class="klein">${klaar} van ${tot} opgelost</small>` : `<p class="slot">${SLOT}${eis}</p>`}</div>${open ? `<div class="levels">${Array.from({ length: tot }, (x, k) => knopLvl(h.van + k, `Hoofdstuk ${h.nr}, puzzel ${k + 1}`)).join('')}</div>` : ''}</div>`;
+      }).join('');
+    } else if (tab === 'archief') {
+      const r = reeksen(), vandaag = dagNr();
+      let h = `<h2>Archief</h2><p>${r.nu ? `<span class="reeks">${VLAM}${r.nu} dag${r.nu > 1 ? 'en' : ''} op rij</span> · ` : ''}langste reeks: ${r.beste} dag${r.beste === 1 ? '' : 'en'} · ${r.aantal} puzzel${r.aantal === 1 ? '' : 's'} van de dag opgelost</p><p class="klein">Speel de puzzels van de dagen die je gemist hebt. Je reeks groeit alleen als je de puzzel op de dag zelf oplost (die krijgen een kroontje).</p>`;
+      const maanden = [];
+      for (let d = vandaag; d >= ARCHIEF_VANAF; d--) { const m = datum(d, { month: 'long', year: 'numeric' }); if (!maanden.length || maanden[maanden.length - 1].m !== m) maanden.push({ m, dagen: [] }); maanden[maanden.length - 1].dagen.unshift(d); }
+      for (const { m, dagen } of maanden) {
+        const eerste = dagen[0], dagInMaand = +datum(eerste, { day: 'numeric' }), begin = eerste - (dagInMaand - 1), wd = (begin + 3) % 7; // maandag = 0
+        let k = `<div class="maand"><h3>${m}</h3><div class="kalender">` + ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'].map(x => `<span class="wd" aria-hidden="true">${x}</span>`).join('');
+        for (let x = 0; x < wd; x++) k += '<span></span>';
+        for (let d = begin; d <= dagen[dagen.length - 1]; d++) {
+          const nr = d - begin + 1, e = opslag.dag[d], id = dagId(d), b = opslag.bezig[id], oud = d < DAG_VANAF && opslag.opgelost[id];
+          if (d < ARCHIEF_VANAF) { k += `<button class="kdag" type="button" disabled aria-hidden="true">${nr}</button>`; continue; }
+          const klaar = !!(e || oud), cls = (klaar ? ' klaar' : b ? ' bezig' : '') + (e && e[2] ? ' optijd' : '') + (d === vandaag ? ' vandaag' : '');
+          k += `<button class="kdag${cls}" type="button" data-dag="${d}" aria-label="${datum(d)}, ${dagMaat(d)} bij ${dagMaat(d)}${e ? ', opgelost in ' + fmt(e[0]) : oud ? ', opgelost' : b ? ', bezig' : ''}${d === vandaag ? ', vandaag' : ''}">${nr}<small>${e ? fmt(e[0]) : oud ? '✓' : dagMaat(d) + '×' + dagMaat(d)}</small></button>`;
+        }
+        h += k + '</div></div>';
+      }
+      P.innerHTML = h;
+    } else {
+      const st = stand(), have = behaald(st);
+      const rijen = GROEPEN.map(([n, naam]) => { const l = st.perMaat[n] || [], tot = PER_MAAT[n].length; const beste = l.length ? Math.min(...l.map(o => o.tijd)) : null, gem = l.length ? l.reduce((a, o) => a + o.tijd, 0) / l.length : null; return `<tr><td>${naam} ${n}×${n}</td><td>${l.length}/${tot}</td><td>${beste !== null ? fmt(beste) : '–'}</td><td>${gem !== null ? fmt(gem) : '–'}</td></tr>`; }).join('')
+        + HOOFDSTUKKEN.map(h => { const l = []; for (let j = h.van; j < h.tot; j++) if (opslag.opgelost[j]) l.push(opslag.opgelost[j]); const beste = l.length ? Math.min(...l.map(o => o.tijd)) : null, gem = l.length ? l.reduce((a, o) => a + o.tijd, 0) / l.length : null; return `<tr><td>H${h.nr} ${h.naam}</td><td>${l.length}/${h.tot - h.van}</td><td>${beste !== null ? fmt(beste) : '–'}</td><td>${gem !== null ? fmt(gem) : '–'}</td></tr>`; }).join('');
+      P.innerHTML = `<h2>Mijlpalen en statistieken</h2>
+        <div class="cijfers"><div class="cijfer"><b>${st.opgelost}</b><span>van ${N} opgelost</span></div><div class="cijfer"><b>${st.zonder}</b><span>zonder hint</span></div><div class="cijfer"><b>${fmtLang(st.tijd)}</b><span>gepuzzeld</span></div><div class="cijfer"><b>${st.nu}</b><span>dagen op rij (langste ${st.beste})</span></div><div class="cijfer"><b>${st.aantal}</b><span>puzzels van de dag</span></div><div class="cijfer"><b>${have.size}/${MIJLPALEN.length}</b><span>mijlpalen</span></div></div>
+        <h3>Mijlpalen</h3><div class="medailles">${MIJLPALEN.map(([id, naam, uitleg, meet, doel]) => { const w = Math.min(doel, meet(st)), ok = have.has(id); return `<div class="medaille${ok ? '' : ' nog'}">${MEDAILLE(ok ? '#E9B949' : '#BFC7D1')}<b>${naam}</b><span>${uitleg}</span>${ok || doel === 1 ? '' : `<div class="voortgang" role="img" aria-label="${w} van ${doel}"><i style="width:${(100 * w / doel).toFixed(1)}%"></i></div>`}</div>`; }).join('')}</div>
+        <h3>Per groep</h3><table class="tabel"><thead><tr><th>Groep</th><th>Opgelost</th><th>Snelste</th><th>Gemiddeld</th></tr></thead><tbody>${rijen}</tbody></table>`;
+    }
+  }
+  document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; try { sessionStorage.setItem('kroon-tab', tab); } catch (e) {} tekenTab(); }));
+  document.querySelector('.tabs').addEventListener('keydown', e => {
+    const lijst = [...document.querySelectorAll('[data-tab]')], i = lijst.findIndex(b => b.dataset.tab === tab), naar = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (!naar) return; e.preventDefault(); const b = lijst[(i + naar + lijst.length) % lijst.length]; b.click(); b.focus();
+  });
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-start],[data-dag],[data-naartab],[data-deel]');
+    if (!b || b.disabled || b.closest('dialog')) return;
+    if (b.dataset.start !== undefined) start(normId(b.dataset.start));
+    else if (b.dataset.dag !== undefined) { const d = +b.dataset.dag; start(dagId(d), { dag: d }); }
+    else if (b.dataset.deel !== undefined) deel(+b.dataset.deel);
+    else { tab = b.dataset.naartab; tekenTab(); $('tab-' + tab).scrollIntoView({ behavior: zachtBewegen() ? 'auto' : 'smooth', block: 'start' }); }
+  });
+
+  // ---------------- het spel
+  let P = null, B = null, id = 0, dagCtx = null, n = 0, cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set(), spoor = [], hintStap = null, focusCel = 0, elems = [], les = false;
+  function start(nieuwId, ctx = {}) {
+    const PP = puzzelVan(nieuwId); if (!PP) return;
+    if (P && !klaar && !$('spel').hidden) bewaarBezig();
+    id = nieuwId; P = PP; B = KM.lees(P); n = P.n; les = id === 'les';
+    dagCtx = ctx.dag !== undefined ? ctx.dag : (id === dagId(dagNr()) ? dagNr() : null);
+    const b = !les && opslag.bezig[id];
+    cel = b && Array.isArray(b.cel) && b.cel.length === n * n ? b.cel.map(x => (x === 1 || x === 2 ? x : 0)) : Array(n * n).fill(0);
+    tijd = b ? +b.tijd || 0 : 0; hints = b ? +b.hints || 0 : 0; autoX = new Set(b && Array.isArray(b.auto) ? b.auto : []); spoor = b && Array.isArray(b.spoor) ? b.spoor.slice() : [];
+    for (let i = 0; i < n * n; i++) if (B.vast[i]) { cel[i] = 0; autoX.delete(i); }
+    gesch = []; klaar = false; hintStap = null; focusCel = 0;
+    if (!les) { opslag.laatste = id; bewaar(); }
+    const [t1, t2] = dagCtx !== null && typeof id === 'number' ? ['Puzzel van de dag', datum(dagCtx) + ' · puzzel ' + (id + 1)] : titelVan(id);
+    $('spel-titel').innerHTML = `${t1} · ${n}×${n}${t2 ? `<span class="sub">${t2}</span>` : ''}`;
+    const rb = regelVan(P);
+    $('regelband').hidden = !rb; $('regelband').innerHTML = rb ? (P.t && P.t.length ? KAARTJE(1) : /[A-Z]/.test(P.v) ? DOOS : KROON) + '<span>' + rb + '</span>' : '';
+    $('overzicht').hidden = true; $('spel').hidden = false; $('hintvak').hidden = true; $('bord').classList.remove('gewonnen');
+    bouwBord(); teken(); startKlok(); window.scrollTo(0, 0);
+    if (les) toonLesTip();
+    // eerste keer in een hoofdstuk: de nieuwe regel uitleggen
+    const h = hoofdstukVan(id);
+    if (h && !b && !klaarIn(h) && id === h.van) setTimeout(() => dialoog(`<span class="tape">Hoofdstuk ${h.nr}</span><h2 id="dlg-titel">${h.naam}</h2><div class="uitleg-plaat">${plaatje(P, {})}</div><p>${h.regel}</p><p>De gewone regels blijven: ${P.k > 1 ? 'twee' : 'één'} kroon${P.k > 1 ? 'en' : ''} per rij, kolom en vlak, en kronen raken elkaar niet.</p><div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Aan de slag</button></div>`), 200);
+  }
+  function bouwBord() {
+    const Bd = $('bord'); Bd.style.setProperty('--n', n); Bd.innerHTML = ''; Bd.classList.toggle('patroon', inst('patroon')); Bd.classList.toggle('groot', n >= 11);
+    elems = [];
+    for (let r = 0; r < n; r++) {
+      const rij = document.createElement('div'); rij.className = 'rij'; rij.setAttribute('role', 'row');
+      for (let c = 0; c < n; c++) {
+        const i = r * n + c, g = B.reg[i], d = document.createElement('button');
+        d.type = 'button'; d.className = 'cel' + (r === 0 || B.reg[i - n] !== g ? ' t' : '') + (c === 0 || B.reg[i - 1] !== g ? ' l' : '') + (c === n - 1 || B.reg[i + 1] !== g ? ' r' : '') + (r === n - 1 || B.reg[i + n] !== g ? ' b' : '') + (B.vast[i] === 1 ? ' doos' : B.vast[i] === 2 ? ' kaart' : '');
+        d.style.backgroundColor = KLEUREN[g]; d.dataset.i = i; d.dataset.p = g; d.setAttribute('role', 'gridcell'); d.tabIndex = i === focusCel ? 0 : -1;
+        rij.appendChild(d); elems.push(d);
+      }
+      Bd.appendChild(rij);
+    }
+  }
+  const toestand = () => { const s = new Int8Array(n * n); for (let i = 0; i < n * n; i++) s[i] = B.vast[i] ? 1 : cel[i]; return s; };
+  function conflicten() {
+    const fout = new Set(), s = toestand();
+    for (const e of B.eenh) {
+      let kr = 0; for (const i of e.cellen) if (s[i] === 2) kr++;
+      if (kr > e.nodig) { if (e.soort === 'teller') { fout.add(e.nr); for (const i of e.cellen) if (s[i] === 2) fout.add(i); } else for (const i of e.cellen) fout.add(i); }
+    }
+    for (let i = 0; i < n * n; i++) if (s[i] === 2) for (const j of B.buren[i]) if (s[j] === 2) { fout.add(i); fout.add(j); }
+    return fout;
+  }
+  const eersteVanVlak = () => { const z = new Set(), uit = new Set(); for (let i = 0; i < n * n; i++) if (!z.has(B.reg[i])) { z.add(B.reg[i]); uit.add(i); } return uit; };
+  function teken(pop, kruisPop) {
+    const fout = conflicten(), letters = inst('patroon') ? eersteVanVlak() : null;
+    const hl = new Set(), doel = new Map();
+    if (hintStap) { for (const u of hintStap.eenheden || []) { const e = B.eenh[u]; for (const i of e.cellen) hl.add(i); if (e.soort === 'teller') hl.add(e.nr); } for (const i of hintStap.cellen || []) hl.add(i); for (const [i, w] of hintStap.zet || []) doel.set(i, w); }
+    for (let i = 0; i < n * n; i++) {
+      const d = elems[i], r = Math.floor(i / n) + 1, c = (i % n) + 1, vlak = KM.KLEURNAAM[B.reg[i]] + ' vlak' + (inst('patroon') ? ' ' + LETTER[B.reg[i]] : '');
+      let html = '', wat;
+      if (B.vast[i] === 1) { html = DOOS; wat = 'doos, hier kan geen kroon'; }
+      else if (B.vast[i] === 2) { html = KAARTJE(B.tel[i]); wat = `kaartje: ${B.tel[i]} kroon${B.tel[i] === 1 ? '' : 'en'} eromheen`; }
+      else if (cel[i] === 2) { html = KROON; wat = 'kroon'; }
+      else if (cel[i] === 1) { html = KRUIS(autoX.has(i) ? ' auto' : ''); wat = 'kruisje'; }
+      else { wat = 'leeg'; if (doel.get(i) === 2) html = KROON_SPOOK; else if (doel.get(i) === 1) html = KRUIS(' spook'); }
+      if (letters && letters.has(i)) html += `<span class="lt" aria-hidden="true">${LETTER[B.reg[i]]}</span>`;
+      if (d._html !== html) { d.innerHTML = html; d._html = html; }
+      d.classList.toggle('fout', fout.has(i)); d.classList.toggle('pop', pop === i); d.classList.toggle('zet', kruisPop === i);
+      d.classList.toggle('hl', hl.has(i)); d.classList.toggle('doel', doel.has(i) && cel[i] !== doel.get(i));
+      d.setAttribute('aria-label', `Rij ${r}, kolom ${c}, ${vlak}, ${wat}${fout.has(i) ? ', klopt niet' : ''}`);
+    }
+    $('b-ongedaan').disabled = !gesch.length || klaar;
+    $('b-hint').disabled = klaar; $('b-opnieuw').disabled = klaar;
     $('b-auto').setAttribute('aria-pressed', String(!!opslag.auto));
   }
-  function bewaarBezig() { if (klaar) return; opslag.bezig[nr] = { cel, tijd: Math.floor(tijd), hints, auto: [...autoX] }; bewaar(); }
-  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden) tijd += (nu - vorige) / 1000; vorige = nu; $('tijd').textContent = fmt(tijd); }, 250); }
-  function zet(i, w, opnemen = true) {
-    if (klaar || cel[i] === w) return;
-    if (opnemen) gesch.push({ cel: cel.slice(), auto: [...autoX] });
+  function bewaarBezig() { if (klaar || les || !P) return; opslag.bezig[id] = { cel: cel.slice(), tijd: Math.floor(tijd), hints, auto: [...autoX], spoor: spoor.slice(-60) }; bewaar(); }
+  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden) tijd += (nu - vorige) / 1000; vorige = nu; $('tijd').textContent = fmt(tijd); }, 250); $('tijd').textContent = fmt(tijd); }
+  const snap = () => ({ cel: cel.slice(), auto: [...autoX] });
+  function autoKruis(i) { for (const j of KM.gevolgen(B, toestand(), i, new Set())) if (cel[j] === 0 && !B.vast[j]) { cel[j] = 1; autoX.add(j); } }
+  function herberekenAuto() { for (const j of autoX) if (cel[j] === 1) cel[j] = 0; autoX = new Set(); for (let k = 0; k < n * n; k++) if (cel[k] === 2) autoKruis(k); }
+  function zet(i, w, opnemen = true, bron = 'speler') {
+    if (klaar || B.vast[i] || cel[i] === w) return;
+    if (opnemen) gesch.push(snap());
     const was = cel[i]; cel[i] = w; autoX.delete(i);
-    if (opslag.auto) {
-      if (w === 2) { const r = Math.floor(i / n), c = i % n; for (let j = 0; j < n * n; j++) { const rr = Math.floor(j / n), cc = j % n; if (j !== i && cel[j] === 0 && (rr === r || cc === c || reg[j] === reg[i] || (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1))) { cel[j] = 1; autoX.add(j); } } }
-      if (was === 2) { for (const j of [...autoX]) { cel[j] = 0; autoX.delete(j); } for (let k = 0; k < n * n; k++) if (cel[k] === 2) { const r = Math.floor(k / n), c = k % n; for (let j = 0; j < n * n; j++) { const rr = Math.floor(j / n), cc = j % n; if (j !== k && cel[j] === 0 && (rr === r || cc === c || reg[j] === reg[k] || (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1))) { cel[j] = 1; autoX.add(j); } } } }
-    }
-    teken(w === 2 ? i : undefined); controleer(); bewaarBezig();
+    if (w === 2) spoor.push([i, bron === 'hint' ? 1 : 0]);
+    if (opslag.auto) { if (was === 2) herberekenAuto(); if (w === 2) autoKruis(i); }
+    if (w === 2 && conflicten().has(i)) { GELUID.fout(); elems[i].classList.remove('schud'); void elems[i].offsetWidth; elems[i].classList.add('schud'); setTimeout(() => elems[i] && elems[i].classList.remove('schud'), 400); }
+    else if (w === 2) GELUID.kroon(i % n); else if (w === 1) GELUID.kruis(); else GELUID.leeg();
+    naZet(w === 2 ? i : undefined, w === 1 ? i : undefined);
+  }
+  function naZet(pop, kruisPop) {
+    if (hintStap && !les && (hintStap.zet || []).every(([i, w]) => cel[i] === w || (w === 1 && cel[i] === 1))) { hintStap = null; $('hintvak').hidden = true; }
+    teken(pop, kruisPop); controleer(); bewaarBezig();
+    if (les && !klaar) toonLesTip();
   }
   function controleer() {
-    const { fout, kronen } = conflicten();
-    if (kronen.length !== n || fout.size) return;
-    klaar = true; clearInterval(klok);
-    const t = Math.max(1, Math.round(tijd)), oud = opslag.opgelost[nr];
-    if (!oud || t < oud.tijd) opslag.opgelost[nr] = { tijd: t, hints };
-    delete opslag.bezig[nr]; bewaar(); stuurScore();
-    geluid();
-    // de vakjes van deze puzzel vastleggen: start je intussen een andere, dan doen de laatste sprongetjes niets
-    const B = [...$('bord').children]; kronen.forEach((i, k) => setTimeout(() => { const d = B[i]; if (!d || !d.isConnected) return; d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop'); }, k * 90));
-    setTimeout(() => {
-      const volgende = nr + 1 < N ? nr + 1 : null, record = !oud || t < oud.tijd;
-      dialoog(`<div class="klaar-kaart"><h2>Opgelost!</h2><p class="groot">${fmt(t)}</p><p>${record && oud ? 'Een nieuw record voor deze puzzel!' : oud ? 'Je record is ' + fmt(oud.tijd) + '.' : 'Puzzel ' + (nr + 1) + ' staat op je naam.'}${hints ? ' Met ' + hints + ' hint' + (hints > 1 ? 's' : '') + '.' : ''}</p><div class="balk">${volgende !== null ? '<button class="knop hoofd" data-k="volgende" type="button">Volgende puzzel</button>' : ''}<button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`);
-    }, n * 90 + 400);
-  }
-  function geluid() { try { const ac = new (window.AudioContext || window.webkitAudioContext)(); [523, 659, 784, 1047].forEach((f, k) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, ac.currentTime + k * 0.09); g.gain.exponentialRampToValueAtTime(0.15, ac.currentTime + k * 0.09 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + k * 0.09 + 0.35); o.connect(g); g.connect(ac.destination); o.start(ac.currentTime + k * 0.09); o.stop(ac.currentTime + k * 0.09 + 0.4); }); } catch (e) {} }
-  // tikken en slepen
-  let sleep = null;
-  $('bord').addEventListener('pointerdown', e => { const d = e.target.closest('.cel'); if (!d || klaar) return; e.preventDefault(); const i = +d.dataset.i; sleep = { start: i, bewogen: false, gezet: new Set() }; $('bord').setPointerCapture && $('bord').setPointerCapture(e.pointerId); });
-  $('bord').addEventListener('pointermove', e => {
-    if (!sleep) return; const el = document.elementFromPoint(e.clientX, e.clientY), d = el && el.closest('.cel'); if (!d) return; const i = +d.dataset.i;
-    if (i !== sleep.start || sleep.bewogen) {
-      if (!sleep.bewogen) { sleep.bewogen = true; gesch.push({ cel: cel.slice(), auto: [...autoX] }); if (cel[sleep.start] === 0) { cel[sleep.start] = 1; sleep.gezet.add(sleep.start); } }
-      if (cel[i] === 0 && !sleep.gezet.has(i)) { cel[i] = 1; sleep.gezet.add(i); teken(); }
+    if (!KM.klaar(B, toestand())) return;
+    klaar = true; clearInterval(klok); hintStap = null; $('hintvak').hidden = true;
+    const t = Math.max(1, Math.round(tijd));
+    if (les) { opslag.uitleg = 1; bewaar(); vier(); setTimeout(() => dialoog(`<div class="klaar-kaart"><span class="tape">Goed gedaan</span><h2 id="dlg-titel">Je eerste kroontjes!</h2><p>Zo werkt het: steeds de plek zoeken waar een kroon wel móét staan, of juist niet kán. Kom je vast te zitten, dan legt de hint uit wat je kunt doen.</p><div class="balk"><button class="knop hoofd" data-k="start0" type="button">Speel puzzel 1</button><button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`), n * 90 + 500); teken(); return; }
+    const voor = behaald(stand());
+    let oud = null, record = false;
+    if (typeof id === 'number') { oud = opslag.opgelost[id]; record = !oud || t < oud.tijd; if (record) opslag.opgelost[id] = { tijd: t, hints }; }
+    let dagTekst = '';
+    if (dagCtx !== null) {
+      const d = dagCtx, e = opslag.dag[d], opTijd = d === dagNr() ? 1 : 0;
+      if (typeof id !== 'number') { oud = e ? { tijd: e[0] } : null; record = !e || t < e[0]; }
+      if (!e || t < e[0]) opslag.dag[d] = [t, hints, e && e[2] ? 1 : opTijd, spoorTekst()];
+      else if (opTijd && !e[2]) e[2] = 1;
+      const r = reeksen();
+      dagTekst = opTijd && r.nu ? `<p><span class="reeks">${VLAM}${r.nu} dag${r.nu > 1 ? 'en' : ''} op rij!</span></p>` : '';
     }
+    delete opslag.bezig[id]; bewaar(); stuurScore();
+    teken(); vier();
+    const nieuw = [...behaald(stand())].filter(x => !voor.has(x));
+    const volgende = volgendeVan(id);
+    setTimeout(() => {
+      const t1 = dagCtx !== null ? 'Puzzel van de dag' : titelVan(id)[0];
+      dialoog(`<div class="klaar-kaart"><span class="tape">Opgelost!</span><h2 id="dlg-titel">${t1}</h2><p class="groot">${fmt(t)}</p><p>${record && oud ? 'Een nieuw record!' : oud ? 'Je record is ' + fmt(oud.tijd) + '.' : 'Weer een puzzel op je naam.'}${hints ? ' Met ' + hints + ' hint' + (hints > 1 ? 's' : '') + '.' : ' Zonder hint!'}</p>${dagCtx !== null ? `<p class="spoor" aria-label="Je kronen op volgorde">${(opslag.dag[dagCtx] || [])[3] || ''}</p>${dagTekst}` : ''}<div class="balk">${dagCtx !== null ? `<button class="knop hoofd" data-k="deel" type="button">Deel je tijd</button><button class="knop" data-k="archief" type="button">Archief</button>` : volgende !== null ? '<button class="knop hoofd" data-k="volgende" type="button">Volgende puzzel</button>' : ''}<button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`);
+      nieuw.forEach((x, k) => setTimeout(() => { const m = MIJLPALEN.find(y => y[0] === x); melding(`${MEDAILLE()}<span>Mijlpaal: ${m[1]}</span>`); GELUID.mijl(); }, 600 + k * 900));
+    }, n * 90 + 450);
+  }
+  function volgendeVan(i) {
+    if (typeof i !== 'number') return null;
+    const h = hoofdstukVan(i);
+    if (h) return i + 1 < h.tot ? i + 1 : (h.nr < HOOFDSTUKKEN.length && hoofdstukOpen(HOOFDSTUKKEN[h.nr]) ? HOOFDSTUKKEN[h.nr].van : null);
+    return i + 1 < KLASSIEK ? i + 1 : null;
+  }
+  // het spoor: de kronen op volgorde, zonder te verraden waar ze staan
+  function spoorTekst() {
+    const laatst = new Map(); spoor.forEach(([i], k) => laatst.set(i, k));
+    const tekens = spoor.map(([i, h], k) => (h ? '💡' : cel[i] === 2 && laatst.get(i) === k ? '👑' : '❌'));
+    return tekens.length > 24 ? tekens.slice(0, 24).join('') + '…' : tekens.join('');
+  }
+  function vier() {
+    GELUID.klaar();
+    const Bd = $('bord'); Bd.classList.remove('gewonnen'); void Bd.offsetWidth; Bd.classList.add('gewonnen');
+    const kronen = []; for (let i = 0; i < n * n; i++) if (cel[i] === 2) kronen.push(i);
+    const mijn = elems;
+    kronen.forEach((i, k) => setTimeout(() => { const d = mijn[i]; if (!d || !d.isConnected) return; d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop'); }, k * 90));
+    if (zachtBewegen()) return;
+    const laag = document.createElement('div'); laag.className = 'confetti'; laag.setAttribute('aria-hidden', 'true');
+    const kl = ['#E9B949', '#C8323C', '#2F4C8F', '#F2DDA0', '#B8E0A0', '#C9B3F2'];
+    for (let x = 0; x < 70; x++) { const s = document.createElement('i'); s.style.left = (Math.random() * 100) + '%'; s.style.background = kl[x % kl.length]; s.style.setProperty('--x', ((Math.random() - .5) * 220).toFixed(0) + 'px'); s.style.setProperty('--r', ((Math.random() - .5) * 1440).toFixed(0) + 'deg'); s.style.setProperty('--duur', (1.6 + Math.random() * 1.4).toFixed(2) + 's'); s.style.setProperty('--wacht', (Math.random() * .5).toFixed(2) + 's'); if (x % 3 === 0) s.style.borderRadius = '50%'; laag.appendChild(s); }
+    document.body.appendChild(laag); setTimeout(() => laag.remove(), 3800);
+  }
+  const volgendeStand = w => (w + 1) % 3;
+  // ---------------- tikken, slepen, rechts klikken
+  let sleep = null;
+  const celVan = e => { const el = document.elementFromPoint(e.clientX, e.clientY), d = el && el.closest && el.closest('.cel'); return d && d.parentNode && d.parentNode.parentNode === $('bord') ? +d.dataset.i : null; };
+  $('bord').addEventListener('contextmenu', e => e.preventDefault());
+  $('bord').addEventListener('pointerdown', e => {
+    const d = e.target.closest('.cel'); if (!d || klaar) return;
+    e.preventDefault(); audio();
+    const i = +d.dataset.i; focusOp(i, false);
+    if (e.button === 2) { gesch.push(snap()); const w = cel[i] === 1 ? 0 : cel[i] === 0 ? 1 : cel[i]; if (w !== cel[i] && !B.vast[i]) { cel[i] = w; autoX.delete(i); if (w) GELUID.kruis(); else GELUID.leeg(); } sleep = { start: i, bewogen: true, modus: w === 1 ? 'zet' : 'wis', laatst: i }; naZet(undefined, w === 1 ? i : undefined); }
+    else if (e.button === 0 || e.pointerType !== 'mouse') sleep = { start: i, bewogen: false, modus: cel[i] === 1 ? 'wis' : 'zet', laatst: i };
+    try { $('bord').setPointerCapture(e.pointerId); } catch (x) {}
   });
-  const loslaten = () => { if (!sleep) return; const s = sleep; sleep = null; if (s.bewogen) { teken(); bewaarBezig(); return; } const i = s.start; zet(i, (cel[i] + 1) % 3); };
-  $('bord').addEventListener('pointerup', loslaten); $('bord').addEventListener('pointercancel', () => { sleep = null; teken(); });
-  // toetsenbord: enter of spatie op een vakje
-  $('bord').addEventListener('keydown', e => { const d = e.target.closest('.cel'); if (!d) return; const i = +d.dataset.i; const naar = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: n, ArrowUp: -n }[e.key]; if (naar) { e.preventDefault(); const j = i + naar; if (j >= 0 && j < n * n) $('bord').children[j].focus(); } if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zet(i, (cel[i] + 1) % 3); } });
-  $('b-ongedaan').addEventListener('click', () => { const v = gesch.pop(); if (!v || klaar) return; cel = v.cel; autoX = new Set(v.auto); teken(); bewaarBezig(); });
-  $('b-opnieuw').addEventListener('click', () => { if (klaar) return; gesch.push({ cel: cel.slice(), auto: [...autoX] }); cel = Array(n * n).fill(0); autoX = new Set(); teken(); bewaarBezig(); });
-  $('b-auto').addEventListener('click', () => { opslag.auto = !opslag.auto; bewaar(); teken(); });
-  $('b-hint').addEventListener('click', () => {
-    if (klaar) return; const opl = [...P.o].map(ch => parseInt(ch, 16));
-    // eerst foute kronen weghalen, anders één goede kroon zetten
-    const fouteKroon = [...Array(n * n).keys()].find(i => cel[i] === 2 && opl[Math.floor(i / n)] !== i % n);
-    hints++; tijd += 15;
-    if (fouteKroon !== undefined) { zet(fouteKroon, 0); const d = $('bord').children[fouteKroon]; d.classList.add('fout'); setTimeout(() => teken(), 700); return; }
-    const leeg = [...Array(n).keys()].filter(r => cel[r * n + opl[r]] !== 2);
-    if (!leeg.length) return;
-    const r = leeg[Math.floor(Math.random() * leeg.length)], i = r * n + opl[r]; zet(i, 2); $('bord').children[i].classList.add('hint');
+  $('bord').addEventListener('pointermove', e => {
+    if (!sleep || klaar) return; const i = celVan(e); if (i === null || i === sleep.laatst) return;
+    if (!sleep.bewogen) { sleep.bewogen = true; gesch.push(snap()); verf(sleep.start); }
+    // ook de vakjes ertussen (bij snel slepen)
+    const [r0, c0] = [Math.floor(sleep.laatst / n), sleep.laatst % n], [r1, c1] = [Math.floor(i / n), i % n], stappen = Math.max(Math.abs(r1 - r0), Math.abs(c1 - c0));
+    for (let s = 1; s <= stappen; s++) verf(Math.round(r0 + (r1 - r0) * s / stappen) * n + Math.round(c0 + (c1 - c0) * s / stappen));
+    sleep.laatst = i; teken();
   });
-  $('b-terug').addEventListener('click', () => { bewaarBezig(); clearInterval(klok); $('spel').hidden = true; $('overzicht').hidden = false; tekenOverzicht(); });
-  // ---------------- venster
-  function dialoog(html) { $('dlg-in').innerHTML = html; if (!$('dlg').open) $('dlg').showModal(); }
-  $('dlg').addEventListener('click', e => { const k = e.target.closest('[data-k]'); if (e.target === $('dlg')) $('dlg').close(); if (!k) return; $('dlg').close(); if (k.dataset.k === 'volgende') start(nr + 1); if (k.dataset.k === 'overzicht') { $('spel').hidden = true; $('overzicht').hidden = false; tekenOverzicht(); } });
-  $('b-regels').addEventListener('click', () => dialoog(`<h2>Spelregels</h2><p>Zet in elke <b>rij</b>, elke <b>kolom</b> en elk <b>gekleurd vlak</b> precies één kroon.</p><p>Kronen mogen elkaar <b>niet raken</b>, ook niet schuin.</p><p>Tik één keer voor een kruisje (hier kan geen kroon), nog eens voor een kroon, en nog eens om het vakje leeg te maken. Sleep over het bord om snel kruisjes te zetten. Met <b>Automatische kruisjes</b> zet het spel zelf kruisjes op plekken die niet meer kunnen.</p><p>Elke puzzel heeft precies één oplossing, dus je hoeft nooit te gokken. Een hint kost 15 seconden.</p><div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Begrepen</button></div>`));
-  // ---------------- scorebord
-  function stuurScore() { if (window.Scorebord) Scorebord.stuur('kroon', aantalKlaar(), Object.values(opslag.opgelost).reduce((a, o) => a + o.tijd, 0)); }
+  function verf(i) { if (B.vast[i]) return; if (sleep.modus === 'zet' && cel[i] === 0) { cel[i] = 1; GELUID.kruis(); } else if (sleep.modus === 'wis' && cel[i] === 1) { cel[i] = 0; autoX.delete(i); } }
+  const loslaten = () => { if (!sleep) return; const s = sleep; sleep = null; if (s.bewogen) { naZet(); return; } zet(s.start, volgendeStand(cel[s.start])); };
+  $('bord').addEventListener('pointerup', loslaten);
+  $('bord').addEventListener('pointercancel', () => { if (sleep && sleep.bewogen) naZet(); sleep = null; });
+  // toetsenbord
+  function focusOp(i, echt = true) { if (elems[focusCel]) elems[focusCel].tabIndex = -1; focusCel = i; if (elems[i]) { elems[i].tabIndex = 0; if (echt) elems[i].focus(); } }
+  $('bord').addEventListener('keydown', e => {
+    const d = e.target.closest('.cel'); if (!d) return; const i = +d.dataset.i, r = Math.floor(i / n), c = i % n;
+    const naar = { ArrowRight: c < n - 1 ? i + 1 : i, ArrowLeft: c > 0 ? i - 1 : i, ArrowDown: r < n - 1 ? i + n : i, ArrowUp: r > 0 ? i - n : i, Home: r * n, End: r * n + n - 1 }[e.key];
+    if (naar !== undefined) { e.preventDefault(); focusOp(naar); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zet(i, volgendeStand(cel[i])); }
+    else if (k === 'x') { e.preventDefault(); zet(i, cel[i] === 1 ? 0 : 1); }
+    else if (k === 'k' || k === 'c') { e.preventDefault(); zet(i, cel[i] === 2 ? 0 : 2); }
+    else if (e.key === 'Backspace' || e.key === 'Delete' || k === '0') { e.preventDefault(); zet(i, 0); }
+  });
+  document.addEventListener('keydown', e => {
+    if ($('spel').hidden || $('dlg').open || /input|textarea|select/i.test((e.target.tagName || ''))) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.altKey) { e.preventDefault(); ongedaan(); }
+    else if (k === 'h' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); vraagHint(); }
+  });
+  function ongedaan() { const v = gesch.pop(); if (!v || klaar) return; cel = v.cel; autoX = new Set(v.auto); GELUID.leeg(); naZet(); }
+  $('b-ongedaan').addEventListener('click', ongedaan);
+  $('b-opnieuw').addEventListener('click', () => { if (klaar || !cel.some(x => x)) return; gesch.push(snap()); cel = Array(n * n).fill(0); autoX = new Set(); hintStap = null; $('hintvak').hidden = true; GELUID.leeg(); naZet(); });
+  $('b-auto').addEventListener('click', () => { opslag.auto = !opslag.auto; bewaar(); if (opslag.auto && P && !klaar) { gesch.push(snap()); herberekenAuto(); naZet(); } else teken(); });
+  // ---------------- de slimme hint: legt uit waarom
+  function zoekHint() {
+    const fout = conflicten();
+    for (let i = 0; i < n * n; i++) if (cel[i] === 2 && !B.oplSet[i]) return { soort: 'kroonweg', cellen: [i], zet: [[i, 0]], direct: true, tekst: fout.has(i) ? 'Deze kroon botst met een andere kroon. Ik haal hem weg.' : 'Deze kroon staat op een plek waar geen kroon kan. Ik haal hem weg.' };
+    for (let i = 0; i < n * n; i++) if (cel[i] === 1 && B.oplSet[i]) return { soort: 'kruisweg', cellen: [i], zet: [[i, 0]], direct: true, tekst: 'Hier staat een kruisje op een plek waar wél een kroon kan. Ik haal het kruisje weg.' };
+    const s = toestand(); KM.alleGevolgen(B, s);
+    const st = KM.stap(B, s, 4);
+    if (st) return st;
+    const i = B.opl.find(j => cel[j] !== 2);
+    return i === undefined ? null : { soort: 'kroon', zet: [[i, 2]], tekst: 'Hier hoort een kroon.' };
+  }
+  function toonHint(st, voorvoegsel = '') {
+    hintStap = st.direct ? null : st;
+    $('hint-tekst').textContent = voorvoegsel + st.tekst;
+    $('hint-doe').hidden = !!st.direct || !(st.zet || []).length;
+    $('hint-doe').textContent = (st.zet || []).some(([, w]) => w === 2) ? ((st.zet.length > 1 ? 'Zet de kronen' : 'Zet de kroon') + ' voor me') : 'Zet de kruisjes voor me';
+    if (st.zet && st.zet.length === 1 && st.zet[0][1] === 1) $('hint-doe').textContent = 'Zet het kruisje voor me';
+    $('hintvak').hidden = false;
+  }
+  function vraagHint() {
+    if (klaar || !P) return;
+    if (les) { toonLesTip(); return; }
+    const st = zoekHint(); if (!st) return;
+    hints++; tijd += 15; GELUID.hint();
+    if (st.direct) { gesch.push(snap()); for (const [i, w] of st.zet) { cel[i] = w; autoX.delete(i); } if (opslag.auto) herberekenAuto(); toonHint(st); teken(); bewaarBezig(); elems[st.cellen[0]].classList.add('fout'); setTimeout(() => teken(), 900); return; }
+    toonHint(st); teken(); bewaarBezig();
+    const eerste = (st.zet || [])[0]; if (eerste) focusOp(eerste[0], false);
+  }
+  function doeHint() {
+    const st = hintStap; if (!st || klaar) return;
+    gesch.push(snap());
+    hintStap = null; $('hintvak').hidden = true;
+    for (const [i, w] of st.zet) { if (B.vast[i] || cel[i] === w) continue; if (w === 2) { cel[i] = 2; autoX.delete(i); spoor.push([i, 1]); if (opslag.auto) autoKruis(i); } else { cel[i] = w; autoX.delete(i); } }
+    const kroon = st.zet.find(([, w]) => w === 2);
+    if (kroon) GELUID.kroon(kroon[0] % n); else GELUID.kruis();
+    naZet(kroon ? kroon[0] : undefined);
+  }
+  function toonLesTip() { const st = zoekHint(); if (!st) return; if (st.direct) { toonHint(st, 'Tip: '); hintStap = null; return; } toonHint(st, 'Tip: '); teken(); }
+  $('b-hint').addEventListener('click', vraagHint);
+  $('hint-doe').addEventListener('click', doeHint);
+  $('hint-dicht').addEventListener('click', () => { hintStap = null; $('hintvak').hidden = true; teken(); });
+  function naarOverzicht() { bewaarBezig(); clearInterval(klok); hintStap = null; $('spel').hidden = true; $('overzicht').hidden = false; tekenOverzicht(); window.scrollTo(0, 0); }
+  $('b-terug').addEventListener('click', naarOverzicht);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) bewaarBezig(); });
+  window.addEventListener('pagehide', bewaarBezig);
+
+  // ---------------- delen (zonder de oplossing te verraden)
+  function deelTekst(d) {
+    const e = opslag.dag[d]; if (!e) return '';
+    const n2 = dagMaat(d), r = reeksen();
+    return `Rommelkroon · ${datum(d, { weekday: 'short', day: 'numeric', month: 'short' })}\n👑 ${n2}×${n2} in ${fmt(e[0])}${e[1] ? ` · ${e[1]} hint${e[1] > 1 ? 's' : ''}` : ' · zonder hint'}\n${e[3] || ''}${e[2] && r.nu > 1 ? `\n🔥 ${r.nu} dagen op rij` : ''}\n${location.origin}${location.pathname}`;
+  }
+  async function deel(d) {
+    const tekst = deelTekst(d); if (!tekst) return;
+    try { if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) { await navigator.share({ text: tekst }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(tekst); melding(`${KROON}<span>Gekopieerd! Plak het waar je maar wilt.</span>`); return; } catch (e) {}
+    dialoog(`<h2 id="dlg-titel">Deel je tijd</h2><p>Kopieer dit en plak het in een bericht:</p><textarea class="deel" readonly>${tekst.replace(/</g, '&lt;')}</textarea><div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Klaar</button></div>`);
+    const ta = document.querySelector('textarea.deel'); if (ta) { ta.focus(); ta.select(); }
+  }
+
+  // ---------------- vensters, meldingen, uitleg en instellingen
+  function dialoog(html) { $('dlg-in').innerHTML = html; if (!$('dlg').open) { try { $('dlg').showModal(); } catch (e) { $('dlg').setAttribute('open', ''); } } const f = $('dlg-in').querySelector('.knop.hoofd') || $('dlg-in').querySelector('button'); if (f) f.focus(); }
+  function sluit() { try { $('dlg').close(); } catch (e) { $('dlg').removeAttribute('open'); } }
+  function melding(html) { const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = html; $('toasts').appendChild(t); setTimeout(() => t.classList.add('weg'), 3200); setTimeout(() => t.remove(), 3700); }
+  $('dlg').addEventListener('click', e => {
+    if (e.target === $('dlg')) { sluit(); return; }
+    const k = e.target.closest('[data-k]'); if (!k) return;
+    const wat = k.dataset.k;
+    if (wat === 'les-verder') { uitlegStap(+k.dataset.stap); return; }
+    sluit();
+    if (wat === 'volgende') { const v = volgendeVan(id); if (v !== null) start(v); }
+    else if (wat === 'overzicht') naarOverzicht();
+    else if (wat === 'archief') { tab = 'archief'; naarOverzicht(); }
+    else if (wat === 'deel') { deel(dagCtx); }
+    else if (wat === 'les') start('les');
+    else if (wat === 'start0') start(0);
+  });
+  $('dlg').addEventListener('change', e => {
+    const x = e.target.closest('[data-inst]'); if (!x) return;
+    if (x.dataset.inst === 'auto') { opslag.auto = x.checked; bewaar(); if (P && !$('spel').hidden && !klaar && opslag.auto) { gesch.push(snap()); herberekenAuto(); naZet(); } else if (P) teken(); return; }
+    opslag.inst[x.dataset.inst] = x.checked; bewaar();
+    if (x.dataset.inst === 'patroon' && P && !$('spel').hidden) { bouwBord(); teken(); }
+    if (x.dataset.inst === 'geluid' && x.checked) GELUID.kruis();
+  });
+  $('b-inst').addEventListener('click', () => dialoog(`<h2 id="dlg-titel">Instellingen</h2>
+    <label class="schakel"><input type="checkbox" data-inst="geluid"${inst('geluid') ? ' checked' : ''}><span>Geluid<small>Zachte geluidjes bij kronen, kruisjes en oplossen.</small></span></label>
+    <label class="schakel"><input type="checkbox" data-inst="auto"${opslag.auto ? ' checked' : ''}><span>Automatische kruisjes<small>Zet een kroon en het spel streept vanzelf weg wat niet meer kan.</small></span></label>
+    <label class="schakel"><input type="checkbox" data-inst="patroon"${inst('patroon') ? ' checked' : ''}><span>Patronen en letters<small>Elk vlak krijgt ook een eigen patroon en een letter. Handig als je kleuren lastig uit elkaar houdt.</small></span></label>
+    <p class="klein">Licht of donker volgt de keuze op de homepage van het rommelhoekje.</p>
+    <div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Klaar</button></div>`));
+  // uitleg voor nieuwe spelers, in vier stapjes
+  const UITLEG = [
+    () => ['Welkom bij Rommelkroon!', `<div class="uitleg-plaat">${plaatje(LES, { kronen: true })}</div><p>Zet in elke <b>rij</b>, elke <b>kolom</b> en elk <b>gekleurd vlak</b> precies één kroon.</p>`],
+    () => ['Kronen raken elkaar niet', `<div class="uitleg-plaat">${plaatje({ n: 5, v: 'aaaaaaaaaaaaaaaaaaaaaaaaa', o: '00000' }, { kronen: [12], kruisjes: [6, 7, 8, 11, 13, 16, 17, 18] })}</div><p>Ook niet <b>schuin</b>. Rond een kroon kan dus nooit een andere kroon staan.</p>`],
+    () => ['Kruisjes helpen', `<div class="uitleg-plaat">${plaatje(LES, { kronen: [22], kruisjes: [2, 7, 12, 17, 15, 16, 18, 19, 20, 21, 23, 24] })}</div><p><b>Tik</b> één keer voor een kruisje (hier kan geen kroon), nog eens voor een kroon, en nog eens om het vakje leeg te maken. <b>Sleep</b> over het bord om snel kruisjes te zetten.</p><p class="klein">Met een muis zet <b>rechts klikken</b> een kruisje. Met het toetsenbord: pijltjes, <span class="toets">spatie</span>, <span class="toets">X</span> voor een kruisje, <span class="toets">K</span> voor een kroon, <span class="toets">Z</span> om iets terug te draaien en <span class="toets">H</span> voor een hint.</p>`],
+    () => ['Nooit gokken', `<p>Elke puzzel heeft precies <b>één oplossing</b>, en die vind je altijd door na te denken. Zit je vast? De <b>hint</b> vertelt welk vakje je kunt invullen en legt uit wáárom. Een hint kost wel 15 seconden.</p><p>Elke dag is er een nieuwe <b>puzzel van de dag</b>. Los hem op de dag zelf op en bouw een reeks op. In <b>Hoofdstukken</b> komen er nieuwe regels bij.</p>`],
+  ];
+  let inUitleg = false;
+  $('dlg').addEventListener('close', () => { if (inUitleg) { inUitleg = false; if (!opslag.uitleg) { opslag.uitleg = 1; bewaar(); } } });
+  function uitlegStap(k) {
+    inUitleg = true;
+    const [titel, inhoud] = UITLEG[k]();
+    const laatste = k === UITLEG.length - 1;
+    dialoog(`<span class="tape">Uitleg ${k + 1} van ${UITLEG.length}</span><h2 id="dlg-titel">${titel}</h2>${inhoud}<div class="stippen" aria-hidden="true">${UITLEG.map((x, j) => `<i class="${j === k ? 'aan' : ''}"></i>`).join('')}</div><div class="balk">${laatste ? '<button class="knop hoofd" data-k="les" type="button">Speel de oefenpuzzel</button><button class="knop" data-k="dicht" type="button">Meteen beginnen</button>' : `${k ? `<button class="knop" data-k="les-verder" data-stap="${k - 1}" type="button">Terug</button>` : ''}<button class="knop hoofd" data-k="les-verder" data-stap="${k + 1}" type="button">Volgende</button>`}</div>`);
+  }
+  $('b-uitleg').addEventListener('click', () => uitlegStap(0));
+
+  // ---------------- scorebord (score = aantal opgeloste puzzels, net als altijd; nooit meer dan 500)
+  function stuurScore() { if (window.Scorebord) Scorebord.stuur('kroon', Math.min(500, aantalKlaar()), Object.values(opslag.opgelost).reduce((a, o) => a + ((o && +o.tijd) || 0), 0)); }
   tekenOverzicht();
-  if (!localStorage.getItem(KEY)) setTimeout(() => $('b-regels').click(), 400);
+  if (nieuweSpeler) setTimeout(() => uitlegStap(0), 400);
   if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-kroon'), 'opgeloste puzzels'); }
-  window.__kroon = { start, zet, get cel() { return cel; }, PUZZELS, opslag };
+  window.__kroon = { start, zet, get cel() { return cel; }, get id() { return id; }, PUZZELS, opslag, KM, zoekHint, vraagHint, doeHint, dagPuzzel, dagId, dagNr, stand, reeksen, HOOFDSTUKKEN, deelTekst, isOpen };
 })();
 </script>
 <script>

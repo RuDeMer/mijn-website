@@ -37,11 +37,11 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 .kop .knop:focus-visible { outline: 3px solid #2F6FB5; outline-offset: 2px; }
 #veld { position: relative; flex: 1; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #06121E; }
 #doek { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; display: block; touch-action: none; }
-#zwart { position: absolute; inset: 0; background: #06121E; opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 30; }
+#zwart { position: absolute; inset: 0; background: #06121E; opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 19; } /* onder de vensters (20) en gesprekken (25): die zijn altijd te zien */
 #zwart.aan { opacity: 1; }
 /* ---- kaarten: papier in een inktrand, met een koperen lijntje en de kop op labeltape */
 .scherm { position: absolute; inset: 0; display: grid; place-items: center; padding: .8rem; z-index: 20; background: radial-gradient(ellipse at center, rgba(6,18,30,.35), rgba(6,18,30,.72)); overflow: auto; }
-.kaart { position: relative; max-width: 34rem; width: 100%; max-height: calc(100% - .5rem); overflow: auto; padding: 1.25rem 1.35rem 1.2rem; color: var(--inkt);
+.kaart { --kx: 1.35rem; --kb: 1.2rem; position: relative; max-width: 34rem; width: 100%; max-height: calc(100% - .5rem); overflow: auto; padding: 1.25rem var(--kx) var(--kb); color: var(--inkt);
   background: #FBF4E2 repeating-linear-gradient(0deg, transparent 0 23px, rgba(47,76,143,.07) 23px 24px);
   border: 4px solid var(--inktrand); border-bottom-width: 9px;
   box-shadow: inset 0 0 0 3px #FFFBF0, inset 0 0 0 5px var(--koper), inset 0 0 0 7px #FBF4E2; }
@@ -50,6 +50,8 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 .kaart h2:not([style]) { display: inline-block; margin: 0 0 .7rem; padding: .2rem .7rem .25rem; font-family: var(--pix); font-weight: 600; font-size: 1.3rem; letter-spacing: .04em; color: #F4F1E8; background: var(--tape); transform: rotate(-1deg); box-shadow: 0 2px 0 rgba(0,0,0,.25); clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 50%, 100% 100%, 0 100%, 5px 50%); text-shadow: 0 -1px 0 #000; }
 .kaart h3 { margin: .9rem 0 .3rem; font-family: var(--pix); font-weight: 600; font-size: 1.05rem; color: #2F4C8F; } .kaart p { margin: .45rem 0; line-height: 1.5; }
 .rij { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .9rem; } .rij .knop { font-size: 1.05rem; }
+/* de knoppen onderaan een venster blijven altijd in beeld, ook als het venster moet scrollen (liggende telefoon) */
+.kaart > .rij:last-child { position: sticky; z-index: 1; bottom: calc(7px - var(--kb)); margin: .9rem calc(7px - var(--kx)) calc(7px - var(--kb)); padding: .7rem calc(var(--kx) - 7px) calc(var(--kb) - 7px); background: linear-gradient(rgba(251,244,226,0), #FBF4E2 .6rem); }
 .klein { font-size: .87rem; color: #5E5040; }
 .lijst { display: grid; gap: .45rem; margin: .55rem 0; }
 .regel { display: flex; align-items: center; gap: .65rem; background: #FFFDF6; padding: .5rem .7rem; box-shadow: inset 0 0 0 2px #3A2E3A, inset 0 -4px 0 2px #E9DFC6; }
@@ -110,6 +112,7 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 #knoppen button:disabled { opacity: .4; }
 /* ---- meldingen: labeltape */
 #meldingen { position: absolute; left: 50%; top: 4rem; transform: translateX(-50%); z-index: 22; display: grid; gap: .4rem; justify-items: center; pointer-events: none; width: min(32rem, 92%); }
+#meldingen.onder { top: auto; bottom: 1rem; } /* in het restaurant: niet over de bonnetjes heen */
 .melding { background: var(--tape); color: #F4F1E8; padding: .4rem 1rem .45rem; font-family: var(--pix); font-weight: 600; letter-spacing: .03em; box-shadow: 0 3px 0 rgba(0,0,0,.35); animation: inkomen .25s ease-out; text-align: center; clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 0 100%, 6px 50%); text-shadow: 0 -1px 0 #000; }
 .melding:nth-child(even) { transform: rotate(-1deg); } .melding:nth-child(odd) { transform: rotate(.8deg); }
 .melding.goud { background: #E9B949; color: #231A26; text-shadow: none; } .melding.rood { background: #C8323C; color: #FFF6E8; } .melding.groot { font-size: 1.12rem; padding: .55rem 1.2rem .6rem; }
@@ -127,17 +130,30 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 .bon i { display: block; width: 100%; height: 5px; background: #D8D2C2; overflow: hidden; box-shadow: inset 0 0 0 1px #8A8070; } .bon i b { display: block; height: 100%; background: #3DB06A; }
 .bon[aria-pressed="true"] { background: #FFE9A8; } .bon.klaar { background: #D8F2DC; box-shadow: inset 0 0 0 2px #1E5A2E, inset 0 4px 0 2px #A8DCB4; } .bon.bezig { opacity: .75; }
 .bon:hover { filter: brightness(1.05); } .bon:focus-visible { outline: none; box-shadow: inset 0 0 0 3px #2F6FB5; }
+/* het nummer op Rubens lijstje, en een gouden rand bij wat je nog kunt aantikken */
+.bon .nr { position: absolute; left: 2px; top: 8px; min-width: 1.15rem; height: 1.15rem; line-height: 1.15rem; padding: 0 .15rem; background: #2F4C8F; color: #FBF6E9; font-size: .72rem; text-align: center; box-shadow: 0 0 0 1px #FBF6E9; }
+.bon { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.bon.doen { box-shadow: inset 0 0 0 2px #3A2E3A, inset 0 4px 0 2px #E9DFC6, inset 0 0 0 5px #E9B949; }
+.bon.klaar.doen { box-shadow: inset 0 0 0 2px #1E5A2E, inset 0 4px 0 2px #A8DCB4, inset 0 0 0 5px #E9B949; }
+@media (prefers-reduced-motion: no-preference) { .bon.doen { animation: bon-sein 1.1s ease-in-out infinite; } }
+@keyframes bon-sein { 50% { filter: brightness(1.12) saturate(1.2); } }
 .klokje { margin-left: auto; pointer-events: none; }
 /* ---- minispelletjes: een houten bord */
-#mini { position: absolute; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(6,18,30,.3), rgba(6,18,30,.65)); }
+#mini { position: absolute; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(6,18,30,.3), rgba(6,18,30,.65)); pointer-events: none; }
+#mini .paneel { pointer-events: auto; } /* naast het bord van het spelletje kun je de bonnetjes gewoon blijven aantikken */
 #mini .paneel { background: #5A3A22; padding: .8rem .9rem .7rem; text-align: center; max-width: calc(100% - 1rem); box-shadow: inset 0 0 0 3px var(--inktrand), inset 0 0 0 6px #8A5A34, inset 0 0 0 7px var(--koper), inset 0 -6px 0 7px rgba(0,0,0,.25); }
 #mini canvas { display: block; image-rendering: pixelated; margin: .4rem auto; max-width: 100%; touch-action: none; cursor: pointer; box-shadow: 0 0 0 3px var(--inktrand); }
 #mini .uitleg { display: inline-block; font-family: var(--pix); font-weight: 600; font-size: 1.05rem; letter-spacing: .03em; margin: .1rem 0 .1rem; color: #F4F1E8; background: var(--tape); padding: .15rem .7rem; transform: rotate(-1deg); clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 50%, 100% 100%, 0 100%, 5px 50%); }
 #mini .klein { margin: 0; color: #F2DDA0; font-size: .9rem; }
 .verborgen-tekst { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* lage schermen (een liggende telefoon): compactere vensters */
+@media (max-height: 460px) {
+  .kaart { --kx: 1rem; --kb: .9rem; padding-top: .8rem; } .kaart h2:not([style]) { font-size: 1.1rem; margin-bottom: .45rem; } .kaart p { margin: .3rem 0; line-height: 1.4; }
+  .regel { padding: .3rem .6rem; } .kaart > .rij:last-child { padding-top: .5rem; margin-top: .5rem; }
+}
 @media (max-width: 640px) {
   .kop { padding: .3rem .5rem; gap: .5rem; } .titel { font-size: .95rem; } .kop .knop { padding: .35rem .6rem; font-size: .8rem; }
-  .kaart { padding: 1rem .95rem; } .kaart h1 { font-size: 2.1rem; }
+  .kaart { --kx: .95rem; --kb: 1rem; padding-top: 1rem; } .kaart h1 { font-size: 2.1rem; }
   #gesprek { gap: .55rem; } #gesprek canvas { width: 60px; height: 57px; margin: 5px; }
   .hud-blok { font-size: .9rem; padding: .28rem .5rem .3rem .38rem; } .hud-blok small { font-size: .7rem; } .hud-blok .ik { width: 22px; height: 22px; }
   #veld .knop { font-size: .95rem; padding: .45rem .75rem .55rem; }
@@ -1048,7 +1064,7 @@ function rubenHoofdGroot(uitdr = 'gewoon', knip = false, D = 0) {
 
 // ===================== LIJVEN =====================
 // Een stevig lijf dat naar voren staat; armen en benen bewegen in het platte vlak.
-// pose: staan, lopen, zitten, wacht, eten, smul, boos, blij, zwaai, schrik, denk, koken, serveren, dragen; t in seconden
+// pose: staan, lopen, zitten, wacht, eten, smul, boos, blij, zwaai, schrik, denk, koken, serveren, dragen (twee borden), vegen, poetsen; t in seconden
 // Lopen: extra.gang telt de passen (1 = een hele cyclus, links en rechts); extra.loopt laat ook bij serveren of dragen de benen lopen.
 const MENSEN_BUF = new Map();
 const GANG_N = 16, GANG_AFSTAND = 28, GANG_TMIN = .5;
@@ -1057,7 +1073,7 @@ function gangStap(w, afstand, dt) { w.gang = ((w.gang || 0) + Math.min(Math.abs(
 function persoon(o, pose = 'staan', t = 0, extra = {}) {
   const lopen = pose === 'lopen' || !!extra.loopt, zit = pose === 'zitten' || pose === 'eten' || pose === 'boos' || pose === 'smul' || pose === 'wacht';
   const gang = lopen ? (extra.gang !== undefined ? extra.gang : t / (GANG_TMIN * 1.2)) : 0;
-  const fase = lopen ? Math.floor(((gang % 1) + 1) % 1 * GANG_N) % GANG_N : (pose === 'eten' || pose === 'koken' || pose === 'zwaai' || pose === 'smul' || (pose === 'blij' && !zit)) ? Math.floor(t * 5) % 4 : pose === 'wacht' ? Math.floor(t * 2) % 2 : 0;
+  const fase = lopen ? Math.floor(((gang % 1) + 1) % 1 * GANG_N) % GANG_N : (pose === 'eten' || pose === 'koken' || pose === 'zwaai' || pose === 'smul' || pose === 'vegen' || pose === 'poetsen' || (pose === 'blij' && !zit)) ? Math.floor(t * 5) % 4 : pose === 'wacht' ? Math.floor(t * 2) % 2 : 0;
   const knip = !lopen && ((t + String(o.id || 0).length * .7) % 4.1) < .12;
   const sleutel = o.id + '|' + pose + (lopen ? 'L' : '') + fase + (knip ? 'k' : '') + (extra.schort ? 's' : '') + (extra.uitdr || '');
   const oud = MENSEN_BUF.get(sleutel); if (oud) return oud;
@@ -1133,7 +1149,12 @@ function persoon(o, pose = 'staan', t = 0, extra = {}) {
     case 'smul': aL = [-.6, -2.7]; aR = [.6, 2.75 - (fase % 2) * .25]; break;
     case 'boos': aL = [-.4, 1.4]; aR = [.4, -1.4]; break;
     case 'koken': aL = [.3, 1.2]; aR = [.6 + (fase % 2) * .15, 1.6 - (fase % 2) * .2]; break;
-    case 'serveren': case 'dragen': aL = lopen ? zwaaiArm(Math.cos(phi) * .8, .18, .42, .1) : [-.15, .1]; aR = [.5, 1.55]; break;
+    case 'serveren': aL = lopen ? zwaaiArm(Math.cos(phi) * .8, .18, .42, .1) : [-.15, .1]; aR = [.5, 1.55]; break;
+    case 'dragen': aL = [.3, 1.45]; aR = [.5, 1.55]; break; // twee handen vol: allebei de armen voor zich
+    // de toonbank afvegen: de hand met de doek gaat heen en weer over het blad, de andere hand leunt op de toonbank
+    case 'vegen': aL = [.15, .9]; aR = [[.05, 1.3], [.45, 1.25], [.95, .85], [.45, 1.25]][fase]; break;
+    // een glas poetsen: de ene hand houdt het glas voor de borst, de andere wrijft er rondjes over
+    case 'poetsen': aL = [.3, 1.9]; aR = [-.3, [-1.9, -2.15, -1.75, -2.0][fase]]; break;
     case 'blij': aL = [-2.6, -2.9 - fase * .05]; aR = [2.6, 2.9 + fase * .05]; break;
     case 'zwaai': aL = [-.15, -.05]; aR = [2.4, 2.8 + (fase % 2 ? .4 : -.1)]; break;
     case 'schrik': aL = [-1.3, -2.2]; aR = [1.3, 2.2]; break;
@@ -2129,6 +2150,7 @@ function nieuweStaat() {
     voorraad: [], vondsten: {}, decor: [], boek: {}, reuzen: {}, menu: [],
     ster: 2.5, recensies: [], beste: { avond: 0, ster: 0 },
     stats: { duiken: 0, gasten: 0, verdiend: 0, schoon: 0 }, inst: { geluid: true, muziek: true },
+    diepste: 0, na: null, // na: wat er na een duik of dienst nog op het scherm moet komen (zie DAG.hervat)
   };
 }
 let ST = nieuweStaat();
@@ -2140,11 +2162,23 @@ function laad() {
   ST = b; return true;
 }
 let TESTSTAND = false; // met ?test= in het adres wordt er niets bewaard of naar het scorebord gestuurd
+// Een duik en een dienst zijn 'delen' van de dag. Zolang een deel loopt, bewaart het spel de stand van het BEGIN van dat deel
+// (alleen geluid en muziek gaan mee). Sluit je midden in een deel af, dan begin je dat deel dus opnieuw, zonder wat je er al
+// verdiend had. Aan het eind van een deel worden het resultaat en de stap naar het volgende deel van de dag samen bewaard,
+// in één keer (DAG.eindeDuik, DAG.eindeAvond); wat er daarna nog op het scherm moet komen, staat in ST.na (DAG.hervat).
+let VASTPUNT = null;
 function bewaar() {
   if (TESTSTAND) return;
-  ST.voortgangTotaal = 5; // vijf hoofdstukken, voor 'Verder spelen' op de homepage
-  try { localStorage.setItem(SLEUTEL, JSON.stringify(ST)); } catch (e) {}
+  let s = ST;
+  if (VASTPUNT) { s = JSON.parse(VASTPUNT.tekst); s.inst = ST.inst; }
+  s.voortgangTotaal = 5; // vijf hoofdstukken, voor 'Verder spelen' op de homepage
+  try { localStorage.setItem(SLEUTEL, JSON.stringify(s)); } catch (e) {}
 }
+function beginDeel(naam) { VASTPUNT = null; bewaar(); VASTPUNT = { naam, tekst: JSON.stringify(ST) }; }
+// het deel is klaar: vanaf nu wordt de echte stand weer bewaard (direct daarna volgt bewaar())
+function eindDeel() { VASTPUNT = null; }
+// terug naar de stand van het begin van het lopende deel (na een fout)
+function deelTerug() { if (!VASTPUNT) return; const s = JSON.parse(VASTPUNT.tekst); s.inst = ST.inst; ST = s; VASTPUNT = null; }
 // niveau-waarden
 const uitW = k => UITRUSTING[k].niveaus[ST.uit[k]].w;
 const restW = k => RESTAURANT[k].niveaus[ST.rest[k]].w;
@@ -2213,25 +2247,65 @@ function toonBediening(aan) { $('stuur').hidden = !(aan && INV.aanraak); $('knop
 const SCENES = {};
 const SCENE = { nu: null, naam: '', bezig: false };
 function naarScene(naam, arg) {
-  if (SCENE.nu && SCENE.nu.stop) SCENE.nu.stop();
+  if (SCENE.nu && SCENE.nu.stop) { try { SCENE.nu.stop(); } catch (e) { meldFout(e); } } // een half gestarte scène mag het wisselen niet tegenhouden
   SCENE.naam = naam; SCENE.nu = SCENES[naam]; BEELD.doel = SCENE.nu.doel || 340; maat();
   if (SCENE.nu.start) SCENE.nu.start(arg);
 }
+// het scherm even donker, wisselen van scène, en weer licht. fn wisselt alleen van scène: nooit wachten op de speler
+// (vensters komen erna). Het scherm gaat altijd weer open, ook als er iets misgaat, en hooguit na 4 seconden.
 function overgang(fn, duur = 350) {
   const z = $('zwart'); z.classList.add('aan');
-  return new Promise(res => setTimeout(async () => { await fn(); requestAnimationFrame(() => z.classList.remove('aan')); res(); }, REDUCE ? 30 : duur));
+  return new Promise(res => setTimeout(async () => {
+    try { await Promise.race([fn(), new Promise(r => setTimeout(r, 4000))]); }
+    catch (e) { vangnet(e); }
+    finally { requestAnimationFrame(() => z.classList.remove('aan')); res(); }
+  }, REDUCE ? 30 : duur));
 }
-let TIJD = 0, vorige = performance.now(), acc = 0, PAUZE = false;
+let TIJD = 0, vorige = performance.now(), acc = 0, PAUZE = false, KAPOT = false;
 function lus(nu) {
   requestAnimationFrame(lus);
   let dt = Math.min(.1, (nu - vorige) / 1000) * (window.__duikerTempo || 1); vorige = nu;
-  if (!PAUZE && SCENE.nu) {
-    acc += dt; let n = 0;
-    while (acc >= 1 / 60 && n < 4 * (window.__duikerTempo || 1)) { TIJD += 1 / 60; if (SCENE.nu.update) SCENE.nu.update(1 / 60); INV.nieuw.clear(); acc -= 1 / 60; n++; }
-    if (n >= 4 * (window.__duikerTempo || 1)) acc = 0;
-  }
-  if (SCENE.nu && SCENE.nu.teken) { CTX.setTransform(1, 0, 0, 1, 0, 0); CTX.globalAlpha = 1; CTX.globalCompositeOperation = 'source-over'; SCENE.nu.teken(CTX, BEELD.W, BEELD.H); }
+  if (KAPOT) return;
+  try {
+    if (!PAUZE && SCENE.nu) {
+      acc += dt; let n = 0;
+      while (acc >= 1 / 60 && n < 4 * (window.__duikerTempo || 1)) { TIJD += 1 / 60; if (SCENE.nu.update) SCENE.nu.update(1 / 60); INV.nieuw.clear(); acc -= 1 / 60; n++; }
+      if (n >= 4 * (window.__duikerTempo || 1)) acc = 0;
+    }
+    if (SCENE.nu && SCENE.nu.teken) { CTX.setTransform(1, 0, 0, 1, 0, 0); CTX.globalAlpha = 1; CTX.globalCompositeOperation = 'source-over'; SCENE.nu.teken(CTX, BEELD.W, BEELD.H); }
+  } catch (e) { KAPOT = true; vangnet(e); }
 }
+
+// ---- vangnet: gaat er toch iets mis, dan nooit een leeg of blauw scherm, maar een knop om door te gaan
+// De fout wordt gemeld zoals in de andere spellen: het scorebord-script vangt 'error' op en stuurt hem (anoniem) naar /fout.
+let VANGNET = { open: false, laatst: -Infinity };
+function meldFout(e) {
+  try { if (typeof reportError === 'function') reportError(e); else setTimeout(() => { throw e; }); } catch (x) {}
+}
+function vangnet(e, gemeld) {
+  if (VANGNET.open) { if (!gemeld) meldFout(e); return; }
+  VANGNET.open = true;
+  if (!gemeld) meldFout(e);
+  const opnieuw = performance.now() - VANGNET.laatst < 15000; // twee keer vlak na elkaar: dan de pagina opnieuw laden
+  try {
+    $('zwart').classList.remove('aan'); if (GESPREK_STOP) GESPREK_STOP(); $('gesprek').hidden = true; $('mini').hidden = true; PAUZE = true;
+    paneel(`<h2>Oeps, daar ging iets mis</h2><p>${VASTPUNT ? 'Deze ' + (VASTPUNT.naam === 'duik' ? 'duik' : 'dienst') + ' begint opnieuw, net als wanneer je het spel afsluit.' : 'Je voortgang is bewaard.'} Tik op <b>Ga verder</b> om verder te spelen.</p><p class="klein">De fout is doorgegeven, zodat hij opgelost kan worden.</p><div class="rij"><button class="knop hoofd" type="button" id="vn-ok">Ga verder</button></div>`);
+    $('vn-ok').onclick = () => { VANGNET.open = false; VANGNET.laatst = performance.now(); sluitPaneel(); if (opnieuw) location.reload(); else herstelNaFout(); };
+  } catch (x) { location.reload(); }
+}
+function herstelNaFout() {
+  try {
+    deelTerug(); A = null; KAPOT = false; PAUZE = false; vorige = performance.now();
+    $('bonnen').hidden = true; toonBediening(false);
+    naarScene('haven');
+    DAG.hervat().catch(e => vangnet(e));
+  } catch (e) { meldFout(e); location.reload(); }
+}
+// fouten in het spel die nergens worden opgevangen (in een venster, gesprek of knop) laten het spel ook niet vastlopen.
+// Alleen echte programmeerfouten: geen DOMException (zoals een geweigerde geluidsstart), geen fouten van browserextensies.
+const spelFout = f => f instanceof Error && !(typeof DOMException !== 'undefined' && f instanceof DOMException);
+addEventListener('unhandledrejection', e => { const r = e && e.reason; if (spelFout(r) && SCENE.naam && SCENE.naam !== 'titel') vangnet(r, true); });
+addEventListener('error', e => { if (e && spelFout(e.error) && (!e.filename || e.filename.split('#')[0] === location.href.split('#')[0]) && SCENE.naam && SCENE.naam !== 'titel') vangnet(e.error, true); });
 
 // ---- vensters (in de stijl van de site)
 function paneel(html, opt = {}) {
@@ -2296,12 +2370,16 @@ function portret(wie, uitdr) {
   PORTRET_BUF.set(k, cv); return cv;
 }
 const NAMEN = { ruben: 'Ruben', trien: 'Trien', wieke: 'Professor Wieke', graaiman: 'Graaiman', noor: 'Noor', sem: 'Sem', smulders: 'Meneer Smulders', bep: 'Bep', burgemeester: 'De burgemeester', moeder: 'Moeder Acht' };
+let GESPREK_STOP = null; // stopt een lopend gesprek (het vangnet gebruikt dit)
 function gesprek(lijnen) {
+  if (GESPREK_STOP) GESPREK_STOP();
   return new Promise(res => {
     const g = $('gesprek'), cv = g.querySelector('canvas'), cx = cv.getContext('2d'); cv.width = 36; cv.height = 34;
     let i = 0, typ = null;
+    const stop = () => { clearInterval(typ); typ = null; g.hidden = true; g.onclick = null; removeEventListener('keydown', toets, true); INV.toets = {}; if (GESPREK_STOP === stop) GESPREK_STOP = null; };
+    GESPREK_STOP = stop;
     const toon = () => {
-      if (i >= lijnen.length) { g.hidden = true; g.onclick = null; removeEventListener('keydown', toets, true); INV.toets = {}; res(); return; }
+      if (i >= lijnen.length) { stop(); res(); return; }
       const [wie, tekst, uitdr] = lijnen[i];
       cx.clearRect(0, 0, 36, 34); cx.drawImage(portret(wie, uitdr), 0, 0);
       g.querySelector('.wie').textContent = NAMEN[wie] || wie;
@@ -2925,12 +3003,13 @@ function eindeDuik(hoe) {
   if (D.klaar) return; D.klaar = hoe;
   if (hoe === 'flauw') { GELUID.sfx('alarm'); melding('Je zuurstof is op! Trien trekt je aan de lijn naar boven.', 'rood groot', 3500); }
   else GELUID.sfx('plons');
-  setTimeout(() => overgang(() => { DAG.naDuik(hoe); }), hoe === 'flauw' ? 1400 : 300);
+  setTimeout(() => DAG.eindeDuik(hoe), hoe === 'flauw' ? 1400 : 300);
 }
 
 SCENES.duik = {
   doel: 300,
   start(nr) {
+    beginDeel('duik');
     startDuik(nr);
     $('hud').hidden = false; $('hud').innerHTML = `<div class="hud-blok zuurstof">${ikoon('zuurstof')}<div><small>Zuurstof</small><span id="h-o2"></span><div class="balk"><i></i></div></div></div><div class="hud-blok">${ikoon('diepte')}<div><small id="h-zone"></small><span id="h-diepte"></span></div></div><div class="hud-blok">${ikoon('tas')}<div><small>Tas</small><span id="h-tas"></span></div></div><div class="hud-rechts"><div class="hud-blok">${ikoon('net')}<div><small>Net</small><span id="h-net"></span></div></div></div>`;
     zetKnoppen([{ id: 'net', tekst: 'Net' }, { id: 'pak', tekst: 'Pak' }, { id: 'harpoen', tekst: 'Harpoen', groot: true }]);
@@ -3349,8 +3428,95 @@ function tekenDecor(ctx) {
 // vrije stoel zoeken
 function vrijeTafel(n) { const vrij = A.tafels.filter(t => !t.stoel[0] && !t.stoel[1]); if (vrij.length) return vrij[Math.floor(A.r() * vrij.length)]; if (n === 1) { const half = A.tafels.filter(t => !t.stoel[0] || !t.stoel[1]); if (half.length) return half[0]; } return null; }
 function zitPlek(tf, z) { return { x: tf.x + (z ? 26 : -26), y: tf.y }; }
-// een pad over het gangpad tussen de rijen
+// ---- looproutes: de kortste weg over de vloer, om de tafels en de toonbank heen, met vloeiende bochten.
+// De vloer is een raster van VC pixels: de keuken achter de toonbank, de klapdeur, en de zaal (met terras) zonder de tafels.
+const VC = 4;
+function maakVloer() {
+  const terras = A.tafels.some(t => t.terras), x1 = terras ? 836 : 632, y0 = 236, y1 = 352;
+  const nx = Math.ceil(x1 / VC), ny = Math.ceil((y1 - y0) / VC), vrij = new Uint8Array(nx * ny), dicht = new Uint8Array(nx * ny);
+  const vak = (ax, ay, bx, by, v) => { for (let j = Math.max(0, Math.floor((ay - y0) / VC)); j <= Math.min(ny - 1, Math.floor((by - y0) / VC)); j++) for (let i = Math.max(0, Math.floor(ax / VC)); i <= Math.min(nx - 1, Math.floor(bx / VC)); i++) vrij[j * nx + i] = v; };
+  vak(18, 240, 175, 256, 1);                 // keuken, achter de toonbank
+  vak(172, 244, 196, 266, 1);                // de klapdeur
+  vak(186, 252, x1 - 6, 344, 1);             // de zaal (en het terras)
+  for (const tf of A.tafels) vak(tf.x - 37, tf.y - 10, tf.x + 37, tf.y + 3, 0); // tafels met stoelen
+  // vlak naast een tafel loop je liever niet: dat kost iets meer (zo blijft de route in het midden van de gangpaden)
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) if (vrij[j * nx + i]) for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= nx || b >= ny || !vrij[b * nx + a]) { dicht[j * nx + i] = 1; break; } }
+  return { y0, nx, ny, vrij, dicht };
+}
+function vloerVrij(V, x, y) { const i = Math.floor(x / VC), j = Math.floor((y - V.y0) / VC); return i >= 0 && j >= 0 && i < V.nx && j < V.ny && V.vrij[j * V.nx + i] === 1; }
+// het dichtstbijzijnde vrije vakje (een stoel staat bijvoorbeeld in het vak van de tafel)
+function vloerDichtbij(V, p) {
+  if (vloerVrij(V, p.x, p.y)) return { x: p.x, y: p.y };
+  for (let r = VC; r < 80; r += VC) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2, x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r; if (vloerVrij(V, x, y)) return { x: Math.floor(x / VC) * VC + VC / 2, y: Math.floor((y - V.y0) / VC) * VC + V.y0 + VC / 2 }; }
+  return null;
+}
+function zichtLijn(V, a, b) { const l = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(l / 2)); for (let k = 0; k <= n; k++) if (!vloerVrij(V, a.x + (b.x - a.x) * k / n, a.y + (b.y - a.y) * k / n)) return false; return true; }
+function zoekRoute(V, a, b) {
+  const { nx, ny, vrij, dicht } = V, ix = p => Math.floor(p.x / VC), iy = p => Math.floor((p.y - V.y0) / VC);
+  const s = iy(a) * nx + ix(a), d = iy(b) * nx + ix(b); if (s === d) return [a, b];
+  const g = new Float32Array(nx * ny).fill(Infinity), van = new Int32Array(nx * ny).fill(-1), dx = ix(b), dy = iy(b);
+  const h = k => { const x = Math.abs(k % nx - dx), y = Math.abs(Math.floor(k / nx) - dy); return Math.max(x, y) + .414 * Math.min(x, y); };
+  // wachtrij op kosten (een binaire hoop); verouderde vermeldingen worden overgeslagen
+  const hp = [], dw = [];
+  const zet = (f, k) => { let i = hp.length; hp.push(f); dw.push(k); while (i) { const o = (i - 1) >> 1; if (hp[o] <= hp[i]) break; [hp[o], hp[i]] = [hp[i], hp[o]]; [dw[o], dw[i]] = [dw[i], dw[o]]; i = o; } };
+  const pak = () => { const k = dw[0], lf = hp.pop(), lk = dw.pop(); if (hp.length) { hp[0] = lf; dw[0] = lk; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < hp.length && hp[l] < hp[m]) m = l; if (r < hp.length && hp[r] < hp[m]) m = r; if (m === i) break; [hp[m], hp[i]] = [hp[i], hp[m]]; [dw[m], dw[i]] = [dw[i], dw[m]]; i = m; } } return k; };
+  const klaar = new Uint8Array(nx * ny); g[s] = 0; zet(h(s), s);
+  while (hp.length) {
+    const k = pak(); if (klaar[k]) continue; klaar[k] = 1;
+    if (k === d) break;
+    const kx = k % nx, ky = Math.floor(k / nx);
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+      if (!di && !dj) continue; const x = kx + di, y = ky + dj; if (x < 0 || y < 0 || x >= nx || y >= ny) continue;
+      const n = y * nx + x; if (!vrij[n]) continue;
+      if (di && dj && (!vrij[ky * nx + x] || !vrij[y * nx + kx])) continue; // niet schuin langs een hoek snijden
+      const c = g[k] + (di && dj ? 1.414 : 1) + (dicht[n] ? .7 : 0);
+      if (c < g[n]) { g[n] = c; van[n] = k; zet(c + h(n), n); }
+    }
+  }
+  if (van[d] < 0) return null;
+  const cellen = []; for (let k = d; k !== s; k = van[k]) cellen.push(k); cellen.reverse();
+  const pts = [a].concat(cellen.slice(0, -1).map(k => ({ x: (k % nx) * VC + VC / 2, y: Math.floor(k / nx) * VC + V.y0 + VC / 2 }))).concat([b]);
+  // rechttrekken: sla tussenpunten over zolang je er in een rechte lijn langs kunt
+  const recht = [pts[0]]; let i = 0;
+  while (i < pts.length - 1) { let j = pts.length - 1; while (j > i + 1 && !zichtLijn(V, pts[i], pts[j])) j--; recht.push(pts[j]); i = j; }
+  return recht;
+}
+// vloeiende bochten: elke hoek wordt een boogje (zolang dat boogje over de vrije vloer loopt), met punten om de paar pixels
+function rondeBochten(V, pts) {
+  if (pts.length < 3) return pts.slice(1);
+  const uit = [];
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i];
+    if (i === pts.length - 1) { uit.push(p); break; }
+    const a = pts[i - 1], c = pts[i + 1], la = Math.hypot(p.x - a.x, p.y - a.y), lc = Math.hypot(c.x - p.x, c.y - p.y);
+    let r = Math.min(18, la * .45, lc * .45), gedaan = false;
+    while (r > 3 && !gedaan) {
+      const s = { x: p.x - (p.x - a.x) / la * r, y: p.y - (p.y - a.y) / la * r }, e = { x: p.x + (c.x - p.x) / lc * r, y: p.y + (c.y - p.y) / lc * r };
+      const boog = []; for (let k = 0; k <= 6; k++) { const t = k / 6, u = 1 - t; boog.push({ x: u * u * s.x + 2 * u * t * p.x + t * t * e.x, y: u * u * s.y + 2 * u * t * p.y + t * t * e.y }); }
+      if (boog.every(q => vloerVrij(V, q.x, q.y))) { uit.push(...boog); gedaan = true; } else r /= 2;
+    }
+    if (!gedaan) uit.push(p);
+  }
+  return uit;
+}
+// de route van een loper: pad van punten (zonder het beginpunt). Begint of eindigt hij in een tafel (op een stoel), dan
+// loopt hij eerst naar of vanaf het dichtstbijzijnde vrije plekje.
 function padNaar(van, naar) {
+  const V = A && (A.vloer || (A.vloer = maakVloer()));
+  if (V) {
+    const a = vloerDichtbij(V, van), b = vloerDichtbij(V, naar);
+    const route = a && b && zoekRoute(V, a, b);
+    if (route) {
+      const pad = rondeBochten(V, route);
+      if (Math.hypot(a.x - van.x, a.y - van.y) > 1) pad.unshift(a);
+      if (Math.hypot(b.x - naar.x, b.y - naar.y) > 1) pad.push({ x: naar.x, y: naar.y });
+      return pad;
+    }
+  }
+  return padNaarOud(van, naar);
+}
+// de oude route over het gangpad (alleen nog als vangnet, als er geen route gevonden wordt)
+function padNaarOud(van, naar) {
   const keuken = p => p.x < 176 && p.y < KB.TOONBANK_Y + 2;
   const pad = [];
   if (keuken(van) && !keuken(naar)) { pad.push({ x: 168, y: KB.KEUKEN_Y }, { x: KB.KLAPDEUR.x + 8, y: 262 }); van = { x: KB.KLAPDEUR.x + 8, y: 262 }; }
@@ -3378,6 +3544,7 @@ function nieuweGast(bijzonder) {
     g.pad = padNaar(g, zitPlek(tf, z)); tf.stoel[z] = g; A.gasten.push(g);
   }
   A.deurOpen = 1; GELUID.sfx('deur');
+  const R = A.ruben; if (!R.taak && !R.taken.length && !R.pad.length && Math.hypot(R.x - THUIS.x, R.y - THUIS.y) < 3) R.groet = 1.4;
 }
 function kiesGerecht(g) {
   const kan = A.menu.filter(id => A.porties[id] > 0); if (!kan.length) return null;
@@ -3422,34 +3589,137 @@ function betaal(g) {
   verwijderBon(b);
 }
 function tekstR(x, y, s, kl) { A.teksten.push({ x, y, s, kl, t: 0 }); }
+// het ballonnetje boven een wachtende gast (zelfde plek als waar het getekend wordt)
+const ballonVak = g => ({ x0: g.x - 13, x1: g.x + 13, y0: g.y - 86, y1: g.y - 61 });
+// welke wachtende gast is aangetikt: zijn ballonnetje of hijzelf, met wat marge; bij twee kandidaten de dichtstbijzijnde
+function gastOp(wx, wy, ruim) {
+  let beste = null, bd = Infinity;
+  for (const g of A.gasten) {
+    if (g.staat !== 'wacht' || !g.bon) continue;
+    for (const v of [ballonVak(g), { x0: g.x - 12, x1: g.x + 12, y0: g.y - 60, y1: g.y - 12 }]) {
+      if (wx < v.x0 - ruim || wx > v.x1 + ruim || wy < v.y0 - ruim || wy > v.y1 + ruim) continue;
+      const d = Math.hypot(wx - (v.x0 + v.x1) / 2, wy - (v.y0 + v.y1) / 2); if (d < bd) { bd = d; beste = g; }
+    }
+  }
+  return beste;
+}
+function tikje(x, y, raak) { A.tikjes = (A.tikjes || []).concat([{ x, y, raak, t: 0 }]).slice(-4); }
 
-// ---- wat Ruben doet: koken of opdienen (een rijtje taken)
+// ---- wat Ruben doet: koken of opdienen. Je tikt opdrachten aan; Ruben kiest steeds de handigste volgende.
 function geefTaak(taak) {
-  if (taak.soort === 'koken' && (taak.bon.staat !== 'open' || A.ruben.taken.some(t => t.bon === taak.bon) || (A.ruben.taak && A.ruben.taak.bon === taak.bon))) return;
-  if (taak.soort === 'dienen' && (A.ruben.taken.some(t => t.bon === taak.bon) || (A.ruben.taak && A.ruben.taak.bon === taak.bon))) return;
-  A.ruben.taken.push(taak); GELUID.sfx('klik'); werkBonnen();
+  const R = A.ruben, al = R.taken.some(t => t.bon === taak.bon) || (R.taak && (R.taak.bon === taak.bon || (R.taak.mee || []).includes(taak.bon))) || R.draagt.includes(taak.bon);
+  if (al) { const g = taak.bon.gast; if (g) tekstR(g.x, g.y - 96, 'Staat al op je lijstje', '#FBF6E9'); return; }
+  if (taak.soort === 'koken' && taak.bon.staat !== 'open') return;
+  if (taak.soort === 'dienen' && (A.noor && A.noor.taak && A.noor.taak.bon === taak.bon)) { const g = taak.bon.gast; if (g) tekstR(g.x, g.y - 96, 'Noor brengt het al', '#FBF6E9'); return; }
+  taak.sinds = A.t; R.taken.push(taak); A.getikt = (A.getikt || 0) + 1; ST.vlag.tikUitleg = 1; GELUID.sfx('klik'); A.plan = planVolgorde(); werkBonnen();
+}
+// een bonnetje of een gast is aangetikt: koken als het nog moet, opdienen als het klaar is
+function kiesBon(b) {
+  if (!A || !b || !A.bonnen.includes(b)) return;
+  if (b.staat === 'open') geefTaak({ soort: 'koken', bon: b });
+  else if (b.staat === 'klaar') geefTaak({ soort: 'dienen', bon: b });
+  else if (b.staat === 'koken' && b.gast) tekstR(b.gast.x, b.gast.y - 96, b.doorSem ? 'Sem kookt het al' : 'Wordt al gekookt', '#FBF6E9');
 }
 function slimmeActie() {
   const klaar = A.bonnen.find(b => b.staat === 'klaar' && !bonInTaak(b)); if (klaar) return geefTaak({ soort: 'dienen', bon: klaar });
   const open = A.bonnen.filter(b => b.staat === 'open' && !bonInTaak(b)).sort((a, b) => a.gast.geduld - b.gast.geduld)[0]; if (open) geefTaak({ soort: 'koken', bon: open });
 }
-function bonInTaak(b) { const R = A.ruben; return (R.taak && R.taak.bon === b) || R.taken.some(t => t.bon === b) || (A.noor && A.noor.taak && A.noor.taak.bon === b) || (A.sem && A.sem.bezig === b); }
+function bonInTaak(b) { const R = A.ruben; return (R.taak && (R.taak.bon === b || (R.taak.mee || []).includes(b))) || R.draagt.includes(b) || R.taken.some(t => t.bon === b) || (A.noor && A.noor.taak && A.noor.taak.bon === b) || (A.sem && A.sem.bezig === b); }
 const STATION = { snijden: KB.SNIJ, bakken: KB.FORNUIS, frituren: KB.FORNUIS, roeren: { x: 40, y: KB.KEUKEN_Y }, openen: KB.SNIJ, opmaken: KB.UITGIFTE };
+const THUIS = { x: 128, y: KB.KEUKEN_Y }; // Rubens vaste plek achter de toonbank, als er niets te doen is
+const RUBEN_SNEL = 105;
+const serveerPlek = g => ({ x: g.tf.x + (g.z ? 40 : -40), y: g.tf.y + 2 });
+const taakDoel = tk => tk.soort === 'koken' ? (STATION[RECEPTEN[tk.bon.id].stappen[0]] || KB.FORNUIS) : KB.UITGIFTE;
+function taakGeldig(tk) {
+  const g = tk.bon.gast; if (!g || !A.gasten.includes(g) || g.staat !== 'wacht') return false;
+  return tk.soort === 'koken' ? tk.bon.staat === 'open' : tk.bon.staat === 'klaar' && A.uitgifte.includes(tk.bon);
+}
+// de handigste volgende taak: gasten die bijna weglopen eerst; verder wat dichtbij is. Wat al lang op het lijstje
+// staat, schuift steeds verder naar voren, zodat niemand vergeten wordt.
+function taakWaarde(R, tk, van) {
+  const g = tk.bon.gast, d = taakDoel(tk), p = van || R;
+  // lopen naar de taak; bij opdienen telt de weg van de uitgifte naar de tafel half mee (eerst wie het dichtst bij zit)
+  const brengen = tk.soort === 'dienen' ? Math.hypot(serveerPlek(g).x - d.x, serveerPlek(g).y - d.y) * .5 : 0;
+  const lopen = (Math.hypot(d.x - p.x, d.y - p.y) + brengen) / RUBEN_SNEL;
+  const haast = g.geduld < .3 ? 30 : g.geduld < .5 ? 6 : 0, gewacht = Math.min(24, A.t - (tk.sinds || A.t)) * .5;
+  return lopen - haast - gewacht - (tk.soort === 'dienen' ? 2 : 0);
+}
+function volgendeTaak(R) {
+  R.taken = R.taken.filter(taakGeldig);
+  let beste = null, bw = Infinity; for (const tk of R.taken) { const w = taakWaarde(R, tk); if (w < bw) { bw = w; beste = tk; } }
+  if (beste) R.taken = R.taken.filter(t => t !== beste);
+  return beste;
+}
+// de volgorde waarin Ruben zijn lijstje gaat doen (voor de nummertjes op de bonnen en boven de gasten)
+const eindVan = tk => tk.soort === 'dienen' ? serveerPlek(tk.bon.gast) : taakDoel(tk); // waar Ruben na een taak staat
+function planVolgorde() {
+  const R = A.ruben, uit = [], rest = R.taken.filter(taakGeldig); let p = R;
+  if (R.taak) { const nu = R.draagt.length ? R.draagt : [R.taak.bon, ...(R.taak.mee || [])]; uit.push(...nu); p = R.taak.soort === 'dienen' ? serveerPlek(nu[nu.length - 1].gast) : taakDoel(R.taak); }
+  while (rest.length) { let bi = 0, bw = Infinity; rest.forEach((tk, i) => { const w = taakWaarde(R, tk, p); if (w < bw) { bw = w; bi = i; } }); const tk = rest.splice(bi, 1)[0]; uit.push(tk.bon); p = eindVan(tk); }
+  return uit;
+}
+// borden meenemen: andere klare borden voor tafels vlak bij de eerste (of op dezelfde route), tot het dienblad vol is
+function meeNemen(R, tk) {
+  const max = restW('dienblad'), eerste = serveerPlek(tk.bon.gast), mee = [];
+  const kan = A.uitgifte.filter(b => b !== tk.bon && b.gast && A.gasten.includes(b.gast) && b.gast.staat === 'wacht' && !(A.noor && A.noor.taak && A.noor.taak.bon === b) && !(A.sem && A.sem.bezig === b))
+    .map(b => ({ b, d: Math.hypot(serveerPlek(b.gast).x - eerste.x, serveerPlek(b.gast).y - eerste.y) })).filter(o => o.d < 150).sort((a, b) => a.d - b.d);
+  for (const o of kan) { if (mee.length >= max - 1) break; mee.push(o.b); }
+  return mee;
+}
+// de kortste volgorde om de borden rond te brengen (hooguit vier borden: alle volgordes proberen)
+function brengVolgorde(van, bonnen) {
+  let beste = bonnen, bl = Infinity;
+  const perm = (l, r) => { if (!r.length) { let p = van, s = 0; for (const b of l) { const q = serveerPlek(b.gast); s += Math.hypot(q.x - p.x, q.y - p.y); p = q; } if (s < bl) { bl = s; beste = l; } return; } r.forEach((b, i) => perm(l.concat([b]), r.slice(0, i).concat(r.slice(i + 1)))); };
+  perm([], bonnen); return beste;
+}
+// ---- niets te doen: terug naar de toonbank, en daar af en toe iets kleins
+const BEZIGHEDEN = [['vegen', 3.4], ['poetsen', 3.8], ['rondkijken', 2.6], ['staan', 1.6], ['poetsen', 3.2], ['vegen', 2.8]];
+function rubenRust(R, dt) {
+  R.draagt = R.draagt.filter(b => b.staat !== 'op');
+  const thuis = !R.pad.length && Math.hypot(R.x - THUIS.x, R.y - THUIS.y) < 3; // pas thuis als hij er echt staat
+  if (!thuis) {
+    R.bezig = null;
+    if (!R.pad.length) { R.wachtNaTaak = (R.wachtNaTaak || 0) + dt; if (R.wachtNaTaak > .45) { R.pad = padNaar(R, THUIS); R.wachtNaTaak = 0; } }
+    if (R.pad.length && loop(R, dt, RUBEN_SNEL * .85) && Math.hypot(R.x - THUIS.x, R.y - THUIS.y) < 3) R.kijk = 1;
+    return;
+  }
+  R.loopt = false;
+  if (R.groet > 0) { R.groet -= dt; R.kijk = 1; return; } // er komt een gast binnen: kijk naar de deur en zwaai
+  if (!R.bezig || R.bezig.t <= 0) { const [soort, duur] = BEZIGHEDEN[Math.floor(A.r() * BEZIGHEDEN.length)]; R.bezig = { soort, t: duur + A.r() * .8 }; R.kijk = soort === 'rondkijken' ? (A.r() < .5 ? -1 : 1) : 1; }
+  R.bezig.t -= dt;
+  if (R.bezig.soort === 'rondkijken' && Math.floor(R.bezig.t / 1.1) !== Math.floor((R.bezig.t + dt) / 1.1)) R.kijk = -R.kijk;
+}
 function updateRubenAvond(dt) {
   const R = A.ruben; R.poseT = Math.max(0, R.poseT - dt);
   if (!R.taak && R.taken.length) {
-    R.taak = R.taken.shift(); const tk = R.taak;
-    if (tk.soort === 'koken') { if (tk.bon.staat !== 'open') { R.taak = null; return; } tk.bon.staat = 'koken'; R.pad = padNaar(R, STATION[RECEPTEN[tk.bon.id].stappen[0]] || KB.FORNUIS); }
-    else { if (tk.bon.staat !== 'klaar' || !A.uitgifte.includes(tk.bon)) { R.taak = null; return; } R.pad = padNaar(R, KB.UITGIFTE); tk.fase = 'halen'; }
-    werkBonnen();
+    const tk = volgendeTaak(R);
+    if (tk) {
+      R.taak = tk; R.bezig = null; R.groet = 0; R.wachtNaTaak = 0;
+      if (tk.soort === 'koken') { tk.bon.staat = 'koken'; R.pad = padNaar(R, taakDoel(tk)); }
+      else { tk.mee = meeNemen(R, tk); R.taken = R.taken.filter(t => !tk.mee.includes(t.bon)); R.pad = padNaar(R, KB.UITGIFTE); tk.fase = 'halen'; }
+      werkBonnen();
+    }
   }
-  const tk = R.taak; if (!tk) { loop(R, dt); return; }
+  const tk = R.taak; if (!tk) { rubenRust(R, dt); return; }
   if (tk.soort === 'koken') {
-    if (!loop(R, dt)) return;
+    if (!loop(R, dt, RUBEN_SNEL)) return;
     if (!A.mini && !tk.gestart) { tk.gestart = true; R.kijk = -1; startMini(tk.bon, kw => { tk.bon.kw = kw; tk.bon.staat = 'klaar'; A.uitgifte.push(tk.bon); R.taak = null; R.pose = kw > .75 ? 'blij' : 'staan'; R.poseT = .8; GELUID.sfx('bel'); werkBonnen(); if (A.noor) noorPak(); }); }
-  } else {
-    if (tk.fase === 'halen') { if (loop(R, dt)) { if (!A.uitgifte.includes(tk.bon)) { R.taak = null; werkBonnen(); return; } A.uitgifte = A.uitgifte.filter(b => b !== tk.bon); R.draagt = [tk.bon]; tk.fase = 'brengen'; const g = tk.bon.gast; R.pad = padNaar(R, { x: g.x + (g.z ? 12 : -12), y: g.tf.y + 2 }); werkBonnen(); } }
-    else if (tk.fase === 'brengen') { if (loop(R, dt)) { dien(tk.bon); R.draagt = []; R.taak = null; R.kijk = tk.bon.gast.z ? -1 : 1; werkBonnen(); } }
+  } else if (tk.fase === 'halen') {
+    if (!loop(R, dt, RUBEN_SNEL)) return;
+    // alles van het dienblad dat nog klaarstaat en waar de gast nog op wacht
+    const borden = [tk.bon].concat(tk.mee).filter(b => A.uitgifte.includes(b) && b.gast && A.gasten.includes(b.gast) && b.gast.staat === 'wacht');
+    if (!borden.length) { R.taak = null; werkBonnen(); return; }
+    A.uitgifte = A.uitgifte.filter(b => !borden.includes(b));
+    R.draagt = brengVolgorde(R, borden); tk.mee = []; tk.fase = 'brengen'; tk.bon = R.draagt[0];
+    R.pad = padNaar(R, serveerPlek(tk.bon.gast)); werkBonnen();
+  } else if (tk.fase === 'brengen') {
+    if (!loop(R, dt, RUBEN_SNEL)) return;
+    const b = R.draagt.shift(); if (b) { dien(b); R.kijk = b.gast.z ? -1 : 1; }
+    // het volgende bord (ging een gast intussen weg, dan gaat dat bord terug naar de uitgifte)
+    while (R.draagt.length && !(A.gasten.includes(R.draagt[0].gast) && R.draagt[0].gast.staat === 'wacht')) { const t = R.draagt.shift(); if (t.staat === 'klaar' && A.bonnen.includes(t)) A.uitgifte.push(t); }
+    if (R.draagt.length) { tk.bon = R.draagt[0]; R.pad = padNaar(R, serveerPlek(tk.bon.gast)); }
+    else { R.taak = null; }
+    werkBonnen();
   }
 }
 function dien(b) {
@@ -3485,32 +3755,36 @@ function jaagKat() { const K = A.kat; if (!K || K.staat !== 'sluipt') return fal
 // ---- de bonnetjes bovenin (HTML, met knoppen)
 function werkBonnen() {
   const el = $('bonnen'); if (!A) return;
-  const bonnen = A.bonnen.filter(b => b.staat !== 'op');
-  el.innerHTML = `<div class="rail">${bonnen.map((b, i) => `<button class="bon ${b.staat === 'klaar' ? 'klaar' : b.staat === 'koken' ? 'bezig' : ''}" type="button" data-i="${i}" aria-label="${RECEPTEN[b.id].naam} voor tafel ${b.gast.tf.nr}, ${b.staat === 'klaar' ? 'klaar om op te dienen' : b.staat === 'koken' ? 'wordt gekookt' : 'nog koken'}"><canvas width="20" height="15"></canvas>${b.staat === 'klaar' ? 'Opdienen' : b.staat === 'koken' ? (b.doorSem ? 'Sem kookt' : 'Koken...') : 'Tafel ' + b.gast.tf.nr}<i><b style="width:${Math.round(b.gast.geduld * 100)}%"></b></i></button>`).join('')}</div><div class="hud-blok klokje">${ikoon('klok')}<div><small>Het Rommelkombuis</small><span id="r-klok"></span> · <span id="r-geld"></span></div></div>`;
-  el.querySelectorAll('.bon').forEach((k, i) => { const b = bonnen[i]; k.querySelector('canvas').getContext('2d').drawImage(gerechtPix(b.id), 0, 0); k.onclick = () => { if (b.staat === 'open') geefTaak({ soort: 'koken', bon: b }); else if (b.staat === 'klaar') geefTaak({ soort: 'dienen', bon: b }); }; });
+  const bonnen = A.bonnen.filter(b => b.staat !== 'op'), plan = planVolgorde(); A.plan = plan; A.planSleutel = plan.map(b => b.nr).join();
+  el.innerHTML = `<div class="rail">${bonnen.map((b, i) => { const nr = plan.indexOf(b) + 1, doen = !nr && (b.staat === 'open' || b.staat === 'klaar') && !bonInTaak(b); return `<button class="bon ${b.staat === 'klaar' ? 'klaar' : b.staat === 'koken' ? 'bezig' : ''}${doen ? ' doen' : ''}" type="button" data-nr="${b.nr}" aria-pressed="${nr ? 'true' : 'false'}" aria-label="${RECEPTEN[b.id].naam} voor tafel ${b.gast.tf.nr}, ${b.staat === 'klaar' ? 'klaar om op te dienen' : b.staat === 'koken' ? 'wordt gekookt' : 'nog koken'}${nr ? ', nummer ' + nr + ' op het lijstje van Ruben' : ''}">${nr ? `<span class="nr">${nr}</span>` : ''}<canvas width="20" height="15"></canvas>${b.staat === 'klaar' ? 'Opdienen' : b.staat === 'koken' ? (b.doorSem ? 'Sem kookt' : 'Koken...') : 'Tafel ' + b.gast.tf.nr}<i><b style="width:${Math.round(b.gast.geduld * 100)}%"></b></i></button>`; }).join('')}</div><div class="hud-blok klokje">${ikoon('klok')}<div><small>Het Rommelkombuis</small><span id="r-klok"></span> · <span id="r-geld"></span></div></div>`;
+  el.querySelectorAll('.bon').forEach((k, i) => k.querySelector('canvas').getContext('2d').drawImage(gerechtPix(bonnen[i].id), 0, 0));
   A.bonEl = bonnen; klokje();
 }
+// Tikken op een bonnetje telt meteen bij het neerdrukken, op het bord van de bonnen zelf. De bonnetjes worden vaak opnieuw
+// gemaakt (als Ruben iets oppakt of brengt); een gewone klik viel dan weg als dat net tussen neerdrukken en loslaten gebeurde.
+$('bonnen').addEventListener('pointerdown', e => { const k = e.target.closest('.bon'); if (!k || !A) return; GELUID.start(); kiesBon(A.bonnen.find(b => b.nr === +k.dataset.nr)); });
+$('bonnen').addEventListener('click', e => { if (e.detail) return; const k = e.target.closest('.bon'); if (k && A) kiesBon(A.bonnen.find(b => b.nr === +k.dataset.nr)); }); // met het toetsenbord
 function klokje() { const u = Math.floor(A.uur), m = Math.floor((A.uur - u) * 60 / 5) * 5; const k = $('r-klok'), g = $('r-geld'); if (k) k.textContent = String(u % 24).padStart(2, '0') + ':' + String(m).padStart(2, '0'); if (g) g.textContent = geldTekst(A.omzet + A.fooi); }
 
 SCENES.restaurant = {
   doel: 340,
   start(menu) {
+    beginDeel('dienst');
     startAvond(menu);
-    $('bonnen').hidden = false; werkBonnen();
+    $('bonnen').hidden = false; $('meldingen').classList.add('onder'); werkBonnen();
     GELUID.zetSfeer('restaurant'); GELUID.zetMuziek('restaurant');
     if (A.bijzonder && A.bijzonder.aankondiging) setTimeout(() => melding(A.bijzonder.aankondiging, 'goud groot', 4200), 600);
   },
-  stop() { $('bonnen').hidden = true; $('mini').hidden = true; },
-  klik(x, y) {
+  stop() { $('bonnen').hidden = true; $('mini').hidden = true; $('meldingen').classList.remove('onder'); },
+  klik(x, y, e) {
     if (!A || A.mini) return;
-    const wx = x + A.cam, wy = y + A.camY;
-    if (A.kat && Math.hypot(wx - A.kat.x, wy - A.kat.y + 8) < 26 && jaagKat()) return;
-    // op een gast tikken
-    let beste = null, bd = 34;
-    for (const g of A.gasten) { if (!g.bon) continue; const d = Math.hypot(wx - g.x, wy - (g.y - 26)); if (d < bd) { bd = d; beste = g; } }
-    if (beste) { const b = beste.bon; if (b.staat === 'open') geefTaak({ soort: 'koken', bon: b }); else if (b.staat === 'klaar') geefTaak({ soort: 'dienen', bon: b }); return; }
+    const wx = x + A.cam, wy = y + A.camY, ruim = e && e.pointerType === 'mouse' ? 3 : 9;
+    if (A.kat && Math.hypot(wx - A.kat.x, wy - A.kat.y + 8) < 26 + ruim && jaagKat()) return tikje(wx, wy, true);
+    const g = gastOp(wx, wy, ruim);
+    if (g) { tikje(wx, wy, true); kiesBon(g.bon); return; }
     // op de uitgifte tikken: het eerste klare bord opdienen
-    if (wx > 100 && wx < 176 && wy > 190 && wy < 262) { const b = A.uitgifte.find(q => !bonInTaak(q)); if (b) geefTaak({ soort: 'dienen', bon: b }); }
+    if (wx > 100 - ruim && wx < 176 + ruim && wy > 190 - ruim && wy < 262) { const b = A.uitgifte.find(q => !bonInTaak(q)); if (b) { tikje(wx, wy, true); geefTaak({ soort: 'dienen', bon: b }); return; } }
+    tikje(wx, wy, false);
   },
   update(dt) {
     if (!A) return;
@@ -3523,14 +3797,17 @@ SCENES.restaurant = {
     while (A.aankomst.length && A.uur >= (A.aankomst[0] < 0 ? 18.8 : A.aankomst[0]) && A.uur < 22) { const a = A.aankomst.shift(); nieuweGast(a < 0 ? A.bijzonder : null); }
     if (A.wacht.length) { A.wacht[0].t += dt; if (vrijeTafel(1)) { const w = A.wacht.shift(); nieuweGast(w.bijzonder); } else if (A.wacht[0].t > 25) { A.wacht.shift(); A.vertrokken++; } }
     updateGasten(dt); updateRubenAvond(dt); updateNoor(dt); updateSem(dt); updateKat(dt);
+    A.plan = planVolgorde(); if (A.plan.map(b => b.nr).join() !== A.planSleutel) werkBonnen();
+    for (const k of A.tikjes || []) k.t += dt / tempo; if (A.tikjes) A.tikjes = A.tikjes.filter(k => k.t < .45);
+    if (!ST.vlag.tikUitleg && !A.uitlegGezien && A.bonnen.some(b => b.staat === 'open' && !bonInTaak(b))) { A.uitlegGezien = true; melding('Tik op een bonnetje of een ballonnetje: Ruben zet het op zijn lijstje.', '', 6000); }
     A.deurOpen = Math.max(0, A.deurOpen - dt * 1.5);
     for (const m of A.munten) { m.t += dt; m.x += m.vx * dt; m.y += m.vy * dt; m.vy += 160 * dt; } A.munten = A.munten.filter(m => m.t < .9);
     for (const tk of A.teksten) { tk.t += dt; tk.y -= dt * 10; } A.teksten = A.teksten.filter(tk => tk.t < 2.2);
     // geduldbalkjes op de bonnetjes bijwerken
     A.bonT = (A.bonT || 0) - dt; if (A.bonT <= 0) { A.bonT = .5; const el = $('bonnen'); if (A.bonEl) el.querySelectorAll('.bon i b').forEach((b, i) => { const bon = A.bonEl[i]; if (bon) { b.style.width = Math.round(bon.gast.geduld * 100) + '%'; b.style.background = bon.gast.geduld > .5 ? '#3DB06A' : bon.gast.geduld > .25 ? '#E9B949' : '#E8414E'; } }); klokje(); }
     // einde van de avond
-    if (!A.klaar && A.uur >= 22 && !A.aankomst.length && !A.gasten.length) { A.klaar = true; setTimeout(() => overgang(() => DAG.naAvond()), 600); }
-    if (!A.klaar && A.uur >= 23.5) { A.klaar = true; for (const g of A.gasten) if (g.staat === 'wacht') { A.vertrokken++; A.boos++; } setTimeout(() => overgang(() => DAG.naAvond()), 300); }
+    if (!A.klaar && A.uur >= 22 && !A.aankomst.length && !A.gasten.length) { A.klaar = true; setTimeout(() => DAG.eindeAvond(), 600); }
+    if (!A.klaar && A.uur >= 23.5) { A.klaar = true; for (const g of A.gasten) if (g.staat === 'wacht') { A.vertrokken++; A.boos++; } setTimeout(() => DAG.eindeAvond(), 300); }
   },
   teken(ctx, W, H) { if (A) tekenAvond(ctx, W, H); },
 };
@@ -3557,7 +3834,8 @@ function tekenAvond(ctx, W, H) {
   const lijst = [];
   for (const tf of A.tafels) lijst.push({ y: tf.y, f: () => tekenTafel(L, tf, t) });
   for (const g of A.gasten) if (g.staat === 'loopt' || g.staat === 'weg') lijst.push({ y: g.y, f: () => tekenLoper(L, g.o, g.x, g.y, g.kijk, true, t, g.boos ? 'boos' : null, g.gang) });
-  lijst.push({ y: R.y, f: () => { const pose = R.draagt.length ? 'serveren' : (R.taak && R.taak.gestart && !R.loopt) ? 'koken' : R.poseT > 0 ? R.pose : R.loopt ? 'lopen' : 'staan'; const sp = persoon(RUBEN, pose, t, { schort: true, gang: R.gang || 0, loopt: R.loopt && (pose === 'serveren' || pose === 'lopen') }); const cv = R.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); L.drawImage(cv, Math.round(R.x - (R.kijk < 0 ? cv.width - 18 : 18)), Math.round(R.y - sp.voet[1])); if (R.draagt.length) { const hx = R.kijk < 0 ? R.x - (sp.hand[0] - 18) : R.x + sp.hand[0] - 18; L.drawImage(bordMet(RECEPTEN[R.draagt[0].id].plaatje), Math.round(hx - 12), Math.round(R.y - sp.voet[1] + sp.hand[1] - 16)); } } });
+  lijst.push({ y: R.y, f: () => tekenRuben(L, R, t) });
+  lijst.push({ y: KB.TOONBANK_Y + .5, f: () => tekenRubenDoek(L, R, t) });
   if (A.noor) { const N = A.noor; lijst.push({ y: N.y, f: () => { const sp = persoon(FIGUREN.noor, N.draagt ? 'serveren' : N.loopt ? 'lopen' : 'staan', t, { schort: true, gang: N.gang || 0, loopt: !!N.loopt }); const cv = N.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); L.drawImage(cv, Math.round(N.x - (N.kijk < 0 ? cv.width - 18 : 18)), Math.round(N.y - sp.voet[1])); if (N.draagt) { const hx = N.kijk < 0 ? N.x - (sp.hand[0] - 18) : N.x + sp.hand[0] - 18; L.drawImage(bordMet(RECEPTEN[N.draagt.id].plaatje), Math.round(hx - 12), Math.round(N.y - sp.voet[1] + sp.hand[1] - 16)); } } }); }
   if (A.sem) lijst.push({ y: A.sem.y, f: () => { const sp = persoon(FIGUREN.sem, A.sem.bezig ? 'koken' : 'staan', t); L.drawImage(sp.pix.doek(), Math.round(A.sem.x - 18), Math.round(A.sem.y - sp.voet[1])); } });
   lijst.push({ y: KB.TOONBANK_Y, f: () => { tekenToonbank(L, { vitrine: vitrineVissen(), deurOpen: R.x > 160 && R.x < 192 && R.y < 262 ? 1 : 0 }, t); A.uitgifte.slice(0, 4).forEach((b, i) => L.drawImage(bordMet(RECEPTEN[b.id].plaatje), 108 + i * 14, 204)); } });
@@ -3591,10 +3869,66 @@ function tekenAvond(ctx, W, H) {
     TT.rect(bx + 3, by + 17, 20, 2, '#D8D2C2'); TT.rect(bx + 3, by + 17, Math.round(20 * g.geduld), 2, kl);
     if (g.bon.staat === 'klaar') { TT.rect(bx + 20, by - 4, 7, 7, '#3DB06A'); letters(ctx, '!', bx + 21, by - 4, '#FFFFFF'); }
     if (g.bijzonder) { TT.rect(bx - 6, by - 6, 7, 7, '#E9B949'); letters(ctx, '*', bx - 5, by - 6, '#231A26'); }
+    const nr = (A.plan || []).indexOf(g.bon) + 1;
+    if (nr) { TT.rect(bx - 4, by + 12, 9, 9, '#2F4C8F'); TT.rect(bx - 3, by + 11, 7, 11, '#2F4C8F'); letters(ctx, String(nr), bx + 1, by + 13, '#FBF6E9', 1, 'm'); }
+    else if ((g.bon.staat === 'open' || g.bon.staat === 'klaar') && !bonInTaak(g.bon)) {
+      // hier mag je op tikken: een gouden rand die zacht oplicht
+      ctx.globalAlpha = REDUCE ? .9 : .55 + .45 * Math.sin(t * 6 + g.x); const k = '#E9B949';
+      TT.rect(bx - 2, by - 2, 30, 1, k); TT.rect(bx - 2, by + 23, 30, 1, k); TT.rect(bx - 2, by - 1, 1, 24, k); TT.rect(bx + 27, by - 1, 1, 24, k); ctx.globalAlpha = 1;
+      if (!ST.vlag.tikUitleg && !A.handGezet) { A.handGezet = true; tekenHandje(TT, bx + 13, by - 4 - (REDUCE ? 0 : Math.round(Math.abs(Math.sin(t * 4)) * 4))); }
+    }
   }
+  A.handGezet = false;
+  // klare borden op de uitgifte die nog niemand meeneemt: een pijltje erboven
+  if (A.uitgifte.some(b => !bonInTaak(b))) { const px = 120 + ox, py = 192 + oy - (REDUCE ? 0 : Math.round(Math.abs(Math.sin(t * 4)) * 3)); TT.rect(px - 1, py - 6, 3, 5, '#E9B949'); TT.rect(px - 3, py - 1, 7, 1, '#E9B949'); TT.rect(px - 2, py, 5, 1, '#E9B949'); TT.px(px, py + 1, '#E9B949'); }
+  for (const k of A.tikjes || []) { const r = 3 + k.t * 22; ctx.globalAlpha = (1 - k.t / .45) * (k.raak ? .9 : .4); ctx.strokeStyle = k.raak ? '#FBF6E9' : '#B8AE98'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(Math.round(k.x + ox) + .5, Math.round(k.y + oy) + .5, REDUCE ? 6 : r, 0, Math.PI * 2); ctx.stroke(); } ctx.globalAlpha = 1;
   for (const m of A.munten) { TT.rect(m.x + ox, m.y + oy, 3, 3, '#E9B949'); TT.px(m.x + ox, m.y + oy, '#FFF4C8'); }
   for (const tk of A.teksten) { ctx.globalAlpha = klem(2.2 - tk.t, 0, 1); const bw = letterBreedte(tk.s) + 6; TT.rect(tk.x + ox - bw / 2, tk.y + oy - 2, bw, 11, 'rgba(20,14,20,0.55)'); letters(ctx, tk.s, tk.x + ox, tk.y + oy, tk.kl, 1, 'm'); } ctx.globalAlpha = 1;
   if (A.mini) tekenMini();
+}
+// Ruben in het restaurant: wat hij doet bepaalt zijn houding; borden in zijn handen, een glas of een doek
+function rubenPose(R) {
+  if (R.draagt.length) return R.draagt.length > 1 ? 'dragen' : 'serveren';
+  if (R.taak && R.taak.gestart && !R.loopt) return 'koken';
+  if (R.poseT > 0) return R.pose;
+  if (R.loopt) return 'lopen';
+  if (R.groet > 0) return 'zwaai';
+  if (!R.taak && R.bezig && (R.bezig.soort === 'vegen' || R.bezig.soort === 'poetsen')) return R.bezig.soort;
+  return 'staan';
+}
+function tekenRuben(L, R, t) {
+  const pose = rubenPose(R), sp = persoon(RUBEN, pose, t, { schort: true, gang: R.gang || 0, loopt: R.loopt && (pose === 'serveren' || pose === 'dragen' || pose === 'lopen') });
+  const cv = R.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(), top = R.y - sp.voet[1];
+  L.drawImage(cv, Math.round(R.x - (R.kijk < 0 ? cv.width - 18 : 18)), Math.round(top));
+  const hx = h => R.kijk < 0 ? R.x - (h[0] - 18) : R.x + h[0] - 18;
+  R.handen = { hand: [hx(sp.hand), top + sp.hand[1]], handA: [hx(sp.handA), top + sp.handA[1]] };
+  // borden: het eerste in de rechterhand, het tweede in de linker, meer borden op elkaar
+  R.draagt.forEach((b, i) => { const h = i % 2 ? R.handen.handA : R.handen.hand, op = Math.floor(i / 2); L.drawImage(bordMet(RECEPTEN[b.id].plaatje), Math.round(h[0] - 12 - op * 2 * R.kijk), Math.round(h[1] - 16 - op * 6)); });
+  if (pose === 'poetsen') {
+    // een doorzichtig glas in de ene hand, de andere hand wrijft erover; af en toe een glinstering
+    const T = tekenaar(L), [gx, gy] = R.handen.handA.map(Math.round), [wx, wy] = R.handen.hand.map(Math.round);
+    L.globalAlpha = .6; T.rect(gx - 2, gy - 7, 5, 8, '#BFE6F0'); L.globalAlpha = 1;
+    T.rect(gx - 3, gy - 7, 1, 8, '#5E8A98'); T.rect(gx + 3, gy - 7, 1, 8, '#5E8A98'); T.rect(gx - 2, gy + 1, 5, 1, '#5E8A98'); T.rect(gx - 2, gy - 7, 5, 1, '#E8F6FA');
+    T.rect(gx - 1, gy - 5, 1, 4, '#FFFFFF');
+    T.rect(wx - 2, wy - 2, 5, 4, '#7A4A36'); T.rect(wx - 1, wy - 1, 3, 2, RUB.huid);
+    if (Math.floor(t * 2.5) % 4 === 0) { T.px(gx + 4, gy - 9, '#FFFFFF'); T.px(gx + 5, gy - 10, '#FFF6D0'); T.px(gx + 3, gy - 10, '#FFF6D0'); T.px(gx + 4, gy - 11, '#FFF6D0'); }
+  }
+}
+// de doek op het blad van de toonbank (die staat voor Ruben, dus de doek komt erna)
+function tekenRubenDoek(L, R, t) {
+  if (rubenPose(R) !== 'vegen' || !R.handen) return;
+  // een theedoek met blauwe streepjes; hij gaat heen en weer in de maat van de arm (zelfde fase als in persoon())
+  const T = tekenaar(L), s = [-1, 0, 1, 0][Math.floor(t * 5) % 4], x = Math.round(R.x + R.kijk * (14 + 4 * s)), y = 219;
+  T.rect(x - 6, y, 13, 4, '#3A2E3A'); T.rect(x - 5, y, 11, 3, '#FBF6E9'); T.rect(x - 5, y + 1, 11, 1, '#2F6FB5'); T.rect(x - 5, y + 3, 11, 1, '#B8AE98');
+  T.rect(x - 2, y - 2, 5, 4, '#7A4A36'); T.rect(x - 1, y - 1, 3, 2, RUB.huid);
+  // waar de doek net was, glimt het blad even
+  L.globalAlpha = .7; for (let i = 1; i <= 2; i++) T.px(x - R.kijk * s * (6 + i * 3), y + 3, '#FFFFFF'); L.globalAlpha = 1;
+}
+// een wijzend handje (wijst naar beneden, met de vingertop op x, y)
+function tekenHandje(TT, x, y) {
+  const d = '#231A26', h = '#F5D7C0';
+  TT.rect(x - 1, y - 8, 3, 8, d); TT.rect(x - 4, y - 13, 9, 7, d); TT.rect(x, y - 7, 1, 6, h); TT.rect(x - 3, y - 12, 7, 5, h);
+  TT.px(x - 2, y - 12, '#FFFFFF'); TT.rect(x - 3, y - 15, 7, 2, '#2F4C8F');
 }
 function vitrineVissen() {
   const p = voorraadPorties(), l = Object.keys(p).filter(s => p[s] > 0 && SOORTEN[s].kg > 0).slice(0, 6);
@@ -3793,7 +4127,9 @@ const HAVEN_LICHT = [
   { boven: '#5E9FDA', onder: '#F2E6C4', zon: '#FFF2C8', waas: '#BFCFD8', zee: '#3A90B6', warm: .2, zx: 380, zy: 40 },
   { boven: '#5F7FC4', onder: '#F6C68E', zon: '#FFDA96', waas: '#D2BCA6', zee: '#3A78A0', warm: .55, zx: 690, zy: 120 },
 ];
-function hvLicht() { return HAVEN_LICHT[klem(ST.duiken || 0, 0, 2)]; }
+// het dagdeel in de haven: na de dienst (uitslag en nacht) is het avond, tot de krant van de nieuwe ochtend
+function havenDeel() { return ST.na && ST.na.soort === 'avond' && ST.na.stap !== 'krant' ? 2 : klem(ST.duiken || 0, 0, 2); }
+function hvLicht() { return HAVEN_LICHT[havenDeel()]; }
 // is een punt binnen een veelhoek?
 function inVeelhoek(pt, x, y) { let b = false; for (let i = 0, j = pt.length - 1; i < pt.length; j = i++) { const [xi, yi] = pt[i], [xj, yj] = pt[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) b = !b; } return b; }
 function hvVul(T, pt, kleur) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of pt) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } for (let y = Math.floor(y0); y <= Math.ceil(y1); y++) for (let x = Math.floor(x0); x <= Math.ceil(x1); x++) if (inVeelhoek(pt, x + .5, y + .5)) { const c = kleur(x, y); if (c) T.px(x, y, c); } }
@@ -4033,8 +4369,8 @@ let HV = null;
 SCENES.haven = {
   doel: 340,
   start() {
-    const st = klem(ST.duiken || 0, 0, 2);
-    HV = { ver: tekenHavenVer(st), voor: tekenHavenVoor(st), ruben: { x: ST.duiken > 0 ? 610 : 152, y: HAVEN.KADE + 22, doel: null, kijk: 1 }, t: 0, cam: 0, meeuwen: [0, 1, 2].map(i => ({ x: 100 + i * 220, y: 60 + i * 20, v: 14 + i * 4 })), bezig: false,
+    const st = havenDeel(), naDienst = ST.na && ST.na.soort === 'avond';
+    HV = { ver: tekenHavenVer(st), voor: tekenHavenVoor(st), ruben: { x: ST.duiken > 0 && !naDienst ? 610 : 152, y: HAVEN.KADE + 22, doel: null, kijk: 1 }, t: 0, cam: 0, meeuwen: [0, 1, 2].map(i => ({ x: 100 + i * 220, y: 60 + i * 20, v: 14 + i * 4 })), bezig: false,
       wolken: [0, 1, 2, 3].map(i => ({ x: hashf(i, 5, 9) * 900 - 60, y: 20 + i * 26, s: .6 + hashf(i, 6, 9) * .7, v: 2 + i })),
       wandelaars: [0, 1].map(i => ({ o: maakGast(rng(ST.dag * 13 + i * 7)), x: i ? 700 : -40, v: i ? -16 : 18, y: HAVEN.KADE + 14 + i * 22, wacht: i * 9 })) };
     GELUID.zetSfeer('haven'); GELUID.zetMuziek('haven');
@@ -4043,13 +4379,16 @@ SCENES.haven = {
   },
   stop() { $('hud').hidden = true; },
   knoppen() {
-    const h = $('hud'); h.hidden = false;
+    const h = $('hud');
+    if (ST.na || DAG.hervatBezig) { h.hidden = true; return; } // eerst afmaken wat er na een duik of dienst nog komt
+    h.hidden = false;
     h.innerHTML = `<div class="hud-blok">${ikoon('zon')}<div><small>Dag ${ST.dag} · ${ST.duiken === 0 ? 'ochtend' : ST.duiken === 1 ? 'middag' : 'eind van de middag'}</small><span>${geldTekst(ST.geld)}</span></div></div><div class="hud-blok">${ikoon('boek')}<div><small>Hoofdstuk ${ST.hfd}</small><span class="sterren-klein" aria-label="${Math.round(ST.ster)} van de 5 sterren">${'★'.repeat(Math.round(ST.ster))}${'☆'.repeat(5 - Math.round(ST.ster))}</span></div></div><div class="hud-rechts" style="pointer-events:auto"><button class="knop goud" type="button" id="h-duik">${ST.duiken < 2 ? (ST.duiken ? 'Middagduik' : 'Ochtendduik') : 'Genoeg gedoken'}</button><button class="knop hoofd" type="button" id="h-avond">Restaurant openen</button></div>`;
     $('h-duik').disabled = ST.duiken >= 2;
     $('h-duik').onclick = () => this.ga('boot'); $('h-avond').onclick = () => this.ga('kombuis');
   },
   ga(id) { const p = HAVEN.PLEKKEN.find(q => q.id === id); HV.ruben.doel = p.deur; HV.wil = id; },
   klik(x, y) {
+    if (!HV || HV.bezig || ST.na) return;
     const wx = x + HV.cam; y -= (HV.oy || 0);
     const p = HAVEN.PLEKKEN.find(q => Math.abs(q.x - wx) < (q.id === 'boot' ? 70 : q.id === 'prikbord' ? 22 : 56) && y < HAVEN.KADE + 30);
     if (p) this.ga(p.id); else { HV.ruben.doel = klem(wx, 30, HAVEN.W - 60); HV.wil = null; }
@@ -4166,8 +4505,9 @@ const DAG = {
       $('m-open').onclick = async () => { ST.menu = gekozen.slice(); sluitPaneel(); bewaar(); if (typeof verhaalVoorAvond === 'function') await verhaalVoorAvond(); await overgang(() => naarScene('restaurant', gekozen.slice())); res(); };
     });
   },
-  // ---- na het duiken
-  async naDuik(hoe) {
+  // ---- na het duiken: de vangst en de duik zelf in één keer bewaren; daarna pas de vensters (DAG.hervat)
+  async eindeDuik(hoe) {
+    if (!D || D.afgerond) return; D.afgerond = true;
     const tas = D.tas.slice();
     if (hoe === 'flauw') { // de helft van het gewicht raak je kwijt
       let kg = tas.reduce((a, it) => a + (it.v ? VONDSTEN[it.v].kg : SOORTEN[it.s].kg), 0), weg = kg / 2;
@@ -4182,20 +4522,24 @@ const DAG = {
     // nieuwe recepten leren door een nieuwe soort te vangen
     const geleerd = [];
     for (const [id, r] of Object.entries(RECEPTEN)) if (r.leer && vis[r.leer] && !(id in ST.recepten)) { ST.recepten[id] = 0; geleerd.push(id); }
-    bewaar();
-    naarScene('haven');
+    ST.na = { soort: 'duik', hoe, vis, vond, nieuw, geleerd, diepste: Math.round(D.diepsteM), zagKerk: !!D.zagKerk };
+    eindDeel(); bewaar();
+    await overgang(() => naarScene('haven'));
+    await this.hervat();
+  },
+  toonDuik(na) {
+    const { vis, vond, nieuw, geleerd, hoe } = na;
     const regels = Object.entries(vis).map(([s, n]) => `<div class="regel">${plaatjeHtml(zeedierDoek(s, 1), 2)}<div><div class="naam">${SOORTEN[s].naam} × ${n}${nieuw.includes(s) ? ' <span class="stempel">nieuw</span>' : ''}</div><div class="klein">${SOORTEN[s].porties * n} ${SOORTEN[s].porties * n === 1 ? 'portie' : 'porties'} voor het restaurant</div></div></div>`).join('')
       + Object.entries(vond).map(([id, n]) => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${n > 1 ? ' × ' + n : ''}</div><div class="klein">${VONDSTEN[id].verhaal ? 'Een aanwijzing!' : VONDSTEN[id].rommel ? 'Rommel uit zee: Wieke van Het Zilte Huis is er blij mee.' : 'Verkopen in Het Zilte Huis of ophangen in je restaurant.'}</div></div></div>`).join('');
     const plaatjes = Object.keys(vis).map(s => zeedierDoek(s, 1)).concat(Object.keys(vond).map(id => vondstDoek(id)));
-    const k = paneel(`<h2>${hoe === 'flauw' ? 'Op het nippertje...' : 'Terug aan boord'}</h2>${hoe === 'flauw' ? '<p>Je zuurstof was op. Trien heeft je aan de lijn omhoog getrokken, maar je bent de helft van je tas kwijt.</p>' : ''}<div class="lijst">${regels || '<p>Je tas is leeg. Volgende keer beter!</p>'}</div>${geleerd.length ? `<p><b>Nieuw recept:</b> ${geleerd.map(id => RECEPTEN[id].naam).join(', ')}!</p>` : ''}<p class="klein">Diepste punt: ${Math.round(D.diepsteM)} m</p><div class="rij"><button class="knop hoofd" type="button" id="nd-ok">Verder</button></div>`);
+    const k = paneel(`<h2>${hoe === 'flauw' ? 'Op het nippertje...' : 'Terug aan boord'}</h2>${hoe === 'flauw' ? '<p>Je zuurstof was op. Trien heeft je aan de lijn omhoog getrokken, maar je bent de helft van je tas kwijt.</p>' : ''}<div class="lijst">${regels || '<p>Je tas is leeg. Volgende keer beter!</p>'}</div>${geleerd.length ? `<p><b>Nieuw recept:</b> ${geleerd.map(id => RECEPTEN[id].naam).join(', ')}!</p>` : ''}<p class="klein">Diepste punt: ${na.diepste} m</p><div class="rij"><button class="knop hoofd" type="button" id="nd-ok">Verder</button></div>`);
     vulPlaatjes(k, plaatjes);
-    await new Promise(r => { $('nd-ok').onclick = () => { sluitPaneel(); r(); }; });
-    if (nieuw.length) for (const s of nieuw.slice(0, 2)) melding(SOORTEN[s].naam + ': ' + SOORTEN[s].weetje, 'groot', 6500);
-    if (typeof verhaalNaDuik === 'function') await verhaalNaDuik(vis, vond);
-    if (SCENE.naam === 'haven') SCENES.haven.knoppen();
+    return new Promise(r => { $('nd-ok').onclick = () => { sluitPaneel(); if (nieuw.length) for (const s of nieuw.slice(0, 2)) melding(SOORTEN[s].naam + ': ' + SOORTEN[s].weetje, 'groot', 6500); r(); }; });
   },
-  // ---- na de avond: cijfers, recensie, nacht
-  async naAvond() {
+  // ---- na de dienst: het geld, de recensie én de nieuwe dag in één keer bewaren; daarna pas de vensters (DAG.hervat).
+  // Zo krijg je een dienst nooit twee keer betaald, en kom je na afsluiten terug waar je echt was.
+  async eindeAvond() {
+    if (!A || A.afgerond) return; A.afgerond = true;
     const tev = A.tevreden.length ? A.tevreden.reduce((a, b) => a + b, 0) / A.tevreden.length : .3;
     const score = klem(tev - A.vertrokken * .06, 0, 1), sterren = klem(Math.round((1 + score * 4.2) * 2) / 2, 1, 5);
     const loon = Object.keys(ST.pers).filter(k => ST.pers[k]).reduce((a, k) => a + PERSONEEL[k].loon, 0);
@@ -4205,33 +4549,66 @@ const DAG = {
     const nieuwBest = totaal > ST.beste.avond; ST.beste.avond = Math.max(ST.beste.avond, totaal); ST.beste.ster = Math.max(ST.beste.ster, sterren);
     const recensie = maakRecensie(sterren, A);
     ST.recensies.unshift({ d: ST.dag, s: sterren, t: recensie.tekst, w: recensie.wie }); ST.recensies = ST.recensies.slice(0, 6);
-    const menuGerechten = A.menu.slice();
-    naarScene('haven'); // achtergrond tijdens het venster
-    const k = paneel(`<h2>De avond in het Rommelkombuis</h2>
-      <div class="lijst"><div class="regel"><div class="naam">Gasten bediend</div><div class="meer">${A.bediend}</div></div>${A.vertrokken ? `<div class="regel"><div class="naam">Boos of teleurgesteld weggegaan</div><div class="meer">${A.vertrokken}</div></div>` : ''}<div class="regel"><div class="naam">Omzet</div><div class="meer">${geldTekst(A.omzet)}</div></div><div class="regel"><div class="naam">Fooi</div><div class="meer">${geldTekst(A.fooi)}</div></div>${loon ? `<div class="regel"><div class="naam">Lonen</div><div class="meer">− ${geldTekst(loon)}</div></div>` : ''}<div class="regel"><div class="naam">Totaal</div><div class="meer geld">${geldTekst(totaal - loon)}${nieuwBest ? ' <span class="stempel">record</span>' : ''}</div></div></div>
-      <div class="regel" style="display:block"><div class="sterren" aria-label="${sterren} van de 5 sterren">${sterrenTekst(sterren)}</div><p style="margin:.2rem 0">“${recensie.tekst}”</p><div class="klein">— ${recensie.wie}</div></div>
-      <div id="sb-duiker"></div>
-      <div class="rij"><button class="knop hoofd" type="button" id="na-ok">Slapen</button></div>`);
-    if (window.Scorebord && !TESTSTAND) { try { Scorebord.stuur('duiker', Math.round(ST.beste.avond), Object.keys(ST.boek).length); Scorebord.blokje($('sb-duiker'), 'euro op je beste avond'); } catch (e) {} }
-    GELUID.sfx(sterren >= 4 ? 'feest' : 'munt');
-    await new Promise(r => { $('na-ok').onclick = () => { sluitPaneel(); r(); }; });
-    A = null;
-    await this.nacht(menuGerechten);
-  },
-  async nacht() {
-    GELUID.zetMuziek('nacht');
-    if (typeof verhaalNacht === 'function') await verhaalNacht();
-    // nieuwe dag: vis die te oud is, is bedorven
-    ST.dag++; ST.duiken = 0;
+    const uitslag = { bediend: A.bediend, vertrokken: A.vertrokken, omzet: A.omzet, fooi: A.fooi, loon, totaal, sterren, nieuwBest, tekst: recensie.tekst, wie: recensie.wie };
+    // de nacht: een nieuwe dag; vis die te oud is, is bedorven
+    const d = ST.dag; ST.dag++; ST.duiken = 0;
     const houdbaar = restW('vriezer'), voor = ST.voorraad.reduce((a, v) => a + v[1], 0);
     ST.voorraad = ST.voorraad.filter(v => ST.dag - v[2] < houdbaar);
     const weg = voor - ST.voorraad.reduce((a, v) => a + v[1], 0);
-    bewaar();
-    await overgang(() => naarScene('haven'));
-    if (weg >= 1) melding(Math.round(weg) + ' porties vis waren niet meer vers en zijn weggegooid.', '', 4000);
-    await this.krant();
-    if (typeof verhaalOchtend === 'function') await verhaalOchtend();
-    if (SCENE.naam === 'haven') SCENES.haven.knoppen();
+    ST.na = { soort: 'avond', stap: 'uitslag', d, uitslag, weg };
+    eindDeel(); bewaar();
+    if (window.Scorebord && !TESTSTAND) { try { Scorebord.stuur('duiker', Math.round(ST.beste.avond), Object.keys(ST.boek).length); } catch (e) {} }
+    await overgang(() => { naarScene('haven'); A = null; });
+    await this.hervat();
+  },
+  toonUitslag(na) {
+    const u = na.uitslag;
+    paneel(`<h2>De avond in het Rommelkombuis</h2>
+      <div class="lijst"><div class="regel"><div class="naam">Gasten bediend</div><div class="meer">${u.bediend}</div></div>${u.vertrokken ? `<div class="regel"><div class="naam">Boos of teleurgesteld weggegaan</div><div class="meer">${u.vertrokken}</div></div>` : ''}<div class="regel"><div class="naam">Omzet</div><div class="meer">${geldTekst(u.omzet)}</div></div><div class="regel"><div class="naam">Fooi</div><div class="meer">${geldTekst(u.fooi)}</div></div>${u.loon ? `<div class="regel"><div class="naam">Lonen</div><div class="meer">− ${geldTekst(u.loon)}</div></div>` : ''}<div class="regel"><div class="naam">Totaal</div><div class="meer geld">${geldTekst(u.totaal - u.loon)}${u.nieuwBest ? ' <span class="stempel">record</span>' : ''}</div></div></div>
+      <div class="regel" style="display:block"><div class="sterren" aria-label="${u.sterren} van de 5 sterren">${sterrenTekst(u.sterren)}</div><p style="margin:.2rem 0">“${u.tekst}”</p><div class="klein">— ${u.wie}</div></div>
+      <div id="sb-duiker"></div>
+      <div class="rij"><button class="knop hoofd" type="button" id="na-ok">Slapen</button></div>`);
+    if (window.Scorebord && !TESTSTAND) { try { Scorebord.blokje($('sb-duiker'), 'euro op je beste avond'); } catch (e) {} }
+    GELUID.sfx(u.sterren >= 4 ? 'feest' : 'munt');
+    return new Promise(r => { $('na-ok').onclick = () => { sluitPaneel(); r(); }; });
+  },
+  // ---- wat er na een duik of dienst nog op het scherm moet komen. Elke stap wordt bewaard zodra hij klaar is,
+  // dus na afsluiten (of een fout) ga je verder bij de stap waar je was. De verhaalstukken kunnen veilig opnieuw:
+  // ze kijken zelf naar hun vlaggen, en geven niets twee keer.
+  async hervat() {
+    if (this.hervatBezig) return; this.hervatBezig = true;
+    const stil = () => { if (HV) HV.bezig = true; $('hud').hidden = true; };
+    try {
+      stil();
+      for (let rondes = 0; ST.na && rondes < 6; rondes++) {
+        const na = ST.na;
+        if (na.soort === 'duik') {
+          await this.toonDuik(na);
+          if (typeof verhaalNaDuik === 'function') await verhaalNaDuik(na.vis, na.vond, na);
+          if (ST.na === na) ST.na = null;
+          bewaar();
+        } else if (na.soort === 'avond') {
+          if (na.stap === 'uitslag') { await this.toonUitslag(na); na.stap = 'nacht'; bewaar(); }
+          if (na.stap === 'nacht') {
+            GELUID.zetMuziek('nacht');
+            if (typeof verhaalNacht === 'function') await verhaalNacht(na.d);
+            na.stap = 'krant'; bewaar();
+            await overgang(() => naarScene('haven')); stil();
+          }
+          if (na.stap === 'krant') {
+            if (na.weg >= 1) melding(Math.round(na.weg) + ' porties vis waren niet meer vers en zijn weggegooid.', '', 4000);
+            await this.krant();
+            if (typeof verhaalOchtend === 'function') await verhaalOchtend();
+            if (ST.na === na) ST.na = null;
+            bewaar();
+          }
+        } else { ST.na = null; bewaar(); }
+      }
+    } finally {
+      this.hervatBezig = false;
+      if (HV) HV.bezig = false;
+      if (SCENE.naam === 'haven') SCENES.haven.knoppen();
+    }
   },
   // ---- de krant van de ochtend
   async krant() {
@@ -4245,14 +4622,14 @@ const DAG = {
   // ---- het menu (pauze)
   async menu() {
     PAUZE = true;
-    const w = await vraag(`<h2>Menu</h2><p>Dag ${ST.dag} · ${geldTekst(ST.geld)} · hoofdstuk ${ST.hfd} van 5</p><p class="klein">Het spel wordt vanzelf bewaard, aan het eind van elke duik en elke avond.</p>`,
+    const w = await vraag(`<h2>Menu</h2><p>Dag ${ST.dag} · ${geldTekst(ST.geld)} · hoofdstuk ${ST.hfd} van 5</p><p class="klein">Het spel wordt vanzelf bewaard. Sluit je af tijdens een duik of een dienst, dan begin je die de volgende keer opnieuw.</p>`,
       [{ tekst: 'Verder spelen', waarde: 'door', soort: 'hoofd' }, { tekst: GELUID.muziekAan ? 'Muziek uit' : 'Muziek aan', waarde: 'muziek' }, { tekst: 'Uitleg', waarde: 'uitleg' }, { tekst: 'Opnieuw beginnen', waarde: 'nieuw' }]);
     PAUZE = false; vorige = performance.now();
     if (w === 'muziek') { GELUID.muziekAan = !GELUID.muziekAan; ST.inst.muziek = GELUID.muziekAan; bewaar(); }
     if (w === 'uitleg') { PAUZE = true; await vraag(UITLEG_HTML, [{ tekst: 'Begrepen', waarde: 1, soort: 'hoofd' }], { breed: true }); PAUZE = false; vorige = performance.now(); }
     if (w === 'nieuw') {
       PAUZE = true; const z = await vraag('<h2>Opnieuw beginnen?</h2><p>Al je voortgang (geld, uitrusting, recepten, verhaal) gaat verloren.</p>', [{ tekst: 'Ja, opnieuw', waarde: 'ja', soort: 'hoofd' }, { tekst: 'Nee', waarde: 'nee' }]); PAUZE = false; vorige = performance.now();
-      if (z === 'ja') { ST = nieuweStaat(); bewaar(); location.reload(); }
+      if (z === 'ja') { VASTPUNT = null; ST = nieuweStaat(); bewaar(); location.reload(); }
     }
   },
 };
@@ -4407,7 +4784,7 @@ const DAGBOEK = [
   ['ruben', '“5 november. De zee wordt onrustig en De Waker zwijgt. Iemand heeft de klepel weggehaald! Ik zoek hem overal. Het water stijgt.”'],
   ['ruben', '“6 november. Het water staat in de kerk. Iedereen is gevlucht naar het hoge land, gelukkig allemaal veilig. Maar de klok... die blijft hier. Wie dit vindt: zorg dat De Waker weer kan luiden.”'],
 ];
-async function verhaalNaDuik(vis, vond) {
+async function verhaalNaDuik(vis, vond, na) {
   // hoofdstuk 1: dieper dan 30 meter met het nieuwe pak
   if (ST.hfd === 1 && ST.uit.pak >= 1 && (ST.diepste || 0) > 32) {
     await gesprek([['trien', 'Zo, dat was dieper dan je ooit bent geweest. Dat kelpwoud, hè? Prachtig.'], ['trien', 'Daar beneden ligt ook het wrak van De Stormvogel. En als je goed kijkt... vind je soms een fles met een briefje erin.'], ['ruben', 'Flessenpost? Echt?', 'blij']]);
@@ -4427,7 +4804,7 @@ async function verhaalNaDuik(vis, vond) {
     await gesprek([['trien', 'Je hebt Ouwe Grijsbek gevangen?! Nou breekt mijn klomp.'], ['trien', 'Laat hem maar vrij, hoor. Hij is te oud voor de pan. Maar die tand mag je houden: hang hem op in je restaurant.'], ['ruben', 'Hij zwemt alweer weg. Hij bewaakte iets... de weg naar beneden.', 'denk'], ['wieke', 'Het bekken onder De Geul! Daar moet het verdronken dorp liggen. Daarvoor heb je het sterkste duikpak van Trien nodig.']]);
     naarHoofdstuk(4); await hoofdstukKaart(4);
   }
-  if (ST.hfd === 4 && D && D.zagKerk && !ST.vlag.kerk) { ST.vlag.kerk = 1; await gesprek([['ruben', 'Ik heb hem gezien! De kerktoren van Oud-Schelpkerke. Maar het klokkengat is leeg. De Waker is weg!', 'schrik'], ['wieke', 'Weg? Een klok van honderden kilo\'s verdwijnt niet zomaar. Zoek verder in het dorp.']]); }
+  if (ST.hfd === 4 && ((na && na.zagKerk) || (D && D.zagKerk)) && !ST.vlag.kerk) { ST.vlag.kerk = 1; await gesprek([['ruben', 'Ik heb hem gezien! De kerktoren van Oud-Schelpkerke. Maar het klokkengat is leeg. De Waker is weg!', 'schrik'], ['wieke', 'Weg? Een klok van honderden kilo\'s verdwijnt niet zomaar. Zoek verder in het dorp.']]); }
   if (vond.kroon && ST.hfd === 4) {
     ST.vlag.kelderOpen = 1;
     await gesprek([['ruben', 'Koning Kreeft had een oude sleutel om zijn poot! Met een label: “Raadhuiskelder”.', 'blij'], ['wieke', 'De kelder onder het dorp... Daar zit nog een gang naar beneden, zeggen de oude kaarten. Neem iets glimmends mee. Ik weet niet waarom, maar ik heb er een gevoel bij.']]);
@@ -4435,11 +4812,11 @@ async function verhaalNaDuik(vis, vond) {
   }
   if (ST.vlag.moeder && !ST.vlag.einde) await verhaalEinde();
 }
-async function verhaalNacht() {
+async function verhaalNacht(dag = ST.dag) { // dag: de dag van de dienst die net voorbij is
   if (!ST.vlag.klok1 && ST.stats.gasten > 0) {
     ST.vlag.klok1 = 1; GELUID.sfx('kerkklok');
     await gesprek([['ruben', 'Bong... bong... Hoor ik nou een klok? Midden in de nacht, op zee?', 'schrik'], ['ruben', 'Er is hier helemaal geen kerk aan het water...', 'denk']]);
-  } else if (ST.hfd >= 2 && !ST.vlag.einde && ST.dag % 3 === 0) { GELUID.sfx('kerkklok'); melding('In de verte luidt weer een klok...', '', 3500); }
+  } else if (ST.hfd >= 2 && !ST.vlag.einde && dag % 3 === 0) { GELUID.sfx('kerkklok'); melding('In de verte luidt weer een klok...', '', 3500); }
   if (ST.vlag.graaiman === 1) { ST.vlag.graaiman = 2; await gesprek([['graaiman', 'Aardig tentje heb je, kok. Geniet er maar van zolang het kan.'], ['ruben', 'Hoe bedoelt u?', 'schrik'], ['graaiman', 'Volgend jaar baggeren we De Geul uit. Ruimte voor mijn trawlers! Dan vang ik in één dag meer dan jij in een jaar. Hahaha!'], ['ruben', 'Maar daar leven allemaal dieren...', 'denk']]); }
   if (ST.vlag.smulders && !ST.vlag.smuldersGezegd) { ST.vlag.smuldersGezegd = 1; await gesprek(ST.vlag.smulders === 2 ? [['smulders', 'Hm. Ik ben niet snel tevreden. Maar dit... dit was vakwerk. Morgen staat u in de krant, meneer de kok.'], ['ruben', 'Dank u wel!', 'blij']] : [['smulders', 'Hm. Het kan beter. Ik kom nog eens terug. Onaangekondigd.'], ['ruben', 'Volgende keer beter...', 'denk']]); if (ST.vlag.smulders === 2) ST.ster = Math.min(5, ST.ster + .4); }
   if (ST.vlag.bepGeweest === 1) { ST.vlag.bepGeweest = 2; await gesprek([['bep', 'Wat een heerlijke avond! In ons hotel bakken we ook, weet je. Vlaai.'], ['bep', 'Weet je wat? Ik leer je mijn zoute karamelvlaai. Kijk maar in je receptenschrift. Een toetje doet het altijd goed!'], ['ruben', 'Graag! Groeten aan iedereen in het Rommelhotel!', 'blij']]); }
@@ -4513,6 +4890,7 @@ async function titelScherm() {
       await overgang(() => naarScene('haven'));
       if (nieuw && typeof verhaalBegin === 'function') await verhaalBegin();
       else if (nieuw) await DAG.krant();
+      else await DAG.hervat(); // wat er na een duik of dienst nog moest komen, komt nu
       if (SCENE.naam === 'haven') SCENES.haven.knoppen();
       res();
     };
@@ -4524,8 +4902,10 @@ async function titelScherm() {
 function zetGeluidKnop() { const b = $('b-geluid'); b.setAttribute('aria-pressed', String(GELUID.aan)); b.textContent = GELUID.aan ? 'Geluid' : 'Geluid uit'; }
 $('b-geluid').addEventListener('click', () => { GELUID.start(); GELUID.aan = !GELUID.aan; ST.inst.geluid = GELUID.aan; bewaar(); zetGeluidKnop(); });
 $('b-menu').addEventListener('click', () => { if (SCENE.naam === 'titel' || !$('paneel').hidden) return; if (SCENE.naam === 'duik') pauzeMenu(); else DAG.menu(); });
-// bewaren als je weggaat (tijdens het duiken telt de duik niet: je begint dan weer in de haven)
-addEventListener('visibilitychange', () => { if (document.hidden && SCENE.naam !== 'duik' && SCENE.naam !== 'restaurant' && SCENE.naam !== 'titel') bewaar(); if (document.hidden && (SCENE.naam === 'duik' || SCENE.naam === 'restaurant') && $('paneel').hidden) { if (SCENE.naam === 'duik') pauzeMenu(); else DAG.menu(); } });
+// bewaren als je weggaat. Tijdens een duik of dienst bewaart bewaar() de stand van het begin daarvan (zie VASTPUNT):
+// kom je terug, dan begin je die duik of dienst opnieuw
+addEventListener('pagehide', () => { if (SCENE.naam !== 'titel') bewaar(); });
+addEventListener('visibilitychange', () => { if (document.hidden && SCENE.naam !== 'titel') bewaar(); if (document.hidden && (SCENE.naam === 'duik' || SCENE.naam === 'restaurant') && $('paneel').hidden) { if (SCENE.naam === 'duik') pauzeMenu(); else DAG.menu(); } });
 
 function begin() {
   maat();
@@ -4543,10 +4923,12 @@ function testStart(p) {
   if (w === 'avond') { ST.voorraad = [['haring', 8, ST.dag], ['kabeljauw', 9, ST.dag], ['schol', 4, ST.dag], ['mossel', 5, ST.dag]]; if (p.get('noor')) ST.pers.noor = true; if (p.get('sem')) ST.pers.sem = true; naarScene('restaurant', ['haring', 'kibbeling', 'schol', 'mosselen']); if (p.get('uur')) A.uur = +p.get('uur'); }
 }
 window.__duiker = {
-  get ST() { return ST; }, get D() { return D; }, get A() { return A; }, get scene() { return SCENE.naam; },
+  get ST() { return ST; }, get D() { return D; }, get A() { return A; }, get scene() { return SCENE.naam; }, get deel() { return VASTPUNT && VASTPUNT.naam; },
   naarScene, SCENES, DAG, bewaar, laad, nieuweStaat, gesprek, y2m, m2y, maakZee, RECEPTEN, SOORTEN, UITRUSTING, RESTAURANT,
   zetStaat(s) { ST = s; },
   testVang(s, n) { for (let i = 0; i < n; i++) inTas({ s }); }, testVondst(v) { inTas({ v }); }, testBoven() { eindeDuik('boot'); },
+  get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), plan: () => A ? planVolgorde().map(b => b.nr) : [],
+  testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },
 };
 begin();
 

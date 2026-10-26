@@ -65,6 +65,9 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 .tegels { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.2rem, 1fr)); gap: .5rem; margin: .5rem 0; }
 .tegel { background: #FFFDF6; padding: .55rem; text-align: center; font-size: .85rem; box-shadow: inset 0 0 0 2px #3A2E3A, inset 0 -4px 0 2px #E9DFC6; }
 .tegel b { display: block; } .tegel.onbekend { opacity: .55; }
+button.tegel { font: inherit; color: inherit; border: 0; cursor: pointer; width: 100%; }
+button.tegel:hover { box-shadow: inset 0 0 0 2px #3A2E3A, inset 0 -4px 0 2px #F2C85A; } button.tegel:focus-visible { outline: 3px solid #2F6FB5; outline-offset: 2px; }
+.boek-kop { margin: .8rem 0 .2rem; font-size: 1rem; } .boek-kop small { font-weight: 400; color: #5A4E40; }
 .geld { font-weight: 800; color: #2E6A2E; }
 .tabs { display: flex; gap: .25rem; flex-wrap: wrap; margin: .2rem 0 .7rem; border-bottom: 3px solid var(--inktrand); padding-bottom: 0; }
 .tabs button { font-family: var(--pix); font-weight: 600; font-size: .98rem; border: 0; padding: .4rem .85rem .35rem; background: #EDE2C6; color: #4A3E30; cursor: pointer; box-shadow: inset 0 0 0 2px #3A2E3A; clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%, 0 4px); }
@@ -153,13 +156,16 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 /* de grote kaart */
 .kaartgroot { display: flex; gap: 1rem; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
 .kaartgroot canvas { display: block; image-rendering: pixelated; height: min(62vh, 700px); width: auto; max-width: 100%; aspect-ratio: 200 / 348; box-shadow: 0 0 0 3px var(--inktrand); background: #04080D; }
+.kaartgroot canvas.breed { width: 100%; height: auto; max-height: min(62vh, 700px); object-fit: contain; }
 .kaart-uitleg { flex: 1 1 12rem; min-width: 11rem; }
+/* de zeekaart van Trien */
+.zeekaart { display: block; width: 100%; max-width: 480px; height: auto; margin: .2rem auto .5rem; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--inktrand), 0 4px 0 3px rgba(0,0,0,.18); }
 .legenda, .zones { list-style: none; margin: .4rem 0; padding: 0; display: grid; gap: .3rem; font-size: .95rem; }
 .zones { font-size: .88rem; color: #4A3E30; } .zones b { color: var(--inkt); }
 .legenda .goud { color: #8A6410; font-weight: 800; }
 .lg { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: .3rem; box-shadow: 0 0 0 2px #231A26; }
 .lg.jij { background: #FFFFFF; } .lg.boot { background: #7A4E2D; box-shadow: 0 0 0 2px #231A26, inset 0 -4px 0 #C8323C; } .lg.opdracht { background: #F2C85A; } .lg.schat { background: #E8E8F0; transform: rotate(45deg) scale(.8); } .lg.reus { background: #E8414E; }
-@media (max-height: 460px) { .kaartgroot canvas { height: calc(100vh - 13.5rem); } .kaartvenster h2:not([style]) { margin-bottom: .3rem; } .kaartvenster .zones { display: none; } .kaartvenster .legenda { gap: .15rem; font-size: .88rem; } }
+@media (max-height: 460px) { .kaartgroot canvas { height: calc(100vh - 13.5rem); } .kaartgroot canvas.breed { height: auto; max-height: calc(100vh - 13.5rem); } .zeekaart { max-width: 300px; } .kaartvenster h2:not([style]) { margin-bottom: .3rem; } .kaartvenster .zones { display: none; } .zk-lay { display: flex; gap: .8rem; align-items: flex-start; } .zk-lay .zeekaart { flex: 0 0 44%; max-width: 44%; margin: 0; } .zk-lay .lijst { flex: 1; margin-top: 0; } .zk-lay .regel.uit { padding-top: .25rem; padding-bottom: .25rem; } .kaartvenster .legenda { gap: .15rem; font-size: .88rem; } }
 /* ---- minispelletjes: een houten bord */
 #mini { position: absolute; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(6,18,30,.3), rgba(6,18,30,.65)); pointer-events: none; }
 #mini .paneel { pointer-events: auto; } /* naast het bord van het spelletje kun je de bonnetjes gewoon blijven aantikken */
@@ -699,10 +705,11 @@ function letters(ctx, s, x, y, kleur, schaal = 1, uitlijn = 'l', schaduw = null)
 }
 
 // ===================== GEGEVENS: de zee, de gerechten, de vondsten en de verbeteringen =====================
-// diepte in meters <-> wereld-y in pixels (niet lineair: de ondiepe zee krijgt meer ruimte)
+// diepte in meters <-> wereld-y in pixels (niet lineair: de ondiepe zee krijgt meer ruimte). Elke duikstek heeft zijn eigen punten:
+// zetStek() (55_stekken) zet ze hier neer, zodat m2y en y2m overal kloppen.
 const DIEPTE_PUNTEN = [[0, 0], [30, 430], [80, 920], [150, 1720], [220, 2280], [270, 2700]];
 function m2y(m) { for (let i = 1; i < DIEPTE_PUNTEN.length; i++) { const [a, ya] = DIEPTE_PUNTEN[i - 1], [b, yb] = DIEPTE_PUNTEN[i]; if (m <= b) return ya + (m - a) / (b - a) * (yb - ya); } return DIEPTE_PUNTEN[DIEPTE_PUNTEN.length - 1][1]; }
-function y2m(y) { if (y <= 0) return 0; for (let i = 1; i < DIEPTE_PUNTEN.length; i++) { const [a, ya] = DIEPTE_PUNTEN[i - 1], [b, yb] = DIEPTE_PUNTEN[i]; if (y <= yb) return a + (y - ya) / (yb - ya) * (b - a); } return 270; }
+function y2m(y) { if (y <= 0) return 0; for (let i = 1; i < DIEPTE_PUNTEN.length; i++) { const [a, ya] = DIEPTE_PUNTEN[i - 1], [b, yb] = DIEPTE_PUNTEN[i]; if (y <= yb) return a + (y - ya) / (yb - ya) * (b - a); } return DIEPTE_PUNTEN[DIEPTE_PUNTEN.length - 1][0]; }
 const ZONES = [
   { id: 'zand', naam: 'De Zandbank', tot: 30 }, { id: 'kelp', naam: 'Het Kelpwoud', tot: 80 }, { id: 'geul', naam: 'De Geul', tot: 150 },
   { id: 'dorp', naam: 'Het verdronken dorp', tot: 220 }, { id: 'kelder', naam: 'De Lichtkelder', tot: 999 },
@@ -734,6 +741,20 @@ const SOORTEN = {
   lantaarnvis: { naam: 'Lantaarnvis', gedrag: 'school', groep: [6, 10], kg: .2, porties: .5, hp: 1, diepte: [140, 260], klein: true, snel: 40, licht: '#7CF2FF', vorm: { len: 12, h: 3, staart: 'vork', groot: true, kl: { R: '#2A2F55', M: '#4C5590', U: '#8AA0E0', v: '#6FF0FF', D: '#9FFFF8' } }, weetje: 'Lantaarnvissen maken zelf licht. In het donker van de diepte vinden ze elkaar zo terug.' },
   zilverbijl: { naam: 'Zilverbijl', gedrag: 'schuw', kg: .4, porties: .5, hp: 1, diepte: [150, 260], klein: true, snel: 70, licht: '#C9D8FF', vorm: { len: 10, h: 5, staart: 'vork', groot: true, kl: { R: '#9AA8C8', M: '#D8E2F4', U: '#FFFFFF', v: '#7A88A8', D: '#5A6888' } }, weetje: 'De zilverbijl is zo dun als een bijl en zilver als een spiegel. Daardoor zie je hem bijna niet.' },
   spookkrab: { naam: 'Spookkrab', gedrag: 'bodem', kg: .8, porties: 1, hp: 1, diepte: [150, 260], snel: 30, vorm: 'krab', kl: { R: '#C9C2D8', M: '#E8E2F4', D: '#7CF2FF' }, prikt: 5, weetje: 'Spookkrabben zijn bijna doorzichtig. Ze leven in het donker tussen de oude stenen.' },
+  // ---- het Mosselrif (stek: 'rif'). nacht: alleen 's nachts; beschermd: niet vangen, wel fotograferen; mes: alleen met een duikmes te pakken
+  harder: { naam: 'Harder', gedrag: 'school', groep: [5, 8], kg: .9, porties: 1, hp: 1, diepte: [1, 16], snel: 56, stek: 'rif', vorm: { len: 20, h: 4, staart: 'vork', kop: .9, kl: { R: '#5E6E7A', M: '#B8C4CC', U: '#EEF2F4', v: '#56646E', D: '#3E4A54' } }, weetje: 'Harders grazen de algen van stenen en palen, zoals koeien in een wei. Soms springen ze boven het water uit.' },
+  zeebrasem: { naam: 'Zeebrasem', gedrag: 'schuw', kg: 1.6, porties: 1, hp: 1, diepte: [8, 30], snel: 70, stek: 'rif', vorm: { len: 20, h: 7, staart: 'vork', kop: .7, kl: { R: '#8E8494', M: '#D8CCD4', U: '#F6F0F2', v: '#C89AA8', D: '#6E5E6C' } }, weetje: 'Een zeebrasem heeft sterke kiezen achter in zijn bek. Daarmee kraakt hij mosselen en krabbetjes.' },
+  tarbot: { naam: 'Tarbot', gedrag: 'zand', kg: 3.2, porties: 2, hp: 2, diepte: [18, 40], snel: 54, stek: 'rif', vorm: 'tarbot', weetje: 'De tarbot is rond als een schotel en zit vol knobbeltjes. Hij neemt de kleur van de bodem aan.' },
+  zwemkrab: { naam: 'Zwemkrab', gedrag: 'bodem', kg: .4, porties: .5, hp: 1, diepte: [10, 35], snel: 30, stek: 'rif', vorm: 'krab', kl: { R: '#4A5A7A', M: '#6A7EA8', D: '#E8414E' }, prikt: 5, weetje: 'De zwemkrab heeft achterpootjes als peddels: hij kan echt zwemmen. Let op zijn rode ogen, hij is snel boos.' },
+  kokkel: { naam: 'Kokkels', gedrag: 'graaf', kg: .3, porties: .5, hp: 1, diepte: [4, 16], stek: 'rif', mes: true, vorm: 'kokkel', weetje: 'Kokkels zitten een paar centimeter onder het zand. Je ziet alleen twee buisjes waarmee ze water opzuigen.' },
+  zeeegel: { naam: 'Zee-egels', gedrag: 'vast', kg: .4, porties: .5, hp: 1, diepte: [10, 40], stek: 'rif', prikt: 5, vorm: 'zeeegel', weetje: 'Een zee-egel loopt op honderden kleine voetjes tussen zijn stekels. Met een duikmes pak je hem zonder je te prikken.' },
+  zeepaardje: { naam: 'Zeepaardje', gedrag: 'zeepaard', kg: 0, porties: 0, hp: 99, diepte: [4, 16], stek: 'rif', beschermd: true, nietVangen: true, vorm: 'zeepaardje', weetje: 'Bij zeepaardjes krijgt de vader de baby\'s. Ze houden zich met hun staart vast aan het zeegras.' },
+  zeehond: { naam: 'Zeehond', gedrag: 'speels', kg: 0, porties: 0, hp: 99, diepte: [0, 30], snel: 96, stek: 'rif', beschermd: true, nietVangen: true, vorm: 'zeehond', weetje: 'Een zeehond kan wel twintig minuten onder water blijven. Hij is nieuwsgierig en zwemt graag een rondje om een duiker heen.' },
+  bruinvis: { naam: 'Bruinvis', gedrag: 'voorbij', kg: 0, porties: 0, hp: 99, diepte: [4, 30], snel: 80, stek: 'rif', beschermd: true, nietVangen: true, zeldzaam: true, vorm: 'bruinvis', weetje: 'De bruinvis is de kleinste walvis van de Noordzee. Hij is verlegen: je ziet hem maar heel even.' },
+  pijlinktvis: { naam: 'Pijlinktvis', gedrag: 'lamp', groep: [4, 7], kg: .5, porties: .5, hp: 1, diepte: [3, 70], klein: true, snel: 64, nacht: true, vorm: 'pijlinktvis', weetje: 'Pijlinktvissen komen \'s nachts af op licht. Ze zwemmen achteruit, met hun vinnen als een pijlpunt voorop.' },
+  zeedonderpad: { naam: 'Zeedonderpad', gedrag: 'bodem', kg: .9, porties: 1, hp: 1, diepte: [6, 45], snel: 16, nacht: true, prikt: 4, camo: true, vorm: { len: 18, h: 5, staart: 'rond', kop: 1.4, buik: .8, patroon: 'vlekken', groot: true, kl: { R: '#6A5A3E', M: '#8E7A52', U: '#C8B488', v: '#5A4A32', D: '#3E3226' } }, weetje: 'De zeedonderpad heeft een enorme kop vol stekels. Overdag verstopt hij zich, \'s nachts gaat hij op jacht.' },
+  noordzeekrab: { naam: 'Noordzeekrab', gedrag: 'bodem', kg: 1.8, porties: 1, hp: 2, diepte: [12, 90], snel: 20, nacht: true, prikt: 7, vorm: 'grotekrab', kl: { R: '#A84A2E', M: '#C86A3E', D: '#2A1A14' }, weetje: 'De Noordzeekrab is groot en sterk, met zwarte puntjes aan zijn scharen. Overdag zit hij onder de stenen.' },
+  ribkwal: { naam: 'Ribkwal', gedrag: 'kwal', kg: 0, porties: 0, hp: 99, diepte: [1, 40], nacht: true, beschermd: true, nietVangen: true, licht: '#9FE8FF', vorm: 'ribkwal', weetje: 'Een ribkwal prikt niet. Over zijn lijf lopen rijtjes trilhaartjes die het licht in alle kleuren laten schitteren.' },
   maanvis: { naam: 'Maanvis', gedrag: 'normaal', kg: 9, porties: 4, hp: 4, diepte: [160, 250], snel: 26, zeldzaam: true, vorm: { len: 30, h: 12, staart: 'recht', patroon: 'vlekken', kl: { R: '#C8504A', M: '#E87A6A', U: '#F4B0A0', v: '#E8414E', D: '#F4F1E8' } }, weetje: 'De maanvis is rond als een volle maan. Hij is een van de weinige vissen met warm bloed.' },
 };
 // grote vissen: een uitdaging, met touwtrekken
@@ -741,6 +762,8 @@ const REUZEN = {
   grijsbek: { naam: 'Ouwe Grijsbek', soort: 'zeewolf', schaal: 2.4, hp: 18, kg: 0, porties: 12, diepte: 95, beloning: 'grijsbek', bijt: 14, weetje: 'Een eeuwenoude zeewolf met een grijze snuit. Volgens Trien bewaakt hij de ingang van De Geul al sinds haar opa jong was.' },
   koningkreeft: { naam: 'Koning Kreeft', soort: 'kreeft', schaal: 3, hp: 22, kg: 0, porties: 10, diepte: 170, beloning: 'kroon', prikt: 14, weetje: 'De grootste kreeft van de Noordzee. Hij woont in de kelder van het oude raadhuis.' },
   lantaarnreus: { naam: 'De Lantaarnreus', soort: 'zeeduivel', schaal: 3.2, hp: 26, kg: 0, porties: 14, diepte: 235, beloning: 'lantaarn', bijt: 16, weetje: 'Een reusachtige zeeduivel met een lamp zo fel als een vuurtoren.' },
+  // geen gevecht maar een fotografie-opdracht: maak een foto van elk van haar vier kleuren
+  mantel: { naam: 'Mevrouw Mantel', soort: 'zeekat', schaal: 3, hp: 99, kg: 0, porties: 0, diepte: 36, beloning: 'mantel', foto: true, kleuren: ['rood', 'wit', 'gestreept', 'groen'], weetje: 'Een reuzenzeekat die al jaren in de grot onder de rotsrichel woont. De mosselvissers noemen haar Mevrouw Mantel, naar haar wapperende vin.' },
 };
 
 // ---- gerechten: nodig = soorten waarvan je 1 portie gebruikt; stappen = minispelletjes
@@ -749,7 +772,7 @@ const RECEPTEN = {
   kibbeling: { naam: 'Kibbeling', nodig: ['kabeljauw', 'wijting'], stappen: ['snijden', 'frituren'], prijs: 11, plaatje: 'kibbeling' },
   schol: { naam: 'Gebakken schol', nodig: ['schol'], stappen: ['bakken'], prijs: 13, plaatje: 'schol' },
   mosselen: { naam: 'Zeeuwse mosselen', nodig: ['mossel'], stappen: ['roeren'], prijs: 15, plaatje: 'mosselen' },
-  vissoep: { naam: 'Vissoep', nodig: ['wijting', 'makreel', 'haring', 'kabeljauw'], stappen: ['snijden', 'roeren'], prijs: 10, plaatje: 'vissoep' },
+  vissoep: { naam: 'Vissoep', nodig: ['wijting', 'makreel', 'haring', 'kabeljauw', 'harder', 'zeedonderpad'], stappen: ['snijden', 'roeren'], prijs: 10, plaatje: 'vissoep' },
   makreel: { naam: 'Makreel van de grill', nodig: ['makreel'], stappen: ['bakken'], prijs: 12, plaatje: 'makreel' },
   garnalen: { naam: 'Garnalenkroket', nodig: ['garnaal'], stappen: ['opmaken', 'frituren'], prijs: 9, plaatje: 'kroket', leer: 'garnaal' },
   krab: { naam: 'Krabburger', nodig: ['krab'], stappen: ['opmaken', 'bakken'], prijs: 13, plaatje: 'krabburger', leer: 'krab' },
@@ -763,6 +786,15 @@ const RECEPTEN = {
   rog: { naam: 'Rog met kappertjes', nodig: ['rog'], stappen: ['snijden', 'bakken'], prijs: 21, plaatje: 'schol', leer: 'rog' },
   geulsoep: { naam: 'Geulsoep', nodig: ['lantaarnvis', 'zilverbijl', 'spookkrab'], stappen: ['snijden', 'roeren', 'opmaken'], prijs: 36, plaatje: 'geulsoep', verhaal: true },
   maanvis: { naam: 'Maanvis van de grill', nodig: ['maanvis'], stappen: ['snijden', 'bakken', 'opmaken'], prijs: 42, plaatje: 'zeebaars', leer: 'maanvis' },
+  // het Mosselrif en de nacht
+  kokkels: { naam: 'Kokkels met knoflook', nodig: ['kokkel'], stappen: ['openen', 'roeren'], prijs: 18, plaatje: 'kokkels', leer: 'kokkel' },
+  harder: { naam: 'Harder van de grill', nodig: ['harder'], stappen: ['snijden', 'bakken'], prijs: 12, plaatje: 'harder', leer: 'harder' },
+  zoutkorst: { naam: 'Zeebrasem in zoutkorst', nodig: ['zeebrasem'], stappen: ['opmaken', 'bakken'], prijs: 24, plaatje: 'zoutkorst', leer: 'zeebrasem' },
+  krabsoep: { naam: 'Krabbensoep', nodig: ['zwemkrab', 'krab', 'noordzeekrab'], stappen: ['openen', 'roeren'], prijs: 16, plaatje: 'krabsoep', leer: 'zwemkrab' },
+  tarbot: { naam: 'Tarbot met botersaus', nodig: ['tarbot'], stappen: ['snijden', 'bakken', 'opmaken'], prijs: 28, plaatje: 'tarbot', leer: 'tarbot' },
+  zeeegel: { naam: 'Zee-egel op toast', nodig: ['zeeegel'], stappen: ['openen', 'opmaken'], prijs: 24, plaatje: 'zeeegel', leer: 'zeeegel' },
+  pijlinktvis: { naam: 'Pijlinktvis van de plancha', nodig: ['pijlinktvis'], stappen: ['snijden', 'bakken'], prijs: 19, plaatje: 'pijlinktvis', leer: 'pijlinktvis' },
+  gevuldekrab: { naam: 'Gevulde Noordzeekrab', nodig: ['noordzeekrab'], stappen: ['openen', 'opmaken', 'bakken'], prijs: 30, plaatje: 'gevuldekrab', leer: 'noordzeekrab' },
   vlaai: { naam: 'Zoute karamelvlaai', nodig: [], stappen: ['opmaken', 'bakken'], prijs: 8, plaatje: 'vlaai', toetje: true, koop: 140 },
 };
 const START_RECEPTEN = ['haring', 'kibbeling', 'schol', 'mosselen', 'vissoep', 'makreel'];
@@ -782,11 +814,17 @@ const VONDSTEN = {
   laars: { naam: 'Oude laars', waarde: 1, sfeer: 0, kg: .8, diepte: [2, 120], rommel: true },
   band: { naam: 'Fietsband', waarde: 1, sfeer: 0, kg: .7, diepte: [2, 90], rommel: true },
   blikje: { naam: 'Blikje', waarde: 1, sfeer: 0, kg: .1, diepte: [1, 70], rommel: true },
+  zeeglas: { naam: 'Zeeglas', waarde: 4, sfeer: 1, kg: .05, diepte: [1, 40], stek: 'rif' },
+  tegeltje: { naam: 'Oud tegeltje', waarde: 16, sfeer: 2, kg: .3, diepte: [6, 40], stek: 'rif' },
+  kistje: { naam: 'Zeemanskistje', waarde: 45, sfeer: 3, kg: 1.2 },
   flessenpost: { naam: 'Flessenpost', waarde: 0, sfeer: 0, kg: .3, verhaal: true },
   kaartstuk: { naam: 'Stuk van een oude kaart', waarde: 0, sfeer: 0, kg: .05, verhaal: true },
+  meetkastje: { naam: 'Knipperend meetkastje', waarde: 0, sfeer: 0, kg: .6, verhaal: true },
+  logboek: { naam: 'Bladzijde uit een logboek', waarde: 0, sfeer: 0, kg: .05, verhaal: true },
   grijsbek: { naam: 'Tand van Ouwe Grijsbek', waarde: 0, sfeer: 6, kg: .2, trofee: true },
   kroon: { naam: 'Kroon van Koning Kreeft', waarde: 0, sfeer: 8, kg: .4, trofee: true },
   lantaarn: { naam: 'Lamp van de Lantaarnreus', waarde: 0, sfeer: 8, kg: .4, trofee: true },
+  mantel: { naam: 'Foto van Mevrouw Mantel', waarde: 0, sfeer: 7, kg: 0, trofee: true },
 };
 
 // ---- verbeteringen: niveaus met prijs en waarde
@@ -797,6 +835,8 @@ const UITRUSTING = {
   harpoen: { naam: 'Harpoen', uitleg: 'Harder raken en sneller herladen.', niveaus: [{ w: 1 }, { w: 2, prijs: 240 }, { w: 3, prijs: 700 }, { w: 4, prijs: 1600 }], eenheid: 'kracht' },
   net: { naam: 'Werpnet', uitleg: 'Meer worpen per duik en een groter net.', niveaus: [{ w: 3 }, { w: 5, prijs: 150 }, { w: 7, prijs: 480 }, { w: 9, prijs: 1100 }], eenheid: 'worpen' },
   vinnen: { naam: 'Zwemvliezen', uitleg: 'Sneller zwemmen.', niveaus: [{ w: 1 }, { w: 1.15, prijs: 200 }, { w: 1.3, prijs: 650 }, { w: 1.45, prijs: 1500 }], eenheid: '×' },
+  mes: { naam: 'Duikmes', uitleg: 'Kokkels uitgraven, en zee-egels en krabben pakken zonder je te prikken.', niveaus: [{ w: 0, t: 'geen mes' }, { w: 1, prijs: 160, t: 'duikmes' }] },
+  camera: { naam: 'Onderwatercamera', uitleg: 'Foto\'s voor je Zeeboek, ook van dieren die je niet mag vangen. De flitser werkt ook in het donker.', niveaus: [{ w: 0, t: 'geen camera' }, { w: 1, prijs: 220, t: 'camera' }, { w: 2, prijs: 850, t: 'camera met flitser' }] },
   lamp: { naam: 'Duiklamp', uitleg: 'Licht in het donker van De Geul.', niveaus: [{ w: 0, t: 'geen lamp' }, { w: 1, prijs: 520, t: 'lamp' }, { w: 2, prijs: 1400, t: 'felle lamp' }] },
 };
 const RESTAURANT = {
@@ -811,6 +851,18 @@ const PERSONEEL = {
   noor: { naam: 'Noor', rol: 'bediening', uitleg: 'Brengt de borden van de uitgifte naar de gasten.', loon: 35, prijs: 200 },
   sem: { naam: 'Sem', rol: 'hulpkok', uitleg: 'Kookt zelf als jij het druk hebt (iets minder mooi dan jij).', loon: 45, prijs: 300 },
 };
+
+// ---- foto-opdrachten van Wieke: na de duik betaald (en bewaard in ST.opdr)
+const FOTO_OPDR = [
+  { id: 'kwal', naam: 'Een kwal van dichtbij', tekst: 'Fotografeer een kwal (zonder dat hij je prikt).', soort: 'kwal', beloning: 40 },
+  { id: 'zeepaardje', naam: 'Paardje in het gras', tekst: 'Fotografeer een zeepaardje in de zeegrasvelden van Het Mosselrif.', soort: 'zeepaardje', beloning: 70 },
+  { id: 'zeehond', naam: 'Nieuwsgierige zeehond', tekst: 'Een foto van een zeehond van heel dichtbij: drie sterren.', soort: 'zeehond', sterren: 3, beloning: 120 },
+  { id: 'bruinvis', naam: 'De verlegen walvis', tekst: 'Een bruinvis zie je maar heel even. Ben jij snel genoeg?', soort: 'bruinvis', beloning: 160 },
+  { id: 'ribkwal', naam: 'Regenboog in het donker', tekst: 'Fotografeer \'s nachts een ribkwal.', soort: 'ribkwal', beloning: 90 },
+  { id: 'zeeduivel', naam: 'Het lampje van de zeeduivel', tekst: 'Een foto van een zeeduivel, met zijn lichtje, diep in De Geul.', soort: 'zeeduivel', beloning: 140 },
+  { id: 'vijf', naam: 'Vijf op één duik', tekst: 'Fotografeer vijf verschillende soorten tijdens één duik.', aantal: 5, beloning: 80 },
+  { id: 'mantel', naam: 'Mevrouw Mantel', tekst: 'Fotografeer de reuzenzeekat van Het Mosselrif in al haar vier kleuren.', mantel: true, beloning: 300 },
+];
 
 // ===================== RUBEN (klein hoofd voor in het duikpak) =====================
 // het hoofd in driekwart, naar rechts kijkend: kuif die naar achteren zwiept, pilotenbril, snorretje, sikje
@@ -1314,6 +1366,14 @@ function gerechtPix(id) {
     case 'geulsoep': R.ovaal(9, 8, 8, 3, '#0E4A5A'); R.ovaal(9, 7.5, 6.6, 2, '#16707E'); R.veelhoek([[1, 9], [17, 9], [14, 14], [4, 14]], '#23252B'); R.rij(11, 4, 14, '#3A3D46'); for (const [x, y] of [[6, 7], [10, 6], [13, 8], [8, 8]]) R.p(x, y, '#9FFFF8'); break;
     case 'vlaai': R.veelhoek([[1, 12], [10, 2], [18, 12]], '#C98A3A'); R.veelhoek([[3, 11], [10, 4], [16, 11]], '#E8A84A'); for (let i = 0; i < 4; i++) R.lijn(5 + i * 3, 11, 9 + i * 2, 5, '#A8642A'); R.rij(12, 1, 18, '#8A5A2A'); R.rij(13, 2, 17, '#6A4220'); break;
     case 'garnalen': for (const [x, y] of [[5, 7], [11, 6], [8, 10], [14, 10]]) { R.ovaal(x, y, 3, 2, '#F49A7A'); R.p(x - 2, y, '#E8604A'); R.p(x + 1, y - 1, '#FFC4A8'); } R.p(2, 3, groenL); partje(14, 2); break;
+    case 'kokkels': R.ovaal(9, 10, 8, 4, '#2A2C34'); R.rij(6, 1, 17, '#3A3D46'); for (const [x, y] of [[4, 7], [8, 6], [12, 7], [6, 9], [11, 9], [15, 8]]) { R.ovaal(x, y, 2, 1.4, '#E8D8B8'); R.p(x, y, '#F4C8A0'); R.p(x - 1, y - 1, '#FFF4E0'); } R.p(3, 5, groenL); R.p(10, 4, groenL); R.p(14, 5, '#F4F1E8'); break;
+    case 'harder': R.ovaal(9, 8, 8, 3, '#9AA4AA'); R.rij(6, 3, 15, '#6E7A82'); for (let x = 4; x < 15; x += 3) R.lijn(x, 6, x + 2, 10, '#3A3430'); R.veelhoek([[1, 8], [-1, 5], [-1, 11]], '#7A868E'); R.p(15, 7, '#2A201C'); partje(13, 12); R.p(6, 12, groenL); break;
+    case 'zoutkorst': R.ovaal(9, 9, 8, 4, '#F4F1E8'); R.ovaal(9, 8, 6.6, 3, '#FFFFFF'); for (const [x, y] of [[5, 7], [9, 6], [13, 8], [7, 10], [11, 9]]) R.p(x, y, '#D8D2C2'); R.lijn(5, 9, 12, 7, '#C9B48A'); R.veelhoek([[1, 9], [-1, 6], [-1, 12]], '#C8A0A8'); R.ovaal(16, 6, 1.6, 1.4, '#C8A0A8'); R.p(14, 4, groenL); R.p(15, 4, groen); break;
+    case 'krabsoep': R.ovaal(9, 8, 8, 3, '#C8501E'); R.ovaal(9, 7.5, 6.6, 2, '#E8803E'); R.veelhoek([[1, 9], [17, 9], [14, 14], [4, 14]], '#F4F1E8'); R.rij(11, 4, 14, '#2E5AA8'); R.veelhoek([[12, 6], [17, 2], [18, 5]], '#D8402E'); R.p(16, 3, '#F49A7A'); R.p(6, 7, '#F4F1E8'); R.p(8, 8, groenL); break;
+    case 'tarbot': R.ovaal(9, 8, 8, 4.4, '#E8C890'); R.ovaal(9, 8, 6, 3, '#F4DCA8'); for (const [x, y] of [[5, 7], [9, 6], [12, 8], [7, 9]]) R.p(x, y, '#C8A060'); R.veelhoek([[1, 8], [-1, 5], [-1, 11]], '#C8A060'); R.ovaal(9, 13, 6, 1.4, '#F2D24A'); R.p(14, 6, '#2A201C'); R.p(10, 4, groenL); R.p(12, 4, groen); break;
+    case 'zeeegel': R.blok(2, 7, 16, 12, '#D8A050'); R.rij(7, 2, 16, '#E8C070'); R.rij(12, 2, 16, '#A8702E'); for (const [x, y] of [[5, 5], [9, 4], [13, 5], [7, 6], [11, 6]]) { R.ovaal(x, y, 1.6, 1.2, '#F07A2A'); R.p(x, y - 1, '#FFB070'); } R.p(15, 4, groenL); break;
+    case 'pijlinktvis': R.ovaal(9, 8, 7, 3, '#F4E0D0'); R.rij(6, 3, 14, '#FFF4EA'); for (let x = 4; x < 15; x += 3) R.lijn(x, 6, x + 2, 10, '#8A5A3A'); R.veelhoek([[15, 8], [19, 5], [19, 11]], '#E8C8B8'); for (let i = 0; i < 3; i++) R.lijn(3, 7 + i, 0, 5 + i * 3, '#E8C8B8'); partje(10, 12); R.p(6, 12, groenL); break;
+    case 'gevuldekrab': R.ovaal(9, 10, 8, 3, '#F4F1E8'); R.ovaal(9, 7, 7, 4, '#C8502E'); R.ovaal(9, 6.5, 5, 2.6, '#F4DCA8'); for (const [x, y] of [[7, 6], [10, 5], [12, 7], [8, 8]]) R.p(x, y, '#E8B060'); R.p(9, 5, groenL); R.p(11, 6, groen); R.ovaal(1, 9, 1.6, 1.4, '#C8502E'); R.ovaal(17, 9, 1.6, 1.4, '#C8502E'); R.p(0, 9, '#2A1A14'); R.p(18, 9, '#2A1A14'); break;
     default: R.ovaal(9, 8, 7, 4, '#C9A060');
   }
   R.omlijn();
@@ -1462,6 +1522,87 @@ function vormPix(vorm, kl, beeld = 0) {
       R.p(7, 2, '#1A1418');
       break;
     }
+    case 'tarbot': { // rond en plat, vol knobbeltjes; ogen bovenop
+      R = new Pix(28, 12);
+      R.ovaal(14, 7, 12, 3.6, '#7A6A4E'); R.ovaal(14, 6, 9, 2, '#9A8A66');
+      for (let x = 4; x < 25; x += 2) { R.p(x, 3 + (x % 4 ? 0 : -1), '#8A7A5A'); R.p(x, 10, '#8A7A5A'); }
+      R.veelhoek([[2, 7], [-1, 4 + golf], [-1, 10 + golf]], '#6A5A42');
+      for (const [x, y] of [[7, 6], [11, 5], [15, 7], [19, 5], [9, 8], [17, 8], [22, 6]]) { R.p(x, y, '#4E4230'); R.p(x + 1, y, '#C8B488'); }
+      R.omlijn(); R.p(21, 4, '#FFFFFF'); R.p(22, 4, '#1A1418'); R.p(23, 5, '#FFFFFF'); R.p(24, 5, '#1A1418');
+      break;
+    }
+    case 'grotekrab': { // de Noordzeekrab: een brede schaal met een geschulpte rand en zwarte scharen
+      R = new Pix(26, 16);
+      R.ovaal(13, 8, 8, 4.4, kl.R); R.rij(5, 7, 19, kl.M); for (let x = 6; x <= 20; x += 3) R.p(x, 4, kl.M);
+      for (let i = 0; i < 4; i++) { const p = (i + b) % 2; R.lijn(8 - i, 11, 4 - i, 14 - p, kl.R); R.lijn(18 + i, 11, 22 + i, 14 - (1 - p), kl.R); }
+      R.ovaal(3, 5 + (b % 2), 3, 2.4, kl.R); R.ovaal(23, 5 + ((b + 1) % 2), 3, 2.4, kl.R); R.blok(0, 3 + (b % 2), 1, 5 + (b % 2), kl.D); R.blok(24, 3 + ((b + 1) % 2), 25, 5 + ((b + 1) % 2), kl.D);
+      R.omlijn(); R.p(11, 4, '#1A1418'); R.p(15, 4, '#1A1418');
+      break;
+    }
+    case 'kokkel': {
+      R = new Pix(16, 11);
+      R.ovaal(8, 6, 6.5, 4.4, '#E8D8B8'); for (let x = 3; x <= 13; x += 2) R.lijn(8, 2, x, 10, '#C8A878'); R.rij(10, 3, 13, '#A88858'); R.ovaal(8, 3, 2, 1.2, '#F4ECDC');
+      R.omlijn(); R.p(5, 4, '#FFF8EC');
+      break;
+    }
+    case 'zeeegel': {
+      R = new Pix(18, 14);
+      for (let i = 0; i < 16; i++) { const a = Math.PI + i / 15 * Math.PI + (i % 2 ? golf * .04 : 0); R.lijn(9, 9, 9 + Math.cos(a) * 8, 9 + Math.sin(a) * 7, i % 2 ? '#4A2A5A' : '#6A3A7A'); }
+      R.ovaal(9, 9, 5.5, 4, '#5A2E6A'); R.ovaal(8, 8, 2.5, 1.6, '#8A5AA0'); R.rij(13, 4, 14, '#3A1E48');
+      R.omlijn(); R.p(7, 7, '#C8A8D8');
+      break;
+    }
+    case 'zeepaardje': {
+      R = new Pix(12, 20);
+      const k1 = '#E9A83A', k2 = '#C8862A', k3 = '#F4CC6A';
+      R.ovaal(6, 4, 2.6, 2.2, k1); R.lijn(7, 4, 11, 5, k1, 2); R.p(6, 1, k2); R.p(5, 2, k2);
+      R.ovaal(5, 9, 3, 3.6, k1); R.ovaal(6, 9, 1.6, 2.6, k3);
+      for (let y = 5; y < 13; y += 2) R.p(3, y, k2);
+      R.lijn(5, 12, 4, 15, k1, 2); R.lijn(4, 15, 5, 17, k1); R.lijn(5, 17, 7, 17, k1); R.p(7, 16, k1); R.p(6, 15, k2);
+      R.p(2, 8 + (b % 2), '#F4DCA0');
+      R.omlijn(); R.p(7, 3, '#1A1418');
+      break;
+    }
+    case 'zeehond': {
+      R = new Pix(42, 18);
+      const g = '#8A8E92', gl = '#B4B8BA', gd = '#5E6266';
+      R.ovaal(20, 9, 15, 5.4, g); R.ovaal(21, 11, 12, 2.6, gl);
+      R.ovaal(35, 7, 5, 4.2, g); R.ovaal(37, 9, 3, 2, gl);
+      R.veelhoek([[6, 8], [0, 4 + golf * 2], [2, 9], [0, 14 - golf * 2]], gd);
+      R.veelhoek([[24, 13], [28, 17 + golf], [22, 16]], gd);
+      for (const [x, y] of [[12, 7], [17, 6], [22, 8], [28, 6], [15, 10], [26, 10], [33, 5]]) R.p(x, y, gd);
+      R.omlijn();
+      R.blok(36, 5, 37, 6, '#1A1418'); R.p(36, 5, '#FFFFFF'); R.p(40, 8, '#2A2A30'); R.lijn(38, 9, 41, 8, '#E8E8E8'); R.lijn(38, 10, 41, 11, '#E8E8E8');
+      break;
+    }
+    case 'bruinvis': {
+      R = new Pix(46, 16);
+      const d = '#3E4650', m = '#6A7480', l = '#D8DCE0';
+      R.ovaal(23, 9, 17, 4.6, d); R.ovaal(24, 11, 13, 2.2, l); R.ovaal(39, 9, 4, 3.4, d); R.ovaal(40, 11, 3, 1.4, l);
+      R.veelhoek([[20, 5], [24, 0], [27, 5]], d);
+      R.veelhoek([[7, 9], [1, 5 + golf * 2], [3, 9], [1, 13 - golf * 2]], d);
+      R.veelhoek([[30, 12], [33, 15], [28, 14]], m);
+      R.omlijn(); R.p(39, 8, '#1A1418'); R.p(43, 10, m);
+      break;
+    }
+    case 'ribkwal': { // doorzichtig, met rijtjes trilhaartjes in regenboogkleuren (geen omlijning)
+      R = new Pix(12, 16);
+      R.ovaal(6, 8, 4.6, 6.6, '#BFE8F0'); R.ovaal(6, 7, 2.6, 4.6, '#DFF6FA');
+      const kl4 = ['#FF6A8A', '#FFD24A', '#6AF0A0', '#6AB8FF'];
+      for (let i = 0; i < 4; i++) for (let y = 3; y < 14; y += 2) R.p(6 + (i - 1.5) * 2.2 * Math.sin((y - 1) / 14 * Math.PI), y, kl4[(i + y + b) % 4]);
+      break;
+    }
+    case 'pijlinktvis': { // de mantel met de pijlpunt voorop, de armpjes slepen erachter aan
+      R = new Pix(26, 9);
+      const k1 = '#E8B0A0', k2 = '#C87868', k3 = '#F4D4C8';
+      R.ovaal(15, 4, 7, 2.2, k1); R.rij(3, 10, 20, k3);
+      R.veelhoek([[19, 4], [24, 0], [25, 4], [24, 8]], k2);
+      for (let x = 10; x < 21; x += 2) R.p(x, 5, k2);
+      R.ovaal(7, 4, 2, 1.8, k1);
+      for (let i = 0; i < 4; i++) R.lijn(5, 3 + i * .7, 0, 2 + i * 1.5 + golf * (i % 2 ? 1 : -1), i % 2 ? k2 : k1);
+      R.omlijn(); R.p(7, 3, '#1A1418'); R.p(8, 3, '#FFFFFF');
+      break;
+    }
     default: R = new Pix(4, 4); R.blok(0, 0, 3, 3, '#FF00FF');
   }
   return R;
@@ -1493,6 +1634,12 @@ function vondstPix(id) {
     case 'grijsbek': R.veelhoek([[6, 2], [12, 2], [10, 14], [8, 14]], '#F4F1E8'); R.p(8, 4, '#FFFFFF'); R.rij(2, 6, 12, '#D8D2C2'); break;
     case 'kroon': R.veelhoek([[2, 13], [16, 13], [16, 5], [13, 9], [9, 3], [5, 9], [2, 5]], '#D8402E'); R.p(9, 6, '#E9B949'); R.p(5, 10, '#E9B949'); R.p(13, 10, '#E9B949'); break;
     case 'lantaarn': R.ovaal(9, 8, 5, 5, '#7CF2FF'); R.ovaal(9, 8, 3, 3, '#E8FFFF'); R.lijn(9, 3, 9, 0, '#4A3E30'); break;
+    case 'zeeglas': R.veelhoek([[4, 11], [7, 4], [13, 5], [14, 10], [9, 13]], '#8ACBB8'); R.veelhoek([[6, 10], [8, 6], [12, 7], [11, 10]], '#B8E8D8'); R.p(8, 7, '#F4FFFA'); break;
+    case 'tegeltje': R.blok(3, 3, 14, 14, '#F4F1E8'); R.blok(4, 4, 13, 13, '#E8E4DA'); R.ovaal(8.5, 8.5, 3, 3, '#2E5AA8'); R.ovaal(8.5, 8.5, 1.4, 1.4, '#F4F1E8'); for (const [x, y] of [[4, 4], [13, 4], [4, 13], [13, 13]]) R.p(x, y, '#2E5AA8'); R.lijn(12, 3, 14, 6, '#B8B2A4'); break;
+    case 'kistje': R.blok(2, 6, 15, 14, '#7A4E2D'); R.veelhoek([[2, 6], [4, 2], [13, 2], [15, 6]], '#8A5E3A'); R.rij(6, 2, 15, '#C99A2E'); R.blok(5, 2, 5, 14, '#C99A2E'); R.blok(12, 2, 12, 14, '#C99A2E'); R.blok(8, 7, 9, 9, '#E9B949'); R.p(8, 9, '#3A2418'); R.rij(10, 3, 14, '#5A3A22'); break;
+    case 'meetkastje': R.blok(3, 6, 14, 14, '#E9C23A'); R.blok(4, 7, 13, 8, '#F4DC6A'); R.blok(6, 10, 11, 12, '#23252B'); R.lijn(12, 6, 15, 0, '#5A5F68'); R.blok(4, 3, 6, 5, '#C8323C'); R.p(4, 3, '#FF8A8A'); R.p(7, 11, '#7CF2FF'); break;
+    case 'logboek': R.veelhoek([[3, 2], [14, 3], [14, 15], [2, 14]], '#E8D8A8'); for (let y = 5; y < 13; y += 2) R.lijn(4, y, 12, y + .3, '#8A7A5A'); R.lijn(5, 4, 9, 4, '#3A2A22'); R.blok(11, 11, 13, 13, '#C9B48A'); break;
+    case 'mantel': R.blok(1, 2, 16, 14, '#7A4E2D'); R.blok(2, 3, 15, 13, '#F4F1E8'); R.blok(3, 4, 14, 12, '#2A7EA4'); R.ovaal(9, 8, 4.4, 2.2, '#C8323C'); for (let i = 0; i < 3; i++) R.lijn(5, 7 + i, 3, 6 + i * 2, '#A82A32'); R.p(11, 7, '#FFFFFF'); R.p(12, 7, '#1A1418'); break;
     default: R.blok(4, 4, 13, 13, '#C9B48A');
   }
   R.omlijn();
@@ -2104,6 +2251,7 @@ const GELUID = (() => {
     feest: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => toon(f, .3, { vorm: 'triangle', vol: .14, na: i * .1 })),
     kraak: () => { ruis(.3, { f: 200, q: 3, vol: .25 }); toon(70, .4, { vorm: 'sawtooth', vol: .07, filter: 300 }); },
     touw: () => ruis(.12, { f: 1500, q: 3, vol: .12 }),
+    foto: () => { toon(2400, .03, { vorm: 'square', vol: .06, filter: 6000 }); ruis(.05, { f: 3000, q: 2, vol: .14, na: .02 }); toon(1200, .25, { vorm: 'sine', naar: 2400, vol: .04, na: .06 }); },
   };
   function sfx(n) { if (SFX[n]) try { SFX[n](); } catch (e) {} }
   // ---- sfeergeluid: onderwater (ruis en een lage toon), haven (golven), restaurant (geroezemoes)
@@ -2166,14 +2314,16 @@ function nieuweStaat() {
   return {
     v: 1, dag: 1, deel: 'ochtend', duiken: 0, geld: 40,
     hfd: 1, stap: 0, vlag: {},
-    uit: { fles: 0, pak: 0, tas: 0, harpoen: 0, net: 0, vinnen: 0, lamp: 0 },
+    uit: { fles: 0, pak: 0, tas: 0, harpoen: 0, net: 0, vinnen: 0, lamp: 0, mes: 0, camera: 0 },
     rest: { tafels: 0, menu: 0, keuken: 0, vriezer: 0, dienblad: 0, linnen: 0 },
     pers: {}, recepten: Object.fromEntries(START_RECEPTEN.map(r => [r, 0])),
     voorraad: [], vondsten: {}, decor: [], boek: {}, reuzen: {}, menu: [],
     ster: 2.5, recensies: [], beste: { avond: 0, ster: 0 },
     stats: { duiken: 0, gasten: 0, verdiend: 0, schoon: 0 }, inst: { geluid: true, muziek: true },
     diepste: 0, na: null, // na: wat er na een duik of dienst nog op het scherm moet komen (zie DAG.hervat)
-    kaart: {}, // ontdekt gebied per zee, als korte code (zie kaartCode)
+    kaart: {}, // ontdekt gebied per duikstek, als korte code (zie kaartCode)
+    foto: {}, // per soort het beste aantal sterren van een foto (1 tot 3)
+    opdr: {}, // afgeronde foto-opdrachten van Wieke
   };
 }
 let ST = nieuweStaat();
@@ -2194,7 +2344,7 @@ function bewaar() {
   if (TESTSTAND) return;
   let s = ST;
   if (VASTPUNT) { s = JSON.parse(VASTPUNT.tekst); s.inst = ST.inst; }
-  s.voortgangTotaal = 5; // vijf hoofdstukken, voor 'Verder spelen' op de homepage
+  s.voortgangTotaal = 10; // tien hoofdstukken, voor 'Verder spelen' op de homepage
   try { localStorage.setItem(SLEUTEL, JSON.stringify(s)); } catch (e) {}
 }
 function beginDeel(naam) { VASTPUNT = null; bewaar(); VASTPUNT = { naam, tekst: JSON.stringify(ST) }; }
@@ -2224,7 +2374,7 @@ addEventListener('resize', () => { maat(); if (SCENE.nu && SCENE.nu.maat) SCENE.
 
 // ---- invoer: toetsen, muis, aanraken
 const INV = { toets: {}, nieuw: new Set(), muis: { x: 0, y: 0, in: false, links: false, rechts: false }, aanraak: 'ontouchstart' in window || navigator.maxTouchPoints > 0, muisGebruikt: 0, stuur: { x: 0, y: 0, aan: false } };
-const TOETS = { ArrowLeft: 'links', a: 'links', A: 'links', ArrowRight: 'rechts', d: 'rechts', D: 'rechts', ArrowUp: 'op', w: 'op', W: 'op', ArrowDown: 'neer', s: 'neer', S: 'neer', ' ': 'actie', Enter: 'enter', e: 'net', E: 'net', f: 'pak', F: 'pak', Shift: 'sprint', Escape: 'pauze', p: 'pauze', m: 'kaart', M: 'kaart', P: 'pauze', q: 'wissel', Q: 'wissel', '1': 'een', '2': 'twee', '3': 'drie', '4': 'vier', '5': 'vijf', '6': 'zes', Tab: 'tab' };
+const TOETS = { ArrowLeft: 'links', a: 'links', A: 'links', ArrowRight: 'rechts', d: 'rechts', D: 'rechts', ArrowUp: 'op', w: 'op', W: 'op', ArrowDown: 'neer', s: 'neer', S: 'neer', ' ': 'actie', Enter: 'enter', e: 'net', E: 'net', f: 'pak', F: 'pak', Shift: 'sprint', Escape: 'pauze', p: 'pauze', m: 'kaart', M: 'kaart', c: 'foto', C: 'foto', P: 'pauze', q: 'wissel', Q: 'wissel', '1': 'een', '2': 'twee', '3': 'drie', '4': 'vier', '5': 'vijf', '6': 'zes', Tab: 'tab' };
 addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   const k = TOETS[e.key]; if (!k) return;
@@ -2421,10 +2571,11 @@ function gesprek(lijnen) {
 // vaste herkenningspunten (ankerlijn, De Grote Kei, het wrak, de geul, de kerktoren), daartussen elke dag iets anders
 const ZEE = { W: 1600, H: 2720, CEL: 4, BOOT_X: 300 };
 ZEE.CW = ZEE.W / ZEE.CEL; ZEE.CH = ZEE.H / ZEE.CEL;
-const M = { WATER: 0, ROTS: 1, ZAND: 2, WRAK: 3, STEEN: 4, KRISTAL: 5, POORT: 6 };
+const M = { WATER: 0, ROTS: 1, ZAND: 2, WRAK: 3, STEEN: 4, KRISTAL: 5, POORT: 6, SCHELP: 7 };
 // waterkleur per diepte (m)
 const WATER_KLEUR = [[0, '#5FBCD6'], [12, '#3E9DC0'], [30, '#2A7EA4'], [60, '#1B5C80'], [90, '#123F5E'], [140, '#0B2740'], [200, '#071A2E'], [270, '#040E1C']];
-function waterOp(m) { for (let i = 1; i < WATER_KLEUR.length; i++) if (m <= WATER_KLEUR[i][0]) { const [a, ca] = WATER_KLEUR[i - 1], [b, cb] = WATER_KLEUR[i]; return mix(ca, cb, (m - a) / (b - a)); } return WATER_KLEUR[WATER_KLEUR.length - 1][1]; }
+let WATER_NU = WATER_KLEUR; // per duikstek een eigen waterkleur (zetStek)
+function waterOp(m) { const W = WATER_NU; for (let i = 1; i < W.length; i++) if (m <= W[i][0]) { const [a, ca] = W[i - 1], [b, cb] = W[i]; return mix(ca, cb, (m - a) / (b - a)); } return W[W.length - 1][1]; }
 
 function maakZee(zaad, kelderOpen) {
   const r = rng(zaad), f = r() * 100, f2 = r() * 100;
@@ -2536,7 +2687,7 @@ function tekenChunk(Z, kx, ky) {
   const vast = new Uint8Array(B * B);
   for (let j = 0; j < B; j++) for (let i = 0; i < B; i++) vast[j * B + i] = Z.vastPx(x0 + i - R, y0 + j - R) ? 1 : 0;
   const { cv, ctx } = maakDoek(CHUNK, CHUNK), im = ctx.createImageData(CHUNK, CHUNK), d = im.data;
-  const kleurCache = new Map();
+  const kleurCache = new Map(), zandRegel = Z.zandRegel || ((x, y) => y < 560 && x < 640), zonY = Z.zonY || 700, mosY = Z.mosY || 1100;
   const rgb = h => { let v = kleurCache.get(h); if (!v) { v = rgbVan(h); kleurCache.set(h, v); } return v; };
   // kleuren per 4 rijen diepte voorbereiden
   const water = [], basisR = [];
@@ -2551,14 +2702,14 @@ function tekenChunk(Z, kx, ky) {
       boven++;
       const x = x0 + i, y = y0 + j, w = water[j >> 2];
       let mat = Z.matOp(x, y) || M.ROTS;
-      if ((mat === M.ZAND || mat === M.ROTS) && y < 560 && x < 640) mat = boven < 20 + ruis(x / 11, 3, 26) * 10 ? M.ZAND : M.ROTS;
+      if ((mat === M.ZAND || mat === M.ROTS) && zandRegel(x, y)) mat = boven < 20 + ruis(x / 11, 3, 26) * 10 ? M.ZAND : M.ROTS;
       else if (mat === M.ZAND && boven > 14 + ruis(x / 11, 5, 27) * 6) mat = M.ROTS;
       let rand = !vast[p - 1] || !vast[p + 1] || !vast[p - B] || !vast[p + B] || !vast[p - B - 1] || !vast[p - B + 1];
       let bijna = !rand && (!vast[p - 3] || !vast[p + 3] || !vast[p + 3 * B] || !vast[p - 2 * B]);
       const h = hashf(x, y, 21);
       let c;
       if (mat === M.ZAND) {
-        const zon = y < 700;
+        const zon = y < zonY;
         c = boven <= 2 ? (zon ? '#E6CF96' : '#8A7E6A') : mix(zon ? '#D2B57C' : '#6E6454', zon ? '#7A6448' : '#3A3430', klem(boven / 22, 0, 1));
         if (boven > 2 && boven < 9 && Math.sin(x * .5 + Math.sin(y * .3 + x * .05) * 2) > .8) c = mix(c, '#FFF2C8', .2);
         if (h < .05) c = mix(c, '#6A5A40', .35); else if (h > .99) c = mix(c, '#F4ECDC', .6);
@@ -2567,6 +2718,16 @@ function tekenChunk(Z, kx, ky) {
         c = mix('#5A3A22', '#3E2616', hashf(plank, 0, 24) * .6); if ((s % 5 + 5) % 5 < 1) c = '#2A1A10';
         if (h > .93) c = mix(c, '#4E6A3A', .6);
         if (boven <= 2) c = mix(c, '#6E8A4A', .45);
+      } else if (mat === M.SCHELP) {
+        // een schelpenbank: zwartblauwe mosselen en grijze oesters door elkaar, met hier en daar een lichte schelp
+        // elk schelpje is een vakje van 6 bij 3 (om de rij verschoven): bijna allemaal mosselen, soms een oester of een lichte schelp
+        const rij = Math.floor(y / 3), sx0 = x + (rij % 2) * 3, cel = Math.floor(sx0 / 6), lx = sx0 - cel * 6, ly = y - rij * 3, sh = hashf(cel, rij, 28);
+        if (sh > .87) c = ly === 0 ? '#C8CCD0' : '#8E949C';
+        else if (sh > .82) c = '#E8DCC4';
+        else c = ly === 0 && lx > 0 && lx < 4 ? '#4A5878' : mix('#1C2234', '#2E3852', hashf(cel, rij, 29));
+        if (lx === 5 || (ly === 2 && (lx === 0 || lx === 4))) c = '#0C0E16';
+        c = mix(c, '#08060E', klem((boven - 6) / 26, 0, .6));
+        if (boven <= 2) c = mix(c, '#7E9A5A', .35);
       } else if (mat === M.POORT) {
         c = ((x >> 3) + (y >> 3)) % 2 ? '#4A4650' : '#3A3640'; if (h > .8) c = '#5A5660';
       } else {
@@ -2577,7 +2738,7 @@ function tekenChunk(Z, kx, ky) {
         if (((y + ruis(x / 34, y / 90, 22) * 16) % 6 + 6) % 6 < 1) c = mix(c, '#0A0810', .25);
         c = mix(c, '#08060E', klem((boven - 3) / 22, 0, .75));
         if (h < .04) c = mix(c, '#0A0810', .4); else if (h > .985) c = mix(c, '#FFFFFF', .08);
-        if (boven <= 2) c = mix(c, y < 1100 ? '#7E8A4A' : '#3A4A5A', .55);
+        if (boven <= 2) c = mix(c, y < mosY ? '#7E8A4A' : '#3A4A5A', .55);
         if (mat === M.KRISTAL && h > .96) c = '#7CF2FF';
       }
       if (bijna) c = mix(c, '#FFFFFF', boven <= 4 ? .12 : .05);
@@ -2623,14 +2784,25 @@ function tekenVersier(ctx, Z, cx, cy, VW, VH, t, laag) {
       if (v.k !== 2) T.ovaal(px + 1, sy - v.h - 2, 2, 3, b);
       continue;
     }
-    if (laag === 'voor') { if (v.t !== 'gras') continue; }
-    else if (v.t === 'gras') continue;
+    const voor = v.t === 'gras' || (v.t === 'zeegras' && v.voor);
+    if ((laag === 'voor') !== voor) continue;
     switch (v.t) {
       case 'gras': for (let i = 0; i < v.n; i++) { const bx = sx + i * 2 - v.n; for (let y = 0; y < v.h; y++) { const u = y / v.h; T.px(bx + Math.sin(t * 1.6 + v.f + i) * 3 * u * u, sy - y, u > .6 ? '#8CBC5A' : '#4E8C3A'); } } break;
       case 'anemoon': { const kl = ['#E8763A', '#F4F1E8', '#D8508A', '#9ACB5A'][v.kl]; T.rect(sx - 2, sy - 4, 5, 4, mix(kl, '#2A1A20', .3)); for (let i = -3; i <= 3; i++) T.rect(sx + i + Math.sin(t * 2 + i + v.x) * .8, sy - 7 + Math.abs(i) * .5, 1, 3, kl); break; }
       case 'ster': { const kl = ['#E8763A', '#C8423A', '#E9B949', '#B8508A'][v.kl]; T.rect(sx - 1, sy - 3, 3, 3, kl); T.px(sx, sy - 5, kl); T.px(sx - 3, sy - 3, kl); T.px(sx + 3, sy - 3, kl); T.px(sx - 2, sy - 1, kl); T.px(sx + 2, sy - 1, kl); break; }
       case 'schelpje': T.rect(sx - 1, sy - 2, 3, 2, ['#F4E2C8', '#E8C8A8', '#F4F1E8', '#D8B8C8'][v.kl]); T.px(sx, sy - 3, '#FFF4E0'); break;
       case 'spons': { const kl = ['#E9B949', '#E8763A', '#C8A04A', '#D8C04A'][v.kl]; T.rect(sx - 2, sy - 8, 4, 8, mix(kl, waterOp(v.m), .3)); T.rect(sx - 1, sy - 9, 2, 1, '#2A1A10'); T.rect(sx + 3, sy - 5, 3, 5, mix(kl, waterOp(v.m), .4)); break; }
+      case 'zeegras': { // lange, smalle linten die met het water meewiegen
+        const m = y2m(v.y), a = mix('#3E7A34', waterOp(m), .25), b = mix('#7AB04A', waterOp(m), .2);
+        for (let i = 0; i < v.n; i++) { const bx = sx + i * 2 - v.n, hh = v.h * (.7 + ((i * 7) % 5) / 12); for (let y = 0; y < hh; y++) { const u = y / hh; T.px(bx + Math.sin(t * 1.3 + v.f + i * .7 + y * .06) * 4 * u * u, sy - y, (y + i) % 9 < 2 ? b : a); } }
+        break;
+      }
+      case 'paal': { // een oude mosselpaal, onderaan vol mosselen
+        const m = y2m(v.y), hout = mix('#6A4A2E', waterOp(m), .3);
+        T.rect(sx - 1, sy - v.h, 3, v.h, hout); T.rect(sx - 1, sy - v.h, 1, v.h, mix('#8A6A44', waterOp(m), .3)); T.rect(sx - 1, sy - v.h - 1, 3, 1, mix('#4A3220', waterOp(m), .3));
+        for (let y = 0; y < v.h * .45; y += 2) { T.rect(sx - 2 - (y % 4 ? 0 : 1), sy - y - 2, 2, 2, '#2A3248'); T.rect(sx + 2, sy - y - 3, 2, 2, (y % 6) ? '#2E3A5E' : '#5E6E9A'); }
+        break;
+      }
       case 'dodemans': { const kl = ['#F4F1E8', '#E8A86A', '#E8763A', '#F4D8C0'][v.kl]; for (let i = 0; i < 3; i++) { const h = 5 + i * 2 + Math.sin(t + i + v.x) * .6; T.rect(sx - 3 + i * 3, sy - h, 2, h, kl); T.px(sx - 3 + i * 3, sy - h, '#FFFFFF'); } break; }
     }
   }
@@ -2638,7 +2810,7 @@ function tekenVersier(ctx, Z, cx, cy, VW, VH, t, laag) {
 
 // ===================== DUIKEN: zwemmen, vangen, zuurstof en de tas =====================
 let D = null;
-const VIS_R = id => { const s = SOORTEN[id], v = s.vorm; if (typeof v === 'object') return Math.max(4, v.len * .4); return { plat: 10, krab: 7, mossel: 9, oester: 9, kwal: 7, zeekat: 10, kreeft: 12, zeeduivel: 14, rog: 13, paling: 8, garnaal: 4 }[v] || 6; };
+const VIS_R = id => { const s = SOORTEN[id], v = s.vorm; if (typeof v === 'object') return Math.max(4, v.len * .4); return { plat: 10, krab: 7, mossel: 9, oester: 9, kwal: 7, zeekat: 10, kreeft: 12, zeeduivel: 14, rog: 13, paling: 8, garnaal: 4, tarbot: 12, grotekrab: 10, kokkel: 6, zeeegel: 7, zeepaardje: 6, zeehond: 15, bruinvis: 16, ribkwal: 6, pijlinktvis: 6 }[v] || 6; };
 
 // de boot van Trien (een keer getekend)
 function bootDoek() {
@@ -2678,18 +2850,21 @@ function bootDoek() {
   });
 }
 
-function startDuik(nr) {
-  const zaad = (ST.dag * 7919 + nr * 104729) >>> 0, r = rng(zaad);
-  const Z = maakZee(zaad, !!ST.vlag.kelderOpen);
+// arg: het nummer van de duik van vandaag (0 of 1), of { nr, stek, nacht } voor een andere duikstek of een nachtduik
+function startDuik(arg) {
+  const o = arg && typeof arg === 'object' ? arg : { nr: arg || 0 }, nr = o.nr || 0, stek = STEKKEN[o.stek] ? o.stek : 'zee', nacht = !!o.nacht;
+  zetStek(stek);
+  const zaad = (ST.dag * 7919 + nr * 104729 + (stek === 'zee' ? 0 : 31337) + (nacht ? 4241 : 0)) >>> 0, r = rng(zaad);
+  const Z = stek === 'rif' ? maakRif(zaad) : maakZee(zaad, !!ST.vlag.kelderOpen);
   D = {
-    Z, r, nr, tijd: 0, cam: { x: 0, y: -60 },
+    Z, r, nr, stek, nacht, tijd: 0, cam: { x: 0, y: -60 }, fotos: {}, fotoT: 0, flitsFoto: 0, mantel: [],
     ruben: { x: ZEE.BOOT_X - 64, y: -14, vx: 40, vy: 30, kijk: 1, pose: 'zwem', poseT: 0, kantel: 0, hoek: 0, onkw: 0, intro: .7, beeld: 0, adem: 1 },
     o2: uitW('fles'), o2max: uitW('fles'), tas: [], tasKg: 0, tasMax: uitW('tas'), net: uitW('net'), harpoenT: 0,
     harpoen: null, netP: null, vissen: [], vondsten: [], deeltjes: [], inkt: [], teksten: [], flits: 0, rood: 0,
     nieuwSoort: [], gevangen: {}, klaar: null, waarschuwT: 0, hudT: 0, verre: tekenVerre(Z), chunkRij: [], diepsteM: 0, pakDoel: null,
   };
-  vulZee(D);
-  D.reuzen = reuzenVoorDuik();
+  if (stek === 'rif') vulRif(D); else { vulZee(D); if (nacht) nachtInZee(D); }
+  D.reuzen = stek === 'rif' ? reuzenRif() : reuzenVoorDuik();
   // de stukken rond het begin alvast tekenen
   for (let ky = 0; ky < 4; ky++) for (let kx = 0; kx < 6; kx++) Z.chunks.set(kx + ',' + ky, tekenChunk(Z, kx, ky));
 }
@@ -2728,14 +2903,14 @@ function vulZee(D) {
   if (r() < .35) los('maanvis', 300, 1300, 160, 210, 1);
   if (ST.vlag.kelderOpen) { for (let i = 0; i < 2; i++) school('lantaarnvis', 600, 1000, 225, 255); vloer('spookkrab', 600, 1000, 230, 262, 3); }
   // vondsten op de bodem: per diepte, plus wat rommel
-  const kies = m => { const l = Object.entries(VONDSTEN).filter(([id, v]) => v.diepte && !v.uitOester && m >= v.diepte[0] && m <= v.diepte[1] && !(v.uniek && ST.vondsten[id]) && !v.wrak); let tot = 0; const w = l.map(([id, v]) => { const g = v.rommel ? 3 : 8 / Math.sqrt(v.waarde + 1); tot += g; return g; }); let x = r() * tot; for (let i = 0; i < l.length; i++) { x -= w[i]; if (x <= 0) return l[i][0]; } return l.length ? l[0][0] : null; };
+  const kies = m => { const l = Object.entries(VONDSTEN).filter(([id, v]) => v.diepte && !v.uitOester && !v.stek && m >= v.diepte[0] && m <= v.diepte[1] && !(v.uniek && ST.vondsten[id]) && !v.wrak); let tot = 0; const w = l.map(([id, v]) => { const g = v.rommel ? 3 : 8 / Math.sqrt(v.waarde + 1); tot += g; return g; }); let x = r() * tot; for (let i = 0; i < l.length; i++) { x -= w[i]; if (x <= 0) return l[i][0]; } return l.length ? l[0][0] : null; };
   const leg = (x0, x1, m0, m1, n) => { for (let i = 0; i < n; i++) { const p = opVloer(x0, x1, m0, m1); if (!p) continue; const id = kies(y2m(p[1])); if (id) D.vondsten.push({ id, x: p[0], y: p[1] - 5, t: r() * 5 }); } };
   leg(40, 600, 3, 31, 9); leg(1030, 1560, 55, 80, 6); leg(640, 1000, 80, 150, 5); leg(220, 1380, 150, 222, 7);
   // in het wrak: kompas en (één keer) de scheepsbel
   const W = Z.wrak; D.vondsten.push({ id: 'kompas', x: W.ruimen[1][0] - 8, y: W.ruimen[1][1] + 4, t: 0 });
   if (!ST.vondsten.scheepsbel && !ST.vlag.scheepsbel) D.vondsten.push({ id: 'scheepsbel', x: W.ruimen[2][0], y: W.ruimen[2][1] + 3, t: 0 });
   // vondsten die het verhaal vraagt
-  if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) { const p = v.m ? opVloer(v.x0 || 40, v.x1 || 1560, v.m[0], v.m[1]) : [v.x, v.y]; if (p) D.vondsten.push({ id: v.id, x: p[0], y: p[1] - 5, t: 0, verhaal: true }); }
+  if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) { if ((v.stek || 'zee') !== 'zee' || (v.nacht && !D.nacht)) continue; const p = v.m ? opVloer(v.x0 || 40, v.x1 || 1560, v.m[0], v.m[1]) : [v.x, v.y]; if (p) D.vondsten.push({ id: v.id, x: p[0], y: p[1] - 5, t: 0, verhaal: true }); }
 }
 
 // ---- hulpjes
@@ -2755,7 +2930,7 @@ function inTas(item) {
   D.tas.push(item); D.tasKg += kg;
   if (item.s) {
     D.gevangen[item.s] = (D.gevangen[item.s] || 0) + 1;
-    if (!ST.boek[item.s] && !D.nieuwSoort.includes(item.s)) { D.nieuwSoort.push(item.s); melding('Nieuw in je Zeeboek: ' + SOORTEN[item.s].naam + '!', 'goud groot', 3200); GELUID.sfx('nieuw'); D.ruben.pose = 'blij'; D.ruben.poseT = .9; }
+    if (!ST.boek[item.s] && !ST.foto[item.s] && !D.fotos[item.s] && !D.nieuwSoort.includes(item.s)) { D.nieuwSoort.push(item.s); melding('Nieuw in je Zeeboek: ' + SOORTEN[item.s].naam + '!', 'goud groot', 3200); GELUID.sfx('nieuw'); D.ruben.pose = 'blij'; D.ruben.poseT = .9; }
     else GELUID.sfx('vang');
   } else GELUID.sfx(VONDSTEN[item.v].rommel ? 'pak' : 'nieuw');
   return true;
@@ -2780,8 +2955,9 @@ function updateRuben(dt) {
   // botsen met de bodem: per as schuiven
   const r = 6, vast = (x, y) => Z.vast(Math.round(x), Math.round(y));
   const raak = (x, y) => vast(x - r, y) || vast(x + r, y) || vast(x, y - r + 1) || vast(x, y + r) || vast(x - r * .7, y + r * .7) || vast(x + r * .7, y + r * .7) || vast(x + r * .7, y - r * .7) || vast(x - r * .7, y - r * .7);
-  let nx = R.x + R.vx * dt; if (raak(nx, R.y)) { R.vx *= -.2; nx = R.x; } R.x = nx;
-  let ny = R.y + R.vy * dt; if (raak(R.x, ny)) { R.vy *= -.2; ny = R.y; } R.y = ny;
+  const st = R.intro <= 0 ? stroomOp(R.x, R.y) : null, svx = st ? st.vx : 0, svy = st ? st.vy : 0; // de stroming in een getijgeul duwt je mee
+  let nx = R.x + (R.vx + svx) * dt; if (raak(nx, R.y)) { R.vx *= -.2; nx = R.x; } R.x = nx;
+  let ny = R.y + (R.vy + svy) * dt; if (raak(R.x, ny)) { R.vy *= -.2; ny = R.y; } R.y = ny;
   if (raak(R.x, R.y)) { for (let k = 1; k < 12; k++) { if (!raak(R.x, R.y - k)) { R.y -= k; break; } if (!raak(R.x + k, R.y)) { R.x += k; break; } if (!raak(R.x - k, R.y)) { R.x -= k; break; } } }
   if (R.y < 2 && R.intro <= 0) { R.y = 2; R.vy = Math.max(0, R.vy); }
   R.x = klem(R.x, 20, ZEE.W - 20);
@@ -2825,7 +3001,7 @@ function gooiNet() {
 function zoekPakDoel() {
   const R = D.ruben, vx = R.x + R.kijk * 10, vy = R.y + 2; let beste = null, bd = 26;
   for (const v of D.vondsten) { const d = Math.hypot(v.x - vx, v.y - vy); if (d < bd) { bd = d; beste = { v }; } }
-  for (const f of D.vissen) { if (f.dood || !(f.def.gedrag === 'vast' || (f.def.gedrag === 'bodem' && f.staat !== 'vlucht'))) continue; const d = Math.hypot(f.x - vx, f.y - vy) - f.r * .5; if (d < bd) { bd = d; beste = { f }; } }
+  for (const f of D.vissen) { if (f.dood || !(f.def.gedrag === 'vast' || f.def.gedrag === 'graaf' || (f.def.gedrag === 'bodem' && f.staat !== 'vlucht'))) continue; const d = Math.hypot(f.x - vx, f.y - vy) - f.r * .5; if (d < bd) { bd = d; beste = { f }; } }
   const reus = reusPakDoel(); if (reus) beste = { reus };
   // aan boord gaan
   if (R.y < 18 && Math.abs(R.x - (ZEE.BOOT_X - 76)) < 30) beste = { boot: true };
@@ -2841,8 +3017,10 @@ function pak() {
     if (inTas({ v: v.id, verhaal: v.verhaal })) { D.vondsten.splice(D.vondsten.indexOf(v), 1); tekstOp(v.x, v.y - 8, '+ ' + VONDSTEN[v.id].naam, VONDSTEN[v.id].rommel ? '#BFD8E4' : '#FFE9A8'); if (VONDSTEN[v.id].rommel) ST.stats.schoon++; zandwolk(v.x, v.y + 4); }
     return;
   }
-  const f = doel.f;
-  if (f.def.prikt && f.def.gedrag === 'bodem' && Math.random() < .45) raakRuben(f.def.prikt, f.x);
+  const f = doel.f, g = f.def.gedrag;
+  if (g === 'graaf') { if (!ST.uit.mes) { melding('Kokkels zitten onder het zand. Met een duikmes (bij Trien) graaf je ze uit.', 'rood', 3200); GELUID.sfx('fout'); return; } zandwolk(f.x, f.y); }
+  // prikken en knijpen: met een duikmes pak je een zee-egel veilig, en een krab veel vaker zonder au
+  if (f.def.prikt && (g === 'bodem' || g === 'vast') && Math.random() < (ST.uit.mes ? (g === 'vast' ? 0 : .15) : g === 'vast' ? .6 : .45)) raakRuben(f.def.prikt, f.x);
   vang(f);
   if (f.s === 'oester' && f.dood && Math.random() < .12) { if (inTas({ v: 'parel' })) { tekstOp(f.x, f.y - 16, 'Een parel!', '#FFE9A8'); GELUID.sfx('nieuw'); } }
 }
@@ -2906,11 +3084,40 @@ function updateGereedschap(dt) {
   if (was('harpoen')) schiet();
   if (was('net') || (INV.muis.rechts && !D.rechtsVast)) gooiNet(); D.rechtsVast = INV.muis.rechts;
   if (was('pak') || was('enter')) pak();
+  D.fotoT = Math.max(0, D.fotoT - dt);
+  if (was('foto')) foto();
+}
+// ---- een foto maken: van het dier dat het dichtst bij en het meest midden voor je camera zit
+function foto() {
+  const R = D.ruben; if (D.klaar || R.intro > 0 || D.fotoT > 0) return;
+  if (!ST.uit.camera) { melding('Met een onderwatercamera (bij Trien) maak je foto\'s voor je Zeeboek.', 'rood', 3000); GELUID.sfx('fout'); return; }
+  D.fotoT = .7; D.flitsFoto = .22; GELUID.sfx('foto');
+  const bereik = ST.uit.camera >= 2 ? 120 : 86, a = R.mikMuis ? R.hoek : (R.kijk > 0 ? 0 : Math.PI);
+  let best = null, bs = 0;
+  const kandidaat = (o, x, y, r, soort) => {
+    const dx = x - R.x, dy = y - R.y, d = Math.max(0, Math.hypot(dx, dy) - r * .5); if (d > bereik) return;
+    let da = Math.atan2(dy, dx) - a; da = Math.abs(Math.atan2(Math.sin(da), Math.cos(da))); if (da > .75 && d > 18) return;
+    const sc = (1 - d / bereik) * (1.3 - Math.min(1.2, da)); if (sc > bs) { bs = sc; best = { o, soort, d, da }; }
+  };
+  for (const f of D.vissen) if (!f.dood && !f.inNet && !f.aanLijn && f.staat !== 'hol' && !(f.verstopt && f.def.gedrag !== 'zand')) kandidaat(f, f.x, f.y, f.r, f.s);
+  for (const B of D.reuzen) if (!B.weg && !(B.id === 'mantel' && B.staat === 'verstopt')) kandidaat(B, B.x, B.y, B.r, B.id === 'mantel' ? 'mantel' : B.soort);
+  if (!best) { tekstOp(R.x, R.y - 22, 'Niks op de foto', '#BFD8E4'); return; }
+  // sterren: dichtbij, midden in beeld en een rustig dier is beter. In het donker zonder flitser wordt het hooguit één ster.
+  let st = 1; if (best.d < bereik * .62 && best.da < .5) st = 2; if (best.d < bereik * .38 && best.da < .32 && best.o.staat !== 'vlucht') st = 3;
+  if ((D.nacht || y2m(best.o.y) > 90) && ST.uit.camera < 2) st = 1;
+  if (best.soort === 'mantel') { fotoMantel(best.o, st); return; }
+  const s = best.soort, nieuw = !ST.boek[s] && !ST.foto[s] && !D.fotos[s] && !D.nieuwSoort.includes(s);
+  D.fotos[s] = Math.max(D.fotos[s] || 0, st);
+  tekstOp(best.o.x, best.o.y - 14, 'KLIK! ' + '*'.repeat(st), '#FFFFFF');
+  if (nieuw) { D.nieuwSoort.push(s); melding('Nieuw in je Zeeboek: ' + SOORTEN[s].naam + ' (foto)!', 'goud groot', 3200); GELUID.sfx('nieuw'); R.pose = 'blij'; R.poseT = .8; }
+  else if (st > (ST.foto[s] || 0) && st > 1) melding('Foto van een ' + SOORTEN[s].naam.toLowerCase() + ': ' + '★'.repeat(st) + '☆'.repeat(3 - st), 'goud', 2400);
+  // een dier dat een flits in zijn gezicht krijgt, schrikt een beetje
+  if (best.o.def && !best.o.def.beschermd && best.o.staat === 'rust' && best.d < 40 && ['schuw', 'normaal', 'inkt'].includes(best.o.def.gedrag)) { best.o.staat = 'vlucht'; best.o.vluchtT = 1.2; }
 }
 function inTasStil(f) {
   const kg = SOORTEN[f.s].kg; if (D.tasKg + kg > D.tasMax + 1e-6) { if (!D.volGemeld) { melding('Je tas is vol!', 'rood'); D.volGemeld = true; } return false; }
   D.tas.push({ s: f.s }); D.tasKg += kg; f.dood = true; D.gevangen[f.s] = (D.gevangen[f.s] || 0) + 1;
-  if (!ST.boek[f.s] && !D.nieuwSoort.includes(f.s)) { D.nieuwSoort.push(f.s); melding('Nieuw in je Zeeboek: ' + SOORTEN[f.s].naam + '!', 'goud groot', 3200); GELUID.sfx('nieuw'); }
+  if (!ST.boek[f.s] && !ST.foto[f.s] && !D.fotos[f.s] && !D.nieuwSoort.includes(f.s)) { D.nieuwSoort.push(f.s); melding('Nieuw in je Zeeboek: ' + SOORTEN[f.s].naam + '!', 'goud groot', 3200); GELUID.sfx('nieuw'); }
   return true;
 }
 
@@ -2931,11 +3138,13 @@ function updateVissen(dt) {
     const vlucht = (afstand, kracht = 1) => { if (dr < afstand) { ax -= dx / (dr + 1) * 260 * kracht; ay -= dy / (dr + 1) * 200 * kracht; f.vluchtT = Math.max(f.vluchtT || 0, .8); } };
     f.vluchtT = Math.max(0, (f.vluchtT || 0) - dt);
     switch (g) {
-      case 'school': case 'zwerm': {
+      case 'school': case 'zwerm': case 'lamp': {
         const s = sch[f.school]; if (!s) break;
+        // pijlinktvissen komen af op het licht van je lamp (op een rustig afstandje)
+        if (g === 'lamp' && (ST.uit.lamp || D.nacht) && dr < 170 && dr > 34 && !rubenSnel) { ax += dx / dr * 110; ay += dy / dr * 80; }
         ax += (s.x - f.x) * .8 + (s.vx - f.vx) * .6 + (s.doel.x - s.x) * .25; ay += (s.y - f.y) * .8 + (s.vy - f.vy) * .6 + (s.doel.y - s.y) * .25;
         for (const o of s.leden) { if (o === f) continue; const ox = f.x - o.x, oy = f.y - o.y, od = ox * ox + oy * oy; if (od < 64 && od > .01) { ax += ox / od * 300; ay += oy / od * 300; } }
-        vlucht(g === 'zwerm' ? 30 : 58, 1.2);
+        vlucht(g === 'zwerm' ? 30 : g === 'lamp' ? (rubenSnel ? 60 : 24) : 58, 1.2);
         if (g === 'zwerm') { const vl = Z.vloer(f.x | 0, f.y | 0); if (f.y < vl - 18) ay += 60; max = f.vluchtT > 0 ? 70 : 14; }
         else max = f.vluchtT > 0 ? def.snel * 1.7 : def.snel * .7;
         break;
@@ -2960,7 +3169,29 @@ function updateVissen(dt) {
         f.vy = 0; break;
       }
       case 'vast': f.vx = f.vy = 0; break;
-      case 'kwal': { f.vy = Math.sin(f.t * 1.4) * 8 - 2; f.vx = Math.sin(f.t * .3) * 6; if (dr < 12 && f.cd <= 0) { f.cd = 1.5; raakRuben(def.prikt, f.x); } break; }
+      case 'graaf': f.verstopt = true; f.vx = f.vy = 0; break; // kokkels: alleen twee buisjes boven het zand
+      case 'kwal': { f.vy = Math.sin(f.t * 1.4) * 8 - 2; f.vx = Math.sin(f.t * .3) * 6; if (dr < 12 && f.cd <= 0 && def.prikt) { f.cd = 1.5; raakRuben(def.prikt, f.x); } break; }
+      case 'zeepaard': { // houdt zich vast aan het zeegras en wiegt mee; schrikt alleen een beetje
+        if (dr < 26 && rubenSnel) f.vluchtT = 1.4;
+        const tx = f.thuis.x + (f.vluchtT > 0 ? -Math.sign(dx || 1) * 12 : 0), ty = f.thuis.y + Math.sin(f.t * 1.2) * 2;
+        f.x += (tx - f.x) * Math.min(1, dt * 1.6); f.y += (ty - f.y) * Math.min(1, dt * 1.6); f.kijk = dx > 0 ? 1 : -1; f.beeld = (f.beeld + dt * 3) % 4;
+        continue;
+      }
+      case 'speels': { // een zeehond: nieuwsgierig, zwemt rondjes om je heen
+        if (!f.doel || Math.random() < dt * .35 || Math.hypot(f.doel.x - f.x, f.doel.y - f.y) < 16) {
+          if (dr < 150 && R.y > 6) { const a = Math.atan2(f.y - R.y, f.x - R.x) + 1.1; f.doel = { x: R.x + Math.cos(a) * 48, y: R.y + Math.sin(a) * 30 }; }
+          else f.doel = { x: klem(f.thuis.x + (Math.random() - .5) * 420, 60, ZEE.W - 60), y: m2y(2 + Math.random() * 18) };
+        }
+        ax += (f.doel.x - f.x) * 1.4; ay += (f.doel.y - f.y) * 1.4; max = def.snel * (dr < 150 ? .8 : .5);
+        if (Math.random() < dt * .15) bubbels(f.x + f.kijk * 14, f.y - 4, 3);
+        break;
+      }
+      case 'voorbij': { // een bruinvis: zwemt in één keer het hele rif over, en dan weer terug
+        if (!f.richting) f.richting = f.x < ZEE.W / 2 ? 1 : -1;
+        if ((f.richting > 0 && f.x > ZEE.W - 90) || (f.richting < 0 && f.x < 90)) f.richting *= -1;
+        ax += f.richting * 140; ay += (f.thuis.y + Math.sin(f.t * .8) * 30 - f.y) * 1.2; max = def.snel * (dr < 60 ? 1.5 : 1);
+        break;
+      }
       case 'agressief': case 'lokaas': {
         const zie = g === 'lokaas' ? 40 : 75;
         if (f.staat === 'rust' && dr < zie && R.y > 8) { f.staat = 'aanval'; }
@@ -2984,13 +3215,13 @@ function updateVissen(dt) {
         vlucht(30, .6); break;
       }
     }
-    if (g === 'vast' || g === 'hol') continue;
+    if (g === 'vast' || g === 'hol' || g === 'graaf') continue;
     f.vx += ax * dt; f.vy += ay * dt;
     const sp = Math.hypot(f.vx, f.vy); if (sp > max) { f.vx *= max / sp; f.vy *= max / sp; }
     if (g !== 'bodem' && g !== 'zand') { f.vx *= 1 - dt * .4; f.vy *= 1 - dt * .9; }
     // niet door de bodem en niet uit het water
     let nx = f.x + f.vx * dt, ny = f.y + f.vy * dt;
-    if (g !== 'bodem' && (Z.vast(Math.round(nx + Math.sign(f.vx) * f.r * .6), Math.round(ny)) || Z.vast(Math.round(nx), Math.round(ny + 2)))) { f.vx *= -.6; f.vy *= -.6; nx = f.x; ny = f.y; if (f.doel) f.doel = null; }
+    if (g !== 'bodem' && (Z.vast(Math.round(nx + Math.sign(f.vx) * f.r * .6), Math.round(ny)) || Z.vast(Math.round(nx), Math.round(ny + 2)))) { f.vx *= -.6; f.vy *= -.6; nx = f.x; ny = f.y; if (f.doel) f.doel = null; if (g === 'voorbij') f.richting = -(f.richting || 1); }
     if (ny < 6) { ny = 6; f.vy = Math.abs(f.vy); }
     // blijf ongeveer in je eigen diepte
     const m = y2m(ny); if (def.diepte && (m < def.diepte[0] - 4 || m > def.diepte[1] + 8)) f.vy += (m < def.diepte[0] ? 30 : -30) * dt;
@@ -3008,7 +3239,7 @@ function updateRest(dt) {
   D.deeltjes = D.deeltjes.filter(p => p.l > 0);
   for (const k of D.inkt) { k.t += dt; k.r = 6 + k.t * 14; } D.inkt = D.inkt.filter(k => k.t < 2.4);
   for (const t of D.teksten) { t.t += dt; t.y -= dt * 14; } D.teksten = D.teksten.filter(t => t.t < 1.4);
-  D.rood = Math.max(0, D.rood - dt);
+  D.rood = Math.max(0, D.rood - dt); D.flitsFoto = Math.max(0, D.flitsFoto - dt);
   if (D.klaar) return;
   // zuurstof
   const m = y2m(R.y), te = m > uitW('pak');
@@ -3031,21 +3262,21 @@ function eindeDuik(hoe) {
 
 SCENES.duik = {
   doel: 300,
-  start(nr) {
+  start(arg) {
     beginDeel('duik');
-    startDuik(nr);
+    startDuik(arg);
     kaartStart();
     $('hud').hidden = false; $('hud').innerHTML = `<div class="hud-blok zuurstof">${ikoon('zuurstof')}<div><small>Zuurstof</small><span id="h-o2"></span><div class="balk"><i></i></div></div></div><div class="hud-blok">${ikoon('diepte')}<div><small id="h-zone"></small><span id="h-diepte"></span></div></div><div class="hud-blok">${ikoon('tas')}<div><small>Tas</small><span id="h-tas"></span></div></div><div class="hud-rechts"><div class="hud-blok">${ikoon('net')}<div><small>Net</small><span id="h-net"></span></div></div></div>`;
-    zetKnoppen([{ id: 'net', tekst: 'Net' }, { id: 'pak', tekst: 'Pak' }, { id: 'harpoen', tekst: 'Harpoen', groot: true }]);
+    zetKnoppen([{ id: 'net', tekst: 'Net' }, { id: 'pak', tekst: 'Pak' }].concat(ST.uit.camera ? [{ id: 'foto', tekst: 'Foto' }] : [], [{ id: 'harpoen', tekst: 'Harpoen', groot: true }]));
     toonBediening(true);
     GELUID.zetSfeer('zee'); GELUID.zetMuziek('zee');
     this.hud();
   },
-  stop() { $('hud').hidden = true; toonBediening(false); kaartKnop(false); },
+  stop() { $('hud').hidden = true; toonBediening(false); kaartKnop(false); zetStek('zee'); },
   hud() {
     const o = Math.max(0, D.o2), b = document.querySelector('#hud .balk'); if (!b) return;
     $('h-o2').textContent = Math.ceil(o) + ' s'; b.firstChild.style.width = (o / D.o2max * 100) + '%'; b.className = 'balk' + (o < D.o2max * .2 ? ' kritiek' : o < D.o2max * .4 ? ' laag' : '');
-    const m = y2m(D.ruben.y); $('h-diepte').textContent = Math.round(m) + ' m'; $('h-zone').textContent = m < 1 ? 'Aan de oppervlakte' : zoneOp(m).naam + ' · max ' + uitW('pak') + ' m';
+    const m = y2m(D.ruben.y); $('h-diepte').textContent = Math.round(m) + ' m'; $('h-zone').textContent = (m < 1 ? (D.stek === 'zee' ? 'Aan de oppervlakte' : STEK.naam) : zoneOp(m).naam + ' · max ' + uitW('pak') + ' m') + (D.nacht ? ' · nacht' : '');
     $('h-tas').textContent = kgTekst(D.tasKg) + ' / ' + D.tasMax + ' kg'; $('h-net').textContent = D.net + '×';
     const pk = $('kn-pak'); if (pk) { pk.textContent = D.pakDoel && D.pakDoel.boot ? 'Boord' : 'Pak'; pk.classList.toggle('gloei', !!D.pakDoel); }
   },
@@ -3055,7 +3286,7 @@ SCENES.duik = {
     if (was('pauze')) { pauzeMenu(); return; }
     kaartUpdate(dt);
     if (D.touw) { updateTouw(dt); updateRest(dt); D.hudT -= dt; if (D.hudT <= 0) { D.hudT = .1; this.hud(); } return; }
-    updateRuben(dt); updateGereedschap(dt); updateVissen(dt); updateReuzen(dt); updateRest(dt);
+    updateRuben(dt); updateGereedschap(dt); updateVissen(dt); updateStroming(dt); updateReuzen(dt); updateRest(dt);
     // camera
     const R = D.ruben, tx = R.x - BEELD.W / 2 + R.vx * .35, ty = R.y - BEELD.H / 2 + R.vy * .25;
     D.cam.x += (tx - D.cam.x) * Math.min(1, dt * 4); D.cam.y += (ty - D.cam.y) * Math.min(1, dt * 4);
@@ -3066,7 +3297,7 @@ SCENES.duik = {
 };
 
 // ===================== DUIKEN: tekenen =====================
-const WATER_TABEL = []; for (let y = 0; y <= ZEE.H; y += 4) WATER_TABEL.push(waterOp(y2m(y)));
+const WATER_TABEL = []; function vulWaterTabel() { WATER_TABEL.length = 0; for (let y = 0; y <= ZEE.H; y += 4) WATER_TABEL.push(waterOp(y2m(y))); } vulWaterTabel();
 const waterBij = y => WATER_TABEL[klem(Math.floor(y / 4), 0, WATER_TABEL.length - 1)];
 function visDoekRichting(id, beeld, kijk, wit) {
   const b = Math.floor(beeld) % 4, k = (kijk < 0 ? 'L' : 'R') + (wit ? 'w' : '');
@@ -3094,19 +3325,25 @@ function kaustiekTegel() {
 let DONKER = null;
 function tekenDuik(ctx, W, H) {
   const cx = Math.round(D.cam.x), cy = Math.round(D.cam.y), T = tekenaar(ctx), t = D.tijd, Z = D.Z, R = D.ruben;
-  const middag = D.nr > 0;
-  // ---- lucht en water
-  for (let y = 0; y < H; y += 2) { const wy = cy + y; ctx.fillStyle = wy < 0 ? mix(middag ? '#F6D9A8' : '#E8F6FA', middag ? '#8FB8E0' : '#8ECDEB', klem(-wy / 110, 0, 1)) : waterBij(wy); ctx.fillRect(0, y, W, 2); }
+  const middag = D.nr > 0, nacht = D.nacht;
+  // ---- lucht en water ('s nachts: donkerblauw met sterren en de maan)
+  for (let y = 0; y < H; y += 2) { const wy = cy + y; ctx.fillStyle = wy < 0 ? (nacht ? mix('#14223E', '#060A18', klem(-wy / 110, 0, 1)) : mix(middag ? '#F6D9A8' : '#E8F6FA', middag ? '#8FB8E0' : '#8ECDEB', klem(-wy / 110, 0, 1))) : waterBij(wy); ctx.fillRect(0, y, W, 2); }
   if (cy < 0) {
-    const zx = (middag ? 520 : 180) - cx * .2, zy = -84 - cy; T.gloed(zx, zy, 30, '#FFF3C4', .4); T.ovaal(zx, zy, 9, 9, '#FFF6D6');
-    for (let i = 0; i < 5; i++) { const wx = ((i * 337 + t * 4) % (ZEE.W + 200)) - 100 - cx * .4, wy = -96 + i * 9 - cy; T.rect(wx, wy, 34, 4, '#FFFFFF'); T.rect(wx + 8, wy - 3, 16, 3, '#FFFFFF'); T.rect(wx + 4, wy + 4, 26, 1, '#DDEFF6'); }
-    // de kust links met duinen en de vuurtoren
-    for (let x = 0; x < W; x++) { const wx = x + cx; if (wx > 140) break; const h = 30 - wx * .2 + Math.sin(wx / 8) * 2; T.rect(x, -h - cy, 1, h, wx < 90 ? '#E8D4A0' : '#D9C48E'); if (wx < 70) T.rect(x, -h - cy, 1, 2, '#8CB86A'); }
+    if (nacht) {
+      for (let i = 0; i < 40; i++) { const sx = (hashf(i, 1, 91) * (ZEE.W + 200) - cx * .15) % (W + 40), sy = -110 + hashf(i, 2, 91) * 90 - cy; if (sy < -cy - 4) T.px(sx, sy, (Math.floor(t * 2 + i) % 7) ? '#E8F0FF' : '#8A9AC0'); }
+      const mx = 470 - cx * .2, my = -86 - cy; T.gloed(mx, my, 26, '#C8D8FF', .3); T.ovaal(mx, my, 8, 8, '#F4F1E0'); T.ovaal(mx + 3, my - 1, 7, 7, '#14223E');
+    } else {
+      const zx = (middag ? 520 : 180) - cx * .2, zy = -84 - cy; T.gloed(zx, zy, 30, '#FFF3C4', .4); T.ovaal(zx, zy, 9, 9, '#FFF6D6');
+      for (let i = 0; i < 5; i++) { const wx = ((i * 337 + t * 4) % (ZEE.W + 200)) - 100 - cx * .4, wy = -96 + i * 9 - cy; T.rect(wx, wy, 34, 4, '#FFFFFF'); T.rect(wx + 8, wy - 3, 16, 3, '#FFFFFF'); T.rect(wx + 4, wy + 4, 26, 1, '#DDEFF6'); }
+    }
+    if (D.stek === 'rif') tekenRifLucht(ctx, cx, cy, W, t, nacht);
+    // de kust links met duinen
+    else for (let x = 0; x < W; x++) { const wx = x + cx; if (wx > 140) break; const h = 30 - wx * .2 + Math.sin(wx / 8) * 2; T.rect(x, -h - cy, 1, h, nacht ? (wx < 90 ? '#3A3A4A' : '#34344A') : wx < 90 ? '#E8D4A0' : '#D9C48E'); if (wx < 70) T.rect(x, -h - cy, 1, 2, nacht ? '#24382E' : '#8CB86A'); }
   }
   // ---- verre achtergrond
   ctx.drawImage(D.verre, Math.round(-cx * .55), Math.round(-cy * .6 + 60), D.verre.width * 2, D.verre.height * 2);
   // ---- lichtbundels in ondiep water
-  if (cy < 640) {
+  if (cy < 640 && !nacht) {
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 7; i++) {
       const bx = i * 260 + 80 + Math.sin(t * .25 + i * 1.7) * 30 - cx, top = -cy;
@@ -3116,9 +3353,9 @@ function tekenDuik(ctx, W, H) {
     ctx.restore();
   }
   // ---- het verdronken dorp (achter de bodem)
-  if (cy + H > 1700) tekenDorp(ctx, Z, cx, cy, t);
+  if (Z.dorp && cy + H > 1700) tekenDorp(ctx, Z, cx, cy, t);
   // ---- de bodem in stukken
-  const kx0 = Math.max(0, Math.floor(cx / CHUNK)), kx1 = Math.min(ZEE.W / CHUNK - 1, Math.floor((cx + W) / CHUNK)), ky0 = Math.max(0, Math.floor(cy / CHUNK)), ky1 = Math.min(Math.ceil(ZEE.H / CHUNK) - 1, Math.floor((cy + H) / CHUNK));
+  const kx0 = Math.max(0, Math.floor(cx / CHUNK)), kx1 = Math.min(Math.ceil(ZEE.W / CHUNK) - 1, Math.floor((cx + W) / CHUNK)), ky0 = Math.max(0, Math.floor(cy / CHUNK)), ky1 = Math.min(Math.ceil(ZEE.H / CHUNK) - 1, Math.floor((cy + H) / CHUNK));
   let nieuw = 0;
   for (let ky = ky0; ky <= ky1; ky++) for (let kx = kx0; kx <= kx1; kx++) {
     const k = kx + ',' + ky; let c = Z.chunks.get(k);
@@ -3134,23 +3371,30 @@ function tekenDuik(ctx, W, H) {
   for (const v of D.vondsten) {
     const sx = v.x - cx, sy = v.y - cy; if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) continue;
     const cv = vondstDoek(v.id); ctx.drawImage(cv, Math.round(sx - 9), Math.round(sy - 8));
+    if (v.id === 'meetkastje' && Math.floor(t * 2) % 2) T.rect(sx - 5, sy - 6, 2, 2, '#FF4A4A');
     if (((t + v.t) % 3) < .25 && !VONDSTEN[v.id].rommel) { T.px(sx + 4, sy - 7, '#FFFFFF'); T.px(sx + 3, sy - 7, '#FFFFFF'); T.px(sx + 5, sy - 7, '#FFFFFF'); T.px(sx + 4, sy - 8, '#FFFFFF'); T.px(sx + 4, sy - 6, '#FFFFFF'); }
   }
   // ---- vissen
   for (const f of D.vissen) {
     if (f.dood && !f.aanLijn) continue;
     const sx = f.x - cx, sy = f.y - cy; if (sx < -50 || sx > W + 50 || sy < -40 || sy > H + 40) continue;
+    if (f.def.gedrag === 'graaf') { // kokkels: twee buisjes boven het zand, die af en toe een straaltje water spuiten
+      T.rect(sx - 2, sy - 2, 1, 2, '#E8D8B8'); T.rect(sx + 1, sy - 3, 1, 3, '#E8D8B8'); T.px(sx - 2, sy - 3, '#C8A878'); T.px(sx + 1, sy - 4, '#C8A878');
+      if (((t + f.t) % 4) < .3) { T.px(sx + 1, sy - 6, '#DFF6FA'); T.px(sx + 1, sy - 8, '#DFF6FA'); }
+      continue;
+    }
     if (f.verstopt) { // alleen de oogjes boven het zand
       T.px(sx - 2, sy, '#FFFFFF'); T.px(sx - 1, sy, '#1A1418'); T.px(sx + 2, sy, '#FFFFFF'); T.px(sx + 3, sy, '#1A1418'); T.rect(sx - 6, sy + 1, 12, 1, mix('#D2B57C', '#6A5A40', .25));
       continue;
     }
     const cv = visDoekRichting(f.s, f.beeld, f.kijk, f.flits > 0);
     if (f.staat === 'hol' && f.hol) { const z = 12; ctx.drawImage(cv, f.kijk > 0 ? cv.width - z : 0, 0, z, cv.height, Math.round(f.kijk > 0 ? sx - z / 2 : sx - z / 2), Math.round(sy - cv.height / 2), z, cv.height); continue; }
+    const camo = f.def.camo && Math.hypot(f.x - R.x, f.y - R.y) > 56; if (camo) ctx.globalAlpha = .45; // camouflage: van ver zie je hem bijna niet
     ctx.drawImage(cv, Math.round(sx - cv.width / 2), Math.round(sy - cv.height / 2));
-    if (f.def.licht) { /* licht in de donkerlaag */ }
+    if (camo) ctx.globalAlpha = 1;
   }
   // ---- grote vissen en Moeder Acht
-  if (ST.vlag.kelderOpen) tekenMoeder(ctx, cx, cy, t);
+  if (ST.vlag.kelderOpen && D.stek === 'zee') tekenMoeder(ctx, cx, cy, t);
   tekenReuzen(ctx, cx, cy, t);
   // ---- harpoen en net
   const H2 = D.harpoen;
@@ -3176,6 +3420,7 @@ function tekenDuik(ctx, W, H) {
     const sx = p.x - cx, sy = p.y - cy;
     if (p.t === 'bel') { if (p.g === 2) { T.rect(sx - 1, sy - 1, 3, 3, '#CFF4FF'); T.px(sx, sy, '#7FC8E0'); } else T.px(sx, sy, '#CFF4FF'); }
     else if (p.t === 'zand') T.px(sx, sy, '#C9B48A');
+    else if (p.t === 'stroom') { ctx.globalAlpha = klem(p.l, 0, .5); T.rect(sx - (p.vx > 0 ? 6 : 0), sy, 6, 1, '#E8FBFF'); ctx.globalAlpha = 1; }
     else T.px(sx, sy, '#FFF6C8');
   }
   for (const k of D.inkt) { ctx.globalAlpha = Math.max(0, .85 - k.t * .35); T.ovaal(k.x - cx, k.y - cy, k.r, k.r * .8, '#1A1420'); } ctx.globalAlpha = 1;
@@ -3191,9 +3436,10 @@ function tekenDuik(ctx, W, H) {
     for (let x = 0; x < W; x++) { const wx = x + cx, g = Math.round(Math.sin(wx / 9 + t * 2) * 1.2 + Math.sin(wx / 23 - t) * .8); T.rect(x, -cy + g, 1, 2, '#E8FBFF'); T.px(x, -cy + g + 2, '#9FE0F0'); }
   }
   // ---- kaustiek op ondiepe stukken
-  if (cy < 520) {
+  const ondiep = Z.ondiep || 470;
+  if (cy < ondiep + 50 && !nacht) {
     const tegel = kaustiekTegel(); ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    const tot = Math.min(H, 470 - cy); if (tot > 0) {
+    const tot = Math.min(H, ondiep - cy); if (tot > 0) {
       ctx.beginPath(); ctx.rect(0, Math.max(0, -cy), W, tot - Math.max(0, -cy)); ctx.clip();
       for (const [sn, a] of [[1, .1], [-1, .07]]) { ctx.globalAlpha = a; const ox = ((t * 9 * sn - cx) % 64 + 64) % 64 - 64, oy = ((t * 5 - cy) % 64 + 64) % 64 - 64; for (let y = oy; y < H; y += 64) for (let x = ox; x < W; x += 64) ctx.drawImage(tegel, x, y); }
     }
@@ -3201,11 +3447,14 @@ function tekenDuik(ctx, W, H) {
   }
   // ---- donker in de diepte, met licht van de lamp en van lichtgevende dieren
   const mMid = y2m(cy + H / 2);
-  if (mMid > 28) {
+  if (mMid > 28 || nacht) {
     if (!DONKER || DONKER.cv.width !== W || DONKER.cv.height !== H) DONKER = maakDoek(W, H);
     const dc = DONKER.ctx; dc.globalCompositeOperation = 'source-over'; dc.clearRect(0, 0, W, H);
-    const a0 = klem((y2m(cy) - 30) / 120, 0, .95), a1 = klem((y2m(cy + H) - 30) / 120, 0, .95);
-    const g = dc.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `rgba(2,6,16,${a0})`); g.addColorStop(1, `rgba(2,6,16,${a1})`); dc.fillStyle = g; dc.fillRect(0, 0, W, H);
+    // 's nachts is het al vanaf de oppervlakte donker (de lucht zelf is al getekend als nacht)
+    const donker = m => nacht ? klem(.72 + m / 160, 0, .95) : klem((m - 30) / 120, 0, .95), top = nacht ? Math.max(0, -cy) : 0;
+    const a0 = donker(y2m(cy + top)), a1 = donker(y2m(cy + H));
+    if (nacht && top > 0) { dc.fillStyle = 'rgba(2,6,16,.36)'; dc.fillRect(0, 0, W, top); } // boven water is het ook nacht, maar minder donker
+    const g = dc.createLinearGradient(0, top, 0, H); g.addColorStop(0, `rgba(2,6,16,${a0})`); g.addColorStop(1, `rgba(2,6,16,${a1})`); dc.fillStyle = g; dc.fillRect(0, top, W, H - top);
     dc.globalCompositeOperation = 'destination-out';
     const licht = (x, y, r, s = 1) => { const gg = dc.createRadialGradient(x, y, 0, x, y, r); gg.addColorStop(0, `rgba(0,0,0,${s})`); gg.addColorStop(1, 'rgba(0,0,0,0)'); dc.fillStyle = gg; dc.fillRect(x - r, y - r, r * 2, r * 2); };
     const lamp = ST.uit.lamp, rx = R.x - cx, ry = R.y - cy;
@@ -3213,7 +3462,9 @@ function tekenDuik(ctx, W, H) {
     if (lamp) { const a = R.mikMuis ? R.hoek : (R.kijk > 0 ? 0 : Math.PI); for (let i = 1; i <= 4; i++) licht(rx + Math.cos(a) * i * 26, ry + Math.sin(a) * i * 26, 26 + i * 12 + lamp * 8, .55); }
     for (const f of D.vissen) if (f.def.licht && !f.dood) { const sx = f.x - cx, sy = f.y - cy; if (sx > -30 && sx < W + 30 && sy > -30 && sy < H + 30) licht(sx, sy, 16, .7); }
     for (const f of D.vissen) if (f.s === 'zeeduivel' && !f.dood) { const sx = f.x - cx + f.kijk * 12, sy = f.y - cy - 10; licht(sx, sy, 22, .8); }
-    if (cy + H > 2250) licht(806 - cx, 2470 - cy, 280, .5);
+    if (D.stek === 'zee' && cy + H > 2250) licht(806 - cx, 2470 - cy, 280, .5);
+    for (const v of D.vondsten) if (v.id === 'meetkastje') licht(v.x - 4 - cx, v.y - 5 - cy, 20, Math.floor(t * 2) % 2 ? .85 : .35);
+    if (nacht && cy < 60) licht(ZEE.BOOT_X - 60 - cx, -30 - cy, 70, .7); // de lamp van De Zeekoe
     DONKER.ctx.globalCompositeOperation = 'source-over';
     ctx.drawImage(DONKER.cv, 0, 0);
     // de lichtjes zelf, bovenop het donker
@@ -3228,6 +3479,7 @@ function tekenDuik(ctx, W, H) {
     const s = d.boot ? 'AAN BOORD' : d.reus ? 'VASTPAKKEN' : 'PAK'; const tekst = INV.aanraak ? s : s + ' (F)';
     const bw = letterBreedte(tekst) + 6; T.rect(px - bw / 2, py - 2 + Math.sin(t * 5), bw, 11, '#FBF6E9'); letters(ctx, tekst, px, py + Math.sin(t * 5), '#231A26', 1, 'm');
   }
+  if (D.flitsFoto > 0) { ctx.fillStyle = `rgba(255,255,255,${(D.flitsFoto / .22 * .5).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
   if (D.rood > 0 || D.o2 < D.o2max * .2) {
     const a = D.rood > 0 ? D.rood * .6 : (.12 + .1 * Math.sin(t * 6));
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .35, W / 2, H / 2, Math.max(W, H) * .7); g.addColorStop(0, 'rgba(200,30,40,0)'); g.addColorStop(1, `rgba(200,30,40,${a})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -3263,7 +3515,7 @@ function tekenDorp(ctx, Z, cx, cy, t) {
 // ---- het pauzemenu tijdens het duiken
 function pauzeMenu() {
   PAUZE = true;
-  vraag(`<h2>Even pauze</h2><p>Zuurstof: <b>${Math.ceil(D.o2)} s</b> · Tas: <b>${kgTekst(D.tasKg)} / ${D.tasMax} kg</b></p><p class="klein">Zwemmen: pijltjes of WASD (Shift = sprint). Harpoen: spatie of klik. Net: E of rechtermuisknop. Pakken en aan boord gaan: F.</p>`,
+  vraag(`<h2>Even pauze</h2><p>Zuurstof: <b>${Math.ceil(D.o2)} s</b> · Tas: <b>${kgTekst(D.tasKg)} / ${D.tasMax} kg</b></p><p class="klein">Zwemmen: pijltjes of WASD (Shift = sprint). Harpoen: spatie of klik. Net: E of rechtermuisknop. Pakken en aan boord gaan: F. Foto: C. Kaart: M.</p>`,
     [{ tekst: 'Verder duiken', waarde: 'door', soort: 'hoofd' }, { tekst: 'Terug naar de boot', waarde: 'boot' }]).then(w => { PAUZE = false; vorige = performance.now(); if (w === 'boot') eindeDuik('boot'); });
 }
 
@@ -3302,6 +3554,7 @@ function updateReuzen(dt) {
   const R = D.ruben;
   for (const B of D.reuzen) {
     if (B.weg) continue;
+    if (B.id === 'mantel') { updateMantel(B, dt); continue; }
     B.t += dt; B.cd = Math.max(0, B.cd - dt); B.flits = Math.max(0, B.flits - dt);
     const dx = R.x - B.x, dy = R.y - B.y, dr = Math.hypot(dx, dy);
     if (B.staat === 'moe') { B.vx *= .9; B.vy *= .9; B.y += Math.sin(B.t * 2) * .1; continue; }
@@ -3316,8 +3569,9 @@ function updateReuzen(dt) {
   }
   // harpoen raakt een reus?
   const H = D.harpoen;
-  if (H && !H.terug) for (const B of D.reuzen) { if (B.weg || B.staat === 'moe') continue; if (Math.abs(H.x - B.x) < B.r * 1.4 && Math.abs(H.y - B.y) < B.r * .7) { B.hp -= uitW('harpoen'); B.flits = .2; H.terug = true; GELUID.sfx('raak'); tekstOp(B.x, B.y - B.r - 6, B.hp > 0 ? 'Nog ' + Math.ceil(B.hp) + '×' : 'Uitgeput!', '#FFE9A8'); if (B.hp <= 0) { B.staat = 'moe'; melding(B.def.naam + ' is moe. Zwem erheen en pak hem (F) om hem aan de lijn te houden!', 'goud groot', 4000); } else if (B.staat === 'rust') B.staat = 'aanval'; } }
+  if (H && !H.terug) for (const B of D.reuzen) { if (B.weg || B.staat === 'moe' || B.def.foto) continue; if (Math.abs(H.x - B.x) < B.r * 1.4 && Math.abs(H.y - B.y) < B.r * .7) { B.hp -= uitW('harpoen'); B.flits = .2; H.terug = true; GELUID.sfx('raak'); tekstOp(B.x, B.y - B.r - 6, B.hp > 0 ? 'Nog ' + Math.ceil(B.hp) + '×' : 'Uitgeput!', '#FFE9A8'); if (B.hp <= 0) { B.staat = 'moe'; melding(B.def.naam + ' is moe. Zwem erheen en pak hem (F) om hem aan de lijn te houden!', 'goud groot', 4000); } else if (B.staat === 'rust') B.staat = 'aanval'; } }
   // Moeder Acht
+  if (D.stek !== 'zee') return;
   if (ST.vlag.kelderOpen && !ST.vlag.moeder && !D.klaar && !PAUZE && Math.hypot(R.x - 806, R.y - 2560) < 90) ontmoetMoeder();
   if (Math.abs(R.x - 806) < 140 && R.y > 2020 && R.y < 2260) D.zagKerk = true;
 }
@@ -3369,6 +3623,7 @@ function tekenTouw() {
 function tekenReuzen(ctx, cx, cy, t) {
   for (const B of D.reuzen) {
     if (B.weg) continue;
+    if (B.id === 'mantel') { tekenMantel(ctx, B, cx, cy, t); continue; }
     const cv = reusDoek(B, B.kijk, B.flits > 0), sx = Math.round(B.x - cx - cv.width / 2), sy = Math.round(B.y - cy - cv.height / 2);
     if (sx > BEELD.W + 50 || sx + cv.width < -50 || sy > BEELD.H + 50 || sy + cv.height < -50) continue;
     ctx.drawImage(cv, sx, sy);
@@ -3404,6 +3659,81 @@ function tekenMoeder(ctx, cx, cy, t) {
   T.rect(x - 6, y + 6, 12, 2, '#5A1A3A');
 }
 
+// ===================== MEVROUW MANTEL: een reuzenzeekat in haar grot op Het Mosselrif =====================
+// Geen gevecht: kom rustig dichtbij, dan komt ze naar buiten en verandert ze steeds van kleur. Maak van elke kleur een foto.
+// Zwem je te wild of te dichtbij, dan spuit ze inkt en verstopt ze zich even.
+const MANTEL_KLEUR = ['in het rood', 'in het wit', 'gestreept', 'in het groen'];
+function updateMantel(B, dt) {
+  const R = D.ruben, dx = R.x - B.x, dy = R.y - B.y, dr = Math.hypot(dx, dy), snel = R.sprint || Math.hypot(R.vx, R.vy) > 58, g = B.thuis;
+  B.t += dt; B.cd = Math.max(0, B.cd - dt);
+  if (B.staat === 'verstopt') {
+    B.vx *= .8; B.vy *= .8; B.x += (g.x - B.x) * Math.min(1, dt * 2); B.y += (g.y - B.y) * Math.min(1, dt * 2);
+    if (dr < 115 && !snel && B.cd <= 0 && !D.klaar) {
+      B.staat = 'kijk'; B.kleurT = 0;
+      if (!B.gezien) { B.gezien = true; GELUID.sfx('nieuw'); melding(ST.uit.camera ? 'Mevrouw Mantel! Fotografeer haar in al haar vier kleuren. Rustig zwemmen, anders schrikt ze.' : 'Mevrouw Mantel, een reuzenzeekat! Met een camera (bij Trien) kun je haar fotograferen.', 'goud groot', 4200); }
+    }
+  } else {
+    // ze zweeft voor haar grot, kijkt naar je en verandert steeds van kleur
+    B.kleurT += dt; if (B.kleurT > 2.6) { B.kleurT = 0; B.kleur = (B.kleur + 1) % 4; }
+    const tx = g.x - 46 + Math.sin(B.t * .5) * 22, ty = g.y - 16 + Math.sin(B.t * .8) * 6;
+    B.vx += (tx - B.x) * dt * 1.6; B.vy += (ty - B.y) * dt * 1.6; B.vx *= 1 - dt * 1.2; B.vy *= 1 - dt * 1.2;
+    B.kijk = dx > 0 ? 1 : -1;
+    if ((snel && dr < 95) || dr < 24) {
+      B.staat = 'verstopt'; B.cd = 6; GELUID.sfx('plof');
+      for (let i = 0; i < 8; i++) D.inkt.push({ x: B.x + (Math.random() - .5) * 28, y: B.y + (Math.random() - .5) * 16, r: 8, t: 0 });
+      melding('Te wild! Mevrouw Mantel schiet haar grot in. Wacht even en zwem dan rustig terug.', 'rood', 3400);
+    }
+    if (dr > 220) B.staat = 'verstopt';
+  }
+  B.x += B.vx * dt; B.y += B.vy * dt; B.beeld = (B.beeld + dt * 3) % 4;
+}
+function fotoMantel(B, st) {
+  const k = B.kleur;
+  if (!D.mantel.includes(k)) D.mantel.push(k);
+  D.fotos.zeekat = Math.max(D.fotos.zeekat || 0, st);
+  tekstOp(B.x, B.y + 26, 'KLIK!', '#FFFFFF');
+  const n = D.mantel.length;
+  if (n < 4) melding('Mevrouw Mantel ' + MANTEL_KLEUR[k] + ': ' + n + ' van de 4 kleuren.', 'goud', 2600);
+  else if (!B.klaar) { B.klaar = true; melding('Alle vier de kleuren! Wat een foto\'s. Wieke wordt hier heel blij van.', 'goud groot', 4400); GELUID.sfx('feest'); D.ruben.pose = 'blij'; D.ruben.poseT = 1.2; }
+  B.kleurT = Math.min(B.kleurT, 1.4); // ze blijft nog even poseren
+}
+// Mevrouw Mantel zelf: een grote zeekat met een golvende vin rondom, een kop met een W-vormige pupil en korte armpjes.
+// Haar kleur: 0 rood (met stippels), 1 wit, 2 gestreept als een zebra, 3 groen met een glans.
+const MANTEL_PALET = [['#B83A3A', '#E8705E', '#7A2028'], ['#E8E2D8', '#FFFFFF', '#A8A098'], ['#C8B090', '#E8D4B0', '#3A2A20'], ['#3A9A7A', '#7AE0BA', '#1E5A48']];
+function mantelDoek(kleur, beeld, kijk) {
+  return zeeBuf('mantel|' + kleur + '|' + Math.floor(beeld) % 4 + '|' + kijk, () => {
+    const b = Math.floor(beeld) % 4, [k, l, d] = MANTEL_PALET[kleur], R = new Pix(78, 38), cy = 19;
+    // de vin: een golvende rand rondom het lijf
+    for (let x = 6; x <= 54; x++) { const u = (x - 30) / 25, h = Math.sqrt(Math.max(0, 1 - u * u)) * 11 + 2.5 + Math.sin(x * .55 + b * 1.6) * 1.2; R.rij(Math.round(cy - h), x, x, mix(l, '#FFFFFF', .2)); R.rij(Math.round(cy + h), x, x, mix(l, '#FFFFFF', .2)); for (let y = Math.round(cy - h) + 1; y < Math.round(cy + h); y++) R.p(x, y, mix(k, l, .45)); }
+    // het lijf (de mantel)
+    R.ovaal(31, cy, 23, 9.5, k); R.ovaal(30, cy - 3, 19, 4.5, l);
+    if (kleur === 0) for (let i = 0; i < 26; i++) R.p(12 + hashf(i, 1, 77) * 38, cy - 7 + hashf(i, 2, 77) * 13, d);
+    if (kleur === 2) for (let x = 11; x < 54; x += 4) for (let y = cy - 9; y <= cy + 9; y++) if (R.g(x + Math.round((y - cy) * .3), y) === k || R.g(x + Math.round((y - cy) * .3), y) === l) { R.p(x + Math.round((y - cy) * .3), y, d); R.p(x + 1 + Math.round((y - cy) * .3), y, d); }
+    if (kleur === 3) for (let x = 14; x < 50; x += 6) R.lijn(x, cy - 4, x + 3, cy - 6, '#C8FFE8');
+    if (kleur === 1) for (let x = 16; x < 48; x += 5) R.p(x, cy - 5, '#F4E8D8');
+    for (let x = 14; x < 46; x += 3) R.p(x, cy + 6, d); // de onderkant iets donkerder
+    // de kop met het grote oog
+    R.ovaal(56, cy, 7, 7.5, k); R.ovaal(55, cy - 3, 5, 3, l);
+    // armpjes naar voren, die zacht bewegen
+    for (let i = 0; i < 5; i++) { const y0 = cy - 4 + i * 2, y1 = cy - 7 + i * 3.5 + Math.sin(b * 1.6 + i) * 1.2; R.lijn(61, y0, 72 + (i % 2) * 3, y1, i % 2 ? d : k, 2); }
+    R.omlijn();
+    R.ovaal(56, cy - 2, 3.2, 2.8, '#F4F1E0'); R.rij(cy - 2, 54, 58, '#1A1418'); R.p(54, cy - 3, '#1A1418'); R.p(56, cy - 1, '#1A1418'); R.p(58, cy - 3, '#1A1418'); // W-pupil
+    const bron = R.doek();
+    if (kijk > 0) return bron;
+    const { cv, ctx } = maakDoek(bron.width, bron.height); ctx.translate(bron.width, 0); ctx.scale(-1, 1); ctx.drawImage(bron, 0, 0); return cv;
+  });
+}
+function tekenMantel(ctx, B, cx, cy, t) {
+  const T = tekenaar(ctx), sx = B.x - cx, sy = B.y - cy; if (sx < -90 || sx > BEELD.W + 90 || sy < -60 || sy > BEELD.H + 60) return;
+  if (B.staat === 'verstopt') { // alleen haar ogen, diep in de grot
+    const k = (Math.floor(t * .7) % 5) ? 1 : 0; for (const ox of [-6, 6]) { T.rect(sx + ox - 1, sy - 1, 3, 2, '#E8E2C0'); if (k) T.px(sx + ox, sy, '#1A1418'); }
+    return;
+  }
+  const cv = mantelDoek(B.kleur, B.beeld, B.kijk);
+  ctx.drawImage(cv, Math.round(sx - cv.width / 2), Math.round(sy - cv.height / 2));
+  if (ST.uit.camera) { const n = D.mantel.length; letters(ctx, 'MEVROUW MANTEL ' + n + '/4', sx, sy - cv.height / 2 - 10, n >= 4 ? '#FFE9A8' : '#FBF6E9', 1, 'm', '#0A1420'); }
+}
+
 // ===================== DE KAART VAN DE ZEE: een kleine patrijspoort rechtsboven, en een grote kaart als je erop tikt =====================
 // De kaart is een verkleinde versie van de zee (1 kaartpixel = 8 pixels zee). Wat je gezien hebt, blijft ontdekt (ST.kaart, per zee
 // een code); de rest is donker. De weg terug naar de boot komt uit een afstandskaart vanaf de ladder (een keer per duik uitgerekend).
@@ -3432,6 +3762,7 @@ function kaartLees(code, n) {
 
 // ---- bij het begin van een duik: de kaart tekenen en de afstandskaart vanaf de boot uitrekenen
 function kaartStart() {
+  KAART.W = ZEE.W / KAART.P; KAART.H = ZEE.H / KAART.P; KAART.MW = ZEE.W / KAART.MIST; KAART.MH = ZEE.H / KAART.MIST; // elke duikstek heeft zijn eigen maten
   const Z = D.Z, { W, H } = KAART, P = KAART.P;
   const vrij = new Uint8Array(W * H), stof = new Uint8Array(W * H);
   for (let my = 0; my < H; my++) for (let mx = 0; mx < W; mx++) { const x = mx * P + P / 2, y = my * P + P / 2, c = Z.cel[(y >> 2) * ZEE.CW + (x >> 2)]; stof[my * W + mx] = c; vrij[my * W + mx] = c === 0 ? 1 : 0; }
@@ -3452,11 +3783,11 @@ function kaartStart() {
   const start = 1 * W + Math.round(ZEE.BOOT_X / P); afst[start] = 0; rij[staart++] = start;
   while (kop < staart) { const i = rij[kop++], x = i % W; for (const j of [i - 1, i + 1, i - W, i + W]) { if (j < 0 || j >= W * H || (j === i - 1 && x === 0) || (j === i + 1 && x === W - 1)) continue; if (afst[j] < 0 && (vrij[j] || j < W * 2)) { afst[j] = afst[i] + 1; rij[staart++] = j; } } }
   if (!ST.kaart || typeof ST.kaart !== 'object') ST.kaart = {};
-  D.kaart = { beeld: d.cv, vrij, afst, ontdekt: kaartLees(ST.kaart.zee, KAART.MW * KAART.MH), t: 0, tekenT: 0, route: null, routeT: 0 };
+  D.kaart = { beeld: d.cv, vrij, afst, ontdekt: kaartLees(ST.kaart[STEK.id], KAART.MW * KAART.MH), t: 0, tekenT: 0, route: null, routeT: 0 };
   kaartOntdek(); kaartKnop(true);
 }
 // bij het einde van de duik: het ontdekte gebied bewaren (dat gebeurt in DAG.eindeDuik, samen met de vangst)
-function kaartBewaar() { if (D && D.kaart) { if (!ST.kaart || typeof ST.kaart !== 'object') ST.kaart = {}; ST.kaart.zee = kaartCode(D.kaart.ontdekt); } }
+function kaartBewaar() { if (D && D.kaart) { if (!ST.kaart || typeof ST.kaart !== 'object') ST.kaart = {}; ST.kaart[D.stek || 'zee'] = kaartCode(D.kaart.ontdekt); } }
 // wat Ruben om zich heen ziet, wordt ontdekt (in het donker zonder lamp minder ver)
 function kaartOntdek() {
   const K = D.kaart, R = D.ruben, m = y2m(R.y), r = m > 80 && !ST.uit.lamp ? 56 : 104, { MW, MH, MIST } = KAART;
@@ -3487,6 +3818,7 @@ function kaartPlekken() {
   for (const g of D.reuzen || []) if (!g.weg && !g.gevangen && g.def && g.def.naam) l.push({ t: 'reus', x: g.x, y: g.y });
   const W = D.Z.wrak; l.push({ t: 'plek', x: W.x + W.l / 2, y: W.y - 20, naam: 'Wrak' });
   if (D.Z.dorp) for (const h of D.Z.dorp) if (h.t === 'kerk') l.push({ t: 'plek', x: h.x, y: h.y - 60, naam: 'Kerk' });
+  if (D.stek === 'rif') l.push({ t: 'plek', x: RIF.GROT.x, y: RIF.GROT.y - 40, naam: 'Grot' });
   return l.filter(p => p.t === 'boot' || kaartGezien(p.x, p.y));
 }
 
@@ -3570,9 +3902,10 @@ async function kaartGroot() {
   const K = D.kaart, { W, H } = KAART;
   // hoeveel van de zee je ontdekt hebt: alleen water telt (rots telt niet mee)
   let open = 0, gezien = 0; for (let fy = 0; fy < KAART.MH; fy++) for (let fx = 0; fx < KAART.MW; fx++) { const x = Math.floor((fx * KAART.MIST + 16) / KAART.P), y = Math.floor((fy * KAART.MIST + 16) / KAART.P); if (K.vrij[y * W + x]) { open++; if (K.ontdekt[fy * KAART.MW + fx]) gezien++; } }
-  const zones = ZONES.map((z, i) => `<li><b>${z.naam}</b> ${i ? (ZONES[i - 1].tot) + ' tot ' : 'tot '}${z.tot < 999 ? z.tot : 270} m</li>`).join('');
-  const p = vraag(`<h2>De zee voor Schelpkerke</h2><div class="kaartgroot"><canvas id="kaart-groot" width="${W}" height="${H + 8}" aria-label="De grote kaart. Jij bent het knipperende vierkantje; de gouden stippen wijzen de weg terug naar de boot."></canvas>
-    <div class="kaart-uitleg"><p class="klein" style="margin-top:0">Je hebt ${Math.round(gezien / Math.max(1, open) * 100)}% van de zee ontdekt.</p>
+  const diepst = DIEPTE_PUNTEN[DIEPTE_PUNTEN.length - 1][0];
+  const zones = ZONES.map((z, i) => `<li><b>${z.naam}</b> ${i ? (ZONES[i - 1].tot) + ' tot ' : 'tot '}${z.tot < 999 ? z.tot : diepst} m</li>`).join('');
+  const p = vraag(`<h2>${STEK.naam}${D.nacht ? ' bij nacht' : ''}</h2><div class="kaartgroot"><canvas id="kaart-groot" width="${W}" height="${H + 8}" class="${W > H ? 'breed' : ''}" style="aspect-ratio:${W} / ${H + 8}" aria-label="De grote kaart. Jij bent het knipperende vierkantje; de gouden stippen wijzen de weg terug naar de boot."></canvas>
+    <div class="kaart-uitleg"><p class="klein" style="margin-top:0">Je hebt ${Math.round(gezien / Math.max(1, open) * 100)}% ${D.stek === 'zee' ? 'van de zee' : 'van ' + STEK.naam.replace(/^Het /, 'het ')} ontdekt.</p>
     <ul class="legenda"><li><i class="lg jij"></i> Jij</li><li><i class="lg boot"></i> De Zeekoe, de weg terug: <span class="goud">gouden stippen</span></li><li><i class="lg opdracht"></i> Iets voor een opdracht</li><li><i class="lg schat"></i> Iets waardevols</li><li><i class="lg reus"></i> Een grote vis</li></ul>
     <ul class="zones">${zones}</ul></div></div>`, [{ tekst: 'Verder duiken', waarde: 1, soort: 'hoofd' }], { breed: true, klasse: 'kaartvenster' });
   const cv = $('kaart-groot'); if (cv) {
@@ -3581,10 +3914,248 @@ async function kaartGroot() {
     // dieptestreepjes aan de linkerkant
     for (const z of ZONES) if (z.tot < 999) { const y = Math.round(m2y(z.tot) / KAART.P) + 8; ctx.fillStyle = 'rgba(251,246,233,.45)'; for (let x = 0; x < W; x += 4) ctx.fillRect(x, y, 2, 1); letters(ctx, z.tot + ' M', 3, y - 8, '#FBF6E9', 1, 'l', '#231A26'); }
     // wat een opdracht zoekt: een stippellijntje om het gebied waar het ergens moet liggen
-    if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) if (v.m) { const x0 = Math.round((v.x0 || 40) / KAART.P), x1 = Math.round((v.x1 || 1560) / KAART.P), y0 = Math.round(m2y(v.m[0]) / KAART.P) + 8, y1 = Math.round(m2y(v.m[1]) / KAART.P) + 8; ctx.fillStyle = '#F2C85A'; for (let x = x0; x <= x1; x += 3) { ctx.fillRect(x, y0, 1, 1); ctx.fillRect(x, y1, 1, 1); } for (let y = y0; y <= y1; y += 3) { ctx.fillRect(x0, y, 1, 1); ctx.fillRect(x1, y, 1, 1); } }
+    if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) if (v.m && (v.stek || 'zee') === D.stek && (!v.nacht || D.nacht)) { const x0 = Math.round((v.x0 || 40) / KAART.P), x1 = Math.round((v.x1 || 1560) / KAART.P), y0 = Math.round(m2y(v.m[0]) / KAART.P) + 8, y1 = Math.round(m2y(v.m[1]) / KAART.P) + 8; ctx.fillStyle = '#F2C85A'; for (let x = x0; x <= x1; x += 3) { ctx.fillRect(x, y0, 1, 1); ctx.fillRect(x, y1, 1, 1); } for (let y = y0; y <= y1; y += 3) { ctx.fillRect(x0, y, 1, 1); ctx.fillRect(x1, y, 1, 1); } }
   }
   await p;
   PAUZE = false; vorige = performance.now();
+}
+
+// ===================== DUIKSTEKKEN: Trien vaart je naar verschillende plekken, elk met een eigen kaart, eigen dieren en een eigen sfeer =====================
+// Elke duikstek heeft zijn eigen maten, diepte (meters <-> pixels), zones en waterkleur. zetStek() zet die neer in ZEE, DIEPTE_PUNTEN,
+// ZONES en WATER_NU, zodat de rest van het spel (tekenen, de kaart, de diepte in beeld) gewoon met de huidige stek werkt.
+// Na de duik gaat alles terug naar de zee voor Schelpkerke.
+const STEKKEN = {
+  zee: {
+    id: 'zee', naam: 'De zee voor Schelpkerke', kort: 'Van De Zandbank tot De Lichtkelder', W: 1600, H: 2720, BOOT_X: 300,
+    diepte: [[0, 0], [30, 430], [80, 920], [150, 1720], [220, 2280], [270, 2700]],
+    zones: [{ id: 'zand', naam: 'De Zandbank', tot: 30 }, { id: 'kelp', naam: 'Het Kelpwoud', tot: 80 }, { id: 'geul', naam: 'De Geul', tot: 150 }, { id: 'dorp', naam: 'Het verdronken dorp', tot: 220 }, { id: 'kelder', naam: 'De Lichtkelder', tot: 999 }],
+    water: null, open: () => true, kaart: { x: 96, y: 66 },
+  },
+  rif: {
+    id: 'rif', naam: 'Het Mosselrif', kort: 'Ondiep en helder, met zeegras, schelpenbanken en een sterk getij', W: 2400, H: 800, BOOT_X: 420,
+    diepte: [[0, 0], [40, 780]],
+    zones: [{ id: 'gras', naam: 'De Zeegrasvelden', tot: 14 }, { id: 'bank', naam: 'De Schelpenbanken', tot: 26 }, { id: 'getij', naam: 'De Getijgeul', tot: 999 }],
+    water: [[0, '#6CC4C0'], [10, '#4AA8AE'], [22, '#2E8A98'], [32, '#1F6E82'], [40, '#175A6E']],
+    open: () => ST.hfd >= 2 || ST.dag >= 4 || ST.stats.duiken >= 4, slot: 'Trien vaart hier pas heen als je de zee voor Schelpkerke een beetje kent.', kaart: { x: 168, y: 36 },
+  },
+};
+// de plekken die het verhaal later nog vrijspeelt (op de zeekaart als vraagteken)
+const STEKKEN_LATER = [{ naam: '???', kort: 'Wrakken, ver uit de kust', kaart: { x: 150, y: 104 } }, { naam: '???', kort: 'Grotten bij de kalkrots', kaart: { x: 72, y: 126 } }, { naam: '???', kort: 'Heel ver weg en heel diep', kaart: { x: 212, y: 128 } }];
+let STEK = STEKKEN.zee;
+function zetStek(id) {
+  STEK = STEKKEN[id] || STEKKEN.zee;
+  ZEE.W = STEK.W; ZEE.H = STEK.H; ZEE.BOOT_X = STEK.BOOT_X; ZEE.CW = ZEE.W / ZEE.CEL; ZEE.CH = ZEE.H / ZEE.CEL;
+  DIEPTE_PUNTEN.splice(0, DIEPTE_PUNTEN.length, ...STEK.diepte);
+  ZONES.splice(0, ZONES.length, ...STEK.zones);
+  WATER_NU = STEK.water || WATER_KLEUR;
+  vulWaterTabel();
+}
+const stekOpen = id => !!(STEKKEN[id] && STEKKEN[id].open());
+
+// ---- de zeekaart van Trien (240 x 150): de kust van Schelpkerke, met de duikplekken. 's Nachts in donkere kleuren.
+function tekenZeekaart(ctx, nacht) {
+  const T = tekenaar(ctx), W = 240, H = 150;
+  const papier = nacht ? '#3A4058' : '#F2DDA0', zee = nacht ? '#1E2E4E' : '#9CCFDC', zeeD = nacht ? '#142240' : '#6FB0C8', land = nacht ? '#4A4A3E' : '#D8C48A', landD = nacht ? '#34342C' : '#B8A46A', inkt = nacht ? '#C8D0E8' : '#3A2A22';
+  T.rect(0, 0, W, H, papier);
+  // de zee: dieper (donkerder) naar rechtsonder, met golfjes
+  for (let y = 6; y < H - 6; y++) for (let x = 6; x < W - 6; x += 2) { const kust = 40 + Math.sin(y / 11) * 7 + (y < 30 ? (30 - y) * 1.6 : 0); if (x < kust) continue; const f = klem((x - kust) / 200 + y / 300, 0, 1); T.rect(x, y, 2, 1, mix(zee, zeeD, f)); }
+  for (let i = 0; i < 26; i++) { const x = 60 + hashf(i, 1, 93) * 170, y = 12 + hashf(i, 2, 93) * 126; T.rect(x, y, 3, 1, nacht ? '#3A4E78' : '#C8E8F0'); T.px(x + 1, y - 1, nacht ? '#3A4E78' : '#C8E8F0'); }
+  // het land met de duinen, de dijk en het dorp
+  for (let y = 6; y < H - 6; y++) { const kust = 40 + Math.sin(y / 11) * 7 + (y < 30 ? (30 - y) * 1.6 : 0); T.rect(6, y, Math.max(0, kust - 6), 1, land); T.px(kust - 1, y, landD); T.px(kust - 2, y, mix(land, landD, .5)); }
+  for (let i = 0; i < 12; i++) { const x = 10 + hashf(i, 3, 93) * 22, y = 30 + hashf(i, 4, 93) * 100; T.px(x, y, nacht ? '#2A3A2A' : '#8CB86A'); T.px(x + 1, y, nacht ? '#2A3A2A' : '#7AA85A'); }
+  const dx = 30, dy = 92; for (const [hx, hy, kl] of [[dx - 8, dy - 4, '#C8323C'], [dx - 2, dy - 6, '#2F4C8F'], [dx + 4, dy - 3, '#C8323C']]) { T.rect(hx, hy, 5, 4, nacht ? '#5A5050' : '#F4F1E8'); T.rect(hx, hy - 2, 5, 2, nacht ? '#3A3040' : kl); if (nacht) T.px(hx + 2, hy + 1, '#FFD27A'); }
+  T.rect(dx - 1, dy - 14, 3, 10, nacht ? '#5A5050' : '#F4F1E8'); T.rect(dx - 1, dy - 16, 3, 2, '#C8323C'); if (nacht) T.gloed(dx, dy - 15, 10, '#FFE9A8', .5); // de vuurtoren
+  letters(ctx, 'SCHELPKERKE', 8, dy + 5, inkt, 1, 'l', papier);
+  // windroos
+  const rx = W - 22, ry = 20; T.lijn(rx, ry - 9, rx, ry + 9, inkt); T.lijn(rx - 9, ry, rx + 9, ry, inkt); T.veelhoek([[rx, ry - 10], [rx - 2, ry - 4], [rx + 2, ry - 4]], '#C8323C'); letters(ctx, 'N', rx, ry - 19, inkt, 1, 'm');
+  if (nacht) { T.ovaal(W - 50, 18, 6, 6, '#F4F1E0'); T.ovaal(W - 47, 17, 5, 5, papier); }
+  // de duikplekken, met een stippellijn vanaf de haven
+  const plek = (x, y, open, naam) => {
+    if (open) { for (let i = 0; i <= 30; i++) { const u = i / 30; if (i % 3 === 0) T.px(dx + 12 + (x - dx - 12) * u, dy - 4 + (y - dy + 4) * u + Math.sin(u * Math.PI) * -8, inkt); } }
+    if (open) { T.lijn(x - 3, y - 3, x + 3, y + 3, '#C8323C', 2); T.lijn(x + 3, y - 3, x - 3, y + 3, '#C8323C', 2); }
+    else { T.ovaal(x, y, 4, 4, nacht ? '#2A3048' : '#E8D8A8'); letters(ctx, '?', x + 1, y - 3, inkt, 1, 'm'); }
+    letters(ctx, naam, x, y + 6, inkt, 1, 'm');
+  };
+  // het rif: een stippel van schelpen
+  if (true) for (let i = 0; i < 18; i++) T.px(STEKKEN.rif.kaart.x - 16 + hashf(i, 5, 93) * 32, STEKKEN.rif.kaart.y - 6 + hashf(i, 6, 93) * 10, nacht ? '#5A6A8A' : '#4A5A78');
+  plek(STEKKEN.zee.kaart.x, STEKKEN.zee.kaart.y, true, 'DE ZEE');
+  plek(STEKKEN.rif.kaart.x, STEKKEN.rif.kaart.y, stekOpen('rif'), stekOpen('rif') ? 'MOSSELRIF' : '???');
+  for (const s of STEKKEN_LATER) plek(s.kaart.x, s.kaart.y, false, '???');
+  // een rand als van een oude kaart
+  T.rect(2, 2, W - 4, 1, inkt); T.rect(2, H - 3, W - 4, 1, inkt); T.rect(2, 2, 1, H - 4, inkt); T.rect(W - 3, 2, 1, H - 4, inkt);
+  T.rect(4, 4, W - 8, 1, mix(inkt, papier, .5)); T.rect(4, H - 5, W - 8, 1, mix(inkt, papier, .5)); T.rect(4, 4, 1, H - 8, mix(inkt, papier, .5)); T.rect(W - 5, 4, 1, H - 8, mix(inkt, papier, .5));
+}
+
+// ===================== HET MOSSELRIF: ondiep en helder, met zeegras, schelpenbanken, een getijgeul en een gezonken mosselkotter =====================
+// Van links naar rechts: de zeegrasvelden (8 tot 13 m), de schelpenbanken (heuvels van mosselen en oesters, met een gang dwars door de
+// grootste), de getijgeul (tot 39 m, met een sterke stroming en onder een rotsrichel de grot van Mevrouw Mantel) en de helling met
+// het wrak van De Jonge Jan. Elke duik is de bodem een beetje anders, de vaste plekken blijven.
+const RIF_PUNTEN = [[0, 70], [70, 150], [140, 215], [300, 245], [470, 235], [560, 320], [690, 500], [900, 515], [1100, 505], [1290, 525], [1370, 650], [1460, 735], [1640, 752], [1820, 726], [1905, 600], [2010, 455], [2150, 380], [2290, 300], [2400, 255]];
+const RIF = { GROT: { x: 1795, y: 700 }, TUNNEL: { x: 1130 }, WRAK: { x: 2120 }, GEUL: [1300, 1905] };
+function rifBodemBasis(x) {
+  const P = RIF_PUNTEN; if (x <= P[0][0]) return P[0][1];
+  for (let i = 1; i < P.length; i++) if (x <= P[i][0]) { const [a, ya] = P[i - 1], [b, yb] = P[i], u = (x - a) / (b - a), s = (1 - Math.cos(u * Math.PI)) / 2; return ya + (yb - ya) * s; }
+  return P[P.length - 1][1];
+}
+// het raster om te botsen, uit een functie die zegt of er water is (dezelfde opzet als in maakZee)
+function bouwRaster(Z, open, stof) {
+  const C = new Uint8Array(ZEE.CW * ZEE.CH);
+  for (let cy = 0; cy < ZEE.CH; cy++) for (let cx = 0; cx < ZEE.CW; cx++) { const x = cx * 4 + 2, y = cy * 4 + 2; if (!open(x, y)) C[cy * ZEE.CW + cx] = stof(x, y); }
+  const RAND = new Uint8Array(ZEE.CW * ZEE.CH);
+  for (let cy = 1; cy < ZEE.CH - 1; cy++) for (let cx = 1; cx < ZEE.CW - 1; cx++) {
+    const v = C[cy * ZEE.CW + cx] !== 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((C[(cy + dy) * ZEE.CW + cx + dx] !== 0) !== v) { RAND[cy * ZEE.CW + cx] = 1; dy = 2; break; }
+  }
+  Z.cel = C; Z.rand = RAND; Z.open = open;
+  Z.vastPx = (x, y) => { if (x < 0 || x >= ZEE.W || y >= ZEE.H) return true; if (y < 0) return !(x > 18 && x < ZEE.W - 18); const i = (y >> 2) * ZEE.CW + (x >> 2); if (!RAND[i]) return C[i] !== 0; return !open(x, y); };
+  Z.vast = (x, y) => { if (x < 0 || x >= ZEE.W || y >= ZEE.H) return true; if (y < 0) return false; return C[(y >> 2) * ZEE.CW + (x >> 2)] !== 0; };
+  Z.matOp = (x, y) => (x < 0 || x >= ZEE.W || y < 0 || y >= ZEE.H) ? 0 : C[(y >> 2) * ZEE.CW + (x >> 2)];
+  Z.vloer = (x, y) => { for (let yy = Math.max(0, y); yy < ZEE.H; yy += 2) if (Z.vast(x, yy)) return yy; return ZEE.H; };
+  Z.plafond = (x, y) => { for (let yy = y; yy > -40; yy -= 2) if (Z.vast(x, yy)) return yy; return -40; };
+}
+function maakRif(zaad) {
+  const r = rng(zaad), f = r() * 100, Z = { zaad, f };
+  const bodem = x => rifBodemBasis(x) + (ruis(x / 30, f, 41) - .5) * 14 + Math.sin(x / 23 + f) * 3;
+  // de schelpenbanken: heuvels van mosselen en oesters op het zand
+  const HEUVELS = [[640, 90, 58], [790, 110, 80], [960, 80, 54], [1130, 130, 150], [1265, 60, 40]];
+  const heuvelTop = x => { let top = Infinity; for (const [hx, w, h] of HEUVELS) { const dx = (x - hx) / w; if (Math.abs(dx) < 1) top = Math.min(top, bodem(x) - h * Math.sqrt(1 - dx * dx) * (.85 + ruis(x / 14, hx, 42) * .3)); } return top; };
+  // de verborgen gang dwars door de grootste bank
+  const tunnelY = x => bodem(RIF.TUNNEL.x) - 62 + Math.sin((x - RIF.TUNNEL.x) / 38) * 7;
+  const inTunnel = (x, y) => Math.abs(x - RIF.TUNNEL.x) < 136 && Math.abs(y - tunnelY(x)) < 11 + (ruis(x / 9, 3, 43) - .5) * 4;
+  // de rotsrichel boven de grot van Mevrouw Mantel (vast aan de rechterwand van de geul)
+  const richel = (x, y) => x > 1690 && x < 1990 && y > 592 + (ruis(x / 16, 5, 44) - .5) * 10 && y < 636 + (ruis(x / 12, 6, 45) - .5) * 14 + (x < 1730 ? (1730 - x) * -.5 : 0);
+  // losse keien in de geul en op de helling
+  const KEIEN = [[1400, bodem(1400) - 8, 26, 16], [1560, bodem(1560) - 6, 32, 14], [1700, bodem(1700) - 4, 18, 12], [2040, bodem(2040) - 6, 22, 14], [480, bodem(480) - 4, 14, 9], [260, bodem(260) - 4, 12, 8]];
+  for (let i = 0; i < 5; i++) { const x = 1320 + r() * 560; KEIEN.push([x, bodem(x) - 3, 8 + r() * 12, 5 + r() * 7]); }
+  // het wrak van De Jonge Jan: een mosselkotter, schuin op de helling, met een open ruim
+  const WX = RIF.WRAK.x + Math.round(r() * 20), WY = bodem(WX + 70) - 4, WL = 130;
+  const romp = [[WX, WY - 30], [WX + WL, WY - 44], [WX + WL - 4, WY - 18], [WX + WL - 24, WY + 4], [WX + 14, WY + 8], [WX + 4, WY - 6]];
+  const inRomp = (x, y) => { let c = false; for (let i = 0, j = romp.length - 1; i < romp.length; j = i++) { const [xi, yi] = romp[i], [xj, yj] = romp[j]; if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c; } return c; };
+  const ruim = [WX + 62, WY - 22, 22, 9];
+  Z.wrak = { x: WX, y: WY, l: WL, romp, ruimen: [ruim], naam: 'De Jonge Jan' };
+  const randL = y => 22 + ruis(1, y / 40, 46) * 10, randR = y => ZEE.W - 22 - ruis(2, y / 40, 47) * 10;
+  function open(x, y) {
+    if (y < 0) return x > 18 && x < ZEE.W - 18;
+    if (x < randL(y) || x > randR(y)) return false;
+    if (y >= bodem(x)) return false;
+    for (const [kx, ky, rx, ry] of KEIEN) { if (Math.abs(x - kx) > rx * 1.3 || Math.abs(y - ky) > ry * 1.3) continue; const dx = (x - kx) / rx, dy = (y - ky) / ry; if (dx * dx + dy * dy < 1 + (ruis(x / 5, y / 5, 48) - .5) * .5) return false; }
+    if (richel(x, y)) return false;
+    if (x > WX - 6 && x < WX + WL + 6 && y > WY - 50 && y < WY + 12 && inRomp(x, y)) { const dx = (x - ruim[0]) / ruim[2], dy = (y - ruim[1]) / ruim[3]; return dx * dx + dy * dy < 1; }
+    if (y >= heuvelTop(x) && !inTunnel(x, y)) return false;
+    return true;
+  }
+  const stof = (x, y) => {
+    if (x > WX - 6 && x < WX + WL + 6 && y > WY - 50 && y < WY + 12 && inRomp(x, y)) return M.WRAK;
+    if (y < bodem(x) && y >= heuvelTop(x)) return M.SCHELP;
+    if (richel(x, y) || y < bodem(x)) return M.ROTS;
+    return M.ZAND;
+  };
+  bouwRaster(Z, open, stof);
+  Z.bodem = bodem; Z.heuvelTop = heuvelTop; Z.tunnelY = tunnelY;
+  // tekenregels voor de bodem: zand blijft zand (dieper rots), alles is zonnig en groen begroeid
+  Z.zandRegel = (x, y) => Z.matOp(x, y) === M.ZAND; Z.zonY = 900; Z.mosY = 900; Z.ondiep = 560;
+  // de stroming in de getijgeul: bij eb naar links, bij vloed naar rechts
+  Z.getij = r() < .5 ? -1 : 1;
+  Z.stroom = [{ x0: RIF.GEUL[0], x1: RIF.GEUL[1], y0: 430, y1: ZEE.H, vx: 34 * Z.getij, vy: 0, luw: [1690, 1990, 596, ZEE.H] }]; // onder de richel is het luw
+  // ---- versiering: zeegras, mosselpalen, anemonen, zeesterren, schelpjes
+  const V = Z.versier = [];
+  for (let x = 84; x < 560; x += 4 + r() * 5) { const y = Z.vloer(x | 0, 100); if (y < 300 && r() < .85) V.push({ t: 'zeegras', x, y, n: 3 + Math.floor(r() * 4), h: 16 + r() * 22, f: r() * 6, voor: r() < .3 }); }
+  for (let x = 2000; x < 2370; x += 6 + r() * 8) { const y = Z.vloer(x | 0, 200); if (y < 480 && r() < .6) V.push({ t: 'zeegras', x, y, n: 3 + Math.floor(r() * 3), h: 12 + r() * 16, f: r() * 6, voor: r() < .25 }); }
+  for (const px of [190, 330, 420, 2230, 2330]) { const y = Z.vloer(px, 100); V.push({ t: 'paal', x: px + (r() - .5) * 20, y, h: 34 + r() * 30 }); }
+  for (let i = 0; i < 80; i++) {
+    const x = 40 + r() * (ZEE.W - 80), y = Z.vloer(x | 0, 60); if (y >= ZEE.H - 10 || !Z.open(x, y - 3)) continue;
+    const k = r();
+    V.push({ t: k < .3 ? 'anemoon' : k < .5 ? 'ster' : k < .78 ? 'schelpje' : k < .9 ? 'gras' : 'dodemans', x, y, kl: Math.floor(r() * 4), n: 3, h: 6 + r() * 8, f: r() * 6, m: y2m(y) });
+  }
+  Z.holen = []; Z.chunks = new Map();
+  return Z;
+}
+// ---- de zee vullen: dezelfde hulpjes als in vulZee, los te gebruiken voor elke duikstek
+function zeeHulp(D) {
+  const { Z, r } = D;
+  const plekIn = (x0, x1, m0, m1, pogingen = 30) => { for (let i = 0; i < pogingen; i++) { const x = x0 + r() * (x1 - x0), y = m2y(m0 + r() * (m1 - m0)); if (!Z.vast(x | 0, y | 0) && !Z.vast((x | 0) + 6, y | 0) && !Z.vast((x | 0) - 6, y | 0)) return [x, y]; } return null; };
+  const opVloer = (x0, x1, m0, m1) => { for (let i = 0; i < 40; i++) { const x = x0 + r() * (x1 - x0), y0 = m2y(m0 + r() * (m1 - m0)); if (Z.vast(x | 0, y0 | 0)) continue; const y = Z.vloer(x | 0, y0 | 0); if (y2m(y) >= m0 && y2m(y) <= m1 + 6 && !Z.vast(x | 0, y - 6)) return [x, y]; } return null; };
+  const maak = (s, x, y, extra = {}) => { const def = SOORTEN[s]; const f = Object.assign({ s, def, x, y, vx: 0, vy: 0, kijk: r() < .5 ? -1 : 1, hp: def.hp, staat: 'rust', t: r() * 10, beeld: Math.floor(r() * 4), thuis: { x, y }, flits: 0, r: VIS_R(s), doel: null, cd: 0 }, extra); D.vissen.push(f); return f; };
+  let schoolId = 1000;
+  const school = (s, x0, x1, m0, m1) => { const p = plekIn(x0, x1, m0, m1); if (!p) return; const def = SOORTEN[s], n = def.groep[0] + Math.floor(r() * (def.groep[1] - def.groep[0] + 1)), id = ++schoolId; for (let i = 0; i < n; i++) { const x = p[0] + (r() - .5) * 30, y = p[1] + (r() - .5) * 16; if (!Z.vast(x | 0, y | 0)) maak(s, x, y, { school: id }); } };
+  const los = (s, x0, x1, m0, m1, n) => { for (let i = 0; i < n; i++) { const p = plekIn(x0, x1, m0, m1); if (p) maak(s, p[0], p[1]); } };
+  const vloer = (s, x0, x1, m0, m1, n, extra) => { for (let i = 0; i < n; i++) { const p = opVloer(x0, x1, m0, m1); if (p) maak(s, p[0], p[1] - ({ zand: 3, vast: 4, graaf: 2 }[SOORTEN[s].gedrag] || 5), Object.assign({ vloer: true }, extra || {})); } };
+  const kies = m => { const l = Object.entries(VONDSTEN).filter(([id, v]) => v.diepte && !v.uitOester && !v.wrak && (!v.stek || v.stek === STEK.id) && m >= v.diepte[0] && m <= v.diepte[1] && !(v.uniek && ST.vondsten[id])); let tot = 0; const w = l.map(([id, v]) => { const g = v.rommel ? 3 : 8 / Math.sqrt(v.waarde + 1); tot += g; return g; }); let x = r() * tot; for (let i = 0; i < l.length; i++) { x -= w[i]; if (x <= 0) return l[i][0]; } return null; };
+  const leg = (x0, x1, m0, m1, n) => { for (let i = 0; i < n; i++) { const p = opVloer(x0, x1, m0, m1); if (!p) continue; const id = kies(y2m(p[1])); if (id) D.vondsten.push({ id, x: p[0], y: p[1] - 5, t: r() * 5 }); } };
+  return { plekIn, opVloer, maak, school, los, vloer, leg };
+}
+function vulRif(D) {
+  const { Z, r } = D, H = zeeHulp(D), nacht = D.nacht;
+  // de zeegrasvelden
+  if (!nacht) for (let i = 0; i < 3; i++) H.school('harder', 80, 1300, 2, 14);
+  for (let i = 0; i < 3; i++) { const p = H.opVloer(90, 560, 8, 14); if (p) { const id = 900 + i; for (let j = 0; j < 9; j++) H.maak('garnaal', p[0] + (r() - .5) * 24, p[1] - 4 - r() * 8, { school: id, zwerm: true }); } }
+  H.vloer('kokkel', 100, 540, 8, 14, 9); H.vloer('schol', 100, 560, 8, 14, 3); H.vloer('krab', 100, 560, 8, 14, 2);
+  // zeepaardjes houden zich vast aan het zeegras
+  const gras = Z.versier.filter(v => v.t === 'zeegras' && v.x < 600);
+  for (let i = 0; i < 4 && gras.length; i++) { const g = gras[Math.floor(r() * gras.length)]; H.maak('zeepaardje', g.x + 2, g.y - g.h * .6, { thuis: { x: g.x + 2, y: g.y - g.h * .6 } }); }
+  // de schelpenbanken
+  H.vloer('mossel', 560, 1290, 10, 26, 6); H.vloer('oester', 560, 1290, 12, 26, 5); H.vloer('zeeegel', 560, 1300, 12, 30, 4); H.vloer('zwemkrab', 560, 1300, 14, 30, nacht ? 6 : 4);
+  H.los('zeebrasem', 560, 1300, 8, 26, nacht ? 1 : 4); H.vloer('tarbot', 600, 1900, 20, 39, nacht ? 3 : 2); H.los('zeebaars', 400, 2000, 4, 30, nacht ? 1 : 2);
+  // de getijgeul en de helling
+  H.los('zeekat', 1320, 1880, 26, 38, 2); H.los('kwal', 300, 2300, 1, 30, 4);
+  if (!nacht && r() < .55) H.maak('zeehond', 2100 + r() * 200, m2y(6 + r() * 6), { thuis: { x: 2150, y: m2y(10) } });
+  if (!nacht && r() < .2) { const y = m2y(10 + r() * 10); H.maak('bruinvis', 300, y, { thuis: { x: 1200, y } }); }
+  // 's nachts komt er ander leven tevoorschijn
+  if (nacht) {
+    for (let i = 0; i < 3; i++) H.school('pijlinktvis', 300, 2200, 4, 30);
+    H.vloer('zeedonderpad', 120, 2300, 8, 38, 4); H.vloer('noordzeekrab', 560, 2300, 14, 39, 3); H.los('ribkwal', 200, 2300, 2, 30, 6);
+  }
+  // vondsten: op de bodem, een kistje in de verborgen gang en wat er in het wrak ligt
+  H.leg(80, 2350, 4, 39, 8);
+  // in de verborgen gang ligt soms een zeemanskistje; in hoofdstuk 6 altijd, met de bladzijde uit het logboek van De Zwaluw
+  const logboek = ST.hfd >= 6 && ST.vlag.h6 && !ST.vlag.logboek;
+  if (logboek || r() < .3) D.vondsten.push({ id: 'kistje', x: RIF.TUNNEL.x + 10, y: Z.tunnelY(RIF.TUNNEL.x + 10) + 6, t: 0 });
+  if (logboek) D.vondsten.push({ id: 'logboek', x: RIF.TUNNEL.x - 24, y: Z.tunnelY(RIF.TUNNEL.x - 24) + 6, t: 0, verhaal: true });
+  const W = Z.wrak; D.vondsten.push({ id: r() < .5 ? 'lantaarntje' : 'anker', x: W.ruimen[0][0], y: W.ruimen[0][1] + 5, t: 0 });
+  if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) if (v.stek === 'rif' && (!v.nacht || nacht)) { const p = v.m ? H.opVloer(v.x0 || 40, v.x1 || 2360, v.m[0], v.m[1]) : [v.x, v.y]; if (p) D.vondsten.push({ id: v.id, x: p[0], y: p[1] - 5, t: 0, verhaal: true }); }
+}
+// 's nachts in de zee voor Schelpkerke: pijlinktvissen bij je lamp, zeedonderpadden en Noordzeekrabben op de bodem, ribkwallen
+function nachtInZee(D) {
+  const H = zeeHulp(D);
+  for (let i = 0; i < 3; i++) H.school('pijlinktvis', 60, 1560, 6, 60);
+  H.vloer('zeedonderpad', 60, 600, 10, 31, 3); H.vloer('noordzeekrab', 1030, 1560, 40, 80, 3); H.vloer('noordzeekrab', 60, 600, 15, 31, 1); H.los('ribkwal', 60, 1560, 3, 70, 6);
+  // wie overdag in scholen zwemt, slaapt nu half: de helft van de haring en de makreel is weg
+  let n = 0; D.vissen = D.vissen.filter(f => !((f.s === 'haring' || f.s === 'makreel') && (n++ % 2)));
+}
+// de grote vissen op het Mosselrif: Mevrouw Mantel in haar grot (een fotografie-opdracht, geen gevecht)
+function reuzenRif() {
+  if (D.nacht) return []; // 's nachts slaapt ze diep in haar grot
+  const g = RIF.GROT, def = REUZEN.mantel;
+  return [{ id: 'mantel', def, soort: 'zeekat', x: g.x, y: g.y, thuis: { x: g.x, y: g.y }, vx: 0, vy: 0, kijk: -1, hp: 99, staat: 'verstopt', t: 0, cd: 0, flits: 0, beeld: 0, r: 30, foto: [], kleur: 0, kleurT: 0 }];
+}
+// ---- de stroming: duwt Ruben, de vissen en wat er rondzweeft
+function stroomOp(x, y) {
+  const Z = D && D.Z; if (!Z || !Z.stroom) return null;
+  for (const s of Z.stroom) if (x > s.x0 && x < s.x1 && y > s.y0 && y < s.y1) { let rand = Math.min(1, (x - s.x0) / 60, (s.x1 - x) / 60); if (s.luw && x > s.luw[0] && x < s.luw[1] && y > s.luw[2] && y < s.luw[3]) rand *= .25; return { vx: s.vx * rand, vy: s.vy * rand }; }
+  return null;
+}
+function updateStroming(dt) {
+  const Z = D.Z;
+  if (!D.zoemGemeld) for (const v of D.vondsten) if (v.id === 'meetkastje' && Math.hypot(v.x - D.ruben.x, v.y - D.ruben.y) < 220) { D.zoemGemeld = true; melding('Hoor je dat? Een zacht gezoem, ergens in de geul...', '', 3600); }
+  if (!Z.stroom) return;
+  for (const f of D.vissen) { if (f.dood || f.def.gedrag === 'vast' || f.def.gedrag === 'graaf' || f.vloer) continue; const s = stroomOp(f.x, f.y); if (s) { const nx = f.x + s.vx * dt * .7; if (!Z.vast(nx | 0, f.y | 0)) f.x = nx; } }
+  // strepen in het water, zodat je de stroming ziet
+  const s0 = Z.stroom[0], cx = D.cam.x, cy = D.cam.y;
+  if (!REDUCE && Math.random() < dt * 14 && cx + BEELD.W > s0.x0 && cx < s0.x1 && cy + BEELD.H > s0.y0) {
+    const x = s0.vx > 0 ? Math.max(s0.x0, cx) + Math.random() * 40 : Math.min(s0.x1, cx + BEELD.W) - Math.random() * 40, y = Math.max(s0.y0, cy) + Math.random() * Math.min(BEELD.H, s0.y1 - Math.max(s0.y0, cy));
+    if (!Z.vast(x | 0, y | 0)) D.deeltjes.push({ t: 'stroom', x, y, vx: s0.vx * 3, vy: 0, l: 1.2 + Math.random() });
+  }
+}
+// ---- tekenen: zeegras en mosselpalen (in tekenVersier), en de lucht boven het rif (een dijk met een molen in de verte)
+function tekenRifLucht(ctx, cx, cy, W, t, nacht) {
+  if (cy >= 0) return;
+  const T = tekenaar(ctx), y0 = -cy;
+  for (let x = 0; x < W; x++) { const wx = x + cx * .3, h = 7 + Math.sin(wx / 60) * 2; T.rect(x, y0 - h, 1, h, nacht ? '#1A2A24' : '#6E9A5A'); T.px(x, y0 - h, nacht ? '#24382E' : '#8CB86A'); }
+  const mx = 520 - cx * .3; if (mx > -30 && mx < W + 30) {
+    T.rect(mx - 3, y0 - 30, 7, 22, nacht ? '#2A2A30' : '#7A5A4A'); T.veelhoek([[mx - 4, y0 - 30], [mx + 5, y0 - 30], [mx + .5, y0 - 36]], nacht ? '#1A1A20' : '#5A3A2A');
+    for (let i = 0; i < 4; i++) { const a = t * .6 + i * Math.PI / 2; T.lijn(mx + .5, y0 - 30, mx + .5 + Math.cos(a) * 12, y0 - 30 + Math.sin(a) * 12, nacht ? '#3A3A44' : '#E8E2D0', 2); }
+    if (nacht) T.rect(mx, y0 - 22, 2, 2, '#FFD27A');
+  }
 }
 
 // ===================== DE AVOND IN HET ROMMELKOMBUIS =====================
@@ -4760,11 +5331,23 @@ const DAG = {
     if (id === 'prikbord') return this.krant();
   },
   async boot() {
-    if (ST.duiken >= 2) { await vraag(`<h2>De Zeekoe</h2><p>“Voor vandaag zit het er op, jongen. Het getij keert. Zet je restaurant maar klaar.”</p><p class="klein">Je kunt twee keer per dag duiken.</p>`, [{ tekst: 'Oké', waarde: 1, soort: 'hoofd' }]); return; }
-    const w = await vraag(`<h2>${ST.duiken ? 'Middagduik' : 'Ochtendduik'} met Trien</h2><p>Trien vaart je naar de ankerplek boven De Zandbank. Duik, vang vis voor vanavond, en zwem op tijd terug naar de ladder van de boot.</p><p class="klein">Zuurstof ${uitW('fles')} s · duikpak tot ${uitW('pak')} m · tas ${uitW('tas')} kg · net ${uitW('net')}×</p>`, [{ tekst: 'Duiken!', waarde: 'ja', soort: 'hoofd' }, { tekst: 'Nog niet', waarde: 'nee' }]);
-    if (w !== 'ja') return;
-    if (typeof verhaalVoorDuik === 'function') await verhaalVoorDuik();
-    await overgang(() => naarScene('duik', ST.duiken));
+    if (ST.duiken >= 2) { await vraag(`<h2>De Zeekoe</h2><p>“Voor vandaag zit het er op, jongen. Het getij keert. Zet je restaurant maar klaar.”</p><p class="klein">Je kunt twee keer per dag duiken${ST.uit.lamp ? ', en na de dienst nog een nachtduik maken' : ''}.</p>`, [{ tekst: 'Oké', waarde: 1, soort: 'hoofd' }]); return; }
+    if (ST.hfd === 6 && !ST.vlag.h6 && typeof verhaalRifBegin === 'function') await verhaalRifBegin(); // het begin van hoofdstuk 6 (met de camera)
+    const stek = await this.zeekaart(false);
+    if (!stek) return;
+    if (typeof verhaalVoorDuik === 'function') await verhaalVoorDuik(stek);
+    await overgang(() => naarScene('duik', { nr: ST.duiken, stek }));
+  },
+  // ---- de zeekaart van Trien: kies waar je gaat duiken. Geeft de id van de duikstek terug, of null.
+  zeekaart(nacht) {
+    return new Promise(res => {
+      const regels = Object.values(STEKKEN).map(s => { const open = s.open(); return `<div class="regel kies ${open ? '' : 'uit'}" role="button" tabindex="0" data-stek="${s.id}" ${open ? '' : 'aria-disabled="true"'}><div><div class="naam">${s.naam}${s.id !== 'zee' && open && !(ST.kaart && ST.kaart[s.id]) ? ' <span class="stempel">nieuw</span>' : ''}</div><div class="klein">${open ? s.kort : s.slot}</div></div><div class="meer">${open ? '<b>Hierheen ›</b>' : '<span class="klein">nog niet</span>'}</div></div>`; }).join('')
+        + STEKKEN_LATER.map(s => `<div class="regel uit"><div><div class="naam">???</div><div class="klein">${s.kort}</div></div></div>`).join('');
+      const k = paneel(`<h2>${nacht ? 'Een nachtduik' : (ST.duiken ? 'Middagduik' : 'Ochtendduik') + ' met Trien'}</h2><p class="klein" style="margin-top:0">${nacht ? '“In het donker is de zee een andere wereld. Blijf in het licht van je lamp, en kom op tijd boven.”' : '“Waar gaan we heen, kok?” Trien legt haar zeekaart op het dak van het stuurhuis.'}</p><div class="zk-lay"><canvas class="zeekaart" width="240" height="150" aria-label="De zeekaart van Trien, met de duikplekken"></canvas><div class="lijst">${regels}</div></div><p class="klein">Zuurstof ${uitW('fles')} s · duikpak tot ${uitW('pak')} m · tas ${uitW('tas')} kg · net ${uitW('net')}×${ST.uit.camera ? ' · camera' : ''}${ST.uit.mes ? ' · mes' : ''}</p><div class="rij"><button class="knop" type="button" id="zk-terug">${nacht ? 'Toch maar slapen' : 'Nog niet'}</button></div>`, { breed: true });
+      const cv = k.querySelector('canvas.zeekaart'); tekenZeekaart(cv.getContext('2d'), nacht);
+      k.querySelectorAll('.regel.kies').forEach(r => { const f = () => { const id = r.dataset.stek; if (!stekOpen(id)) { GELUID.sfx('fout'); melding(STEKKEN[id].slot, 'rood', 3200); return; } GELUID.sfx('klik'); sluitPaneel(); res(id); }; r.onclick = f; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } }; });
+      $('zk-terug').onclick = () => { GELUID.sfx('klik'); sluitPaneel(); res(null); };
+    });
   },
   async kombuis() {
     const w = await vraag(`<h2>Het Rommelkombuis</h2><p>${ST.dag === 1 && !ST.stats.gasten ? 'Je eigen restaurant! Het is nog wat kaal, maar met de vangst van vandaag kun je vanavond je eerste gasten ontvangen.' : 'Wat ga je doen?'}</p>`,
@@ -4802,14 +5385,28 @@ const DAG = {
     }
     const vis = {}, vond = {}, nieuw = [];
     for (const it of tas) { if (it.s) vis[it.s] = (vis[it.s] || 0) + 1; else vond[it.v] = (vond[it.v] || 0) + 1; }
+    // foto's: die raak je nooit kwijt, ook niet als je zuurstof op was
+    const fotos = Object.assign({}, D.fotos), fotoNieuw = Object.keys(fotos).filter(s => !ST.foto[s] && !ST.boek[s] && !vis[s]);
+    for (const [s, n] of Object.entries(fotos)) ST.foto[s] = Math.max(ST.foto[s] || 0, n);
+    const mantelKlaar = D.mantel && D.mantel.length >= 4;
+    if (mantelKlaar && !ST.reuzen.mantel) { ST.reuzen.mantel = 1; vond.mantel = (vond.mantel || 0) + 1; }
+    const opdr = [];
+    for (const o of FOTO_OPDR) {
+      if (ST.opdr[o.id]) continue;
+      const ok = o.soort ? (fotos[o.soort] || 0) >= (o.sterren || 1) : o.aantal ? Object.keys(fotos).length >= o.aantal : o.mantel ? mantelKlaar : false;
+      if (ok) { ST.opdr[o.id] = 1; ST.geld += o.beloning; opdr.push(o.id); }
+    }
     for (const [s, n] of Object.entries(vis)) { if (!ST.boek[s]) nieuw.push(s); ST.boek[s] = (ST.boek[s] || 0) + n; const p = SOORTEN[s].porties * n; const v = ST.voorraad.find(q => q[0] === s && q[2] === ST.dag); if (v) v[1] += p; else ST.voorraad.push([s, p, ST.dag]); }
     for (const [id, n] of Object.entries(vond)) ST.vondsten[id] = (ST.vondsten[id] || 0) + n;
-    ST.duiken++; ST.stats.duiken++;
+    if (!D.nacht) ST.duiken++; else ST.stats.nacht = (ST.stats.nacht || 0) + 1; // een nachtduik is een extraatje na de dienst
+    ST.stats.duiken++;
     ST.diepste = Math.max(ST.diepste || 0, Math.round(D.diepsteM));
     // nieuwe recepten leren door een nieuwe soort te vangen
     const geleerd = [];
     for (const [id, r] of Object.entries(RECEPTEN)) if (r.leer && vis[r.leer] && !(id in ST.recepten)) { ST.recepten[id] = 0; geleerd.push(id); }
-    ST.na = { soort: 'duik', hoe, vis, vond, nieuw, geleerd, diepste: Math.round(D.diepsteM), zagKerk: !!D.zagKerk };
+    // na een nachtduik gaat de nacht verder waar hij was (slapen, de krant)
+    const daarna = D.nacht && ST.na && ST.na.soort === 'avond' ? Object.assign({}, ST.na, { stap: 'nacht' }) : null;
+    ST.na = { soort: 'duik', hoe, vis, vond, nieuw, geleerd, diepste: Math.round(D.diepsteM), zagKerk: !!D.zagKerk, stek: D.stek, nacht: D.nacht, fotos, fotoNieuw, opdr, daarna };
     kaartBewaar(); // wat je ontdekt hebt, blijft op de kaart
     eindDeel(); bewaar();
     await overgang(() => naarScene('haven'));
@@ -4818,11 +5415,16 @@ const DAG = {
   toonDuik(na) {
     const { vis, vond, nieuw, geleerd, hoe } = na;
     const regels = Object.entries(vis).map(([s, n]) => `<div class="regel">${plaatjeHtml(zeedierDoek(s, 1), 2)}<div><div class="naam">${SOORTEN[s].naam} × ${n}${nieuw.includes(s) ? ' <span class="stempel">nieuw</span>' : ''}</div><div class="klein">${SOORTEN[s].porties * n} ${SOORTEN[s].porties * n === 1 ? 'portie' : 'porties'} voor het restaurant</div></div></div>`).join('')
-      + Object.entries(vond).map(([id, n]) => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${n > 1 ? ' × ' + n : ''}</div><div class="klein">${VONDSTEN[id].verhaal ? 'Een aanwijzing!' : VONDSTEN[id].rommel ? 'Rommel uit zee: Wieke van Het Zilte Huis is er blij mee.' : 'Verkopen in Het Zilte Huis of ophangen in je restaurant.'}</div></div></div>`).join('');
-    const plaatjes = Object.keys(vis).map(s => zeedierDoek(s, 1)).concat(Object.keys(vond).map(id => vondstDoek(id)));
-    const k = paneel(`<h2>${hoe === 'flauw' ? 'Op het nippertje...' : 'Terug aan boord'}</h2>${hoe === 'flauw' ? '<p>Je zuurstof was op. Trien heeft je aan de lijn omhoog getrokken, maar je bent de helft van je tas kwijt.</p>' : ''}<div class="lijst">${regels || '<p>Je tas is leeg. Volgende keer beter!</p>'}</div>${geleerd.length ? `<p><b>Nieuw recept:</b> ${geleerd.map(id => RECEPTEN[id].naam).join(', ')}!</p>` : ''}<p class="klein">Diepste punt: ${na.diepste} m</p><div class="rij"><button class="knop hoofd" type="button" id="nd-ok">Verder</button></div>`);
+      + Object.entries(vond).map(([id, n]) => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${n > 1 ? ' × ' + n : ''}</div><div class="klein">${VONDSTEN[id].verhaal ? 'Een aanwijzing!' : VONDSTEN[id].trofee ? 'Een trofee: hang hem op in je restaurant!' : VONDSTEN[id].rommel ? 'Rommel uit zee: Wieke van Het Zilte Huis is er blij mee.' : 'Verkopen in Het Zilte Huis of ophangen in je restaurant.'}</div></div></div>`).join('');
+    const fotos = na.fotos || {}, fotoNieuw = na.fotoNieuw || [], opdr = na.opdr || [];
+    const fotoRegels = Object.keys(fotos).filter(s => !vis[s]).map(s => `<div class="regel">${plaatjeHtml(zeedierDoek(s, 1), 2)}<div><div class="naam">Foto: ${SOORTEN[s].naam}${fotoNieuw.includes(s) ? ' <span class="stempel">nieuw</span>' : ''}</div><div class="klein">${'★'.repeat(fotos[s])}${'☆'.repeat(3 - fotos[s])}${SOORTEN[s].beschermd ? ' · beschermd: alleen een foto' : ''}</div></div></div>`).join('');
+    const plaatjes = Object.keys(vis).map(s => zeedierDoek(s, 1)).concat(Object.keys(vond).map(id => vondstDoek(id)), Object.keys(fotos).filter(s => !vis[s]).map(s => zeedierDoek(s, 1)));
+    const opdrHtml = opdr.length ? `<div class="regel" style="display:block"><div class="naam">Foto-opdracht${opdr.length > 1 ? 'en' : ''} van Wieke</div>${opdr.map(id => { const o = FOTO_OPDR.find(x => x.id === id); return `<div class="klein">✓ ${o.naam}: ${geldTekst(o.beloning)}</div>`; }).join('')}</div>` : '';
+    const k = paneel(`<h2>${hoe === 'flauw' ? 'Op het nippertje...' : na.nacht ? 'Terug van je nachtduik' : 'Terug aan boord'}</h2>${hoe === 'flauw' ? '<p>Je zuurstof was op. Trien heeft je aan de lijn omhoog getrokken, maar je bent de helft van je tas kwijt.</p>' : ''}<div class="lijst">${regels + fotoRegels || '<p>Je tas is leeg. Volgende keer beter!</p>'}</div>${opdrHtml}${geleerd.length ? `<p><b>Nieuw recept:</b> ${geleerd.map(id => RECEPTEN[id].naam).join(', ')}!</p>` : ''}<p class="klein">Diepste punt: ${na.diepste} m</p><div class="rij"><button class="knop hoofd" type="button" id="nd-ok">Verder</button></div>`);
     vulPlaatjes(k, plaatjes);
-    return new Promise(r => { $('nd-ok').onclick = () => { sluitPaneel(); if (nieuw.length) for (const s of nieuw.slice(0, 2)) melding(SOORTEN[s].naam + ': ' + SOORTEN[s].weetje, 'groot', 6500); r(); }; });
+    if (opdr.length) GELUID.sfx('munt');
+    const weetjes = nieuw.concat(fotoNieuw).slice(0, 2);
+    return new Promise(r => { $('nd-ok').onclick = () => { sluitPaneel(); for (const s of weetjes) melding(SOORTEN[s].naam + ': ' + SOORTEN[s].weetje, 'groot', 6500); r(); }; });
   },
   // ---- na de dienst: het geld, de recensie én de nieuwe dag in één keer bewaren; daarna pas de vensters (DAG.hervat).
   // Zo krijg je een dienst nooit twee keer betaald, en kom je na afsluiten terug waar je echt was.
@@ -4855,10 +5457,11 @@ const DAG = {
       ${u.dicht ? `<p class="klein" style="margin-top:0">Gesloten om ${u.dicht}.</p>` : ''}<div class="lijst"><div class="regel"><div class="naam">Gasten bediend</div><div class="meer">${u.bediend}</div></div>${u.vertrokken ? `<div class="regel"><div class="naam">Boos of teleurgesteld weggegaan</div><div class="meer">${u.vertrokken}</div></div>` : ''}<div class="regel"><div class="naam">Omzet</div><div class="meer">${geldTekst(u.omzet)}</div></div><div class="regel"><div class="naam">Fooi</div><div class="meer">${geldTekst(u.fooi)}</div></div>${u.loon ? `<div class="regel"><div class="naam">Lonen</div><div class="meer">− ${geldTekst(u.loon)}</div></div>` : ''}<div class="regel"><div class="naam">Totaal</div><div class="meer geld">${geldTekst(u.totaal - u.loon)}${u.nieuwBest ? ' <span class="stempel">record</span>' : ''}</div></div></div>
       <div class="regel" style="display:block"><div class="sterren" aria-label="${u.sterren} van de 5 sterren">${sterrenTekst(u.sterren)}</div><p style="margin:.2rem 0">“${u.tekst}”</p><div class="klein">— ${u.wie}</div></div>
       <div id="sb-duiker"></div>
-      <div class="rij"><button class="knop hoofd" type="button" id="na-ok">Slapen</button></div>`);
+      ${!ST.uit.lamp && ST.hfd >= 2 ? '<p class="klein">Met een duiklamp kun je na de dienst nog een nachtduik maken.</p>' : ''}
+      <div class="rij"><button class="knop hoofd" type="button" id="na-ok">Slapen</button>${ST.uit.lamp ? '<button class="knop" type="button" id="na-nacht">Nachtduik</button>' : ''}</div>`);
     if (window.Scorebord && !TESTSTAND) { try { Scorebord.blokje($('sb-duiker'), 'euro op je beste avond'); } catch (e) {} }
     GELUID.sfx(u.sterren >= 4 ? 'feest' : 'munt');
-    return new Promise(r => { $('na-ok').onclick = () => { sluitPaneel(); r(); }; });
+    return new Promise(r => { $('na-ok').onclick = () => { sluitPaneel(); r('slapen'); }; if ($('na-nacht')) $('na-nacht').onclick = () => { GELUID.sfx('klik'); sluitPaneel(); r('nacht'); }; });
   },
   // ---- wat er na een duik of dienst nog op het scherm moet komen. Elke stap wordt bewaard zodra hij klaar is,
   // dus na afsluiten (of een fout) ga je verder bij de stap waar je was. De verhaalstukken kunnen veilig opnieuw:
@@ -4873,10 +5476,16 @@ const DAG = {
         if (na.soort === 'duik') {
           await this.toonDuik(na);
           if (typeof verhaalNaDuik === 'function') await verhaalNaDuik(na.vis, na.vond, na);
-          if (ST.na === na) ST.na = null;
+          if (ST.na === na) ST.na = na.daarna || null;
           bewaar();
         } else if (na.soort === 'avond') {
-          if (na.stap === 'uitslag') { await this.toonUitslag(na); na.stap = 'nacht'; bewaar(); }
+          if (na.stap === 'uitslag') { const k = await this.toonUitslag(na); na.stap = k === 'nacht' ? 'nachtduik' : 'nacht'; bewaar(); }
+          // een nachtduik na de dienst; daarna (DAG.eindeDuik) gaat de nacht hier verder
+          if (na.stap === 'nachtduik') {
+            const stek = await this.zeekaart(true);
+            if (stek) { await overgang(() => naarScene('duik', { nr: 2, stek, nacht: true })); return; }
+            na.stap = 'nacht'; bewaar();
+          }
           if (na.stap === 'nacht') {
             GELUID.zetMuziek('nacht');
             if (typeof verhaalNacht === 'function') await verhaalNacht(na.d);
@@ -4901,16 +5510,18 @@ const DAG = {
   // ---- de krant van de ochtend
   async krant() {
     const w = weerVandaag(), b = this.bijzondereGast ? this.bijzondereGast(true) : null, rec = ST.recensies[0];
+    const rifNieuw = stekOpen('rif') && !ST.vlag.rifKrant; if (rifNieuw) ST.vlag.rifKrant = 1;
     await vraag(`<p class="klein" style="margin:0">De Zilte Smulkrant · dag ${ST.dag}</p><h2 style="font-family:Georgia,serif;font-size:1.6rem;margin:.1rem 0 .4rem;border-bottom:3px double #231A26">Nieuws uit Schelpkerke</h2>
       <p><b>Weer:</b> ${w.naam}. ${w.id === 'zon' ? 'Er komen vanavond vast veel mensen eten.' : w.id === 'regen' ? 'Wie gaat er nou uit eten in de regen? Een paar dappere mensen.' : 'Een gewone dag aan de kust.'}</p>
       ${b ? `<p><b>Vanavond:</b> ${b.krant}</p>` : ''}
+      ${rifNieuw ? '<p><b>Op de zeekaart:</b> schipper Trien vaart weer naar Het Mosselrif, waar haar opa vroeger mosselen viste. Ondiep, helder, en vol leven.</p>' : ''}
       ${rec ? `<p><b>Gisteren in Het Rommelkombuis:</b> ${sterrenTekst(rec.s)} “${rec.t}”</p>` : '<p><b>Nieuw aan de kade:</b> in de oude visafslag opent een nieuw restaurant. De kok duikt zelf zijn vis op!</p>'}
       <p class="klein">${TIPS[(ST.dag - 1) % TIPS.length]}</p>`, [{ tekst: 'Aan de slag', waarde: 1, soort: 'hoofd' }]);
   },
   // ---- het menu (pauze)
   async menu() {
     PAUZE = true;
-    const w = await vraag(`<h2>Menu</h2><p>Dag ${ST.dag} · ${geldTekst(ST.geld)} · hoofdstuk ${ST.hfd} van 5</p><p class="klein">Het spel wordt vanzelf bewaard. Sluit je af tijdens een duik of een dienst, dan begin je die de volgende keer opnieuw.</p>`,
+    const w = await vraag(`<h2>Menu</h2><p>Dag ${ST.dag} · ${geldTekst(ST.geld)} · hoofdstuk ${Math.min(ST.hfd, 10)} van 10</p><p class="klein">Het spel wordt vanzelf bewaard. Sluit je af tijdens een duik of een dienst, dan begin je die de volgende keer opnieuw.</p>`,
       [{ tekst: 'Verder spelen', waarde: 'door', soort: 'hoofd' }, { tekst: GELUID.muziekAan ? 'Muziek uit' : 'Muziek aan', waarde: 'muziek' }, { tekst: 'Uitleg', waarde: 'uitleg' }, { tekst: 'Opnieuw beginnen', waarde: 'nieuw' }]);
     PAUZE = false; vorige = performance.now();
     if (w === 'muziek') { GELUID.muziekAan = !GELUID.muziekAan; ST.inst.muziek = GELUID.muziekAan; bewaar(); }
@@ -4929,6 +5540,9 @@ const TIPS = [
   'Tip: vondsten van de bodem kun je in je restaurant ophangen. Dat maakt het gezelliger, en gezellig trekt gasten.',
   'Tip: druk tijdens het koken op spatie, of tik op het plaatje.',
   'Tip: in Het Zilte Huis houdt Wieke je Zeeboek bij. Elke nieuwe soort levert een recept-idee op.',
+  'Tip: op Het Mosselrif trekt het getij in de geul flink aan je. Onder de rotsrichel is het luw.',
+  'Tip: \'s nachts komen pijlinktvissen af op het licht van je lamp. Een net vol is zo gevangen.',
+  'Tip: hoe dichterbij en hoe rustiger het dier, hoe beter je foto. In het donker heb je een flitser nodig voor meer dan één ster.',
 ];
 function sterrenTekst(s) { let t = ''; for (let i = 1; i <= 5; i++) t += s >= i ? '★' : s >= i - .5 ? '⯪' : '☆'; return t.replace(/⯪/g, '½'); }
 function maakRecensie(st, A) {
@@ -4943,7 +5557,9 @@ function maakRecensie(st, A) {
 const UITLEG_HTML = `<h2>Zo speel je Ruben de Duiker</h2>
 <h3>Overdag: duiken</h3><p>Zwem met de pijltjes of WASD (Shift is sprinten, dat kost meer zuurstof). Op een telefoon stuur je met je duim links op het scherm.</p>
 <p><b>Harpoen:</b> spatie, klikken of de rode knop. Met de muis mik je zelf; anders mikt de harpoen een beetje vanzelf. Grote vissen moet je vaker raken.<br><b>Net:</b> E of de rechtermuisknop. Vangt kleine vissen, zoals een hele school haringen.<br><b>Pakken:</b> F of de knop Pak: mosselen, oesters, krabben en vondsten van de bodem.</p>
+<p><b>Foto:</b> C of de knop Foto (met een camera van Trien). Een foto zet een dier in je Zeeboek, ook als je het niet mag vangen. Wieke betaalt voor foto-opdrachten.<br><b>Duikmes:</b> daarmee graaf je kokkels uit en pak je zee-egels zonder je te prikken.<br><b>Kaart:</b> M of tik op de patrijspoort rechtsboven.</p>
 <p>Houd je <b>zuurstof</b> en het <b>gewicht van je tas</b> in de gaten. Zwem terug naar de ladder van De Zeekoe om aan boord te gaan. Ga niet dieper dan je duikpak aankan.</p>
+<h3>De zeekaart en de nacht</h3><p>Op de zeekaart van Trien kies je waar je duikt: de zee voor Schelpkerke of, na een paar dagen, Het Mosselrif. Met een duiklamp kun je na de dienst nog een nachtduik maken: dan zijn er andere dieren.</p>
 <h3>'s Avonds: het restaurant</h3><p>Kies je menu uit wat je hebt gevangen. Gasten bestellen; tik op een bonnetje (of de gast) om te koken, en daarna nog eens om op te dienen. Spatie doet steeds het slimste volgende ding, de cijfers 1 tot 6 kiezen een bonnetje.</p>
 <p>Koken gaat met korte spelletjes: snijden, bakken, roeren, openen en opmaken. Snel en mooi koken geeft meer fooi en een betere recensie.</p>
 <h3>Verbeteren</h3><p>Koop bij Trien betere duikspullen, maak je restaurant groter en mooier, neem Noor en Sem aan, en leer nieuwe recepten door nieuwe soorten te vangen.</p>`;
@@ -4981,12 +5597,19 @@ DAG.winkel = async function (tab = 'duik') {
 DAG.museum = async function (tab = 'boek') {
   return new Promise(res => {
     const toon = () => {
-      const tabs = [['boek', 'Zeeboek'], ['vondsten', 'Vondsten'], ['inrichten', 'Ophangen in het restaurant']];
+      const tabs = [['boek', 'Zeeboek'], ['opdr', 'Foto-opdrachten'], ['vondsten', 'Vondsten'], ['inrichten', 'Ophangen in het restaurant']];
       let inhoud = '', plaatjes = [];
       if (tab === 'boek') {
-        const ids = Object.keys(SOORTEN).filter(s => !SOORTEN[s].nietVangen || ST.boek[s]);
-        inhoud = `<p>“Elke soort die je vangt, schrijf ik op. Zo laten we zien hoe bijzonder deze zee is.”</p><p class="klein">${Object.keys(ST.boek).length} van de ${ids.length} soorten gevonden.</p><div class="tegels">${ids.map(s => `<div class="tegel ${ST.boek[s] ? '' : 'onbekend'}">${plaatjeHtml(ST.boek[s] ? zeedierDoek(s, 1) : silhouet(s), 2)}<b>${ST.boek[s] ? SOORTEN[s].naam : '???'}</b>${ST.boek[s] ? '<span class="klein">' + ST.boek[s] + '× gevangen</span>' : '<span class="klein">' + SOORTEN[s].diepte[0] + ' tot ' + SOORTEN[s].diepte[1] + ' m</span>'}</div>`).join('')}</div>`;
-        plaatjes = ids.map(s => ST.boek[s] ? zeedierDoek(s, 1) : silhouet(s));
+        // per plek: de zee, het rif en de nacht. Een soort staat erin als je hem gevangen of gefotografeerd hebt.
+        const ids = Object.keys(SOORTEN), gevonden = s => ST.boek[s] || ST.foto[s], n = ids.filter(gevonden).length;
+        const GROEPEN = [['De zee voor Schelpkerke', s => !SOORTEN[s].stek && !SOORTEN[s].nacht], ['Het Mosselrif', s => SOORTEN[s].stek === 'rif' && !SOORTEN[s].nacht], ['Alleen \'s nachts', s => SOORTEN[s].nacht]];
+        const tegel = s => gevonden(s) ? `<button type="button" class="tegel" data-soort="${s}">${plaatjeHtml(zeedierDoek(s, 1), 2)}<b>${SOORTEN[s].naam}</b><span class="klein">${ST.boek[s] ? ST.boek[s] + '× gevangen' : 'foto'}${ST.foto[s] ? ' · ' + '★'.repeat(ST.foto[s]) : ''}</span></button>` : `<div class="tegel onbekend">${plaatjeHtml(silhouet(s), 2)}<b>???</b><span class="klein">${SOORTEN[s].diepte[0]} tot ${SOORTEN[s].diepte[1]} m${SOORTEN[s].beschermd ? ' · foto' : ''}</span></div>`;
+        inhoud = `<p>“Elke soort die je vangt of fotografeert, schrijf ik op. Zo laten we zien hoe bijzonder deze zee is.”</p><p class="klein">${n} van de ${ids.length} soorten gevonden. Tik op een soort voor meer.</p>` + GROEPEN.map(([kop, f]) => { const l = ids.filter(f); return `<h3 class="boek-kop">${kop} <small>${l.filter(gevonden).length} van ${l.length}</small></h3><div class="tegels">${l.map(tegel).join('')}</div>`; }).join('');
+        plaatjes = GROEPEN.flatMap(([, f]) => ids.filter(f)).map(s => gevonden(s) ? zeedierDoek(s, 1) : silhouet(s));
+      }
+      if (tab === 'opdr') {
+        const n = FOTO_OPDR.filter(o => ST.opdr[o.id]).length;
+        inhoud = `<p>“Ik betaal je voor goede foto's. Sommige dieren mag je niet vangen, maar een foto mag altijd.”</p><p class="klein">${n} van de ${FOTO_OPDR.length} opdrachten klaar.${ST.uit.camera ? ' Maak een foto met C of de knop Foto.' : ' Je hebt nog geen camera: die verkoopt Trien.'}</p><div class="lijst">${FOTO_OPDR.map(o => `<div class="regel ${ST.opdr[o.id] ? '' : ''}"><div><div class="naam">${ST.opdr[o.id] ? '✓ ' : ''}${o.naam}</div><div class="klein">${o.tekst}</div></div><div class="meer">${ST.opdr[o.id] ? '<span class="klein">klaar</span>' : geldTekst(o.beloning)}</div></div>`).join('')}</div>`;
       }
       if (tab === 'vondsten') {
         const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && !VONDSTEN[id].verhaal);
@@ -5001,6 +5624,7 @@ DAG.museum = async function (tab = 'boek') {
       const k = paneel(`<h2>Het Zilte Huis</h2><p class="klein">Museum en werkkamer van professor Wieke Wier · <b>${geldTekst(ST.geld)}</b></p><div class="tabs" role="tablist">${tabs.map(([id, n]) => `<button role="tab" type="button" data-tab="${id}" aria-selected="${tab === id}">${n}</button>`).join('')}</div>${inhoud}<div class="rij"><button class="knop hoofd" type="button" id="z-klaar">Klaar</button></div>`, { breed: true });
       vulPlaatjes(k, plaatjes);
       k.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; GELUID.sfx('klik'); toon(); });
+      k.querySelectorAll('[data-soort]').forEach(b => b.onclick = async () => { GELUID.sfx('klik'); await soortKaart(b.dataset.soort); toon(); });
       k.querySelectorAll('[data-verkoop]').forEach(b => b.onclick = () => { const id = b.dataset.verkoop; if (!ST.vondsten[id]) return; ST.vondsten[id]--; ST.geld += VONDSTEN[id].waarde; bewaar(); GELUID.sfx('munt'); toon(); });
       k.querySelectorAll('[data-hang]').forEach(b => b.onclick = () => { const id = b.dataset.hang; if (!ST.vondsten[id] || ST.decor.length >= DECOR_PLEKKEN.length) return; ST.vondsten[id]--; ST.decor.push(id); bewaar(); GELUID.sfx('pak'); toon(); });
       k.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { const id = ST.decor.splice(+b.dataset.af, 1)[0]; ST.vondsten[id] = (ST.vondsten[id] || 0) + 1; bewaar(); toon(); });
@@ -5009,6 +5633,15 @@ DAG.museum = async function (tab = 'boek') {
     toon();
   });
 };
+// een bladzijde uit het Zeeboek: het dier groot, waar en hoe je hem vindt, en je foto
+function soortKaart(s) {
+  const d = SOORTEN[s], g = d.gedrag;
+  const hoe = d.nietVangen ? 'Niet vangen: maak een foto.' : g === 'graaf' ? 'Uitgraven met een duikmes (pakken).' : g === 'vast' ? 'Pakken van de bodem' + (d.prikt ? ' (met een duikmes prik je je niet).' : '.') : g === 'bodem' ? 'Pakken als hij stilzit, of met de harpoen.' : d.klein ? 'Met het net (een hele school tegelijk) of de harpoen.' : 'Met de harpoen' + (d.hp > 1 ? ', een paar keer raken.' : '.');
+  const waar = (d.stek === 'rif' ? 'Het Mosselrif' : d.stek ? STEKKEN[d.stek].naam : d.nacht ? 'De zee en Het Mosselrif' : 'De zee voor Schelpkerke') + ', ' + d.diepte[0] + ' tot ' + d.diepte[1] + ' m' + (d.nacht ? ', alleen \'s nachts' : '');
+  const p = vraag(`<h2>${d.naam}</h2><div style="text-align:center">${plaatjeHtml(zeedierDoek(s, 1), 4)}</div><p>${d.weetje}</p><div class="lijst"><div class="regel"><div class="naam">Waar</div><div class="meer klein">${waar}</div></div><div class="regel"><div class="naam">Vangen</div><div class="meer klein">${hoe}</div></div><div class="regel"><div class="naam">Gevangen</div><div class="meer">${ST.boek[s] || 0}×</div></div><div class="regel"><div class="naam">Beste foto</div><div class="meer">${ST.foto[s] ? '★'.repeat(ST.foto[s]) + '☆'.repeat(3 - ST.foto[s]) : '<span class="klein">nog geen</span>'}</div></div>${d.beschermd ? '<div class="regel"><div class="klein">Een beschermd dier: laat hem met rust.</div></div>' : ''}</div>`, [{ tekst: 'Terug', waarde: 1, soort: 'hoofd' }]);
+  vulPlaatjes($('paneel-in'), [zeedierDoek(s, 1)]);
+  return p;
+}
 function silhouet(s) { return zeeBuf('sil|' + s, () => { const b = zeedierDoek(s, 1), { cv, ctx } = maakDoek(b.width, b.height); ctx.drawImage(b, 0, 0); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = '#5E5643'; ctx.fillRect(0, 0, cv.width, cv.height); return cv; }); }
 DAG.recepten = async function () {
   const bekend = Object.keys(ST.recepten).filter(id => RECEPTEN[id]), rest = Object.keys(RECEPTEN).filter(id => !bekend.includes(id) && !RECEPTEN[id].verhaal);
@@ -5028,9 +5661,18 @@ const HOOFDSTUKKEN = [
   { titel: 'De Geul', doel: () => !ST.uit.lamp ? 'Koop een duiklamp en een duikpak tot 150 meter bij Trien.' : !ST.reuzen.grijsbek ? 'Zoek Ouwe Grijsbek bij de vernauwing in De Geul (zo\'n 120 meter diep) en vang hem.' : 'Klaar!' },
   { titel: 'Het verdronken dorp', doel: () => ST.uit.pak < 3 ? 'Koop een duikpak tot 270 meter.' : !ST.vlag.kerk ? 'Duik naar het verdronken dorp en zoek de kerktoren.' : !ST.reuzen.koningkreeft ? 'Koning Kreeft woont in het dorp. Hij heeft iets dat je nodig hebt.' : 'Klaar!' },
   { titel: 'De Lichtkelder', doel: () => ST.vlag.einde ? 'Klaar!' : !ST.vlag.moeder ? 'Duik door de oude kelder onder de kerk naar beneden. Neem iets glimmends mee.' : 'Vier feest in Het Rommelkombuis!' },
-  { titel: 'Vrij spelen', doel: () => 'Vang alle soorten voor het Zeeboek, versla de Lantaarnreus, en maak van Het Rommelkombuis het beste restaurant van Zeeland.' },
+  // Deel 2: Het lied van de diepte
+  { titel: 'Stilte op het rif', doel: () => doelRif() },
+  { titel: 'Wordt vervolgd', doel: () => 'Het lied van de diepte gaat verder in een volgende versie. Vul ondertussen je Zeeboek, maak alle foto-opdrachten van Wieke en versla de Lantaarnreus.' },
 ];
-function hoofdstukKaart(n) { return vraag(`<p class="klein" style="margin:0">Hoofdstuk ${n} van 5</p><h1 style="font-size:2.2rem">${HOOFDSTUKKEN[n].titel}</h1><p>${HOOFDSTUKKEN[n].doel()}</p>`, [{ tekst: 'Op naar!', waarde: 1, soort: 'hoofd' }]); }
+const vinkje = b => b ? '(✓)' : '(nog niet)';
+function doelRif() {
+  const al = rifKlaar();
+  if (al) return 'Klaar!';
+  return `Op Het Mosselrif: fotografeer een zeepaardje ${vinkje(ST.foto.zeepaardje)}, een zeehond ${vinkje(ST.foto.zeehond)} en Mevrouw Mantel in al haar vier kleuren ${vinkje(ST.reuzen.mantel)}. Zoek 's nachts in de getijgeul wat er zoemt ${vinkje(ST.vlag.meetkastje)}. En Triens opa had het over een gang dwars door de grootste schelpenbank ${vinkje(ST.vlag.logboek)}.`;
+}
+const rifKlaar = () => !!(ST.foto.zeepaardje && ST.foto.zeehond && ST.reuzen.mantel && ST.vlag.meetkastje && ST.vlag.logboek);
+function hoofdstukKaart(n) { return vraag(`<p class="klein" style="margin:0">Hoofdstuk ${n} van 10</p><h1 style="font-size:2.2rem">${HOOFDSTUKKEN[n].titel}</h1><p>${HOOFDSTUKKEN[n].doel()}</p>`, [{ tekst: 'Op naar!', waarde: 1, soort: 'hoofd' }]); }
 function naarHoofdstuk(n) { ST.hfd = n; bewaar(); }
 async function verhaalBegin() {
   await gesprek([
@@ -5044,7 +5686,10 @@ async function verhaalBegin() {
   await hoofdstukKaart(1);
   await DAG.krant();
 }
-async function verhaalVoorDuik() {
+async function verhaalVoorDuik(stek = 'zee', nacht = false) {
+  if (ST.hfd === 6 && !ST.vlag.h6) await verhaalRifBegin();
+  if (stek === 'rif' && !ST.vlag.rif1) { ST.vlag.rif1 = 1; await gesprek([['trien', 'Het Mosselrif! Hier viste mijn opa vroeger mosselen. Ondiep en helder, je ziet de bodem al vanaf de boot.'], ['trien', 'Maar pas op in de getijgeul: daar trekt het getij flink aan je. En kokkels zitten onder het zand, die graaf je uit met een duikmes.'], ['trien', 'Zie je een zeepaardje of een zeehond? Die laat je met rust. Die zijn beschermd.']]); }
+  if (nacht && !ST.vlag.nacht1) { ST.vlag.nacht1 = 1; await gesprek([['trien', 'Een nachtduik? Dan zie je een andere zee. Pijlinktvissen komen af op je lamp, en op de bodem gaan de krabben op jacht.'], ['trien', 'Zwem niet te ver weg van de boot. Ik laat de lamp van De Zeekoe branden.']]); }
   if (ST.stats.duiken === 0) await gesprek([['trien', 'Zwem naar de bodem en kijk goed rond. Met de harpoen vang je vis, met het net een hele school tegelijk.'], ['trien', 'Zie je de ladder aan de zijkant van de boot? Daar kom je weer aan boord. Let op je zuurstof!']]);
   if (ST.hfd === 3 && ST.uit.lamp && !ST.reuzen.grijsbek && !ST.vlag.grijsbekGezien) { ST.vlag.grijsbekGezien = 1; await gesprek([['trien', 'Ga je De Geul in? Pas op voor Ouwe Grijsbek. Een zeewolf zo groot als een roeiboot. Mijn opa zag hem al.'], ['ruben', 'Een zeewolf die zo oud is? Die moet ik zien.'], ['trien', 'Zien is één ding. Vangen is iets anders. Raak hem een paar keer met je harpoen en houd hem dan aan de lijn.']]); }
 }
@@ -5065,6 +5710,7 @@ function verhaalVondsten() {
   const l = [];
   if (ST.hfd === 2) { const n = (ST.vlag.post || 0) + (ST.vondsten.flessenpost || 0); for (let i = n; i < 3; i++) l.push({ id: 'flessenpost', m: [34 + i * 12, 72 + i * 4], x0: i === 2 ? 1180 : 1030, x1: i === 2 ? 1400 : 1560 }); }
   if (ST.hfd === 4 && !ST.vlag.kaart) l.push({ id: 'kaartstuk', m: [190, 222], x0: 300, x1: 1300 });
+  if (ST.hfd === 6 && ST.vlag.h6 && !ST.vlag.meetkastje) l.push({ id: 'meetkastje', stek: 'rif', nacht: true, m: [27, 39], x0: 1330, x1: 1880 });
   return l;
 }
 const DAGBOEK = [
@@ -5099,6 +5745,7 @@ async function verhaalNaDuik(vis, vond, na) {
     naarHoofdstuk(5); await hoofdstukKaart(5);
   }
   if (ST.vlag.moeder && !ST.vlag.einde) await verhaalEinde();
+  if (ST.hfd >= 6 || vond.meetkastje || vond.logboek) await verhaalRif(vond);
 }
 async function verhaalNacht(dag = ST.dag) { // dag: de dag van de dienst die net voorbij is
   if (!ST.vlag.klok1 && ST.stats.gasten > 0) {
@@ -5109,7 +5756,55 @@ async function verhaalNacht(dag = ST.dag) { // dag: de dag van de dienst die net
   if (ST.vlag.smulders && !ST.vlag.smuldersGezegd) { ST.vlag.smuldersGezegd = 1; await gesprek(ST.vlag.smulders === 2 ? [['smulders', 'Hm. Ik ben niet snel tevreden. Maar dit... dit was vakwerk. Morgen staat u in de krant, meneer de kok.'], ['ruben', 'Dank u wel!', 'blij']] : [['smulders', 'Hm. Het kan beter. Ik kom nog eens terug. Onaangekondigd.'], ['ruben', 'Volgende keer beter...', 'denk']]); if (ST.vlag.smulders === 2) ST.ster = Math.min(5, ST.ster + .4); }
   if (ST.vlag.bepGeweest === 1) { ST.vlag.bepGeweest = 2; await gesprek([['bep', 'Wat een heerlijke avond! In ons hotel bakken we ook, weet je. Vlaai.'], ['bep', 'Weet je wat? Ik leer je mijn zoute karamelvlaai. Kijk maar in je receptenschrift. Een toetje doet het altijd goed!'], ['ruben', 'Graag! Groeten aan iedereen in het Rommelhotel!', 'blij']]); }
 }
+// ---- hoofdstuk 6: Stilte op het rif
+async function verhaalRifBegin() {
+  ST.vlag.h6 = 1;
+  const hadCamera = ST.uit.camera > 0; if (!hadCamera) ST.uit.camera = 1; // de oude camera van Wieke
+  await gesprek([
+    ['trien', 'Morgen, kok. Raar verhaal: de mosselvissers zeggen dat het stil is op Het Mosselrif. Er liggen geen zeehonden meer op de zandplaat.'],
+    ['trien', 'En \'s nachts hoor je daar onder water iets zoemen. Zzzzz. Net een oude koelkast.'],
+    ['wieke', 'Ruben! Raad eens wie er een nieuw plan heeft. Govert Graaiman.'],
+    ['graaiman', 'In De Geul mag ik niet meer baggeren? Prima. Dan neem ik Het Mosselrif. Met mijn zuigkor haal ik in één week alle mosselen van de bodem. Zakelijk, hè?'],
+    ['wieke', 'Dat mag niet als er beschermde dieren wonen. Zeepaardjes, zeehonden... Maar dan moeten we het wel kunnen laten zien.'],
+    ['wieke', hadCamera ? 'Neem je camera mee. Sommige dieren mag je niet vangen, maar een foto mag altijd.' : 'Hier, neem mijn oude onderwatercamera mee. Sommige dieren mag je niet vangen, maar een foto mag altijd. (Toets C of de knop Foto.)'],
+    ['ruben', 'Een zeepaardje, een zeehond... En ik heb gehoord dat er een reuzenzeekat in een grot onder de rotsrichel woont.', 'blij'],
+    ['wieke', 'Mevrouw Mantel! Als je haar op de foto krijgt, in al haar kleuren, dan gelooft iedereen het. En zoek uit wat dat gezoem is.'],
+  ]);
+  await hoofdstukKaart(6);
+  bewaar();
+}
+async function verhaalRif(vond) {
+  if (vond.meetkastje && !ST.vlag.meetkastje) {
+    ST.vlag.meetkastje = 1; ST.vondsten.meetkastje = 0;
+    await gesprek([['ruben', 'Kijk wat ik in de geul vond: een knipperend kastje, vastgeschroefd op de bodem. Er staat op: GRAAIMAN VIS & CO, MEETPUNT 3.', 'schrik'], ['trien', 'Dat zoemt! Daarom zijn de zeehonden weg: die horen dat ding de hele nacht.'], ['wieke', 'Graaiman meet het rif al op, zonder vergunning. Dit nemen we mee naar de burgemeester.']]);
+  }
+  if (vond.logboek && !ST.vlag.logboek) {
+    ST.vlag.logboek = 1; ST.vondsten.logboek = 0;
+    await gesprek([
+      ['ruben', 'In de gang door de schelpenbank lag een oud zeemanskistje. Met een bladzijde uit een logboek erin, in een blikken koker. Nog droog!', 'blij'],
+      ['ruben', '“14 augustus 1898. Logboek van De Zwaluw, kapitein L. Wier. Vannacht boven het Mosselrif hoorden wij de zee zingen. Een lied van heel diep, van ver in het noorden.”'],
+      ['ruben', '“De oude vissers zeggen: wie het lied volgt, vindt de Glazen Stad. Morgen varen wij erheen.”'],
+      ['wieke', 'L. Wier... Lijsbet Wier! Dat was mijn betovergrootmoeder. Ze had een eigen schip, De Zwaluw. Op een dag voer ze weg en ze is nooit teruggekomen.'],
+      ['wieke', 'In onze familie was die Glazen Stad altijd een sprookje. Maar jij vond ook een klok die onder water luidt...'],
+    ]);
+  }
+  if (ST.hfd === 6 && ST.vlag.h6 && rifKlaar() && !ST.vlag.h6klaar) {
+    ST.vlag.h6klaar = 1;
+    await gesprek([
+      ['burgemeester', 'Foto\'s van een zeepaardje, een zeehond en een reuzenzeekat. En een meetkastje van meneer Graaiman, zonder vergunning. De beslissing is makkelijk.'],
+      ['burgemeester', 'Het Mosselrif wordt een beschermd gebied. Mosselen en kokkels vissen mag alleen nog met de hand. Geen zuigkor.'],
+      ['graaiman', 'Wat?! Alweer? ... Nou ja. Mag ik dan tenminste een bord kokkels met knoflook? Die schijnen hier goed te zijn.'],
+      ['ruben', 'Iedereen is welkom in Het Rommelkombuis!', 'blij'],
+      ['trien', 'Kijk eens, daar op de zandplaat: de zeehonden zijn terug.'],
+      ['wieke', 'Ruben... In het logboek van Lijsbet staat ook een koers. Naar het noorden, voorbij de wrakken. Ooit gaan we samen kijken waar dat lied vandaan komt.'],
+    ]);
+    ST.geld += 400; ST.ster = Math.min(5, ST.ster + .3);
+    await vraag('<h1 style="font-size:2rem">Het rif is gered</h1><p>Je krijgt € 400 van de gemeente. De zeehonden liggen weer op de zandplaat, en in Het Rommelkombuis staan kokkels met knoflook op de kaart.</p><p><b>Wordt vervolgd...</b> Het lied van de diepte gaat verder in een volgende versie.</p>', [{ tekst: 'Verder spelen', waarde: 1, soort: 'hoofd' }]);
+    naarHoofdstuk(7); await hoofdstukKaart(7);
+  }
+}
 async function verhaalOchtend() {
+  if (ST.hfd === 6 && !ST.vlag.h6) { await verhaalRifBegin(); return; }
   if (ST.vlag.klok1 === 1) { ST.vlag.klok1 = 2; await gesprek([['ruben', 'Trien, ik hoorde vannacht een klok luiden. Op zee!'], ['trien', 'Dus jij hoort hem ook. Dat is De Waker, de klok van Oud-Schelpkerke.'], ['trien', 'Dat dorp lag hier vroeger, waar nu De Geul is. In 1530 kwam er een stormvloed en verdween het hele dorp in de zee.'], ['trien', 'Volgens de oude mensen luidt de klok nog altijd onder water. Vlak voor er storm komt.'], ['ruben', 'Een klok onder water die vanzelf luidt? Dat wil ik zien!', 'blij'], ['trien', 'Haha. Eerst je restaurant draaiende krijgen, kok. Met dat duikpak kom je niet verder dan 30 meter.']]); }
 }
 async function verhaalEinde() {
@@ -5205,8 +5900,8 @@ function begin() {
 function testStart(p) {
   TESTSTAND = true;
   const w = p.get('test');
-  if (p.get('pak')) ST.uit.pak = +p.get('pak'); if (p.get('lamp')) ST.uit.lamp = +p.get('lamp'); if (p.get('geld')) ST.geld = +p.get('geld'); if (p.get('hfd')) ST.hfd = +p.get('hfd'); if (p.get('kelder')) ST.vlag.kelderOpen = 1; if (p.get('tafels')) ST.rest.tafels = +p.get('tafels'); if (p.get('linnen')) ST.rest.linnen = 1; if (p.get('decor')) ST.decor = ['scheepsbel', 'kompas', 'bord', 'anker', 'lantaarntje', 'fles', 'schelp', 'parel']; if (p.get('moeder')) ST.vlag.moeder = 1;
-  if (w === 'duik') { naarScene('duik', 0); if (p.get('x')) { D.ruben.x = +p.get('x'); D.ruben.y = +p.get('y'); D.ruben.intro = 0; D.cam.x = D.ruben.x - BEELD.W / 2; D.cam.y = D.ruben.y - BEELD.H / 2; } }
+  if (p.get('pak')) ST.uit.pak = +p.get('pak'); if (p.get('lamp')) ST.uit.lamp = +p.get('lamp'); if (p.get('geld')) ST.geld = +p.get('geld'); if (p.get('hfd')) ST.hfd = +p.get('hfd'); if (p.get('kelder')) ST.vlag.kelderOpen = 1; if (p.get('tafels')) ST.rest.tafels = +p.get('tafels'); if (p.get('linnen')) ST.rest.linnen = 1; if (p.get('decor')) ST.decor = ['scheepsbel', 'kompas', 'bord', 'anker', 'lantaarntje', 'fles', 'schelp', 'parel']; if (p.get('moeder')) ST.vlag.moeder = 1; if (p.get('camera')) ST.uit.camera = +p.get('camera'); if (p.get('mes')) ST.uit.mes = 1;
+  if (w === 'duik') { naarScene('duik', { nr: 0, stek: p.get('stek') || 'zee', nacht: !!p.get('nacht') }); if (p.get('x')) { D.ruben.x = +p.get('x'); D.ruben.y = +p.get('y'); D.ruben.intro = 0; D.cam.x = D.ruben.x - BEELD.W / 2; D.cam.y = D.ruben.y - BEELD.H / 2; } }
   if (w === 'haven') naarScene('haven');
   if (w === 'avond') { ST.voorraad = [['haring', 8, ST.dag], ['kabeljauw', 9, ST.dag], ['schol', 4, ST.dag], ['mossel', 5, ST.dag]]; if (p.get('noor')) ST.pers.noor = true; if (p.get('sem')) ST.pers.sem = true; naarScene('restaurant', ['haring', 'kibbeling', 'schol', 'mosselen']); if (p.get('uur')) A.uur = +p.get('uur'); }
 }
@@ -5215,6 +5910,7 @@ window.__duiker = {
   naarScene, SCENES, DAG, bewaar, laad, nieuweStaat, gesprek, y2m, m2y, maakZee, RECEPTEN, SOORTEN, UITRUSTING, RESTAURANT,
   zetStaat(s) { ST = s; },
   testVang(s, n) { for (let i = 0; i < n; i++) inTas({ s }); }, testVondst(v) { inTas({ v }); }, testBoven() { eindeDuik('boot'); },
+  get STEK() { return STEK; }, STEKKEN, FOTO_OPDR, foto: () => foto(), zetStek,
   get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), kaartStart, kaartCode, kaartLees, kaartRoute, plan: () => A ? planVolgorde().map(b => b.nr) : [],
   testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },
 };

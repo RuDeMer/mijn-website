@@ -138,6 +138,28 @@ body { display: flex; flex-direction: column; background: #0B1C2C; color: var(--
 @media (prefers-reduced-motion: no-preference) { .bon.doen { animation: bon-sein 1.1s ease-in-out infinite; } }
 @keyframes bon-sein { 50% { filter: brightness(1.12) saturate(1.2); } }
 .klokje { margin-left: auto; pointer-events: none; }
+/* rechtsboven in het restaurant: de klok, en daaronder de knop om eerder te sluiten */
+.r-rechts { margin-left: auto; display: grid; justify-items: end; gap: .35rem; pointer-events: none; } .r-rechts .klokje { margin-left: 0; }
+#bonnen .r-sluit { pointer-events: auto; font-size: .85rem; padding: .3rem .75rem .38rem; touch-action: manipulation; }
+#bonnen .r-sluit.doen { background: #E9B949; color: #2A1E10; box-shadow: inset 0 -4px 0 #B98C25, inset 0 3px 0 #FFE29A; }
+@media (prefers-reduced-motion: no-preference) { #bonnen .r-sluit.doen { animation: bon-sein 1.1s ease-in-out infinite; } }
+#r-snel { color: #FFE29A; }
+/* ---- de kaart bij het duiken: een kleine patrijspoort rechtsboven, onder de balk met zuurstof en diepte */
+#minikaart { position: absolute; right: .5rem; top: 4rem; width: 84px; height: 84px; z-index: 10; padding: 0; border: 0; border-radius: 50%; background: #04080D; cursor: pointer; overflow: hidden;
+  box-shadow: 0 0 0 3px #231A26, 0 0 0 6px #C9A040, 0 0 0 8px #7A5A1A, 0 4px 0 7px rgba(0,0,0,.35); touch-action: manipulation; -webkit-tap-highlight-color: transparent; opacity: .92; }
+#minikaart canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; border-radius: 50%; }
+#minikaart::after { content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,255,255,.12), inset 6px 8px 14px rgba(255,255,255,.12); pointer-events: none; }
+#minikaart:focus-visible { outline: none; box-shadow: 0 0 0 3px #231A26, 0 0 0 6px #2F6FB5, 0 0 0 8px #1E3263; }
+/* de grote kaart */
+.kaartgroot { display: flex; gap: 1rem; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+.kaartgroot canvas { display: block; image-rendering: pixelated; height: min(62vh, 700px); width: auto; max-width: 100%; aspect-ratio: 200 / 348; box-shadow: 0 0 0 3px var(--inktrand); background: #04080D; }
+.kaart-uitleg { flex: 1 1 12rem; min-width: 11rem; }
+.legenda, .zones { list-style: none; margin: .4rem 0; padding: 0; display: grid; gap: .3rem; font-size: .95rem; }
+.zones { font-size: .88rem; color: #4A3E30; } .zones b { color: var(--inkt); }
+.legenda .goud { color: #8A6410; font-weight: 800; }
+.lg { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: .3rem; box-shadow: 0 0 0 2px #231A26; }
+.lg.jij { background: #FFFFFF; } .lg.boot { background: #7A4E2D; box-shadow: 0 0 0 2px #231A26, inset 0 -4px 0 #C8323C; } .lg.opdracht { background: #F2C85A; } .lg.schat { background: #E8E8F0; transform: rotate(45deg) scale(.8); } .lg.reus { background: #E8414E; }
+@media (max-height: 460px) { .kaartgroot canvas { height: calc(100vh - 13.5rem); } .kaartvenster h2:not([style]) { margin-bottom: .3rem; } .kaartvenster .zones { display: none; } .kaartvenster .legenda { gap: .15rem; font-size: .88rem; } }
 /* ---- minispelletjes: een houten bord */
 #mini { position: absolute; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(6,18,30,.3), rgba(6,18,30,.65)); pointer-events: none; }
 #mini .paneel { pointer-events: auto; } /* naast het bord van het spelletje kun je de bonnetjes gewoon blijven aantikken */
@@ -2151,6 +2173,7 @@ function nieuweStaat() {
     ster: 2.5, recensies: [], beste: { avond: 0, ster: 0 },
     stats: { duiken: 0, gasten: 0, verdiend: 0, schoon: 0 }, inst: { geluid: true, muziek: true },
     diepste: 0, na: null, // na: wat er na een duik of dienst nog op het scherm moet komen (zie DAG.hervat)
+    kaart: {}, // ontdekt gebied per zee, als korte code (zie kaartCode)
   };
 }
 let ST = nieuweStaat();
@@ -2201,7 +2224,7 @@ addEventListener('resize', () => { maat(); if (SCENE.nu && SCENE.nu.maat) SCENE.
 
 // ---- invoer: toetsen, muis, aanraken
 const INV = { toets: {}, nieuw: new Set(), muis: { x: 0, y: 0, in: false, links: false, rechts: false }, aanraak: 'ontouchstart' in window || navigator.maxTouchPoints > 0, muisGebruikt: 0, stuur: { x: 0, y: 0, aan: false } };
-const TOETS = { ArrowLeft: 'links', a: 'links', A: 'links', ArrowRight: 'rechts', d: 'rechts', D: 'rechts', ArrowUp: 'op', w: 'op', W: 'op', ArrowDown: 'neer', s: 'neer', S: 'neer', ' ': 'actie', Enter: 'enter', e: 'net', E: 'net', f: 'pak', F: 'pak', Shift: 'sprint', Escape: 'pauze', p: 'pauze', P: 'pauze', q: 'wissel', Q: 'wissel', '1': 'een', '2': 'twee', '3': 'drie', '4': 'vier', '5': 'vijf', '6': 'zes', Tab: 'tab' };
+const TOETS = { ArrowLeft: 'links', a: 'links', A: 'links', ArrowRight: 'rechts', d: 'rechts', D: 'rechts', ArrowUp: 'op', w: 'op', W: 'op', ArrowDown: 'neer', s: 'neer', S: 'neer', ' ': 'actie', Enter: 'enter', e: 'net', E: 'net', f: 'pak', F: 'pak', Shift: 'sprint', Escape: 'pauze', p: 'pauze', m: 'kaart', M: 'kaart', P: 'pauze', q: 'wissel', Q: 'wissel', '1': 'een', '2': 'twee', '3': 'drie', '4': 'vier', '5': 'vijf', '6': 'zes', Tab: 'tab' };
 addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   const k = TOETS[e.key]; if (!k) return;
@@ -3011,13 +3034,14 @@ SCENES.duik = {
   start(nr) {
     beginDeel('duik');
     startDuik(nr);
+    kaartStart();
     $('hud').hidden = false; $('hud').innerHTML = `<div class="hud-blok zuurstof">${ikoon('zuurstof')}<div><small>Zuurstof</small><span id="h-o2"></span><div class="balk"><i></i></div></div></div><div class="hud-blok">${ikoon('diepte')}<div><small id="h-zone"></small><span id="h-diepte"></span></div></div><div class="hud-blok">${ikoon('tas')}<div><small>Tas</small><span id="h-tas"></span></div></div><div class="hud-rechts"><div class="hud-blok">${ikoon('net')}<div><small>Net</small><span id="h-net"></span></div></div></div>`;
     zetKnoppen([{ id: 'net', tekst: 'Net' }, { id: 'pak', tekst: 'Pak' }, { id: 'harpoen', tekst: 'Harpoen', groot: true }]);
     toonBediening(true);
     GELUID.zetSfeer('zee'); GELUID.zetMuziek('zee');
     this.hud();
   },
-  stop() { $('hud').hidden = true; toonBediening(false); },
+  stop() { $('hud').hidden = true; toonBediening(false); kaartKnop(false); },
   hud() {
     const o = Math.max(0, D.o2), b = document.querySelector('#hud .balk'); if (!b) return;
     $('h-o2').textContent = Math.ceil(o) + ' s'; b.firstChild.style.width = (o / D.o2max * 100) + '%'; b.className = 'balk' + (o < D.o2max * .2 ? ' kritiek' : o < D.o2max * .4 ? ' laag' : '');
@@ -3029,6 +3053,7 @@ SCENES.duik = {
     if (!D) return;
     D.tijd += dt;
     if (was('pauze')) { pauzeMenu(); return; }
+    kaartUpdate(dt);
     if (D.touw) { updateTouw(dt); updateRest(dt); D.hudT -= dt; if (D.hudT <= 0) { D.hudT = .1; this.hud(); } return; }
     updateRuben(dt); updateGereedschap(dt); updateVissen(dt); updateReuzen(dt); updateRest(dt);
     // camera
@@ -3379,6 +3404,189 @@ function tekenMoeder(ctx, cx, cy, t) {
   T.rect(x - 6, y + 6, 12, 2, '#5A1A3A');
 }
 
+// ===================== DE KAART VAN DE ZEE: een kleine patrijspoort rechtsboven, en een grote kaart als je erop tikt =====================
+// De kaart is een verkleinde versie van de zee (1 kaartpixel = 8 pixels zee). Wat je gezien hebt, blijft ontdekt (ST.kaart, per zee
+// een code); de rest is donker. De weg terug naar de boot komt uit een afstandskaart vanaf de ladder (een keer per duik uitgerekend).
+const KAART = { P: 8, MIST: 32, KLEIN: 60 };
+KAART.W = ZEE.W / KAART.P; KAART.H = ZEE.H / KAART.P; KAART.MW = ZEE.W / KAART.MIST; KAART.MH = ZEE.H / KAART.MIST;
+
+// ---- ontdekt gebied bewaren: een bitje per vak van 32 pixels, als looplengtes (meestal kort) of anders als bits, in base64
+function kaartCode(m) {
+  const runs = []; let v = 0, n = 0;
+  for (let i = 0; i < m.length; i++) { if (m[i] === v) n++; else { runs.push(n); v = m[i]; n = 1; } }
+  runs.push(n);
+  const rle = 'r' + runs.map(x => x.toString(36)).join('.');
+  const bytes = new Uint8Array(Math.ceil(m.length / 8)); for (let i = 0; i < m.length; i++) if (m[i]) bytes[i >> 3] |= 1 << (i & 7);
+  let s = ''; for (const b of bytes) s += String.fromCharCode(b);
+  const bits = 'b' + btoa(s);
+  return rle.length <= bits.length ? rle : bits;
+}
+function kaartLees(code, n) {
+  const m = new Uint8Array(n); if (typeof code !== 'string' || !code) return m;
+  try {
+    if (code[0] === 'r') { let i = 0, v = 0; for (const x of code.slice(1).split('.')) { const k = parseInt(x, 36) || 0; if (v) m.fill(1, i, Math.min(n, i + k)); i += k; v ^= 1; } }
+    else if (code[0] === 'b') { const s = atob(code.slice(1)); for (let i = 0; i < n; i++) if (s.charCodeAt(i >> 3) & (1 << (i & 7))) m[i] = 1; }
+  } catch (e) { m.fill(0); }
+  return m;
+}
+
+// ---- bij het begin van een duik: de kaart tekenen en de afstandskaart vanaf de boot uitrekenen
+function kaartStart() {
+  const Z = D.Z, { W, H } = KAART, P = KAART.P;
+  const vrij = new Uint8Array(W * H), stof = new Uint8Array(W * H);
+  for (let my = 0; my < H; my++) for (let mx = 0; mx < W; mx++) { const x = mx * P + P / 2, y = my * P + P / 2, c = Z.cel[(y >> 2) * ZEE.CW + (x >> 2)]; stof[my * W + mx] = c; vrij[my * W + mx] = c === 0 ? 1 : 0; }
+  // het plaatje
+  const d = maakDoek(W, H), img = d.ctx.createImageData(W, H), px = img.data;
+  const kl = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const STOF = { 1: kl('#3B3429'), 2: kl('#A8946A'), 3: kl('#7A4E2D'), 4: kl('#5A5A62'), 5: kl('#7FE0F0'), 6: kl('#C8323C') }, RAND = kl('#7A6A50');
+  const water = []; for (let my = 0; my < H; my++) { const m = y2m(my * P); water.push(kl(tint(waterOp(m), m > 40 ? Math.min(.32, (m - 40) / 300 + .08) : -.06))); } // diep water iets lichter, anders lijkt het op het onontdekte deel
+  for (let my = 0; my < H; my++) for (let mx = 0; mx < W; mx++) {
+    const i = my * W + mx, c = stof[i]; let k;
+    if (!c) k = water[my];
+    else { const rand = (mx > 0 && !stof[i - 1]) || (mx < W - 1 && !stof[i + 1]) || (my > 0 && !stof[i - W]) || (my < H - 1 && !stof[i + W]); k = c === 1 && rand ? RAND : (STOF[c] || STOF[1]); }
+    px[i * 4] = k[0]; px[i * 4 + 1] = k[1]; px[i * 4 + 2] = k[2]; px[i * 4 + 3] = 255;
+  }
+  d.ctx.putImageData(img, 0, 0);
+  // afstand tot de ladder van de boot (vier buren); -1 = daar kom je niet
+  const afst = new Int32Array(W * H).fill(-1), rij = new Int32Array(W * H); let kop = 0, staart = 0;
+  const start = 1 * W + Math.round(ZEE.BOOT_X / P); afst[start] = 0; rij[staart++] = start;
+  while (kop < staart) { const i = rij[kop++], x = i % W; for (const j of [i - 1, i + 1, i - W, i + W]) { if (j < 0 || j >= W * H || (j === i - 1 && x === 0) || (j === i + 1 && x === W - 1)) continue; if (afst[j] < 0 && (vrij[j] || j < W * 2)) { afst[j] = afst[i] + 1; rij[staart++] = j; } } }
+  if (!ST.kaart || typeof ST.kaart !== 'object') ST.kaart = {};
+  D.kaart = { beeld: d.cv, vrij, afst, ontdekt: kaartLees(ST.kaart.zee, KAART.MW * KAART.MH), t: 0, tekenT: 0, route: null, routeT: 0 };
+  kaartOntdek(); kaartKnop(true);
+}
+// bij het einde van de duik: het ontdekte gebied bewaren (dat gebeurt in DAG.eindeDuik, samen met de vangst)
+function kaartBewaar() { if (D && D.kaart) { if (!ST.kaart || typeof ST.kaart !== 'object') ST.kaart = {}; ST.kaart.zee = kaartCode(D.kaart.ontdekt); } }
+// wat Ruben om zich heen ziet, wordt ontdekt (in het donker zonder lamp minder ver)
+function kaartOntdek() {
+  const K = D.kaart, R = D.ruben, m = y2m(R.y), r = m > 80 && !ST.uit.lamp ? 56 : 104, { MW, MH, MIST } = KAART;
+  for (let fy = Math.max(0, Math.floor((R.y - r) / MIST)); fy <= Math.min(MH - 1, Math.floor((R.y + r) / MIST)); fy++)
+    for (let fx = Math.max(0, Math.floor((R.x - r) / MIST)); fx <= Math.min(MW - 1, Math.floor((R.x + r) / MIST)); fx++) {
+      const cx = Math.max(fx * MIST, Math.min(R.x, fx * MIST + MIST)), cy = Math.max(fy * MIST, Math.min(R.y, fy * MIST + MIST));
+      if (Math.hypot(cx - R.x, cy - R.y) < r) K.ontdekt[fy * MW + fx] = 1;
+    }
+}
+const kaartGezien = (x, y) => { const fx = Math.floor(x / KAART.MIST), fy = Math.floor(y / KAART.MIST); return y < 0 || (fx >= 0 && fy >= 0 && fx < KAART.MW && fy < KAART.MH && D.kaart.ontdekt[fy * KAART.MW + fx] === 1); };
+// de weg terug naar de boot, in kaartpixels (rechtgetrokken waar dat kan)
+function kaartRoute() {
+  const K = D.kaart, { W, H, P } = KAART, R = D.ruben;
+  let i = Math.floor(Math.max(0, R.y) / P) * W + Math.floor(R.x / P);
+  if (K.afst[i] < 0) { let best = -1, bd = 1e9; const cx = i % W, cy = (i / W) | 0; for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) { const x = cx + dx, y = cy + dy; if (x < 0 || y < 0 || x >= W || y >= H) continue; const j = y * W + x; if (K.afst[j] >= 0 && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; best = j; } } if (best < 0) return null; i = best; }
+  const pad = [[i % W + .5, ((i / W) | 0) + .5]];
+  for (let n = 0; n < 4000 && K.afst[i] > 0; n++) { const x = i % W; let volg = -1; for (const j of [i - W, i - 1, i + 1, i + W]) { if (j < 0 || j >= W * H || (j === i - 1 && x === 0) || (j === i + 1 && x === W - 1)) continue; if (K.afst[j] === K.afst[i] - 1) { volg = j; break; } } if (volg < 0) break; i = volg; pad.push([i % W + .5, ((i / W) | 0) + .5]); }
+  // rechttrekken
+  const zicht = (a, b) => { const n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) * 2); for (let k = 0; k <= n; k++) { const x = Math.floor(a[0] + (b[0] - a[0]) * k / n), y = Math.floor(a[1] + (b[1] - a[1]) * k / n); if (y >= 2 && !K.vrij[y * W + x]) return false; } return true; };
+  const recht = [pad[0]]; let a = 0;
+  while (a < pad.length - 1) { let b = Math.min(pad.length - 1, a + 60); while (b > a + 1 && !zicht(pad[a], pad[b])) b--; recht.push(pad[b]); a = b; }
+  return recht;
+}
+// belangrijke plekken: de boot, opdrachten, schatten, grote vissen en vaste herkenningspunten (alleen als je ze gezien hebt)
+function kaartPlekken() {
+  const l = [{ t: 'boot', x: ZEE.BOOT_X, y: 0 }];
+  for (const v of D.vondsten) { const def = VONDSTEN[v.id] || {}; if (v.verhaal) l.push({ t: 'opdracht', x: v.x, y: v.y }); else if (def.uniek || (def.waarde || 0) >= 22) l.push({ t: 'schat', x: v.x, y: v.y }); }
+  for (const g of D.reuzen || []) if (!g.weg && !g.gevangen && g.def && g.def.naam) l.push({ t: 'reus', x: g.x, y: g.y });
+  const W = D.Z.wrak; l.push({ t: 'plek', x: W.x + W.l / 2, y: W.y - 20, naam: 'Wrak' });
+  if (D.Z.dorp) for (const h of D.Z.dorp) if (h.t === 'kerk') l.push({ t: 'plek', x: h.x, y: h.y - 60, naam: 'Kerk' });
+  return l.filter(p => p.t === 'boot' || kaartGezien(p.x, p.y));
+}
+
+// ---- de patrijspoort rechtsboven
+function kaartKnop(aan) {
+  let k = $('minikaart');
+  if (!k) {
+    k = document.createElement('button'); k.id = 'minikaart'; k.type = 'button'; k.setAttribute('aria-label', 'Kaart van de zee. Tik om de grote kaart te openen (toets M).');
+    k.innerHTML = `<canvas width="${KAART.KLEIN}" height="${KAART.KLEIN}"></canvas>`;
+    k.addEventListener('click', () => kaartGroot());
+    $('veld').appendChild(k);
+  }
+  k.hidden = !aan; if (aan) kaartPlek();
+}
+// onder de balk met zuurstof en diepte, rechts; nooit over de knoppen heen (dan kleiner, of weg als er geen plek is)
+function kaartPlek() {
+  const k = $('minikaart'); if (!k || k.hidden) return;
+  const v = $('veld').getBoundingClientRect(), h = $('hud').getBoundingClientRect(), kn = $('knoppen'), top = h.bottom - v.top + 6;
+  let onder = v.height - 8; if (kn && !kn.hidden && kn.getBoundingClientRect().height) onder = kn.getBoundingClientRect().top - v.top - 8;
+  const maat = Math.min(innerWidth < 700 || innerHeight < 500 ? 84 : 112, onder - top);
+  k.style.top = top + 'px'; k.style.width = k.style.height = Math.max(0, maat) + 'px'; k.style.visibility = maat < 52 ? 'hidden' : '';
+}
+function kaartUpdate(dt) {
+  const K = D && D.kaart; if (!K) return;
+  K.t -= dt; if (K.t <= 0) { K.t = .2; kaartOntdek(); }
+  K.routeT -= dt; if (K.routeT <= 0) { K.routeT = .5; K.route = kaartRoute(); }
+  K.plekT = (K.plekT || 0) - dt; if (K.plekT <= 0) { K.plekT = 1; kaartPlek(); }
+  K.tekenT -= dt; if (K.tekenT <= 0) { K.tekenT = .12; kaartTekenKlein(); }
+  if (was('kaart')) kaartGroot();
+}
+// mist: wat niet ontdekt is, is donker (de randen getrapt, zoals de rest van het spel)
+function kaartMist(ctx, x0, y0, w, h, schaal) {
+  const K = D.kaart, { MIST, MW, MH, P } = KAART, s = MIST / P * schaal;
+  ctx.fillStyle = '#04080D';
+  for (let fy = Math.max(0, Math.floor(y0 * P / MIST)); fy < Math.min(MH, Math.ceil((y0 + h) * P / MIST)); fy++)
+    for (let fx = Math.max(0, Math.floor(x0 * P / MIST)); fx < Math.min(MW, Math.ceil((x0 + w) * P / MIST)); fx++)
+      if (!K.ontdekt[fy * MW + fx]) ctx.fillRect(Math.round((fx * MIST / P - x0) * schaal), Math.round((fy * MIST / P - y0) * schaal), Math.ceil(s), Math.ceil(s));
+}
+function kaartTeken(ctx, x0, y0, w, h, schaal, groot) {
+  const K = D.kaart, T = tekenaar(ctx), P = KAART.P, sx = x => Math.round((x - x0) * schaal), sy = y => Math.round((y - y0) * schaal);
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#9FD4E6'; ctx.fillRect(0, 0, Math.ceil(w * schaal), Math.ceil(h * schaal)); // lucht boven het water
+  ctx.drawImage(K.beeld, x0, Math.max(0, y0), w, h - Math.max(0, -y0), 0, Math.max(0, -y0) * schaal, w * schaal, (h - Math.max(0, -y0)) * schaal);
+  if (y0 < 0) { ctx.fillStyle = '#E8F6FA'; ctx.fillRect(0, sy(0), Math.ceil(w * schaal), 1); }
+  kaartMist(ctx, x0, y0, w, h, schaal);
+  // de weg terug: gouden stipjes
+  if (K.route) { ctx.fillStyle = '#F2C85A'; let rest = 0; for (let i = 1; i < K.route.length; i++) { const [ax, ay] = K.route[i - 1], [bx, by] = K.route[i], l = Math.hypot(bx - ax, by - ay); for (let d = rest; d < l; d += groot ? 3 : 2.5) { const x = ax + (bx - ax) * d / l, y = ay + (by - ay) * d / l; ctx.fillRect(sx(x), sy(y), groot ? 2 : 1, groot ? 2 : 1); rest = d + (groot ? 3 : 2.5) - l; } } }
+  // plekken
+  for (const p of kaartPlekken()) {
+    const x = sx(p.x / P), y = sy(p.y / P);
+    if (p.t === 'boot') { T.rect(x - 4, y - 2, 9, 2, '#7A4E2D'); T.rect(x - 3, y, 7, 1, '#4A2E1A'); T.rect(x, y - 6, 1, 4, '#F4F1E8'); T.rect(x + 1, y - 6, 3, 2, '#C8323C'); }
+    else if (p.t === 'opdracht') { T.rect(x - 2, y - 4, 5, 7, '#231A26'); T.rect(x - 1, y - 3, 3, 3, '#F2C85A'); T.rect(x - 1, y + 1, 3, 1, '#F2C85A'); }
+    else if (p.t === 'schat') { T.px(x, y - 2, '#FFFFFF'); T.rect(x - 1, y - 1, 3, 1, '#E8E8F0'); T.px(x, y, '#B7BEC8'); }
+    else if (p.t === 'reus') { T.rect(x - 2, y - 2, 5, 5, '#231A26'); T.rect(x - 1, y - 1, 3, 3, '#E8414E'); }
+    else if (p.t === 'plek' && groot) letters(ctx, p.naam.toUpperCase(), x, y - 3, '#FBF6E9', 1, 'm', '#231A26');
+  }
+  // Ruben (knippert zachtjes)
+  const R = D.ruben, rx = sx(R.x / P), ry = sy(Math.max(-2, R.y / P));
+  T.rect(rx - 2, ry - 2, 5, 5, '#231A26'); T.rect(rx - 1, ry - 1, 3, 3, (Math.floor(D.tijd * 3) % 2 && !REDUCE) ? '#FFE9A8' : '#FFFFFF'); T.px(rx + (R.kijk < 0 ? -2 : 2), ry, '#FFFFFF');
+}
+function kaartTekenKlein() {
+  const k = $('minikaart'); if (!k || k.hidden) return;
+  const cv = k.firstChild, ctx = cv.getContext('2d'), N = KAART.KLEIN, R = D.ruben, P = KAART.P;
+  const x0 = klem(Math.round(R.x / P - N / 2), 0, KAART.W - N), y0 = klem(Math.round(R.y / P - N / 2), -8, KAART.H - N);
+  kaartTeken(ctx, x0, y0, N, N, 1, false);
+  // ligt de boot buiten beeld: een gouden pijltje aan de rand, waar de weg terug de patrijspoort uit gaat
+  const K = D.kaart; if (!K.route) return;
+  const binnen = ([x, y]) => x >= x0 && x < x0 + N && y >= y0 && y < y0 + N;
+  let uit = null; for (let i = 1; i < K.route.length; i++) if (!binnen(K.route[i])) { const [ax, ay] = K.route[i - 1], [bx, by] = K.route[i]; for (let t = 0; t <= 1; t += .02) { const p = [ax + (bx - ax) * t, ay + (by - ay) * t]; if (!binnen(p)) { uit = p; break; } } break; }
+  if (!uit) return;
+  const cx = N / 2, cy = N / 2, hoek = Math.atan2(uit[1] - y0 - cy, uit[0] - x0 - cx), r = N / 2 - 5, ax = cx + Math.cos(hoek) * r, ay = cy + Math.sin(hoek) * r;
+  ctx.fillStyle = '#231A26'; ctx.beginPath(); for (const [d, b] of [[5, 0], [-3, 3.6], [-3, -3.6]]) ctx.lineTo(ax + Math.cos(hoek) * d - Math.sin(hoek) * b, ay + Math.sin(hoek) * d + Math.cos(hoek) * b); ctx.fill();
+  ctx.fillStyle = '#F2C85A'; ctx.beginPath(); for (const [d, b] of [[3.5, 0], [-2, 2.2], [-2, -2.2]]) ctx.lineTo(ax + Math.cos(hoek) * d - Math.sin(hoek) * b, ay + Math.sin(hoek) * d + Math.cos(hoek) * b); ctx.fill();
+}
+
+addEventListener('resize', () => kaartPlek());
+// ---- de grote kaart (het spel staat zolang stil)
+async function kaartGroot() {
+  if (!D || !D.kaart || PAUZE || D.klaar) return;
+  PAUZE = true; GELUID.sfx('klik');
+  const K = D.kaart, { W, H } = KAART;
+  // hoeveel van de zee je ontdekt hebt: alleen water telt (rots telt niet mee)
+  let open = 0, gezien = 0; for (let fy = 0; fy < KAART.MH; fy++) for (let fx = 0; fx < KAART.MW; fx++) { const x = Math.floor((fx * KAART.MIST + 16) / KAART.P), y = Math.floor((fy * KAART.MIST + 16) / KAART.P); if (K.vrij[y * W + x]) { open++; if (K.ontdekt[fy * KAART.MW + fx]) gezien++; } }
+  const zones = ZONES.map((z, i) => `<li><b>${z.naam}</b> ${i ? (ZONES[i - 1].tot) + ' tot ' : 'tot '}${z.tot < 999 ? z.tot : 270} m</li>`).join('');
+  const p = vraag(`<h2>De zee voor Schelpkerke</h2><div class="kaartgroot"><canvas id="kaart-groot" width="${W}" height="${H + 8}" aria-label="De grote kaart. Jij bent het knipperende vierkantje; de gouden stippen wijzen de weg terug naar de boot."></canvas>
+    <div class="kaart-uitleg"><p class="klein" style="margin-top:0">Je hebt ${Math.round(gezien / Math.max(1, open) * 100)}% van de zee ontdekt.</p>
+    <ul class="legenda"><li><i class="lg jij"></i> Jij</li><li><i class="lg boot"></i> De Zeekoe, de weg terug: <span class="goud">gouden stippen</span></li><li><i class="lg opdracht"></i> Iets voor een opdracht</li><li><i class="lg schat"></i> Iets waardevols</li><li><i class="lg reus"></i> Een grote vis</li></ul>
+    <ul class="zones">${zones}</ul></div></div>`, [{ tekst: 'Verder duiken', waarde: 1, soort: 'hoofd' }], { breed: true, klasse: 'kaartvenster' });
+  const cv = $('kaart-groot'); if (cv) {
+    const ctx = cv.getContext('2d');
+    kaartTeken(ctx, 0, -8, W, H + 8, 1, true);
+    // dieptestreepjes aan de linkerkant
+    for (const z of ZONES) if (z.tot < 999) { const y = Math.round(m2y(z.tot) / KAART.P) + 8; ctx.fillStyle = 'rgba(251,246,233,.45)'; for (let x = 0; x < W; x += 4) ctx.fillRect(x, y, 2, 1); letters(ctx, z.tot + ' M', 3, y - 8, '#FBF6E9', 1, 'l', '#231A26'); }
+    // wat een opdracht zoekt: een stippellijntje om het gebied waar het ergens moet liggen
+    if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) if (v.m) { const x0 = Math.round((v.x0 || 40) / KAART.P), x1 = Math.round((v.x1 || 1560) / KAART.P), y0 = Math.round(m2y(v.m[0]) / KAART.P) + 8, y1 = Math.round(m2y(v.m[1]) / KAART.P) + 8; ctx.fillStyle = '#F2C85A'; for (let x = x0; x <= x1; x += 3) { ctx.fillRect(x, y0, 1, 1); ctx.fillRect(x, y1, 1, 1); } for (let y = y0; y <= y1; y += 3) { ctx.fillRect(x0, y, 1, 1); ctx.fillRect(x1, y, 1, 1); } }
+  }
+  await p;
+  PAUZE = false; vorige = performance.now();
+}
+
 // ===================== DE AVOND IN HET ROMMELKOMBUIS =====================
 let A = null;
 const GANG_Y = 306, DEUR_PLEK = { x: 604, y: 262 };
@@ -3393,6 +3601,16 @@ function neemPortie(soorten) {
 function portiesVoor(id, pool) { const r = RECEPTEN[id]; if (!r.nodig.length) return 99; return Math.floor(r.nodig.reduce((a, s) => a + (pool[s] || 0), 0) + 1e-6); }
 function prijsVan(id) { const n = ST.recepten[id] || 0; return Math.round(RECEPTEN[id].prijs * (1 + Math.min(5, Math.floor(n / 10)) * .1)); }
 function receptSterren(id) { return Math.min(5, Math.floor((ST.recepten[id] || 0) / 10)); }
+// Hoeveel borden je met deze menukaart nog kunt maken. Gerechten met dezelfde vis delen hun porties: tel per vissoort één keer.
+// Een gerecht uit de voorraadkast (zonder vis) raakt nooit op.
+function bordenVoor(menu, pool) {
+  const soorten = new Set(); for (const id of menu) { const r = RECEPTEN[id]; if (!r.nodig.length) return 99; for (const s of r.nodig) soorten.add(s); }
+  let n = 0; for (const s of soorten) n += pool[s] || 0; return Math.floor(n + 1e-6);
+}
+// gasten die al binnen zijn (of buiten op een tafel wachten) maar nog moeten bestellen: voor hen ligt er al een portie klaar
+const nogBestellen = () => A.gasten.filter(g => !g.bon && (g.staat === 'loopt' || g.staat === 'zit')).length + A.wacht.reduce((n, w) => n + (w.max || 1), 0);
+// borden die nog niet besproken zijn
+const bordenOver = () => bordenVoor(A.menu, voorraadPorties()) - nogBestellen();
 function sfeer() { return ST.decor.reduce((a, id) => a + (VONDSTEN[id] ? VONDSTEN[id].sfeer : 0), 0) + ST.rest.linnen * 4; }
 
 function startAvond(menu) {
@@ -3403,22 +3621,29 @@ function startAvond(menu) {
     ruben: { x: 120, y: KB.KEUKEN_Y, pad: [], taak: null, taken: [], draagt: [], kijk: 1, loopt: false, pose: 'staan', poseT: 0 },
     noor: ST.pers.noor ? { x: 200, y: 290, pad: [], taak: null, draagt: null, kijk: -1 } : null,
     sem: ST.pers.sem ? { x: 60, y: KB.KEUKEN_Y - 2, bezig: null, t: 0 } : null,
-    kat: null, katGeweest: false, omzet: 0, fooi: 0, bediend: 0, boos: 0, tevreden: [], vertrokken: 0, mini: null, tempo: 1,
+    kat: null, katGeweest: false, snel: 1, op: [], omzet: 0, fooi: 0, bediend: 0, boos: 0, tevreden: [], vertrokken: 0, mini: null, tempo: 1,
     deurOpen: 0, munten: [], teksten: [], klaar: false, bijzonder: DAG.bijzondereGast ? DAG.bijzondereGast() : null,
     zaal: null, hulp: maakDoek(1000, 360), buiten: maakDoek(1000, 360), laag: maakDoek(1000, 360), wand: null,
   };
   const pool = voorraadPorties();
   for (const id of menu) A.porties[id] = portiesVoor(id, pool);
   // hoeveel gasten vanavond? afhankelijk van sterren, sfeer, menu en tafels
-  const verwacht = klem(Math.round(3 + ST.ster * 2.1 + sfeer() * .35 + menu.length * .8 + (ST.dag < 3 ? -1 : 0)), 3, nTafels * 2 * 2.4);
-  A.verwacht = verwacht; A.aankomst = []; for (let i = 0; i < verwacht; i++) A.aankomst.push(17.25 + (i + r() * .8) / verwacht * 4.6);
+  // niet meer groepjes dan er borden zijn (een groepje is gemiddeld anderhalve gast): met een kleine kaart komen er minder gasten
+  const borden = bordenVoor(menu, pool), weer = typeof weerVandaag === 'function' ? weerVandaag().gasten : 1;
+  const verwacht = Math.max(1, Math.min(klem(Math.round((3 + ST.ster * 2.1 + sfeer() * .35 + menu.length * .8 + (ST.dag < 3 ? -1 : 0)) * weer), 3, nTafels * 2 * 2.4), Math.ceil(borden / 1.4)));
+  const venster = Math.min(4.6, 1.5 + verwacht * .3); // weinig gasten: dichter op elkaar, dan hoef je niet lang te wachten
+  A.verwacht = verwacht; A.borden = borden; A.aankomst = []; for (let i = 0; i < verwacht; i++) A.aankomst.push(17.25 + (i + r() * .8) / verwacht * venster);
   A.aankomst.sort((a, b) => a - b);
   if (A.bijzonder) A.aankomst.splice(Math.floor(A.aankomst.length / 2), 0, -1); // een plekje voor de bijzondere gast
   bouwZaal();
 }
 function bouwZaal() {
   A.zaal = tekenKombuisZaal({ terras: restW('tafels') > 6 });
-  const w = maakDoek(640, 360); tekenWand(w.ctx, { menu: A.menu, prijzen: Object.fromEntries(A.menu.map(id => [id, prijsVan(id)])) }); tekenDecor(w.ctx); A.wand = w.cv;
+  bouwWand();
+}
+function bouwWand() {
+  const menu = A.menu.filter(id => !A.op.includes(id));
+  const w = maakDoek(640, 360); tekenWand(w.ctx, { menu, prijzen: Object.fromEntries(menu.map(id => [id, prijsVan(id)])) }); tekenDecor(w.ctx); A.wand = w.cv;
 }
 // vondsten aan de muur en op de vensterbanken
 const DECOR_PLEKKEN = [[244, 166], [292, 166], [358, 166], [406, 166], [472, 166], [520, 166], [212, 112], [562, 158]];
@@ -3534,9 +3759,9 @@ function loop(w, dt, snel = 105) {
 }
 
 // ---- gasten
-function nieuweGast(bijzonder) {
-  const groep = bijzonder ? 1 : (A.r() < .5 ? 2 : 1), tf = vrijeTafel(groep);
-  if (!tf) { if (A.wacht.length < 3) A.wacht.push({ bijzonder, t: 0 }); return; }
+function nieuweGast(bijzonder, max = 2) {
+  const groep = bijzonder ? 1 : Math.min(max, A.r() < .5 ? 2 : 1), tf = vrijeTafel(groep);
+  if (!tf) { if (A.wacht.length < 3) A.wacht.push({ bijzonder, t: 0, max: groep }); return; }
   for (let i = 0; i < groep; i++) {
     const z = !tf.stoel[0] ? 0 : 1; if (tf.stoel[z]) break;
     const o = bijzonder ? FIGUREN[bijzonder.wie] : maakGast(A.r);
@@ -3560,7 +3785,7 @@ function updateGasten(dt) {
     else if (g.staat === 'zit' && g.t > 1.6) {
       const id = kiesGerecht(g);
       if (!id) { g.staat = 'weg'; g.boos = true; g.pad = padNaar(g, DEUR_PLEK); tekstR(g.x, g.y - 70, 'Alles is op...', '#FFB0A8'); A.vertrokken++; vrijStoel(g); continue; }
-      A.porties[id]--; neemPortie(RECEPTEN[id].nodig);
+      neemPortie(RECEPTEN[id].nodig); kaartBijwerken();
       g.bon = { nr: A.volgendeBon++, gast: g, id, staat: 'open', kw: 0, t: 0 }; A.bonnen.push(g.bon);
       g.staat = 'wacht'; g.t = 0; g.geduldMax = (g.bijzonder ? 70 : 46 + A.r() * 14) * (A.uur > 21 ? .9 : 1); g.geduld = 1;
       GELUID.sfx('klik'); werkBonnen();
@@ -3574,6 +3799,26 @@ function updateGasten(dt) {
     else if (g.staat === 'weg') { if (loop(g, dt, 80)) { g.weg = true; A.deurOpen = 1; } }
   }
   A.gasten = A.gasten.filter(g => !g.weg);
+}
+// de porties per gerecht opnieuw tellen uit de koeling; wat op is, verdwijnt van het krijtbord
+function kaartBijwerken() {
+  const pool = voorraadPorties();
+  for (const id of A.menu) {
+    A.porties[id] = portiesVoor(id, pool);
+    if (A.porties[id] <= 0 && !A.op.includes(id)) { A.op.push(id); melding(RECEPTEN[id].naam + ' is op! Het staat niet meer op de kaart.', '', 3200); A.wandOud = true; }
+  }
+  if (A.wandOud) { A.wandOud = false; bouwWand(); }
+  controleerVoorraad();
+}
+// Is alles op (of besproken voor wie al binnen is), dan komen er geen nieuwe gasten meer. Een bijzondere gast die nog moet
+// komen, houdt zijn eigen portie.
+function controleerVoorraad() {
+  const over = bordenOver(), bijz = A.aankomst.includes(-1);
+  if (over - (bijz ? 1 : 0) <= 0 && A.aankomst.some(a => a >= 0)) A.aankomst = over >= 1 && bijz ? [-1] : [];
+  if (over <= 0 && !A.uitverkocht) {
+    A.uitverkocht = true; A.aankomst = [];
+    melding(A.gasten.length ? 'Alles is op! Er komen geen nieuwe gasten meer. Sluit gerust als iedereen zijn eten heeft.' : 'Alles is op! Tijd om te sluiten.', 'goud', 4500);
+  }
 }
 function vrijStoel(g) { if (g.tf.stoel[g.z] === g) g.tf.stoel[g.z] = null; }
 function verwijderBon(b) { if (!b) return; A.bonnen = A.bonnen.filter(x => x !== b); A.uitgifte = A.uitgifte.filter(x => x !== b); werkBonnen(); }
@@ -3756,15 +4001,47 @@ function jaagKat() { const K = A.kat; if (!K || K.staat !== 'sluipt') return fal
 function werkBonnen() {
   const el = $('bonnen'); if (!A) return;
   const bonnen = A.bonnen.filter(b => b.staat !== 'op'), plan = planVolgorde(); A.plan = plan; A.planSleutel = plan.map(b => b.nr).join();
-  el.innerHTML = `<div class="rail">${bonnen.map((b, i) => { const nr = plan.indexOf(b) + 1, doen = !nr && (b.staat === 'open' || b.staat === 'klaar') && !bonInTaak(b); return `<button class="bon ${b.staat === 'klaar' ? 'klaar' : b.staat === 'koken' ? 'bezig' : ''}${doen ? ' doen' : ''}" type="button" data-nr="${b.nr}" aria-pressed="${nr ? 'true' : 'false'}" aria-label="${RECEPTEN[b.id].naam} voor tafel ${b.gast.tf.nr}, ${b.staat === 'klaar' ? 'klaar om op te dienen' : b.staat === 'koken' ? 'wordt gekookt' : 'nog koken'}${nr ? ', nummer ' + nr + ' op het lijstje van Ruben' : ''}">${nr ? `<span class="nr">${nr}</span>` : ''}<canvas width="20" height="15"></canvas>${b.staat === 'klaar' ? 'Opdienen' : b.staat === 'koken' ? (b.doorSem ? 'Sem kookt' : 'Koken...') : 'Tafel ' + b.gast.tf.nr}<i><b style="width:${Math.round(b.gast.geduld * 100)}%"></b></i></button>`; }).join('')}</div><div class="hud-blok klokje">${ikoon('klok')}<div><small>Het Rommelkombuis</small><span id="r-klok"></span> · <span id="r-geld"></span></div></div>`;
+  if (!el.querySelector('.rail')) el.innerHTML = `<div class="rail"></div><div class="r-rechts"><div class="hud-blok klokje">${ikoon('klok')}<div><small>Het Rommelkombuis</small><span id="r-klok"></span> · <span id="r-geld"></span> <span id="r-snel" hidden title="Er is even niets te doen: de tijd gaat sneller">⏩</span></div></div><button class="knop r-sluit" type="button" id="r-sluit">Sluiten</button></div>`;
+  el.querySelector('.rail').innerHTML = `${bonnen.map((b, i) => { const nr = plan.indexOf(b) + 1, doen = !nr && (b.staat === 'open' || b.staat === 'klaar') && !bonInTaak(b); return `<button class="bon ${b.staat === 'klaar' ? 'klaar' : b.staat === 'koken' ? 'bezig' : ''}${doen ? ' doen' : ''}" type="button" data-nr="${b.nr}" aria-pressed="${nr ? 'true' : 'false'}" aria-label="${RECEPTEN[b.id].naam} voor tafel ${b.gast.tf.nr}, ${b.staat === 'klaar' ? 'klaar om op te dienen' : b.staat === 'koken' ? 'wordt gekookt' : 'nog koken'}${nr ? ', nummer ' + nr + ' op het lijstje van Ruben' : ''}">${nr ? `<span class="nr">${nr}</span>` : ''}<canvas width="20" height="15"></canvas>${b.staat === 'klaar' ? 'Opdienen' : b.staat === 'koken' ? (b.doorSem ? 'Sem kookt' : 'Koken...') : 'Tafel ' + b.gast.tf.nr}<i><b style="width:${Math.round(b.gast.geduld * 100)}%"></b></i></button>`; }).join('')}`;
   el.querySelectorAll('.bon').forEach((k, i) => k.querySelector('canvas').getContext('2d').drawImage(gerechtPix(bonnen[i].id), 0, 0));
   A.bonEl = bonnen; klokje();
 }
 // Tikken op een bonnetje telt meteen bij het neerdrukken, op het bord van de bonnen zelf. De bonnetjes worden vaak opnieuw
 // gemaakt (als Ruben iets oppakt of brengt); een gewone klik viel dan weg als dat net tussen neerdrukken en loslaten gebeurde.
 $('bonnen').addEventListener('pointerdown', e => { const k = e.target.closest('.bon'); if (!k || !A) return; GELUID.start(); kiesBon(A.bonnen.find(b => b.nr === +k.dataset.nr)); });
-$('bonnen').addEventListener('click', e => { if (e.detail) return; const k = e.target.closest('.bon'); if (k && A) kiesBon(A.bonnen.find(b => b.nr === +k.dataset.nr)); }); // met het toetsenbord
-function klokje() { const u = Math.floor(A.uur), m = Math.floor((A.uur - u) * 60 / 5) * 5; const k = $('r-klok'), g = $('r-geld'); if (k) k.textContent = String(u % 24).padStart(2, '0') + ':' + String(m).padStart(2, '0'); if (g) g.textContent = geldTekst(A.omzet + A.fooi); }
+$('bonnen').addEventListener('click', e => {
+  if (e.target.closest('#r-sluit')) { if (A) vraagSluiten(); return; }
+  if (e.detail) return; const k = e.target.closest('.bon'); if (k && A) kiesBon(A.bonnen.find(b => b.nr === +k.dataset.nr)); // met het toetsenbord
+});
+// ---- eerder sluiten. Eerlijk: wie al eet, betaalt gewoon; wie nog op eten wacht, gaat zonder te betalen weg; nieuwe gasten komen niet meer.
+async function vraagSluiten() {
+  if (!A || A.klaar || A.gesloten || A.mini || PAUZE) return;
+  const wachten = A.gasten.filter(g => g.staat === 'wacht' || g.staat === 'zit' || (g.staat === 'loopt' && !g.bon)).length + A.wacht.length;
+  const over = Object.values(voorraadPorties()).reduce((a, b) => a + b, 0);
+  PAUZE = true;
+  const w = await vraag(`<h2>Het Rommelkombuis sluiten?</h2><div class="lijst"><div class="regel"><div class="naam">Gasten bediend</div><div class="meer">${A.bediend}</div></div><div class="regel"><div class="naam">Verdiend vanavond</div><div class="meer geld">${geldTekst(A.omzet + A.fooi)}</div></div></div>`
+    + (wachten ? `<p><b>${wachten === 1 ? 'Er wacht nog 1 gast' : 'Er wachten nog ' + wachten + ' gasten'} op eten.</b> Sluit je nu, dan ${wachten === 1 ? 'gaat die' : 'gaan ze'} zonder te betalen weg, en dat merk je aan de recensie.</p>` : '')
+    + (A.gasten.some(g => g.staat === 'eet') ? '<p>Wie nog zit te eten, eet rustig op en betaalt gewoon.</p>' : '')
+    + `<p class="klein">${A.uitverkocht ? 'Alles is op: er komen geen nieuwe gasten meer.' : over >= 1 ? 'Wat je nog niet gekookt hebt, blijft in de koeling liggen.' : ''}</p>`,
+    wachten ? [{ tekst: 'Eerst bedienen', waarde: 'nee', soort: 'hoofd' }, { tekst: 'Toch sluiten', waarde: 'ja' }] : [{ tekst: 'Sluiten', waarde: 'ja', soort: 'hoofd' }, { tekst: 'Nog even open', waarde: 'nee' }]);
+  PAUZE = false; vorige = performance.now();
+  if (w === 'ja' && A && !A.klaar) sluitNu();
+}
+function sluitNu() {
+  A.gesloten = true; A.aankomst = []; A.wacht = []; A.dicht = A.uur;
+  for (const g of A.gasten) {
+    if (g.staat === 'eet') { g.staat = 'betaalt'; g.t = 0; betaal(g); }            // al bediend: betaalt wat hij toch al zou betalen
+    else if (g.staat === 'wacht' || g.staat === 'zit' || g.staat === 'loopt') {     // nog geen eten: gaat zonder te betalen weg
+      if (g.staat !== 'loopt' || g.bon) A.vertrokken++;
+      g.staat = 'weg'; g.boos = true; g.pad = padNaar(g, DEUR_PLEK); verwijderBon(g.bon); vrijStoel(g);
+    }
+  }
+  A.ruben.taken = []; A.uitgifte = []; werkBonnen();
+  GELUID.sfx('deur'); melding('Het Rommelkombuis gaat dicht.', 'goud', 2200);
+  A.klaar = true; setTimeout(() => DAG.eindeAvond(), 1300);
+}
+const uurTekst = uur => { const u = Math.floor(uur), m = Math.floor((uur - u) * 60 / 5) * 5; return String(u % 24).padStart(2, '0') + ':' + String(m).padStart(2, '0'); };
+function klokje() { const k = $('r-klok'), g = $('r-geld'); if (k) k.textContent = uurTekst(A.uur); if (g) g.textContent = geldTekst(A.omzet + A.fooi); }
 
 SCENES.restaurant = {
   doel: 340,
@@ -3789,13 +4066,21 @@ SCENES.restaurant = {
   update(dt) {
     if (!A) return;
     if (was('pauze')) { DAG.menu(); return; }
-    const tempo = A.mini ? .3 : 1; dt *= tempo;
+    // er is even niets te doen (niemand wacht, niets te koken of op te dienen): dan gaat de tijd vier keer zo snel
+    const niks = !A.mini && !A.klaar && !A.kat && !A.uitgifte.length && !A.bonnen.some(b => b.staat !== 'op') && !A.gasten.some(g => g.staat === 'wacht' || g.staat === 'zit');
+    A.snel += ((niks ? 4 : 1) - A.snel) * Math.min(1, dt * (niks ? 3 : 12));
+    const tempo = A.mini ? .3 : A.snel; dt *= tempo;
     A.t += dt; A.uur = Math.min(23.5, A.uur + dt * .03);
     if (A.mini) updateMini(dt / tempo);
     else { if (was('actie') || was('enter')) slimmeActie(); for (const [k, i] of [['een', 0], ['twee', 1], ['drie', 2], ['vier', 3], ['vijf', 4], ['zes', 5]]) if (was(k) && A.bonEl && A.bonEl[i]) { const b = A.bonEl[i]; if (b.staat === 'open') geefTaak({ soort: 'koken', bon: b }); else if (b.staat === 'klaar') geefTaak({ soort: 'dienen', bon: b }); } }
     // aankomst
-    while (A.aankomst.length && A.uur >= (A.aankomst[0] < 0 ? 18.8 : A.aankomst[0]) && A.uur < 22) { const a = A.aankomst.shift(); nieuweGast(a < 0 ? A.bijzonder : null); }
-    if (A.wacht.length) { A.wacht[0].t += dt; if (vrijeTafel(1)) { const w = A.wacht.shift(); nieuweGast(w.bijzonder); } else if (A.wacht[0].t > 25) { A.wacht.shift(); A.vertrokken++; } }
+    while (A.aankomst.length && A.uur >= (A.aankomst[0] < 0 ? 18.8 : A.aankomst[0]) && A.uur < 22) {
+      const a = A.aankomst.shift(), over = bordenOver() - (A.aankomst.includes(-1) ? 1 : 0);
+      if (a < 0) { if (bordenOver() >= 1) nieuweGast(A.bijzonder, 1); }
+      else if (over > 0) nieuweGast(null, over); // nooit meer gasten dan er borden zijn
+      controleerVoorraad();
+    }
+    if (A.wacht.length) { A.wacht[0].t += dt; if (vrijeTafel(1)) { const w = A.wacht.shift(); nieuweGast(w.bijzonder, w.max || 1); } else if (A.wacht[0].t > 25) { A.wacht.shift(); A.vertrokken++; } }
     updateGasten(dt); updateRubenAvond(dt); updateNoor(dt); updateSem(dt); updateKat(dt);
     A.plan = planVolgorde(); if (A.plan.map(b => b.nr).join() !== A.planSleutel) werkBonnen();
     for (const k of A.tikjes || []) k.t += dt / tempo; if (A.tikjes) A.tikjes = A.tikjes.filter(k => k.t < .45);
@@ -3804,9 +4089,10 @@ SCENES.restaurant = {
     for (const m of A.munten) { m.t += dt; m.x += m.vx * dt; m.y += m.vy * dt; m.vy += 160 * dt; } A.munten = A.munten.filter(m => m.t < .9);
     for (const tk of A.teksten) { tk.t += dt; tk.y -= dt * 10; } A.teksten = A.teksten.filter(tk => tk.t < 2.2);
     // geduldbalkjes op de bonnetjes bijwerken
-    A.bonT = (A.bonT || 0) - dt; if (A.bonT <= 0) { A.bonT = .5; const el = $('bonnen'); if (A.bonEl) el.querySelectorAll('.bon i b').forEach((b, i) => { const bon = A.bonEl[i]; if (bon) { b.style.width = Math.round(bon.gast.geduld * 100) + '%'; b.style.background = bon.gast.geduld > .5 ? '#3DB06A' : bon.gast.geduld > .25 ? '#E9B949' : '#E8414E'; } }); klokje(); }
+    A.bonT = (A.bonT || 0) - dt; if (A.bonT <= 0) { A.bonT = .5; const sn = $('r-snel'); if (sn) sn.hidden = A.snel < 1.5; const sl = $('r-sluit'); if (sl) sl.classList.toggle('doen', !!A.uitverkocht); const el = $('bonnen'); if (A.bonEl) el.querySelectorAll('.bon i b').forEach((b, i) => { const bon = A.bonEl[i]; if (bon) { b.style.width = Math.round(bon.gast.geduld * 100) + '%'; b.style.background = bon.gast.geduld > .5 ? '#3DB06A' : bon.gast.geduld > .25 ? '#E9B949' : '#E8414E'; } }); klokje(); }
     // einde van de avond
-    if (!A.klaar && A.uur >= 22 && !A.aankomst.length && !A.gasten.length) { A.klaar = true; setTimeout(() => DAG.eindeAvond(), 600); }
+    // er komt niemand meer en iedereen is weg: dan gaat de deur vanzelf dicht
+    if (!A.klaar && !A.aankomst.length && !A.wacht.length && !A.gasten.length) { A.klaar = true; A.dicht = A.uur; melding(A.uitverkocht ? 'Alles is op en iedereen is weg. Het Rommelkombuis gaat dicht.' : 'De laatste gast is weg. Het Rommelkombuis gaat dicht.', 'goud', 2400); setTimeout(() => DAG.eindeAvond(), 1200); }
     if (!A.klaar && A.uur >= 23.5) { A.klaar = true; for (const g of A.gasten) if (g.staat === 'wacht') { A.vertrokken++; A.boos++; } setTimeout(() => DAG.eindeAvond(), 300); }
   },
   teken(ctx, W, H) { if (A) tekenAvond(ctx, W, H); },
@@ -4496,9 +4782,10 @@ const DAG = {
     if (!gekozen.length) gekozen = lijst.filter(id => port[id] > 0).sort((a, b) => port[b] - port[a]).slice(0, max);
     const totaal = Object.values(pool).reduce((a, b) => a + b, 0);
     return new Promise(res => {
-      const k = paneel(`<h2>Het menu van vanavond</h2><p class="klein">Kies tot ${max} gerechten. Wat je kunt koken hangt af van je vangst (porties). Gerechten met dezelfde vis delen hun porties.</p><div class="lijst">${lijst.map(id => `<div class="regel kies ${port[id] ? '' : 'uit'}" role="button" tabindex="0" data-id="${id}" aria-pressed="${gekozen.includes(id)}">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${RECEPTEN[id].nodig.length ? RECEPTEN[id].nodig.map(s => SOORTEN[s].naam).join(' of ') : 'uit de voorraadkast'}</div></div><div class="meer">${geldTekst(prijsVan(id))}<div class="klein">${port[id] >= 99 ? 'genoeg' : port[id] + ' porties'}</div></div></div>`).join('')}</div>${totaal < 1 && !lijst.some(id => port[id] >= 99) ? '<p><b>Je hebt nog geen vis.</b> Ga eerst duiken met Trien.</p>' : ''}<div class="rij"><button class="knop hoofd" type="button" id="m-open">Open de deur (17:00)</button><button class="knop" type="button" id="m-terug">Terug</button></div>`, { breed: true });
+      const k = paneel(`<h2>Het menu van vanavond</h2><p class="klein">Kies tot ${max} gerechten. Wat je kunt koken hangt af van je vangst (porties). Gerechten met dezelfde vis delen hun porties.</p><div class="lijst">${lijst.map(id => `<div class="regel kies ${port[id] ? '' : 'uit'}" role="button" tabindex="0" data-id="${id}" aria-pressed="${gekozen.includes(id)}">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${RECEPTEN[id].nodig.length ? RECEPTEN[id].nodig.map(s => SOORTEN[s].naam).join(' of ') : 'uit de voorraadkast'}</div></div><div class="meer">${geldTekst(prijsVan(id))}<div class="klein">${port[id] >= 99 ? 'genoeg' : port[id] + ' porties'}</div></div></div>`).join('')}</div>${totaal < 1 && !lijst.some(id => port[id] >= 99) ? '<p><b>Je hebt nog geen vis.</b> Ga eerst duiken met Trien.</p>' : ''}<p class="klein" id="m-borden"></p><div class="rij"><button class="knop hoofd" type="button" id="m-open">Open de deur (17:00)</button><button class="knop" type="button" id="m-terug">Terug</button></div>`, { breed: true });
       vulPlaatjes(k, lijst.map(id => gerechtPix(RECEPTEN[id].plaatje)));
-      const zet = () => { k.querySelectorAll('.regel.kies').forEach(r => r.setAttribute('aria-pressed', gekozen.includes(r.dataset.id))); $('m-open').disabled = !gekozen.length; };
+      const zet = () => { k.querySelectorAll('.regel.kies').forEach(r => r.setAttribute('aria-pressed', gekozen.includes(r.dataset.id))); $('m-open').disabled = !gekozen.length;
+        const n = gekozen.length ? bordenVoor(gekozen, pool) : 0; $('m-borden').textContent = !gekozen.length ? '' : n >= 99 ? 'Genoeg voor de hele avond.' : `Genoeg voor ${n} ${n === 1 ? 'bord' : 'borden'}. Er komen ongeveer zoveel gasten als je borden hebt; is alles op, dan kun je meteen sluiten.`; };
       k.querySelectorAll('.regel.kies').forEach(r => { const f = () => { const id = r.dataset.id; if (!port[id]) return; if (gekozen.includes(id)) gekozen = gekozen.filter(x => x !== id); else if (gekozen.length < max) gekozen.push(id); else { melding('Je menukaart is vol (' + max + ').', 'rood'); return; } GELUID.sfx('klik'); zet(); }; r.onclick = f; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } }; });
       zet();
       $('m-terug').onclick = () => { sluitPaneel(); res(); };
@@ -4523,6 +4810,7 @@ const DAG = {
     const geleerd = [];
     for (const [id, r] of Object.entries(RECEPTEN)) if (r.leer && vis[r.leer] && !(id in ST.recepten)) { ST.recepten[id] = 0; geleerd.push(id); }
     ST.na = { soort: 'duik', hoe, vis, vond, nieuw, geleerd, diepste: Math.round(D.diepsteM), zagKerk: !!D.zagKerk };
+    kaartBewaar(); // wat je ontdekt hebt, blijft op de kaart
     eindDeel(); bewaar();
     await overgang(() => naarScene('haven'));
     await this.hervat();
@@ -4549,7 +4837,7 @@ const DAG = {
     const nieuwBest = totaal > ST.beste.avond; ST.beste.avond = Math.max(ST.beste.avond, totaal); ST.beste.ster = Math.max(ST.beste.ster, sterren);
     const recensie = maakRecensie(sterren, A);
     ST.recensies.unshift({ d: ST.dag, s: sterren, t: recensie.tekst, w: recensie.wie }); ST.recensies = ST.recensies.slice(0, 6);
-    const uitslag = { bediend: A.bediend, vertrokken: A.vertrokken, omzet: A.omzet, fooi: A.fooi, loon, totaal, sterren, nieuwBest, tekst: recensie.tekst, wie: recensie.wie };
+    const uitslag = { bediend: A.bediend, vertrokken: A.vertrokken, omzet: A.omzet, fooi: A.fooi, loon, totaal, sterren, nieuwBest, tekst: recensie.tekst, wie: recensie.wie, dicht: A.dicht && A.dicht < 21.9 ? uurTekst(A.dicht) : null };
     // de nacht: een nieuwe dag; vis die te oud is, is bedorven
     const d = ST.dag; ST.dag++; ST.duiken = 0;
     const houdbaar = restW('vriezer'), voor = ST.voorraad.reduce((a, v) => a + v[1], 0);
@@ -4564,7 +4852,7 @@ const DAG = {
   toonUitslag(na) {
     const u = na.uitslag;
     paneel(`<h2>De avond in het Rommelkombuis</h2>
-      <div class="lijst"><div class="regel"><div class="naam">Gasten bediend</div><div class="meer">${u.bediend}</div></div>${u.vertrokken ? `<div class="regel"><div class="naam">Boos of teleurgesteld weggegaan</div><div class="meer">${u.vertrokken}</div></div>` : ''}<div class="regel"><div class="naam">Omzet</div><div class="meer">${geldTekst(u.omzet)}</div></div><div class="regel"><div class="naam">Fooi</div><div class="meer">${geldTekst(u.fooi)}</div></div>${u.loon ? `<div class="regel"><div class="naam">Lonen</div><div class="meer">− ${geldTekst(u.loon)}</div></div>` : ''}<div class="regel"><div class="naam">Totaal</div><div class="meer geld">${geldTekst(u.totaal - u.loon)}${u.nieuwBest ? ' <span class="stempel">record</span>' : ''}</div></div></div>
+      ${u.dicht ? `<p class="klein" style="margin-top:0">Gesloten om ${u.dicht}.</p>` : ''}<div class="lijst"><div class="regel"><div class="naam">Gasten bediend</div><div class="meer">${u.bediend}</div></div>${u.vertrokken ? `<div class="regel"><div class="naam">Boos of teleurgesteld weggegaan</div><div class="meer">${u.vertrokken}</div></div>` : ''}<div class="regel"><div class="naam">Omzet</div><div class="meer">${geldTekst(u.omzet)}</div></div><div class="regel"><div class="naam">Fooi</div><div class="meer">${geldTekst(u.fooi)}</div></div>${u.loon ? `<div class="regel"><div class="naam">Lonen</div><div class="meer">− ${geldTekst(u.loon)}</div></div>` : ''}<div class="regel"><div class="naam">Totaal</div><div class="meer geld">${geldTekst(u.totaal - u.loon)}${u.nieuwBest ? ' <span class="stempel">record</span>' : ''}</div></div></div>
       <div class="regel" style="display:block"><div class="sterren" aria-label="${u.sterren} van de 5 sterren">${sterrenTekst(u.sterren)}</div><p style="margin:.2rem 0">“${u.tekst}”</p><div class="klein">— ${u.wie}</div></div>
       <div id="sb-duiker"></div>
       <div class="rij"><button class="knop hoofd" type="button" id="na-ok">Slapen</button></div>`);
@@ -4927,7 +5215,7 @@ window.__duiker = {
   naarScene, SCENES, DAG, bewaar, laad, nieuweStaat, gesprek, y2m, m2y, maakZee, RECEPTEN, SOORTEN, UITRUSTING, RESTAURANT,
   zetStaat(s) { ST = s; },
   testVang(s, n) { for (let i = 0; i < n; i++) inTas({ s }); }, testVondst(v) { inTas({ v }); }, testBoven() { eindeDuik('boot'); },
-  get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), plan: () => A ? planVolgorde().map(b => b.nr) : [],
+  get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), kaartStart, kaartCode, kaartLees, kaartRoute, plan: () => A ? planVolgorde().map(b => b.nr) : [],
   testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },
 };
 begin();

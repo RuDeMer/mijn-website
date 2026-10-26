@@ -524,6 +524,7 @@ function mix(a, b, t) {
   return '#' + ((1 << 24) | (f(0) << 16) | (f(1) << 8) | f(2)).toString(16).slice(1);
 }
 const donker = (c, t = .45) => mix(c, '#140E14', t);
+const DONKER_RAND = new Map(); // randkleuren van omlijn, onthouden per kleur
 const licht = (c, t = .3) => mix(c, '#FFF6E0', t);
 function hashf(x, y, s = 0) { let h = (x * 374761393 + y * 668265263 + s * 1442695041) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 function rng(zaad) { let a = zaad >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -571,13 +572,19 @@ class Pix {
     }
   }
   // omlijning: elk leeg vakje naast iets krijgt een donkere versie van de buur (of een vaste kleur)
+  // (buren in vaste volgorde: rechts, links, onder, boven, dan schuin; de eerste gekleurde buur bepaalt de kleur)
   omlijn(c = null, diag = false) {
-    const nieuw = [], N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]], N8 = N4.concat([[1, 1], [1, -1], [-1, 1], [-1, -1]]);
-    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
-      if (this.g(x, y)) continue;
-      for (const [dx, dy] of (diag ? N8 : N4)) { const v = this.g(x + dx, y + dy); if (v && v !== 'K' && !(typeof v === 'string' && v.startsWith('!'))) { nieuw.push(x, y, c || (v.length === 1 ? 'K' : donker(v, .72))); break; } }
+    const { w, h, d } = this, nieuw = [], ok = v => v && v !== 'K' && !(typeof v === 'string' && v.charCodeAt(0) === 33);
+    for (let y = 0; y < h; y++) for (let x = 0, i = y * w; x < w; x++, i++) {
+      if (d[i]) continue;
+      const r = x + 1 < w, l = x > 0, o = y + 1 < h, b = y > 0;
+      let v = r && d[i + 1]; if (!ok(v)) { v = l && d[i - 1]; if (!ok(v)) { v = o && d[i + w]; if (!ok(v)) { v = b && d[i - w]; if (!ok(v)) {
+        v = null;
+        if (diag) { v = r && o && d[i + w + 1]; if (!ok(v)) { v = r && b && d[i - w + 1]; if (!ok(v)) { v = l && o && d[i + w - 1]; if (!ok(v)) { v = l && b && d[i - w - 1]; if (!ok(v)) v = null; } } } }
+      } } } }
+      if (v) { let k = c; if (!k) { k = v.length === 1 ? 'K' : DONKER_RAND.get(v); if (k === undefined) { k = donker(v, .72); DONKER_RAND.set(v, k); } } nieuw.push(i, k); }
     }
-    for (let i = 0; i < nieuw.length; i += 3) this.p(nieuw[i], nieuw[i + 1], nieuw[i + 2]);
+    for (let k = 0; k < nieuw.length; k += 2) d[nieuw[k]] = nieuw[k + 1];
     return this;
   }
   spiegel() { const B = new Pix(this.w, this.h); for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) B.d[y * this.w + x] = this.d[y * this.w + this.w - 1 - x]; return B; }
@@ -857,46 +864,61 @@ function laag(w = 40, h = 72) { return new Pix(w, h); }
 // Een hoofd staat op een doekje van 30 x 30: de kin onderaan op y 25, midden van de nek op x 15.
 const KAPSELS = ['kort', 'krul', 'staart', 'knot', 'lang', 'bob', 'kaal', 'stekel', 'zij', 'vlecht'];
 const OOG = '#241A22';
-function hoofdVorm(R, hu, o = {}) {
+// D: hoe ver het gezicht naar de looprichting gedraaid is (0 = recht naar de speler, 2 = driekwart, bij lopen)
+function hoofdVorm(R, hu, o = {}, D = 0) {
   const b = o.breedHoofd ? .8 : 0;
   R.ovaal(14.5, 12.5, 10 + b, 10, hu);
-  R.veelhoek([[5, 13], [24.5, 13], [23.5, 19], [20, 23.4], [15.6, 25.2], [11.2, 24], [7, 20.4]], hu);
-  if (o.dubbeleKin) R.ovaal(15.5, 24.6, 5.2, 1.8, hu);
+  R.veelhoek(D ? [[5, 13], [24.5, 13], [24.2, 19], [21.8, 23.2], [17.6, 25.2], [12.8, 24.4], [7.6, 21]] : [[5, 13], [24.5, 13], [23.5, 19], [20, 23.4], [15.6, 25.2], [11.2, 24], [7, 20.4]], hu);
+  if (o.dubbeleKin) R.ovaal(15.5 + D, 24.6, 5.2, 1.8, hu);
 }
 // huid belichten als een bol, licht van rechtsboven
-function huidLicht(R, hu) {
+function huidLicht(R, hu, D = 0) {
   const hs = tint(hu, -.15), hl = tint(hu, .14);
   for (let y = 0; y < 30; y++) for (let x = 0; x < 30; x++) {
     if (R.g(x, y) !== hu) continue;
-    const a = ((x - 16.5) / 11.5) ** 2 + ((y - 11.5) / 13) ** 2;
+    const a = ((x - 16.5 - D * .4) / 11.5) ** 2 + ((y - 11.5) / 13) ** 2;
     if (a > .93) R.p(x, y, hs);
-    else if (((x - 18) / 4) ** 2 + ((y - 7.5) / 2.2) ** 2 < 1) R.p(x, y, hl);
+    else if (((x - 18 - D * .5) / 4) ** 2 + ((y - 7.5) / 2.2) ** 2 < 1) R.p(x, y, hl);
   }
 }
 const NEK = c => tint(c, -.2);
 function nek(R, hu) { R.blok(12, 21, 17, 27, NEK(hu)); R.blok(16, 23, 17, 27, tint(hu, -.1)); }
 function nekSchaduw(R, hu) { const n = NEK(hu), d = tint(hu, -.34); for (let x = 12; x <= 17; x++) for (let y = 21; y < 28; y++) if (R.g(x, y) === n && R.g(x, y - 1) && R.g(x, y - 1) !== n) { R.p(x, y, d); break; } }
-function oren(R, hu) { const hs = tint(hu, -.16), hd = tint(hu, -.3); R.ovaal(4.3, 16, 1.6, 2.4, hs); R.p(4, 16, hd); R.p(4, 17, hd); R.ovaal(24.9, 16, 1.2, 2, hu); R.p(25, 16, hs); }
+// gedraaid zie je alleen het oor aan de kant van de speler, op de zijkant van het hoofd
+function oren(R, hu, D = 0) {
+  const hs = tint(hu, -.16), hd = tint(hu, -.3);
+  if (D) {
+    const rim = tint(hu, -.38), opp = tint(hu, -.08), bin = tint(hu, -.27);
+    R.ovaal(8.4, 16.5, 1.6, 2.3, opp);
+    for (const [x, y] of [[8, 14], [9, 14], [7, 15], [7, 16], [7, 17], [7, 18], [8, 19], [9, 19]]) R.p(x, y, rim);
+    R.p(9, 16, bin); R.p(9, 17, bin); R.p(8, 17, bin); R.p(8, 15, tint(hu, .08));
+    return;
+  }
+  R.ovaal(4.3, 16, 1.6, 2.4, hs); R.p(4, 16, hd); R.p(4, 17, hd); R.ovaal(24.9, 16, 1.2, 2, hu); R.p(25, 16, hs);
+}
+// tekent het gezicht D pixels verder naar de looprichting
+function verschoven(R, D) { if (!D) return R; return { p: (x, y, c) => R.p(x + D, y, c), g: (x, y) => R.g(x + D, y), rij: (y, a, b, c) => R.rij(y, a + D, b + D, c), blok: (x0, y0, x1, y1, c) => R.blok(x0 + D, y0, x1 + D, y1, c) }; }
 
 // ---- het haar: eerst een vorm, dan licht en lokken
-function haarLaag(o) {
-  const H = new Pix(30, 30), ha = o.haar, st = o.haarStijl || 'kort';
-  // een kap over de schedel met een pony; aan de zijkanten tot 'zij' naar beneden
+function haarLaag(o, D = 0) {
+  const H = new Pix(30, 30), ha = o.haar, st = o.haarStijl || 'kort', r = D ? 1.6 : 0;
+  // een kap over de schedel met een pony; aan de zijkanten tot 'zij' naar beneden (gedraaid: de achterkant links verder omlaag)
   const kap = (zij, pony = 8.6) => {
     for (let y = 0; y < 30; y++) for (let x = 0; x < 30; x++) {
       const a = ((x - 14.5) / 10.8) ** 2 + ((y - 12) / 10.6) ** 2; if (a > 1) continue;
-      const lijn = x < 7 || x > 22.5 ? zij : pony + (x > 10 && x < 15 ? .6 : 0) + Math.sin(x * 1.3) * .5;
+      const lijn = x < 7 + D * .6 || x > 22.5 + D * .5 ? zij + (D && x < 6.4 ? 3.5 : 0) : pony + (x > 10 + D && x < 15 + D ? .6 : 0) + Math.sin(x * 1.3) * .5;
       if (y <= lijn) H.p(x, y, ha);
     }
   };
   switch (st) {
-    case 'kaal': for (let y = 10; y < 18; y++) { H.p(4, y, ha); H.p(5, y, ha); H.p(24, y, ha); if (y < 15) { H.p(6, y, ha); H.p(23, y, ha); } } break;
+    case 'kaal': if (D) { for (let y = 10; y < 19; y++) { H.p(4, y, ha); H.p(5, y, ha); if (y < 14) { H.p(6, y, ha); H.p(7, y, ha); } } break; }
+      for (let y = 10; y < 18; y++) { H.p(4, y, ha); H.p(5, y, ha); H.p(24, y, ha); if (y < 15) { H.p(6, y, ha); H.p(23, y, ha); } } break;
     case 'kort': kap(13.5); break;
     case 'zij': kap(13.5, 8); H.ovaal(17.5, 3.4, 7.4, 3.2, ha); H.lijn(19, 7, 24, 9, ha); H.lijn(18, 8, 23, 10, ha); break;
     case 'stekel': kap(13); for (let i = 0; i < 7; i++) { const x = 6 + i * 2.8; H.lijn(x, 4, x + 1.5, -1 + (i % 2), ha); H.lijn(x + 1, 4, x + 2, 0 + (i % 2), ha); } break;
     case 'krul': kap(16, 8.2); for (const [x, y, r] of [[6, 5, 2.8], [10, 2.4, 3], [14.5, 1.4, 3], [19, 2.2, 3], [23, 5, 2.8], [4.2, 10, 2.6], [24.8, 10, 2.6], [4, 14.5, 2.2], [25, 14.5, 2.2], [9, 8, 2], [13, 8.6, 2], [17, 8.4, 2], [21, 8, 2]]) H.ovaal(x, y, r, r, ha); break;
-    case 'bob': kap(22, 9); for (const s of [-1, 1]) for (let y = 9; y < 23; y++) for (let x = 0; x < 30; x++) { const cx = s < 0 ? 5 : 24.2; if (((x - cx) / 3) ** 2 + ((y - 15) / 8) ** 2 < 1) H.p(x, y, ha); } break;
-    case 'lang': kap(26, 8.6); for (const s of [-1, 1]) for (let y = 10; y < 30; y++) for (let x = 0; x < 30; x++) { const cx = s < 0 ? 4.6 : 24.4; if (((x - cx) / 3.2) ** 2 + ((y - 19) / 11) ** 2 < 1) H.p(x, y, ha); } break;
+    case 'bob': kap(22, 9); for (const s of [-1, 1]) for (let y = 9; y < 23; y++) for (let x = 0; x < 30; x++) { const cx = s < 0 ? 5 + r * .6 : 24.2 + r, rx = s < 0 ? 3 + r : 3 - r * .5; if (((x - cx) / rx) ** 2 + ((y - 15) / 8) ** 2 < 1) H.p(x, y, ha); } break;
+    case 'lang': kap(26, 8.6); for (const s of [-1, 1]) for (let y = 10; y < 30; y++) for (let x = 0; x < 30; x++) { const cx = s < 0 ? 4.6 + r * .6 : 24.4 + r, rx = s < 0 ? 3.2 + r : 3.2 - r * .5; if (((x - cx) / rx) ** 2 + ((y - 19) / 11) ** 2 < 1) H.p(x, y, ha); } break;
     case 'staart': kap(14, 8.4); for (let i = 0; i < 9; i++) H.ovaal(3 - Math.sin(i / 3) * .7, 12 + i * 1.6, 2.4 - i * .12, 1.7, ha); break;
     case 'knot': kap(14, 8.6); H.ovaal(14.5, 1.6, 4.2, 3.2, ha); break;
     case 'vlecht': kap(15, 8.6); for (let i = 0; i < 8; i++) H.ovaal(4.2 - (i % 2) * .7, 15 + i * 1.7, 1.9, 1.2, ha); break;
@@ -939,8 +961,8 @@ function oogPaar(R, hu, uitdr, knip, ey = 15) {
     else { R.blok(a, ey, b, ey + 1, OOG); R.p(b, ey, '#FFFFFF'); }
   }
 }
-function gezicht(R, o, uitdr, knip) {
-  const hu = o.huid, hs = tint(hu, -.16), wb = o.wenkbrauw || tint(o.haar || '#3A2A20', -.28), ey = 15;
+function gezicht(R0, o, uitdr, knip, D = 0) {
+  const R = verschoven(R0, D), hu = o.huid, hs = tint(hu, -.16), wb = o.wenkbrauw || tint(o.haar || '#3A2A20', -.28), ey = 15;
   // wenkbrauwen
   if (uitdr === 'boos') { R.p(10, ey - 3, wb); R.p(11, ey - 2, wb); R.p(12, ey - 2, wb); R.p(18, ey - 2, wb); R.p(19, ey - 2, wb); R.p(20, ey - 3, wb); }
   else if (uitdr === 'schrik') { R.rij(ey - 4, 10, 12, wb); R.rij(ey - 4, 18, 20, wb); }
@@ -968,34 +990,34 @@ function gezicht(R, o, uitdr, knip) {
   }
   if (o.snor || o.baard) { R.rij(19, 13, 18, bk); R.p(12, 20, bk); R.p(19, 20, bk); R.rij(19, 14, 17, tint(bk, -.15)); }
   if (o.bril) { const b = o.bril; for (const [a, c] of OGEN) { R.rij(ey - 2, a - 1, c + 1, b); R.rij(ey + 2, a - 1, c + 1, b); R.p(a - 2, ey - 1, b); R.p(a - 2, ey, b); R.p(a - 2, ey + 1, b); R.p(c + 2, ey - 1, b); R.p(c + 2, ey, b); R.p(c + 2, ey + 1, b); } R.rij(ey - 1, 14, 16, b); R.p(10, ey - 1, mix(b, '#FFFFFF', .6)); }
-  if (o.oorbel) { R.p(4, 19, '#E9B949'); R.p(4, 20, '#C99A2E'); }
+  if (o.oorbel) { const ox = D ? 8 : 4; R0.p(ox, 19, '#E9B949'); R0.p(ox, 20, '#C99A2E'); }
   if (uitdr === 'boos') { for (const [x, y] of [[24, 4], [26, 4], [25, 3], [25, 5]]) R.p(x, y, '#E8414E'); }
   if (uitdr === 'schrik') { R.p(4, 7, '#9FD0FF'); R.p(4, 8, '#9FD0FF'); R.p(3, 9, '#9FD0FF'); }
 }
 // een hoofd voor iedereen (behalve Ruben: die heeft een eigen hoofd)
-function persoonHoofd(o, uitdr = 'gewoon', knip = false) {
+function persoonHoofd(o, uitdr = 'gewoon', knip = false, D = 0) {
   const R = new Pix(30, 30), hu = o.huid, st = o.haarStijl || 'kort';
-  const H = haarLaag(o);
-  nek(R, hu); hoofdVorm(R, hu, o); huidLicht(R, hu); oren(R, hu); nekSchaduw(R, hu);
+  const H = haarLaag(o, D);
+  nek(R, hu); hoofdVorm(R, hu, o, D); huidLicht(R, hu, D); oren(R, hu, D); nekSchaduw(R, hu);
   haarLicht(H, o.haar, st);
   R.plak(H, 0, 0);
   if (o.hoed) hoedLaag(R, o);
   rand(R);
-  gezicht(R, o, uitdr, knip);
+  gezicht(R, o, uitdr, knip, D);
   return R;
 }
 
 // ---- Ruben: donker haar met volume, naar achteren en opzij met een scheiding; grote pilotenbril met dun zilveren montuur;
 // snorretje, klein sikje en een vriendelijke lach
 const RUB = { huid: '#EFC6A6', haar: '#2E211B' };
-function rubenHoofdGroot(uitdr = 'gewoon', knip = false) {
+function rubenHoofdGroot(uitdr = 'gewoon', knip = false, D = 0) {
   const R = new Pix(30, 30), hu = RUB.huid, ha = RUB.haar, hl = tint(ha, .32), hm = tint(ha, .15), hs = tint(ha, -.3);
-  nek(R, hu); hoofdVorm(R, hu, {}); huidLicht(R, hu); oren(R, hu); nekSchaduw(R, hu);
+  nek(R, hu); hoofdVorm(R, hu, {}, D); huidLicht(R, hu, D); oren(R, hu, D); nekSchaduw(R, hu);
   // haar: veel volume bovenop, naar achteren en opzij gekamd, korter aan de zijkanten, scheiding links
   const H = new Pix(30, 30);
   for (let y = 0; y < 30; y++) for (let x = 0; x < 30; x++) {
     const a = ((x - 14.5) / 10.8) ** 2 + ((y - 11.6) / 10.6) ** 2; if (a > 1) continue;
-    const lijn = x < 6.5 || x > 23 ? 12.5 : x < 10 ? 8.4 : 7.4 + Math.max(0, (x - 18) * .25);
+    const lijn = x < 6.5 + D * .6 || x > 23 + D * .5 ? 12.5 + (D && x < 6.5 ? 3 : 0) : x < 10 ? 8.4 : 7.4 + Math.max(0, (x - 18) * .25);
     if (y <= lijn) H.p(x, y, ha);
   }
   H.ovaal(16.5, 2.6, 8.6, 3.4, ha); H.ovaal(21.5, 4.2, 4.4, 3, ha); H.ovaal(10, 3.6, 4.6, 2.6, ha);
@@ -1004,48 +1026,72 @@ function rubenHoofdGroot(uitdr = 'gewoon', knip = false) {
   for (const [x, y] of [[9, 2], [9, 3], [8, 4], [8, 5], [7, 6]]) if (H.g(x, y)) H.p(x, y, tint(hu, -.2)); // scheiding
   R.plak(H, 0, 0);
   rand(R);
-  const ey = 15, wb = '#2A1E1A', hs2 = tint(hu, -.16), hd = tint(hu, -.32);
-  if (uitdr === 'schrik') { R.rij(ey - 4, 10, 12, wb); R.rij(ey - 4, 18, 20, wb); } else if (uitdr === 'denk') { R.rij(ey - 3, 10, 12, wb); R.rij(ey - 4, 18, 20, wb); } else { R.rij(ey - 3, 10, 12, wb); R.rij(ey - 3, 18, 20, wb); }
-  // pilotenbril: twee grote druppelvormige glazen, een dubbele brug, dun zilveren montuur
+  const F = verschoven(R, D), ey = 15, wb = '#2A1E1A', hs2 = tint(hu, -.16), hd = tint(hu, -.32);
+  if (uitdr === 'schrik') { F.rij(ey - 4, 10, 12, wb); F.rij(ey - 4, 18, 20, wb); } else if (uitdr === 'denk') { F.rij(ey - 3, 10, 12, wb); F.rij(ey - 4, 18, 20, wb); } else { F.rij(ey - 3, 10, 12, wb); F.rij(ey - 3, 18, 20, wb); }
+  // pilotenbril: twee grote druppelvormige glazen, een dubbele brug, dun zilveren montuur (gedraaid: het verre glas smaller)
   const B = '#9AA4B0', BD = '#5E6874', GLAS = mix(hu, '#B8D4E4', .16);
-  const glas = (cx, cy) => { for (let y = cy - 4; y <= cy + 5; y++) for (let x = cx - 5; x <= cx + 5; x++) { const yy = y < cy ? (y - cy) / 2.6 : (y - cy) / 3.6, xx = (x - cx + (y > cy ? (y - cy) * (cx < 15 ? .18 : -.18) : 0)) / 3.1, a = xx * xx + yy * yy; if (a >= .78 && a < 1.25) R.p(x, y, y > cy ? B : BD); else if (a < .78) R.p(x, y, GLAS); } };
-  glas(11.5, ey + .2); glas(18.5, ey + .2);
-  R.rij(ey - 2, 14, 15, BD); R.rij(ey - 3, 14, 15, B); // dubbele brug
-  R.p(7, ey - 1, BD); R.p(6, ey, BD); R.p(23, ey - 1, BD); R.p(24, ey, BD); // pootjes
-  oogPaar(R, GLAS, uitdr, knip, ey);
-  R.p(9, ey - 1, '#FFFFFF');
+  const glas = (cx, cy, br = 3.1) => { for (let y = cy - 4; y <= cy + 5; y++) for (let x = cx - 5; x <= cx + 5; x++) { const yy = y < cy ? (y - cy) / 2.6 : (y - cy) / 3.6, xx = (x - cx + (y > cy ? (y - cy) * (cx < 15 + D ? .18 : -.18) : 0)) / br, a = xx * xx + yy * yy; if (a >= .78 && a < 1.25) R.p(x, y, y > cy ? B : BD); else if (a < .78) R.p(x, y, GLAS); } };
+  glas(11.5 + D, ey + .2); glas(18.5 + D, ey + .2, D ? 2.5 : 3.1);
+  F.rij(ey - 2, 14, 15, BD); F.rij(ey - 3, 14, 15, B); // dubbele brug
+  if (D) { R.p(9, ey - 1, BD); R.p(8, ey - 1, BD); } else { R.p(7, ey - 1, BD); R.p(6, ey, BD); R.p(23, ey - 1, BD); R.p(24, ey, BD); } // pootjes
+  oogPaar(F, GLAS, uitdr, knip, ey);
+  F.p(9, ey - 1, '#FFFFFF');
   // neus, wangen, snorretje, mond en sikje
-  R.p(16, ey + 4, hs2); if (uitdr === 'blij') { R.rij(ey + 5, 8, 9, '#E8A090'); R.rij(ey + 5, 21, 22, '#E8A090'); }
+  F.p(16, ey + 4, hs2); if (uitdr === 'blij') { F.rij(ey + 5, 8, 9, '#E8A090'); if (!D) F.rij(ey + 5, 21, 22, '#E8A090'); }
   const M = '#3A2820', ML = '#4E3628';
-  R.rij(20, 13, 18, M); R.p(12, 21, M); R.p(19, 21, M); R.rij(20, 14, 17, ML);
-  if (uitdr === 'blij') { R.rij(21, 13, 18, '#5A1E22'); R.rij(21, 14, 17, '#FFFFFF'); R.rij(22, 14, 17, '#5A1E22'); R.rij(24, 14, 17, ML); R.rij(25, 15, 16, M); }
-  else if (uitdr === 'schrik') { R.blok(15, 21, 16, 22, '#5A1E22'); R.rij(24, 15, 16, M); }
-  else { R.rij(22, 14, 17, '#9A4A40'); R.p(13, 21, '#9A4A40'); R.p(18, 21, '#9A4A40'); R.rij(24, 14, 17, ML); R.rij(25, 15, 16, M); }
+  F.rij(20, 13, 18, M); F.p(12, 21, M); F.p(19, 21, M); F.rij(20, 14, 17, ML);
+  if (uitdr === 'blij') { F.rij(21, 13, 18, '#5A1E22'); F.rij(21, 14, 17, '#FFFFFF'); F.rij(22, 14, 17, '#5A1E22'); F.rij(24, 14, 17, ML); F.rij(25, 15, 16, M); }
+  else if (uitdr === 'schrik') { F.blok(15, 21, 16, 22, '#5A1E22'); F.rij(24, 15, 16, M); }
+  else { F.rij(22, 14, 17, '#9A4A40'); F.p(13, 21, '#9A4A40'); F.p(18, 21, '#9A4A40'); F.rij(24, 14, 17, ML); F.rij(25, 15, 16, M); }
   return R;
 }
 
 // ===================== LIJVEN =====================
 // Een stevig lijf dat naar voren staat; armen en benen bewegen in het platte vlak.
 // pose: staan, lopen, zitten, wacht, eten, smul, boos, blij, zwaai, schrik, denk, koken, serveren, dragen; t in seconden
+// Lopen: extra.gang telt de passen (1 = een hele cyclus, links en rechts); extra.loopt laat ook bij serveren of dragen de benen lopen.
 const MENSEN_BUF = new Map();
+const GANG_N = 16, GANG_AFSTAND = 28, GANG_TMIN = .5;
+// de passen van een loper bijhouden: zo blijft een voet staan waar hij neerkomt; wie hard gaat, zet hooguit vier passen per seconde
+function gangStap(w, afstand, dt) { w.gang = ((w.gang || 0) + Math.min(Math.abs(afstand) / GANG_AFSTAND, dt / GANG_TMIN)) % 1e4; }
 function persoon(o, pose = 'staan', t = 0, extra = {}) {
-  const lopen = pose === 'lopen', zit = pose === 'zitten' || pose === 'eten' || pose === 'boos' || pose === 'smul' || pose === 'wacht';
-  const fase = lopen ? Math.floor(t * 10) % 8 : (pose === 'eten' || pose === 'koken' || pose === 'zwaai' || pose === 'smul' || (pose === 'blij' && !zit)) ? Math.floor(t * 5) % 4 : pose === 'wacht' ? Math.floor(t * 2) % 2 : 0;
+  const lopen = pose === 'lopen' || !!extra.loopt, zit = pose === 'zitten' || pose === 'eten' || pose === 'boos' || pose === 'smul' || pose === 'wacht';
+  const gang = lopen ? (extra.gang !== undefined ? extra.gang : t / (GANG_TMIN * 1.2)) : 0;
+  const fase = lopen ? Math.floor(((gang % 1) + 1) % 1 * GANG_N) % GANG_N : (pose === 'eten' || pose === 'koken' || pose === 'zwaai' || pose === 'smul' || (pose === 'blij' && !zit)) ? Math.floor(t * 5) % 4 : pose === 'wacht' ? Math.floor(t * 2) % 2 : 0;
   const knip = !lopen && ((t + String(o.id || 0).length * .7) % 4.1) < .12;
-  const sleutel = o.id + '|' + pose + fase + (knip ? 'k' : '') + (extra.schort ? 's' : '') + (extra.uitdr || '');
+  const sleutel = o.id + '|' + pose + (lopen ? 'L' : '') + fase + (knip ? 'k' : '') + (extra.schort ? 's' : '') + (extra.uitdr || '');
   const oud = MENSEN_BUF.get(sleutel); if (oud) return oud;
   if (MENSEN_BUF.size > 2400) MENSEN_BUF.clear();
   const kind = !!o.kind, L = kind ? 0 : (o.lengte || 0);
-  const R = laag(40, 72), X = 18, phi = fase / 8 * Math.PI * 2;
-  const bob = lopen ? (fase % 4 === 0 ? 1 : 0) : (pose === 'blij' && !zit) ? -[0, 2, 3, 2][fase] : 0;
+  const R = laag(40, 72), X = 18, p = fase / GANG_N, phi = p * Math.PI * 2;
   const bouw = o.bouw || 'gewoon', bw = bouw === 'slank' ? -1 : bouw === 'stevig' ? 1 : 0, buik = bouw === 'stevig' ? 1 : 0;
   const voetY = 70, beenL = kind ? 6 : 8 + Math.round(L * .25), romp = kind ? 10 : 14 + Math.round(L * .3);
+  // lopen: het lijf zakt net na het neerzetten van een voet het diepst en staat het hoogst als het ene been langs het andere zwaait
+  const bob = lopen ? Math.round((kind ? 1 : 2) * (.5 + .5 * Math.cos(4 * Math.PI * (p - .06)))) : (pose === 'blij' && !zit) ? -[0, 2, 3, 2][fase] : 0;
   const heup = voetY - 2 - beenL * 2 + bob, schouder = heup - romp;
   const huid = o.huid, shirt = o.shirt, broek = o.broek || '#3A4054', schoen = o.schoen || '#4A3022';
   const jas = o.jas || (o.labjas ? '#F4F1E8' : null), mouw = jas || shirt;
-  // ---- benen: [dij, onderbeen] hoeken (0 = recht omlaag, positief = naar rechts)
+  // ---- benen: [dij, onderbeen, kantel] hoeken (0 = recht omlaag, positief = naar rechts, de looprichting)
   let bL, bR;
-  if (lopen) { const v = a => [.38 * Math.sin(a), .38 * Math.sin(a) - .5 * Math.max(0, Math.cos(a))]; bR = v(phi); bL = v(phi + Math.PI); }
+  const heupL = lopen ? X - 2 : X - 3, heupR = lopen ? X + 2 : X + 3;
+  if (lopen) {
+    // per been een voetbaan: eerst staat de voet op de grond en schuift hij onder het lijf door naar achteren,
+    // dan komt hij los, zwaait met de knie omhoog naar voren en zet hij de hak neer; de knie volgt (twee botten, knie naar voren)
+    const S = beenL * .85, til = kind ? 2.2 : 3, grond = voetY - 2;
+    const voet = q => {
+      q = ((q % 1) + 1) % 1;
+      if (q < .5) return [S - 4 * S * q, 0, q > .34 ? -1 : 0];
+      const u = (q - .5) * 2, e = u * u * (3 - 2 * u);
+      return [-S + 2 * S * e, til * Math.sin(Math.PI * u), u < .32 ? -1 : u > .74 ? 1 : 0];
+    };
+    const ik = (hx, q) => {
+      const [dx, op, kantel] = voet(q); let vx = dx, vy = grond - op - heup, d = Math.hypot(vx, vy); const max = beenL * 2 - .05;
+      if (d > max) { vx *= max / d; vy *= max / d; d = max; }
+      const th = Math.atan2(vx, vy), a = Math.acos(klem(d / (beenL * 2), -1, 1));
+      return [th + a, th - a, kantel];
+    };
+    bR = ik(heupR, p); bL = ik(heupL, p + .5);
+  }
   else if (zit) { bR = [1.5, -.05]; bL = [1.4, -.1]; if (pose === 'wacht' && fase) bR = [1.5, .2]; }
   else if (pose === 'blij' && fase) { bR = [.12, -.2]; bL = [-.12, .2]; }
   else { bR = [.06, -.02]; bL = [-.06, .02]; }
@@ -1057,10 +1103,14 @@ function persoon(o, pose = 'staan', t = 0, extra = {}) {
     capsule(P, kx, ky, vx, vy - 1, rok ? 1.8 : (kind ? 2.1 : 2.6), rok ? 1.6 : (kind ? 1.9 : 2.3), o.jurk || o.korteBroek ? huid : kleur);
     if (o.sokken) capsule(P, vx, vy - 3, vx, vy - 1, 2, 2, o.sokken);
     belicht(P);
-    // schoen: rond, de neus een tikje naar voren
-    const sx = Math.round(vx), sy = Math.round(vy) + 1, S = laag();
+    // schoen: rond, de neus een tikje naar voren; kantel 1 = neus omhoog (hak neerzetten), -1 = hak omhoog (afzetten)
+    const sx = Math.round(vx), sy = Math.round(vy) + 1, S = laag(), kantel = a[2] || 0;
     S.blok(sx - 3, sy - 1, sx + 3, sy + 1, schoenK); S.rij(sy - 2, sx - 2, sx + 2, schoenK); S.p(sx + 4, sy + 1, schoenK); S.p(sx + 4, sy, schoenK);
     belicht(S); S.rij(sy + 1, sx - 3, sx + 4, tint(schoenK, -.35)); S.p(sx + 1, sy - 1, tint(schoenK, .35));
+    if (kantel) for (let x = sx - 3; x <= sx + 4; x++) if (kantel > 0 ? x >= sx + 2 : x <= sx - 2) {
+      for (let y = sy - 3; y <= sy + 1; y++) S.d[(y - 1) * S.w + x] = S.g(x, y);
+      S.d[(sy + 1) * S.w + x] = null;
+    }
     P.plak(S, 0, 0); rand(P); return P;
   };
   // ---- armen
@@ -1074,69 +1124,78 @@ function persoon(o, pose = 'staan', t = 0, extra = {}) {
     const H = laag(), hx2 = hx + Math.sin(a2) * 1.3, hy2 = hy + Math.cos(a2) * 1.3; H.ovaal(hx2, hy2, 1.8, 1.8, huid); belicht(H); P.plak(H, 0, 0);
     rand(P); return { P, hand: [Math.round(hx2), Math.round(hy2)] };
   };
-  let aL, aR; const zw = lopen ? .4 * Math.sin(phi) : 0;
+  // lopen: elke arm zwaait andersom dan het been aan dezelfde kant (linkerbeen voor, linkerarm achter), met de elleboog wat gebogen als de arm voor is
+  // (de nabije arm zwaait naar voren vooral naar de speler toe, dus in beeld maar een klein stukje; de verre arm juist naar voren)
+  let aL, aR; const zwaaiArm = (s, voor, achter, buig) => { const a1 = .04 + (s > 0 ? voor : achter) * s; return [a1, a1 + .08 + buig * Math.max(0, s)]; };
   switch (pose) {
     case 'zitten': case 'wacht': aL = [-.2, .9]; aR = [.5, pose === 'wacht' && fase ? 1.9 : 1.45]; break;
     case 'eten': aL = [-.2, .9]; aR = fase % 2 ? [.6, 3.6] : [.6, 1.6]; break;
     case 'smul': aL = [-.6, -2.7]; aR = [.6, 2.75 - (fase % 2) * .25]; break;
     case 'boos': aL = [-.4, 1.4]; aR = [.4, -1.4]; break;
     case 'koken': aL = [.3, 1.2]; aR = [.6 + (fase % 2) * .15, 1.6 - (fase % 2) * .2]; break;
-    case 'serveren': case 'dragen': aL = [-.15, .1]; aR = [.5, 1.55]; break;
+    case 'serveren': case 'dragen': aL = lopen ? zwaaiArm(Math.cos(phi) * .8, .18, .42, .1) : [-.15, .1]; aR = [.5, 1.55]; break;
     case 'blij': aL = [-2.6, -2.9 - fase * .05]; aR = [2.6, 2.9 + fase * .05]; break;
     case 'zwaai': aL = [-.15, -.05]; aR = [2.4, 2.8 + (fase % 2 ? .4 : -.1)]; break;
     case 'schrik': aL = [-1.3, -2.2]; aR = [1.3, 2.2]; break;
     case 'denk': aL = [-.1, .6]; aR = [.5, 3.5]; break;
-    default: aL = [-.08 - zw, .02 - zw * .5]; aR = [.08 + zw, -.02 + zw * .5];
+    default: if (lopen) { aL = zwaaiArm(Math.cos(phi), .18, .45, .1); aR = zwaaiArm(-Math.cos(phi), .42, .3, .32); } else { aL = [-.08, .02]; aR = [.08, -.02]; }
   }
   // ---- benen eerst, dan de romp
-  R.plak(beenLaag(bL, X - 3, tint(broek, -.1), tint(schoen, -.1)), 0, 0);
-  R.plak(beenLaag(bR, X + 3, broek, schoen), 0, 0);
-  const T = laag(), sh = schouder, hp = heup, br = 6 + bw;
+  // Lopen naar rechts: het lijf draait mee (driekwart). Dan staat de kant van de speler links in beeld: het linkerbeen en de
+  // linkerarm zijn dichtbij (voor), het rechterbeen en de rechterarm ver weg (achter het lijf). Kraag, das, schort en hoofd schuiven
+  // D pixels naar de looprichting. Staan, zitten en de rest: recht naar de speler, zoals altijd.
+  const D = lopen ? 2 : 0, XV = X + D;
+  if (lopen) { R.plak(beenLaag(bR, heupR, tint(broek, -.1), tint(schoen, -.1)), 0, 0); R.plak(beenLaag(bL, heupL, broek, schoen), 0, 0); }
+  else { R.plak(beenLaag(bL, heupL, tint(broek, -.1), tint(schoen, -.1)), 0, 0); R.plak(beenLaag(bR, heupR, broek, schoen), 0, 0); }
+  const T = laag(), sh = schouder, hp = heup, br = 6 + bw - (lopen ? 1 : 0);
   if (!o.jurk) T.veelhoek([[X - br, hp - 2], [X + br, hp - 2], [X + br, hp + 3], [X - br, hp + 3]], broek);
-  T.blok(X - 3, sh - 3, X + 2, sh + 1, tint(huid, -.18));
+  T.blok(XV - 3, sh - 3, XV + 2, sh + 1, tint(huid, -.18));
   const rompPt = [[X - br - 1, sh + 2], [X - br + 1, sh], [X + br - 1, sh], [X + br + 1, sh + 2], [X + br + 1 + buik, sh + 8], [X + br + buik, hp + 1], [X - br - buik, hp + 1], [X - br - 1 - buik, sh + 8]];
   if (o.jurk) { const lang = zit ? 5 : beenL + 4, z = lopen ? Math.round(Math.sin(phi)) : 0; T.veelhoek([[X - br - 1, sh + 2], [X - br + 1, sh], [X + br - 1, sh], [X + br + 1, sh + 2], [X + br + buik, sh + 9], [X + br + 4 + z, hp + lang], [X - br - 4 + z, hp + lang], [X - br - buik, sh + 9]], shirt); }
   else T.veelhoek(rompPt, shirt);
   if (o.streep) for (let y = sh + 2; y < hp + (o.jurk ? beenL : 0); y += 3) for (let x = X - 14; x < X + 14; x++) if (T.g(x, y) === shirt) T.p(x, y, o.streep);
   belicht(T, 1);
-  if (!o.jurk) { for (let x = X - br; x <= X + br; x++) if (T.g(x, hp) && T.g(x, hp) !== broek) T.p(x, hp, tint(shirt, -.22)); T.p(X - 2, sh + 6, tint(shirt, -.12)); T.p(X + 3, sh + 7, tint(shirt, -.12)); }
+  if (!o.jurk) { for (let x = X - br; x <= X + br; x++) if (T.g(x, hp) && T.g(x, hp) !== broek) T.p(x, hp, tint(shirt, -.22)); T.p(XV - 2, sh + 6, tint(shirt, -.12)); T.p(XV + 3, sh + 7, tint(shirt, -.12)); }
   if (jas) {
     const J = laag(), jl = (o.labjas || o.jasLang) ? (zit ? 4 : beenL + 3) : 2;
-    J.veelhoek([[X - br - 1, sh + 2], [X - br + 1, sh], [X - 1, sh], [X - 1, hp + jl], [X - br - 1 - buik, hp + jl]], jas);
-    J.veelhoek([[X + 1, sh], [X + br - 1, sh], [X + br + 1, sh + 2], [X + br + 1 + buik, hp + jl], [X + 1, hp + jl]], jas);
+    J.veelhoek([[X - br - 1, sh + 2], [X - br + 1, sh], [XV - 1, sh], [XV - 1, hp + jl], [X - br - 1 - buik, hp + jl]], jas);
+    J.veelhoek([[XV + 1, sh], [X + br - 1, sh], [X + br + 1, sh + 2], [X + br + 1 + buik, hp + jl], [XV + 1, hp + jl]], jas);
     belicht(J, 1);
-    J.lijn(X - 1, sh, X - 3, sh + 6, tint(jas, -.3)); J.lijn(X + 1, sh, X + 3, sh + 6, tint(jas, .2));
-    if (!o.labjas) { J.p(X - 2, sh + 9, '#E9D9A0'); J.p(X - 2, sh + 12, '#E9D9A0'); } else { J.blok(X - br + 1, sh + 9, X - br + 4, sh + 11, tint(jas, -.12)); J.p(X - br + 2, sh + 8, '#2F6FB5'); }
+    J.lijn(XV - 1, sh, XV - 3, sh + 6, tint(jas, -.3)); J.lijn(XV + 1, sh, XV + 3, sh + 6, tint(jas, .2));
+    if (!o.labjas) { J.p(XV - 2, sh + 9, '#E9D9A0'); J.p(XV - 2, sh + 12, '#E9D9A0'); } else { J.blok(X - br + 1, sh + 9, X - br + 4, sh + 11, tint(jas, -.12)); J.p(X - br + 2, sh + 8, '#2F6FB5'); }
     rand(J); T.plak(J, 0, 0);
   }
-  if (!jas) { T.rij(sh - 1, X - 3, X + 2, tint(shirt, -.06)); T.rij(sh, X - 4, X + 3, tint(shirt, -.26)); T.p(X - 4, sh - 1, tint(shirt, -.26)); T.p(X + 3, sh - 1, tint(shirt, -.26)); }
+  if (!jas) { T.rij(sh - 1, XV - 3, XV + 2, tint(shirt, -.06)); T.rij(sh, XV - 4, XV + 3, tint(shirt, -.26)); T.p(XV - 4, sh - 1, tint(shirt, -.26)); T.p(XV + 3, sh - 1, tint(shirt, -.26)); }
   if (o.riem && !o.jurk) T.rij(hp - 1, X - br, X + br, o.riem);
-  if (o.ketting) { T.lijn(X - 3, sh, X, sh + 5, '#E9B949'); T.lijn(X, sh + 5, X + 3, sh, '#C99A2E'); T.blok(X - 1, sh + 5, X + 1, sh + 7, '#E9B949'); T.p(X, sh + 6, '#FFF0B0'); }
-  if (o.das) { T.blok(X - 1, sh, X, sh + 1, o.das); T.lijn(X - 1, sh + 2, X - 1, sh + 9, o.das); T.lijn(X, sh + 2, X, sh + 9, tint(o.das, -.2)); }
-  if (o.strikje) { T.blok(X - 3, sh, X + 2, sh + 1, o.strikje); T.p(X - 1, sh, tint(o.strikje, -.3)); T.p(X, sh, tint(o.strikje, -.3)); }
-  if (o.sjaal) { T.blok(X - 5, sh - 2, X + 4, sh + 1, o.sjaal); T.rij(sh - 2, X - 5, X + 4, tint(o.sjaal, .2)); T.blok(X + 2, sh + 1, X + 4, sh + 8, o.sjaal); T.rij(sh + 8, X + 2, X + 4, tint(o.sjaal, -.3)); }
+  if (o.ketting) { T.lijn(XV - 3, sh, XV, sh + 5, '#E9B949'); T.lijn(XV, sh + 5, XV + 3, sh, '#C99A2E'); T.blok(XV - 1, sh + 5, XV + 1, sh + 7, '#E9B949'); T.p(XV, sh + 6, '#FFF0B0'); }
+  if (o.das) { T.blok(XV - 1, sh, XV, sh + 1, o.das); T.lijn(XV - 1, sh + 2, XV - 1, sh + 9, o.das); T.lijn(XV, sh + 2, XV, sh + 9, tint(o.das, -.2)); }
+  if (o.strikje) { T.blok(XV - 3, sh, XV + 2, sh + 1, o.strikje); T.p(XV - 1, sh, tint(o.strikje, -.3)); T.p(XV, sh, tint(o.strikje, -.3)); }
+  if (o.sjaal) { T.blok(XV - 5, sh - 2, XV + 4, sh + 1, o.sjaal); T.rij(sh - 2, XV - 5, XV + 4, tint(o.sjaal, .2)); T.blok(XV + 2, sh + 1, XV + 4, sh + 8, o.sjaal); T.rij(sh + 8, XV + 2, XV + 4, tint(o.sjaal, -.3)); }
   if (extra.schort || o.schort) {
     const sk = o.schortKleur || '#F2DDA0', lang = zit ? 4 : beenL + 2, S = laag();
-    S.veelhoek([[X - 4, sh + 2], [X + 4, sh + 2], [X + 5, hp - 3], [X + br + 1, hp + lang], [X - br - 1, hp + lang], [X - 5, hp - 3]], sk);
+    S.veelhoek([[XV - 4, sh + 2], [XV + 4, sh + 2], [XV + 5, hp - 3], [X + br + 1, hp + lang], [X - br - 1, hp + lang], [XV - 5, hp - 3]], sk);
     belicht(S, 1);
     S.rij(Math.round(hp + lang), X - br - 1, X + br + 1, o.id === 'ruben' ? '#C8323C' : tint(sk, -.3));
-    S.blok(X - 2, hp + 2, X + 2, hp + 5, tint(sk, -.12)); S.rij(hp + 2, X - 2, X + 2, tint(sk, -.25));
-    S.lijn(X - 4, sh + 2, X - 3, sh - 1, tint(sk, -.2)); S.lijn(X + 4, sh + 2, X + 3, sh - 1, tint(sk, -.2));
+    S.blok(XV - 2, hp + 2, XV + 2, hp + 5, tint(sk, -.12)); S.rij(hp + 2, XV - 2, XV + 2, tint(sk, -.25));
+    S.lijn(XV - 4, sh + 2, XV - 3, sh - 1, tint(sk, -.2)); S.lijn(XV + 4, sh + 2, XV + 3, sh - 1, tint(sk, -.2));
     rand(S); T.plak(S, 0, 0);
-    T.rij(hp - 3, X - br, X - 5, tint(sk, -.2)); T.rij(hp - 3, X + 5, X + br, tint(sk, -.2));
+    T.rij(hp - 3, X - br, XV - 5, tint(sk, -.2)); T.rij(hp - 3, XV + 5, X + br, tint(sk, -.2));
   }
   rand(T);
-  R.plak(T, 0, 0);
-  // ---- linkerarm, hoofd, rechterarm
-  const links = armLaag(X - br - 1, sh + 2, aL[0], aL[1], tint(mouw, -.08));
+  // ---- armen en hoofd. Lopen: de verre arm (rechts) achter het lijf, dan het lijf, het hoofd en de nabije arm (links) ervoor.
+  const links = armLaag(X - br - 1, sh + 2, aL[0], aL[1], tint(mouw, lopen ? 0 : -.08));
+  const rechts = armLaag(X + br + 1, sh + 2, aR[0], aR[1], lopen ? tint(mouw, -.14) : mouw);
   const uitdr = extra.uitdr || ({ blij: 'blij', zwaai: 'blij', smul: 'smul', schrik: 'schrik', boos: 'boos', eten: fase % 2 ? 'eet' : 'gewoon', denk: 'denk' })[pose] || 'gewoon';
-  const Hd = o.hoofd ? o.hoofd(uitdr, knip) : persoonHoofd(o, uitdr, knip);
-  const armenBoven = pose === 'blij' || pose === 'schrik' || pose === 'smul';
-  if (!armenBoven) R.plak(links.P, 0, 0);
-  R.plak(Hd, X - 15, sh - 26);
-  if (armenBoven) R.plak(links.P, 0, 0);
-  const rechts = armLaag(X + br + 1, sh + 2, aR[0], aR[1], mouw);
-  R.plak(rechts.P, 0, 0);
+  const Hd = o.hoofd ? o.hoofd(uitdr, knip, D) : persoonHoofd(o, uitdr, knip, D);
+  if (lopen) { R.plak(rechts.P, 0, 0); R.plak(T, 0, 0); R.plak(Hd, XV - 15, sh - 26); R.plak(links.P, 0, 0); }
+  else {
+    const armenBoven = pose === 'blij' || pose === 'schrik' || pose === 'smul';
+    R.plak(T, 0, 0);
+    if (!armenBoven) R.plak(links.P, 0, 0);
+    R.plak(Hd, X - 15, sh - 26);
+    if (armenBoven) R.plak(links.P, 0, 0);
+    R.plak(rechts.P, 0, 0);
+  }
   const uit = { pix: R, hand: rechts.hand, handA: links.hand, voet: [X, zit ? heup + 2 : voetY], zitHoogte: heup, schouder };
   const cv = R.doek(); R.doek = () => cv;
   MENSEN_BUF.set(sleutel, uit);
@@ -1144,7 +1203,7 @@ function persoon(o, pose = 'staan', t = 0, extra = {}) {
 }
 
 // ---- de figuren
-const RUBEN = { id: 'ruben', huid: RUB.huid, haar: RUB.haar, shirt: '#28375C', broek: '#3A4054', schoen: '#5A3A26', bouw: 'gewoon', lengte: 2, hoofd: (u, k) => rubenHoofdGroot(u === 'boos' ? 'denk' : u === 'smul' ? 'blij' : u === 'eet' ? 'gewoon' : u, k) };
+const RUBEN = { id: 'ruben', huid: RUB.huid, haar: RUB.haar, shirt: '#28375C', broek: '#3A4054', schoen: '#5A3A26', bouw: 'gewoon', lengte: 2, hoofd: (u, k, d) => rubenHoofdGroot(u === 'boos' ? 'denk' : u === 'smul' ? 'blij' : u === 'eet' ? 'gewoon' : u, k, d) };
 const FIGUREN = {
   trien: { id: 'trien', naam: 'Trien', huid: '#E9B996', haar: '#C9C4BA', haarStijl: 'vlecht', hoed: 'kapitein', hoedKleur: '#26304A', shirt: '#2F4C8F', streep: '#F4F1E8', jas: '#E9B949', jasLang: true, broek: '#2E3A52', schoen: '#2B1E16', oud: true, lengte: -2, blos: '#E39A84', bouw: 'stevig' },
   wieke: { id: 'wieke', naam: 'Wieke', huid: '#F2CDB0', haar: '#C8552E', haarStijl: 'krul', bril: '#3C7A8A', shirt: '#5E8C4A', labjas: true, broek: '#4A3A5A', schoen: '#3A2A20', lengte: 0, blos: '#F0A89A' },
@@ -2095,7 +2154,9 @@ const BEELD = { S: 1, W: 640, H: 360, dpr: 1, doel: 340 };
 function maat() {
   const r = VELD.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   const dw = Math.max(1, Math.round(r.width * dpr)), dh = Math.max(1, Math.round(r.height * dpr));
-  const S = Math.max(1, Math.floor(Math.min(dw, dh) / BEELD.doel));
+  // zo groot mogelijk vergroten met een heel getal; een scène mag daarvoor tot 12% minder hoog zijn dan bedoeld (anders valt een
+  // scherm van 720 punten hoog terug naar 1x en wordt alles klein)
+  const S = Math.max(1, Math.floor(Math.min(dw, dh) / (BEELD.doel * .88)));
   BEELD.S = S; BEELD.dpr = dpr; BEELD.W = Math.ceil(dw / S); BEELD.H = Math.ceil(dh / S);
   DOEK.width = BEELD.W; DOEK.height = BEELD.H;
   DOEK.style.width = (BEELD.W * S / dpr) + 'px'; DOEK.style.height = (BEELD.H * S / dpr) + 'px';
@@ -3303,7 +3364,7 @@ function loop(w, dt, snel = 105) {
   if (!w.pad.length) { w.loopt = false; return true; }
   const d = w.pad[0], dx = d.x - w.x, dy = d.y - w.y, l = Math.hypot(dx, dy), s = snel * dt;
   if (l <= s) { w.x = d.x; w.y = d.y; w.pad.shift(); } else { w.x += dx / l * s; w.y += dy / l * s; if (Math.abs(dx) > 1) w.kijk = dx > 0 ? 1 : -1; }
-  w.loopt = true; return !w.pad.length;
+  gangStap(w, Math.min(l, s), dt); w.loopt = true; return !w.pad.length;
 }
 
 // ---- gasten
@@ -3481,7 +3542,7 @@ function tekenAvond(ctx, W, H) {
   const OX = KB.LINKS, links = -KB.LINKS, rechts = KB.W + KB.RECHTS, midden = A.tafels.length > 6 ? 420 : 320;
   if (W >= rechts - links) A.cam = links - (W - (rechts - links)) / 2;
   else { const doel = W >= 640 ? midden - W / 2 : R.x - W / 2; A.cam = klem(Math.round(A.cam === undefined ? doel : A.cam + (doel - A.cam) * .08), links, rechts - W); }
-  A.camY = H >= 360 ? -Math.round((H - 360) / 2) : Math.round((360 - H) * .7);
+  A.camY = H >= 360 ? -Math.round((H - 360) / 2) : Math.round((360 - H) * .85);
   const L = A.laag.ctx, T = tekenaar(L);
   L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, 1000, 360); L.translate(OX, 0);
   L.drawImage(A.zaal, -OX, 0); L.drawImage(A.wand, 0, 0); tekenAquarium(L, t);
@@ -3495,9 +3556,9 @@ function tekenAvond(ctx, W, H) {
   // alles op diepte sorteren
   const lijst = [];
   for (const tf of A.tafels) lijst.push({ y: tf.y, f: () => tekenTafel(L, tf, t) });
-  for (const g of A.gasten) if (g.staat === 'loopt' || g.staat === 'weg') lijst.push({ y: g.y, f: () => tekenLoper(L, g.o, g.x, g.y, g.kijk, true, t, g.boos ? 'boos' : null) });
-  lijst.push({ y: R.y, f: () => { const pose = R.draagt.length ? 'serveren' : (R.taak && R.taak.gestart && !R.loopt) ? 'koken' : R.poseT > 0 ? R.pose : R.loopt ? 'lopen' : 'staan'; const sp = persoon(RUBEN, pose, t, { schort: true }); const cv = R.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); L.drawImage(cv, Math.round(R.x - (R.kijk < 0 ? cv.width - 18 : 18)), Math.round(R.y - sp.voet[1])); if (R.draagt.length) { const hx = R.kijk < 0 ? R.x - (sp.hand[0] - 18) : R.x + sp.hand[0] - 18; L.drawImage(bordMet(RECEPTEN[R.draagt[0].id].plaatje), Math.round(hx - 12), Math.round(R.y - sp.voet[1] + sp.hand[1] - 16)); } } });
-  if (A.noor) { const N = A.noor; lijst.push({ y: N.y, f: () => { const sp = persoon(FIGUREN.noor, N.draagt ? 'serveren' : N.loopt ? 'lopen' : 'staan', t, { schort: true }); const cv = N.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); L.drawImage(cv, Math.round(N.x - (N.kijk < 0 ? cv.width - 18 : 18)), Math.round(N.y - sp.voet[1])); if (N.draagt) { const hx = N.kijk < 0 ? N.x - (sp.hand[0] - 18) : N.x + sp.hand[0] - 18; L.drawImage(bordMet(RECEPTEN[N.draagt.id].plaatje), Math.round(hx - 12), Math.round(N.y - sp.voet[1] + sp.hand[1] - 16)); } } }); }
+  for (const g of A.gasten) if (g.staat === 'loopt' || g.staat === 'weg') lijst.push({ y: g.y, f: () => tekenLoper(L, g.o, g.x, g.y, g.kijk, true, t, g.boos ? 'boos' : null, g.gang) });
+  lijst.push({ y: R.y, f: () => { const pose = R.draagt.length ? 'serveren' : (R.taak && R.taak.gestart && !R.loopt) ? 'koken' : R.poseT > 0 ? R.pose : R.loopt ? 'lopen' : 'staan'; const sp = persoon(RUBEN, pose, t, { schort: true, gang: R.gang || 0, loopt: R.loopt && (pose === 'serveren' || pose === 'lopen') }); const cv = R.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); L.drawImage(cv, Math.round(R.x - (R.kijk < 0 ? cv.width - 18 : 18)), Math.round(R.y - sp.voet[1])); if (R.draagt.length) { const hx = R.kijk < 0 ? R.x - (sp.hand[0] - 18) : R.x + sp.hand[0] - 18; L.drawImage(bordMet(RECEPTEN[R.draagt[0].id].plaatje), Math.round(hx - 12), Math.round(R.y - sp.voet[1] + sp.hand[1] - 16)); } } });
+  if (A.noor) { const N = A.noor; lijst.push({ y: N.y, f: () => { const sp = persoon(FIGUREN.noor, N.draagt ? 'serveren' : N.loopt ? 'lopen' : 'staan', t, { schort: true, gang: N.gang || 0, loopt: !!N.loopt }); const cv = N.kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); L.drawImage(cv, Math.round(N.x - (N.kijk < 0 ? cv.width - 18 : 18)), Math.round(N.y - sp.voet[1])); if (N.draagt) { const hx = N.kijk < 0 ? N.x - (sp.hand[0] - 18) : N.x + sp.hand[0] - 18; L.drawImage(bordMet(RECEPTEN[N.draagt.id].plaatje), Math.round(hx - 12), Math.round(N.y - sp.voet[1] + sp.hand[1] - 16)); } } }); }
   if (A.sem) lijst.push({ y: A.sem.y, f: () => { const sp = persoon(FIGUREN.sem, A.sem.bezig ? 'koken' : 'staan', t); L.drawImage(sp.pix.doek(), Math.round(A.sem.x - 18), Math.round(A.sem.y - sp.voet[1])); } });
   lijst.push({ y: KB.TOONBANK_Y, f: () => { tekenToonbank(L, { vitrine: vitrineVissen(), deurOpen: R.x > 160 && R.x < 192 && R.y < 262 ? 1 : 0 }, t); A.uitgifte.slice(0, 4).forEach((b, i) => L.drawImage(bordMet(RECEPTEN[b.id].plaatje), 108 + i * 14, 204)); } });
   if (A.kat) lijst.push({ y: A.kat.y, f: () => tekenKat(L, A.kat, t) });
@@ -3539,8 +3600,8 @@ function vitrineVissen() {
   const p = voorraadPorties(), l = Object.keys(p).filter(s => p[s] > 0 && SOORTEN[s].kg > 0).slice(0, 6);
   return l.map(s => zeeBuf('vit|' + s, () => { const cv = zeedierDoek(s, 1); if (cv.width <= 18) return cv; const d = maakDoek(16, Math.max(6, Math.round(cv.height * 16 / cv.width))); d.ctx.imageSmoothingEnabled = false; d.ctx.drawImage(cv, 0, 0, d.cv.width, d.cv.height); return d.cv; }));
 }
-function tekenLoper(L, o, x, y, kijk, loopt, t, uitdr) {
-  const sp = persoon(o, loopt ? 'lopen' : 'staan', t + (o.id || '').length, uitdr ? { uitdr } : {}); const cv = kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek();
+function tekenLoper(L, o, x, y, kijk, loopt, t, uitdr, gang) {
+  const sp = persoon(o, loopt ? 'lopen' : 'staan', t + (o.id || '').length, Object.assign(uitdr ? { uitdr } : {}, gang !== undefined ? { gang } : {})); const cv = kijk < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek();
   L.drawImage(cv, Math.round(x - (kijk < 0 ? cv.width - 18 : 18)), Math.round(y - sp.voet[1]));
 }
 function tekenTafel(L, tf, t) {
@@ -3998,13 +4059,15 @@ SCENES.haven = {
     HV.t += dt; const R = HV.ruben;
     if (was('pauze')) { DAG.menu(); return; }
     let ix = (INV.toets.links ? -1 : 0) + (INV.toets.rechts ? 1 : 0);
-    if (ix) { R.doel = null; HV.wil = null; R.x = klem(R.x + ix * 90 * dt, 30, HAVEN.W - 60); R.kijk = ix; R.loopt = true; }
+    const vanX = R.x;
+    if (ix) { R.doel = null; HV.wil = null; R.x = klem(R.x + ix * 90 * dt, 30, HAVEN.W - 60); R.kijk = ix; R.loopt = R.x !== vanX; }
     else if (R.doel !== null && R.doel !== undefined) { const d = R.doel - R.x; if (Math.abs(d) < 2) { R.doel = null; R.loopt = false; if (HV.wil) { const w = HV.wil; HV.wil = null; this.binnen(w); } } else { R.x += Math.sign(d) * Math.min(Math.abs(d), 90 * dt); R.kijk = Math.sign(d); R.loopt = true; } }
     else R.loopt = false;
+    if (R.loopt) gangStap(R, R.x - vanX, dt);
     if (was('actie') || was('enter') || was('pak')) { const p = HAVEN.PLEKKEN.find(q => Math.abs(q.deur - R.x) < 30); if (p) this.binnen(p.id); }
     for (const m of HV.meeuwen) { m.x += m.v * dt; if (m.x > HAVEN.W + 30) m.x = -30; }
     for (const w of HV.wolken) { w.x += w.v * dt; if (w.x > 900) w.x = -120; }
-    for (const p of HV.wandelaars) { if (p.wacht > 0) { p.wacht -= dt; continue; } p.x += p.v * dt; if (p.x > 545 || p.x < -50) { p.v = -p.v; p.wacht = 6 + (p.y % 5); } }
+    for (const p of HV.wandelaars) { if (p.wacht > 0) { p.wacht -= dt; continue; } p.x += p.v * dt; gangStap(p, p.v * dt, dt); if (p.x > 545 || p.x < -50) { p.v = -p.v; p.wacht = 6 + (p.y % 5); } }
     HV.cam = klem(R.x - BEELD.W / 2, 0, Math.max(0, HAVEN.W - BEELD.W));
     if (HAVEN.W < BEELD.W) HV.cam = -(BEELD.W - HAVEN.W) / 2;
   },
@@ -4049,9 +4112,9 @@ SCENES.haven = {
     const mv = Math.floor(t * 1.5) % 7 === 0; T.ovaal(388 - cam, HAVEN.KADE + 39 + oy, 3, 2, '#F4F1E8'); T.ovaal(390 - cam, HAVEN.KADE + 37 + oy, 1.6, 1.6, '#F4F1E8'); T.px(392 - cam, HAVEN.KADE + 37 + oy, '#E9B949'); T.rect(385 - cam, HAVEN.KADE + 38 + oy, 3, 1, mv ? '#F4F1E8' : '#8A8A92');
     // wandelaars en Ruben, van achter naar voor
     const tr = persoon(FIGUREN.trien, 'staan', t);
-    const lijst = [{ y: HAVEN.KADE + 16, f: () => ctx.drawImage(tr.pix.doek(), Math.round(700 - 18 - cam), Math.round(HAVEN.KADE + 16 - tr.voet[1] + oy)) }].concat(HV.wandelaars.filter(p => p.wacht <= 0).map(p => ({ y: p.y, f: () => { const sp = persoon(p.o, 'lopen', t + p.y), cv = p.v < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); ctx.drawImage(cv, Math.round(p.x - (p.v < 0 ? cv.width - 18 : 18) - cam), Math.round(p.y - sp.voet[1] + oy)); } })));
+    const lijst = [{ y: HAVEN.KADE + 16, f: () => ctx.drawImage(tr.pix.doek(), Math.round(700 - 18 - cam), Math.round(HAVEN.KADE + 16 - tr.voet[1] + oy)) }].concat(HV.wandelaars.filter(p => p.wacht <= 0).map(p => ({ y: p.y, f: () => { const sp = persoon(p.o, 'lopen', t, { gang: p.gang || 0 }), cv = p.v < 0 ? gespiegeld(sp.pix.doek()) : sp.pix.doek(); ctx.drawImage(cv, Math.round(p.x - (p.v < 0 ? cv.width - 18 : 18) - cam), Math.round(p.y - sp.voet[1] + oy)); } })));
     const R = HV.ruben;
-    lijst.push({ y: R.y, f: () => { const rb = persoon(RUBEN, R.loopt ? 'lopen' : 'staan', t), cv = R.kijk < 0 ? gespiegeld(rb.pix.doek()) : rb.pix.doek(); ctx.drawImage(cv, Math.round(R.x - (R.kijk < 0 ? cv.width - 18 : 18) - cam), Math.round(R.y - rb.voet[1] + oy)); } });
+    lijst.push({ y: R.y, f: () => { const rb = persoon(RUBEN, R.loopt ? 'lopen' : 'staan', t, { gang: R.gang || 0 }), cv = R.kijk < 0 ? gespiegeld(rb.pix.doek()) : rb.pix.doek(); ctx.drawImage(cv, Math.round(R.x - (R.kijk < 0 ? cv.width - 18 : 18) - cam), Math.round(R.y - rb.voet[1] + oy)); } });
     lijst.sort((a, b) => a.y - b.y).forEach(o => o.f());
     // naambordjes boven de plekken als Ruben dichtbij is
     for (const p of HAVEN.PLEKKEN) if (Math.abs(p.deur - R.x) < 30) { const s = p.naam + (INV.aanraak ? '' : ' (spatie)'), bw = letterBreedte(s) + 10, x = Math.round(p.deur - cam), y = HAVEN.KADE - 78 + oy; T.rect(x - bw / 2 - 1, y - 1, bw + 2, 14, '#231A26'); T.rect(x - bw / 2, y, bw, 12, '#FBF6E9'); T.rect(x - bw / 2, y + 11, bw, 1, '#D8CDB0'); T.veelhoek([[x - 4, y + 13], [x + 4, y + 13], [x, y + 17]], '#231A26'); T.veelhoek([[x - 3, y + 12], [x + 3, y + 12], [x, y + 15]], '#FBF6E9'); letters(ctx, s, x, y + 3, '#231A26', 1, 'm'); }

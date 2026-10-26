@@ -26,7 +26,9 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   ];
   const pagina = a => ((a.getAttribute('href') || '').split('/').pop() || '').replace(/\.html?$/, '').toLowerCase();
   const leesJSON = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
-  const groot = x => { const n = [[1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']]; for (const [v, w] of n) if (x >= v) return (x / v).toLocaleString('nl-NL', { maximumFractionDigits: 1 }) + ' ' + w; return Math.round(x).toLocaleString('nl-NL'); };
+  // grote getallen zoals de Vlaaienbakker ze schrijft (fmt() in vlaaienbakker.html): tot een miljoen voluit, dan met een naam tot deciljard, daarboven m × 10^e
+  const GETALNAMEN = [[1e63, 'deciljard'], [1e60, 'deciljoen'], [1e57, 'noniljard'], [1e54, 'noniljoen'], [1e51, 'octiljard'], [1e48, 'octiljoen'], [1e45, 'septiljard'], [1e42, 'septiljoen'], [1e39, 'sextiljard'], [1e36, 'sextiljoen'], [1e33, 'quintiljard'], [1e30, 'quintiljoen'], [1e27, 'quadriljard'], [1e24, 'quadriljoen'], [1e21, 'triljard'], [1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']];
+  const groot = x => { x = Math.floor(x); if (x < 1e6) return x.toLocaleString('nl-NL'); if (x >= 1e66) { const e = Math.floor(Math.log10(x)); return (x / Math.pow(10, e)).toLocaleString('nl-NL', { maximumFractionDigits: 2 }) + ' × 10^' + e; } for (const [v, w] of GETALNAMEN) if (x >= v) { const y = x / v; return y.toLocaleString('nl-NL', { maximumFractionDigits: y < 100 ? 2 : 1 }) + ' ' + w; } return String(x); };
   // voortgang per spel, uit de opslag van dat spel. Elk spel bewaart zelf hoeveel er in totaal is (voortgangTotaal);
   // het getal erachter is de terugval voor opslag van vóór die tijd.
   const totaal = (s, n) => (s && s.voortgangTotaal > 0 ? s.voortgangTotaal : n);

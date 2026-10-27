@@ -2072,8 +2072,10 @@ function tekenKombuisZaal(st) {
   ctx.translate(KB.LINKS, 0);
   const V = KB.VLOER, WAND = KB.WAND, X0 = -KB.LINKS, W = KB.W + KB.RECHTS, KX = 186;
   const muur = st.muur || 'baksteen', vloer = st.vloer || 'planken';
-  // ---- achterwand: gewitte baksteen (in de zaal kan dat ook behang, tegeltjes of scheepshout zijn)
-  pixelVlak(ctx, X0, WAND, W, V, (x, y) => muurPixel(x >= KX ? muur : 'baksteen', x, y));
+  // ---- achterwand: gewitte baksteen (in de zaal kan dat ook behang, tegeltjes of scheepshout zijn), en de vloer: in één keer, als eerste
+  // (alleen de geblokte keukenvloer achter de toonbank komt later; daar blijft de vloer leeg)
+  const rijen = []; for (let y = V; y < H; y++) { const rij = Math.floor(Math.pow((y - V) / (H - V), .8) * 14); rijen.push([rij, V + Math.round(Math.pow(rij / 14, 1.25) * (H - V))]); }
+  pixelVlak(ctx, X0, WAND, W, H, (x, y) => y < V ? muurPixel(x >= KX ? muur : 'baksteen', x, y) : y < KB.TOONBANK_Y && x < KX + 2 ? null : vloerPixel(vloer, x, y, rijen[y - V][0], rijen[y - V][1]));
   // vervaagde oude letters: VISAFSLAG 1887 (alleen op de oude baksteen)
   if (muur === 'baksteen') { ctx.save(); ctx.globalAlpha = .13; letters(ctx, 'VISAFSLAG', 378, 51, '#5A3A2A', 2, 'm'); ctx.globalAlpha = .1; letters(ctx, 'ANNO 1887', 378, 68, '#5A3A2A', 1, 'm'); ctx.restore(); }
   // schaduw onder het plafond
@@ -2135,9 +2137,7 @@ function tekenKombuisZaal(st) {
   ctx.save(); ctx.globalCompositeOperation = 'destination-out'; ctx.fillRect(DX + 3, DY + 2, 48, 16); ctx.restore();
   for (let i = 0; i < 5; i++) T.rect(DX + 3 + i * 12, DY + 2, 1, 16, '#5A3A22');
   T.rect(DX + 24, DY + 70, 2, 6, '#C9A040'); T.rect(DX + 30, DY + 70, 2, 6, '#C9A040');
-  // ---- vloer: brede planken met een warm verloop (onder de keuken alleen voor de toonbank)
-  const rijen = []; for (let y = V; y < H; y++) { const rij = Math.floor(Math.pow((y - V) / (H - V), .8) * 14); rijen.push([rij, V + Math.round(Math.pow(rij / 14, 1.25) * (H - V))]); }
-  pixelVlak(ctx, X0, V, W, H, (x, y) => y < KB.TOONBANK_Y && x < KX + 2 ? null : vloerPixel(vloer, x, y, rijen[y - V][0], rijen[y - V][1]));
+  // (de vloer staat er al: zie de achterwand)
   // houten staanders tussen de keuken en de zaal, en bij de hal
   for (const sx of [184, 636]) { T.rect(sx, WAND - 6, 8, V - WAND + 6, '#4A2C18'); T.rect(sx + 1, WAND - 6, 2, V - WAND + 6, '#7A4E2D'); T.rect(sx + 6, WAND - 6, 2, V - WAND + 6, '#2E1A0E'); for (let y = WAND + 10; y < V; y += 34) { T.rect(sx + 3, y, 2, 2, '#2A180C'); T.px(sx + 3, y, '#9A6A3A'); } T.rect(sx - 2, LB - 2, 12, 6, '#5A3420'); T.rect(sx - 2, LB - 2, 12, 1, '#8A5A34'); }
   // schaduw van de muur op de vloer
@@ -2148,9 +2148,10 @@ function tekenKombuisZaal(st) {
   if (st.water) tekenWaterTerras(T, ctx);
   return cv;
 }
-// veel pixels in één keer (veel sneller dan een fillRect per pixel). f(x, y) geeft een kleur in zaalcoördinaten, of null om over te slaan.
+// veel pixels in één keer (veel sneller dan een fillRect per pixel). f(x, y) geeft een kleur in zaalcoördinaten, of null om leeg te laten.
+// Alleen voor een deel van het doek waar nog niets staat: wat er al stond, wordt overschreven.
 function pixelVlak(ctx, x0, y0, x1, y1, f) {
-  const ox = KB.LINKS, w = x1 - x0, h = y1 - y0, im = ctx.getImageData(x0 + ox, y0, w, h), d = im.data;
+  const ox = KB.LINKS, w = x1 - x0, h = y1 - y0, im = ctx.createImageData(w, h), d = im.data;
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const c = f(x, y); if (!c) continue; const v = rgbVan(c), i = ((y - y0) * w + x - x0) * 4; d[i] = v[0]; d[i + 1] = v[1]; d[i + 2] = v[2]; d[i + 3] = 255; }
   ctx.putImageData(im, x0 + ox, y0);
 }

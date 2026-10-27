@@ -125,7 +125,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function () {
-  try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) localStorage.setItem(k, v); sessionStorage.removeItem('koppel-herstel'); sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+  try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } sessionStorage.removeItem('koppel-herstel'); if (!sessionStorage.getItem('koppel-hulp')) sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
 })();
 (function () {
   // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
@@ -276,6 +276,21 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
   // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
   const KKEY = 'rommelhoekje-koppel';
+  // hulp van Ruben (terugzetten, herstellen of een cadeautje): wat dit apparaat al kreeg, en wat het nog aan de server moet melden
+  const HKEY = 'rommelhoekje-hulp';
+  const leesH = () => { try { const h = JSON.parse(localStorage.getItem(HKEY) || 'null'); if (h && Array.isArray(h.gehad)) return { gehad: h.gehad, ontvangen: h.ontvangen || [], gezien: h.gezien || [] }; } catch (e) {} return { gehad: [], ontvangen: [], gezien: [] }; };
+  const schrijfH = H => { try { H.gehad = H.gehad.slice(-60); localStorage.setItem(HKEY, JSON.stringify(H)); } catch (e) {} };
+  // een cadeautje of een kleine verandering: een getal erbij, of een waarde zetten (bijvoorbeeld je naam)
+  function wijzig(oud, ops) {
+    let s = null; try { s = JSON.parse(oud || 'null'); } catch (e) {} if (!s || typeof s !== 'object') s = {};
+    for (const o of ops) {
+      const delen = String(o.pad || '').split('.'); if (!delen[0] || delen.some(d => d === '__proto__' || d === 'constructor' || d === 'prototype')) continue;
+      let p = s; for (const d of delen.slice(0, -1)) { if (!p[d] || typeof p[d] !== 'object') p[d] = {}; p = p[d]; }
+      const laatst = delen[delen.length - 1];
+      if ('erbij' in o) p[laatst] = (typeof p[laatst] === 'number' && isFinite(p[laatst]) ? p[laatst] : 0) + Number(o.erbij || 0); else p[laatst] = o.zet;
+    }
+    return JSON.stringify(s);
+  }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
   const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
@@ -297,12 +312,19 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         let v = null; try { v = localStorage.getItem(k); } catch (e) {}
         const st = K.staat[k];
         if (v !== null) { const h = hash(v); if (!st || st.h !== h) { K.staat[k] = { h, t: Date.now() }; if (v.length <= MAX) items[k] = { t: K.staat[k].t, data: v }; } }
+        if (items[k] && K.hulpUit && K.hulpUit[k]) items[k].hulp = K.hulpUit[k];
         bekend[k] = K.staat[k] ? K.staat[k].t : 0;
       }
-      const r = await metTijd(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend, apparaat: APPARAAT }) });
+      const H0 = leesH();
+      const r = await metTijd(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, items, bekend, apparaat: APPARAAT, hulpKan: 1, ontvangen: H0.ontvangen, gezien: H0.gezien }) });
       const j = await r.json(); if (!j.ok) return null;
-      const herstel = {}; let nieuwHier = false, geweigerdHier = '', vervangenHier = false;
+      const H = leesH(); H.ontvangen = H.ontvangen.filter(n => !H0.ontvangen.includes(n)); H.gezien = H.gezien.filter(n => !H0.gezien.includes(n));
+      if (K.hulpUit) { for (const k of Object.keys(items)) if (items[k].hulp) delete K.hulpUit[k]; if (!Object.keys(K.hulpUit).length) delete K.hulpUit; }
+      const herstel = {}; let nieuwHier = false, geweigerdHier = '', vervangenHier = false, hulpHier = false;
       for (const [k, it] of Object.entries(j.items || {})) {
+        // staat precies hetzelfde al op dit apparaat? Dan alleen onthouden dat het gelijk is
+        let hier = null; try { hier = localStorage.getItem(k); } catch (e) {}
+        if (hier === it.data) { K.staat[k] = { h: hash(it.data), t: it.t }; continue; }
         const weg = j.geweigerd && j.geweigerd[k], verv = j.vervangen && j.vervangen[k];
         if (verv && !weg) { K.staat[k] = { h: hash(it.data), t: it.t }; if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; vervangenHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} } continue; }
         if (weg) { K.staat[k] = { h: hash(it.data), t: it.t }; if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; geweigerdHier = weg; } else { try { localStorage.setItem(k, it.data); } catch (e) {} } continue; }
@@ -310,10 +332,27 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         K.staat[k] = { h: hash(it.data), t: it.t };
         if (vanDezePagina(k)) { herstel[k] = it.data; nieuwHier = true; } else { try { localStorage.setItem(k, it.data); } catch (e) {} }
       }
+      // hulp van Ruben: neerzetten, en altijd laten zien wat hij deed (zie toonHulp); er verandert nooit iets zonder bericht
+      const berichten = [];
+      for (const h of Array.isArray(j.hulp) ? j.hulp : []) {
+        if (!h || !h.nr || !/^[a-z0-9-]{3,40}$/.test(h.sleutel || '') || !['zet', 'wijzig', 'wis'].includes(h.soort)) continue;
+        if (H.gehad.includes(h.nr)) { if (!H.ontvangen.includes(h.nr)) H.ontvangen.push(h.nr); continue; }
+        let oud = null, nieuw = null, ops = null; try { oud = localStorage.getItem(h.sleutel); } catch (e) {}
+        try { if (h.soort === 'zet') nieuw = String(h.data); else if (h.soort === 'wijzig') { ops = JSON.parse(h.data); nieuw = wijzig(oud, ops); } } catch (e) { continue; }
+        if (vanDezePagina(h.sleutel)) { herstel[h.sleutel] = nieuw; nieuwHier = true; hulpHier = true; }
+        else { try { if (nieuw === null) localStorage.removeItem(h.sleutel); else localStorage.setItem(h.sleutel, nieuw); } catch (e) {} }
+        if (h.sleutel === SKEY) { try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) {} document.dispatchEvent(new CustomEvent('scorebord-naam')); }
+        if (nieuw === null) delete K.staat[h.sleutel]; else { K.staat[h.sleutel] = { h: 'hulp:' + h.nr, t: 0 }; (K.hulpUit = K.hulpUit || {})[h.sleutel] = h.nr; }
+        H.gehad.push(h.nr); H.ontvangen.push(h.nr);
+        berichten.push({ nr: h.nr, cadeau: !!(ops && ops.length && ops.every(o => 'erbij' in o && o.erbij > 0)), titel: String(h.titel || '').slice(0, 60), bericht: String(h.bericht || '').slice(0, 300) });
+      }
+      schrijfH(H);
       K.laatst = Date.now(); schrijfK(K);
+      if (berichten.length && !hulpHier) { toonHulp(berichten); setTimeout(() => koppelSync(true), 1500); }
       // nieuwe voortgang voor het spel dat nu open is: bij het openen meteen herladen, later alleen met een knop (anders gaan twee apparaten om de beurt herladen)
       if (nieuwHier) {
         try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); } catch (e) {}
+        if (hulpHier) { try { sessionStorage.setItem('koppel-hulp', JSON.stringify(berichten)); } catch (e) {} location.reload(); return j; }
         if (geweigerdHier) { try { sessionStorage.setItem('koppel-geweigerd', geweigerdHier); } catch (e) {} location.reload(); return j; }
         if (vervangenHier) { try { sessionStorage.setItem('koppel-vervangen', '1'); } catch (e) {} location.reload(); return j; }
         if (eersteK && !stil) { location.reload(); return j; }
@@ -327,6 +366,38 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   function maakCode() { const a = new Uint32Array(5); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], WOORD2[a[3] % WOORD2.length], 1000 + a[4] % 9000].join('-'); }
   const schoon = c => (c || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   async function maakKoppeling() { const K = { code: maakCode(), staat: {} }; schrijfK(K); await koppelSync(true); return K.code; }
+  // je voortgang (en je Rommelbeesten-verzameling) van de server halen; daarna bewaart dit apparaat niets meer op de server, tot je zelf weer een koppelcode maakt
+  async function verwijderAccount() {
+    const K = leesK(); if (!K || !K.code) return '';
+    const inst = await klaar, u = adres(inst); if (!u) return 'Er is geen verbinding met de server.';
+    let rb = ''; try { const s = JSON.parse(localStorage.getItem('rommelbeesten-speler') || 'null'); if (s && s.geheim) rb = String(s.geheim); } catch (e) {}
+    try { const r = await metTijd(u + '/account/weg', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, rb }) }); const j = await r.json().catch(() => ({})); if (r.status === 404) return 'Dit kan nog niet: de server krijgt binnenkort een nieuwe versie. Stuur Ruben anders een berichtje via de ideeënbox (kies Mijn gegevens).'; if (!r.ok) return j.fout || 'Dat lukte niet. Probeer het later opnieuw.'; } catch (e) { return 'Dat lukte niet. Controleer je internet en probeer het opnieuw.'; }
+    if (API.doetMee()) await API.stopEnVerwijder();
+    schrijfK({ uit: true, sinds: Date.now() });
+    return '';
+  }
+  // het bericht als Ruben je hielp: je ziet altijd wat hij deed
+  function toonHulp(lijst) {
+    if (!lijst || !lijst.length) return;
+    if (!document.body) { addEventListener('DOMContentLoaded', () => toonHulp(lijst)); return; }
+    stijl();
+    const d = document.createElement('dialog'); d.className = 'kp-dlg'; d.setAttribute('aria-labelledby', 'kp-hulp-kop');
+    const cadeau = lijst.every(b => b.cadeau), binnen = document.createElement('div'); binnen.className = 'kp-in';
+    const kop = document.createElement('h2'); kop.id = 'kp-hulp-kop'; kop.textContent = cadeau ? '🎁 Een cadeautje van Ruben' : '🛠️ Ruben heeft je geholpen'; binnen.appendChild(kop);
+    for (const b of lijst) {
+      if (b.titel) { const s = document.createElement('p'); s.className = 'kp-klein'; s.style.margin = '.6rem 0 0'; s.style.fontWeight = '800'; s.textContent = b.titel; binnen.appendChild(s); }
+      const p = document.createElement('p'); p.className = 'kp-bericht'; p.style.fontSize = '1.05rem'; p.textContent = '“' + b.bericht + '”'; binnen.appendChild(p);
+    }
+    const klein = document.createElement('p'); klein.className = 'kp-klein'; klein.innerHTML = 'Ruben ziet alleen dat je dit bericht hebt gezien. Meer over je gegevens lees je in de <a href="privacy.html">privacyverklaring</a>.'; binnen.appendChild(klein);
+    const rij = document.createElement('div'); rij.className = 'kp-rij'; const knop = document.createElement('button'); knop.type = 'button'; knop.className = 'kp-knop hoofd'; knop.textContent = cadeau ? 'Dank je wel!' : 'Fijn, dank je!'; rij.appendChild(knop); binnen.appendChild(rij); d.appendChild(binnen);
+    let klaarGezien = false;
+    const gezien = () => { if (klaarGezien) return; klaarGezien = true; const H = leesH(); for (const b of lijst) if (!H.gezien.includes(b.nr)) H.gezien.push(b.nr); schrijfH(H); setTimeout(() => koppelSync(true), 400); };
+    knop.onclick = () => { gezien(); if (d.open) d.close(); d.remove(); };
+    d.addEventListener('close', () => { gezien(); d.remove(); });
+    document.body.appendChild(d);
+    if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+    knop.focus();
+  }
   async function gebruikCode(code) {
     code = schoon(code); if (code.length < 12) return 'Die code is te kort.';
     // eerst kijken wat er op de server staat: de voortgang van je andere apparaat wint
@@ -350,7 +421,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     .kp-code { font-size: 1.4rem; font-weight: 800; letter-spacing: .02em; background: #FBF6E9; border-radius: 8px; padding: .6rem .8rem; text-align: center; margin: .6rem 0; user-select: all; }
     .kp-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .6rem; } .kp-rij input { flex: 1 1 12rem; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid #C9A24E; background: #FBF6E9; }
     .kp-knop { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.3); } .kp-knop.hoofd { background: #C8323C; color: #fff; }
-    .kp-klein { font-size: .82rem; color: #5E5643; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
+    .kp-klein { font-size: .82rem; color: #5E5643; } .kp-klein a, .kp-link { color: #9E2430; font: inherit; font-weight: 700; } .kp-link { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
     .kp-melding { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 9999; background: #FBF6E9; color: #231A26; font: 700 .92rem 'Bricolage Grotesque', system-ui, sans-serif; padding: .6rem .9rem; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.3); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
     .kp-knopje { position: fixed; right: .9rem; bottom: .9rem; z-index: 50; font: 800 .88rem 'Bricolage Grotesque', system-ui, sans-serif; border: 0; border-radius: 999px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 0 0 3px #231A26, 0 4px 0 3px rgba(0,0,0,.3); }`; document.head.appendChild(st); }
   function toonKoppelMelding(tekst, knop, doe) { stijl(); const m = document.createElement('div'); m.className = 'kp-melding'; m.setAttribute('role', 'status'); m.innerHTML = `<span>${tekst}</span>${knop ? `<button class="kp-knop hoofd" type="button">${knop}</button>` : ''}`; if (knop) m.querySelector('button').onclick = () => { m.remove(); doe(); }; document.body.appendChild(m); setTimeout(() => m.remove(), knop ? 20000 : 4000); }
@@ -358,13 +429,14 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
     const K = leesK();
     const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
-    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`
-      : `<div class="kp-in"><h2>Koppel je apparaten</h2><p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div><p class="kp-klein" style="margin-top:1rem">Wil je niet dat je voortgang op de server staat? <button class="kp-link" id="kp-weg" type="button">Verwijder mijn gegevens van de server</button>. Lees ook de <a href="privacy.html">privacyverklaring</a>.</p></div>`
+      : `<div class="kp-in"><h2>Koppel je apparaten</h2>${K && K.uit ? '<p><b>Je voortgang staat nu alleen op dit apparaat.</b> Er gaat niets naar de server, tot je zelf een koppelcode maakt.</p>' : ''}<p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
     const q = id => dlg.querySelector('#' + id);
     q('kp-dicht').onclick = () => dlg.close();
     if (q('kp-maak')) q('kp-maak').onclick = async () => { q('kp-maak').disabled = true; q('kp-fout').textContent = 'Even bezig...'; await maakKoppeling(); openKoppel(); };
     if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
     if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
+    if (q('kp-weg')) q('kp-weg').onclick = async () => { if (!confirm('Je gegevens van de server halen?\n\nDan wissen we op de server: je voortgang van alle spellen, je Rommelbeesten-verzameling en, als je meedoet, je naam en scores op het scorebord. Op dit apparaat blijft je voortgang gewoon staan, maar je andere apparaten krijgen hem niet meer.\n\nDit apparaat bewaart daarna niets meer op de server, tot je zelf weer een koppelcode maakt.')) return; q('kp-fout').textContent = 'Even bezig...'; const f = await verwijderAccount(); if (f) { q('kp-fout').textContent = f; return; } openKoppel(); toonKoppelMelding('Je gegevens zijn van de server gehaald.'); };
     if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); openKoppel(); };
     if (!dlg.open) dlg.showModal();
   }
@@ -405,12 +477,13 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     addEventListener('unhandledrejection', e => { const r = e && e.reason; if (r && r.name === 'AbortError') return; meld('Onafgehandeld: ' + ((r && r.message) || r), ''); });
   })();
   // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
-  setTimeout(() => { const K = leesK(); if (!K || !K.code) maakKoppeling().catch(() => {}); }, 2500);
+  setTimeout(() => { const K = leesK(); if (!K || (!K.code && !K.uit)) maakKoppeling().catch(() => {}); }, 2500);
   // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
   try { if (sessionStorage.getItem('koppel-vervangen')) { sessionStorage.removeItem('koppel-vervangen'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald: daar was je verder.'), 900)); } } catch (e) {}
   try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang ging sneller dan de server kon controleren (' + w + '), dus hij is teruggezet naar de laatste goedgekeurde stand.\n\nSpeel je hetzelfde spel in twee tabbladen of op twee apparaten tegelijk? Gebruik er dan één tegelijk, dan gebeurt dit niet meer. Klopt er iets niet, laat het Ruben weten via de ideeënbox.'), 400)); } } catch (e) {}
   // op de homepage en het scorebord een knopje
-  if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = leesK() ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
+  if (['index', '', 'scorebord'].includes(pagina)) addEventListener('DOMContentLoaded', () => { stijl(); const b = document.createElement('button'); b.className = 'kp-knopje'; b.type = 'button'; b.textContent = (leesK() || {}).code ? 'Apparaten gekoppeld' : 'Koppel je apparaten'; b.onclick = () => { openKoppel(); }; document.body.appendChild(b); });
+  try { const hb = sessionStorage.getItem('koppel-hulp'); if (hb) { sessionStorage.removeItem('koppel-hulp'); const lijst = JSON.parse(hb); addEventListener('load', () => setTimeout(() => { toonHulp(lijst); setTimeout(() => koppelSync(true), 1500); }, 500)); } } catch (e) {}
   try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
   klaar.then(() => setTimeout(() => koppelSync(false), 600));
   setInterval(() => { if (!document.hidden) koppelSync(true); }, 30000);

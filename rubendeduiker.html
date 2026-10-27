@@ -199,6 +199,11 @@ details.ideeen { margin-top: .6rem; } details.ideeen summary { cursor: pointer; 
 .legenda .goud { color: #8A6410; font-weight: 800; }
 .lg { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: .3rem; box-shadow: 0 0 0 2px #231A26; }
 .lg.jij { background: #FFFFFF; } .lg.boot { background: #7A4E2D; box-shadow: 0 0 0 2px #231A26, inset 0 -4px 0 #C8323C; } .lg.opdracht { background: #F2C85A; } .lg.schat { background: #E8E8F0; transform: rotate(45deg) scale(.8); } .lg.reus { background: #E8414E; }
+.inr-voorbeeld { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto .6rem; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--inktrand), 0 7px 0 4px #FBF4E2; background: #1A100A; position: sticky; top: 0; z-index: 2; }
+.inr-lay h3 { margin: .45rem 0 .1rem; } .inr-lay .keuze canvas { flex: none; } .inr-koopbalk { flex: 1 1 18rem; order: 2; display: flex; gap: .5rem; align-items: center; justify-content: space-between; background: #FFE9A8; padding: .45rem .6rem; box-shadow: inset 0 0 0 2px var(--inktrand); font-size: .95rem; line-height: 1.3; } .inr-koopbalk .knoppen-r { display: flex; gap: .3rem; flex: none; } .inr-uitleg { margin: 0 0 .2rem; }
+@media (min-width: 760px), (max-height: 460px) { .inr-lay { display: flex; gap: .9rem; align-items: flex-start; } .inr-lay > canvas { flex: 0 0 46%; max-width: 46%; margin: 0; } .inr-lay > div { flex: 1; min-width: 0; } }
+@media (min-width: 760px), (max-height: 460px) { .inr-lay > canvas { z-index: 0; } }
+@media (max-height: 460px) { .inr-lay > canvas { flex-basis: 36%; max-width: 36%; } .inr-uitleg { font-size: .85rem; } .inr-koopbalk { padding: .3rem .5rem; } .inr-koopbalk .inr-tekst { display: none; } }
 @media (max-height: 460px) { .kaartgroot canvas { height: calc(100vh - 13.5rem); } .kaartgroot canvas.breed { height: auto; max-height: calc(100vh - 13.5rem); } .zeekaart { max-width: 300px; } .kaartvenster h2:not([style]) { margin-bottom: .3rem; } .kaartvenster .zones { display: none; } .zk-lay { display: flex; gap: .8rem; align-items: flex-start; } .zk-lay .zeekaart { flex: 0 0 44%; max-width: 44%; margin: 0; } .zk-lay .lijst { flex: 1; margin-top: 0; } .zk-lay .regel.uit { padding-top: .25rem; padding-bottom: .25rem; } .kaartvenster .legenda { gap: .15rem; font-size: .88rem; } }
 /* ---- minispelletjes: een houten bord */
 #mini { position: absolute; inset: 0; z-index: 18; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(6,18,30,.3), rgba(6,18,30,.65)); pointer-events: none; }
@@ -783,6 +788,14 @@ const SOORTEN = {
   leng: { naam: 'Leng', gedrag: 'normaal', kg: 5, porties: 3, hp: 3, diepte: [60, 110], snel: 34, stek: 'kerkhof', vorm: { len: 36, h: 5, staart: 'rond', kop: 1, patroon: 'vlekken', kl: { R: '#6A5A44', M: '#9A8A6A', U: '#D8CCB0', v: '#5A4A36', D: '#3E3226' } }, weetje: 'De leng is een lange, slanke familielid van de kabeljauw. Hij woont graag in donkere hoekjes van een wrak.' },
   zonnevis: { naam: 'Zonnevis', gedrag: 'schuw', kg: 1.8, porties: 2, hp: 1, diepte: [40, 100], snel: 30, stek: 'kerkhof', zeldzaam: true, vorm: 'zonnevis', weetje: 'Een zonnevis is zo plat als een bord. Van voren zie je hem bijna niet: zo sluipt hij op kleine visjes af.' },
   zeenaald: { naam: 'Zeenaald', gedrag: 'zeepaard', kg: 0, porties: 0, hp: 99, diepte: [15, 70], stek: 'kerkhof', beschermd: true, nietVangen: true, vorm: 'zeenaald', weetje: 'De zeenaald is familie van het zeepaardje, maar dan uitgerekt. Ook hier zorgt de vader voor de eitjes.' },
+  // De Krijtgrotten (stap 4)
+  grotgarnaal: { naam: 'Grotgarnalen', gedrag: 'zwerm', groep: [7, 11], kg: .04, porties: .25, hp: 1, diepte: [30, 130], klein: true, snel: 18, stek: 'grot', vorm: 'garnaal', kl: { R: '#F2E6E2', M: '#E2CCC8', D: '#E8414E' }, weetje: 'Grotgarnalen leven in het donker en zijn bijna doorzichtig. Ze hebben rode oogjes, maar zien er bijna niets mee: ze voelen hun weg met hun lange voelsprieten.' },
+  lipvis: { naam: 'Gevlekte lipvis', gedrag: 'normaal', kg: 1.4, porties: 1, hp: 1, diepte: [10, 55], snel: 38, stek: 'grot', vorm: { len: 22, h: 6, staart: 'rond', kop: .9, patroon: 'vlekken', kl: { R: '#4E7A4A', M: '#9AB86A', U: '#E8D8A0', D: '#E8763A', v: '#3A6A3A' } }, weetje: 'Een lipvis heeft dikke lippen en sterke tanden. Hij knabbelt krabbetjes en mosselen van de rotsen. Elke lipvis begint zijn leven als vrouwtje.' },
+  zeespin: { naam: 'Zeespin', gedrag: 'bodem', kg: .9, porties: 1, hp: 1, diepte: [20, 120], snel: 12, stek: 'grot', prikt: 3, camo: true, vorm: 'zeespin', kl: { R: '#B8664A', M: '#D8906A', D: '#6A8A4A' }, weetje: 'Een zeespin is een krab met heel lange, dunne poten. Hij plakt wier en sponsjes op zijn rug, zodat je hem bijna niet ziet.' },
+  langoustine: { naam: 'Langoustine', gedrag: 'bodem', kg: .3, porties: .5, hp: 1, diepte: [60, 180], snel: 16, stek: 'grot', vorm: 'kreeft', kl: { R: '#E8907A', M: '#F6BCA4', D: '#C8604E' }, weetje: 'Een langoustine is een klein kreeftje met lange, smalle scharen. Overdag zit hij in zijn hol, \'s nachts gaat hij op pad.' },
+  wrakbaars: { naam: 'Wrakbaars', gedrag: 'normaal', kg: 6, porties: 3, hp: 3, diepte: [100, 180], snel: 30, stek: 'grot', zeldzaam: true, vorm: { len: 32, h: 9, staart: 'recht', kop: .8, buik: 1.1, kl: { R: '#5A5048', M: '#8A7A6A', U: '#C8B8A4', D: '#3A3028', v: '#4A4038' } }, weetje: 'Een wrakbaars houdt van holen en wrakken, heel diep. Hij kan meer dan tachtig jaar oud worden.' },
+  octopus: { naam: 'Octopus', gedrag: 'inkt', kg: 0, porties: 0, hp: 99, diepte: [20, 130], snel: 46, stek: 'grot', beschermd: true, nietVangen: true, vorm: 'octopus', weetje: 'Een octopus is heel slim: hij kan potjes openmaken en verstoppertje spelen. Hij heeft drie harten en blauw bloed.' },
+  waaierworm: { naam: 'Waaierkokerworm', gedrag: 'waaier', kg: 0, porties: 0, hp: 99, diepte: [20, 150], stek: 'grot', beschermd: true, nietVangen: true, vorm: 'waaierworm', weetje: 'Deze worm woont in een kokertje van slijm en zand. Met zijn veren waaier vangt hij eten uit het water. Schrikt hij, dan trekt hij die in een flits in.' },
   // ---- het Mosselrif (stek: 'rif'). nacht: alleen 's nachts; beschermd: niet vangen, wel fotograferen; mes: alleen met een duikmes te pakken
   harder: { naam: 'Harder', gedrag: 'school', groep: [5, 8], kg: .9, porties: 1, hp: 1, diepte: [1, 16], snel: 56, stek: 'rif', vorm: { len: 20, h: 4, staart: 'vork', kop: .9, kl: { R: '#5E6E7A', M: '#B8C4CC', U: '#EEF2F4', v: '#56646E', D: '#3E4A54' } }, weetje: 'Harders grazen de algen van stenen en palen, zoals koeien in een wei. Soms springen ze boven het water uit.' },
   zeebrasem: { naam: 'Zeebrasem', gedrag: 'schuw', kg: 1.6, porties: 1, hp: 1, diepte: [8, 30], snel: 70, stek: 'rif', vorm: { len: 20, h: 7, staart: 'vork', kop: .7, kl: { R: '#8E8494', M: '#D8CCD4', U: '#F6F0F2', v: '#C89AA8', D: '#6E5E6C' } }, weetje: 'Een zeebrasem heeft sterke kiezen achter in zijn bek. Daarmee kraakt hij mosselen en krabbetjes.' },
@@ -807,6 +820,7 @@ const REUZEN = {
   roestpaling: { naam: 'De Roestpaling', soort: 'zeepaling', schaal: 2.6, hp: 16, kg: 0, porties: 0, diepte: 74, beloning: 'roesttand', bijt: 14, weetje: 'Een reusachtige zeepaling, roestbruin van jaren in de machinekamer van de Margaretha. Hij schiet uit de oude pijpen naar alles wat beweegt.' },
   // geen gevecht maar een fotografie-opdracht: maak een foto van elk van haar vier kleuren
   mantel: { naam: 'Mevrouw Mantel', soort: 'zeekat', schaal: 3, hp: 99, kg: 0, porties: 0, diepte: 36, beloning: 'mantel', foto: true, kleuren: ['rood', 'wit', 'gestreept', 'groen'], weetje: 'Een reuzenzeekat die al jaren in de grot onder de rotsrichel woont. De mosselvissers noemen haar Mevrouw Mantel, naar haar wapperende vin.' },
+  spooknetrog: { naam: 'De Spooknetrog', soort: 'rog', schaal: 4, hp: 99, kg: 0, porties: 0, diepte: 68, beloning: 'netknoop', redden: true, weetje: 'Een reusachtige, bleke rog. De vissers dachten dat het een spook was: hij zat al jaren vast in oude netten, als in een wit laken.' },
 };
 
 // ---- gerechten: nodig = soorten waarvan je 1 portie gebruikt; stappen = minispelletjes
@@ -866,6 +880,13 @@ const RECEPTEN = {
   honingmakreel: { naam: 'Makreel met honing', nodig: ['makreel'], proef: ['@vis', 'honing'], stappen: ['bakken', 'opmaken'], prijs: 15, plaatje: 'honingmakreel', raad: 'Een gestreepte vis met iets zoets van de bijen.' },
   mosselsoep: { naam: 'Romige mosselsoep', nodig: ['mossel'], proef: ['@vis', 'room'], stappen: ['openen', 'roeren'], prijs: 17, plaatje: 'mosselsoep', raad: 'Zwarte schelpjes in een romige soep.' },
   bouillabaisse: { naam: 'Sems bouillabaisse', nodig: ['kabeljauw', 'wijting', 'makreel', 'harder', 'zeebrasem', 'poon', 'pollak', 'steenbolk'], stappen: ['snijden', 'roeren', 'opmaken'], prijs: 26, plaatje: 'bouillabaisse', vriend: 'sem' },
+  // uit de Krijtgrotten (stap 4)
+  langoustines: { naam: 'Langoustines met knoflookboter', nodig: ['langoustine'], stappen: ['openen', 'bakken'], prijs: 19, plaatje: 'langoustines', leer: 'langoustine' },
+  zeespin: { naam: 'Zeespin met mayonaise', nodig: ['zeespin'], stappen: ['openen', 'opmaken'], prijs: 15, plaatje: 'zeespin', leer: 'zeespin' },
+  lipvis: { naam: 'Lipvis uit de oven', nodig: ['lipvis'], stappen: ['snijden', 'bakken'], prijs: 14, plaatje: 'lipvis', leer: 'lipvis' },
+  wrakbaars: { naam: 'Wrakbaars op de huid gebakken', nodig: ['wrakbaars'], stappen: ['snijden', 'bakken', 'opmaken'], prijs: 25, plaatje: 'wrakbaars', leer: 'wrakbaars' },
+  garnalenpan: { naam: 'Grotgarnalen uit de pan', nodig: ['grotgarnaal', 'garnaal'], stappen: ['bakken'], prijs: 9, plaatje: 'garnalenpan', leer: 'grotgarnaal' },
+  kalkrots: { naam: 'Witte kalkrots', soort: 'toetje', nodig: [], groente: ['aardbei'], proef: ['ei', 'suiker', 'aardbei'], raad: 'Zo wit als de kalkrots: opgeklopt eiwit met suiker, en iets roods erbovenop.', stappen: ['opmaken'], prijs: 8, plaatje: 'kalkrots' },
 };
 const soortVan = id => (RECEPTEN[id] && RECEPTEN[id].soort) || 'hoofd';
 const START_RECEPTEN = ['haring', 'kibbeling', 'schol', 'mosselen', 'vissoep', 'makreel'];
@@ -916,6 +937,15 @@ const VONDSTEN = {
   barometer: { naam: 'Koperen barometer', waarde: 0, sfeer: 7, kg: 1, cadeau: true },
   gieter: { naam: 'Gerrits gouden gieter', waarde: 0, sfeer: 5, kg: 1, cadeau: true },
   vaas: { naam: 'Vaas met veldbloemen', waarde: 0, sfeer: 5, kg: 1, cadeau: true },
+  // fossielen uit het krijt van de Krijtgrotten (stap 4), en wat het verhaal daar vraagt
+  vuursteen: { naam: 'Knol vuursteen', waarde: 4, sfeer: 1, kg: .3, diepte: [25, 180], stek: 'grot' },
+  belemniet: { naam: 'Donderkeil', waarde: 16, sfeer: 1, kg: .1, diepte: [25, 180], stek: 'grot' },
+  zeeappel: { naam: 'Fossiele zee-egel', waarde: 28, sfeer: 2, kg: .3, diepte: [30, 180], stek: 'grot' },
+  haaientand: { naam: 'Fossiele haaientand', waarde: 42, sfeer: 2, kg: .05, diepte: [60, 180], stek: 'grot' },
+  ammoniet: { naam: 'Ammoniet', waarde: 80, sfeer: 4, kg: .8, diepte: [100, 180], stek: 'grot' },
+  logboek3: { naam: 'Blikken koker met een bladzijde', waarde: 0, sfeer: 0, kg: .2, verhaal: true },
+  netboei: { naam: 'Oude netboei', waarde: 0, sfeer: 0, kg: .3, verhaal: true },
+  netknoop: { naam: 'De laatste knoop', waarde: 0, sfeer: 6, kg: .1, trofee: true },
 };
 
 // ---- verbeteringen: niveaus met prijs en waarde
@@ -931,12 +961,33 @@ const UITRUSTING = {
   lamp: { naam: 'Duiklamp', uitleg: 'Licht in het donker van De Geul.', niveaus: [{ w: 0, t: 'geen lamp' }, { w: 1, prijs: 520, t: 'lamp' }, { w: 2, prijs: 1400, t: 'felle lamp' }] },
 };
 const RESTAURANT = {
-  tafels: { naam: 'Tafels', uitleg: 'Meer gasten tegelijk.', niveaus: [{ w: 2 }, { w: 3, prijs: 120 }, { w: 4, prijs: 260 }, { w: 5, prijs: 520 }, { w: 6, prijs: 900 }, { w: 8, prijs: 2400, terras: true }] },
+  tafels: { naam: 'Tafels', uitleg: 'Meer gasten tegelijk.', niveaus: [{ w: 2 }, { w: 3, prijs: 120 }, { w: 4, prijs: 260 }, { w: 5, prijs: 520 }, { w: 6, prijs: 900 }, { w: 8, prijs: 2400, terras: true, t: '8, met de serre' }, { w: 10, prijs: 3800, water: true, t: '10, met een terras aan het water' }] },
   menu: { naam: 'Menukaart', uitleg: 'Meer gerechten op het menu.', niveaus: [{ w: 3 }, { w: 4, prijs: 150 }, { w: 5, prijs: 450 }, { w: 6, prijs: 1100 }] },
   keuken: { naam: 'Keuken', uitleg: 'Betere spullen: de minispelletjes worden makkelijker en je kookt sneller.', niveaus: [{ w: 0 }, { w: 1, prijs: 300 }, { w: 2, prijs: 900 }, { w: 3, prijs: 2200 }] },
   vriezer: { naam: 'Vriezer', uitleg: 'Vis blijft langer vers.', niveaus: [{ w: 2 }, { w: 4, prijs: 350 }, { w: 7, prijs: 1000 }] },
   dienblad: { naam: 'Dienblad', uitleg: 'Meer borden tegelijk dragen.', niveaus: [{ w: 2 }, { w: 3, prijs: 220 }, { w: 4, prijs: 700 }] },
   linnen: { naam: 'Tafellinnen', uitleg: 'Chique tafels: gasten geven meer fooi.', niveaus: [{ w: 0 }, { w: 1, prijs: 480 }] },
+};
+// het restaurant inrichten: per onderdeel een paar stijlen. Wat je koopt, blijft van jou (ST.inr.heb): wisselen is daarna gratis.
+// Alleen wat er nu staat of hangt telt mee voor de sfeer (en dus voor het aantal gasten).
+const INRICHTING = {
+  muur: { naam: 'Muren', opties: [
+    { id: 'baksteen', naam: 'Gewitte baksteen', tekst: 'De oude muren van de visafslag.', sfeer: 0 },
+    { id: 'blauw', naam: 'Zeeblauw behang', tekst: 'Behang met ankertjes en schelpjes.', prijs: 350, sfeer: 2 },
+    { id: 'groen', naam: 'Groene tegeltjes', tekst: 'Glanzende tegeltjes, zoals in een oude viswinkel.', prijs: 650, sfeer: 3, mat: { glas: 2 } },
+    { id: 'hout', naam: 'Scheepshout', tekst: 'Donkere planken uit een gesloopt schip, met koperen spijkers.', prijs: 950, sfeer: 4, mat: { hout: 6, koper: 1 } }] },
+  vloer: { naam: 'Vloer', opties: [
+    { id: 'planken', naam: 'Brede planken', tekst: 'Eikenhouten planken, al honderd jaar oud.', sfeer: 0 },
+    { id: 'tegels', naam: 'Zwart-witte tegels', tekst: 'Een geblokte vloer die glimt als hij gedweild is.', prijs: 450, sfeer: 2 },
+    { id: 'visgraat', naam: 'Visgraatparket', tekst: 'Natuurlijk: een visgraat, in een visrestaurant.', prijs: 800, sfeer: 3, mat: { hout: 4 } }] },
+  stoel: { naam: 'Stoelen', opties: [
+    { id: 'riet', naam: 'Bistrostoelen', tekst: 'Gebogen hout met een rieten zitting.', sfeer: 0 },
+    { id: 'kapitein', naam: 'Kapiteinsstoelen', tekst: 'Stevige stoelen met armleuningen, zoals aan boord.', prijs: 420, sfeer: 2, mat: { hout: 3 } },
+    { id: 'pluche', naam: 'Rood pluche', tekst: 'Zachte fluwelen stoelen: gasten wachten iets geduldiger.', prijs: 780, sfeer: 3, geduld: 1.1 }] },
+  lamp: { naam: 'Lampen', opties: [
+    { id: 'emaille', naam: 'Emaillelampen', tekst: 'Groene lampen van de oude visafslag.', sfeer: 0 },
+    { id: 'lantaarn', naam: 'Scheepslantaarns', tekst: 'Koperen lantaarns met een warm, flakkerend licht.', prijs: 320, sfeer: 2, mat: { koper: 2 } },
+    { id: 'kroon', naam: 'Kroonluchters', tekst: 'Glinsterende luchters: gasten geven iets meer fooi.', prijs: 1300, sfeer: 4, fooi: 1.06, mat: { glas: 3, koper: 2 } }] },
 };
 const PERSONEEL = {
   noor: { naam: 'Noor', rol: 'bediening', uitleg: 'Brengt de borden van de uitgifte naar de gasten.', loon: 35, prijs: 200 },
@@ -955,6 +1006,9 @@ const FOTO_OPDR = [
   { id: 'zonnevis', naam: 'Recht in de ogen', tekst: 'Een zonnevis van heel dichtbij: drie sterren.', soort: 'zonnevis', sterren: 3, beloning: 150 },
   { id: 'vijf', naam: 'Vijf op één duik', tekst: 'Fotografeer vijf verschillende soorten tijdens één duik.', aantal: 5, beloning: 80 },
   { id: 'mantel', naam: 'Mevrouw Mantel', tekst: 'Fotografeer de reuzenzeekat van Het Mosselrif in al haar vier kleuren.', mantel: true, beloning: 300 },
+  { id: 'octopus', naam: 'Acht armen en drie harten', tekst: 'Fotografeer een octopus in de Krijtgrotten.', soort: 'octopus', beloning: 120 },
+  { id: 'waaier', naam: 'Een waaier in het donker', tekst: 'Fotografeer een waaierkokerworm met zijn waaier open. Zwem rustig, anders trekt hij hem in.', soort: 'waaierworm', sterren: 2, beloning: 110 },
+  { id: 'rog', naam: 'De rog is vrij', tekst: 'Een foto van de Spooknetrog, nu hij vrij door de grotten zwemt (twee sterren).', rog: true, beloning: 220 },
 ];
 
 // ---- materialen (uit kisten en van geborgen spullen) en wat Mevrouw Snuffel ervan maakt
@@ -1545,6 +1599,12 @@ function gerechtPix(id) {
     case 'honingmakreel': R.ovaal(9, 8, 8, 3, '#8A8C6A'); R.rij(6, 3, 15, '#5A5A48'); for (let x = 3; x < 15; x += 3) R.lijn(x, 6, x + 2, 10, '#2A2420'); R.ovaal(9, 8, 6, 1.6, '#E9A83A'); R.p(6, 7, '#F4C866'); R.p(11, 7, '#F4C866'); R.veelhoek([[1, 8], [-1, 5], [-1, 11]], '#6A6A58'); R.p(15, 7, '#2A201C'); R.p(4, 12, '#5E9A3A'); break;
     case 'mosselsoep': R.ovaal(9, 8, 8, 3, '#E8DCC0'); R.ovaal(9, 7.5, 6.6, 2, '#F4ECD8'); R.veelhoek([[1, 9], [17, 9], [14, 14], [4, 14]], '#F4F1E8'); R.rij(11, 4, 14, '#2E5AA8'); for (const [x, y] of [[6, 7], [11, 6], [13, 8]]) { R.ovaal(x, y, 1.6, 1, '#23283A'); R.p(x, y, '#E89A5C'); } R.p(8, 8, '#5E9A3A'); break;
     case 'bouillabaisse': R.ovaal(9, 8, 8, 3, '#C8501E'); R.ovaal(9, 7.5, 6.6, 2, '#E87A3A'); R.veelhoek([[1, 9], [17, 9], [14, 14], [4, 14]], '#2F4C8F'); R.rij(11, 4, 14, '#F4F1E8'); R.blok(5, 6, 6, 7, '#FFFFFF'); R.blok(10, 7, 11, 8, '#FFFFFF'); R.ovaal(13, 6, 1.6, 1, '#23283A'); R.p(13, 6, '#E89A5C'); R.p(8, 6, '#5E9A3A'); R.p(12, 8, '#8CC45A'); R.ovaal(16, 3, 2, 1.4, '#E8C27A'); break;
+    case 'langoustines': R.ovaal(9, 10, 8, 3.4, '#F4F1E8'); for (const [x, y, k] of [[5, 8, 1], [11, 7, -1], [9, 11, 1]]) { R.ovaal(x, y, 3.4, 1.4, '#E8806A'); R.p(x - k * 3, y, '#C8604E'); R.lijn(x + k * 3, y, x + k * 6, y - 2, '#E8806A'); R.p(x, y - 1, '#F6BCA4'); } R.ovaal(15, 11, 1.6, 1, '#F2D86A'); R.p(4, 12, '#5E9A3A'); R.p(6, 13, '#8CC45A'); break;
+    case 'zeespin': R.ovaal(9, 10, 8, 3.4, '#F4F1E8'); R.veelhoek([[6, 9], [10, 5], [14, 8], [12, 11], [7, 11]], '#C86A4A'); R.p(10, 6, '#E8906A'); R.p(11, 8, '#E8906A'); for (let i = 0; i < 3; i++) { R.lijn(7, 10, 2 - i, 13 - i, '#C86A4A'); R.lijn(13, 10, 18 + i, 13 - i, '#C86A4A'); } R.ovaal(15, 5, 2, 1.4, '#F4ECC8'); R.p(15, 5, '#FFFFFF'); break;
+    case 'lipvis': R.ovaal(9, 10, 8.5, 3.6, '#F4F1E8'); R.ovaal(9, 8, 7, 3, goud); R.ovaal(9, 7.5, 5, 1.8, goudL); R.veelhoek([[2, 8], [-1, 5], [-1, 11]], goudD); for (const [x, y] of [[6, 7], [10, 8], [13, 7]]) R.p(x, y, '#A8642A'); R.p(14, 7, '#2A201C'); R.p(5, 11, groen); R.p(12, 11, '#C8323C'); R.p(13, 11, '#C8323C'); partje(15, 11); break;
+    case 'wrakbaars': R.ovaal(9, 10, 8.5, 3.6, '#2A2C34'); R.ovaal(9, 9, 6.5, 2.6, '#F4E8D0'); R.ovaal(9, 8, 5, 1.8, goud); R.rij(7, 6, 12, goudD); for (let x = 5; x < 14; x += 3) R.p(x, 7, '#5A4A3A'); R.ovaal(14, 11, 2, 1.2, '#F4ECC8'); R.p(4, 11, groenL); R.p(5, 12, groen); break;
+    case 'garnalenpan': R.ovaal(9, 10, 8, 3.6, '#2A2A30'); R.ovaal(9, 9.5, 6.6, 2.4, '#3A3A42'); for (const [x, y] of [[5, 9], [8, 8], [11, 9], [13, 10], [7, 11], [10, 11]]) { R.ovaal(x, y, 1.6, 1, '#F0A08A'); R.p(x, y, '#F8C8B4'); } R.lijn(17, 9, 20, 7, '#5A3A22', 2); R.p(9, 7, groen); R.p(12, 7, groenL); break;
+    case 'kalkrots': R.ovaal(9, 12, 8, 2.6, '#E8E2D6'); R.veelhoek([[3, 12], [5, 5], [8, 3], [11, 4], [14, 6], [15, 12]], '#FBF8F0'); R.lijn(5, 9, 13, 8, '#E4DCCC'); R.p(7, 6, '#FFFFFF'); R.ovaal(9, 3, 2, 1.6, '#E8414E'); R.ovaal(12, 4, 1.6, 1.2, '#C8323C'); R.p(9, 2, '#FF9A9A'); R.p(10, 1, groen); break;
     default: R.ovaal(9, 8, 7, 4, '#C9A060');
   }
   R.omlijn();
@@ -1688,10 +1748,36 @@ function vormPix(vorm, kl, beeld = 0) {
       R.omlijn(); R.p(33, 4, '#F2DDA0'); R.p(34, 4, '#1A1418'); R.p(36, 6, '#2A2A30');
       break;
     }
-    case 'garnaal': {
-      R = new Pix(10, 7);
-      R.ovaal(5, 3, 3.4, 1.8, '#D8B8A0'); R.p(2, 2, '#E8C8B0'); R.lijn(1, 4, 0, 5 + golf, '#C8A890'); R.lijn(8, 2, 9, 0, '#C8A890');
-      R.p(7, 2, '#1A1418');
+    case 'garnaal': { // (met kl: de bleke grotgarnaal met rode oogjes en lange voelsprieten)
+      R = new Pix(kl.R ? 14 : 10, 7);
+      const a = kl.R || '#D8B8A0', c = kl.M || '#C8A890';
+      R.ovaal(5, 3, 3.4, 1.8, a); R.p(2, 2, kl.R ? '#FFFFFF' : '#E8C8B0'); R.lijn(1, 4, 0, 5 + golf, c); R.lijn(8, 2, 9, 0, c);
+      if (kl.R) { R.lijn(8, 2, 13, 1 + (b % 2), c); R.lijn(8, 3, 13, 4 - (b % 2), c); for (let x = 3; x < 8; x += 2) R.p(x, 5, c); }
+      R.p(7, 2, kl.D || '#1A1418');
+      break;
+    }
+    case 'zeespin': { // een kleine, puntige schaal met wier op de rug, en heel lange, dunne poten
+      R = new Pix(30, 16);
+      R.veelhoek([[9, 8], [15, 3], [22, 6], [21, 10], [12, 11]], kl.R); R.rij(5, 14, 20, kl.M); R.p(15, 3, kl.M);
+      for (const [x, y] of [[13, 5], [17, 6], [19, 8], [14, 8]]) R.p(x, y, kl.D); R.p(16, 4, kl.D); R.p(18, 4, '#8AB05A');
+      for (let i = 0; i < 4; i++) { const p = (i + b) % 2; R.lijn(12 - i, 10, 4 - i * 2, 15 - p, kl.R); R.lijn(4 - i * 2, 15 - p, 2 - i * 2, 15, kl.R); R.lijn(19 + i, 10, 26 + i, 15 - (1 - p), kl.R); }
+      R.lijn(22, 7, 27, 4, kl.R); R.ovaal(28, 4, 1.6, 1.2, kl.R);
+      R.omlijn(); R.p(21, 5, '#1A1418');
+      break;
+    }
+    case 'octopus': { // een ronde kop en acht armen die golven, met zuignapjes
+      R = new Pix(28, 22);
+      const k1 = '#B8583A', k2 = '#D8805A', k3 = '#8A3A26';
+      for (let i = 0; i < 8; i++) { const ax = 6 + i * 2.2; let x = ax, y = 11; for (let s = 0; s < 9; s++) { const nx = x + Math.cos(i * .7 + s * .5 + b * .6) * 1.1 - .4, ny = y + .9; R.lijn(x, y, nx, ny, i % 2 ? k1 : k3); if (s % 3 === 1) R.p(nx + 1, ny, '#F4C8B0'); x = nx; y = ny; } }
+      R.ovaal(14, 7, 7, 6, k1); R.ovaal(13, 5, 4, 3, k2); for (const [x, y] of [[10, 8], [17, 5], [16, 9], [12, 3]]) R.p(x, y, k3);
+      R.omlijn(); R.blok(17, 8, 18, 9, '#F4E8A0'); R.rij(9, 17, 18, '#1A1418');
+      break;
+    }
+    case 'waaierworm': { // een kokertje met bovenop een veren waaier in rood en wit
+      R = new Pix(16, 22);
+      R.blok(7, 12, 9, 21, '#8A7A5A'); R.blok(7, 12, 7, 21, '#A89A7A'); for (let y = 13; y < 21; y += 3) R.rij(y, 7, 9, '#6A5A3A');
+      for (let i = 0; i < 9; i++) { const a = -Math.PI * .92 + i / 8 * Math.PI * .84 + golf * .03; for (let s = 2; s < 8; s++) R.p(8 + Math.cos(a) * s, 12 + Math.sin(a) * s, s % 2 ? '#F4ECE4' : (i % 3 === 0 ? '#E8414E' : '#E87A6A')); }
+      R.omlijn();
       break;
     }
     case 'tarbot': { // rond en plat, vol knobbeltjes; ogen bovenop
@@ -1850,6 +1936,14 @@ function vondstPix(id) {
     case 'meetkastje': R.blok(3, 6, 14, 14, '#E9C23A'); R.blok(4, 7, 13, 8, '#F4DC6A'); R.blok(6, 10, 11, 12, '#23252B'); R.lijn(12, 6, 15, 0, '#5A5F68'); R.blok(4, 3, 6, 5, '#C8323C'); R.p(4, 3, '#FF8A8A'); R.p(7, 11, '#7CF2FF'); break;
     case 'logboek': R.veelhoek([[3, 2], [14, 3], [14, 15], [2, 14]], '#E8D8A8'); for (let y = 5; y < 13; y += 2) R.lijn(4, y, 12, y + .3, '#8A7A5A'); R.lijn(5, 4, 9, 4, '#3A2A22'); R.blok(11, 11, 13, 13, '#C9B48A'); break;
     case 'mantel': R.blok(1, 2, 16, 14, '#7A4E2D'); R.blok(2, 3, 15, 13, '#F4F1E8'); R.blok(3, 4, 14, 12, '#2A7EA4'); R.ovaal(9, 8, 4.4, 2.2, '#C8323C'); for (let i = 0; i < 3; i++) R.lijn(5, 7 + i, 3, 6 + i * 2, '#A82A32'); R.p(11, 7, '#FFFFFF'); R.p(12, 7, '#1A1418'); break;
+    case 'vuursteen': R.ovaal(9, 9, 6, 4.6, '#3A3A44'); R.ovaal(8, 8, 3, 2, '#5A5A68'); R.ovaal(12, 10, 3, 2.4, '#E8E2D0'); R.p(7, 7, '#8A8A9A'); R.p(13, 9, '#F4F1E8'); break;
+    case 'belemniet': R.veelhoek([[3, 13], [6, 11], [15, 3], [16, 4], [7, 14]], '#C8864A'); R.lijn(5, 12, 14, 4, '#E8B070'); R.p(15, 3, '#F4D09A'); R.p(4, 13, '#8A5A2A'); break;
+    case 'zeeappel': R.ovaal(9, 9, 6.5, 5, '#D8D0B8'); R.ovaal(9, 8, 4, 3, '#E8E2CC'); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; R.lijn(9, 8, 9 + Math.cos(a) * 5, 8 + Math.sin(a) * 4, '#A89A78'); } R.p(9, 8, '#8A7A58'); break;
+    case 'haaientand': R.veelhoek([[4, 13], [9, 2], [14, 13], [9, 11]], '#3A3438'); R.veelhoek([[6, 12], [9, 4], [12, 12]], '#5A5058'); R.rij(13, 4, 14, '#A88A5A'); R.p(9, 5, '#8A808A'); break;
+    case 'ammoniet': R.ovaal(9, 8, 7, 7, '#C8A878'); R.ovaal(9, 8, 5, 5, '#B08A5A'); R.ovaal(9, 8, 3, 3, '#C8A878'); R.ovaal(9, 8, 1.4, 1.4, '#8A6A3A'); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, rr = 6.6 - i * .2; R.p(9 + Math.cos(a) * rr, 8 + Math.sin(a) * rr, '#7A5A2A'); } R.p(6, 4, '#E8D4A8'); break;
+    case 'logboek3': R.blok(4, 4, 14, 13, '#9AA3AE'); R.blok(5, 5, 13, 12, '#B7BEC8'); R.rij(8, 4, 14, '#6A6E78'); R.blok(14, 6, 15, 11, '#5A5F68'); R.veelhoek([[6, 3], [12, 3], [13, 5], [5, 5]], '#E8D8A8'); R.lijn(7, 4, 11, 4, '#8A7A5A'); break;
+    case 'netboei': R.ovaal(9, 9, 6, 6, '#E8763A'); R.ovaal(8, 8, 3, 3, '#F4A06A'); R.rij(9, 3, 15, '#2A2A30'); R.lijn(9, 2, 9, 3, '#C9B48A'); for (let i = 0; i < 4; i++) R.lijn(2 + i * 4, 14, 4 + i * 4, 17, '#C8C2B0'); break;
+    case 'netknoop': R.ovaal(9, 9, 4.5, 4, '#D8D0BC'); R.ovaal(9, 9, 2.6, 2.2, '#B8B0A0'); for (const [dx, dy] of [[-8, -6], [8, -7], [-7, 7], [8, 6]]) R.lijn(9, 9, 9 + dx, 9 + dy, '#C8C0AC'); R.p(8, 8, '#F4F1E8'); break;
     case 'oudekaart': R.veelhoek([[1, 3], [16, 2], [17, 13], [2, 14]], '#E8D8A8'); R.veelhoek([[4, 6], [8, 5], [9, 8], [6, 10], [4, 9]], '#A8C878'); R.veelhoek([[11, 8], [14, 7], [15, 11], [12, 12]], '#A8C878'); R.lijn(6, 11, 13, 5, '#8A5A34'); R.p(13, 5, '#C8323C'); R.p(14, 11, '#2E5AA8'); R.p(14, 10, '#2E5AA8'); R.p(13, 11, '#2E5AA8'); R.lijn(2, 3, 2, 14, '#C9B48A'); R.lijn(16, 2, 17, 13, '#C9B48A'); break;
     case 'schilderij': R.blok(1, 2, 16, 14, '#C99A2E'); R.blok(2, 3, 15, 13, '#7FB8D8'); R.blok(2, 10, 15, 13, '#2E5A8A'); R.veelhoek([[5, 10], [12, 10], [11, 11], [6, 11]], '#5A3A22'); R.lijn(8, 4, 8, 10, '#3A2A22'); R.veelhoek([[8, 4], [12, 9], [8, 9]], '#F4F1E8'); R.veelhoek([[8, 5], [5, 9], [8, 9]], '#E8E4DA'); R.p(13, 4, '#FFE9A8'); R.rij(12, 4, 7, '#7FB8D8'); break;
     case 'barometer': R.ovaal(9, 8, 7, 7, '#C99A2E'); R.ovaal(9, 8, 5.4, 5.4, '#F4F1E8'); R.lijn(9, 8, 12, 4, '#23252B'); R.lijn(9, 8, 6, 5, '#C8323C'); R.p(9, 8, '#8A6A2A'); for (const [x, y] of [[4, 8], [14, 8], [9, 3], [5, 4], [13, 4]]) R.p(x, y, '#8A7A5A'); R.p(6, 11, '#FFFFFF'); break;
@@ -1937,13 +2031,15 @@ function rubenDuik(pose = 'zwem', beeld = 0, kantel = 0, hoek = 0) {
 
 // ===================== HET ROMMELKOMBUIS: het restaurant in de oude visafslag =====================
 // wereld van 640 x 360 (met terras breder). Vloer van y 210 tot 360. Keuken links, eetzaal midden, deur rechts.
+// Rechts van de deur de hal (of de serre), en met de laatste verbouwing daarachter het terras aan het water (WATER breed).
 const KB = {
-  W: 640, H: 360, VLOER: 214, WAND: 46, KEUKEN_Y: 248, TOONBANK_Y: 258, LINKS: 160, RECHTS: 200,
+  W: 640, H: 360, VLOER: 214, WAND: 46, KEUKEN_Y: 248, TOONBANK_Y: 258, LINKS: 160, RECHTS: 200, WATER: 180, BREED: 1180,
   // tafels: x (midden), y (voeten van de gasten), rij 0 achter / 1 voor
   TAFELS: [
     { x: 270, y: 276, rij: 0 }, { x: 376, y: 276, rij: 0 }, { x: 482, y: 276, rij: 0 },
     { x: 252, y: 338, rij: 1 }, { x: 360, y: 338, rij: 1 }, { x: 468, y: 338, rij: 1 },
     { x: 708, y: 284, rij: 0, terras: true }, { x: 784, y: 340, rij: 1, terras: true },
+    { x: 894, y: 290, rij: 0, terras: true, water: true }, { x: 968, y: 338, rij: 1, terras: true, water: true },
   ],
   FORNUIS: { x: 62, y: 248 }, SNIJ: { x: 104, y: 248 }, UITGIFTE: { x: 142, y: 248 }, KLAPDEUR: { x: 178, y: 252 }, VOOR_UITGIFTE: { x: 196, y: 272 }, DEUR: { x: 598, y: 262 },
   RAMEN: [{ x: 238, w: 64 }, { x: 352, w: 64 }, { x: 466, w: 64 }],
@@ -1972,22 +2068,14 @@ function delftsTegel(T, x, y, motief, s) {
 
 // het vaste deel van de zaal, eenmaal getekend (ramen blijven doorzichtig)
 function tekenKombuisZaal(st) {
-  const H = KB.H, { cv, ctx } = maakDoek(KB.LINKS + KB.W + KB.RECHTS, H), T = tekenaar(ctx);
+  const H = KB.H, { cv, ctx } = maakDoek(KB.BREED, H), T = tekenaar(ctx);
   ctx.translate(KB.LINKS, 0);
-  const V = KB.VLOER, WAND = KB.WAND, X0 = -KB.LINKS, W = KB.W + KB.RECHTS;
-  // ---- achterwand: gewitte baksteen
-  for (let y = WAND; y < V; y++) {
-    const rij = Math.floor((y - WAND) / 6), off = (rij % 2) * 9;
-    for (let x = X0; x < W; x++) {
-      const bx = Math.floor((x + off + 1800) / 18), voeg = (y - WAND) % 6 === 5 || (x + off + 1800) % 18 === 17;
-      const h = hashf(bx, rij, 3), slijt = ruis(x / 26, y / 18, 7) * .7 + ruis(x / 9, y / 7, 8) * .3;
-      let c = voeg ? '#D6CCBA' : (slijt > .66 && h > .25 ? mix('#B8664A', '#9C5440', h) : mix('#F1EBDD', '#E6DDCB', h));
-      if (voeg && slijt > .66) c = '#C9B9A4';
-      T.px(x, y, c);
-    }
-  }
-  // vervaagde oude letters: VISAFSLAG 1887
-  ctx.save(); ctx.globalAlpha = .13; letters(ctx, 'VISAFSLAG', 378, 51, '#5A3A2A', 2, 'm'); ctx.globalAlpha = .1; letters(ctx, 'ANNO 1887', 378, 68, '#5A3A2A', 1, 'm'); ctx.restore();
+  const V = KB.VLOER, WAND = KB.WAND, X0 = -KB.LINKS, W = KB.W + KB.RECHTS, KX = 186;
+  const muur = st.muur || 'baksteen', vloer = st.vloer || 'planken';
+  // ---- achterwand: gewitte baksteen (in de zaal kan dat ook behang, tegeltjes of scheepshout zijn)
+  pixelVlak(ctx, X0, WAND, W, V, (x, y) => muurPixel(x >= KX ? muur : 'baksteen', x, y));
+  // vervaagde oude letters: VISAFSLAG 1887 (alleen op de oude baksteen)
+  if (muur === 'baksteen') { ctx.save(); ctx.globalAlpha = .13; letters(ctx, 'VISAFSLAG', 378, 51, '#5A3A2A', 2, 'm'); ctx.globalAlpha = .1; letters(ctx, 'ANNO 1887', 378, 68, '#5A3A2A', 1, 'm'); ctx.restore(); }
   // schaduw onder het plafond
   for (let y = WAND; y < WAND + 16; y++) { ctx.save(); ctx.globalAlpha = .34 * (1 - (y - WAND) / 16); T.rect(X0, y, W - X0, 1, '#2A1A14'); ctx.restore(); }
   // lambrisering: smalle verticale planken in blauwgroen, met een lijst erboven en een plint
@@ -1998,7 +2086,6 @@ function tekenKombuisZaal(st) {
   T.rect(X0, LB - 2, W - X0, 2, '#F4EEDF'); T.rect(X0, LB, W - X0, 2, '#D6CBB2'); T.rect(X0, LB + 2, W - X0, 1, '#8E8068'); T.rect(X0, LB + 3, W - X0, 1, '#3A2E28');
   T.rect(X0, V - 6, W - X0, 6, '#1C383D'); T.rect(X0, V - 6, W - X0, 1, '#4A7E84'); T.rect(X0, V - 5, W - X0, 1, '#2E555B');
   // ---- open keuken links: Delfts blauwe tegels
-  const KX = 186;
   for (let y = 66; y < 202; y += 12) for (let x = 0; x < KX; x += 12) delftsTegel(T, x, y, Math.floor(hashf(x, y, 9) * 5), 0);
   T.rect(0, 202, KX, V - 202, '#4A4F5A');
   // afzuigkap van koper
@@ -2049,19 +2136,8 @@ function tekenKombuisZaal(st) {
   for (let i = 0; i < 5; i++) T.rect(DX + 3 + i * 12, DY + 2, 1, 16, '#5A3A22');
   T.rect(DX + 24, DY + 70, 2, 6, '#C9A040'); T.rect(DX + 30, DY + 70, 2, 6, '#C9A040');
   // ---- vloer: brede planken met een warm verloop (onder de keuken alleen voor de toonbank)
-  for (let y = V; y < H; y++) {
-    const rij = Math.floor(Math.pow((y - V) / (H - V), .8) * 14), y0 = V + Math.round(Math.pow(rij / 14, 1.25) * (H - V));
-    for (let x = (y < KB.TOONBANK_Y ? KX + 2 : X0); x < W; x++) {
-      if (st.terras && x >= KB.W && y < KB.TOONBANK_Y + 200 && false) continue;
-      const naad = y === y0, lengte = 60 + rij * 9, off = (rij * 37) % lengte + 600, stuk = Math.floor((x + off) / lengte);
-      const eind = (x + off) % lengte === 0;
-      const t = (y - V) / (H - V), h = hashf(stuk, rij, 11);
-      let c = mix(mix('#B07A48', '#8E5A32', h * .6), '#6E4426', t * .35);
-      if (ruis(x / 9, y / 2, rij) > .7) c = mix(c, '#7A4A28', .4);
-      if (naad || eind) c = '#5A3620';
-      T.px(x, y, c);
-    }
-  }
+  const rijen = []; for (let y = V; y < H; y++) { const rij = Math.floor(Math.pow((y - V) / (H - V), .8) * 14); rijen.push([rij, V + Math.round(Math.pow(rij / 14, 1.25) * (H - V))]); }
+  pixelVlak(ctx, X0, V, W, H, (x, y) => y < KB.TOONBANK_Y && x < KX + 2 ? null : vloerPixel(vloer, x, y, rijen[y - V][0], rijen[y - V][1]));
   // houten staanders tussen de keuken en de zaal, en bij de hal
   for (const sx of [184, 636]) { T.rect(sx, WAND - 6, 8, V - WAND + 6, '#4A2C18'); T.rect(sx + 1, WAND - 6, 2, V - WAND + 6, '#7A4E2D'); T.rect(sx + 6, WAND - 6, 2, V - WAND + 6, '#2E1A0E'); for (let y = WAND + 10; y < V; y += 34) { T.rect(sx + 3, y, 2, 2, '#2A180C'); T.px(sx + 3, y, '#9A6A3A'); } T.rect(sx - 2, LB - 2, 12, 6, '#5A3420'); T.rect(sx - 2, LB - 2, 12, 1, '#8A5A34'); }
   // schaduw van de muur op de vloer
@@ -2069,7 +2145,111 @@ function tekenKombuisZaal(st) {
   tekenVloerkleed(T, ctx);
   tekenMeubelsAchter(T, ctx);
   tekenVoorraadkamer(T, ctx); tekenHal(T, ctx, st.terras);
+  if (st.water) tekenWaterTerras(T, ctx);
   return cv;
+}
+// veel pixels in één keer (veel sneller dan een fillRect per pixel). f(x, y) geeft een kleur in zaalcoördinaten, of null om over te slaan.
+function pixelVlak(ctx, x0, y0, x1, y1, f) {
+  const ox = KB.LINKS, w = x1 - x0, h = y1 - y0, im = ctx.getImageData(x0 + ox, y0, w, h), d = im.data;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const c = f(x, y); if (!c) continue; const v = rgbVan(c), i = ((y - y0) * w + x - x0) * 4; d[i] = v[0]; d[i + 1] = v[1]; d[i + 2] = v[2]; d[i + 3] = 255; }
+  ctx.putImageData(im, x0 + ox, y0);
+}
+// ---- de muur van de zaal per stijl (x en y in zaalcoördinaten)
+function muurPixel(stijl, x, y) {
+  const u = x + 2000, v = y - KB.WAND;
+  if (stijl === 'baksteen') {
+    // gewitte baksteen, hier en daar afgebladderd
+    const rij = Math.floor(v / 6), off = (rij % 2) * 9, bx = Math.floor((x + off + 1800) / 18), voeg = v % 6 === 5 || (x + off + 1800) % 18 === 17;
+    const h = hashf(bx, rij, 3), slijt = ruis(x / 26, y / 18, 7) * .7 + ruis(x / 9, y / 7, 8) * .3;
+    let c = voeg ? '#D6CCBA' : (slijt > .66 && h > .25 ? mix('#B8664A', '#9C5440', h) : mix('#F1EBDD', '#E6DDCB', h));
+    if (voeg && slijt > .66) c = '#C9B9A4';
+    return c;
+  }
+  if (stijl === 'blauw') {
+    // zeeblauw behang: brede en smalle banen, met om en om een ankertje en een schelpje
+    const baan = Math.floor(u / 9) % 2, h = ruis(x / 30, y / 22, 41) * .5 + ruis(x / 7, y / 9, 42) * .5;
+    let c = baan ? '#2D5A86' : '#33628F'; if (u % 9 === 0) c = '#28507A';
+    const mx = ((u % 36) + 36) % 36, my = ((v + (Math.floor(u / 36) % 2) * 18) % 36 + 36) % 36, soort = Math.floor(u / 36 + Math.floor((v + (Math.floor(u / 36) % 2) * 18) / 36)) % 2;
+    const ANKER = ['..#..', '.###.', '..#..', '..#..', '#.#.#', '.###.'], SCHELP = ['.###.', '#.#.#', '#.#.#', '.###.', '..#..'];
+    const vorm = soort ? SCHELP : ANKER, ox = mx - 16, oy = my - 15;
+    if (ox >= 0 && ox < 5 && oy >= 0 && oy < vorm.length && vorm[oy][ox] === '#') c = soort ? '#E9C9A0' : '#C9D8E8';
+    else if (h > .74) c = mix(c, '#1E3E62', .25);
+    return c;
+  }
+  if (stijl === 'groen') {
+    // glanzende groene tegeltjes van 12 bij 6, halfsteens, met witte voegen
+    const rij = Math.floor(v / 6), off = (rij % 2) * 6, tx = Math.floor((u + off) / 12), lx = (u + off) % 12, ly = v % 6;
+    if (lx === 11 || ly === 5) return '#D8D2C0';
+    const h = hashf(tx, rij, 43); let c = mix('#2F7A5C', '#3E8E6C', h);
+    if (ly === 0 || lx === 0) c = mix(c, '#8ED0AE', .55); else if (ly === 4 || lx === 10) c = mix(c, '#1E5640', .35);
+    if (ly === 1 && lx > 1 && lx < 5) c = '#C9F0DA';
+    return c;
+  }
+  // scheepshout: liggende planken met koperen spijkers bij de naden
+  const rij = Math.floor(v / 8), ly = v % 8, len = 70 + Math.floor(hashf(rij, 1, 44) * 50), off = Math.floor(hashf(rij, 2, 44) * len), stuk = Math.floor((u + off) / len), lx = (u + off) % len;
+  if (ly === 7) return '#24140A';
+  if (lx === 0) return '#2E1A0E';
+  const h = hashf(stuk, rij, 45); let c = mix('#5E3A22', '#7A4A2A', h);
+  if (ruis(x / 14, y / 2.2, rij + 50) > .64) c = mix(c, '#4A2A16', .45);
+  if (ly === 0) c = mix(c, '#9A6A40', .5);
+  if ((lx === 3 || lx === len - 3) && (ly === 2 || ly === 5)) c = '#D9A850';
+  return c;
+}
+// ---- de vloer van de zaal per stijl (rij en y0: de rij planken van de gewone vloer, voor het perspectief)
+function vloerPixel(stijl, x, y, rij, y0) {
+  const V = KB.VLOER, t = (y - V) / (KB.H - V), schaal = 1 + t * .7, u = (x - 400) / schaal;
+  let c;
+  if (stijl === 'planken') {
+    // brede planken met een warm verloop
+    const naad = y === y0, lengte = 60 + rij * 9, off = (rij * 37) % lengte + 600, stuk = Math.floor((x + off) / lengte), eind = (x + off) % lengte === 0, h = hashf(stuk, rij, 11);
+    c = mix(mix('#B07A48', '#8E5A32', h * .6), '#6E4426', t * .35);
+    if (ruis(x / 9, y / 2, rij) > .7) c = mix(c, '#7A4A28', .4);
+    if (naad || eind) c = '#5A3620';
+    return c;
+  }
+  if (stijl === 'tegels') {
+    // zwart en wit geblokt; de voegen lopen naar achteren een beetje naar elkaar toe
+    const rh = Math.floor(Math.pow(t, .8) * 14), kol = Math.floor((u + 4000) / 14), voegX = ((u + 4000) % 14) < 1, voegY = rh !== Math.floor(Math.pow(Math.max(0, (y - 1 - V) / (KB.H - V)), .8) * 14);
+    const wit = (kol + rh) % 2 === 0, h = hashf(kol, rh, 46);
+    c = wit ? mix('#E9E2D0', '#DCD3BE', h) : mix('#34343E', '#40404A', h);
+    if (voegX || voegY) c = '#8A8274';
+    else if (ruis(x / 18, y / 6, 47) > .7) c = mix(c, wit ? '#C9BEA6' : '#4A4A56', .35);
+  } else {
+    // visgraat: schuine plankjes in kolommen, om en om naar links en naar rechts
+    const vv = (y - V) * 1.6 / schaal, kol = Math.floor((u + 4000) / 12), lx = (u + 4000) % 12, dir = kol % 2 ? 1 : -1;
+    const d = vv + (dir > 0 ? lx : 12 - lx), plank = Math.floor(d / 6), naad = (d % 6) < 1 || lx < 1;
+    const h = hashf(kol, plank, 48);
+    c = mix(mix('#C08A50', '#A06A38', h), '#8A5A30', hashf(kol, plank, 49) * .3);
+    if (naad) c = '#5A3620';
+    else if (ruis(x / 6, y / 2, 50) > .72) c = mix(c, '#7A4A28', .35);
+  }
+  return mix(c, '#3A2414', t * .28);
+}
+// ---- het terras aan het water: een vlonder over de haven, met een reling, lantaarnpalen en een lichtsnoer.
+// Boven de reling blijft het doek leeg: daar zie je de lucht en het water van de haven (tekenBuiten).
+function tekenWaterTerras(T, ctx) {
+  const x0 = KB.W + KB.RECHTS, x1 = x0 + KB.WATER, V = KB.VLOER, H = KB.H;
+  // de vlonder: grijsbruine planken die naar voren breder worden
+  pixelVlak(ctx, x0, V - 2, x1, H, (x, y) => {
+    const t = (y - V) / (H - V), rij = Math.floor(Math.pow(Math.max(0, t), .8) * 12), naad = rij !== Math.floor(Math.pow(Math.max(0, (y - 1 - V) / (H - V)), .8) * 12);
+    const len = 46 + rij * 6, off = (rij * 29) % len, stuk = Math.floor((x + off) / len), h = hashf(stuk, rij, 51);
+    let c = mix(mix('#9A8A72', '#857560', h), '#5A4A3A', t * .3);
+    if (ruis(x / 12, y / 2, rij + 60) > .68) c = mix(c, '#6E604E', .4);
+    return naad || (x + off) % len === 0 ? '#4A3E30' : c;
+  });
+  // de rand van de vlonder achteraan, met het water eronder
+  T.rect(x0, V - 4, x1 - x0, 3, '#6E604E'); T.rect(x0, V - 4, x1 - x0, 1, '#B8A88E');
+  // de reling: witte palen met twee leuningen
+  for (let x = x0 + 8; x < x1; x += 30) { T.rect(x, V - 34, 3, 31, '#E9E2D0'); T.rect(x, V - 34, 1, 31, '#FFFFFF'); T.rect(x + 2, V - 34, 1, 31, '#B8B0A0'); }
+  T.rect(x0, V - 36, x1 - x0, 3, '#F4F1E8'); T.rect(x0, V - 33, x1 - x0, 1, '#B8B0A0'); T.rect(x0, V - 20, x1 - x0, 2, '#E9E2D0'); T.rect(x0, V - 18, x1 - x0, 1, '#B8B0A0');
+  // een reddingsboei aan de reling en bloembakken
+  for (const [bx, kl] of [[x0 + 54, '#D8333E']]) { T.ovaal(bx, V - 25, 7, 7, kl); ctx.save(); ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(bx + .5, V - 24.5, 3.4, 0, Math.PI * 2); ctx.fill(); ctx.restore(); for (let a = 0; a < 4; a++) T.px(bx + Math.round(Math.cos(a * 1.57 + .78) * 5), V - 25 + Math.round(Math.sin(a * 1.57 + .78) * 5), '#F4F1E8'); }
+  for (const bx of [x0 + 96, x0 + 140]) { T.rect(bx, V - 12, 22, 9, '#7A4E2D'); T.rect(bx, V - 12, 22, 1, '#A0683D'); for (let i = 0; i < 7; i++) { T.px(bx + 2 + i * 3, V - 14 - (i % 2), i % 3 ? '#5E9A3A' : '#3E7A3A'); T.px(bx + 2 + i * 3, V - 16 - (i % 2), ['#E8414E', '#E9B949', '#F4F1E8'][i % 3]); } }
+  // twee lantaarnpalen met een lichtsnoer ertussen
+  for (const lx of [x0 + 4, x1 - 8]) { T.rect(lx, 70, 3, V - 70, '#23252B'); T.rect(lx - 3, 64, 9, 7, '#23252B'); T.rect(lx - 1, 66, 5, 4, '#FFE08A'); T.rect(lx - 2, 62, 7, 2, '#3A3C44'); }
+  for (let x = x0 + 6; x < x1 - 6; x++) { const f = (x - x0 - 6) / (x1 - x0 - 12), y = 74 + Math.round(Math.sin(f * Math.PI) * 18); T.px(x, y, '#1A1210'); if ((x - x0) % 14 === 7) { T.rect(x - 1, y + 1, 3, 3, ['#FFE7A0', '#FFC4A0', '#C9F0DA', '#FFD27A'][Math.floor((x - x0) / 14) % 4]); T.px(x, y, '#3A3030'); } }
+  // de serre houdt op met een stevige paal
+  T.rect(x0 - 4, KB.WAND - 6, 8, V - KB.WAND + 4, '#4A2C18'); T.rect(x0 - 3, KB.WAND - 6, 2, V - KB.WAND + 4, '#7A4E2D'); T.rect(x0 + 2, KB.WAND - 6, 2, V - KB.WAND + 4, '#2E1A0E');
 }
 
 // links van de keuken: de voorraadkamer met de koelcel
@@ -2175,23 +2355,23 @@ function luchtOp(uur) {
   const t = klem((uur - a[0]) / (b[0] - a[0] || 1), 0, 1);
   return { boven: mix(a[1], b[1], t), horizon: mix(a[2], b[2], t), nacht: klem((uur - 19.8) / 2, 0, 1) };
 }
-// het uitzicht op de haven (achter de ramen en de deur); x 230 tot 640
-function tekenBuiten(ctx, uur, t) {
-  const T = tekenaar(ctx), L = luchtOp(uur), HOR = 142;
-  for (let y = 40; y < HOR; y++) T.rect(226, y, 660, 1, mix(L.boven, L.horizon, Math.pow((y - 40) / (HOR - 40), 1.6)));
+// het uitzicht op de haven (achter de ramen, de deur, de serre en het terras); x 226 tot 1030
+function tekenBuiten(ctx, uur, t, regen) {
+  const T = tekenaar(ctx), L = luchtOp(uur), HOR = 142, BW = 804;
+  for (let y = 40; y < HOR; y++) T.rect(226, y, BW, 1, mix(L.boven, L.horizon, Math.pow((y - 40) / (HOR - 40), 1.6)));
   // zon of maan
   if (uur < 20.6) { const zy = 92 + (uur - 17) * 16, zk = mix('#FFF3C4', '#FF8A4A', klem((uur - 18) / 2.5, 0, 1)); T.gloed(330, zy, 26, zk, .35); T.ovaal(330, zy, 7, 7, zk); }
   if (L.nacht > 0) {
     ctx.save(); ctx.globalAlpha = L.nacht;
-    for (let i = 0; i < 90; i++) { const sx = 226 + hashf(i, 1) * 640, sy = 40 + hashf(i, 2) * 90; if (Math.sin(t * 2 + i) > -.3) T.px(sx, sy, hashf(i, 3) < .3 ? '#FFF3C4' : '#C9D8FF'); }
+    for (let i = 0; i < 110; i++) { const sx = 226 + hashf(i, 1) * 800, sy = 40 + hashf(i, 2) * 90; if (Math.sin(t * 2 + i) > -.3) T.px(sx, sy, hashf(i, 3) < .3 ? '#FFF3C4' : '#C9D8FF'); }
     T.ovaal(498, 74, 6, 6, '#F4F1E0'); T.ovaal(501, 72, 5, 5, mix(L.boven, '#000', .1)); T.gloed(498, 74, 18, '#C9D8FF', .2);
     ctx.restore();
   }
   // wolkjes
-  for (let i = 0; i < 4; i++) { const wx = 226 + ((i * 131 + t * 3) % 470) - 30, wy = 58 + i * 13, wk = mix(L.horizon, '#FFFFFF', .35 - L.nacht * .3); ctx.globalAlpha = .7; T.rect(wx, wy, 28, 3, wk); T.rect(wx + 6, wy - 2, 14, 2, wk); T.rect(wx + 3, wy + 3, 20, 1, donker(wk, .15)); ctx.globalAlpha = 1; }
+  for (let i = 0; i < 4; i++) { const wx = 226 + ((i * 131 + t * 3) % 620) - 30, wy = 58 + i * 13, wk = mix(L.horizon, '#FFFFFF', .35 - L.nacht * .3); ctx.globalAlpha = .7; T.rect(wx, wy, 28, 3, wk); T.rect(wx + 6, wy - 2, 14, 2, wk); T.rect(wx + 3, wy + 3, 20, 1, donker(wk, .15)); ctx.globalAlpha = 1; }
   // overkant: dijk met huisjes en een kerktorentje
   const dijk = mix(L.horizon, '#1A1A2A', .55);
-  for (let x = 226; x < 886; x++) { const h = 6 + Math.sin(x / 31) * 2 + (x > 380 && x < 470 ? 4 : 0); T.rect(x, HOR - h, 1, h, dijk); }
+  for (let x = 226; x < 226 + BW; x++) { const h = 6 + Math.sin(x / 31) * 2 + (x > 380 && x < 470 ? 4 : 0); T.rect(x, HOR - h, 1, h, dijk); }
   for (const [hx, hh] of [[392, 9], [404, 12], [420, 8], [436, 11], [452, 7]]) { T.rect(hx, HOR - 10 - hh, 9, hh, donker(dijk, .1)); T.veelhoek([[hx - 1, HOR - 10 - hh], [hx + 4.5, HOR - 15 - hh], [hx + 10, HOR - 10 - hh]], donker(dijk, .2)); if (L.nacht > .3 && (hx % 3)) T.px(hx + 3, HOR - 6 - hh, '#FFD27A'); }
   T.rect(414, HOR - 40, 4, 24, donker(dijk, .15)); T.veelhoek([[413, HOR - 40], [416, HOR - 50], [419, HOR - 40]], donker(dijk, .2));
   // vuurtoren op het havenhoofd
@@ -2200,8 +2380,8 @@ function tekenBuiten(ctx, uur, t) {
   T.rect(vx + 2, vy - 40, 8, 6, '#2A2A30'); T.rect(vx + 3, vy - 39, 6, 4, L.nacht > .2 ? '#FFF3B0' : '#9FC9D8'); T.veelhoek([[vx + 1, vy - 40], [vx + 6, vy - 45], [vx + 11, vy - 40]], '#C8323C');
   if (L.nacht > .2) { const a = t * .9, dx = Math.cos(a); ctx.save(); ctx.globalAlpha = .18 * L.nacht * Math.abs(dx); ctx.fillStyle = '#FFF3B0'; ctx.beginPath(); ctx.moveTo(vx + 6, vy - 37); ctx.lineTo(vx + 6 + dx * 260, vy - 37 - 22); ctx.lineTo(vx + 6 + dx * 260, vy - 37 + 22); ctx.fill(); ctx.restore(); T.gloed(vx + 6, vy - 37, 12, '#FFF3B0', .45 * L.nacht); }
   // water met glinstering en weerkaatsing
-  for (let y = HOR; y < 214; y++) { const d = (y - HOR) / 70; T.rect(226, y, 660, 1, mix(mix(L.horizon, L.boven, .5), '#0A1830', klem(d * .8 + L.nacht * .3, 0, 1))); }
-  for (let i = 0; i < 100; i++) { const gx = 226 + hashf(i, 5) * 640, gy = HOR + 2 + hashf(i, 6) * 66, ff = Math.sin(t * 2.4 + i * 1.7); if (ff > .2) T.rect(gx, gy, 2 + (i % 3), 1, mix(L.horizon, '#FFFFFF', .4)); }
+  for (let y = HOR; y < 214; y++) { const d = (y - HOR) / 70; T.rect(226, y, BW, 1, mix(mix(L.horizon, L.boven, .5), '#0A1830', klem(d * .8 + L.nacht * .3, 0, 1))); }
+  for (let i = 0; i < 125; i++) { const gx = 226 + hashf(i, 5) * 800, gy = HOR + 2 + hashf(i, 6) * 66, ff = Math.sin(t * 2.4 + i * 1.7); if (ff > .2) T.rect(gx, gy, 2 + (i % 3), 1, mix(L.horizon, '#FFFFFF', .4)); }
   if (L.nacht > .2) for (let i = 0; i < 12; i++) { const gx = 396 + i * 6, gy = HOR + 3 + (i % 4) * 3; if (Math.sin(t * 3 + i) > 0) T.rect(gx, gy, 2, 1, '#FFD27A'); }
   // boten die deinen: De Zeekoe en een zeilbootje
   const dein = (f) => Math.sin(t * 1.3 + f) * 1.2;
@@ -2213,11 +2393,12 @@ function tekenBuiten(ctx, uur, t) {
   const zb = 470, zby = 160 + dein(2); T.veelhoek([[zb - 14, zby], [zb + 16, zby], [zb + 12, zby + 5], [zb - 10, zby + 5]], '#F4F1E8'); T.rect(zb, zby - 30, 1, 30, '#5A5A5A'); T.veelhoek([[zb + 1, zby - 28], [zb + 14, zby - 3], [zb + 1, zby - 3]], '#F4F1E8'); T.veelhoek([[zb - 1, zby - 24], [zb - 11, zby - 3], [zb - 1, zby - 3]], '#E9B949');
   if (L.nacht > .2) { T.px(zk - 13, zy - 37, '#E8414E'); T.px(zb, zby - 31, '#7FFF9A'); }
   // meeuwen
-  if (L.nacht < .5) for (let i = 0; i < 3; i++) { const mx = 226 + ((t * (12 + i * 5) + i * 140) % 440), my = 70 + i * 14 + Math.sin(t * 2 + i) * 4, vl = Math.sin(t * 8 + i) > 0; T.lijn(mx - 3, my + (vl ? -1 : 1), mx, my, '#F4F1E8'); T.lijn(mx, my, mx + 3, my + (vl ? -1 : 1), '#F4F1E8'); }
+  if (L.nacht < .5) for (let i = 0; i < 3; i++) { const mx = 226 + ((t * (12 + i * 5) + i * 140) % 560), my = 70 + i * 14 + Math.sin(t * 2 + i) * 4, vl = Math.sin(t * 8 + i) > 0; T.lijn(mx - 3, my + (vl ? -1 : 1), mx, my, '#F4F1E8'); T.lijn(mx, my, mx + 3, my + (vl ? -1 : 1), '#F4F1E8'); }
   // kade voor de deur: lantaarn
   for (const kx of [596, 760]) { T.rect(kx, 150, 3, 64, '#23252B'); T.rect(kx - 4, 144, 11, 7, '#23252B'); T.rect(kx - 2, 146, 7, 4, L.nacht > .1 ? '#FFE08A' : '#C9D8E0'); if (L.nacht > .1) T.gloed(kx + 1, 148, 16, '#FFD27A', .3 * L.nacht); }
   T.rect(596, 150, 3, 64, '#23252B'); T.rect(592, 144, 11, 7, '#23252B'); T.rect(594, 146, 7, 4, L.nacht > .1 ? '#FFE08A' : '#C9D8E0'); if (L.nacht > .1) T.gloed(597, 148, 16, '#FFD27A', .3 * L.nacht);
-  T.rect(576, 196, 310, 18, mix('#6A6A72', '#1A1A2A', L.nacht * .6)); for (let x = 576; x < 886; x += 8) T.rect(x, 196 + (x / 8 % 2) * 4, 7, 1, mix('#4A4A52', '#10101A', L.nacht * .6));
+  T.rect(576, 196, 264, 18, mix('#6A6A72', '#1A1A2A', L.nacht * .6)); for (let x = 576; x < 840; x += 8) T.rect(x, 196 + (x / 8 % 2) * 4, 7, 1, mix('#4A4A52', '#10101A', L.nacht * .6));
+  if (regen) { ctx.save(); ctx.globalAlpha = .45; for (let i = 0; i < 160; i++) { const rx = 226 + ((hashf(i, 8) * BW + t * 40) % BW), ry = 40 + ((hashf(i, 9) * 180 + t * 260) % 180); T.lijn(rx, ry, rx - 2, ry + 6, '#C9D8E8'); } ctx.restore(); }
 }
 
 // ---- wanddecoratie die van de stand afhangt (menukaart, vondsten)
@@ -2320,10 +2501,31 @@ function tafelPix(stijl) {
   if (linnen) for (let x = cx - 18; x <= cx + 18; x += 2) R.p(x, 17 + ((x + 40) % 6 < 3 ? 1 : 0), '#D8D0BE');
   const cv = R.doek(); GERECHT_BUF.set(k, cv); return cv;
 }
-// gebogen houten bistrostoel met een rieten zitting (naar rechts gekeerd: de leuning zit links)
-function stoelPix() {
-  if (GERECHT_BUF.has('stoel2')) return GERECHT_BUF.get('stoel2');
-  const R = new Pix(18, 40), h = '#4A2A16', hm = '#6E4426', hl = '#9A6438';
+// een stoel (naar rechts gekeerd: de leuning zit links). Stijlen: riet (bistrostoel), kapitein en pluche (zie INRICHTING.stoel)
+function stoelPix(stijl = inrNu('stoel').id) {
+  const k = 'stoel3|' + stijl; if (GERECHT_BUF.has(k)) return GERECHT_BUF.get(k);
+  const R = new Pix(18, 40);
+  if (stijl === 'kapitein') {
+    // kapiteinsstoel: een lage, gebogen leuning die naar voren doorloopt in een armleuning, met spijlen en dikke poten
+    const h = '#3A1E10', hm = '#5A3018', hl = '#8A4E2A', hh = '#B0703C';
+    R.lijn(1, 21, 1, 11, h, 2); R.lijn(1, 11, 3, 8, h, 2); R.lijn(3, 8, 9, 8, h, 2); R.lijn(9, 8, 15, 11, h, 2);
+    R.rij(8, 3, 10, hl); R.rij(9, 4, 9, hm); R.p(2, 10, hh); R.p(4, 8, hh); R.p(6, 8, hh); R.p(12, 9, hl);
+    for (const x of [4, 7, 10]) R.lijn(x, 10, x, 20, x === 7 ? hl : hm);
+    R.lijn(14, 12, 14, 20, h, 2); R.p(14, 13, hl);
+    R.blok(1, 20, 16, 23, '#6A3A20'); R.rij(20, 1, 16, '#9A5A30'); R.rij(21, 2, 15, '#7A4426'); R.rij(24, 1, 16, h);
+    R.lijn(2, 25, 1, 38, h, 3); R.lijn(15, 25, 16, 38, h, 3); R.lijn(2, 26, 2, 37, hm); R.lijn(15, 26, 15, 37, hm);
+    R.rij(32, 3, 14, hm); R.rij(33, 3, 14, h); R.p(2, 28, hl); R.p(16, 30, hl);
+  } else if (stijl === 'pluche') {
+    // rood fluweel met knoopjes en gouden pootjes
+    const r = '#A8283A', rd = '#7E1A2A', rl = '#D04A5A', g = '#C9A040', gd = '#8A6A20';
+    R.blok(1, 6, 8, 21, r); R.rij(5, 2, 7, r); R.rij(4, 3, 6, r); R.rij(4, 3, 6, rl); R.rij(5, 2, 3, rl);
+    for (let y = 6; y < 21; y++) { R.p(1, y, rl); R.p(8, y, rd); }
+    for (const [x, y] of [[3, 9], [6, 9], [4, 13], [3, 17], [6, 17]]) { R.p(x, y, '#5A1020'); R.p(x + 1, y - 1, rl); }
+    R.lijn(0, 7, 0, 21, g); R.p(0, 6, '#F0D070');
+    R.blok(1, 19, 16, 23, '#B8303F'); R.rij(19, 2, 15, '#E06070'); R.rij(20, 1, 16, '#C8404F'); R.rij(23, 1, 16, rd); R.rij(24, 1, 16, g);
+    R.lijn(3, 25, 2, 38, g, 2); R.lijn(14, 25, 15, 38, g, 2); R.lijn(3, 26, 3, 37, gd); R.lijn(14, 26, 14, 37, gd); R.p(2, 38, gd); R.p(15, 38, gd);
+  } else {
+  const h = '#4A2A16', hm = '#6E4426', hl = '#9A6438';
   // leuning: een gebogen lus met twee spijlen
   R.lijn(3, 21, 2, 6, h, 2); R.lijn(2, 6, 4, 1, h, 2); R.lijn(4, 1, 8, 2, h, 2); R.lijn(8, 2, 9, 9, h, 2); R.lijn(9, 9, 7, 21, h, 1);
   R.lijn(4, 8, 5, 20, hm); R.lijn(6, 8, 6, 20, hm); R.rij(13, 3, 8, hm);
@@ -2334,8 +2536,9 @@ function stoelPix() {
   R.lijn(3, 25, 1, 38, h, 2); R.lijn(14, 25, 16, 38, h, 2); R.lijn(6, 25, 6, 37, hm); R.lijn(11, 25, 11, 37, hm);
   for (let x = 2; x <= 15; x++) R.p(x, 31 + (x > 4 && x < 13 ? 1 : 0), h);
   R.p(2, 27, hl); R.p(15, 28, hl);
+  }
   R.omlijn();
-  const cv = R.doek(); GERECHT_BUF.set('stoel2', cv); return cv;
+  const cv = R.doek(); GERECHT_BUF.set(k, cv); return cv;
 }
 // het aquarium tussen het tweede en het derde raam, met vissen uit je Zeeboek
 function tekenAquarium(L, t) {
@@ -2371,6 +2574,43 @@ function tekenHanglamp(ctx, x, len, kl, t, aan) {
   const lx = x + zw, ly = len;
   T.veelhoek([[lx - 11, ly + 9], [lx + 12, ly + 9], [lx + 6, ly + 1], [lx - 5, ly + 1]], kl); T.rect(lx - 11, ly + 9, 23, 2, donker(kl, .3)); T.rect(lx - 2, ly - 2, 5, 3, '#C9A040'); T.rect(lx - 7, ly + 3, 4, 1, licht(kl, .4));
   T.ovaal(lx, ly + 11, 3, 2, aan ? '#FFF3C4' : '#C9C2B0');
+}
+
+// scheepslantaarn aan een ketting: koperen kap, glas met spijlen en een vlammetje
+function tekenLantaarnLamp(ctx, x, len, t) {
+  const T = tekenaar(ctx), zw = Math.round(Math.sin(t * .8 + x) * 1);
+  for (let y = 0; y < len; y += 2) T.px(x + Math.round(zw * y / len), y, y % 4 ? '#3A3A40' : '#6A6A72');
+  const lx = x + zw, ly = len, vl = Math.sin(t * 11 + x) > .3 ? 1 : 0;
+  T.ovaal(lx, ly - 2, 2, 2, '#8A6A20');
+  T.veelhoek([[lx - 7, ly + 5], [lx + 8, ly + 5], [lx + 4, ly], [lx - 3, ly]], '#B8862E'); T.rect(lx - 7, ly + 5, 16, 2, '#8A6A20'); T.rect(lx - 2, ly + 1, 4, 1, '#F0D070');
+  T.rect(lx - 6, ly + 7, 14, 14, '#FFE7A0'); T.rect(lx - 6, ly + 7, 14, 2, '#FFF6D0'); T.rect(lx - 6, ly + 17, 14, 4, '#FFD27A');
+  for (const bx of [lx - 6, lx, lx + 7]) T.rect(bx, ly + 7, 1, 14, '#5A4220');
+  T.rect(lx - 1, ly + 13 - vl, 2, 4 + vl, '#FF9A3A'); T.px(lx, ly + 12 - vl, '#FFF3C4');
+  T.rect(lx - 7, ly + 21, 16, 3, '#B8862E'); T.rect(lx - 7, ly + 21, 16, 1, '#E0B850'); T.rect(lx - 3, ly + 24, 7, 2, '#8A6A20');
+}
+// kroonluchter: koperen stam, een gebogen arm met kaarsjes en glinsterende druppels van glas
+function tekenKroonluchter(ctx, x, len, t) {
+  const T = tekenaar(ctx);
+  for (let y = 0; y < len; y += 2) T.px(x, y, y % 4 ? '#3A3A40' : '#6A6A72');
+  const ly = len;
+  T.rect(x - 1, ly, 3, 18, '#C9A040'); T.px(x - 1, ly + 2, '#F0D070'); T.ovaal(x, ly + 6, 3, 2, '#B8862E'); T.ovaal(x, ly + 18, 3, 3, '#B8862E'); T.px(x, ly + 22, '#8A6A20');
+  for (let i = -22; i <= 22; i++) { const y = ly + 13 - Math.round(Math.sqrt(Math.max(0, 1 - (i / 23) ** 2)) * -4) ; T.px(x + i, y, '#8A6A20'); T.px(x + i, y - 1, '#E0B850'); }
+  for (const dx of [-22, -11, 0, 11, 22]) {
+    const by = ly + 13 + Math.round(Math.sqrt(Math.max(0, 1 - (dx / 23) ** 2)) * 4) - 5, vl = Math.sin(t * 12 + dx) > .4 ? 1 : 0;
+    T.rect(x + dx - 2, by + 2, 5, 2, '#C9A040'); T.rect(x + dx - 1, by - 3, 3, 5, '#F4F1E8'); T.px(x + dx + 1, by - 3, '#D8D0BE');
+    T.px(x + dx, by - 4 - vl, '#FF9A3A'); T.px(x + dx, by - 5 - vl, '#FFF3C4');
+  }
+  for (let i = -20; i <= 20; i += 4) { const y = ly + 15 + Math.round(Math.sqrt(Math.max(0, 1 - (i / 23) ** 2)) * 4), fl = Math.sin(t * 3 + i) > .6; T.px(x + i, y, fl ? '#FFFFFF' : '#BFE6F0'); T.px(x + i, y + 1, '#8FC8DA'); }
+}
+// de lampen boven de tafels, en hun licht
+const ZAAL_LAMPEN = [262, 474];
+function tekenZaalLampen(L, t) {
+  const s = inrNu('lamp').id;
+  for (const lx of ZAAL_LAMPEN) { if (s === 'lantaarn') tekenLantaarnLamp(L, lx, 32, t); else if (s === 'kroon') tekenKroonluchter(L, lx, 26, t); else tekenHanglamp(L, lx, 30, '#2E6A4A', t, true); }
+}
+function zaalLampLicht() {
+  const s = inrNu('lamp').id;
+  return ZAAL_LAMPEN.map(x => s === 'lantaarn' ? { x, y: 46, r: 62, kl: '#FFC880', kegel: 120, a: .34, kaars: true } : s === 'kroon' ? { x, y: 38, r: 92, kl: '#FFE2B0', kegel: 170, a: .36 } : { x, y: 42, r: 70, kl: '#FFD9A0', kegel: 150, a: .3 });
 }
 
 // ---- het licht: avondtint en lampen. laag = het binnenste (met doorzichtige ramen), kopie = een hulpdoek even groot
@@ -2466,6 +2706,7 @@ const GELUID = (() => {
     feest: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => toon(f, .3, { vorm: 'triangle', vol: .14, na: i * .1 })),
     kraak: () => { ruis(.3, { f: 200, q: 3, vol: .25 }); toon(70, .4, { vorm: 'sawtooth', vol: .07, filter: 300 }); },
     touw: () => ruis(.12, { f: 1500, q: 3, vol: .12 }),
+    zucht: () => { ruis(1.4, { f: 260, fnaar: 900, q: .7, vol: .24, aan: .5 }); toon(70, 1.2, { vorm: 'sine', naar: 50, vol: .08, aan: .4 }); },
     foto: () => { toon(2400, .03, { vorm: 'square', vol: .06, filter: 6000 }); ruis(.05, { f: 3000, q: 2, vol: .14, na: .02 }); toon(1200, .25, { vorm: 'sine', naar: 2400, vol: .04, na: .06 }); },
   };
   function sfx(n) { if (SFX[n]) try { SFX[n](); } catch (e) {} }
@@ -2513,6 +2754,8 @@ const GELUID = (() => {
   }
   return {
     start, sfx, zetSfeer, sfeerDiepte, zetMuziek, muziekAan: true,
+    // een zingend kristal (0 tot 4): een glazen toon uit een vijftonige toonladder, nooit vals samen
+    kristal(n) { const f = [659.25, 783.99, 880, 987.77, 1174.66][n] || 880; toon(f, 1.7, { vorm: 'sine', vol: .2, aan: .01, vib: 4 }); toon(f * 2.01, 1.1, { vorm: 'sine', vol: .06 }); toon(f * 3.02, .6, { vorm: 'triangle', vol: .025, filter: 5000 }); },
     get aan() { return aan; },
     set aan(v) { aan = v; if (hoofd) hoofd.gain.setTargetAtTime(v ? .8 : 0, nu(), .05); },
   };
@@ -2550,6 +2793,7 @@ function nieuweStaat() {
     vriend: {}, // per vriend [punten (20 per hartje), dag van het laatste praatje]
     menuBij: null, menuToe: null, // bijgerecht en toetje van de dag
     dijk: {}, // per dag: hengel en schelp (gespeeld op dag), proef [dag, aantal proefjes]
+    inr: { muur: 'baksteen', vloer: 'planken', stoel: 'riet', lamp: 'emaille', heb: [] }, // hoe het restaurant is ingericht, en welke stijlen je gekocht hebt
   };
 }
 let ST = nieuweStaat();
@@ -2580,6 +2824,9 @@ function eindDeel() { VASTPUNT = null; }
 function deelTerug() { if (!VASTPUNT) return; const s = JSON.parse(VASTPUNT.tekst); s.inst = ST.inst; ST = s; VASTPUNT = null; }
 // niveau-waarden
 const uitW = k => UITRUSTING[k].niveaus[ST.uit[k]].w;
+// de inrichting: de gekozen stijl per onderdeel (een voorbeeld in de winkel kan hem even vervangen)
+let INR_VOORBEELD = null;
+function inrNu(k) { const id = (INR_VOORBEELD && INR_VOORBEELD[k]) || (ST.inr && ST.inr[k]); const o = INRICHTING[k].opties; return o.find(x => x.id === id) || o[0]; }
 const restW = k => RESTAURANT[k].niveaus[ST.rest[k]].w;
 
 // ---- beeld: een klein doek, met een heel getal vergroot
@@ -2800,7 +3047,7 @@ function gesprek(lijnen) {
 // vaste herkenningspunten (ankerlijn, De Grote Kei, het wrak, de geul, de kerktoren), daartussen elke dag iets anders
 const ZEE = { W: 1600, H: 2720, CEL: 4, BOOT_X: 300 };
 ZEE.CW = ZEE.W / ZEE.CEL; ZEE.CH = ZEE.H / ZEE.CEL;
-const M = { WATER: 0, ROTS: 1, ZAND: 2, WRAK: 3, STEEN: 4, KRISTAL: 5, POORT: 6, SCHELP: 7, STAAL: 8, DEUR: 9 };
+const M = { WATER: 0, ROTS: 1, ZAND: 2, WRAK: 3, STEEN: 4, KRISTAL: 5, POORT: 6, SCHELP: 7, STAAL: 8, DEUR: 9, KRIJT: 10, BREUK: 11, GLAS: 12, NET: 13 };
 // waterkleur per diepte (m)
 const WATER_KLEUR = [[0, '#5FBCD6'], [12, '#3E9DC0'], [30, '#2A7EA4'], [60, '#1B5C80'], [90, '#123F5E'], [140, '#0B2740'], [200, '#071A2E'], [270, '#040E1C']];
 let WATER_NU = WATER_KLEUR; // per duikstek een eigen waterkleur (zetStek)
@@ -2931,6 +3178,10 @@ function tekenChunk(Z, kx, ky) {
       boven++;
       const x = x0 + i, y = y0 + j, w = water[j >> 2];
       let mat = Z.matOp(x, y) || M.ROTS;
+      if (mat === M.NET) { // een oud spooknet: alleen de mazen, daartussen zie je de grot
+        if (((x + y) % 5 === 0) || ((x - y + 1000) % 5 === 0)) { const k = rgb(mix((x + y) % 3 ? '#B8B2A0' : '#D8D2C0', w, .35)), o = (j * CHUNK + i) * 4; d[o] = k[0]; d[o + 1] = k[1]; d[o + 2] = k[2]; d[o + 3] = 255; }
+        continue;
+      }
       if ((mat === M.ZAND || mat === M.ROTS) && zandRegel(x, y)) mat = boven < 20 + ruis(x / 11, 3, 26) * 10 ? M.ZAND : M.ROTS;
       else if (mat === M.ZAND && boven > 14 + ruis(x / 11, 5, 27) * 6) mat = M.ROTS;
       let rand = !vast[p - 1] || !vast[p + 1] || !vast[p - B] || !vast[p + B] || !vast[p - B - 1] || !vast[p - B + 1];
@@ -2970,6 +3221,20 @@ function tekenChunk(Z, kx, ky) {
         // een stalen deur met een draaiwiel
         const rr = Z.deurOp ? Z.deurOp(x, y) : null; c = '#3A3E46';
         if (rr) { const lx = x - rr[0], ly = y - rr[1], w = rr[2] - rr[0], h = rr[3] - rr[1], d = Math.hypot(lx - w / 2, ly - h / 2); if (lx < 2 || ly < 2 || lx >= w - 2 || ly >= h - 2) c = '#22252C'; else if (d < 5 && d > 3) c = '#C9A040'; else if (Math.abs(lx - w / 2) < 1 && d < 4) c = '#C9A040'; else if ((lx + ly) % 6 === 0) c = '#464A52'; }
+      } else if (mat === M.KRIJT || mat === M.BREUK) {
+        // wit krijt in lagen, met rijen zwarte knollen vuursteen; een gebarsten wand heeft scheuren
+        const laag = Math.floor((y + ruis(x / 40, y / 120, 74) * 10) / 9), lh = hashf(laag, (x / 50) | 0, 75);
+        c = mix('#E8E2D2', '#CFC6B2', lh * .7);
+        const band = Math.round((y + 3000) / 46), bandY = band * 46 - 3000 + Math.round((ruis(x / 60, band, 80) - .5) * 10), dy = Math.abs(y - bandY), kn = ruis(x / 7, band, 76);
+        if (kn > .6 && dy < 1 + (kn - .6) * 9) c = dy < 1 ? '#2E2E38' : '#4A4A54'; // knollen vuursteen in een rij
+        if (mat === M.BREUK) { c = mix(c, '#D8C8A0', .3); if (Math.abs(ruis(x / 6, y / 6, 77) - .5) < .045) c = '#3A3428'; }
+        c = mix(c, '#5A5650', klem((boven - 3) / 40, 0, .35));
+        if (h < .03) c = mix(c, '#8A8270', .4);
+        if (boven <= 2) c = mix(c, '#A8B494', .3);
+      } else if (mat === M.GLAS) {
+        // de kristallen deur: facetten in blauw en paars
+        const fc = hashf(Math.floor((x + y * .5) / 7), Math.floor((y - x * .3) / 9), 78);
+        c = mix('#5A6AC0', '#B8F0FF', fc); if (((x + y) % 9) === 0) c = '#E8FFFF'; if (((x - y + 900) % 13) === 0) c = '#8A6AD8';
       } else if (mat === M.POORT) {
         c = ((x >> 3) + (y >> 3)) % 2 ? '#4A4650' : '#3A3640'; if (h > .8) c = '#5A5660';
       } else {
@@ -2997,11 +3262,14 @@ function chunkVan(Z, kx, ky) { const k = kx + ',' + ky; let c = Z.chunks.get(k);
 // ---- de verre achtergrond: één groot plaatje op halve grootte (rotsen, kelp en de oude huizen als schimmen)
 function tekenVerre(Z) {
   const w = Math.ceil(ZEE.W * .55 + 400), h = Math.ceil(ZEE.H * .6 + 300), { cv, ctx } = maakDoek(Math.ceil(w / 2), Math.ceil(h / 2)), T = tekenaar(ctx);
-  // per 'kolom' een rotsrug in de verte
-  for (let x = 0; x < cv.width; x++) {
+  // per 'kolom' een rotsrug in de verte (in één keer als plaatje: de kleur hangt alleen van de diepte af)
+  const CW = cv.width, CH = cv.height, im = ctx.createImageData(CW, CH), d = im.data, rij = [];
+  for (let y = 0; y < CH; y++) rij.push(rgbVan(mix(waterOp(y2m(y * 2 / .6)), '#000814', .28)));
+  for (let x = 0; x < CW; x++) {
     const wx = x * 2, top1 = (300 + Math.sin(wx / 90) * 40 + ruis(wx / 60, 1, 31) * 60) / 2;
-    for (let y = Math.round(top1); y < cv.height; y++) { const m = y2m(y * 2 / .6); T.px(x, y, mix(waterOp(m), '#000814', .28)); }
+    for (let y = Math.max(0, Math.round(top1)); y < CH; y++) { const k = rij[y], o = (y * CW + x) * 4; d[o] = k[0]; d[o + 1] = k[1]; d[o + 2] = k[2]; d[o + 3] = 255; }
   }
+  ctx.putImageData(im, 0, 0);
   // kelp en rotspilaren als silhouet
   for (let i = 0; i < 40; i++) { const x = hashf(i, 3, 32) * cv.width, top = (500 + hashf(i, 4, 33) * 600) / 2, b = top + 30 + hashf(i, 5, 34) * 60; T.rect(x, top, 6 + hashf(i, 6) * 10, b - top + 400, mix(waterOp(y2m(top * 2 / .6)), '#000814', .22)); }
   return cv;
@@ -3055,7 +3323,7 @@ function tekenVersier(ctx, Z, cx, cy, VW, VH, t, laag) {
 
 // ===================== DUIKEN: zwemmen, vangen, zuurstof en de tas =====================
 let D = null;
-const VIS_R = id => { const s = SOORTEN[id], v = s.vorm; if (typeof v === 'object') return Math.max(4, v.len * .4); return { plat: 10, krab: 7, mossel: 9, oester: 9, kwal: 7, zeekat: 10, kreeft: 12, zeeduivel: 14, rog: 13, paling: 8, garnaal: 4, tarbot: 12, grotekrab: 10, kokkel: 6, zeeegel: 7, zeepaardje: 6, zeehond: 15, bruinvis: 16, ribkwal: 6, pijlinktvis: 6, poon: 9, zonnevis: 10, zeenaald: 5 }[v] || 6; };
+const VIS_R = id => { const s = SOORTEN[id], v = s.vorm; if (typeof v === 'object') return Math.max(4, v.len * .4); return { plat: 10, krab: 7, mossel: 9, oester: 9, kwal: 7, zeekat: 10, kreeft: 12, zeeduivel: 14, rog: 13, paling: 8, garnaal: 4, tarbot: 12, grotekrab: 10, kokkel: 6, zeeegel: 7, zeepaardje: 6, zeehond: 15, bruinvis: 16, ribkwal: 6, pijlinktvis: 6, poon: 9, zonnevis: 10, zeenaald: 5, zeespin: 9, octopus: 10, waaierworm: 5 }[v] || 6; };
 
 // de boot van Trien (een keer getekend)
 function bootDoek() {
@@ -3101,7 +3369,7 @@ function startDuik(arg) {
   D = null; // niets van een vorige (afgebroken) duik meenemen
   zetStek(stek);
   const zaad = (ST.dag * 7919 + nr * 104729 + (stek === 'zee' ? 0 : 31337) + (nacht ? 4241 : 0)) >>> 0, r = rng(zaad);
-  const Z = stek === 'rif' ? maakRif(zaad) : stek === 'kerkhof' ? maakKerkhof(zaad) : maakZee(zaad, !!ST.vlag.kelderOpen);
+  const Z = stek === 'rif' ? maakRif(zaad) : stek === 'kerkhof' ? maakKerkhof(zaad) : stek === 'grot' ? maakGrot(zaad) : maakZee(zaad, !!ST.vlag.kelderOpen);
   D = {
     Z, r, nr, stek, nacht, tijd: 0, cam: { x: 0, y: -60 }, fotos: {}, fotoT: 0, flitsFoto: 0, mantel: [],
     dingen: [], khNieuw: [], zag: new Set(), mat: {}, munt: 0, geborgen: [], ballon: (ST.maak && ST.maak.ballon) || 0,
@@ -3110,8 +3378,8 @@ function startDuik(arg) {
     harpoen: null, netP: null, vissen: [], vondsten: [], deeltjes: [], inkt: [], teksten: [], flits: 0, rood: 0,
     nieuwSoort: [], gevangen: {}, klaar: null, waarschuwT: 0, hudT: 0, verre: tekenVerre(Z), chunkRij: [], diepsteM: 0, pakDoel: null,
   };
-  if (stek === 'rif') vulRif(D); else if (stek === 'kerkhof') vulKerkhof(D); else { vulZee(D); if (nacht) nachtInZee(D); }
-  D.reuzen = stek === 'rif' ? reuzenRif() : stek === 'kerkhof' ? reuzenKerkhof() : reuzenVoorDuik();
+  if (stek === 'rif') vulRif(D); else if (stek === 'kerkhof') vulKerkhof(D); else if (stek === 'grot') vulGrot(D); else { vulZee(D); if (nacht) nachtInZee(D); }
+  D.reuzen = stek === 'rif' ? reuzenRif() : stek === 'kerkhof' ? reuzenKerkhof() : stek === 'grot' ? reuzenGrot() : reuzenVoorDuik();
   // de stukken rond het begin alvast tekenen
   for (let ky = 0; ky < 4; ky++) for (let kx = 0; kx < 6; kx++) Z.chunks.set(kx + ',' + ky, tekenChunk(Z, kx, ky));
 }
@@ -3207,6 +3475,7 @@ function updateRuben(dt) {
   let ny = R.y + (R.vy + svy) * dt; if (raak(R.x, ny)) { R.vy *= -.2; ny = R.y; } R.y = ny;
   if (raak(R.x, R.y)) { for (let k = 1; k < 12; k++) { if (!raak(R.x, R.y - k)) { R.y -= k; break; } if (!raak(R.x + k, R.y)) { R.x += k; break; } if (!raak(R.x - k, R.y)) { R.x -= k; break; } } }
   if (R.y < 2 && R.intro <= 0) { R.y = 2; R.vy = Math.max(0, R.vy); }
+  const lz = Z.lucht ? grotLucht(R) : null; D.inLucht = lz && R.y < lz.wl + 6 ? lz : null; if (lz && R.y < lz.wl + 2) { R.y = lz.wl + 2; R.vy = Math.max(0, R.vy); } // een luchtzak in een grot
   R.x = klem(R.x, 20, ZEE.W - 20);
   // richting en kanteling
   const muis = !INV.aanraak || performance.now() - INV.muisGebruikt < 2500;
@@ -3288,7 +3557,7 @@ function updateGereedschap(dt) {
       const stap = Math.hypot(H.vx, H.vy) * dt, n = Math.ceil(stap / 3);
       for (let i = 0; i < n && !H.terug; i++) {
         H.x += H.vx * dt / n; H.y += H.vy * dt / n; H.weg += stap / n;
-        if (Z.vast(Math.round(H.x), Math.round(H.y)) || H.y < 0) { H.terug = true; zandwolk(H.x, H.y); GELUID.sfx('mis'); break; }
+        if (Z.vast(Math.round(H.x), Math.round(H.y)) || H.y < 0) { H.terug = true; zandwolk(H.x, H.y); GELUID.sfx('mis'); if (Z.grot) grotRaak(Math.round(H.x), Math.round(H.y)); break; }
         for (const f of D.vissen) {
           if (f.dood || f.def.nietVangen || f.verstopt) continue;
           if (Math.hypot(f.x - H.x, f.y - H.y) < f.r + 2) {
@@ -3349,12 +3618,18 @@ function foto() {
     const sc = (1 - d / bereik) * (1.3 - Math.min(1.2, da)); if (sc > bs) { bs = sc; best = { o, soort, d, da }; }
   };
   for (const f of D.vissen) if (!f.dood && !f.inNet && !f.aanLijn && f.staat !== 'hol' && !(f.verstopt && f.def.gedrag !== 'zand')) kandidaat(f, f.x, f.y, f.r, f.s);
-  for (const B of D.reuzen) if (!B.weg && !(B.id === 'mantel' && B.staat === 'verstopt')) kandidaat(B, B.x, B.y, B.r, B.id === 'mantel' ? 'mantel' : B.soort);
+  for (const B of D.reuzen) if (!B.weg && !(B.id === 'mantel' && B.staat === 'verstopt')) kandidaat(B, B.x, B.y, B.r, B.id === 'mantel' ? 'mantel' : B.id === 'spooknetrog' ? 'spooknetrog' : B.soort);
   if (!best) { tekstOp(R.x, R.y - 22, 'Niks op de foto', '#BFD8E4'); return; }
   // sterren: dichtbij, midden in beeld en een rustig dier is beter. In het donker zonder flitser wordt het hooguit één ster.
   let st = 1; if (best.d < bereik * .62 && best.da < .5) st = 2; if (best.d < bereik * .38 && best.da < .32 && best.o.staat !== 'vlucht') st = 3;
   if ((D.nacht || y2m(best.o.y) > 90) && ST.uit.camera < 2) st = 1;
   if (best.soort === 'mantel') { fotoMantel(best.o, st); return; }
+  if (best.soort === 'spooknetrog') { // geen soort in het Zeeboek, wel een foto-opdracht als hij vrij is
+    tekstOp(best.o.x, best.o.y - 30, 'KLIK! ' + '*'.repeat(st), '#FFFFFF');
+    if (best.o.staat !== 'vast') { D.fotoRog = Math.max(D.fotoRog || 0, st); if (st >= 2 && !ST.opdr.rog) melding('Wat een foto: de Spooknetrog, vrij! Wieke gaat hem prachtig vinden.', 'goud', 3000); }
+    else if (!D.fotoRogVast) { D.fotoRogVast = true; melding('Een foto van de rog in de netten. Zo zien ze boven wat hier aan de hand is.', '', 3200); }
+    return;
+  }
   const s = best.soort, nieuw = !ST.boek[s] && !ST.foto[s] && !D.fotos[s] && !D.nieuwSoort.includes(s);
   D.fotos[s] = Math.max(D.fotos[s] || 0, st);
   tekstOp(best.o.x, best.o.y - 14, 'KLIK! ' + '*'.repeat(st), '#FFFFFF');
@@ -3418,6 +3693,7 @@ function updateVissen(dt) {
         f.vy = 0; break;
       }
       case 'vast': f.vx = f.vy = 0; break;
+      case 'waaier': f.vx = f.vy = 0; if (dr < 18 || (dr < 46 && rubenSnel)) { if (!f.verstopt) bubbels(f.x, f.y - 8, 2); f.verstopt = true; f.vluchtT = 3.5; } else if (f.vluchtT <= 0) f.verstopt = false; break;
       case 'graaf': f.verstopt = true; f.vx = f.vy = 0; break; // kokkels: alleen twee buisjes boven het zand
       case 'kwal': { f.vy = Math.sin(f.t * 1.4) * 8 - 2; f.vx = Math.sin(f.t * .3) * 6; if (dr < 12 && f.cd <= 0 && def.prikt) { f.cd = 1.5; raakRuben(def.prikt, f.x); } break; }
       case 'zeepaard': { // houdt zich vast aan het zeegras en wiegt mee; schrikt alleen een beetje
@@ -3464,7 +3740,7 @@ function updateVissen(dt) {
         vlucht(30, .6); break;
       }
     }
-    if (g === 'vast' || g === 'hol' || g === 'graaf') continue;
+    if (g === 'vast' || g === 'hol' || g === 'graaf' || g === 'waaier') continue;
     f.vx += ax * dt; f.vy += ay * dt;
     const sp = Math.hypot(f.vx, f.vy); if (sp > max) { f.vx *= max / sp; f.vy *= max / sp; }
     if (g !== 'bodem' && g !== 'zand') { f.vx *= 1 - dt * .4; f.vy *= 1 - dt * .9; }
@@ -3472,6 +3748,7 @@ function updateVissen(dt) {
     let nx = f.x + f.vx * dt, ny = f.y + f.vy * dt;
     if (g !== 'bodem' && (Z.vast(Math.round(nx + Math.sign(f.vx) * f.r * .6), Math.round(ny)) || Z.vast(Math.round(nx), Math.round(ny + 2)))) { f.vx *= -.6; f.vy *= -.6; nx = f.x; ny = f.y; if (f.doel) f.doel = null; if (g === 'voorbij') f.richting = -(f.richting || 1); }
     if (ny < 6) { ny = 6; f.vy = Math.abs(f.vy); }
+    if (Z.lucht) for (const p of Z.lucht) if (nx > p.x0 && nx < p.x1 && ny < p.wl + 5 && ny > p.top - 12) { ny = p.wl + 5; f.vy = Math.abs(f.vy); }
     // blijf ongeveer in je eigen diepte
     const m = y2m(ny); if (def.diepte && (m < def.diepte[0] - 4 || m > def.diepte[1] + 8)) f.vy += (m < def.diepte[0] ? 30 : -30) * dt;
     f.x = nx; f.y = ny;
@@ -3492,8 +3769,9 @@ function updateRest(dt) {
   if (D.klaar) return;
   // zuurstof
   const m = y2m(R.y), te = m > uitW('pak');
-  if (R.y > 4 && R.intro <= 0) D.o2 -= dt * (1 + (R.sprint ? .7 : 0) + (te ? 4 : 0));
+  if (R.y > 4 && R.intro <= 0 && !D.inLucht) D.o2 -= dt * (1 + (R.sprint ? .7 : 0) + (te ? 4 : 0));
   else if (R.y <= 4) D.o2 = Math.min(D.o2max, D.o2 + dt * 6);
+  if (D.inLucht) D.o2 = Math.min(D.o2max, D.o2 + dt * 7);
   D.diepsteM = Math.max(D.diepsteM, m);
   D.waarschuwT -= dt;
   if (te && D.waarschuwT <= 0) { D.waarschuwT = 3; melding('Te diep voor je duikpak! (max ' + uitW('pak') + ' m)', 'rood'); GELUID.sfx('kraak'); }
@@ -3525,7 +3803,7 @@ SCENES.duik = {
   hud() {
     const o = Math.max(0, D.o2), b = document.querySelector('#hud .balk'); if (!b) return;
     $('h-o2').textContent = Math.ceil(o) + ' s'; b.firstChild.style.width = (o / D.o2max * 100) + '%'; b.className = 'balk' + (o < D.o2max * .2 ? ' kritiek' : o < D.o2max * .4 ? ' laag' : '');
-    const m = y2m(D.ruben.y); $('h-diepte').textContent = Math.round(m) + ' m'; $('h-zone').textContent = (m < 1 ? (D.stek === 'zee' ? 'Aan de oppervlakte' : STEK.naam) : zoneOp(m).naam + ' · max ' + uitW('pak') + ' m') + (D.nacht ? ' · nacht' : '');
+    const m = y2m(D.ruben.y); $('h-diepte').textContent = Math.round(m) + ' m'; $('h-zone').textContent = (D.inLucht ? 'In een luchtzak' : m < 1 ? (D.stek === 'zee' ? 'Aan de oppervlakte' : STEK.naam) : (D.Z.zoneNaam ? D.Z.zoneNaam(D.ruben.x, D.ruben.y) : zoneOp(m).naam) + ' · max ' + uitW('pak') + ' m') + (D.nacht ? ' · nacht' : '');
     $('h-tas').textContent = kgTekst(D.tasKg) + ' / ' + D.tasMax + ' kg'; $('h-net').textContent = D.net + '×' + (ST.maak && ST.maak.ballon ? ' · ' + D.ballon + ' ballon' : '');
     const pk = $('kn-pak'); if (pk) { pk.textContent = D.pakDoel && D.pakDoel.boot ? 'Boord' : 'Pak'; pk.classList.toggle('gloei', !!D.pakDoel); }
   },
@@ -3535,7 +3813,7 @@ SCENES.duik = {
     if (was('pauze')) { pauzeMenu(); return; }
     kaartUpdate(dt);
     if (D.touw) { updateTouw(dt); updateRest(dt); D.hudT -= dt; if (D.hudT <= 0) { D.hudT = .1; this.hud(); } return; }
-    updateRuben(dt); updateGereedschap(dt); updateVissen(dt); updateStroming(dt); updateReuzen(dt); updateDingen(dt); updateRest(dt);
+    updateRuben(dt); updateGereedschap(dt); updateVissen(dt); updateStroming(dt); updateReuzen(dt); updateDingen(dt); updateGrot(dt); updateRest(dt);
     // camera
     const R = D.ruben, tx = R.x - BEELD.W / 2 + R.vx * .35, ty = R.y - BEELD.H / 2 + R.vy * .25;
     D.cam.x += (tx - D.cam.x) * Math.min(1, dt * 4); D.cam.y += (ty - D.cam.y) * Math.min(1, dt * 4);
@@ -3586,6 +3864,7 @@ function tekenDuik(ctx, W, H) {
       for (let i = 0; i < 5; i++) { const wx = ((i * 337 + t * 4) % (ZEE.W + 200)) - 100 - cx * .4, wy = -96 + i * 9 - cy; T.rect(wx, wy, 34, 4, '#FFFFFF'); T.rect(wx + 8, wy - 3, 16, 3, '#FFFFFF'); T.rect(wx + 4, wy + 4, 26, 1, '#DDEFF6'); }
     }
     if (D.stek === 'rif') tekenRifLucht(ctx, cx, cy, W, t, nacht);
+    else if (D.stek === 'grot') tekenGrotLucht(ctx, cx, cy, W, t, nacht);
     else if (D.stek === 'kerkhof') { // open zee: alleen een boei die de zandbanken aanwijst
       const bx = 760 - cx * .5, by = -cy + Math.round(Math.sin(t * 1.6) * 1.5); if (bx > -20 && bx < W + 20) { T.rect(bx - 3, by - 14, 7, 14, nacht ? '#5A2A2A' : '#C8323C'); T.rect(bx - 3, by - 9, 7, 3, nacht ? '#8A8A8A' : '#F4F1E8'); T.rect(bx - 1, by - 20, 3, 6, '#2A2A30'); if (Math.floor(t) % 3 === 0) T.rect(bx - 1, by - 22, 3, 2, '#FFE9A8'); }
     }
@@ -3607,6 +3886,7 @@ function tekenDuik(ctx, W, H) {
   // ---- het verdronken dorp (achter de bodem)
   if (Z.dorp && cy + H > 1700) tekenDorp(ctx, Z, cx, cy, t);
   if (Z.wrakken) tekenWrakBinnen(ctx, Z, cx, cy);
+  if (Z.grot) tekenGrotAchter(ctx, Z, cx, cy, W, H, t);
   // ---- de bodem in stukken
   const kx0 = Math.max(0, Math.floor(cx / CHUNK)), kx1 = Math.min(Math.ceil(ZEE.W / CHUNK) - 1, Math.floor((cx + W) / CHUNK)), ky0 = Math.max(0, Math.floor(cy / CHUNK)), ky1 = Math.min(Math.ceil(ZEE.H / CHUNK) - 1, Math.floor((cy + H) / CHUNK));
   let nieuw = 0;
@@ -3617,6 +3897,7 @@ function tekenDuik(ctx, W, H) {
   }
   // ---- versiering achter
   tekenVersier(ctx, Z, cx, cy, W, H, t, 'achter');
+  if (Z.grot) tekenGrotVersier(ctx, Z, cx, cy, W, H, t);
   // ---- de ankerlijn van De Zeekoe
   const ax = ZEE.BOOT_X + 80, avl = Z.vloer(ZEE.BOOT_X + 128, 200);
   if (cy < avl) { for (let i = 0; i <= 60; i++) { const u = i / 60, x = ax + (ZEE.BOOT_X + 128 - ax) * u + Math.sin(u * Math.PI) * 10, y = u * avl; T.px(x - cx, y - cy, i % 3 ? '#C9B48A' : '#A8946A'); } T.rect(ZEE.BOOT_X + 122 - cx, avl - 6 - cy, 13, 3, '#5A5F68'); T.rect(ZEE.BOOT_X + 127 - cx, avl - 12 - cy, 2, 8, '#5A5F68'); }
@@ -3637,6 +3918,7 @@ function tekenDuik(ctx, W, H) {
       if (((t + f.t) % 4) < .3) { T.px(sx + 1, sy - 6, '#DFF6FA'); T.px(sx + 1, sy - 8, '#DFF6FA'); }
       continue;
     }
+    if (f.verstopt && f.def.gedrag === 'waaier') { T.rect(sx - 1, sy - 6, 3, 10, '#8A7A5A'); T.rect(sx - 1, sy - 6, 1, 10, '#A89A7A'); T.rect(sx - 1, sy - 7, 3, 1, '#E8414E'); continue; }
     if (f.verstopt) { // alleen de oogjes boven het zand
       T.px(sx - 2, sy, '#FFFFFF'); T.px(sx - 1, sy, '#1A1418'); T.px(sx + 2, sy, '#FFFFFF'); T.px(sx + 3, sy, '#1A1418'); T.rect(sx - 6, sy + 1, 12, 1, mix('#D2B57C', '#6A5A40', .25));
       continue;
@@ -3675,7 +3957,7 @@ function tekenDuik(ctx, W, H) {
     if (p.t === 'bel') { if (p.g === 2) { T.rect(sx - 1, sy - 1, 3, 3, '#CFF4FF'); T.px(sx, sy, '#7FC8E0'); } else T.px(sx, sy, '#CFF4FF'); }
     else if (p.t === 'zand') T.px(sx, sy, '#C9B48A');
     else if (p.t === 'stroom') { ctx.globalAlpha = klem(p.l, 0, .5); T.rect(sx - (p.vx > 0 ? 6 : 0), sy, 6, 1, '#E8FBFF'); ctx.globalAlpha = 1; }
-    else T.px(sx, sy, '#FFF6C8');
+    else T.px(sx, sy, p.kl || '#FFF6C8');
   }
   for (const k of D.inkt) { ctx.globalAlpha = Math.max(0, .85 - k.t * .35); T.ovaal(k.x - cx, k.y - cy, k.r, k.r * .8, '#1A1420'); } ctx.globalAlpha = 1;
   // ---- versiering voor (gras en een deel van de kelp)
@@ -3701,12 +3983,13 @@ function tekenDuik(ctx, W, H) {
   }
   // ---- donker in de diepte, met licht van de lamp en van lichtgevende dieren
   const mMid = y2m(cy + H / 2);
-  if (mMid > 28 || nacht) {
+  if (mMid > 28 || nacht || (D.donkerGrot || 0) > .02) {
     if (!DONKER || DONKER.cv.width !== W || DONKER.cv.height !== H) DONKER = maakDoek(W, H);
     const dc = DONKER.ctx; dc.globalCompositeOperation = 'source-over'; dc.clearRect(0, 0, W, H);
     // 's nachts is het al vanaf de oppervlakte donker (de lucht zelf is al getekend als nacht)
     const donker = m => nacht ? klem(.72 + m / 160, 0, .95) : klem((m - 30) / 120, 0, .95), top = nacht ? Math.max(0, -cy) : 0;
-    const a0 = donker(y2m(cy + top)), a1 = donker(y2m(cy + H));
+    let a0 = donker(y2m(cy + top)), a1 = donker(y2m(cy + H));
+    if (D.donkerGrot) { a0 = Math.max(a0, D.donkerGrot); a1 = Math.max(a1, D.donkerGrot); } // in de grotten is het altijd donker
     if (nacht && top > 0) { dc.fillStyle = 'rgba(2,6,16,.36)'; dc.fillRect(0, 0, W, top); } // boven water is het ook nacht, maar minder donker
     const g = dc.createLinearGradient(0, top, 0, H); g.addColorStop(0, `rgba(2,6,16,${a0})`); g.addColorStop(1, `rgba(2,6,16,${a1})`); dc.fillStyle = g; dc.fillRect(0, top, W, H - top);
     dc.globalCompositeOperation = 'destination-out';
@@ -3719,6 +4002,7 @@ function tekenDuik(ctx, W, H) {
     if (D.stek === 'zee' && cy + H > 2250) licht(806 - cx, 2470 - cy, 280, .5);
     for (const v of D.vondsten) if (v.id === 'meetkastje') licht(v.x - 4 - cx, v.y - 5 - cy, 20, Math.floor(t * 2) % 2 ? .85 : .35);
     if (nacht && cy < 60) licht(ZEE.BOOT_X - 60 - cx, -30 - cy, 70, .7); // de lamp van De Zeekoe
+    if (Z.grot) grotLichten(licht, cx, cy, t);
     DONKER.ctx.globalCompositeOperation = 'source-over';
     ctx.drawImage(DONKER.cv, 0, 0);
     // de lichtjes zelf, bovenop het donker
@@ -3810,6 +4094,7 @@ function updateReuzen(dt) {
     if (B.weg) continue;
     if (B.id === 'mantel') { updateMantel(B, dt); continue; }
     if (B.id === 'roestpaling') { updateRoestpaling(B, dt); continue; }
+    if (B.id === 'spooknetrog') { updateRog(B, dt); continue; }
     B.t += dt; B.cd = Math.max(0, B.cd - dt); B.flits = Math.max(0, B.flits - dt);
     const dx = R.x - B.x, dy = R.y - B.y, dr = Math.hypot(dx, dy);
     if (B.staat === 'moe') { B.vx *= .9; B.vy *= .9; B.y += Math.sin(B.t * 2) * .1; continue; }
@@ -3824,7 +4109,7 @@ function updateReuzen(dt) {
   }
   // harpoen raakt een reus?
   const H = D.harpoen;
-  if (H && !H.terug) for (const B of D.reuzen) { if (B.weg || B.staat === 'moe' || B.def.foto || B.id === 'roestpaling') continue; if (Math.abs(H.x - B.x) < B.r * 1.4 && Math.abs(H.y - B.y) < B.r * .7) { B.hp -= uitW('harpoen'); B.flits = .2; H.terug = true; GELUID.sfx('raak'); tekstOp(B.x, B.y - B.r - 6, B.hp > 0 ? 'Nog ' + Math.ceil(B.hp) + '×' : 'Uitgeput!', '#FFE9A8'); if (B.hp <= 0) { B.staat = 'moe'; melding(B.def.naam + ' is moe. Zwem erheen en pak hem (F) om hem aan de lijn te houden!', 'goud groot', 4000); } else if (B.staat === 'rust') B.staat = 'aanval'; } }
+  if (H && !H.terug) for (const B of D.reuzen) { if (B.weg || B.staat === 'moe' || B.def.foto || B.def.redden || B.id === 'roestpaling') continue; if (Math.abs(H.x - B.x) < B.r * 1.4 && Math.abs(H.y - B.y) < B.r * .7) { B.hp -= uitW('harpoen'); B.flits = .2; H.terug = true; GELUID.sfx('raak'); tekstOp(B.x, B.y - B.r - 6, B.hp > 0 ? 'Nog ' + Math.ceil(B.hp) + '×' : 'Uitgeput!', '#FFE9A8'); if (B.hp <= 0) { B.staat = 'moe'; melding(B.def.naam + ' is moe. Zwem erheen en pak hem (F) om hem aan de lijn te houden!', 'goud groot', 4000); } else if (B.staat === 'rust') B.staat = 'aanval'; } }
   // Moeder Acht
   if (D.stek !== 'zee') return;
   if (ST.vlag.kelderOpen && !ST.vlag.moeder && !D.klaar && !PAUZE && Math.hypot(R.x - 806, R.y - 2560) < 90) ontmoetMoeder();
@@ -3880,6 +4165,7 @@ function tekenReuzen(ctx, cx, cy, t) {
     if (B.weg) continue;
     if (B.id === 'mantel') { tekenMantel(ctx, B, cx, cy, t); continue; }
     if (B.id === 'roestpaling') { tekenRoestpaling(ctx, B, cx, cy, t); continue; }
+    if (B.id === 'spooknetrog') { tekenRog(ctx, B, cx, cy, t); continue; }
     const cv = reusDoek(B, B.kijk, B.flits > 0), sx = Math.round(B.x - cx - cv.width / 2), sy = Math.round(B.y - cy - cv.height / 2);
     if (sx > BEELD.W + 50 || sx + cv.width < -50 || sy > BEELD.H + 50 || sy + cv.height < -50) continue;
     ctx.drawImage(cv, sx, sy);
@@ -4203,9 +4489,16 @@ const STEKKEN = {
     water: [[0, '#4F9AAE'], [20, '#3A7E94'], [45, '#28607A'], [80, '#1A4560'], [110, '#10304A']],
     open: () => ST.hfd >= 3 && ST.uit.pak >= 1, slot: 'Het Scheepskerkhof ligt ver uit de kust en diep. Trien vaart er pas heen als je verder bent in het verhaal (hoofdstuk 3) en een duikpak tot 80 meter hebt.', kaart: { x: 150, y: 104 },
   },
+  grot: {
+    id: 'grot', naam: 'De Krijtgrotten', kort: 'Grotten onder de witte kalkrots. Pikdonker, met luchtzakken en een stroming die komt en gaat.', W: 2560, H: 1700, BOOT_X: 420,
+    diepte: [[0, 0], [40, 420], [100, 1000], [180, 1660]],
+    zones: [{ id: 'voor', naam: 'Voor de kalkrots', tot: 46 }, { id: 'gangen', naam: 'De Krijtgrotten', tot: 120 }, { id: 'schacht', naam: 'De Schacht', tot: 999 }],
+    water: [[0, '#5AB2C6'], [20, '#3C8EA8'], [45, '#2A6C88'], [80, '#1A4864'], [120, '#0E2C46'], [180, '#061626']],
+    open: () => !!((ST.hfd >= 8 || ST.vlag.grot1) && ST.uit.lamp >= 1 && ST.uit.pak >= 2), slot: 'De grotten onder de witte kalkrots zijn diep en pikdonker. Trien vaart er pas heen als het verhaal je erheen stuurt (hoofdstuk 8), met een duiklamp en een duikpak tot 150 meter.', kaart: { x: 72, y: 126 },
+  },
 };
 // de plekken die het verhaal later nog vrijspeelt (op de zeekaart als vraagteken)
-const STEKKEN_LATER = [{ naam: '???', kort: 'Grotten bij de kalkrots', kaart: { x: 72, y: 126 } }, { naam: '???', kort: 'Heel ver weg en heel diep', kaart: { x: 212, y: 128 } }];
+const STEKKEN_LATER = [{ naam: '???', kort: 'Heel ver weg en heel diep', kaart: { x: 212, y: 128 } }];
 let STEK = STEKKEN.zee;
 function zetStek(id) {
   STEK = STEKKEN[id] || STEKKEN.zee;
@@ -4248,6 +4541,9 @@ function tekenZeekaart(ctx, nacht) {
   // het scheepskerkhof: een paar scheve masten in het water
   if (stekOpen('kerkhof')) { const k = STEKKEN.kerkhof.kaart; for (const [dx, dy, h] of [[-14, -2, 7], [-8, 4, 5], [12, 0, 6], [16, 6, 4]]) { T.lijn(k.x + dx, k.y + dy, k.x + dx + 2, k.y + dy - h, inkt); T.rect(k.x + dx - 2, k.y + dy, 5, 1, inkt); } }
   plek(STEKKEN.kerkhof.kaart.x, STEKKEN.kerkhof.kaart.y, stekOpen('kerkhof'), stekOpen('kerkhof') ? 'SCHEEPSKERKHOF' : '???');
+  // de witte kalkrots aan de kust, met een donker gat in de voet
+  { const k = STEKKEN.grot.kaart; T.rect(k.x - 22, k.y - 9, 14, 9, nacht ? '#8A8A9A' : '#F4F1E8'); T.rect(k.x - 22, k.y - 10, 14, 1, nacht ? '#24382E' : '#7AA85A'); T.rect(k.x - 20, k.y - 6, 10, 1, nacht ? '#6A6A7A' : '#C8C0B0'); T.rect(k.x - 13, k.y - 3, 3, 3, '#2A2A30'); }
+  plek(STEKKEN.grot.kaart.x, STEKKEN.grot.kaart.y, stekOpen('grot'), stekOpen('grot') ? 'KRIJTGROTTEN' : '???');
   for (const s of STEKKEN_LATER) plek(s.kaart.x, s.kaart.y, false, '???');
   // een rand als van een oude kaart
   T.rect(2, 2, W - 4, 1, inkt); T.rect(2, H - 3, W - 4, 1, inkt); T.rect(2, 2, 1, H - 4, inkt); T.rect(W - 3, 2, 1, H - 4, inkt);
@@ -4399,17 +4695,23 @@ function reuzenRif() {
 // ---- de stroming: duwt Ruben, de vissen en wat er rondzweeft
 function stroomOp(x, y) {
   const Z = D && D.Z; if (!Z || !Z.stroom) return null;
-  for (const s of Z.stroom) if (x > s.x0 && x < s.x1 && y > s.y0 && y < s.y1) { let rand = Math.min(1, (x - s.x0) / 60, (s.x1 - x) / 60); if (s.luw && x > s.luw[0] && x < s.luw[1] && y > s.luw[2] && y < s.luw[3]) rand *= .25; return { vx: s.vx * rand, vy: s.vy * rand }; }
+  for (const s of Z.stroom) if (x > s.x0 && x < s.x1 && y > s.y0 && y < s.y1) {
+    if (s.puls && !stroomAan(s)) return null; // een stroming die komt en gaat (De Zuchtgang in de Krijtgrotten)
+    let rand = Math.min(1, (x - s.x0) / 60, (s.x1 - x) / 60);
+    if (s.luw) for (const l of (Array.isArray(s.luw[0]) ? s.luw : [s.luw])) if (x > l[0] && x < l[1] && y > l[2] && y < l[3]) rand *= s.puls ? .08 : .25;
+    return { vx: s.vx * rand, vy: s.vy * rand };
+  }
   return null;
 }
+const stroomAan = s => !s.puls || ((D ? D.tijd : 0) + (s.fase || 0)) % (s.puls.aan + s.puls.uit) < s.puls.aan;
 function updateStroming(dt) {
   const Z = D.Z;
   if (!D.zoemGemeld) for (const v of D.vondsten) if (v.id === 'meetkastje' && Math.hypot(v.x - D.ruben.x, v.y - D.ruben.y) < 220) { D.zoemGemeld = true; melding('Hoor je dat? Een zacht gezoem, ergens in de geul...', '', 3600); }
   if (!Z.stroom) return;
   for (const f of D.vissen) { if (f.dood || f.def.gedrag === 'vast' || f.def.gedrag === 'graaf' || f.vloer) continue; const s = stroomOp(f.x, f.y); if (s) { const nx = f.x + s.vx * dt * .7; if (!Z.vast(nx | 0, f.y | 0)) f.x = nx; } }
   // strepen in het water, zodat je de stroming ziet
-  const s0 = Z.stroom[0], cx = D.cam.x, cy = D.cam.y;
-  if (!REDUCE && Math.random() < dt * 14 && cx + BEELD.W > s0.x0 && cx < s0.x1 && cy + BEELD.H > s0.y0) {
+  const cx = D.cam.x, cy = D.cam.y;
+  for (const s0 of Z.stroom) if (!REDUCE && stroomAan(s0) && Math.random() < dt * (s0.puls ? 30 : 14) && cx + BEELD.W > s0.x0 && cx < s0.x1 && cy + BEELD.H > s0.y0 && cy < s0.y1) {
     const x = s0.vx > 0 ? Math.max(s0.x0, cx) + Math.random() * 40 : Math.min(s0.x1, cx + BEELD.W) - Math.random() * 40, y = Math.max(s0.y0, cy) + Math.random() * Math.min(BEELD.H, s0.y1 - Math.max(s0.y0, cy));
     if (!Z.vast(x | 0, y | 0)) D.deeltjes.push({ t: 'stroom', x, y, vx: s0.vx * 3, vy: 0, l: 1.2 + Math.random() });
   }
@@ -4579,10 +4881,12 @@ function dingPakDoel(vx, vy) {
   for (const d of D.dingen) { if (d.weg || d.stijgt || d.soort === 'plaat' || (d.soort === 'kist' || d.soort === 'roestkist' || d.soort === 'ton') && d.open) continue; const dd = Math.hypot(d.x - vx, d.y - vy) - (d.soort === 'berg' ? 6 : 0); if (dd < bd) { bd = dd; beste = d; } }
   return beste;
 }
-function dingLabel(d) { return d.soort === 'berg' ? 'BERGEN' : d.soort === 'hendel' ? 'HENDELS' : d.soort === 'slot' ? 'SLOT' : 'OPENEN'; }
+function dingLabel(d) { return d.soort === 'berg' ? 'BERGEN' : d.soort === 'hendel' ? 'HENDELS' : d.soort === 'slot' ? 'SLOT' : d.soort === 'kristal' ? 'TIK' : d.soort === 'knoop' ? 'SNIJDEN' : 'OPENEN'; }
 async function dingPak(d) {
   const R = D.ruben;
   if (d.soort === 'kist' || d.soort === 'roestkist' || d.soort === 'ton') return openKist(d);
+  if (d.soort === 'kristal') return kristalTik(d);
+  if (d.soort === 'knoop') return knoopSnij(d);
   if (d.soort === 'berg') {
     if (d.slot && !khOpen(d.slot)) { melding('De lamp zit nog vast in zijn houder. Misschien helpen de hendels in het lichtschip.', 'rood', 3400); GELUID.sfx('fout'); return; }
     if (D.ballon <= 0) { melding(ST.maak && ST.maak.ballon ? 'Je hijsballonnen zijn op voor deze duik.' : 'Te zwaar voor je tas. Met een hijsballon (van Mevrouw Snuffel) laat je het naar boven drijven.', 'rood', 3600); GELUID.sfx('fout'); return; }
@@ -4605,11 +4909,11 @@ function openKist(d) {
   const n = d.soort === 'ton' ? 1 + Math.floor(r() * 2) : d.soort === 'kist' ? 2 + Math.floor(r() * 3) : 4 + Math.floor(r() * 4);
   const soorten = d.soort === 'roestkist' ? ['koper', 'koper', 'glas', 'ijzer', 'hout'] : ['hout', 'hout', 'ijzer', 'ijzer', 'koper', 'glas'];
   const buit = {}; for (let i = 0; i < n; i++) { const m = soorten[Math.floor(r() * soorten.length)]; buit[m] = (buit[m] || 0) + 1; D.mat[m] = (D.mat[m] || 0) + 1; }
-  const munt = d.soort === 'ton' ? 0 : d.soort === 'kist' ? 5 + Math.floor(r() * 16) : 20 + Math.floor(r() * 41); D.munt += munt;
+  const munt = d.schat ? 45 + Math.floor(r() * 46) : d.soort === 'ton' ? 0 : d.soort === 'kist' ? 5 + Math.floor(r() * 16) : 20 + Math.floor(r() * 41); D.munt += munt;
   const tekst = Object.entries(buit).map(([m, k]) => k + ' ' + MATERIALEN[m].toLowerCase()).join(', ') + (munt ? ', ' + geldTekst(munt) : '');
   tekstOp(d.x, d.y - 14, '+ ' + tekst, '#FFE9A8');
-  if (d.soort !== 'ton' && r() < (d.soort === 'roestkist' ? .6 : .3)) {
-    const kans = d.soort === 'roestkist' ? ['kompas', 'lantaarntje', 'munt', 'bord'] : ['munt', 'pijp', 'fles', 'bord'], v = kans[Math.floor(r() * kans.length)];
+  if (d.soort !== 'ton' && (d.schat || r() < (d.soort === 'roestkist' ? .6 : .3))) {
+    const kans = d.schat ? ['kompas', 'lantaarntje', 'bord', 'ammoniet'] : d.soort === 'roestkist' ? ['kompas', 'lantaarntje', 'munt', 'bord'] : ['munt', 'pijp', 'fles', 'bord'], v = kans[Math.floor(r() * kans.length)];
     if (!inTas({ v })) D.vondsten.push({ id: v, x: d.x + 10, y: d.y + 2, t: 0 }); else tekstOp(d.x, d.y - 24, '+ ' + VONDSTEN[v].naam, '#FFE9A8');
   }
 }
@@ -4683,6 +4987,7 @@ function tekenDingen(ctx, cx, cy, t) {
   const T = tekenaar(ctx);
   for (const d of D.dingen) {
     const sx = Math.round(d.x - cx), sy = Math.round(d.y - cy); if (sx < -40 || sx > BEELD.W + 40 || sy < -60 || sy > BEELD.H + 40) continue;
+    if (d.soort === 'kristal' || d.soort === 'knoop') continue; // die tekenen de grot en de rog zelf
     if (d.soort === 'berg') {
       const cv = dingDoek(d.v); ctx.drawImage(cv, sx - cv.width / 2, sy - cv.height / 2);
       if (d.stijgt) { const by = sy - cv.height / 2 - 18; T.lijn(sx, by + 10, sx, sy - cv.height / 2, '#E4DCC8'); T.ovaal(sx, by, 7, 9, '#E9B949'); T.ovaal(sx - 2, by - 3, 2, 3, '#FFF2B0'); T.rect(sx - 1, by + 8, 3, 2, '#C99A2E'); }
@@ -4787,6 +5092,423 @@ function tekenRoestpaling(ctx, B, cx, cy, t) {
   if (B.hp < B.def.hp || B.staat === 'moe') { const w = 40, sy = hy - 20; T.rect(hx - w / 2, sy, w, 4, '#23252B'); T.rect(hx - w / 2 + 1, sy + 1, (w - 2) * Math.max(0, B.hp) / B.def.hp, 2, B.staat === 'moe' ? '#E9B949' : '#E8414E'); letters(ctx, B.def.naam, hx, sy - 10, '#FBF6E9', 1, 'm', '#0A1420'); }
 }
 
+// ===================== DE KRIJTGROTTEN: grotten onder de witte kalkrots =====================
+// De boot ligt in open water voor de kalkrots. Onder water zit in de rotswand De Poort; daarachter De Lange Gang (met een
+// luchtzak en een gebarsten wand), De Zuchtgang (de grot ademt: de stroming komt en gaat), De Netgrot (waar De Spooknetrog
+// vastzit, met bovenin weer een luchtzak), de kristallen deur naar De Kristalzaal, en De Schacht die steil naar beneden gaat.
+// In de grotten is het altijd donker: je lamp en de kristallen geven licht. Wat je openmaakt, blijft open (ST.kh.open).
+const GROT = { KLIF: 930, NETGROT: { x: 1880, y: 610 }, ZAAL: { x: 2310, y: 960 }, POORT_K: { x: 2087, y: 768 }, SCHACHT: { x: 1800, y: 745 } };
+// gangen: rijen punten [x, y, straal]; tussen elk paar ligt een 'capsule'
+const GROT_GANGEN = [
+  [[880, 370, 28], [980, 368, 26], [1060, 380, 22], [1140, 405, 22], [1220, 432, 20], [1300, 470, 20]], // De Poort en De Lange Gang
+  [[1180, 420, 15], [1186, 360, 16], [1192, 310, 20]], // de schoorsteen naar de eerste luchtzak
+  [[1088, 400, 11], [1090, 460, 12]], // het gangetje naar de verborgen kamer (achter de breuk)
+  [[1300, 470, 20], [1380, 488, 13], [1460, 500, 12], [1540, 506, 12], [1620, 522, 14], [1700, 560, 18]], // De Zuchtgang
+  [[2030, 690, 20], [2085, 770, 16], [2140, 845, 17], [2190, 900, 19]], // naar De Kristalzaal
+  [[1800, 735, 22], [1782, 860, 21], [1812, 1000, 19], [1772, 1150, 21], [1800, 1320, 21], [1770, 1480, 23], [1815, 1575, 26]], // De Schacht
+  [[1925, 1598, 9], [1965, 1600, 10]], // het gangetje naar de fossielennis (achter de tweede breuk)
+];
+const GROT_ZALEN = [
+  [1192, 278, 44, 34], // de eerste luchtzak
+  [1092, 488, 48, 28], // de verborgen kamer
+  [1420, 476, 15, 11], [1545, 488, 15, 11], // twee nissen in De Zuchtgang (daar is het luw)
+  [1880, 610, 200, 140], // De Netgrot
+  [1880, 466, 60, 30], // de luchtzak bovenin De Netgrot
+  [2310, 960, 190, 110], // De Kristalzaal
+  [1860, 1600, 92, 52], // onderin De Schacht
+  [1998, 1598, 34, 24], // de fossielennis
+];
+// wat dicht zit tot je het openmaakt: twee gebarsten wanden, de kristallen deur en het net voor De Schacht
+const GROT_DEUREN = [
+  { id: 'breukA', r: [1072, 412, 1108, 446], mat: 'BREUK' },
+  { id: 'kristalpoort', r: [2060, 738, 2114, 798], mat: 'GLAS' },
+  { id: 'netSchacht', r: [1768, 724, 1832, 768], mat: 'NET' },
+  { id: 'breukB', r: [1934, 1584, 1958, 1616], mat: 'BREUK' },
+];
+// luchtzakken: boven de waterlijn (wl) zit lucht; daar vul je je fles bij
+const GROT_LUCHT = [{ x0: 1150, x1: 1236, top: 244, wl: 292 }, { x0: 1822, x1: 1938, top: 436, wl: 474 }];
+// De Zuchtgang ademt: een paar seconden een harde stroming naar buiten, dan even niets. In de nissen is het luw.
+const GROT_ZUCHT = { x0: 1300, x1: 1690, y0: 455, y1: 575, vx: -132, vy: 6, luw: [[1402, 1438, 458, 490], [1527, 1563, 470, 502]] /* x0, x1, y0, y1 */, puls: { aan: 3.2, uit: 2.6 } };
+// het lied van de kristallen (welke kristallen, in welke volgorde) en hun kleuren
+const LIED = [2, 4, 1, 3, 0];
+const KRISTAL_KL = [['#7CF2FF', '#DFFFFF', '#2A8AA8'], ['#C8A8FF', '#F4E8FF', '#6A4AA8'], ['#FFB0D8', '#FFE8F4', '#A85A88'], ['#A8FFB8', '#E8FFEC', '#3A9A5A'], ['#FFE08A', '#FFF6D8', '#B8862A']];
+
+function grotKlif(y, f) { return GROT.KLIF + Math.sin(y / 37 + f) * 7 + (ruis(4, y / 22, 71) - .5) * 16; }
+function maakGrot(zaad) {
+  const r = rng(zaad), f = r() * 100, Z = { zaad, f, grot: true };
+  const W = ZEE.W, Hh = ZEE.H;
+  const klif = y => grotKlif(y, f);
+  const bodemO = x => 452 + Math.sin(x / 41 + f) * 6 + (ruis(x / 26, f, 72) - .5) * 12 - (x < 240 ? (240 - x) * .45 : 0);
+  // ---- de vormen van de grotten, met per blok van 64 px een lijstje (zo hoeft elke pixel maar een paar vormen te bekijken)
+  const PRIM = [];
+  for (const g of GROT_GANGEN) for (let i = 1; i < g.length; i++) { const [x1, y1, r1] = g[i - 1], [x2, y2, r2] = g[i]; PRIM.push({ t: 'c', x1, y1, r1, x2, y2, r2, dx: x2 - x1, dy: y2 - y1, l2: (x2 - x1) ** 2 + (y2 - y1) ** 2, bx0: Math.min(x1 - r1, x2 - r2) - 10, bx1: Math.max(x1 + r1, x2 + r2) + 10, by0: Math.min(y1 - r1, y2 - r2) - 10, by1: Math.max(y1 + r1, y2 + r2) + 10 }); }
+  for (const [x, y, rx, ry] of GROT_ZALEN) PRIM.push({ t: 'e', x, y, rx, ry, bx0: x - rx - 10, bx1: x + rx + 10, by0: y - ry - 10, by1: y + ry + 10 });
+  const BW = Math.ceil(W / 64), BH = Math.ceil(Hh / 64), BKT = new Array(BW * BH);
+  PRIM.forEach((p, i) => { for (let by = Math.max(0, p.by0 >> 6); by <= Math.min(BH - 1, p.by1 >> 6); by++) for (let bx = Math.max(0, p.bx0 >> 6); bx <= Math.min(BW - 1, p.bx1 >> 6); bx++) (BKT[by * BW + bx] || (BKT[by * BW + bx] = [])).push(p); });
+  // losse brokken krijt op de bodem voor de rotswand
+  const KEIEN = [];
+  for (let i = 0; i < 9; i++) { const x = 260 + r() * 620; KEIEN.push([x, bodemO(x) - 3, 9 + r() * 15, 6 + r() * 8]); }
+  KEIEN.push([klif(440) - 6, bodemO(klif(440) - 6) - 10, 30, 22]); // een grote kei tegen de voet van de rots
+  const inGrot = (x, y) => {
+    const b = BKT[(y >> 6) * BW + (x >> 6)]; if (!b) return false;
+    const n = (ruis(x / 11, y / 11, 73) - .5) * 7;
+    for (const p of b) {
+      if (x < p.bx0 || x > p.bx1 || y < p.by0 || y > p.by1) continue;
+      if (p.t === 'c') { const u = klem(((x - p.x1) * p.dx + (y - p.y1) * p.dy) / p.l2, 0, 1), px = p.x1 + p.dx * u, py = p.y1 + p.dy * u, rr = p.r1 + (p.r2 - p.r1) * u + n; if ((x - px) ** 2 + (y - py) ** 2 < rr * rr) return true; }
+      else { const dx = (x - p.x) / (p.rx + n), dy = (y - p.y) / (p.ry + n * .6); if (dx * dx + dy * dy < 1) return true; }
+    }
+    return false;
+  };
+  const inOpenWater = (x, y) => x < klif(y) && y < bodemO(x);
+  function basisOpen(x, y) {
+    if (y < 0) return x > 18 && x < W - 18;
+    if (x < 22 || x > W - 22 || y >= Hh - 4) return false;
+    if (inOpenWater(x, y)) { for (const [kx, ky, rx, ry] of KEIEN) { if (Math.abs(x - kx) > rx * 1.3 || Math.abs(y - ky) > ry * 1.3) continue; const dx = (x - kx) / rx, dy = (y - ky) / ry; if (dx * dx + dy * dy < 1 + (ruis(x / 5, y / 5, 79) - .5) * .5) return false; } return true; }
+    return inGrot(x, y);
+  }
+  Z.deuren = GROT_DEUREN.map(d => Object.assign({}, d));
+  Z.dicht = {}; for (const d of Z.deuren) Z.dicht[d.id] = d.id === 'netSchacht' ? !ST.reuzen.spooknetrog && !khOpen(d.id) : !khOpen(d.id);
+  const deurOp = (x, y) => { for (const d of Z.deuren) if (inRect(d.r, x, y)) return d; return null; };
+  function open(x, y) { if (!basisOpen(x, y)) return false; const d = deurOp(x, y); return !(d && Z.dicht[d.id]); }
+  const KRISTALWAND = (x, y) => ((x - GROT.ZAAL.x) / 250) ** 2 + ((y - GROT.ZAAL.y) / 160) ** 2 < 1;
+  const stof = (x, y) => {
+    const d = deurOp(x, y); if (d && basisOpen(x, y)) return M[d.mat];
+    if (x < klif(y) && y >= bodemO(x) && y < bodemO(x) + 22) return M.ZAND;
+    return KRISTALWAND(x, y) ? M.KRISTAL : M.KRIJT;
+  };
+  bouwRaster(Z, open, stof);
+  Z.basisOpen = basisOpen; Z.klif = klif; Z.bodem = bodemO;
+  Z.binnen = (x, y) => y > 24 && x > klif(y) + 8;
+  Z.zoneNaam = (x, y) => !Z.binnen(x, y) ? 'Voor de kalkrots' : y > 1100 ? 'De Schacht' : Math.hypot((x - GROT.ZAAL.x) / 210, (y - GROT.ZAAL.y) / 130) < 1 ? 'De Kristalzaal' : Math.hypot((x - GROT.NETGROT.x) / 220, (y - GROT.NETGROT.y) / 160) < 1 ? 'De Netgrot' : x > 1290 && x < 1700 ? 'De Zuchtgang' : 'De Lange Gang';
+  Z.zandRegel = (x, y) => Z.matOp(x, y) === M.ZAND; Z.zonY = 520; Z.mosY = 470; Z.ondiep = 140;
+  Z.lucht = GROT_LUCHT.map(p => Object.assign({}, p));
+  Z.stroom = [Object.assign({}, GROT_ZUCHT)];
+  Z.namen = [{ x: 900, y: 320, naam: 'De Poort' }, { x: 1200, y: 400, naam: 'De Lange Gang' }, { x: 1495, y: 470, naam: 'De Zuchtgang' }, { x: 1880, y: 520, naam: 'De Netgrot' }, { x: 2310, y: 880, naam: 'De Kristalzaal' }, { x: 1800, y: 1100, naam: 'De Schacht' }];
+  // ---- versiering: in het open water kelp, anemonen en sponzen; in de grotten kristallen, druipsteen en witte anemonen
+  const V = Z.versier = [], G = Z.grotVersier = [];
+  for (let i = 0; i < 26; i++) { const x = 60 + r() * 820, y = Z.vloer(x | 0, 200); if (y < bodemO(x) + 4 && y < Hh - 10) V.push({ t: 'kelp', x, y, h: 30 + r() * 60, f: r() * 6, k: r() < .6 ? 2 : 0 }); }
+  for (let i = 0; i < 40; i++) { const x = 40 + r() * 860, y = Z.vloer(x | 0, 200); if (y >= Hh - 10 || !Z.open(x, y - 3)) continue; const k = r(); V.push({ t: k < .3 ? 'anemoon' : k < .5 ? 'ster' : k < .7 ? 'schelpje' : k < .85 ? 'spons' : 'dodemans', x, y, kl: Math.floor(r() * 4), m: y2m(y) }); }
+  // langs de rotswand: zeeanjelieren (witte anemonen)
+  for (let y = 60; y < 440; y += 14 + r() * 18) { const x = klif(y) - 1; if (Z.open(x - 3, y) && r() < .7) V.push({ t: 'anemoon', x: x - 1, y, kl: 1, m: y2m(y) }); }
+  // in de grotten: plekken op de vloer en tegen het plafond zoeken
+  const vloerIn = (x0, x1, y0, y1, n, maak) => { for (let i = 0, k = 0; i < n * 8 && k < n; i++) { const x = x0 + r() * (x1 - x0), ys = y0 + r() * (y1 - y0); if (!Z.open(x, ys) || !Z.binnen(x, ys)) continue; const y = Z.vloer(x | 0, ys | 0); if (y > y1 + 30 || !Z.open(x, y - 4)) continue; maak(x, y); k++; } };
+  const plafIn = (x0, x1, y0, y1, n, maak) => { for (let i = 0, k = 0; i < n * 8 && k < n; i++) { const x = x0 + r() * (x1 - x0), ys = y0 + r() * (y1 - y0); if (!Z.open(x, ys) || !Z.binnen(x, ys)) continue; const y = Z.plafond(x | 0, ys | 0); if (y < y0 - 40 || !Z.open(x, y + 4) || GROT_LUCHT.some(p => x > p.x0 - 10 && x < p.x1 + 10 && y < p.wl + 20)) continue; maak(x, y); k++; } };
+  // kristallen: in De Kristalzaal overal, verder hier en daar een paar
+  const kristal = (x, y, dir, h, kl) => G.push({ t: 'kristal', x, y, dir, h, kl, n: 2 + Math.floor(r() * 3), f: r() * 6 });
+  vloerIn(2140, 2490, 870, 1060, 14, (x, y) => kristal(x, y + 1, 1, 10 + r() * 16, Math.floor(r() * 5)));
+  plafIn(2140, 2490, 860, 1000, 9, (x, y) => kristal(x, y - 1, -1, 8 + r() * 12, Math.floor(r() * 5)));
+  vloerIn(1700, 2060, 560, 760, 4, (x, y) => kristal(x, y + 1, 1, 6 + r() * 8, Math.floor(r() * 5)));
+  vloerIn(1740, 1960, 1540, 1650, 4, (x, y) => kristal(x, y + 1, 1, 8 + r() * 10, Math.floor(r() * 5)));
+  plafIn(1300, 1700, 470, 560, 3, (x, y) => kristal(x, y - 1, -1, 5 + r() * 6, Math.floor(r() * 5)));
+  // het hart van De Kristalzaal: een groot cluster dat zacht pulseert
+  Z.hart = { x: GROT.ZAAL.x + 20, y: Z.vloer(GROT.ZAAL.x + 20, GROT.ZAAL.y) };
+  G.push({ t: 'hart', x: Z.hart.x, y: Z.hart.y });
+  // druipsteen (uit de tijd dat de zee lager stond) en witte anemonen
+  plafIn(960, 1300, 360, 470, 7, (x, y) => G.push({ t: 'druip', x, y, h: 6 + r() * 14 }));
+  plafIn(1700, 2070, 470, 700, 10, (x, y) => G.push({ t: 'druip', x, y, h: 8 + r() * 20 }));
+  vloerIn(960, 2060, 380, 760, 24, (x, y) => V.push({ t: r() < .6 ? 'anemoon' : 'spons', x, y, kl: r() < .6 ? 1 : Math.floor(r() * 4), m: y2m(y) }));
+  // hangende spooknetten in De Netgrot (zolang de rog vastzit)
+  Z.netten = [];
+  for (let i = 0; i < 9; i++) { const x = 1720 + r() * 320, top = Z.plafond(x | 0, 600); if (top > 520) continue; Z.netten.push({ x, top, l: 60 + r() * 110, f: r() * 6 }); }
+  // licht: elk kristal straalt een beetje
+  Z.lichten = G.filter(v => v.t === 'kristal').map(v => ({ x: v.x, y: v.y - v.dir * v.h * .5, r: 18 + v.h, s: .55, kl: KRISTAL_KL[v.kl][0] }));
+  // holen in de wanden van De Netgrot, voor zeepalingen
+  Z.holen = [{ x: 1688, y: 640, links: false }, { x: 2072, y: 600, links: true }];
+  Z.chunks = new Map();
+  return Z;
+}
+
+// ---- vullen: vissen, vondsten, het lied van de kristallen en wat het verhaal vraagt
+function vulGrot(D) {
+  const { Z, r } = D, H = zeeHulp(D), nacht = D.nacht;
+  D.khNieuw = []; D.zag = new Set(); D.mat = {}; D.munt = 0; D.geborgen = []; D.breukHits = {}; D.donkerGrot = 0;
+  const ding = o => D.dingen.push(Object.assign({ t: 0 }, o));
+  // het open water voor de kalkrots
+  if (!nacht) { for (let i = 0; i < 2; i++) H.school('haring', 100, 880, 4, 30); H.los('zeebaars', 100, 880, 6, 38, 2); }
+  H.los('lipvis', 700, 920, 12, 44, nacht ? 1 : 3); H.vloer('schol', 200, 880, 34, 46, 3); H.vloer('krab', 200, 900, 30, 46, 3); H.los('kwal', 80, 900, 2, 30, 3); H.los('kabeljauw', 200, 900, 20, 44, 1);
+  // in de grotten
+  const grot = (s, n, x0, x1, y0, y1, zwerm) => { for (let i = 0, k = 0; i < n * 10 && k < n; i++) { const x = x0 + r() * (x1 - x0), y = y0 + r() * (y1 - y0); if (!Z.open(x | 0, y | 0) || !Z.open((x | 0) + 6, y | 0) || !Z.open((x | 0) - 6, y | 0) || !Z.binnen(x, y)) continue; if (zwerm) { const id = 2000 + i; for (let j = 0; j < 8; j++) { const xx = x + (r() - .5) * 26, yy = y + (r() - .5) * 12; if (Z.open(xx | 0, yy | 0)) H.maak(s, xx, yy, { school: id, zwerm: true }); } } else H.maak(s, x, y); k++; } };
+  const vloerG = (s, n, x0, x1, y0, y1, extra) => { for (let i = 0, k = 0; i < n * 10 && k < n; i++) { const x = x0 + r() * (x1 - x0), ys = y0 + r() * (y1 - y0); if (!Z.open(x | 0, ys | 0) || !Z.binnen(x, ys)) continue; const y = Z.vloer(x | 0, ys | 0); if (y > y1 + 30 || !Z.open(x | 0, y - 8)) continue; H.maak(s, x, y - ({ zand: 3, vast: 4, waaier: 4 }[SOORTEN[s].gedrag] || 5), Object.assign({ vloer: true }, extra || {})); k++; } };
+  grot('grotgarnaal', 2, 960, 1300, 360, 470, true); grot('grotgarnaal', 2, 1720, 2050, 520, 740, true); grot('grotgarnaal', 1, 2160, 2480, 880, 1040, true);
+  vloerG('zeespin', nacht ? 4 : 3, 1700, 2060, 600, 760); vloerG('zeespin', 1, 980, 1280, 380, 470);
+  vloerG('langoustine', nacht ? 5 : 2, 2160, 2480, 900, 1060); vloerG('langoustine', nacht ? 3 : 1, 1740, 1960, 1540, 1650); if (nacht) vloerG('langoustine', 2, 1700, 2060, 600, 760);
+  for (let i = 0; i < (nacht ? 3 : 2); i++) { const p = [[1100, 420], [1990, 700], [1760, 1000]][i]; if (p) H.maak('octopus', p[0], p[1], { thuis: { x: p[0], y: p[1] } }); }
+  for (let i = 0, k = 0; i < 60 && k < 6; i++) { const x = 1000 + r() * 1460, ys = 380 + r() * 700; if (!Z.open(x | 0, ys | 0) || !Z.binnen(x, ys)) continue; const y = Z.vloer(x | 0, ys | 0); if (y > ys + 80 || !Z.open(x | 0, y - 10)) continue; H.maak('waaierworm', x, y - 4, { vloer: true, thuis: { x, y: y - 4 } }); k++; }
+  grot('wrakbaars', r() < .7 ? 1 : 2, 1740, 1960, 1540, 1640); grot('wrakbaars', 1, 1760, 1830, 1200, 1460);
+  for (const h of Z.holen) H.maak('zeepaling', h.x, h.y, { hol: h, kijk: h.links ? 1 : -1, staat: 'hol' });
+  if (nacht) { for (let i = 0; i < 2; i++) H.school('pijlinktvis', 100, 880, 6, 40); H.los('ribkwal', 100, 900, 4, 40, 4); H.vloer('zeedonderpad', 200, 900, 30, 46, 2); }
+  // vondsten: fossielen in de grotten (dieper zijn ze zeldzamer), wat gewone dingen in het open water
+  H.leg(80, 900, 20, 46, 4);
+  for (let i = 0, k = 0; i < 120 && k < 10; i++) { const x = 960 + r() * 1540, ys = 360 + r() * 1300; if (!Z.open(x | 0, ys | 0) || !Z.binnen(x, ys)) continue; const y = Z.vloer(x | 0, ys | 0); if (y > ys + 60 || !Z.open(x | 0, y - 8)) continue; const m = y2m(y), l = ['vuursteen', 'vuursteen', 'belemniet', 'belemniet', 'zeeappel'].concat(m > 60 ? ['haaientand'] : [], m > 100 ? ['ammoniet'] : []); D.vondsten.push({ id: l[Math.floor(r() * l.length)], x, y: y - 5, t: r() * 5 }); k++; }
+  // de verborgen kamer: een oude smokkelkist; de fossielennis onderin De Schacht: altijd iets moois
+  if (!khOpen('grotKist')) ding({ id: 'grotKist', vast: true, soort: 'kist', schat: true, x: 1092, y: Z.vloer(1092, 488) - 2 });
+  D.vondsten.push({ id: r() < .5 ? 'ammoniet' : 'haaientand', x: 1998, y: Z.vloer(1998, 1598) - 5, t: 0 });
+  // het lied: vijf zingende kristallen voor de kristallen deur
+  D.lied = { stap: khOpen('kristalpoort') ? 'klaar' : 'wacht', i: 0, t: 0, licht: [0, 0, 0, 0, 0], speelI: 0, wachtT: 0 };
+  if (!khOpen('kristalpoort')) [1952, 1976, 2000, 2022, 2044].forEach((x, n) => { const y = Z.vloer(x, 650); ding({ soort: 'kristal', n: [3, 1, 4, 0, 2][n], x, y: y - 1 }); });
+  // het verhaal
+  if (ST.hfd >= 8 && !ST.vlag.logboek3) D.vondsten.push({ id: 'logboek3', x: Z.hart.x - 46, y: Z.vloer(Z.hart.x - 46, Z.hart.y - 30) - 5, t: 0, verhaal: true });
+  if (ST.hfd >= 8 && !ST.vlag.netboei) D.vondsten.push({ id: 'netboei', x: 1930, y: Z.vloer(1930, 700) - 5, t: 0, verhaal: true });
+  if (typeof verhaalVondsten === 'function') for (const v of verhaalVondsten()) if (v.stek === 'grot' && (!v.nacht || nacht)) { const p = v.m ? H.opVloer(v.x0 || 980, v.x1 || 2480, v.m[0], v.m[1]) : [v.x, v.y]; if (p) D.vondsten.push({ id: v.id, x: p[0], y: p[1] - 5, t: 0, verhaal: true }); }
+}
+
+// ---- elke stap: het donker, de luchtzakken, de ademende gang, het lied en de gebarsten wanden
+function updateGrot(dt) {
+  const Z = D.Z; if (!Z.grot) return;
+  const R = D.ruben;
+  D.donkerGrot += ((Z.binnen(R.x, R.y) ? .9 : 0) - D.donkerGrot) * Math.min(1, dt * 1.6);
+  if (Z.binnen(R.x, R.y) && !D.grotGemeld && R.x > GROT.KLIF + 30) { D.grotGemeld = true; if (!ST.vlag.grot1) melding('Het is hier pikdonker. Houd je lamp op de gang gericht, en let op je zuurstof.', '', 4200); }
+  if (D.inLucht && !D.luchtGemeld) { D.luchtGemeld = true; melding('Een luchtzak! Hier kun je even ademhalen: je fles loopt weer vol.', 'goud', 3800); GELUID.sfx('bubbel'); }
+  // De Zuchtgang: vlak voor de stroming terugkomt, borrelt het en hoor je de grot zuchten
+  const s = Z.stroom[0], ronde = s.puls.aan + s.puls.uit, fase = D.tijd % ronde, nabij = Math.abs(R.x - (s.x0 + s.x1) / 2) < 360 && Math.abs(R.y - 510) < 160;
+  if (fase > ronde - .8 && !D.zuchtGezegd && nabij) { D.zuchtGezegd = true; GELUID.sfx('zucht'); for (let i = 0; i < 6; i++) bubbels(s.x1 - 20 - Math.random() * 60, 500 + Math.random() * 40, 1); }
+  if (fase < .5) D.zuchtGezegd = false;
+  if (nabij && R.x > s.x0 && R.x < s.x1 && !D.zuchtGemeld) { D.zuchtGemeld = true; melding('De grot ademt: de stroming komt en gaat. Wacht in een nisje tot het stil is, en zwem dan door.', 'goud', 5200); }
+  // gebarsten wanden: een hint als je er langs zwemt
+  for (const d of Z.deuren) if (d.mat === 'BREUK' && Z.dicht[d.id] && !D['hint' + d.id] && Math.hypot(R.x - (d.r[0] + d.r[2]) / 2, R.y - (d.r[1] + d.r[3]) / 2) < 70) { D['hint' + d.id] = true; melding('Deze wand ziet er gebarsten uit. Hij klinkt hol... Misschien kun je hem openschieten met je harpoen?', '', 4600); }
+  // het net voor De Schacht
+  if (Z.dicht.netSchacht && !D.netGemeld && Math.hypot(R.x - GROT.SCHACHT.x, R.y - GROT.SCHACHT.y) < 60) { D.netGemeld = true; melding('Een gordijn van oude netten hangt voor een schacht die diep naar beneden gaat. Het net zit vast aan... de rog?', '', 4600); }
+  updateLied(dt);
+}
+// een luchtzak: Ruben kan er niet boven de waterlijn uit, en ademt er (zie updateRuben en updateRest)
+function grotLucht(R) {
+  const Z = D.Z; if (!Z.lucht) return null;
+  for (const p of Z.lucht) if (R.x > p.x0 && R.x < p.x1 && R.y < p.wl + 8 && R.y > p.top - 12) return p;
+  return null;
+}
+// ---- het lied van de kristallen: luisteren en naspelen
+function zing(n) { if (!D.lied) return; D.lied.licht[n] = 1; GELUID.kristal(n); }
+function updateLied(dt) {
+  const L = D.lied; if (!L) return;
+  for (let i = 0; i < 5; i++) L.licht[i] = Math.max(0, L.licht[i] - dt * 1.6);
+  if (L.stap === 'klaar') return;
+  const R = D.ruben, d = Math.hypot(R.x - GROT.POORT_K.x, R.y - GROT.POORT_K.y);
+  if (d > 330 && L.stap !== 'wacht') { L.stap = 'wacht'; L.i = 0; return; }
+  if (L.stap === 'wacht' && d < 200) {
+    L.stap = 'speel'; L.speelI = 0; L.t = .9;
+    if (!D.liedGemeld) { D.liedGemeld = true; melding(ST.vlag.logboek2 ? 'Je kristalscherf begint te zoemen... en de kristallen zingen terug! Luister goed en speel het lied na: tik de kristallen aan (F).' : 'De kristallen zingen een lied! Luister goed en speel het na: tik de kristallen aan (F).', 'goud groot', 6000); }
+  }
+  if (L.stap === 'speel') { L.t -= dt; if (L.t <= 0) { if (L.speelI < LIED.length) { zing(LIED[L.speelI]); L.speelI++; L.t = .66; } else { L.stap = 'jij'; L.i = 0; L.wachtT = 0; } } }
+  else if (L.stap === 'jij') { L.wachtT += dt; if (L.wachtT > 16 && d < 200) { L.stap = 'speel'; L.speelI = 0; L.t = .5; } }
+  else if (L.stap === 'fout') { L.t -= dt; if (L.t <= 0) { L.stap = 'speel'; L.speelI = 0; L.t = .3; } }
+}
+function kristalTik(d) {
+  const L = D.lied; zing(d.n); D.ruben.pose = 'pak'; D.ruben.poseT = .3;
+  if (!L || L.stap !== 'jij') return;
+  L.wachtT = 0;
+  if (d.n === LIED[L.i]) { L.i++; if (L.i >= LIED.length) { L.stap = 'klaar'; setTimeout(() => { if (D && D.Z.grot) { grotOpen('kristalpoort'); GELUID.sfx('feest'); melding('De kristallen deur zingt mee... en valt in duizend glinsterende stukjes uiteen!', 'goud groot', 4800); } }, 500); } }
+  else { L.stap = 'fout'; L.t = 1.3; L.i = 0; GELUID.sfx('fout'); melding('Vals! Luister nog een keer.', 'rood', 2000); }
+}
+// ---- een gebarsten wand openschieten (de harpoen raakt de rots)
+function grotRaak(x, y) {
+  const Z = D.Z; if (!Z.grot) return;
+  for (const d of Z.deuren) {
+    if (d.mat !== 'BREUK' || !Z.dicht[d.id] || x < d.r[0] - 4 || x > d.r[2] + 4 || y < d.r[1] - 4 || y > d.r[3] + 4) continue;
+    const n = D.breukHits[d.id] = (D.breukHits[d.id] || 0) + 1;
+    GELUID.sfx('kraak'); zandwolk(x, y); tekstOp(x, y - 10, n < 3 ? 'Krak!' : 'KRAK!', '#FFE9A8');
+    if (n >= 3) { grotOpen(d.id); melding(d.id === 'breukA' ? 'De wand brokkelt af! Erachter zit een verborgen kamer.' : 'De wand brokkelt af! Er zit een nisje achter, vol fossielen.', 'goud groot', 4200); }
+    return;
+  }
+}
+// iets openmaken: het raster om te botsen en de getekende stukken bodem bijwerken
+function grotOpen(id) {
+  const Z = D.Z, d = Z.deuren.find(q => q.id === id); if (!d || !Z.dicht[id]) return;
+  Z.dicht[id] = false; const mat = M[d.mat], [x0, y0, x1, y1] = d.r;
+  for (let y = y0 - 4; y < y1 + 4; y += 4) for (let x = x0 - 4; x < x1 + 4; x += 4) { const i = (y >> 2) * ZEE.CW + (x >> 2); if (Z.cel[i] === mat) Z.cel[i] = 0; }
+  for (let y = y0 - 8; y < y1 + 8; y += 4) for (let x = x0 - 8; x < x1 + 8; x += 4) Z.rand[(y >> 2) * ZEE.CW + (x >> 2)] = 1;
+  for (let ky = Math.floor((y0 - 30) / CHUNK); ky <= Math.floor((y1 + 30) / CHUNK); ky++) for (let kx = Math.floor((x0 - 30) / CHUNK); kx <= Math.floor((x1 + 30) / CHUNK); kx++) Z.chunks.delete(kx + ',' + ky);
+  const kl = d.mat === 'GLAS' ? '#BFF4FF' : d.mat === 'NET' ? '#D8D2C0' : '#E8E2D2';
+  for (let i = 0; i < 26; i++) D.deeltjes.push({ t: d.mat === 'GLAS' ? 'glans' : 'zand', x: x0 + Math.random() * (x1 - x0), y: y0 + Math.random() * (y1 - y0), vx: (Math.random() - .5) * 60, vy: -Math.random() * 30, l: 1 + Math.random(), kl });
+  if (!D.khNieuw.includes(id)) D.khNieuw.push(id);
+}
+
+// ===================== DE SPOOKNETROG: vast in oude netten. Geen gevecht: rustig blijven en de knopen doorsnijden =====================
+function reuzenGrot() {
+  const def = REUZEN.spooknetrog, vrij = !!ST.reuzen.spooknetrog, N = GROT.NETGROT;
+  const B = { id: 'spooknetrog', def, soort: 'rog', x: vrij ? N.x - 80 : 1835, y: vrij ? N.y + 20 : 690, basis: { x: 1835, y: 690 }, thuis: { x: N.x, y: N.y }, vx: 0, vy: 0, kijk: 1, hp: 99, staat: vrij ? 'vrij' : 'vast', t: 0, cd: 0, flits: 0, beeld: 0, r: 46, onrust: vrij ? 0 : .35, lt: 0 };
+  if (!vrij) { // de knopen waarmee het net aan de rotsen vastzit: vanuit de rog zoeken naar de rots
+    const Z = D.Z;
+    [2.55, 1.95, 1.3, .62, -2.45].forEach((a, i) => {
+      let x = B.x, y = B.y;
+      for (let s = 36; s < 230; s += 2) { const nx = B.x + Math.cos(a) * s, ny = B.y + Math.sin(a) * s * .8; if (Z.vast(nx | 0, ny | 0)) break; x = nx; y = ny; }
+      D.dingen.push({ soort: 'knoop', id: 'knoop' + i, x, y, t: 0 });
+    });
+  }
+  return [B];
+}
+function knoopSnij(d) {
+  const B = D.reuzen.find(b => b.id === 'spooknetrog'); if (!B || B.staat !== 'vast') return;
+  if (!ST.uit.mes) { melding('Het net zit muurvast. Met een duikmes (bij Trien) snijd je de knopen door.', 'rood', 3600); GELUID.sfx('fout'); return; }
+  if (B.onrust > .55) { melding('De rog slaat wild met zijn vinnen. Blijf rustig in de buurt tot hij kalmer wordt.', 'rood', 3200); GELUID.sfx('fout'); return; }
+  d.weg = true; B.onrust = Math.min(1, B.onrust + .42); D.ruben.pose = 'pak'; D.ruben.poseT = .4; GELUID.sfx('snij'); zandwolk(d.x, d.y);
+  const over = D.dingen.filter(q => q.soort === 'knoop' && !q.weg).length;
+  tekstOp(d.x, d.y - 12, over ? 'Nog ' + over + ' knopen' : 'Los!', '#FFE9A8');
+  if (!over) {
+    B.staat = 'los'; B.lt = 0; B.onrust = 0; ST.reuzen.spooknetrog = 1; ST.geld += 300;
+    D.tas.push({ v: 'netknoop', verhaal: true }); D.tasKg += VONDSTEN.netknoop.kg;
+    grotOpen('netSchacht'); GELUID.sfx('feest'); D.ruben.pose = 'blij'; D.ruben.poseT = 1.4;
+    melding('De laatste knoop is los! De Spooknetrog is vrij... en het net voor De Schacht valt mee naar beneden.', 'goud groot', 5600);
+  } else if (over === 4) melding('Goed zo! Wacht steeds even tot de rog weer rustig is, voor je de volgende knoop doorsnijdt.', 'goud', 4000);
+}
+function updateRog(B, dt) {
+  const R = D.ruben, Z = D.Z, N = GROT.NETGROT; B.t += dt; B.cd = Math.max(0, B.cd - dt);
+  const dx = R.x - B.x, dy = R.y - B.y, dr = Math.hypot(dx, dy), sp = Math.hypot(R.vx, R.vy);
+  if (B.staat === 'vast') {
+    if (dr < 150) { if (sp > 55 || R.sprint) B.onrust += dt * .55; else if (sp < 28) B.onrust -= dt * .14; else B.onrust -= dt * .05; } else B.onrust -= dt * .07;
+    const H = D.harpoen; if (H && !H.terug && Math.hypot(H.x - B.x, H.y - B.y) < 70) { B.onrust = 1; H.terug = true; melding('Niet schieten! Hij is al bang genoeg.', 'rood', 2800); }
+    B.onrust = klem(B.onrust, 0, 1);
+    const wild = B.onrust > .6;
+    B.beeld = (B.beeld + dt * (wild ? 9 : 2.2)) % 4;
+    B.x = B.basis.x + Math.sin(B.t * (wild ? 7 : 1.3)) * (wild ? 6 : 2); B.y = B.basis.y + Math.sin(B.t * (wild ? 5.2 : .9)) * (wild ? 4 : 1.5);
+    if (wild && dr < B.r + 26 && B.cd <= 0) { B.cd = 1.6; raakRuben(3, B.x); }
+    if (wild && Math.random() < dt * 4) zandwolk(B.x + (Math.random() - .5) * 80, B.y + 30);
+    if (!B.gezien && dr < 240) { B.gezien = true; GELUID.sfx('kraak'); melding(!ST.uit.mes ? 'Een enorme bleke rog, vast in oude netten! Met een duikmes kun je hem lossnijden.' : 'Een enorme bleke rog, vast in oude netten! Zwem rustig naar de knopen en snijd ze door (F). Niet te snel, anders schrikt hij.', 'goud groot', 5600); }
+    return;
+  }
+  B.beeld = (B.beeld + dt * 3) % 4;
+  if (B.staat === 'los') { // een rondje van blijdschap door De Netgrot
+    B.lt += dt; const a = B.lt * 1.3 - Math.PI / 2, x = N.x + Math.cos(a) * 130, y = N.y - 10 + Math.sin(a) * 64;
+    B.kijk = -Math.sin(a) >= 0 ? 1 : -1; B.x += (x - B.x) * Math.min(1, dt * 3); B.y += (y - B.y) * Math.min(1, dt * 3);
+    if (B.lt > 5) { B.staat = 'vrij'; B.doel = null; }
+    return;
+  }
+  // vrij: zweeft rustig rond; is Ruben rustig in de buurt, dan komt hij nieuwsgierig dichterbij
+  if (!B.doel || Math.hypot(B.doel.x - B.x, B.doel.y - B.y) < 20 || Math.random() < dt * .08) {
+    if (dr < 140 && sp < 30) B.doel = { x: R.x - Math.sign(dx || 1) * 70, y: R.y - 10 };
+    else for (let i = 0; i < 12; i++) { const x = N.x + (Math.random() - .5) * 300, y = N.y + (Math.random() - .5) * 170; if (Z.open(x | 0, y | 0) && Z.open((x + 50) | 0, y | 0) && Z.open((x - 50) | 0, y | 0)) { B.doel = { x, y }; break; } }
+  }
+  if (B.doel) { B.vx += (B.doel.x - B.x) * dt * .9; B.vy += (B.doel.y - B.y) * dt * .9; }
+  const max = 26, v = Math.hypot(B.vx, B.vy); if (v > max) { B.vx *= max / v; B.vy *= max / v; }
+  let nx = B.x + B.vx * dt, ny = B.y + B.vy * dt;
+  if (Z.vast(Math.round(nx + Math.sign(B.vx) * 52), Math.round(ny)) || Z.vast(Math.round(nx), Math.round(ny + 16)) || Z.vast(Math.round(nx), Math.round(ny - 16))) { B.vx *= -.4; B.vy *= -.4; nx = B.x; ny = B.y; B.doel = null; }
+  B.x = nx; B.y = ny; if (Math.abs(B.vx) > 3) B.kijk = B.vx > 0 ? 1 : -1;
+}
+// de rog zelf: een grote, bleke ruit met golvende vleugels en een lange staart
+function rogDoek(beeld, kijk) {
+  return zeeBuf('netrog|' + Math.floor(beeld) % 4 + '|' + kijk, () => {
+    const b = Math.floor(beeld) % 4, g = [-1, 0, 1, 0][b], R = new Pix(140, 64);
+    const kl = '#D8D4CA', kll = '#EEEAE0', kd = '#A8A498', kdd = '#8A867C';
+    R.lijn(2, 34, 36, 32, kd, 2); for (let x = 8; x < 34; x += 6) { R.p(x, 32, kll); R.p(x + 1, 31, kll); }
+    R.veelhoek([[34, 32], [88, 8 - g * 5], [100, 14], [136, 31], [100, 50], [88, 56 + g * 5]], kl);
+    R.ovaal(96, 32, 26, 12, kll); R.ovaal(92, 33, 14, 7, '#F6F4EE');
+    for (const [x, y] of [[64, 24], [70, 40], [80, 20], [84, 45], [60, 33], [108, 24], [110, 40], [76, 31]]) { R.p(x, y, kd); R.p(x + 1, y, kd); }
+    R.lijn(38, 32, 88, 9 - g * 5, kdd); R.lijn(38, 32, 88, 55 + g * 5, kdd);
+    R.omlijn();
+    R.blok(118, 26, 119, 27, '#1A1418'); R.p(118, 26, '#FFFFFF'); R.blok(118, 37, 119, 38, '#1A1418'); R.p(118, 37, '#FFFFFF');
+    R.rij(32, 126, 132, kdd);
+    const cv = R.doek(); return kijk < 0 ? gespiegeld(cv) : cv;
+  });
+}
+function tekenRog(ctx, B, cx, cy, t) {
+  const sx = Math.round(B.x - cx), sy = Math.round(B.y - cy); if (sx < -200 || sx > BEELD.W + 200 || sy < -140 || sy > BEELD.H + 140) return;
+  const T = tekenaar(ctx), cv = rogDoek(B.beeld, B.kijk);
+  ctx.drawImage(cv, sx - 70, sy - 32);
+  if (B.staat === 'vast') {
+    // het net: een maaswerk over het lijf, en touwen naar de knopen
+    ctx.save(); ctx.globalAlpha = .75;
+    for (let i = -60; i <= 60; i += 7) { T.lijn(sx + i - 24, sy - 22, sx + i + 24, sy + 22, '#D8D2C0'); T.lijn(sx + i + 24, sy - 22, sx + i - 24, sy + 22, '#C8C2B0'); }
+    ctx.restore();
+    for (const d of D.dingen) if (d.soort === 'knoop' && !d.weg) {
+      const kx = d.x - cx, ky = d.y - cy, ax = sx + Math.sign(kx - sx) * 30, ay = sy + Math.sign(ky - sy) * 8;
+      for (let i = 0; i <= 16; i++) { const u = i / 16; T.px(ax + (kx - ax) * u, ay + (ky - ay) * u + Math.sin(u * Math.PI) * 6, '#E0DACA'); }
+      T.ovaal(kx, ky, 4, 3, '#E8E0CC'); T.ovaal(kx, ky, 2, 1.6, '#B8B0A0'); T.px(kx - 1, ky - 1, '#FFFFFF');
+    }
+    // hoe onrustig is de rog?
+    if (Math.hypot(B.x - D.ruben.x, B.y - D.ruben.y) < 280) {
+      const w = 56, bx = sx - w / 2, by = sy - 46, o = B.onrust;
+      T.rect(bx, by, w, 5, '#23252B'); T.rect(bx + 1, by + 1, (w - 2) * o, 3, o > .55 ? '#E8414E' : o > .35 ? '#E9B949' : '#3DB06A');
+      letters(ctx, o > .55 ? 'ONRUSTIG' : 'RUSTIG', sx, by - 10, o > .55 ? '#FFB0A8' : '#C8F4D0', 1, 'm', '#0A1420');
+    }
+  } else if (B.staat === 'los') { ctx.save(); ctx.globalCompositeOperation = 'lighter'; T.gloed(sx, sy, 70, '#FFFFFF', .3, 5); ctx.restore(); }
+}
+
+// ---- tekenen: de kalkrots boven water, de grotwand achter de gangen, luchtzakken, kristallen en netten
+function tekenGrotLucht(ctx, cx, cy, W, t, nacht) {
+  const T = tekenaar(ctx), y0 = -cy;
+  // in de verte de kust
+  for (let x = 0; x < W; x++) { const wx = x + cx * .3; if (wx > 520) break; const h = 6 + Math.sin(wx / 40) * 2; T.rect(x, y0 - h, 1, h, nacht ? '#1E2A2A' : '#A8C890'); }
+  // de witte kalkrots, met grijze lagen, gras bovenop en een gat in de voet
+  const x0 = Math.round(GROT.KLIF - 10 - cx);
+  for (let x = Math.max(0, x0); x < W; x++) {
+    const wx = x + cx, h = 96 + Math.sin(wx / 53) * 12 + (ruis(wx / 30, 1, 74) - .5) * 14 - Math.max(0, 40 - (wx - GROT.KLIF + 10)) * 1.2;
+    if (h <= 0) continue;
+    for (let y = 0; y < h; y++) { const laag = Math.floor((y + Math.sin(wx / 70) * 4) / 9); let c = nacht ? mix('#5A5E6E', '#3E4250', hashf(laag, 2, 75) * .6) : mix('#F2EEE2', '#D8D2C2', hashf(laag, 2, 75) * .7); if ((y + Math.round(Math.sin(wx / 70) * 4)) % 9 === 0) c = nacht ? '#34384A' : '#B8B0A0'; T.px(x, y0 - y, c); }
+    T.rect(x, y0 - h - 2, 1, 3, nacht ? '#24382E' : '#7AA85A'); if (hashf(wx, 3, 76) > .8) T.px(x, y0 - h - 3, nacht ? '#2E4436' : '#9AC86A');
+  }
+  // een vuurtorentje op de rots
+  const vx = 1500 - cx; if (vx > -20 && vx < W + 20) { const vy = y0 - 108; T.rect(vx - 4, vy - 26, 9, 26, nacht ? '#8A8A9A' : '#F4F1E8'); T.rect(vx - 4, vy - 18, 9, 4, '#C8323C'); T.rect(vx - 5, vy - 30, 11, 4, '#2A2A30'); if (nacht) { T.gloed(vx, vy - 28, 24, '#FFE9A8', .5); } T.rect(vx - 2, vy - 29, 5, 2, nacht ? '#FFE9A8' : '#9FD0E8'); }
+  // meeuwen
+  for (let i = 0; i < 3; i++) { const mx = ((i * 280 + t * (6 + i)) % (W + 80)) - 40, my = y0 - 130 - i * 14 + Math.sin(t * 2 + i) * 3; T.lijn(mx - 3, my, mx, my + 2, nacht ? '#8A8A9A' : '#4A4A52'); T.lijn(mx, my + 2, mx + 3, my, nacht ? '#8A8A9A' : '#4A4A52'); }
+}
+function tekenGrotAchter(ctx, Z, cx, cy, W, H, t) {
+  const T = tekenaar(ctx);
+  // de grotwand achter de gangen: donker krijt met lagen
+  for (let y = 0; y < H; y += 3) {
+    const wy = cy + y; if (wy < 20) continue;
+    const x0 = Math.max(0, Math.round(Z.klif(wy) - cx)); if (x0 >= W) continue;
+    const band = Math.floor(wy / 9) % 3;
+    ctx.fillStyle = mix(['#3A3842', '#34323C', '#403E48'][band], waterBij(wy), .25); ctx.fillRect(x0, y, W - x0, 3);
+  }
+  // de luchtzakken: lucht boven de waterlijn, en het golvende wateroppervlak
+  for (const p of Z.lucht) {
+    const x0 = p.x0 - cx, x1 = p.x1 - cx, wl = p.wl - cy; if (x1 < 0 || x0 > W || wl < -60 || p.top - cy > H) continue;
+    for (let y = p.top - cy; y < wl; y++) { ctx.fillStyle = mix('#4A5868', '#7A8C9A', (y - (p.top - cy)) / Math.max(1, wl - (p.top - cy))); ctx.fillRect(x0, y, x1 - x0, 1); }
+    for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) { const g = Math.round(Math.sin((x + cx) / 6 + t * 3) * 1); T.rect(x, wl + g, 1, 1, '#C8F0FF'); T.px(x, wl + g + 1, '#6AA8C0'); }
+    if (((t * 1.3 + p.x0) % 2.4) < .05) bubbels(p.x0 + (p.x1 - p.x0) * Math.random(), p.wl + 2, 1);
+  }
+}
+function tekenGrotVersier(ctx, Z, cx, cy, W, H, t) {
+  const T = tekenaar(ctx);
+  for (const v of Z.grotVersier) {
+    const sx = Math.round(v.x - cx), sy = Math.round(v.y - cy); if (sx < -40 || sx > W + 40 || sy < -60 || sy > H + 60) continue;
+    if (v.t === 'kristal') {
+      const kl = KRISTAL_KL[v.kl], puls = .5 + .5 * Math.sin(t * 1.5 + v.f);
+      for (let i = 0; i < v.n; i++) {
+        const ox = (i - (v.n - 1) / 2) * 4 + (i % 2 ? 1 : 0), h = Math.round(v.h * (.55 + ((i * 37 + v.kl) % 5) / 10)), w = 2 + (i % 2), lean = (i - (v.n - 1) / 2) * .25;
+        for (let s = 0; s < h; s++) { const yy = sy - v.dir * s, xx = sx + ox + Math.round(lean * s), top = s > h - 3; T.rect(xx - (top ? 0 : w >> 1), yy, top ? 1 : w, 1, s % 4 === 0 ? kl[1] : mix(kl[2], kl[0], s / h)); }
+        T.px(sx + ox + Math.round(lean * h), sy - v.dir * h, kl[1]);
+      }
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; T.gloed(sx, sy - v.dir * v.h * .5, 10 + v.h * .6, kl[0], .22 + .14 * puls, 4); ctx.restore();
+    } else if (v.t === 'druip') {
+      for (let s = 0; s < v.h; s++) { const w = Math.max(1, Math.round((1 - s / v.h) * 4)); T.rect(sx - (w >> 1), sy + s, w, 1, mix('#D8D2C2', '#9A968A', s / v.h)); }
+      if (((t + v.x) % 3) < .08) T.px(sx, sy + v.h + 2, '#BFE8F4');
+    } else if (v.t === 'hart') {
+      const puls = .5 + .5 * Math.sin(t * 1.1);
+      for (let i = 0; i < 7; i++) { const a = -Math.PI / 2 + (i - 3) * .28, l = 26 + (3 - Math.abs(i - 3)) * 9, kl = KRISTAL_KL[i % 5]; for (let s = 0; s < l; s++) { const xx = sx + Math.cos(a) * s, yy = sy + Math.sin(a) * s; T.rect(xx - 1, yy, 3, 1, s > l - 3 ? kl[1] : mix(kl[2], kl[0], s / l)); } }
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; T.gloed(sx, sy - 22, 52, '#BFF4FF', .3 + .18 * puls, 6); ctx.restore();
+    }
+  }
+  // de hangende spooknetten in De Netgrot (weg zodra de rog vrij is)
+  if (!ST.reuzen.spooknetrog) for (const n of Z.netten) {
+    const sx = n.x - cx, top = n.top - cy; if (sx < -30 || sx > W + 30 || top > H || top + n.l < 0) continue;
+    for (let s = 0; s < n.l; s += 2) { const g = Math.sin(t * .8 + n.f + s / 20) * (s / n.l) * 6; for (let k = -6; k <= 6; k += 4) if (((s + k + 40) % 8) < 2 || k === -6 || k === 6) T.px(sx + k + g, top + s, (s + k) % 3 ? '#B8B2A0' : '#D8D2C0'); }
+  }
+  // de zingende kristallen van het lied
+  if (D.lied) for (const d of D.dingen) if (d.soort === 'kristal') {
+    const sx = Math.round(d.x - cx), sy = Math.round(d.y - cy); if (sx < -30 || sx > W + 30 || sy < -60 || sy > H + 20) continue;
+    const kl = KRISTAL_KL[d.n], l = D.lied.licht[d.n], h = 18 + d.n * 2;
+    for (let s = 0; s < h; s++) { const w = s > h - 4 ? 1 : 3; T.rect(sx - (w >> 1), sy - s, w, 1, l > .1 ? (s % 3 ? kl[1] : '#FFFFFF') : (s % 4 === 0 ? kl[1] : mix(kl[2], kl[0], s / h))); }
+    T.rect(sx - 4, sy - 2, 9, 2, kl[2]);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; T.gloed(sx, sy - h * .5, 14 + l * 22, kl[0], .25 + l * .65, 5); ctx.restore();
+  }
+  // de kristallen deur en de gebarsten wanden
+  for (const d of Z.deuren) {
+    if (!Z.dicht[d.id]) continue;
+    const [x0, y0, x1, y1] = d.r; if (x1 - cx < -20 || x0 - cx > W + 20 || y1 - cy < -20 || y0 - cy > H + 20) continue;
+    if (d.mat === 'GLAS') { ctx.save(); ctx.globalCompositeOperation = 'lighter'; T.gloed((x0 + x1) / 2 - cx, (y0 + y1) / 2 - cy, 40, '#9FE8F4', .22 + .1 * Math.sin(t * 2), 5); ctx.restore(); }
+    if (d.mat === 'BREUK' && D.breukHits && D.breukHits[d.id]) { const n = D.breukHits[d.id], mx = (x0 + x1) / 2 - cx, my = (y0 + y1) / 2 - cy; for (let i = 0; i < n * 3; i++) { const a = i * 2.1, l = 8 + i * 3; T.lijn(mx, my, mx + Math.cos(a) * l, my + Math.sin(a) * l * .8, '#2A2620'); } }
+  }
+}
+// lichtbronnen in het donker (gaten in de donkere laag): kristallen, de zingende kristallen, de deur en het hart
+function grotLichten(licht, cx, cy, t) {
+  const Z = D.Z;
+  for (const l of Z.lichten) { const x = l.x - cx, y = l.y - cy; if (x > -60 && x < BEELD.W + 60 && y > -60 && y < BEELD.H + 60) licht(x, y, l.r, l.s); }
+  if (D.lied) for (const d of D.dingen) if (d.soort === 'kristal') { const x = d.x - cx, y = d.y - 10 - cy; if (x > -80 && x < BEELD.W + 80 && y > -80 && y < BEELD.H + 80) licht(x, y, 26 + D.lied.licht[d.n] * 50, .55 + D.lied.licht[d.n] * .4); }
+  if (Z.dicht.kristalpoort) licht(GROT.POORT_K.x - cx, GROT.POORT_K.y - cy, 44 + Math.sin(t * 2) * 4, .55);
+  if (Z.hart) licht(Z.hart.x - cx, Z.hart.y - 22 - cy, 120 + Math.sin(t * 1.1) * 10, .7);
+  for (const p of Z.lucht) licht((p.x0 + p.x1) / 2 - cx, p.wl - 10 - cy, 40, .35);
+}
+
 // ===================== DE AVOND IN HET ROMMELKOMBUIS =====================
 let A = null;
 const GANG_Y = 306, DEUR_PLEK = { x: 604, y: 262 };
@@ -4814,12 +5536,15 @@ function bordenVoor(menu, pool) {
 const nogBestellen = () => A.gasten.filter(g => !g.bon && (g.staat === 'loopt' || g.staat === 'zit')).length + A.wacht.reduce((n, w) => n + (w.max || 1), 0);
 // borden die nog niet besproken zijn
 const bordenOver = () => bordenVoor(A.menu, voorraadPorties()) - nogBestellen();
-function sfeer() { return ST.decor.reduce((a, id) => a + (VONDSTEN[id] ? VONDSTEN[id].sfeer : 0), 0) + ST.rest.linnen * 4; }
+function sfeer() { return ST.decor.reduce((a, id) => a + (VONDSTEN[id] ? VONDSTEN[id].sfeer : 0), 0) + ST.rest.linnen * 4 + inrichtSfeer(); }
+const inrichtSfeer = () => Object.keys(INRICHTING).reduce((a, k) => a + inrNu(k).sfeer, 0);
 
 function startAvond(menu) {
-  const nTafels = restW('tafels'), r = rng(ST.dag * 31337);
+  // bij regen blijft het terras aan het water dicht
+  const regen = typeof weerVandaag === 'function' && weerVandaag().id === 'regen', r = rng(ST.dag * 31337);
+  const tafels = KB.TAFELS.slice(0, restW('tafels')).map((tf, i) => Object.assign({ nr: i + 1, stoel: [null, null], dicht: !!(tf.water && regen) }, tf)), nTafels = tafels.filter(tf => !tf.dicht).length;
   A = {
-    r, t: 0, uur: 17, menu, porties: {}, tafels: KB.TAFELS.slice(0, nTafels).map((tf, i) => Object.assign({ nr: i + 1, stoel: [null, null] }, tf)),
+    r, t: 0, uur: 17, menu, porties: {}, tafels, water: tafels.some(tf => tf.water), regen,
     gasten: [], bonnen: [], uitgifte: [], wacht: [], volgendeBon: 1,
     ruben: { x: 120, y: KB.KEUKEN_Y, pad: [], taak: null, taken: [], draagt: [], kijk: 1, loopt: false, pose: 'staan', poseT: 0 },
     noor: ST.pers.noor ? { x: 200, y: 290, pad: [], taak: null, draagt: null, kijk: -1 } : null,
@@ -4827,7 +5552,7 @@ function startAvond(menu) {
     kat: null, katGeweest: false, snel: 1, op: [], omzet: 0, fooi: 0, bediend: 0, boos: 0, tevreden: [], vertrokken: 0, mini: null, tempo: 1,
     deurOpen: 0, munten: [], teksten: [], klaar: false, bijzonder: DAG.bijzondereGast ? DAG.bijzondereGast() : null,
     bij: ST.menuBij && ST.menuBij in ST.recepten && groentePorties(ST.menuBij) > 0 ? ST.menuBij : null, toe: ST.menuToe && ST.menuToe in ST.recepten && groentePorties(ST.menuToe) > 0 ? ST.menuToe : null, metBij: 0, toetjes: 0, toeOmzet: 0,
-    zaal: null, hulp: maakDoek(1000, 360), buiten: maakDoek(1000, 360), laag: maakDoek(1000, 360), wand: null,
+    zaal: null, hulp: maakDoek(KB.BREED, 360), buiten: maakDoek(KB.BREED, 360), laag: maakDoek(KB.BREED, 360), wand: null,
   };
   const pool = voorraadPorties();
   for (const id of menu) A.porties[id] = portiesVoor(id, pool);
@@ -4842,7 +5567,7 @@ function startAvond(menu) {
   bouwZaal();
 }
 function bouwZaal() {
-  A.zaal = tekenKombuisZaal({ terras: restW('tafels') > 6 });
+  A.zaal = tekenKombuisZaal({ terras: A.tafels.some(tf => tf.terras), water: A.water, muur: inrNu('muur').id, vloer: inrNu('vloer').id });
   bouwWand();
 }
 function bouwWand() {
@@ -4855,13 +5580,13 @@ function tekenDecor(ctx) {
   ST.decor.slice(0, DECOR_PLEKKEN.length).forEach((id, i) => { if (!VONDSTEN[id]) return; const [x, y] = DECOR_PLEKKEN[i]; ctx.drawImage(vondstDoek(id), x - 9, y - 15); });
 }
 // vrije stoel zoeken
-function vrijeTafel(n) { const vrij = A.tafels.filter(t => !t.stoel[0] && !t.stoel[1]); if (vrij.length) return vrij[Math.floor(A.r() * vrij.length)]; if (n === 1) { const half = A.tafels.filter(t => !t.stoel[0] || !t.stoel[1]); if (half.length) return half[0]; } return null; }
+function vrijeTafel(n) { const vrij = A.tafels.filter(t => !t.dicht && !t.stoel[0] && !t.stoel[1]); if (vrij.length) return vrij[Math.floor(A.r() * vrij.length)]; if (n === 1) { const half = A.tafels.filter(t => !t.dicht && (!t.stoel[0] || !t.stoel[1])); if (half.length) return half[0]; } return null; }
 function zitPlek(tf, z) { return { x: tf.x + (z ? 26 : -26), y: tf.y }; }
 // ---- looproutes: de kortste weg over de vloer, om de tafels en de toonbank heen, met vloeiende bochten.
 // De vloer is een raster van VC pixels: de keuken achter de toonbank, de klapdeur, en de zaal (met terras) zonder de tafels.
 const VC = 4;
 function maakVloer() {
-  const terras = A.tafels.some(t => t.terras), x1 = terras ? 836 : 632, y0 = 236, y1 = 352;
+  const terras = A.tafels.some(t => t.terras), x1 = A.water ? 1016 : terras ? 836 : 632, y0 = 236, y1 = 352;
   const nx = Math.ceil(x1 / VC), ny = Math.ceil((y1 - y0) / VC), vrij = new Uint8Array(nx * ny), dicht = new Uint8Array(nx * ny);
   const vak = (ax, ay, bx, by, v) => { for (let j = Math.max(0, Math.floor((ay - y0) / VC)); j <= Math.min(ny - 1, Math.floor((by - y0) / VC)); j++) for (let i = Math.max(0, Math.floor(ax / VC)); i <= Math.min(nx - 1, Math.floor(bx / VC)); i++) vrij[j * nx + i] = v; };
   vak(18, 240, 175, 256, 1);                 // keuken, achter de toonbank
@@ -4995,7 +5720,7 @@ function updateGasten(dt) {
       GELUID.sfx('klik'); werkBonnen();
     }
     else if (g.staat === 'wacht') {
-      g.geduld = Math.max(0, 1 - g.t / (g.geduldMax * (persNv('noor') >= 5 ? 1.18 : 1))); // Noor als gastvrouw: wachtende gasten blijven langer geduldig
+      g.geduld = Math.max(0, 1 - g.t / (g.geduldMax * (persNv('noor') >= 5 ? 1.18 : 1) * (inrNu('stoel').geduld || 1))); // Noor als gastvrouw (en zachte stoelen): wachtende gasten blijven langer geduldig
       if (g.geduld <= 0 && g.bon && g.bon.toetje) { g.staat = 'weg'; g.pad = padNaar(g, DEUR_PLEK); tekstR(g.x, g.y - 70, 'Dan maar geen toetje.', '#FBF6E9'); verwijderBon(g.bon); vrijStoel(g); }
       else if (g.geduld <= 0) { g.staat = 'weg'; g.boos = true; g.pad = padNaar(g, DEUR_PLEK); A.boos++; A.vertrokken++; GELUID.sfx('boos'); tekstR(g.x, g.y - 70, 'Dat duurt te lang!', '#FFB0A8'); verwijderBon(g.bon); vrijStoel(g); }
     }
@@ -5042,7 +5767,7 @@ function vrijStoel(g) { if (g.tf.stoel[g.z] === g) g.tf.stoel[g.z] = null; }
 function verwijderBon(b) { if (!b) return; A.bonnen = A.bonnen.filter(x => x !== b); A.uitgifte = A.uitgifte.filter(x => x !== b); werkBonnen(); }
 function betaal(g) {
   const b = g.bon, prijs = prijsVan(b.id) + (b.bij ? prijsVan(b.bij) : 0), wachtScore = klem(g.bediendGeduld, 0, 1), tevr = klem(b.kw * .62 + wachtScore * .38 + (b.bij ? .04 : 0), 0, 1);
-  const fooi = Math.round(prijs * tevr * .45 * (1 + ST.rest.linnen * .25) * (g.bijzonder ? 1.5 : 1) * (b.doorNoor && persNv('noor') >= 3 ? 1.15 : 1) * (ST.pers.noor && harten('noor') >= 4 ? 1.05 : 1));
+  const fooi = Math.round(prijs * tevr * .45 * (1 + ST.rest.linnen * .25) * (g.bijzonder ? 1.5 : 1) * (b.doorNoor && persNv('noor') >= 3 ? 1.15 : 1) * (ST.pers.noor && harten('noor') >= 4 ? 1.05 : 1) * (inrNu('lamp').fooi || 1));
   A.omzet += prijs; A.fooi += fooi;
   if (b.toetje) { A.toetjes++; A.toeOmzet += prijs + fooi; } else { A.bediend++; A.tevreden.push(tevr); }
   ST.recepten[b.id] = (ST.recepten[b.id] || 0) + 1; if (b.bij) ST.recepten[b.bij] = (ST.recepten[b.bij] || 0) + 1;
@@ -5327,13 +6052,13 @@ SCENES.restaurant = {
 // ---- tekenen
 function tekenAvond(ctx, W, H) {
   const t = A.t + TIJD * 0, R = A.ruben;
-  // camera: volg Ruben als het scherm smaller is dan de zaal; op brede schermen zie je de voorraadkamer en de hal
-  const OX = KB.LINKS, links = -KB.LINKS, rechts = KB.W + KB.RECHTS, midden = A.tafels.length > 6 ? 420 : 320;
+  // camera: op brede schermen zie je alles (ook de voorraadkamer en de hal); past niet elke tafel in beeld, dan volgt hij Ruben
+  const OX = KB.LINKS, links = -KB.LINKS, rechts = KB.W + KB.RECHTS + (A.water ? KB.WATER : 0), midden = A.tafels.length > 6 ? 420 : 320, verst = Math.max(...A.tafels.map(tf => tf.x)) + 46;
   if (W >= rechts - links) A.cam = links - (W - (rechts - links)) / 2;
-  else { const doel = W >= 640 ? midden - W / 2 : R.x - W / 2; A.cam = klem(Math.round(A.cam === undefined ? doel : A.cam + (doel - A.cam) * .08), links, rechts - W); }
+  else { const doel = W >= 640 && W >= verst ? Math.max(midden - W / 2, verst - W) : R.x - W / 2; A.cam = klem(Math.round(A.cam === undefined ? doel : A.cam + (doel - A.cam) * .08), links, rechts - W); }
   A.camY = H >= 360 ? -Math.round((H - 360) / 2) : Math.round((360 - H) * .85);
   const L = A.laag.ctx, T = tekenaar(L);
-  L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, 1000, 360); L.translate(OX, 0);
+  L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, KB.BREED, 360); L.translate(OX, 0);
   L.drawImage(A.zaal, -OX, 0); L.drawImage(A.wand, 0, 0); tekenAquarium(L, t);
   tekenWarmlampen(L, t);
   // fornuis: vlammetjes en pannen
@@ -5353,20 +6078,24 @@ function tekenAvond(ctx, W, H) {
   lijst.push({ y: KB.TOONBANK_Y, f: () => { tekenToonbank(L, { vitrine: vitrineVissen(), deurOpen: R.x > 160 && R.x < 192 && R.y < 262 ? 1 : 0 }, t); A.uitgifte.slice(0, 4).forEach((b, i) => L.drawImage(bordMet(RECEPTEN[b.id].plaatje), 108 + i * 14, 204)); } });
   if (A.kat) lijst.push({ y: A.kat.y, f: () => tekenKat(L, A.kat, t) });
   lijst.sort((a, b) => a.y - b.y).forEach(o => o.f());
-  // voorgrond: hanglampen en het uithangbord
-  for (const lx of [262, 474]) tekenHanglamp(L, lx, 30, '#2E6A4A', t, true);
-  T.lijn(330, 0, 334, 14, '#5A5A5A'); T.lijn(424, 0, 420, 14, '#5A5A5A'); T.rect(316, 14, 122, 22, '#5A3A22'); T.rect(318, 16, 118, 18, '#7A4E2D'); T.rect(318, 16, 118, 1, '#A0683D'); letters(L, 'HET ROMMELKOMBUIS', 377, 22, '#F2DDA0', 1, 'm', '#3A2414');
+  // regen op het terras
+  if (A.water && A.regen) { const T2 = tekenaar(L), x0 = KB.W + KB.RECHTS; L.globalAlpha = .5; for (let i = 0; i < 70; i++) { const rx = x0 + ((hashf(i, 21) * KB.WATER + t * 30) % KB.WATER), ry = 60 + ((hashf(i, 22) * 300 + t * 280) % 300); T2.lijn(rx, ry, rx - 2, ry + 6, '#C9D8E8'); } for (let i = 0; i < 6; i++) { const f = (t * .7 + i / 6) % 1, px = x0 + 20 + hashf(i, 23) * 150, py = 240 + hashf(i, 24) * 110; L.globalAlpha = .5 * (1 - f); T2.ovaal(px, py, 2 + f * 7, 1 + f * 2, '#C9D8E8'); T2.ovaal(px, py, 1 + f * 6, f * 2, '#7A6E5E'); } L.globalAlpha = 1; }
+  // voorgrond: de lampen (per stijl) en het uithangbord
+  tekenZaalLampen(L, t);
+  tekenUithangbord(L);
   // licht
-  const lampen = [{ x: 262, y: 42, r: 70, kl: '#FFD9A0', kegel: 150, a: .3 }, { x: 474, y: 42, r: 70, kl: '#FFD9A0', kegel: 150, a: .3 }, { x: 136, y: 205, r: 30, kl: '#FF9A5A', a: .4 }, { x: 70, y: 150, r: 40, kl: '#FFB070', a: .3 }, { x: 377, y: 26, r: 60, kl: '#FFE0A0', a: .15 }, { x: 214, y: 124, r: 34, kl: '#FFD9A0', a: .35 }, { x: 562, y: 124, r: 34, kl: '#FFD9A0', a: .35 }];
-  for (const tf of A.tafels) lampen.push({ x: tf.x + 1, y: tf.y - 38, r: 22, kl: '#FFC070', kaars: true, a: .4 });
+  const lampen = [...zaalLampLicht(), { x: 136, y: 205, r: 30, kl: '#FF9A5A', a: .4 }, { x: 70, y: 150, r: 40, kl: '#FFB070', a: .3 }, { x: 377, y: 26, r: 60, kl: '#FFE0A0', a: .15 }, { x: 214, y: 124, r: 34, kl: '#FFD9A0', a: .35 }, { x: 562, y: 124, r: 34, kl: '#FFD9A0', a: .35 }];
+  for (const tf of A.tafels) if (!tf.dicht) lampen.push({ x: tf.x + 1, y: tf.y - 38, r: 22, kl: '#FFC070', kaars: true, a: .4 });
   for (let x = 192; x < 640; x += 24) { const f = ((x - 186) % 76) / 76; lampen.push({ x, y: 41 + Math.round(Math.sin(f * Math.PI) * 6), r: 13, kl: '#FFD58A', a: .22 }); }
   lampen.push({ x: 440, y: 168, r: 30, kl: '#7FE0F0', a: .3 });
   if (A.tafels.length > 6) for (const lx of [690, 790]) lampen.push({ x: lx, y: 60, r: 50, kl: '#FFE08A', a: .2 });
+  if (A.water) { const x0 = KB.W + KB.RECHTS; for (const lx of [x0 + 5, x0 + KB.WATER - 7]) lampen.push({ x: lx, y: 68, r: 34, kl: '#FFE08A', a: .35 }); for (let x = x0 + 13; x < x0 + KB.WATER - 6; x += 14) { const f = (x - x0 - 6) / (KB.WATER - 12); lampen.push({ x, y: 76 + Math.round(Math.sin(f * Math.PI) * 18), r: 14, kl: '#FFD58A', a: .25 }); } }
   for (const l of lampen) l.x += OX;
   L.setTransform(1, 0, 0, 1, 0, 0);
-  const BC = A.buiten.ctx; BC.setTransform(1, 0, 0, 1, 0, 0); BC.clearRect(0, 0, 1000, 360); BC.fillStyle = '#1A100A'; BC.fillRect(0, 0, 1000, 360); BC.translate(OX, 0); tekenBuiten(BC, A.uur, t); BC.setTransform(1, 0, 0, 1, 0, 0);
+  const BC = A.buiten.ctx; BC.setTransform(1, 0, 0, 1, 0, 0); BC.clearRect(0, 0, KB.BREED, 360); BC.fillStyle = '#1A100A'; BC.fillRect(0, 0, KB.BREED, 360); BC.translate(OX, 0); tekenBuiten(BC, A.uur, t, A.regen); BC.setTransform(1, 0, 0, 1, 0, 0);
   tekenLicht(A.laag.cv, A.hulp.cv, A.uur, t, lampen);
   BC.drawImage(A.laag.cv, 0, 0);
+  if (!A.water) { BC.fillStyle = '#2A1A10'; BC.fillRect(OX + KB.W + KB.RECHTS, 0, KB.WATER, 360); } // zonder terras houdt de wereld op na de hal of de serre
   // naar het scherm (boven en onder de zaal: plafond en vloer lopen door)
   ctx.fillStyle = '#2A1A10'; ctx.fillRect(0, 0, W, H);
   if (A.camY < 0) { const top = -A.camY; for (let x = -((A.cam + 3000) % 104); x < W; x += 104) ctx.fillStyle = '#1E120A', ctx.fillRect(x, 0, 26, top); ctx.fillStyle = '#6E4426'; ctx.fillRect(0, top + 360, W, H - top - 360); ctx.fillStyle = '#5A3620'; for (let y = top + 366; y < H; y += 12) ctx.fillRect(0, y, W, 1); }
@@ -5452,6 +6181,7 @@ function tekenLoper(L, o, x, y, kijk, loopt, t, uitdr, gang) {
 }
 function tekenTafel(L, tf, t) {
   const F = tf.y, stoel = stoelPix(), T = tekenaar(L);
+  if (tf.water) tekenParasol(T, tf, t);
   L.drawImage(stoel, tf.x - 34, F - 39); L.drawImage(gespiegeld(stoel), tf.x + 16, F - 39);
   for (const z of [0, 1]) {
     const g = tf.stoel[z]; if (!g || g.staat === 'loopt' || g.staat === 'weg') continue;
@@ -5460,6 +6190,7 @@ function tekenTafel(L, tf, t) {
     L.drawImage(cv, Math.round(z ? tf.x + 25 - (cv.width - 18) : tf.x - 25 - 18), Math.round(F - 18 - sp.zitHoogte));
   }
   L.drawImage(tafelPix(ST.rest.linnen ? 'linnen' : 'ruit'), tf.x - 22, F - 33);
+  if (tf.dicht) { T.rect(tf.x - 3, F - 27, 9, 9, '#FBF6E9'); T.rect(tf.x - 3, F - 19, 9, 1, '#B8AE98'); letters(L, 'X', tf.x + 2, F - 26, '#5A5F68', 1, 'm'); return; } // dicht bij regen: niet gedekt
   for (const z of [0, 1]) {
     const g = tf.stoel[z], px = tf.x - 10 + z * 20;
     if (g && (g.staat === 'eet' || g.staat === 'betaalt') && g.bon) L.drawImage(bordMet(RECEPTEN[g.bon.id].plaatje), tf.x - 22 + z * 20, F - 42);
@@ -5472,6 +6203,22 @@ function tekenTafel(L, tf, t) {
   // tafelnummer op een kaartje aan het kleed
   T.rect(tf.x - 3, F - 27, 9, 9, '#FBF6E9'); T.rect(tf.x - 3, F - 19, 9, 1, '#B8AE98'); T.rect(tf.x + 1, F - 28, 1, 1, '#C9A040');
   letters(L, String(tf.nr), tf.x + 2, F - 26, '#A82A35', 1, 'm');
+}
+function tekenUithangbord(L) {
+  const T = tekenaar(L);
+  T.lijn(330, 0, 334, 14, '#5A5A5A'); T.lijn(424, 0, 420, 14, '#5A5A5A'); T.rect(316, 14, 122, 22, '#5A3A22'); T.rect(318, 16, 118, 18, '#7A4E2D'); T.rect(318, 16, 118, 1, '#A0683D'); letters(L, 'HET ROMMELKOMBUIS', 377, 22, '#F2DDA0', 1, 'm', '#3A2414');
+}
+// een parasol bij een tafel op het terras (dichtgeklapt als het regent)
+function tekenParasol(T, tf, t) {
+  const x = tf.x + 1, F = tf.y, top = F - 104;
+  T.rect(x - 1, top + 4, 2, 72, '#E9E2D0'); T.rect(x - 1, top + 4, 1, 72, '#FFFFFF');
+  if (tf.dicht) {
+    for (let y = 0; y < 28; y++) { const w = Math.max(1, Math.round(3.2 * Math.sin((y + 2) / 30 * Math.PI))); T.rect(x - w, top + 2 + y, w * 2, 1, Math.floor(y / 4) % 2 ? '#F4F1E8' : '#C8323C'); }
+    T.rect(x - 3, top + 16, 6, 1, '#5A3A22'); T.px(x, top, '#C9A040'); return;
+  }
+  for (let y = 0; y < 12; y++) { const w = Math.round(6 + y * 2.6); for (let i = -w; i <= w; i++) T.px(x + i, top + y, Math.floor((i + 40) / 9) % 2 ? '#F4F1E8' : '#C8323C'); }
+  for (let i = -36; i <= 36; i++) { const s = Math.floor((i + 40) / 9) % 2, golf = (i + 40) % 9 < 5 ? 1 : 0; T.px(x + i, top + 12, s ? '#D8D0BE' : '#9E1E2A'); if (golf) T.px(x + i, top + 13, s ? '#D8D0BE' : '#9E1E2A'); }
+  T.rect(x - 1, top - 3, 3, 3, '#C9A040'); T.px(x, top - 4, '#F0D070');
 }
 function tekenKat(L, K, t) {
   const T = tekenaar(L), x = Math.round(K.x), y = Math.round(K.y), s = K.kijk < 0 ? -1 : 1, stap = Math.floor(t * 8) % 2;
@@ -6615,6 +7362,7 @@ const DAG = {
   async boot() {
     if (ST.duiken >= 2) { await vraag(`<h2>De Zeekoe</h2><p>“Voor vandaag zit het er op, jongen. Het getij keert. Zet je restaurant maar klaar.”</p><p class="klein">Je kunt twee keer per dag duiken${ST.uit.lamp ? ', en na de dienst nog een nachtduik maken' : ''}.</p>`, [{ tekst: 'Oké', waarde: 1, soort: 'hoofd' }]); return; }
     if (ST.hfd === 6 && !ST.vlag.h6 && typeof verhaalRifBegin === 'function') await verhaalRifBegin(); // het begin van hoofdstuk 6 (met de camera)
+    if (ST.hfd === 8 && !ST.vlag.h8 && typeof verhaalGrotBegin === 'function') await verhaalGrotBegin(); // en van hoofdstuk 8, zodat de grotten op de kaart staan
     const stek = await this.zeekaart(false);
     if (!stek) return;
     if (typeof verhaalVoorDuik === 'function') await verhaalVoorDuik(stek);
@@ -6690,7 +7438,7 @@ const DAG = {
     const opdr = [];
     for (const o of FOTO_OPDR) {
       if (ST.opdr[o.id]) continue;
-      const ok = o.soort ? (fotos[o.soort] || 0) >= (o.sterren || 1) : o.aantal ? Object.keys(fotos).length >= o.aantal : o.mantel ? mantelKlaar : false;
+      const ok = o.soort ? (fotos[o.soort] || 0) >= (o.sterren || 1) : o.aantal ? Object.keys(fotos).length >= o.aantal : o.mantel ? mantelKlaar : o.rog ? (D.fotoRog || 0) >= 2 : false;
       if (ok) { ST.opdr[o.id] = 1; ST.geld += o.beloning; opdr.push(o.id); }
     }
     for (const [s, n] of Object.entries(vis)) { if (!ST.boek[s]) nieuw.push(s); ST.boek[s] = (ST.boek[s] || 0) + n; const p = SOORTEN[s].porties * n; const v = ST.voorraad.find(q => q[0] === s && q[2] === ST.dag); if (v) v[1] += p; else ST.voorraad.push([s, p, ST.dag]); }
@@ -6816,11 +7564,13 @@ const DAG = {
     const rifNieuw = stekOpen('rif') && !ST.vlag.rifKrant; if (rifNieuw) ST.vlag.rifKrant = 1;
     const khNieuw = stekOpen('kerkhof') && !ST.vlag.khKrant; if (khNieuw) ST.vlag.khKrant = 1;
     const dijkNieuw = dijkOpen() && !ST.vlag.gerrit && !ST.vlag.dijkKrant; if (dijkNieuw) ST.vlag.dijkKrant = 1;
+    const grotNieuw = stekOpen('grot') && !ST.vlag.grotKrant; if (grotNieuw) ST.vlag.grotKrant = 1;
     await vraag(`<p class="klein" style="margin:0">De Zilte Smulkrant · dag ${ST.dag}</p><h2 style="font-family:Georgia,serif;font-size:1.6rem;margin:.1rem 0 .4rem;border-bottom:3px double #231A26">Nieuws uit Schelpkerke</h2>
       <p><b>Weer:</b> ${w.naam}. ${w.id === 'zon' ? 'Er komen vanavond vast veel mensen eten.' : w.id === 'regen' ? 'Wie gaat er nou uit eten in de regen? Een paar dappere mensen.' : 'Een gewone dag aan de kust.'}</p>
       ${b ? `<p><b>Vanavond:</b> ${b.krant}</p>` : ''}
       ${khNieuw ? '<p><b>Nieuw aan de kade:</b> in het smalste huisje van Schelpkerke opent Mevrouw Snuffel De Rommelzolder. Ze koopt alles wat de zee teruggeeft. En schipper Trien vaart voortaan ook naar het Scheepskerkhof.</p>' : ''}
       ${dijkNieuw ? '<p><b>Gezocht:</b> Opa Gerrit zoekt iemand voor zijn moestuin aan de dijk. „Mijn knieën willen niet meer.” Loop vanaf de haven naar links, langs het kombuis.</p>' : ''}
+      ${grotNieuw ? '<p><b>Op de zeekaart:</b> schipper Trien vaart voortaan ook naar de witte kalkrots. In de grotten eronder is het pikdonker, en volgens de oude vissers spookt het er.</p>' : ''}
       ${rifNieuw ? '<p><b>Op de zeekaart:</b> schipper Trien vaart weer naar Het Mosselrif, waar haar opa vroeger mosselen viste. Ondiep, helder, en vol leven.</p>' : ''}
       ${rec ? `<p><b>Gisteren in Het Rommelkombuis:</b> ${sterrenTekst(rec.s)} “${rec.t}”</p>` : '<p><b>Nieuw aan de kade:</b> in de oude visafslag opent een nieuw restaurant. De kok duikt zelf zijn vis op!</p>'}
       <p class="klein">${TIPS[(ST.dag - 1) % TIPS.length]}</p>`, [{ tekst: 'Aan de slag', waarde: 1, soort: 'hoofd' }]);
@@ -6887,13 +7637,15 @@ function niveauRegels(groep, staat, metPrijs) {
 DAG.winkel = async function (tab = 'duik') {
   return new Promise(res => {
     const toon = () => {
-      const tabs = [['duik', "Trien's duikspullen"], ['restaurant', 'Restaurant'], ['personeel', 'Personeel']];
+      const tabs = [['duik', "Trien's duikspullen"], ['restaurant', 'Restaurant'], ['inrichten', 'Inrichten'], ['personeel', 'Personeel']];
       let inhoud = '';
+      if (tab === 'inrichten') inhoud = inrichtHtml();
       if (tab === 'duik') inhoud = `<p>“Goeie spullen voor een eerlijke prijs. Zo deed mijn vader het ook al.”</p><div class="lijst">${niveauRegels(UITRUSTING, ST.uit)}</div>`;
       if (tab === 'restaurant') inhoud = `<p class="klein">Verbouwen gebeurt 's nachts: morgen staat het klaar. (Nee hoor, meteen.)</p><div class="lijst">${niveauRegels(RESTAURANT, ST.rest)}</div>`;
       if (tab === 'personeel') inhoud = `<div class="lijst">${Object.entries(PERSONEEL).map(([k, p]) => `<div class="regel">${plaatjeHtml(portret(k), 2)}<div><div class="naam">${p.naam} <span class="klein">${p.rol}</span></div><div class="klein">${p.uitleg} Loon: ${geldTekst(p.loon)} per avond.</div>${ST.pers[k] ? trainingHtml(k) : ''}</div><div class="meer">${ST.pers[k] ? trainingKnop(k) + `<button class="knop" type="button" data-ontsla="${k}">Ontslaan</button>` : `<button class="knop ${ST.geld >= p.prijs ? 'goud' : ''}" type="button" data-neem="${k}" ${ST.geld >= p.prijs ? '' : 'disabled'}>Aannemen ${geldTekst(p.prijs)}</button>`}</div></div>`).join('')}</div><p class="klein">Aannemen kost een eenmalig bedrag (een schort, sleutels, een welkomstvlaai), daarna betaal je elke avond loon. Elke avond dat iemand werkt, levert ervaring op; met genoeg ervaring kun je een training betalen. Dan wordt je personeel sneller en beter, met op niveau 3 en 5 een talent erbij.</p>`;
       const k = paneel(`<h2>Verbeteren</h2><p><b>${geldTekst(ST.geld)}</b> in de pot</p><div class="tabs" role="tablist">${tabs.map(([id, n]) => `<button role="tab" type="button" data-tab="${id}" aria-selected="${tab === id}">${n}</button>`).join('')}</div>${inhoud}<div class="rij"><button class="knop hoofd" type="button" id="w-klaar">Klaar</button></div>`, { breed: true });
       if (tab === 'personeel') vulPlaatjes(k, Object.keys(PERSONEEL).map(n => portret(n)));
+      if (tab === 'inrichten') inrichtKoppel(k, toon);
       k.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; GELUID.sfx('klik'); toon(); });
       k.querySelectorAll('[data-koop]').forEach(b => b.onclick = () => {
         const id = b.dataset.koop, groep = UITRUSTING[id] ? UITRUSTING : RESTAURANT, staat = UITRUSTING[id] ? ST.uit : ST.rest, v = groep[id].niveaus[staat[id] + 1];
@@ -6915,7 +7667,7 @@ DAG.museum = async function (tab = 'boek') {
       if (tab === 'boek') {
         // per plek: de zee, het rif en de nacht. Een soort staat erin als je hem gevangen of gefotografeerd hebt.
         const ids = Object.keys(SOORTEN), gevonden = s => ST.boek[s] || ST.foto[s], n = ids.filter(gevonden).length;
-        const GROEPEN = [['De zee voor Schelpkerke', s => !SOORTEN[s].stek && !SOORTEN[s].nacht], ['Het Mosselrif', s => SOORTEN[s].stek === 'rif' && !SOORTEN[s].nacht], ['Het Scheepskerkhof', s => SOORTEN[s].stek === 'kerkhof' && !SOORTEN[s].nacht], ['Alleen \'s nachts', s => SOORTEN[s].nacht]];
+        const GROEPEN = [['De zee voor Schelpkerke', s => !SOORTEN[s].stek && !SOORTEN[s].nacht], ['Het Mosselrif', s => SOORTEN[s].stek === 'rif' && !SOORTEN[s].nacht], ['Het Scheepskerkhof', s => SOORTEN[s].stek === 'kerkhof' && !SOORTEN[s].nacht], ['De Krijtgrotten', s => SOORTEN[s].stek === 'grot' && !SOORTEN[s].nacht], ['Alleen \'s nachts', s => SOORTEN[s].nacht]];
         const tegel = s => gevonden(s) ? `<button type="button" class="tegel" data-soort="${s}">${plaatjeHtml(zeedierDoek(s, 1), 2)}<b>${SOORTEN[s].naam}</b><span class="klein">${ST.boek[s] ? ST.boek[s] + '× gevangen' : 'foto'}${ST.foto[s] ? ' · ' + '★'.repeat(ST.foto[s]) : ''}</span></button>` : `<div class="tegel onbekend">${plaatjeHtml(silhouet(s), 2)}<b>???</b><span class="klein">${SOORTEN[s].diepte[0]} tot ${SOORTEN[s].diepte[1]} m${SOORTEN[s].beschermd ? ' · foto' : ''}</span></div>`;
         inhoud = `<p>“Elke soort die je vangt of fotografeert, schrijf ik op. Zo laten we zien hoe bijzonder deze zee is.”</p><p class="klein">${n} van de ${ids.length} soorten gevonden. Tik op een soort voor meer.</p>` + GROEPEN.map(([kop, f]) => { const l = ids.filter(f); return `<h3 class="boek-kop">${kop} <small>${l.filter(gevonden).length} van ${l.length}</small></h3><div class="tegels">${l.map(tegel).join('')}</div>`; }).join('');
         plaatjes = GROEPEN.flatMap(([, f]) => ids.filter(f)).map(s => gevonden(s) ? zeedierDoek(s, 1) : silhouet(s));
@@ -6969,6 +7721,69 @@ DAG.recepten = async function () {
     $('r-klaar').onclick = () => { sluitPaneel(); res(); };
   });
 };
+
+// ---- het restaurant inrichten: muren, vloer, stoelen en lampen, met een voorbeeld van de zaal
+let INR_KIJK = null; // {k, id}: een stijl die je nog niet hebt, maar wel even bekijkt
+const inrHeb = (k, o) => !o.prijs || ST.inr.heb.includes(o.id);
+const inrKosten = o => Object.assign({ geld: o.prijs }, o.mat || {});
+function inrichtKeuze() { const k = Object.fromEntries(Object.keys(INRICHTING).map(c => [c, ST.inr[c]])); if (INR_KIJK) k[INR_KIJK.k] = INR_KIJK.id; return k; }
+function inrichtHtml() {
+  const keuze = inrichtKeuze();
+  const kop = `<p class="klein inr-uitleg">Tik op een stijl om hem te bekijken. Wat je koopt, blijft van jou: daarna wissel je gratis. De sfeer van je inrichting: <b>+${inrichtSfeer()}</b>.</p>`;
+  return `<div class="inr-lay"><canvas class="inr-voorbeeld" width="320" height="250" aria-label="Zo ziet Het Rommelkombuis eruit"></canvas><div>${kop}${Object.entries(INRICHTING).map(([k, c]) => `<h3>${c.naam}</h3><div class="keuzes" role="radiogroup" aria-label="${c.naam}">${c.opties.map(o => `<button type="button" class="keuze" role="radio" data-inr="${k}:${o.id}" aria-checked="${keuze[k] === o.id}">${plaatjeHtml(inrStaal(k, o.id), k === 'stoel' || k === 'lamp' ? 1 : 2)}<span>${o.naam}<small>${inrHeb(k, o) ? (ST.inr[k] === o.id ? 'staat er nu' : 'van jou') : geldTekst(o.prijs)}${o.sfeer ? ' · sfeer +' + o.sfeer : ''}</small></span></button>`).join('')}</div>`).join('')}</div></div>`;
+}
+function inrichtKoppel(el, toon) {
+  vulPlaatjes(el, Object.entries(INRICHTING).flatMap(([k, c]) => c.opties.map(o => inrStaal(k, o.id))));
+  const cv = el.querySelector('canvas.inr-voorbeeld'); if (cv) inrichtVoorbeeld(cv, inrichtKeuze());
+  el.querySelectorAll('[data-inr]').forEach(b => b.onclick = () => {
+    const [k, id] = b.dataset.inr.split(':'), o = INRICHTING[k].opties.find(x => x.id === id);
+    GELUID.sfx('klik');
+    if (inrHeb(k, o)) { ST.inr[k] = id; INR_KIJK = null; bewaar(); } else INR_KIJK = { k, id };
+    toon();
+  });
+  // bekijk je een stijl die je nog niet hebt, dan staat de koopknop onderin naast Klaar (die rij blijft altijd in beeld)
+  if (INR_KIJK) {
+    const o = INRICHTING[INR_KIJK.k].opties.find(x => x.id === INR_KIJK.id), kan = kanBetalen(inrKosten(o)), rij = el.querySelector('.rij:last-child');
+    if (rij) rij.insertAdjacentHTML('afterbegin', `<div class="inr-koopbalk"><div><b>${o.naam}</b> <span class="klein">sfeer +${o.sfeer}</span><div class="klein"><span class="inr-tekst">${o.tekst} </span>${matHtml(inrKosten(o))}</div></div><div class="knoppen-r"><button class="knop ${kan ? 'goud' : ''}" type="button" id="inr-koop" ${kan ? '' : 'disabled'}>Kopen</button><button class="knop" type="button" id="inr-nee">Nee</button></div></div>`);
+  }
+  const koop = $('inr-koop'); if (koop) koop.onclick = () => {
+    const o = INRICHTING[INR_KIJK.k].opties.find(x => x.id === INR_KIJK.id), kost = inrKosten(o); if (!kanBetalen(kost)) return;
+    betaalKosten(kost); ST.inr.heb.push(o.id); ST.inr[INR_KIJK.k] = o.id; INR_KIJK = null; bewaar(); GELUID.sfx('feest'); melding(o.naam + ': staat er!', 'goud'); toon();
+  };
+  const nee = $('inr-nee'); if (nee) nee.onclick = () => { INR_KIJK = null; GELUID.sfx('klik'); toon(); };
+}
+// een staaltje van elke stijl, voor op de knop
+function inrStaal(k, id) {
+  const sleutel = 'inr|' + k + '|' + id; if (GERECHT_BUF.has(sleutel)) return GERECHT_BUF.get(sleutel);
+  let d;
+  if (k === 'stoel') { const s = stoelPix(id); d = maakDoek(18, 40); d.ctx.drawImage(s, 0, 0); }
+  else if (k === 'lamp') { d = maakDoek(48, 30); if (id === 'lantaarn') tekenLantaarnLamp(d.ctx, 24, 3, 0); else if (id === 'kroon') tekenKroonluchter(d.ctx, 24, 3, 0); else tekenHanglamp(d.ctx, 24, 10, '#2E6A4A', 0, true); }
+  else { d = maakDoek(20, 18); const T = tekenaar(d.ctx), st = k === 'vloer' && id === 'tegels' ? 3 : k === 'vloer' ? 2 : 1; for (let y = 0; y < 18; y++) for (let x = 0; x < 20; x++) { const sx = 300 + x * st, sy = (k === 'muur' ? 80 : 300) + y * (k === 'vloer' ? 2 : 1); T.px(x, y, k === 'muur' ? muurPixel(id, sx, sy) : vloerPixel(id, sx, sy, Math.floor(Math.pow((sy - KB.VLOER) / (KB.H - KB.VLOER), .8) * 14), -1)); } }
+  GERECHT_BUF.set(sleutel, d.cv); return d.cv;
+}
+// een stukje van de zaal 's avonds, met de gekozen (of bekeken) inrichting. De zaal zelf wordt per muur en vloer bewaard.
+const INR_ZAAL = new Map();
+function inrichtVoorbeeld(cv, keuze) {
+  INR_VOORBEELD = keuze;
+  try {
+    const muur = inrNu('muur').id, vloer = inrNu('vloer').id, sl = muur + '|' + vloer;
+    if (!INR_ZAAL.has(sl)) { if (INR_ZAAL.size > 3) INR_ZAAL.clear(); INR_ZAAL.set(sl, tekenKombuisZaal({ muur, vloer })); }
+    const X = 196, Y = 34, w = cv.width, h = cv.height, uur = 19.4;
+    const laag = maakDoek(w, h), hulp = maakDoek(w, h), L = laag.ctx;
+    L.translate(-X, -Y); L.drawImage(INR_ZAAL.get(sl), -KB.LINKS, 0);
+    const wand = maakDoek(640, 360); tekenWand(wand.ctx, { menu: [] }); tekenDecor(wand.ctx); L.drawImage(wand.cv, 0, 0);
+    tekenAquarium(L, 0);
+    KB.TAFELS.slice(0, 6).forEach((tf, i) => tekenTafel(L, Object.assign({ nr: i + 1, stoel: [null, null] }, tf), 0));
+    tekenZaalLampen(L, 0); tekenUithangbord(L);
+    L.setTransform(1, 0, 0, 1, 0, 0);
+    const lampen = [...zaalLampLicht(), { x: 214, y: 124, r: 34, kl: '#FFD9A0', a: .35 }, { x: 440, y: 168, r: 30, kl: '#7FE0F0', a: .3 }, { x: 377, y: 26, r: 60, kl: '#FFE0A0', a: .15 }];
+    for (const tf of KB.TAFELS.slice(0, 6)) lampen.push({ x: tf.x + 1, y: tf.y - 38, r: 22, kl: '#FFC070', kaars: true, a: .4 });
+    for (let x = 192; x < 640; x += 24) { const f = ((x - 186) % 76) / 76; lampen.push({ x, y: 41 + Math.round(Math.sin(f * Math.PI) * 6), r: 13, kl: '#FFD58A', a: .22 }); }
+    tekenLicht(laag.cv, hulp.cv, uur, 0, lampen.map(l => Object.assign({}, l, { x: l.x - X, y: l.y - Y })));
+    const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = '#1A100A'; c.fillRect(0, 0, w, h);
+    c.translate(-X, -Y); tekenBuiten(c, uur, 0); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(laag.cv, 0, 0);
+  } finally { INR_VOORBEELD = null; }
+}
 
 // ===================== DE ROMMELZOLDER VAN MEVROUW SNUFFEL: materialen, maakwerk en uit elkaar halen =====================
 // Het smalste huisje van Schelpkerke, met een hijsbalk aan de zolder. Mevrouw Snuffel koopt alles wat de zee teruggeeft, haalt
@@ -7424,8 +8239,15 @@ const HOOFDSTUKKEN = [
   // Deel 2: Het lied van de diepte
   { titel: 'Stilte op het rif', doel: () => doelRif() },
   { titel: 'Het schip van Lijsbet', doel: () => doelZwaluw() },
-  { titel: 'Wordt vervolgd', doel: () => 'Het lied van de diepte gaat verder in een volgende versie. Vul ondertussen je Zeeboek, maak alle foto-opdrachten van Wieke, berg alles wat op het Scheepskerkhof ligt en versla de Lantaarnreus.' },
+  { titel: 'Het lied in het krijt', doel: () => doelGrot() },
+  { titel: 'Wordt vervolgd', doel: () => 'Het lied van de diepte gaat verder in een volgende versie, in de Diepe Trog. Vul ondertussen je Zeeboek, maak alle foto-opdrachten van Wieke, zoek alle fossielen in de Krijtgrotten, berg alles wat op het Scheepskerkhof ligt en versla de Lantaarnreus.' },
 ];
+function doelGrot() {
+  if (!stekOpen('grot')) return ST.uit.lamp < 1 ? 'Koop een duiklamp bij Trien. Dan vaart ze je naar de grotten onder de witte kalkrots.' : 'Koop een duikpak tot 150 meter bij Trien. Dan vaart ze je naar de grotten onder de witte kalkrots.';
+  if (grotKlaar()) return 'Klaar!';
+  return `In De Krijtgrotten (op de zeekaart): volg het lied van de kristallen naar De Kristalzaal en zoek wat Lijsbet daar achterliet ${vinkje(ST.vlag.logboek3)}. Bevrijd de rog die in de oude netten vastzit ${vinkje(ST.reuzen.spooknetrog)}. En neem een van de netboeien mee naar boven ${vinkje(ST.vlag.netboei)}.`;
+}
+const grotKlaar = () => !!(ST.vlag.logboek3 && ST.reuzen.spooknetrog && ST.vlag.netboei);
 function doelZwaluw() {
   if (!ST.vlag.zwaluw) return 'Zoek op het Scheepskerkhof het wrak van De Zwaluw. Het ligt helemaal achteraan, voorbij De Diepe Rand (zo\'n 105 meter diep).';
   if (!ST.reuzen.roestpaling) return 'De kapiteinskist van De Zwaluw zit op slot. De code staat op een koperen plaat in de machinekamer van de Margaretha, maar daar ligt De Roestpaling overheen. Versla hem.';
@@ -7456,7 +8278,8 @@ async function verhaalBegin() {
 async function verhaalVoorDuik(stek = 'zee', nacht = false) {
   if (ST.hfd === 6 && !ST.vlag.h6) await verhaalRifBegin();
   if (ST.hfd === 7 && !ST.vlag.h7) await verhaalZwaluwBegin();
-  if (stek === 'kerkhof' && !ST.vlag.kh1) { ST.vlag.kh1 = 1; await gesprek([['trien', 'Het Scheepskerkhof. Zandbanken waar honderden schepen zijn vergaan. Kijk uit voor gaten in de rompen: daar wonen palingen.'], ['trien', 'In de wrakken staan kisten, en soms ligt er iets groots. Te zwaar voor je tas? Gebruik een ballon van Snuffel, dan vis ik het uit het water.'], ['trien', 'En het is diep en donker daar. Houd je lamp aan en let op je zuurstof.']]); }
+  if (ST.hfd === 8 && !ST.vlag.h8) await verhaalGrotBegin();
+  if (stek === 'grot' && !ST.vlag.grot1) { ST.vlag.grot1 = 1; await gesprek([['trien', 'Daar is ze: de witte kalkrots. Zie je dat donkere gat onder water, aan de voet van de rots? Dat noemden de oude vissers De Poort.'], ['trien', 'Binnen is het pikdonker, dus houd je lamp aan. En pas op in de smalle gang verderop: daar ademt de grot. Het water blaast je eruit en trekt je weer mee.'], ['trien', 'Raak je zuurstof op? Zoek dan een luchtzak: een bel lucht onder het plafond. Daar kun je gewoon ademen.'], ['ruben', 'Een grot die ademt... Ik ben benieuwd.', 'blij']]); } { ST.vlag.kh1 = 1; await gesprek([['trien', 'Het Scheepskerkhof. Zandbanken waar honderden schepen zijn vergaan. Kijk uit voor gaten in de rompen: daar wonen palingen.'], ['trien', 'In de wrakken staan kisten, en soms ligt er iets groots. Te zwaar voor je tas? Gebruik een ballon van Snuffel, dan vis ik het uit het water.'], ['trien', 'En het is diep en donker daar. Houd je lamp aan en let op je zuurstof.']]); }
   if (stek === 'rif' && !ST.vlag.rif1) { ST.vlag.rif1 = 1; await gesprek([['trien', 'Het Mosselrif! Hier viste mijn opa vroeger mosselen. Ondiep en helder, je ziet de bodem al vanaf de boot.'], ['trien', 'Maar pas op in de getijgeul: daar trekt het getij flink aan je. En kokkels zitten onder het zand, die graaf je uit met een duikmes.'], ['trien', 'Zie je een zeepaardje of een zeehond? Die laat je met rust. Die zijn beschermd.']]); }
   if (nacht && !ST.vlag.nacht1) { ST.vlag.nacht1 = 1; await gesprek([['trien', 'Een nachtduik? Dan zie je een andere zee. Pijlinktvissen komen af op je lamp, en op de bodem gaan de krabben op jacht.'], ['trien', 'Zwem niet te ver weg van de boot. Ik laat de lamp van De Zeekoe branden.']]); }
   if (ST.stats.duiken === 0) await gesprek([['trien', 'Zwem naar de bodem en kijk goed rond. Met de harpoen vang je vis, met het net een hele school tegelijk.'], ['trien', 'Zie je de ladder aan de zijkant van de boot? Daar kom je weer aan boord. Let op je zuurstof!']]);
@@ -7516,6 +8339,7 @@ async function verhaalNaDuik(vis, vond, na) {
   if (ST.vlag.moeder && !ST.vlag.einde) await verhaalEinde();
   if (ST.hfd >= 6 || vond.meetkastje || vond.logboek) await verhaalRif(vond);
   if (ST.hfd >= 7 || vond.logboek2 || vond.roesttand) await verhaalKerkhof(vond, na);
+  if (ST.hfd >= 8 || vond.logboek3 || vond.netboei || vond.netknoop) await verhaalGrot(vond, na);
 }
 async function verhaalNacht(dag = ST.dag) { // dag: de dag van de dienst die net voorbij is
   if (!ST.vlag.klok1 && ST.stats.gasten > 0) {
@@ -7605,13 +8429,63 @@ async function verhaalKerkhof(vond, na) {
       ['trien', 'Witte kalkrots, met grotten eronder? Die ken ik. Maar daar duiken... dat doet niemand.'],
     ]);
     ST.geld += 400; ST.ster = Math.min(5, ST.ster + .2);
-    await vraag('<h1 style="font-size:2rem">Het logboek van De Zwaluw</h1><p>Wieke krijgt tranen in haar ogen: na 128 jaar weet ze waar haar betovergrootmoeder naartoe ging. De gemeente beloont je met € 400 voor de vondst.</p><p><b>Wordt vervolgd...</b> De zingende steen wijst de weg naar de grotten onder de witte kalkrots.</p>', [{ tekst: 'Verder spelen', waarde: 1, soort: 'hoofd' }]);
-    naarHoofdstuk(8); await hoofdstukKaart(8);
+    await vraag('<h1 style="font-size:2rem">Het logboek van De Zwaluw</h1><p>Wieke krijgt tranen in haar ogen: na 128 jaar weet ze waar haar betovergrootmoeder naartoe ging. De gemeente beloont je met € 400 voor de vondst.</p><p>De zingende steen wijst de weg: naar de grotten onder de witte kalkrots.</p>', [{ tekst: 'Verder spelen', waarde: 1, soort: 'hoofd' }]);
+    naarHoofdstuk(8); await verhaalGrotBegin();
+  }
+}
+// ---- hoofdstuk 8: Het lied in het krijt
+async function verhaalGrotBegin() {
+  ST.vlag.h8 = 1;
+  await gesprek([
+    ['wieke', 'Ruben! Ik kan bijna niet slapen. Die kristalscherf zoemt elke nacht een beetje harder. Alsof hij ergens naartoe wil.'],
+    ['trien', 'De witte kalkrots, voorbij de duinen. Daar ging mijn opa nooit vissen. Er hangt een oud verhaal omheen.'],
+    ['trien', 'Over een spookrog: groot en wit, gewikkeld in lakens. Hij woont in de grotten onder de rots. En die grotten ademen: het water trekt je naar binnen en blaast je weer naar buiten.'],
+    ['ruben', 'Een rog die in lakens zwemt? Dat wil ik zien.', 'blij'],
+    ['wieke', 'Neem de scherf mee. Als het lied ergens vandaan komt, dan daar. En Ruben... kijk goed om je heen. Lijsbet is daar ook geweest.'],
+    ['trien', 'Ik vaar je erheen. Maar in die grotten is het pikdonker. Neem je lamp mee, en je duikmes. Je weet nooit waar je in verstrikt raakt.'],
+  ]);
+  await hoofdstukKaart(8);
+  bewaar();
+}
+async function verhaalGrot(vond, na) {
+  if (vond.netboei && !ST.vlag.netboei) {
+    ST.vlag.netboei = 1; ST.vondsten.netboei = 0;
+    await gesprek([['ruben', 'Kijk wat er aan die oude netten in de grot vastzat: een netboei. Er staan letters op... G. GRAAIMAN SR., SCHELPKERKE.', 'schrik'], ['trien', 'Graaiman senior? De vader van Govert! Die verloor in de grote storm van 1990 een hele rij netten, ergens bij de kalkrots.'], ['wieke', 'Al die jaren hangen ze daar dus. Spooknetten noemen ze dat: netten die blijven vangen, ook als niemand ze meer gebruikt.']]);
+  }
+  if (vond.netknoop && !ST.vlag.rogVrij) {
+    ST.vlag.rogVrij = 1;
+    await gesprek([['ruben', 'Ik heb hem losgesneden! Een reusachtige rog, wit als een laken. Hij zat al jaren in die oude netten vast. Nu zwemt hij weer vrij rond.', 'blij'], ['trien', 'De spookrog bestaat dus echt... En jij hebt hem bevrijd. Mijn opa zou trots op je zijn, jongen.'], ['ruben', 'Achter de netten zat een schacht. Die gaat heel diep naar beneden.', 'denk']]);
+  }
+  if (vond.logboek3 && !ST.vlag.logboek3) {
+    ST.vlag.logboek3 = 1; ST.vondsten.logboek3 = 0;
+    await gesprek([
+      ['ruben', 'Achter de kristallen deur lag een blikken koker, bij een groot kristal dat zachtjes gloeit. Er zat een bladzijde in, nog droog!', 'blij'],
+      ['wieke', '“21 augustus 1898. De stenen onder de kalkrots zingen. Wie hun lied naspeelt, opent de kristallen deur. Daarachter ligt een zaal vol licht.”'],
+      ['wieke', '“Maar het lied komt nog dieper vandaan. Een grote, witte rog wees me de weg: een schacht recht naar beneden, en dan verder, naar de Diepe Trog.”'],
+      ['wieke', '“Ik laat deze bladzijde hier, voor wie na mij komt. Ik vaar naar huis voor een sterkere helm. Dan ga ik het zien: de Glazen Stad.”'],
+      ['wieke', 'Een witte rog... Trien, jouw spookrog! En Lijsbet wilde terugkomen. Ze wilde naar huis.'],
+    ]);
+  }
+  if (ST.hfd === 8 && ST.vlag.h8 && grotKlaar() && !ST.vlag.h8klaar) {
+    ST.vlag.h8klaar = 1;
+    await gesprek([
+      ['graaiman', 'Ik hoorde dat je een netboei van mijn vader hebt gevonden. In de grotten onder de kalkrots.'],
+      ['graaiman', 'Hij praatte er nooit over. Hij schaamde zich, denk ik. Een hele rij netten, kwijt in die storm.'],
+      ['ruben', 'Er zat een rog in vast. Al jaren. Ik heb hem losgesneden.', 'denk'],
+      ['graaiman', '... Dan ruim ik ze op. Ik huur duikers in, van mijn eigen geld. Elk stukje net gaat eruit.'],
+      ['graaiman', 'En noem het geen goed doel, hè. Het is gewoon... netjes.'],
+      ['wieke', 'Ruben, kijk. Lijsbet schreef over de Diepe Trog. Op de oude kaarten ligt die heel ver weg, en heel diep. Dieper dan je duikpak kan.'],
+      ['trien', 'De Trog... Daar kom je alleen met een echt drukpak. Ooit, jongen. Ooit.'],
+    ]);
+    ST.geld += 500; ST.ster = Math.min(5, ST.ster + .3);
+    await vraag('<h1 style="font-size:2rem">Het lied in het krijt</h1><p>De rog is vrij, de spooknetten worden opgeruimd, en Govert Graaiman betaalt het zelf. De gemeente geeft je € 500 voor je hulp.</p><p><b>Wordt vervolgd...</b> Het lied komt nog dieper vandaan: uit de Diepe Trog, waar alleen een drukpak komt.</p>', [{ tekst: 'Verder spelen', waarde: 1, soort: 'hoofd' }]);
+    naarHoofdstuk(9); await hoofdstukKaart(9);
   }
 }
 async function verhaalOchtend() {
   if (ST.hfd === 6 && !ST.vlag.h6) { await verhaalRifBegin(); return; }
   if (ST.hfd === 7 && !ST.vlag.h7) { await verhaalZwaluwBegin(); return; }
+  if (ST.hfd === 8 && !ST.vlag.h8) { await verhaalGrotBegin(); return; }
   if (ST.vlag.klok1 === 1) { ST.vlag.klok1 = 2; await gesprek([['ruben', 'Trien, ik hoorde vannacht een klok luiden. Op zee!'], ['trien', 'Dus jij hoort hem ook. Dat is De Waker, de klok van Oud-Schelpkerke.'], ['trien', 'Dat dorp lag hier vroeger, waar nu De Geul is. In 1530 kwam er een stormvloed en verdween het hele dorp in de zee.'], ['trien', 'Volgens de oude mensen luidt de klok nog altijd onder water. Vlak voor er storm komt.'], ['ruben', 'Een klok onder water die vanzelf luidt? Dat wil ik zien!', 'blij'], ['trien', 'Haha. Eerst je restaurant draaiende krijgen, kok. Met dat duikpak kom je niet verder dan 30 meter.']]); }
 }
 async function verhaalEinde() {
@@ -7707,12 +8581,13 @@ function begin() {
 function testStart(p) {
   TESTSTAND = true;
   const w = p.get('test');
-  if (p.get('pak')) ST.uit.pak = +p.get('pak'); if (p.get('lamp')) ST.uit.lamp = +p.get('lamp'); if (p.get('geld')) ST.geld = +p.get('geld'); if (p.get('hfd')) ST.hfd = +p.get('hfd'); if (p.get('kelder')) ST.vlag.kelderOpen = 1; if (p.get('tafels')) ST.rest.tafels = +p.get('tafels'); if (p.get('linnen')) ST.rest.linnen = 1; if (p.get('decor')) ST.decor = ['scheepsbel', 'kompas', 'bord', 'anker', 'lantaarntje', 'fles', 'schelp', 'parel']; if (p.get('moeder')) ST.vlag.moeder = 1; if (p.get('camera')) ST.uit.camera = +p.get('camera'); if (p.get('mes')) ST.uit.mes = 1; if (p.get('ballon')) ST.maak.ballon = +p.get('ballon'); if (p.get('koevoet')) ST.maak.koevoet = 1; if (p.get('kh')) ST.kh.open = p.get('kh').split(',');
+  if (p.get('pak')) ST.uit.pak = +p.get('pak'); if (p.get('lamp')) ST.uit.lamp = +p.get('lamp'); if (p.get('geld')) ST.geld = +p.get('geld'); if (p.get('dag')) ST.dag = +p.get('dag'); if (p.get('hfd')) ST.hfd = +p.get('hfd'); if (p.get('kelder')) ST.vlag.kelderOpen = 1; if (p.get('tafels')) ST.rest.tafels = +p.get('tafels'); if (p.get('linnen')) ST.rest.linnen = 1; if (p.get('inr')) { for (const d of p.get('inr').split(',')) { const [k, id] = d.split(':'); ST.inr[k] = id; ST.inr.heb.push(id); } } if (p.get('decor')) ST.decor = ['scheepsbel', 'kompas', 'bord', 'anker', 'lantaarntje', 'fles', 'schelp', 'parel']; if (p.get('moeder')) ST.vlag.moeder = 1; if (p.get('camera')) ST.uit.camera = +p.get('camera'); if (p.get('mes')) ST.uit.mes = 1; if (p.get('ballon')) ST.maak.ballon = +p.get('ballon'); if (p.get('koevoet')) ST.maak.koevoet = 1; if (p.get('kh')) ST.kh.open = p.get('kh').split(',');
   // stap 3: gerrit=1, groente=aardappel:8,wortel:3, tuin=8, vriend=gerrit:60,trien:80, bij=frietjes, toe=poffertjes, recept=frietjes,poffertjes
   if (p.get('gerrit')) ST.vlag.gerrit = 1; if (p.get('tuin')) ST.tuin.n = +p.get('tuin'); if (p.get('bij')) ST.menuBij = p.get('bij'); if (p.get('toe')) ST.menuToe = p.get('toe');
   for (const [k, v] of (p.get('groente') || '').split(',').filter(Boolean).map(x => x.split(':'))) ST.groente[k] = +v;
   for (const [k, v] of (p.get('vriend') || '').split(',').filter(Boolean).map(x => x.split(':'))) ST.vriend[k] = [+v, 0];
   for (const k of (p.get('recept') || '').split(',').filter(Boolean)) ST.recepten[k] = 0;
+  if (p.get('rog')) ST.reuzen.spooknetrog = 1;
   if (w === 'duik') { naarScene('duik', { nr: 0, stek: p.get('stek') || 'zee', nacht: !!p.get('nacht') }); if (p.get('x')) { D.ruben.x = +p.get('x'); D.ruben.y = +p.get('y'); D.ruben.intro = 0; D.cam.x = D.ruben.x - BEELD.W / 2; D.cam.y = D.ruben.y - BEELD.H / 2; } }
   if (w === 'haven') naarScene('haven');
   if (w === 'dijk') naarScene('dijk', { x: +(p.get('x') || 860) });
@@ -7722,9 +8597,9 @@ function testStart(p) {
 window.__duiker = {
   get ST() { return ST; }, get D() { return D; }, get A() { return A; }, get scene() { return SCENE.naam; }, get deel() { return VASTPUNT && VASTPUNT.naam; },
   naarScene, SCENES, DAG, bewaar, laad, nieuweStaat, gesprek, y2m, m2y, maakZee, RECEPTEN, SOORTEN, UITRUSTING, RESTAURANT,
-  zetStaat(s) { ST = s; },
+  zetStaat(s) { ST = s; }, INRICHTING, KB, tekenKombuisZaal, inrichtVoorbeeld, inrichtSfeer: () => inrichtSfeer(), sfeer: () => sfeer(), weer: () => weerVandaag(),
   testVang(s, n) { for (let i = 0; i < n; i++) inTas({ s }); }, testVondst(v) { inTas({ v }); }, testBoven() { eindeDuik('boot'); },
-  get STEK() { return STEK; }, STEKKEN, FOTO_OPDR, foto: () => foto(), zetStek,
+  get STEK() { return STEK; }, STEKKEN, FOTO_OPDR, foto: () => foto(), zetStek, GROT, LIED, grotOpen: id => grotOpen(id), kristalTik: d => kristalTik(d), knoopSnij: d => knoopSnij(d), grotRaak: (x, y) => grotRaak(x, y), stroomOp: (x, y) => stroomOp(x, y),
   get DK() { return DK; }, get HV() { return HV; }, get HG() { return HG; }, get SC() { return SC; }, tuinNacht, bedStand, tuinBed, getij, proefZoek, proefHint, dorpVandaag, klusLever, klusHeb, harten, geefVriend, groentePorties, GEWASSEN, KAST, VRIENDEN, kweekActie, oogst, geefWater, proefkeuken, prikbord, gerritSchuur,
   get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), kaartStart, kaartCode, kaartLees, kaartRoute, plan: () => A ? planVolgorde().map(b => b.nr) : [],
   testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },

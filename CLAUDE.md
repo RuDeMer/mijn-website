@@ -393,9 +393,10 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 ## De scoreserver die draait (stand 27 oktober 2026)
 
-- **In Cloudflare draait nu een samenvoeging, gemaakt door Gemini**, van versie 2026-10-27 van Claude Code (de nieuwe beheeradressen, `sync_versies` en `hulp`) en de versie van de beherende Claude: `vlaai` met `max: 1e300`, `duiker` met `max: 1000000`, en bij `WEEKBORD` de opmerking dat de Bakwedstrijd een eigen opslag heeft en alleen telt wat je in die 30 minuten bakt.
-- **Dat bestand is het enige uitgangspunt** voor veranderingen aan de scoreserver, niet een eigen oudere kopie. Ruben bewaart het. Vraag hem het te plakken.
-- **Klaar om te zetten: versie 2026-10-27b** (koppelen zonder verlies, zie hieronder). Die wordt gemaakt door de veranderingen op het bestand van Gemini te zetten. Staat hij in Cloudflare, dan is 2026-10-27b de versie die draait: zet dat dan hier.
+- **In Cloudflare draait versie 2026-10-27b** (koppelen zonder verlies, zie hieronder), sinds 27 oktober 2026. Claude Code maakte hem door zijn veranderingen te zetten op het bestand van Gemini.
+  - Het bestand van Gemini was een samenvoeging van versie 2026-10-27 van Claude Code (de nieuwe beheeradressen, `sync_versies` en `hulp`) en de versie van de beherende Claude: `vlaai` met `max: 1e300`, `duiker` met `max: 1000000`, en bij `WEEKBORD` de opmerking dat de Bakwedstrijd een eigen opslag heeft en alleen telt wat je in die 30 minuten bakt.
+  - Alles uit het bestand van Gemini zit erin. Er kwamen alleen de veranderingen van 2026-10-27b bij.
+- **Versie 2026-10-27b is het enige uitgangspunt** voor veranderingen aan de scoreserver, niet een eigen oudere kopie. Ruben bewaart het bestand. Vraag hem de code te plakken die echt in Cloudflare staat.
 - Controle: `https://rommelscores.rubendm.workers.dev/status` geeft de versie.
 
 ## Koppelen zonder verlies (scoreserver 2026-10-27b, 27 oktober 2026)

@@ -6310,14 +6310,21 @@ function tekenZolderHuis(T, ctx, K, open) {
   if (open) { T.rect(x0 + 23, top + 9, 9, 7, '#7A4E2D'); T.rect(x0 + 23, top + 9, 9, 1, '#9A6438'); T.px(x0 + 26, top + 11, '#C99A2E'); } // een kistje aan de haak
   // ramen: met gesloten luiken als ze nog dicht is
   for (const wy of [top + 22, top + 66]) { if (open) hvRaam(T, x0 + 8, wy, 14, 26, { nx: 1, ny: 2, kozijn: '#E8E2D2', gordijn: '#E9B949' }); else { T.rect(x0 + 6, wy, 18, 26, '#2E5A4A'); for (let y = wy + 2; y < wy + 26; y += 4) T.rect(x0 + 7, y, 16, 1, '#3E7A64'); T.rect(x0 + 14, wy, 2, 26, '#1E3A30'); } }
-  // het bord
-  T.rect(x0 - 5, top + 104, x1 - x0 + 10, 19, '#2A2230'); T.rect(x0 - 4, top + 105, x1 - x0 + 8, 17, open ? '#F2DDA0' : '#C8BCA0');
-  letters(ctx, 'ROMMEL', (x0 + x1) / 2, top + 107, '#5A2A2A', 1, 'm'); letters(ctx, 'ZOLDER', (x0 + x1) / 2, top + 114, '#5A2A2A', 1, 'm');
+  // het uithangbord aan een smeedijzeren arm naast de gevel: op de gevel zelf past de naam niet (en daar zit de deur).
+  // Binnenkant 45 x 21 pixels: 5 pixels ruimte links en rechts van ROMMEL, en 3 rijen tussen de twee regels.
+  const by = top + 44, bx0 = x1 + 2, bx1 = bx0 + 46, bmx = bx0 + 23;
+  T.rect(x1, by - 1, 2, 5, '#2A2230'); T.rect(x1, by, bx1 - x1 + 2, 2, '#2A2230'); T.rect(x1, by, bx1 - x1 + 2, 1, '#4A4250'); // arm
+  T.lijn(x1 + 1, by + 12, x1 + 13, by + 2, '#2A2230'); T.px(bx1 + 1, by - 1, '#2A2230'); T.px(bx1 + 2, by - 2, '#2A2230'); // schoor en krulletje
+  for (const kx of [bx0 + 5, bx1 - 5]) { T.px(kx, by + 2, '#5A5F68'); T.px(kx, by + 3, '#8A9098'); T.px(kx, by + 4, '#5A5F68'); } // kettinkjes
+  T.rect(bx0, by + 5, bx1 - bx0 + 1, 23, '#2A2230'); T.rect(bx0 + 1, by + 6, bx1 - bx0 - 1, 21, open ? '#F2DDA0' : '#C8BCA0');
+  T.rect(bx0 + 1, by + 6, bx1 - bx0 - 1, 1, open ? '#FFF0C4' : '#D8D0B8'); T.rect(bx0 + 1, by + 26, bx1 - bx0 - 1, 1, open ? '#D8BE7A' : '#A89C80');
+  hvSchaduw(T, bx0 + 2, by + 28, bx1 - bx0 - 1, 2, .25);
+  letters(ctx, 'ROMMEL', bmx, by + 8, '#5A2A2A', 1, 'm'); letters(ctx, 'ZOLDER', bmx, by + 18, '#5A2A2A', 1, 'm');
   // de deur
   const dx = (x0 + x1) / 2;
   T.rect(dx - 8, K - 40, 16, 40, '#E2D8C2'); T.rect(dx - 7, K - 38, 14, 38, open ? '#3A1E14' : '#6A2E2A');
   if (open) { T.rect(dx - 6, K - 37, 12, 36, '#5A3424'); T.rect(dx - 5, K - 36, 4, 10, '#F4D08A'); T.rect(dx + 1, K - 36, 4, 10, '#F4D08A'); T.rect(dx - 5, K - 20, 10, 2, '#7A4E2D'); }
-  else { T.rect(dx - 6, K - 30, 12, 9, '#F4F1E8'); letters(ctx, 'DICHT', dx, K - 28, '#5A2A2A', 1, 'm'); }
+  else { T.rect(dx - 5, K - 31, 10, 12, '#F4F1E8'); T.rect(dx - 5, K - 31, 10, 1, '#FFFFFF'); T.px(dx, K - 32, '#9A9AA2'); for (const ry of [K - 28, K - 25, K - 22]) T.rect(dx - 3, ry, ry === K - 22 ? 4 : 6, 1, '#5A5A6A'); } // een briefje op de deur
   // rommel op de kade
   if (open) {
     T.ovaal(x0 + 2, K - 10, 9, 9, '#2A2A30'); T.ovaal(x0 + 2, K - 10, 7, 7, null); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; T.lijn(x0 + 2, K - 10, x0 + 2 + Math.cos(a) * 7, K - 10 + Math.sin(a) * 7, '#8A8A92'); } // een oud fietswiel

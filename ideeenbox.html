@@ -107,6 +107,11 @@ body { margin: 0; min-height: 100vh; color: var(--inkt); line-height: 1.5; posit
 .dag b { display: inline-block; }
 .label-icoon svg { transform-origin: 50% 80%; }
 
+.juridisch { display: flex; gap: .4rem 1rem; flex-wrap: wrap; justify-content: center; margin: 2rem 0 0; font-size: .85rem; position: relative; z-index: 1; }
+.juridisch a { color: var(--tg-zacht, #5A4A3C); font-weight: 600; text-underline-offset: 3px; }
+.juridisch a:hover, .juridisch a:focus-visible { color: var(--tg-accent, #A82A35); }
+.soort-uitleg { font-size: .85rem; margin: -.2rem 0 .6rem; color: var(--zacht, #5E5643); }
+.soort-uitleg a { color: var(--rood-d, #9E2430); font-weight: 700; }
 </style>
 <!-- versie 0.6: dezelfde stijl als de homepage, met licht en donker (de keuze op de homepage geldt overal) -->
 <script>(function () { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); })();</script>
@@ -163,7 +168,8 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
       <form id="formulier" novalidate>
         <label class="veld">Jouw idee<textarea id="tekst" maxlength="500" required placeholder="Bijvoorbeeld: een kamer in het hotel waar het altijd sneeuwt..."></textarea></label>
         <div class="teller" id="teller">0 / 500</div>
-        <label class="veld">Waar gaat het over?<select id="soort"><option value="spel">Een nieuw spel</option><option value="hotel">Het Rommelhotel</option><option value="rommelbeesten">Rommelbeesten</option><option value="homepage">De homepage</option><option value="anders" selected>Iets anders</option></select></label>
+        <label class="veld">Waar gaat het over?<select id="soort"><option value="spel">Een nieuw spel</option><option value="hotel">Het Rommelhotel</option><option value="rommelbeesten">Rommelbeesten</option><option value="homepage">De homepage</option><option value="privacy">Mijn gegevens (privacy)</option><option value="melding">Iets melden (huisregels)</option><option value="anders" selected>Iets anders</option></select></label>
+        <p class="soort-uitleg" id="soort-uitleg" hidden>Dit gaat alleen naar Ruben en komt nooit op het prikbord. Gaat het om je gegevens? Schrijf erbij om welk spel of welke naam het gaat. Je kunt je voortgang ook zelf van de server halen: lees hoe in de <a href="privacy.html">privacyverklaring</a>.</p>
         <label class="veld">Je naam<span>Mag ook leeg blijven. Gebruik geen achternaam.</span><input id="naam" maxlength="16" autocomplete="nickname"></label>
         <button class="knop" id="stuur" type="submit">Stop in de box</button>
         <div id="melding" aria-live="polite"></div>
@@ -178,12 +184,13 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   <details class="uitleg"><summary>Hoe werkt de ideeënbox?</summary>
     <p>Je idee gaat eerst alleen naar Ruben. Hij kiest welke ideeën op het prikbord komen, zodat iedereen erop kan stemmen. Je ziet ook hoe ver een idee is: bekeken, in de maak of klaar. Je kunt per idee één keer stemmen.</p>
   </details>
+  <nav class="juridisch" aria-label="Over deze site"><a href="colofon.html">Colofon</a><a href="privacy.html">Privacy</a><a href="huisregels.html">Huisregels</a></nav>
 </div>
 <script>
 (function () {
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const SOORT = { spel: 'Nieuw spel', hotel: 'Rommelhotel', rommelbeesten: 'Rommelbeesten', homepage: 'Homepage', anders: 'Anders' };
+  const SOORT = { spel: 'Nieuw spel', hotel: 'Rommelhotel', rommelbeesten: 'Rommelbeesten', homepage: 'Homepage', privacy: 'Mijn gegevens', melding: 'Melding', anders: 'Anders' };
   let url = '', geheim = '', gestemd = {};
   try { geheim = localStorage.getItem('rommelhoekje-idee-geheim') || ''; if (!geheim) { geheim = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('rommelhoekje-idee-geheim', geheim); } gestemd = JSON.parse(localStorage.getItem('rommelhoekje-gestemd') || '{}'); } catch (e) {}
   try { $('naam').value = localStorage.getItem('rommelhoekje-idee-naam') || ''; } catch (e) {}
@@ -202,6 +209,8 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
     const id = +b.dataset.id;
     try { const r = await (await fetch(url + '/stem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, geheim }) })).json(); if (r.ok) { gestemd[id] = 1; try { localStorage.setItem('rommelhoekje-gestemd', JSON.stringify(gestemd)); } catch (er) {} b.setAttribute('aria-pressed', 'true'); b.querySelector('span').textContent = r.stemmen; } } catch (er) {}
   });
+  const soortUitleg = () => { $('soort-uitleg').hidden = !['privacy', 'melding'].includes($('soort').value); };
+  $('soort').addEventListener('change', soortUitleg); soortUitleg();
   $('formulier').addEventListener('submit', async e => {
     e.preventDefault();
     const tekst = $('tekst').value.trim(), naam = $('naam').value.trim();

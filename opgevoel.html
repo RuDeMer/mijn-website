@@ -323,6 +323,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const BRONNEN = {
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
+    huis: () => { const s = lees('huisopstelten-v1'); return s && s.besteDag > 0 ? [Math.round(s.besteDag), Object.values(s.k || {}).reduce((n, k) => n + ((k && k.s) || []).filter(Boolean).length, 0)] : null; },
     duiker: () => { const s = lees('rubendeduiker-v1'); return s && s.beste && s.beste.avond > 0 ? [Math.round(s.beste.avond), Object.keys(s.boek || {}).length] : null; },
     wheels: () => { const s = lees('rommelwheels-v1'); if (!s || !s.levels) return null; let p = 0, st = 0; for (const r of Object.values(s.levels)) { p += r.punten || 0; st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); } return p ? [p, st] : null; },
     vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
@@ -456,7 +457,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };

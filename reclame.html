@@ -786,6 +786,12 @@ const RM = (() => {
     const MAX_NAT = 16; // zoveel druppels mag Snuf hebben voor hij kletsnat is
     const ROL = T; // zo ver kijken muntjes en grind of ze nog verder kunnen rollen (over de bovenkant van een schuine muur)
     const OPZIJ = 80, STROOM = 6; // zo ver kijkt water opzij naar een plek waar het verder kan vallen, en zo snel stroomt het daarheen
+    // vallen met vaart (fv, in 1/64 vakje per stap; fs houdt de rest bij, met VALT erbij zolang hij echt recht naar beneden valt):
+    // wat begint te vallen heeft meteen V0, en krijgt elke stap G of G + 1 erbij, tot VMAX. Muntjes en grind die
+    // harder dan STUIT neerkomen, stuiteren een of twee vakjes opzij. VMIN: wat opzij glijdt of rolt, houdt vaart
+    // en valt van een randje meteen naar beneden
+    // (VMAX verschilt per korrel een beetje, zoals echte muntjes niet allemaal even snel vallen)
+    const G = 1, V0 = 63, VMIN = 64, VMAX = 96, STUIT = 80, VALT = 128;
 
     // een level: m muren [x, y, b, h], p pinnen [x, y, lengte, 'h' | 'v' | 'd' | 'a', kant], f vullingen [letter, x, y, b, h],
     // u putjes [x, y, b], s mollen [x, y], e eksters [x, y], d deel van de muntjes dat nodig is (standaard de helft)
@@ -843,9 +849,9 @@ const RM = (() => {
     }
     function maak(L) {
       L = uitTekst(L);
-      const N = GW * GH, g = new Uint8Array(N), pid = new Int8Array(N).fill(-1), merk = new Uint32Array(N), tint = new Uint8Array(N);
+      const N = GW * GH, g = new Uint8Array(N), pid = new Int8Array(N).fill(-1), merk = new Uint32Array(N), tint = new Uint8Array(N), fv = new Uint8Array(N), fs = new Uint8Array(N);
       for (let q = 0; q < N; q++) tint[q] = (Math.imul(q + 1, 2654435761) >>> 24);
-      const S = { L, g, pid, merk, tint, stap: 0, pinnen: [], figs: [], munten: 0, gevangen: 0, mis: null, rust: 0, weg: 0, ev: [], getrokken: [] };
+      const S = { L, g, pid, merk, tint, fv, fs, klink: 0, stap: 0, pinnen: [], figs: [], munten: 0, gevangen: 0, mis: null, rust: 0, weg: 0, ev: [], getrokken: [] };
       const zetVak = (x, y, t) => { if (x >= 0 && y >= 0 && x < GW && y < GH) g[y * GW + x] = t; };
       for (const m of L.m) {
         if (typeof m[3] === 'string') { for (const [i, j] of pinVakjes(m[0], m[1], m[2], m[3])) zetVak(i, j, MUUR); continue; }
@@ -878,10 +884,37 @@ const RM = (() => {
       return true;
     }
     function stap(S) {
-      const g = S.g, merk = S.merk, tint = S.tint, st = ++S.stap;
+      const g = S.g, merk = S.merk, tint = S.tint, fv = S.fv, fs = S.fs, N = GW * GH, st = ++S.stap;
       let bewogen = 0;
-      const zet = (i, j) => { g[j] = g[i]; g[i] = LEEG; tint[j] = tint[i]; merk[j] = st; bewogen++; };
-      const ruil = (i, j) => { const a = g[i]; g[i] = g[j]; g[j] = a; const b = tint[i]; tint[i] = tint[j]; tint[j] = b; merk[i] = st; merk[j] = st; bewogen++; };
+      const zet = (i, j, v) => { g[j] = g[i]; g[i] = LEEG; tint[j] = tint[i]; fv[j] = v || 0; fs[j] = 0; fv[i] = fs[i] = 0; merk[j] = st; bewogen++; };
+      const ruil = (i, j) => { const a = g[i]; g[i] = g[j]; g[j] = a; const b = tint[i]; tint[i] = tint[j]; tint[j] = b; fv[i] = fv[j] = fs[i] = fs[j] = 0; merk[i] = st; merk[j] = st; bewogen++; };
+      // recht naar beneden vallen, steeds sneller; nog niet genoeg vaart voor een vakje, dan blijft hij deze stap hangen
+      const val = (i, t) => {
+        const vm = VMAX + ((tint[i] >> 1) & 3) * 6;
+        let v = Math.max(fv[i], V0) + G + (tint[i] & 1); if (v > vm) v = vm;
+        const a = (fs[i] & 63) + v, n = a >> 6;
+        if (!n) { fv[i] = v; fs[i] = a | VALT; merk[i] = st; bewogen++; return; }
+        let j = i, k = 0;
+        while (k < n && j < N - GW && g[j + GW] === LEEG) { j += GW; k++; }
+        zet(i, j);
+        if (k === n) {
+          fv[j] = v; fs[j] = (a & 63) | VALT;
+          // een vallende munt tuimelt en zwalkt af en toe een vakje opzij (anders vallen ze in rechte rijtjes)
+          if (t === MUNT && v >= 72 && ((tint[j] + st) & 15) === 0) {
+            const e = (tint[j] & 4) ? 1 : -1, x = j % GW + e;
+            if (x >= 0 && x < GW && g[j + e] === LEEG && j + e < N - GW && g[j + e + GW] === LEEG) { const w = fv[j], r = fs[j]; zet(j, j + e, w); fs[j + e] = r; }
+          }
+          return;
+        }
+        // neergekomen: muntjes en grind stuiteren opzij
+        if ((t === MUNT || t === GRIND) && v >= STUIT) {
+          const e = (tint[j] & 2) ? 1 : -1;
+          for (let s = v >= 100 ? 2 : 1; s > 0; s--) { const x = j % GW + e; if (x < 0 || x >= GW || g[j + e] !== LEEG) break; zet(j, j + e, VMIN); j += e; }
+          S.klink++;
+        }
+      };
+      // wat op iets staat dat valt, valt mee: het krijgt dezelfde vaart (anders stroomt een vallende stapel opzij weg)
+      const mee = i => { const vm = VMAX + ((tint[i] >> 1) & 3) * 6; let v = Math.max(fv[i], V0) + G + (tint[i] & 1); if (v > vm) v = vm; fv[i] = v; fs[i] |= VALT; merk[i] = st; bewogen++; };
       for (let y = GH - 1; y >= 0; y--) {
         const ltr = ((y + st) & 1) === 0, rij = y * GW;
         for (let k = 0; k < GW; k++) {
@@ -891,11 +924,14 @@ const RM = (() => {
           if (t === WATER) {
             if ((y < GH - 1 && g[i + GW] === PUT) || (x > 0 && g[i - 1] === PUT) || (x < GW - 1 && g[i + 1] === PUT)) { g[i] = LEEG; bewogen++; S.weg++; continue; }
             if (y === GH - 1) { g[i] = LEEG; bewogen++; S.weg++; continue; }
-            if (g[i + GW] === LEEG) { zet(i, i + GW); continue; }
+            const o = g[i + GW];
+            if (o === LEEG) { val(i, t); continue; }
+            if ((fs[i + GW] & VALT) && !VAST[o]) { mee(i); continue; }
+            fv[i] = fs[i] = 0; // staat ergens op
             let ok = false;
             for (const e of [d, -d]) {
               const nx = x + e; if (nx < 0 || nx >= GW) continue;
-              if (!VAST[g[i + e]] && g[i + e + GW] === LEEG) { zet(i, i + e + GW); ok = true; break; }
+              if (!VAST[g[i + e]] && g[i + e + GW] === LEEG) { zet(i, i + e + GW, VMIN); ok = true; break; }
             }
             if (ok) continue;
             // opzij, hooguit STROOM vakjes per stap, naar de dichtstbijzijnde plek waar het verder kan vallen
@@ -905,30 +941,34 @@ const RM = (() => {
               const j = i + e * s; if (g[j] !== LEEG) break;
               if (g[j + GW] === LEEG) { kant = e; af = s; break; }
             }
-            if (kant) zet(i, i + kant * Math.min(af, STROOM));
+            if (kant) zet(i, i + kant * Math.min(af, STROOM), VMIN);
             continue;
           }
           if (KORREL[t]) {
             if (t === CEMENT) {
               const bij = [y > 0 ? i - GW : -1, y < GH - 1 ? i + GW : -1, x > 0 ? i - 1 : -1, x < GW - 1 ? i + 1 : -1];
               let w = -1; for (const j of bij) if (j >= 0 && g[j] === WATER) { w = j; break; }
-              if (w >= 0) { g[i] = BETON; g[w] = LEEG; merk[i] = st; merk[w] = st; bewogen++; S.ev.push(['beton']); continue; }
+              if (w >= 0) { g[i] = BETON; g[w] = LEEG; fv[i] = fs[i] = 0; merk[i] = st; merk[w] = st; bewogen++; S.ev.push(['beton']); continue; }
             }
             if (y === GH - 1) { g[i] = LEEG; bewogen++; S.weg++; continue; }
             const b = g[i + GW];
-            if (b === LEEG) { zet(i, i + GW); continue; }
+            if (b === LEEG) { val(i, t); continue; }
+            if ((fs[i + GW] & VALT) && !VAST[b]) { mee(i); continue; }
+            // wat er net onder geschoven is en zelf in de lucht hangt, valt zo: even wachten (anders glijdt een hele rij in één keer opzij)
+            if (merk[i + GW] === st && !VAST[b] && i + 2 * GW < N && g[i + 2 * GW] === LEEG) { bewogen++; continue; }
+            fv[i] = fs[i] = 0; // staat ergens op
             if (b === WATER) { ruil(i, i + GW); continue; }
             let ok = false;
             for (const e of [d, -d]) {
               const nx = x + e; if (nx < 0 || nx >= GW) continue;
               const z = g[i + e], o = g[i + e + GW];
-              if (!VAST[z] && (o === LEEG || o === WATER)) { if (o === LEEG) zet(i, i + e + GW); else ruil(i, i + e + GW); ok = true; break; }
+              if (!VAST[z] && (o === LEEG || o === WATER)) { if (o === LEEG) zet(i, i + e + GW, VMIN); else ruil(i, i + e + GW); ok = true; break; }
             }
             // muntjes en grind rollen: ze schuiven een vakje opzij als ze binnen ROL vakjes verder kunnen vallen
             if (!ok && (t === MUNT || t === GRIND)) {
               rol: for (const e of [d, -d]) for (let s = 1; s <= ROL; s++) {
                 const a = x + e * s; if (a < 0 || a >= GW || g[i + e * s] !== LEEG) break;
-                if (g[i + e * s + GW] === LEEG) { zet(i, i + e); break rol; }
+                if (g[i + e * s + GW] === LEEG) { zet(i, i + e, VMIN); break rol; }
               }
             }
           }
@@ -978,7 +1018,7 @@ const RM = (() => {
     function wachtTotRust(S, max) { for (let n = 0; n < (max || 20000); n++) { stap(S); if (S.mis || S.rust >= 12) return true; } return false; }
     function kopie(S) {
       // de klok (stap) loopt door, net als in het spel: hij bepaalt welke kant een korrel eerst probeert
-      return Object.assign({}, S, { g: S.g.slice(), tint: S.tint.slice(), pid: S.pid, merk: new Uint32Array(S.merk.length), ev: [], getrokken: S.getrokken.slice(),
+      return Object.assign({}, S, { g: S.g.slice(), tint: S.tint.slice(), fv: S.fv.slice(), fs: S.fs.slice(), pid: S.pid, merk: new Uint32Array(S.merk.length), ev: [], getrokken: S.getrokken.slice(),
         pinnen: S.pinnen.map(p => Object.assign({}, p)), figs: S.figs.map(f => Object.assign({}, f)), mis: S.mis ? Object.assign({}, S.mis) : null });
     }
     // de oplosser: probeer elke volgorde van pinnen (na elke pin wachten tot alles stil ligt).
@@ -2389,7 +2429,7 @@ const RM = (() => {
       '..#.SSSS.#......#.SSSS.....#..',
       '..##########################..',
       '..............................'] },
-    { n: "Beton voor twee", d: 0.35, s: 0.75, k: [
+    { n: "Beton voor twee", d: 0.35, s: 0.65, k: [
       '..#.......#........#.......#..',
       '..#.......#$$$$$$$$#.......#..',
       '..#.......#$$$$$$$$##......#..',
@@ -2491,7 +2531,7 @@ const RM = (() => {
       '..#................##SSSS..#..',
       '..##########################..',
       '..............................'] },
-    { n: "Brug en Ed voor twee", d: 0.35, s: 0.7, k: [
+    { n: "Brug en Ed voor twee", d: 0.35, s: 0.6, k: [
       '..#.......#........#.......#..',
       '..#.......#$$$$$$$$#.......#..',
       '..#.......#$$$$$$$$#.......#..',
@@ -4547,7 +4587,9 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       tik: () => toon(900, 0.05, { type: 'triangle', vol: 0.18 }),
       knop: () => toon(620, 0.07, { type: 'triangle', vol: 0.2, naar: 820 }),
       trek: () => { ruis(0.12, { soort: 'highpass', f: 2500, vol: 0.18 }); toon(520, 0.12, { type: 'square', vol: 0.08, naar: 1300 }); },
-      munt: () => { toon(1320, 0.07, { type: 'square', vol: 0.07 }); toon(1760, 0.12, { type: 'square', vol: 0.07, na: 0.06 }); },
+      // munt: 'ting-ting', bij een reeks steeds een toontje hoger (vijftonige ladder, nooit vals)
+      munt: k => { const s = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24][Math.min(10, Math.max(0, (k || 1) - 1))], f = 1046 * Math.pow(2, s / 12); toon(f, 0.06, { type: 'square', vol: 0.05 }); toon(f * 1.5, 0.12, { type: 'triangle', vol: 0.08, na: 0.045 }); },
+      klink: () => toon(2600 + Math.random() * 1600, 0.05, { type: 'triangle', vol: 0.035 }),
       spat: () => ruis(0.15, { f: 2200, naar: 600, vol: 0.12 }),
       plons: () => { ruis(0.45, { f: 1800, naar: 200, vol: 0.3 }); toon(300, 0.25, { naar: 90, vol: 0.15 }); },
       beton: () => ruis(0.06, { soort: 'bandpass', f: 900, vol: 0.08 }),
@@ -4571,11 +4613,11 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       zoef: () => ruis(0.25, { soort: 'bandpass', f: 600, naar: 2400, vol: 0.12 })
     };
     let laatst = {};
-    function speel(n) {
+    function speel(n, k) {
       if (!O.inst.g) return; start(); if (!ac) return;
       if (ac.state === 'suspended') ac.resume().catch(() => {});
       const nu = performance.now(); if (laatst[n] && nu - laatst[n] < 45) return; laatst[n] = nu;
-      try { (SFX[n] || SFX.tik)(); } catch (e) {}
+      try { (SFX[n] || SFX.tik)(k); } catch (e) {}
     }
     return { start, speel, get ac() { return ac; } };
   })();
@@ -4629,8 +4671,24 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
     TINT[P.CEMENT] = [[176, 176, 170], [168, 168, 162], [184, 184, 178], [172, 170, 164]];
     TINT[P.BETON] = [[132, 132, 126], [126, 126, 120], [138, 136, 130]];
     TINT[P.GRIND] = [[112, 104, 98], [92, 86, 82], [134, 126, 118], [104, 98, 94], [150, 142, 132], [84, 78, 74]];
-    TINT[P.MUNT] = [[233, 185, 73], [242, 200, 92], [222, 170, 58], [246, 212, 110]];
+    TINT[P.MUNT] = [[170, 120, 30], [184, 132, 34], [160, 112, 26]]; // de schaduw tussen de munten; de munten zelf zijn plaatjes (MUNTBEELD)
     const WATER_TOP = [140, 196, 244];
+    // een munt die tolt: 8 standen, van plat (0) via op zijn kant (4) weer terug; getekend op 4x zodat hij scherp blijft
+    const MUNT_D = 6.2, MUNTBEELD = (() => {
+      const uit = [];
+      for (let f = 0; f < 8; f++) {
+        const c = document.createElement('canvas'); c.width = c.height = 26; const q = c.getContext('2d'), w = Math.max(0.16, Math.abs(Math.cos(f * Math.PI / 8)));
+        q.translate(13, 13);
+        if (w < 0.9) { q.beginPath(); q.ellipse(f < 4 ? 1.6 : -1.6, 0, 10.4 * w + 1.2, 10.4, 0, 0, 7); q.fillStyle = '#B07A16'; q.fill(); } // de rand van de munt
+        const gr = q.createLinearGradient(-8 * w, -9, 8 * w, 9); gr.addColorStop(0, '#FFE58A'); gr.addColorStop(0.55, '#F2C24A'); gr.addColorStop(1, '#D79A2A');
+        q.beginPath(); q.ellipse(0, 0, 10.4 * w, 10.4, 0, 0, 7); q.fillStyle = gr; q.fill(); q.lineWidth = 1.8; q.strokeStyle = '#8A6010'; q.stroke();
+        if (w > 0.3) { q.beginPath(); q.ellipse(0, 0, 7 * w, 7, 0, 0, 7); q.lineWidth = 1.2; q.strokeStyle = 'rgba(150,100,20,.55)'; q.stroke(); }
+        q.beginPath(); q.ellipse(-3.2 * w, -4, 2.6 * w + 0.4, 1.8, -0.5, 0, 7); q.fillStyle = 'rgba(255,255,255,.75)'; q.fill();
+        uit.push(c);
+      }
+      return uit;
+    })();
+    const RUST_STAND = [0, 0, 1, 7, 0, 2, 6, 1]; // hoe een munt ligt als hij stil ligt (meestal plat, soms wat scheef)
     // achtergrond en muren worden één keer per level getekend
     function tekenMuren(S) {
       const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
@@ -4753,7 +4811,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
     function maak(def, A) {
       const S = P.maak(def), muren = tekenMuren(S);
       const laagC = document.createElement('canvas'); laagC.width = GW; laagC.height = GH; const lg = laagC.getContext('2d'), img = lg.createImageData(GW, GH);
-      let acc = 0, tijd = 0, eind = null, eindT = 0, kies = -1, toetsen = false, klaarKnop = false;
+      let acc = 0, tijd = 0, eind = null, eindT = 0, kies = -1, toetsen = false, klaarKnop = false, reeks = 0, laatsteMunt = -9, laatsteKlank = -9, vonkjes = [];
       S.figs.forEach(f => { f.blij = 0; f.praat = f.soort === 'ed' ? 1.6 : 0; });
       const I = {
         W, H, S,
@@ -4782,13 +4840,21 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
           while (acc >= 1 / 60 && n < 4) { acc -= 1 / 60; n++; for (let k = 0; k < STAPPEN; k++) P.stap(S); }
           if (acc > 0.2) acc = 0;
           for (const [e, x] of S.ev.splice(0)) {
-            if (e === 'munt') { A.geluid('munt'); S.figs.forEach(f => { if (f.soort === 'snuf') f.blij = 0.5; }); }
+            if (e === 'munt') {
+              // elke munt die Snuf vangt klinkt een toontje hoger, zolang ze blijven komen
+              if (tijd - laatsteMunt > 0.6) reeks = 0; laatsteMunt = tijd;
+              if (tijd - laatsteKlank >= 0.05) { reeks++; laatsteKlank = tijd; A.geluid('munt', reeks); }
+              S.figs.forEach(f => { if (f.soort === 'snuf') { f.blij = 0.5; if (!ZACHT && vonkjes.length < 40 && Math.random() < 0.5) vonkjes.push({ x: f.x * C + f.b * C / 2 + (Math.random() - 0.5) * 30, y: f.y * C + 4, vx: (Math.random() - 0.5) * 60, vy: -60 - Math.random() * 60, t: 0, s: Math.random() * 8 | 0 }); } });
+            }
             else if (e === 'trek') A.geluid('trek');
             else if (e === 'ed-weg') A.geluid('kraa');
             else if (e === 'beton') A.geluid('beton');
             else if (e === 'spat') A.geluid('spat');
             else if (e === 'mis') A.geluid(x === 'nat' ? 'plons' : x === 'ekster' ? 'kraa' : 'boing');
           }
+          if (S.klink) { A.geluid('klink'); S.klink = 0; } // muntjes die neerkomen en stuiteren
+          for (const v of vonkjes) { v.t += dt; v.x += v.vx * dt; v.y += v.vy * dt; v.vy += 260 * dt; }
+          vonkjes = vonkjes.filter(v => v.t < 0.7);
           if (!eind) beoordeel(dt);
           else { eindT += dt; if (eindT > (eind.wacht || 1.2) && !eind.gemeld) { eind.gemeld = true; A.klaar(eind); } }
         },
@@ -4814,11 +4880,20 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
           }
           lg.putImageData(img, 0, 0);
           g.save(); g.imageSmoothingEnabled = false; g.drawImage(laagC, 0, 0, W, H); g.restore();
-          // muntjes: een rand en een glimpje, zodat het echte munten blijven
-          g.lineWidth = 0.9; g.strokeStyle = '#9A7012';
-          g.beginPath(); for (const i of munten) { const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; g.moveTo(x + 1.9, y); g.arc(x, y, 1.9, 0, 6.283); } g.stroke();
-          g.fillStyle = 'rgba(255,255,255,.85)';
-          for (const i of munten) { if (S.tint[i] % 5) continue; const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; g.fillRect(x - 1.2, y - 1.2, 1.1, 1.1); }
+          // muntjes: elk een echte munt, een beetje van het raster af; wat valt of rolt tolt, wat stil ligt glinstert soms
+          const st = S.stap, h = MUNT_D / 2;
+          for (const i of munten) {
+            const tn = tint[i], x = (i % GW) * C + C / 2 + ((tn >> 3) & 3) * 0.5 - 0.75, y = ((i / GW) | 0) * C + C / 2 + ((tn >> 5) & 3) * 0.5 - 0.75;
+            const beweegt = S.merk[i] >= st - 2 && st > 2, f = beweegt && !ZACHT ? (tn + Math.floor(tijd * (14 + (tn & 7)))) & 7 : RUST_STAND[tn & 7];
+            g.drawImage(MUNTBEELD[f], x - h, y - h, MUNT_D, MUNT_D);
+          }
+          if (!ZACHT) for (const i of munten) {
+            const tn = tint[i]; if (tn % 29) continue;
+            const k = Math.sin(tijd * 2.3 + tn) * 1.6 - 0.6; if (k <= 0) continue;
+            const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; glinster(g, x - 1, y - 1, k * 2.4);
+          }
+          for (const v of vonkjes) { g.globalAlpha = Math.max(0, 1 - v.t / 0.7); g.drawImage(MUNTBEELD[(v.s + Math.floor(v.t * 20)) & 7], v.x - 3, v.y - 3, 6, 6); glinster(g, v.x + 3, v.y - 3, 2.5); }
+          g.globalAlpha = 1;
           for (const f of S.figs) if (f.soort === 'ed') tekenEd(g, f, tijd);
           for (const f of S.figs) if (f.soort === 'snuf') tekenSnuf(g, f, tijd, A.look);
           S.pinnen.forEach((q, i) => tekenPin(g, q, toetsen ? String(i + 1) : '', q.id === kies));
@@ -4849,6 +4924,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       }
       return I;
     }
+    // een glinstering: een klein sterretje met vier punten
+    function glinster(g, x, y, r) { g.fillStyle = 'rgba(255,255,255,.95)'; g.beginPath(); g.moveTo(x, y - r); g.lineTo(x + r * 0.22, y - r * 0.22); g.lineTo(x + r, y); g.lineTo(x + r * 0.22, y + r * 0.22); g.lineTo(x, y + r); g.lineTo(x - r * 0.22, y + r * 0.22); g.lineTo(x - r, y); g.lineTo(x - r * 0.22, y - r * 0.22); g.closePath(); g.fill(); }
     function afstandLijn(p, a, b) { const vx = b[0] - a[0], vy = b[1] - a[1], l = vx * vx + vy * vy, t = l ? Math.max(0, Math.min(1, ((p.x - a[0]) * vx + (p.y - a[1]) * vy) / l)) : 0; return Math.hypot(p.x - a[0] - vx * t, p.y - a[1] - vy * t); }
 
     // het telefoontje op de plank: een mini-reclame
@@ -6040,7 +6117,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
   if (window.ResizeObserver) new ResizeObserver(() => maat()).observe($('veld'));
   function api(id) {
     return {
-      geluid: n => GELUID.speel(n), T, ZACHT, look: O.look[id] || 0,
+      geluid: (n, k) => GELUID.speel(n, k), T, ZACHT, look: O.look[id] || 0,
       klaar: res => naKlaar(res),
       zweef: (tekstK, fn) => { const z = $('zweef'); if (!tekstK) { z.innerHTML = ''; return; } z.innerHTML = '<button class="knop hoofd" type="button">' + esc(tekstK) + '</button>'; z.firstChild.addEventListener('click', () => { GELUID.speel('knop'); fn(); }); },
       tip: s => { $('tip').textContent = s || ''; doek.setAttribute('aria-label', 'Speelveld. ' + (s || '')); },
@@ -6138,7 +6215,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
     const M = SP[id], R = M.reclame; if (!R) { daarna(); return; }
     $('reclame').hidden = false; $('reclame').dataset.spel = id; $('rc-echt').hidden = true;
     $('rc-slogan').textContent = R.slogan; $('rc-onder').textContent = '';
-    const demo = R.maak({ geluid: n => GELUID.speel(n), T, ZACHT, look: O.look[id] || 0, klaar: () => {}, zweef: () => {}, tip: () => {}, vuil: () => {} });
+    const demo = R.maak({ geluid: (n, k) => GELUID.speel(n, k), T, ZACHT, look: O.look[id] || 0, klaar: () => {}, zweef: () => {}, tip: () => {}, vuil: () => {} });
     RECLAME = { id, M, demo, t: 0, daarna, klaar: false };
     rcMaat(); try { $('rc-weg').focus({ preventScroll: true }); } catch (e) {}
   }

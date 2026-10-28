@@ -771,18 +771,21 @@ const RM = (() => {
   }
   const reeksNu = (o, dag) => (o.dag.d >= dag - 1 ? o.dag.r : 0);
 
-  // ---------- Trek de pin: een zandbak van 60 x 100 vakjes
+  // ---------- Trek de pin: een zandbak van 120 x 200 vakjes
   // Elk vakje is leeg, muur, pin, water, zand, muntje, cement, beton, grind, putje of een figuur.
   // Water stroomt, korrels (zand, muntjes, cement, grind) vallen en zakken door water,
   // cement en water worden samen beton. Alles is vast bepaald, zodat de oplosser hetzelfde ziet als de speler.
   const PIN = (() => {
-    const GW = 60, GH = 100;
+    const R = 4, T = 4; // elk teken van een tekening is R x R vakjes; pinnen en schuine muren zijn T vakjes dik
+    const GW = 30 * R, GH = 50 * R;
     const LEEG = 0, MUUR = 1, PEN = 2, WATER = 3, ZAND = 4, MUNT = 5, CEMENT = 6, BETON = 7, GRIND = 8, PUT = 9, FIG = 10;
     const VAST = new Uint8Array([0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1]);
     const KORREL = new Uint8Array([0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0]);
     const LETTER = { w: WATER, z: ZAND, $: MUNT, c: CEMENT, g: GRIND };
-    const SNUF = [8, 9], ED = [7, 7];
-    const MAX_NAT = 4; // zoveel druppels mag Snuf hebben voor hij kletsnat is
+    const SNUF = [16, 18], ED = [14, 14];
+    const MAX_NAT = 16; // zoveel druppels mag Snuf hebben voor hij kletsnat is
+    const ROL = T; // zo ver kijken muntjes en grind of ze nog verder kunnen rollen (over de bovenkant van een schuine muur)
+    const OPZIJ = 80, STROOM = 6; // zo ver kijkt water opzij naar een plek waar het verder kan vallen, en zo snel stroomt het daarheen
 
     // een level: m muren [x, y, b, h], p pinnen [x, y, lengte, 'h' | 'v' | 'd' | 'a', kant], f vullingen [letter, x, y, b, h],
     // u putjes [x, y, b], s mollen [x, y], e eksters [x, y], d deel van de muntjes dat nodig is (standaard de helft)
@@ -790,26 +793,26 @@ const RM = (() => {
       L = uitTekst(L);
       const sx = (x, b) => GW - x - b;
       return Object.assign({}, L, {
-        m: L.m.map(([x, y, b, h]) => typeof h === 'string' ? (h === 'd' ? [GW - x - b - 1, y + b - 1, b, 'a'] : [GW - x - b - 1, y - b + 1, b, 'd']) : [sx(x, b), y, b, h]),
-        p: L.p.map(([x, y, n, o, k]) => o === 'h' ? [sx(x, n), y, n, o, -k] : o === 'v' ? [sx(x, 2), y, n, o, k] : o === 'd' ? [GW - x - n - 1, y + n - 1, n, 'a', -k] : [GW - x - n - 1, y - n + 1, n, 'd', -k]),
+        m: L.m.map(([x, y, b, h]) => typeof h === 'string' ? (h === 'd' ? [GW - x - b - T + 1, y + b - 1, b, 'a'] : [GW - x - b - T + 1, y - b + 1, b, 'd']) : [sx(x, b), y, b, h]),
+        p: L.p.map(([x, y, n, o, k]) => o === 'h' ? [sx(x, n), y, n, o, -k] : o === 'v' ? [sx(x, T), y, n, o, k] : o === 'd' ? [GW - x - n - T + 1, y + n - 1, n, 'a', -k] : [GW - x - n - T + 1, y - n + 1, n, 'd', -k]),
         f: (L.f || []).map(([t, x, y, b, h]) => [t, sx(x, b), y, b, h]),
         u: (L.u || []).map(([x, y, b]) => [sx(x, b), y, b]),
         s: (L.s || []).map(([x, y]) => [sx(x, SNUF[0]), y]),
         e: (L.e || []).map(([x, y]) => [sx(x, ED[0]), y])
       });
     }
-    // de vakjes van een pin (2 dik, zodat er niets langs lekt)
+    // de vakjes van een pin of schuine muur (T dik, zodat er niets langs lekt)
     function pinVakjes(x, y, n, o) {
       const v = [];
-      for (let k = 0; k < n; k++) {
-        if (o === 'h') v.push([x + k, y], [x + k, y + 1]);
-        else if (o === 'v') v.push([x, y + k], [x + 1, y + k]);
-        else if (o === 'd') v.push([x + k, y + k], [x + k + 1, y + k]);
-        else v.push([x + k, y - k], [x + k + 1, y - k]);
+      for (let k = 0; k < n; k++) for (let d = 0; d < T; d++) {
+        if (o === 'h') v.push([x + k, y + d]);
+        else if (o === 'v') v.push([x + d, y + k]);
+        else if (o === 'd') v.push([x + k + d, y + k]);
+        else v.push([x + k + d, y - k]);
       }
       return v;
     }
-    // een level als tekening: 30 tekens breed en 50 regels hoog, elk teken is 2 x 2 vakjes.
+    // een level als tekening: 30 tekens breed en 50 regels hoog, elk teken is R x R vakjes.
     // # muur, \\ en / schuine muur, 1-9 een pin (met < > ^ of _ ernaast: daar zit de knop; dat teken telt als muur),
     // w water, z zand, $ muntjes, c cement, g grind, u putje, S Snuf (een blok van 4 x 5), E Ekster Ed (4 x 4), . leeg
     function uitTekst(def) {
@@ -819,35 +822,36 @@ const RM = (() => {
       const pinTeken = {};
       for (let y = 0; y < r.length; y++) for (let x = 0; x < 30; x++) {
         const c = at(x, y);
-        if (c === '#' || c === '<' || c === '>' || c === '^' || c === '_') L.m.push([2 * x, 2 * y, 2, 2]);
-        else if ('wz$cg'.includes(c)) L.f.push([c, 2 * x, 2 * y, 2, 2]);
-        else if (c === 'u') L.u.push([2 * x, 2 * y + 1, 2]);
-        else if (c === 'S' && at(x - 1, y) !== 'S' && at(x, y - 1) !== 'S') L.s.push([2 * x, 2 * y + 1]);
-        else if (c === 'E' && at(x - 1, y) !== 'E' && at(x, y - 1) !== 'E') L.e.push([2 * x, 2 * y + 1]);
-        else if (c === '\\' && !gedaan.has(key(x, y))) { let n = 0; while (at(x + n, y + n) === '\\') { gedaan.add(key(x + n, y + n)); n++; } L.m.push([2 * x, 2 * y, 2 * n, 'd']); }
-        else if (c === '/' && !gedaan.has(key(x, y))) { let n = 0; while (at(x - n, y + n) === '/') { gedaan.add(key(x - n, y + n)); n++; } L.m.push([2 * (x - n + 1), 2 * (y + n - 1) + 1, 2 * n, 'a']); }
+        if (c === '#' || c === '<' || c === '>' || c === '^' || c === '_') L.m.push([R * x, R * y, R, R]);
+        else if ('wz$cg'.includes(c)) L.f.push([c, R * x, R * y, R, R]);
+        else if (c === 'u') L.u.push([R * x, R * y + R - 2, R]);
+        else if (c === 'S' && at(x - 1, y) !== 'S' && at(x, y - 1) !== 'S') L.s.push([R * x, R * y + 2]);
+        else if (c === 'E' && at(x - 1, y) !== 'E' && at(x, y - 1) !== 'E') L.e.push([R * x, R * y + 2]);
+        else if (c === '\\' && !gedaan.has(key(x, y))) { let n = 0; while (at(x + n, y + n) === '\\') { gedaan.add(key(x + n, y + n)); n++; } L.m.push([R * x, R * y, R * n, 'd']); }
+        else if (c === '/' && !gedaan.has(key(x, y))) { let n = 0; while (at(x - n, y + n) === '/') { gedaan.add(key(x - n, y + n)); n++; } L.m.push([R * (x - n + 1), R * (y + n - 1) + R - 1, R * n, 'a']); }
         else if (c >= '1' && c <= '9') (pinTeken[c] = pinTeken[c] || []).push([x, y]);
       }
       for (const c of Object.keys(pinTeken).sort()) {
         const v = pinTeken[c].sort((a, b) => a[1] - b[1] || a[0] - b[0]), [x0, y0] = v[0], n = v.length, [x1, y1] = v[n - 1];
         let o, x, y, k;
-        if (y0 === y1) { o = 'h'; const a = v.reduce((m, q) => Math.min(m, q[0]), 99), b = v.reduce((m, q) => Math.max(m, q[0]), -1); x = 2 * a; y = 2 * y0; k = at(b + 1, y0) === '>' ? 1 : at(a - 1, y0) === '<' ? -1 : (a + b < 29 ? -1 : 1); L.p.push([x, y, 2 * (b - a + 1), o, k]); }
-        else if (x0 === x1) { o = 'v'; x = 2 * x0; y = 2 * y0; k = at(x0, y1 + 1) === '_' ? 1 : -1; L.p.push([x, y, 2 * n, o, k]); }
-        else if (x1 > x0) { o = 'd'; k = at(x1 + 1, y1) === '>' || at(x1 + 1, y1 + 1) === '>' || at(x1, y1 + 1) === '_' ? 1 : -1; L.p.push([2 * x0, 2 * y0, 2 * n, o, k]); }
-        else { o = 'a'; k = at(x0 + 1, y0) === '>' || at(x0 + 1, y0 - 1) === '>' || at(x0, y0 - 1) === '^' ? 1 : -1; L.p.push([2 * x1, 2 * y1 + 1, 2 * n, o, k]); }
+        if (y0 === y1) { o = 'h'; const a = v.reduce((m, q) => Math.min(m, q[0]), 99), b = v.reduce((m, q) => Math.max(m, q[0]), -1); x = R * a; y = R * y0; k = at(b + 1, y0) === '>' ? 1 : at(a - 1, y0) === '<' ? -1 : (a + b < 29 ? -1 : 1); L.p.push([x, y, R * (b - a + 1), o, k]); }
+        else if (x0 === x1) { o = 'v'; x = R * x0; y = R * y0; k = at(x0, y1 + 1) === '_' ? 1 : -1; L.p.push([x, y, R * n, o, k]); }
+        else if (x1 > x0) { o = 'd'; k = at(x1 + 1, y1) === '>' || at(x1 + 1, y1 + 1) === '>' || at(x1, y1 + 1) === '_' ? 1 : -1; L.p.push([R * x0, R * y0, R * n, o, k]); }
+        else { o = 'a'; k = at(x0 + 1, y0) === '>' || at(x0 + 1, y0 - 1) === '>' || at(x0, y0 - 1) === '^' ? 1 : -1; L.p.push([R * x1, R * y1 + R - 1, R * n, o, k]); }
       }
       return L;
     }
     function maak(L) {
       L = uitTekst(L);
-      const N = GW * GH, g = new Uint8Array(N), pid = new Int8Array(N).fill(-1), merk = new Uint32Array(N);
-      const S = { L, g, pid, merk, stap: 0, pinnen: [], figs: [], munten: 0, gevangen: 0, mis: null, rust: 0, weg: 0, ev: [], getrokken: [] };
+      const N = GW * GH, g = new Uint8Array(N), pid = new Int8Array(N).fill(-1), merk = new Uint32Array(N), tint = new Uint8Array(N);
+      for (let q = 0; q < N; q++) tint[q] = (Math.imul(q + 1, 2654435761) >>> 24);
+      const S = { L, g, pid, merk, tint, stap: 0, pinnen: [], figs: [], munten: 0, gevangen: 0, mis: null, rust: 0, weg: 0, ev: [], getrokken: [] };
       const zetVak = (x, y, t) => { if (x >= 0 && y >= 0 && x < GW && y < GH) g[y * GW + x] = t; };
       for (const m of L.m) {
         if (typeof m[3] === 'string') { for (const [i, j] of pinVakjes(m[0], m[1], m[2], m[3])) zetVak(i, j, MUUR); continue; }
         const [x, y, b, h] = m; for (let j = y; j < y + h; j++) for (let i = x; i < x + b; i++) zetVak(i, j, MUUR);
       }
-      for (const [x, y, b] of (L.u || [])) for (let i = x; i < x + b; i++) zetVak(i, y, PUT);
+      for (const [x, y, b] of (L.u || [])) for (let i = x; i < x + b; i++) { zetVak(i, y, PUT); zetVak(i, y + 1, PUT); }
       L.p.forEach(([x, y, n, o, k], id) => {
         const v = pinVakjes(x, y, n, o).filter(([i, j]) => i >= 0 && j >= 0 && i < GW && j < GH);
         for (const [i, j] of v) { g[j * GW + i] = PEN; pid[j * GW + i] = id; }
@@ -874,10 +878,10 @@ const RM = (() => {
       return true;
     }
     function stap(S) {
-      const g = S.g, merk = S.merk, st = ++S.stap;
+      const g = S.g, merk = S.merk, tint = S.tint, st = ++S.stap;
       let bewogen = 0;
-      const zet = (i, j) => { g[j] = g[i]; g[i] = LEEG; merk[j] = st; bewogen++; };
-      const ruil = (i, j) => { const a = g[i]; g[i] = g[j]; g[j] = a; merk[i] = st; merk[j] = st; bewogen++; };
+      const zet = (i, j) => { g[j] = g[i]; g[i] = LEEG; tint[j] = tint[i]; merk[j] = st; bewogen++; };
+      const ruil = (i, j) => { const a = g[i]; g[i] = g[j]; g[j] = a; const b = tint[i]; tint[i] = tint[j]; tint[j] = b; merk[i] = st; merk[j] = st; bewogen++; };
       for (let y = GH - 1; y >= 0; y--) {
         const ltr = ((y + st) & 1) === 0, rij = y * GW;
         for (let k = 0; k < GW; k++) {
@@ -894,16 +898,14 @@ const RM = (() => {
               if (!VAST[g[i + e]] && g[i + e + GW] === LEEG) { zet(i, i + e + GW); ok = true; break; }
             }
             if (ok) continue;
-            // opzij naar een plek waar het verder kan vallen
-            for (const e of [d, -d]) {
-              let j = i;
-              for (let s = 1; s <= 40; s++) {
-                const nx = x + e * s; if (nx < 0 || nx >= GW) break;
-                j = i + e * s; if (g[j] !== LEEG) break;
-                if (y === GH - 1 || g[j + GW] === LEEG) { zet(i, j); ok = true; break; }
-              }
-              if (ok) break;
+            // opzij, hooguit STROOM vakjes per stap, naar de dichtstbijzijnde plek waar het verder kan vallen
+            let kant = 0, af = OPZIJ + 1;
+            for (const e of [d, -d]) for (let s = 1; s < af; s++) {
+              const nx = x + e * s; if (nx < 0 || nx >= GW) break;
+              const j = i + e * s; if (g[j] !== LEEG) break;
+              if (g[j + GW] === LEEG) { kant = e; af = s; break; }
             }
+            if (kant) zet(i, i + kant * Math.min(af, STROOM));
             continue;
           }
           if (KORREL[t]) {
@@ -922,13 +924,11 @@ const RM = (() => {
               const z = g[i + e], o = g[i + e + GW];
               if (!VAST[z] && (o === LEEG || o === WATER)) { if (o === LEEG) zet(i, i + e + GW); else ruil(i, i + e + GW); ok = true; break; }
             }
-            // muntjes en grind rollen: ze schuiven een of twee vakjes opzij als ze daar verder kunnen vallen
+            // muntjes en grind rollen: ze schuiven een vakje opzij als ze binnen ROL vakjes verder kunnen vallen
             if (!ok && (t === MUNT || t === GRIND)) {
-              for (const e of [d, -d]) {
-                const a = x + e, b = x + 2 * e;
-                if (a < 0 || a >= GW || g[i + e] !== LEEG) continue;
-                if (g[i + e + GW] === LEEG) { zet(i, i + e); break; }
-                if (b >= 0 && b < GW && g[i + 2 * e] === LEEG && g[i + 2 * e + GW] === LEEG) { zet(i, i + e); break; }
+              rol: for (const e of [d, -d]) for (let s = 1; s <= ROL; s++) {
+                const a = x + e * s; if (a < 0 || a >= GW || g[i + e * s] !== LEEG) break;
+                if (g[i + e * s + GW] === LEEG) { zet(i, i + e); break rol; }
               }
             }
           }
@@ -975,9 +975,10 @@ const RM = (() => {
     const deel = S => (S.munten ? S.gevangen / S.munten : 0);
     // drie sterren vanaf 90% van de muntjes (of minder als het level dat zegt: s), twee sterren vanaf 20% daaronder
     const sterrenVoor = S => { const r = deel(S) + 1e-9, s3 = S.L.ster || 0.9; return r >= s3 ? 3 : r >= s3 - 0.2 ? 2 : 1; };
-    function wachtTotRust(S, max) { for (let n = 0; n < (max || 4000); n++) { stap(S); if (S.mis || S.rust >= 12) return true; } return false; }
+    function wachtTotRust(S, max) { for (let n = 0; n < (max || 20000); n++) { stap(S); if (S.mis || S.rust >= 12) return true; } return false; }
     function kopie(S) {
-      return Object.assign({}, S, { g: S.g.slice(), pid: S.pid, merk: new Uint32Array(S.merk.length), stap: 0, ev: [], getrokken: S.getrokken.slice(),
+      // de klok (stap) loopt door, net als in het spel: hij bepaalt welke kant een korrel eerst probeert
+      return Object.assign({}, S, { g: S.g.slice(), tint: S.tint.slice(), pid: S.pid, merk: new Uint32Array(S.merk.length), ev: [], getrokken: S.getrokken.slice(),
         pinnen: S.pinnen.map(p => Object.assign({}, p)), figs: S.figs.map(f => Object.assign({}, f)), mis: S.mis ? Object.assign({}, S.mis) : null });
     }
     // de oplosser: probeer elke volgorde van pinnen (na elke pin wachten tot alles stil ligt).
@@ -992,13 +993,13 @@ const RM = (() => {
         if (o === 'klaar') return;
         for (const p of S.pinnen) {
           if (p.uit) continue;
-          const K = kopie(S); trek(K, p.id); wachtTotRust(K, 6000); zoek(K, rij.concat(p.id));
+          const K = kopie(S); trek(K, p.id); wachtTotRust(K, 20000); zoek(K, rij.concat(p.id));
         }
       };
-      const S = maak(L); wachtTotRust(S, 6000); zoek(S, []);
+      const S = maak(L); wachtTotRust(S, 20000); zoek(S, []);
       return uit;
     }
-    return { GW, GH, LEEG, MUUR, PEN, WATER, ZAND, MUNT, CEMENT, BETON, GRIND, PUT, FIG, VAST, SNUF, ED, maak, trek, stap, oordeel, genoeg, deel, sterrenVoor, wachtTotRust, los, spiegel, pinVakjes, kopie, uitTekst };
+    return { R, T, GW, GH, LEEG, MUUR, PEN, WATER, ZAND, MUNT, CEMENT, BETON, GRIND, PUT, FIG, VAST, SNUF, ED, maak, trek, stap, oordeel, genoeg, deel, sterrenVoor, wachtTotRust, los, spiegel, pinVakjes, kopie, uitTekst };
   })();
 
   // ---------- de levels van Trek de pin
@@ -1493,7 +1494,7 @@ const RM = (() => {
       '..#...\\..EEEE..............#..',
       '..#....\\.EEEE..............#..',
       '..#.....\\EEEE..............#..',
-      '..#.....uuuuu..............#..',
+      '..#....#uuuuu..............#..',
       '..#.....#####\\.............#..',
       '..#...........\\............#..',
       '..#............\\...........#..',
@@ -1856,7 +1857,7 @@ const RM = (() => {
       '..#.....#wwwwww#..\\.EEEE...#..',
       '..#.....#wwwwww#..#.EEEE...#..',
       '..#.....#wwwwww#..#.EEEE...#..',
-      '..#.....########..#uuuuu...#..',
+      '..#.....########..#uuuuu#..#..',
       '..#...............######...#..',
       '..#........................#..',
       '..#........................#..',
@@ -1952,7 +1953,7 @@ const RM = (() => {
       '..#...\\..EEEE..............#..',
       '..#....\\.EEEE..............#..',
       '..#.....\\EEEE..............#..',
-      '..#.....uuuuu..............#..',
+      '..#....#uuuuu..............#..',
       '..#.....#####\\.............#..',
       '..#...........\\............#..',
       '..#............\\...........#..',
@@ -2004,7 +2005,7 @@ const RM = (() => {
       '..#.......#EEEE....#.......#..',
       '..#.......#EEEE....#.......#..',
       '..#.......#EEEE....#.......#..',
-      '..#.......#EEEE....#.......#..',
+      '..#.......#EEEE#...#.......#..',
       '..#.......#uuuu#...#.......#..',
       '..#.......######...#.......#..',
       '..#.......#........#.......#..',
@@ -2772,7 +2773,7 @@ const RM = (() => {
       '..#.......#EEEE....#.......#..',
       '..#.......#EEEE....#.......#..',
       '..#.......#EEEE....#.......#..',
-      '..#.......#EEEE....#.......#..',
+      '..#.......#EEEE#...#.......#..',
       '..#.......#uuuu#...#.......#..',
       '..#.......######...#.......#..',
       '..#.......#........#.......#..',
@@ -4322,7 +4323,8 @@ const RM = (() => {
   // { s: 'b', x, y, vx, vy, t } een waterballon; w wind (naar rechts, in beeldpunten per seconde in het kwadraat), z zaadje,
   // i hoeveel inkt je hebt, sol een lijn die werkt (getest), s3 en s2 de inkt voor drie en twee sterren.
   const FRIET = (() => {
-    const M = 30, DUUR = 8, STAP = 1 / 60;
+    // DIK: de halve dikte van de lijn in meters (zo dik als hij op het scherm staat); REGEN: hoe hard regen hooguit valt (luchtweerstand)
+    const M = 30, DUUR = 8, STAP = 1 / 60, DIK = 0.14, REGEN = 1.2;
     const MAAT = { f: [28, 40], k: [38, 22] };
     const lengte = p => { let n = 0; for (let i = 1; i < p.length; i++) n += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return n; };
     // punten minstens 9 beeldpunten uit elkaar (minder rekenwerk, gladdere lijn)
@@ -4354,9 +4356,9 @@ const RM = (() => {
         const p = dun(punten), body = world.createDynamicBody({ position: pl.Vec2(0, 0) });
         for (let i = 1; i < p.length; i++) {
           const [ax, ay] = p[i - 1], [bx, by] = p[i], hl = Math.hypot(bx - ax, by - ay) / 2 / M + 0.03;
-          body.createFixture(pl.Box(hl, 0.09, V((ax + bx) / 2, (ay + by) / 2), Math.atan2(by - ay, bx - ax)), { density: 2.2, friction: 0.7, userData: 'lijn' });
+          body.createFixture(pl.Box(hl, DIK, V((ax + bx) / 2, (ay + by) / 2), Math.atan2(by - ay, bx - ax)), { density: 1.6, friction: 0.7, userData: 'lijn' });
         }
-        for (const [x, y] of p) body.createFixture(pl.Circle(V(x, y), 0.09), { density: 2.2, friction: 0.7, userData: 'lijn' });
+        for (const [x, y] of p) body.createFixture(pl.Circle(V(x, y), DIK), { density: 1.6, friction: 0.7, userData: 'lijn' });
         body.punten = p; W.lijn = body;
       }
       // wanneer komt er wat? (vast door het zaadje)
@@ -4369,7 +4371,7 @@ const RM = (() => {
       }
       plan.sort((a, b) => a.t - b.t); W.plan = plan;
       const maakDing = (q) => {
-        const d = world.createDynamicBody({ position: V(q.x, q.y), bullet: q.s === 'bal' });
+        const d = world.createDynamicBody({ position: V(q.x, q.y), bullet: q.s === 'bal' || q.s === 'drup', linearDamping: q.s === 'drup' ? REGEN : 0 });
         const R = { drup: 0.08, meeuw: 0.36, bal: 0.21, ballon: 0.3 }[q.s];
         d.createFixture(pl.Circle(R), { density: q.s === 'meeuw' ? 0.6 : q.s === 'drup' ? 0.4 : 0.5, friction: 0.3, restitution: q.s === 'bal' ? 0.7 : 0.1, userData: q.s });
         d.setLinearVelocity(V(q.vx || 0, q.vy || 0)); if (q.s === 'meeuw') d.setGravityScale(0);
@@ -4431,57 +4433,57 @@ const RM = (() => {
 
   // ---------- de levels van Red het frietje (gemaakt met frietmaak.js; sol is een lijn die werkt)
   const FRIET_LEVELS = [
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[160,509.5,'f']],h: [{s: 'r',x0: 90,x1: 230,y: 60,van: 0.2,tot: 7,n: 50}],z: 1000,w: 0,n: 'Een buitje',sol: [[136,488],[160,440],[184,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[131,509.5,'f']],h: [{s: 'r',x0: 31,x1: 231,y: 60,van: 0.2,tot: 7,n: 65}],z: 1001,w: 0,n: 'Pijpenstelen',sol: [[107,488],[131,440],[155,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[179,509.5,'f']],h: [{s: 'r',x0: 49,x1: 309,y: 60,van: 0.2,tot: 7,n: 80}],z: 1002,w: 0,n: 'Wolkbreuk',sol: [[155,488],[179,440],[203,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[168,509.5,'f']],h: [{s: 'r',x0: 10,x1: 328,y: 60,van: 0.2,tot: 7,n: 95}],z: 1003,w: 0,n: 'Het regent frietjes',sol: [[144,488],[168,440],[192,488]],s3: 175,s2: 285,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[160,509.5,'f']],h: [{s: 'r',x0: 90,x1: 230,y: 60,van: 0.2,tot: 7,n: 50}],z: 1000,w: 0,n: 'Een buitje',sol: [[136,480],[160,480],[184,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[131,509.5,'f']],h: [{s: 'r',x0: 31,x1: 231,y: 60,van: 0.2,tot: 7,n: 65}],z: 1001,w: 0,n: 'Pijpenstelen',sol: [[107,480],[131,480],[155,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[179,509.5,'f']],h: [{s: 'r',x0: 49,x1: 309,y: 60,van: 0.2,tot: 7,n: 80}],z: 1002,w: 0,n: 'Wolkbreuk',sol: [[155,480],[179,480],[203,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[168,509.5,'f']],h: [{s: 'r',x0: 10,x1: 328,y: 60,van: 0.2,tot: 7,n: 95}],z: 1003,w: 0,n: 'Het regent frietjes',sol: [[144,480],[168,480],[192,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[173,509.5,'f']],h: [{s: 'm',x: 380,y: 234,t: 0.4}],z: 1100,w: 0,n: 'Daar is een meeuw',sol: [[149,480],[173,480],[197,480]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[186,509.5,'f']],h: [{s: 'm',x: -20,y: 166,t: 0.4},{s: 'm',x: 380,y: 161,t: 2.2}],z: 1101,w: 0,n: 'Twee meeuwen',sol: [[158,489],[158,485],[160,481],[162,478],[165,475],[169,472],[173,470],[177,469],[182,468],[187,468],[192,468],[197,469],[202,471],[205,473],[209,476],[211,480],[213,483],[214,487]],s3: 134,s2: 223,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[186,509.5,'f']],h: [{s: 'm',x: -20,y: 166,t: 0.4},{s: 'm',x: 380,y: 161,t: 2.2}],z: 1101,w: 0,n: 'Twee meeuwen',sol: [[158,477],[158,473],[160,469],[162,466],[165,463],[169,460],[173,458],[177,457],[182,456],[187,456],[192,456],[197,457],[202,459],[205,461],[209,464],[211,468],[213,471],[214,475]],s3: 134,s2: 223,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[143,509.5,'f']],h: [{s: 'm',x: 380,y: 224,t: 0.4},{s: 'm',x: -20,y: 149,t: 2.2},{s: 'm',x: 256,y: -20,t: 3.5}],z: 1102,w: 0,n: 'Meeuwen van boven',sol: [[119,480],[143,480],[167,480]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[188,509.5,'f']],h: [{s: 'm',x: -20,y: 295,t: 0.4},{s: 'm',x: 380,y: 308,t: 2.2},{s: 'm',x: 236,y: -20,t: 3.5},{s: 'm',x: -20,y: 300,t: 5}],z: 1103,w: 0,n: 'Een hele zwerm',sol: [[160,492],[160,488],[160,485],[162,481],[164,478],[167,475],[171,472],[175,470],[180,468],[184,468],[190,468],[194,468],[199,469],[204,471],[208,473],[211,476],[213,480],[215,483],[216,487],[216,491]],s3: 143,s2: 238,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[188,509.5,'f']],h: [{s: 'm',x: -20,y: 295,t: 0.4},{s: 'm',x: 380,y: 308,t: 2.2},{s: 'm',x: 236,y: -20,t: 3.5},{s: 'm',x: -20,y: 300,t: 5}],z: 1103,w: 0,n: 'Een hele zwerm',sol: [[162,484],[160,480],[160,476],[161,473],[162,469],[164,466],[167,462],[171,460],[175,458],[180,456],[185,456],[190,456],[195,456],[199,457],[204,459],[208,462],[211,464],[213,468],[215,471],[216,475],[216,479],[215,482]],s3: 154,s2: 253,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[183,509.5,'f']],h: [{s: 'k',x: 20,y: 444,t: [0.6,2.2,4],vx: 89,vy: -238}],z: 1200,w: 0,n: 'Pas op, een bal!',sol: [[159,480],[183,480],[207,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[167,509.5,'f']],h: [{s: 'k',x: 340,y: 396,t: [0.6,2.2,4],vx: -79,vy: -276}],z: 1201,w: 0,n: 'Van de andere kant',sol: [[143,480],[167,480],[191,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[165,509.5,'f']],h: [{s: 'k',x: 20,y: 414,t: [0.6,1.8,3.2,4.6],vx: 81,vy: -216}],z: 1202,w: 0,n: 'Ballenregen',sol: [[141,480],[165,480],[189,480]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[140,509.5,'f']],h: [{s: 'k',x: 340,y: 417,t: [0.6,1.8,3.2,4.6],vx: -107,vy: -231},{s: 'r',x0: 70,x1: 210,y: 60,van: 3,tot: 7,n: 40}],z: 1203,w: 0,n: 'Bal en bui',sol: [[116,488],[140,440],[164,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]],[[0,530],[150,470],[150,530]]],f: [[200,509.5,'f']],h: [{s: 'r',x0: 120,x1: 300,y: 60,van: 0.2,tot: 7,n: 70}],z: 1300,w: 0,n: 'Op de helling',sol: [[176,488],[200,440],[224,488]],s3: 175,s2: 285,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[140,509.5,'f']],h: [{s: 'k',x: 340,y: 417,t: [0.6,1.8,3.2,4.6],vx: -107,vy: -231},{s: 'r',x0: 70,x1: 210,y: 60,van: 3,tot: 7,n: 40}],z: 1203,w: 0,n: 'Bal en bui',sol: [[116,480],[140,480],[164,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]],[[0,530],[150,470],[150,530]]],f: [[200,509.5,'f']],h: [{s: 'r',x0: 120,x1: 300,y: 60,van: 0.2,tot: 7,n: 70}],z: 1300,w: 0,n: 'Op de helling',sol: [[176,484],[200,460],[224,484]],s3: 122,s2: 206,i: 650},
     {t: [[[0,530],[150,530],[150,600],[0,600]],[[210,530],[360,530],[360,600],[210,600]],[[60,440],[130,440],[130,460],[60,460]]],f: [[95,419.5,'f']],h: [{s: 'r',x0: 20,x1: 200,y: 60,van: 0.2,tot: 7,n: 70}],z: 1301,w: 0,n: 'Op het randje',sol: [[71,390],[95,390],[119,390]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]],[[180,530],[360,420],[360,530]]],f: [[110,509.5,'f']],h: [{s: 'm',x: -20,y: 260,t: 0.5},{s: 'm',x: 380,y: 200,t: 2.5}],z: 1302,w: 0,n: 'Tegen de berg',sol: [[86,480],[110,480],[134,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]],[[150,430],[250,430],[250,450],[150,450]]],f: [[200,409.5,'f']],h: [{s: 'r',x0: 100,x1: 300,y: 60,van: 0.2,tot: 4,n: 50},{s: 'm',x: 380,y: 300,t: 3.5}],z: 1303,w: 0,n: 'Hoog en droog',sol: [[176,380],[200,380],[224,380]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[169,509.5,'f']],h: [{s: 'r',x0: -91,x1: 209,y: 50,van: 0.2,tot: 7,n: 70}],z: 1400,w: 40,n: 'Wind mee',sol: [[145,526],[145,474],[193,474]],s3: 165,s2: 270,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[146,509.5,'f']],h: [{s: 'r',x0: 106,x1: 406,y: 50,van: 0.2,tot: 7,n: 70}],z: 1401,w: -55,n: 'Wind tegen',sol: [[122,526],[122,474],[170,474]],s3: 165,s2: 270,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[139,509.5,'f']],h: [{s: 'r',x0: -121,x1: 179,y: 50,van: 0.2,tot: 7,n: 70},{s: 'm',x: -20,y: 220,t: 2}],z: 1402,w: 70,n: 'Storm',sol: [[103,526],[103,480],[175,480],[175,526]],s3: 252,s2: 398,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[233,509.5,'f']],h: [{s: 'r',x0: 193,x1: 493,y: 50,van: 0.2,tot: 7,n: 70},{s: 'm',x: 380,y: 220,t: 2}],z: 1403,w: -85,n: 'Zeewind',sol: [[207,526],[207,480],[259,480],[259,526]],s3: 225,s2: 358,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[132,509.5,'f'],[202,518.5,'k']],h: [{s: 'r',x0: 52,x1: 282,y: 60,van: 0.2,tot: 7,n: 80}],z: 1500,w: 0,n: 'Frietje en Kroketje',sol: [[84,526],[84,480],[255,480],[255,526]],s3: 386,s2: 596,i: 756},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[169,509.5,'f']],h: [{s: 'r',x0: -91,x1: 209,y: 50,van: 0.2,tot: 7,n: 70}],z: 1400,w: 40,n: 'Wind mee',sol: [[145,480],[169,480],[193,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[146,509.5,'f']],h: [{s: 'r',x0: 106,x1: 406,y: 50,van: 0.2,tot: 7,n: 70}],z: 1401,w: -55,n: 'Wind tegen',sol: [[122,480],[146,480],[170,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[139,509.5,'f']],h: [{s: 'r',x0: -121,x1: 179,y: 50,van: 0.2,tot: 7,n: 70},{s: 'm',x: -20,y: 220,t: 2}],z: 1402,w: 70,n: 'Storm',sol: [[111,489],[111,485],[113,481],[115,478],[118,475],[122,472],[126,470],[130,469],[135,468],[140,468],[145,468],[150,469],[155,471],[158,473],[162,476],[164,480],[166,483],[167,487]],s3: 134,s2: 223,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[186,509.5,'f']],h: [{s: 'r',x0: 146,x1: 446,y: 50,van: 0.2,tot: 7,n: 70},{s: 'm',x: 380,y: 220,t: 2}],z: 1403,w: -85,n: 'Zeewind',sol: [[147,480],[186,480],[225,480]],s3: 136,s2: 226,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[132,509.5,'f'],[202,518.5,'k']],h: [{s: 'r',x0: 52,x1: 282,y: 60,van: 0.2,tot: 7,n: 80}],z: 1500,w: 0,n: 'Frietje en Kroketje',sol: [[108,480],[170,480],[231,480]],s3: 197,s2: 316,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[98,509.5,'f'],[193,518.5,'k']],h: [{s: 'm',x: -20,y: 200,t: 0.5},{s: 'm',x: 380,y: 260,t: 2}],z: 1501,w: 0,n: 'Twee hapjes',sol: [[74,480],[148,480],[222,480]],s3: 230,s2: 366,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[120,509.5,'f'],[240,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.2,tot: 7,n: 80}],z: 1502,w: 0,n: 'Ver uit elkaar',sol: [[84,526],[84,480],[281,480],[281,526]],s3: 421,s2: 648,i: 808},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[120,509.5,'f'],[240,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.2,tot: 7,n: 80}],z: 1502,w: 0,n: 'Ver uit elkaar',sol: [[96,480],[183,480],[269,480]],s3: 264,s2: 416,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[98,509.5,'f'],[243,518.5,'k']],h: [{s: 'm',x: -20,y: 200,t: 0.5},{s: 'm',x: 380,y: 260,t: 2},{s: 'm',x: 180,y: -20,t: 4}],z: 1503,w: 0,n: 'Snackbar',sol: [[74,480],[173,480],[272,480]],s3: 298,s2: 466,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[214,509.5,'f']],h: [{s: 'b',x: -10,y: 300,t: 0.8,vx: 124,vy: -160},{s: 'b',x: 370,y: 280,t: 3,vx: -82,vy: -170}],z: 1600,w: 0,n: 'Waterballon!',sol: [[190,480],[214,480],[238,480]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[211,509.5,'f']],h: [{s: 'b',x: 370,y: 300,t: 0.8,vx: -88,vy: -160},{s: 'b',x: -10,y: 280,t: 3,vx: 116,vy: -170},{s: 'r',x0: 131,x1: 291,y: 60,van: 4,tot: 7,n: 40}],z: 1601,w: 0,n: 'Ballonnen en buien',sol: [[187,488],[211,440],[235,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[223,509.5,'f']],h: [{s: 'b',x: -10,y: 300,t: 0.8,vx: 129,vy: -160},{s: 'b',x: 370,y: 280,t: 3,vx: -77,vy: -170},{s: 'r',x0: 143,x1: 303,y: 60,van: 4,tot: 7,n: 40}],z: 1602,w: 0,n: 'Plens',sol: [[199,488],[223,440],[247,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[207,509.5,'f']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -75,vy: -220}],z: 1700,w: 0,n: 'Alles tegelijk',sol: [[171,526],[171,480],[243,480],[243,526]],s3: 252,s2: 398,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[124,509.5,'f'],[222,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -67,vy: -220},{s: 'b',x: 370,y: 260,t: 4,vx: -132,vy: -150}],z: 1714,w: 0,n: 'Feest op de kermis',sol: [[98,526],[98,480],[253,480],[253,526]],s3: 364,s2: 564,i: 724},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[120,509.5,'f'],[230,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -62,vy: -220},{s: 'b',x: 370,y: 260,t: 4,vx: -134,vy: -150}],z: 1702,w: 50,n: 'De grote frietstorm',sol: [[84,526],[84,480],[271,480],[271,526]],s3: 407,s2: 628,i: 788}
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[211,509.5,'f']],h: [{s: 'b',x: 370,y: 300,t: 0.8,vx: -88,vy: -160},{s: 'b',x: -10,y: 280,t: 3,vx: 116,vy: -170},{s: 'r',x0: 131,x1: 291,y: 60,van: 4,tot: 7,n: 40}],z: 1601,w: 0,n: 'Ballonnen en buien',sol: [[187,480],[211,480],[235,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[223,509.5,'f']],h: [{s: 'b',x: -10,y: 300,t: 0.8,vx: 129,vy: -160},{s: 'b',x: 370,y: 280,t: 3,vx: -77,vy: -170},{s: 'r',x0: 143,x1: 303,y: 60,van: 4,tot: 7,n: 40}],z: 1602,w: 0,n: 'Plens',sol: [[199,480],[223,480],[247,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[207,509.5,'f']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -75,vy: -220}],z: 1700,w: 0,n: 'Alles tegelijk',sol: [[168,480],[207,480],[246,480]],s3: 136,s2: 226,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[123,509.5,'f'],[213,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -72,vy: -220},{s: 'b',x: 370,y: 260,t: 4,vx: -133,vy: -150}],z: 1701,w: 0,n: 'Feest op de kermis',sol: [[99,480],[171,480],[242,480]],s3: 224,s2: 356,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[120,509.5,'f'],[230,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -62,vy: -220},{s: 'b',x: 370,y: 260,t: 4,vx: -134,vy: -150}],z: 1702,w: 50,n: 'De grote frietstorm',sol: [[96,480],[178,480],[259,480]],s3: 251,s2: 396,i: 650}
   ];
 
   // ---------- de extra levels voor de reclame van de dag van Red het frietje (gemaakt met frietmaak.js; sol is een lijn die werkt)
   const FRIET_EXTRA = [
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[149,509.5,'f']],h: [{s: 'r',x0: 79,x1: 219,y: 60,van: 0.2,tot: 7,n: 50}],z: 1000,w: 0,n: 'Extra 1',sol: [[125,488],[149,440],[173,488]],s3: 175,s2: 285,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[149,509.5,'f']],h: [{s: 'r',x0: 79,x1: 219,y: 60,van: 0.2,tot: 7,n: 50}],z: 1000,w: 0,n: 'Extra 1',sol: [[125,480],[149,480],[173,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[195,509.5,'f']],h: [{s: 'm',x: 380,y: 210,t: 0.4}],z: 1100,w: 0,n: 'Extra 2',sol: [[171,480],[195,480],[219,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[142,509.5,'f']],h: [{s: 'k',x: 20,y: 387,t: [0.6,2.2,4],vx: 58,vy: -256}],z: 1200,w: 0,n: 'Extra 3',sol: [[118,480],[142,480],[166,480]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]],[[0,530],[150,470],[150,530]]],f: [[200,509.5,'f']],h: [{s: 'r',x0: 120,x1: 300,y: 60,van: 0.2,tot: 7,n: 70}],z: 1300,w: 0,n: 'Extra 4',sol: [[176,488],[200,440],[224,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[146,509.5,'f']],h: [{s: 'r',x0: -114,x1: 186,y: 50,van: 0.2,tot: 7,n: 70}],z: 1400,w: 40,n: 'Extra 5',sol: [[122,526],[122,474],[170,474]],s3: 165,s2: 270,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[92,509.5,'f'],[162,518.5,'k']],h: [{s: 'r',x0: 12,x1: 242,y: 60,van: 0.2,tot: 7,n: 80}],z: 1500,w: 0,n: 'Extra 6',sol: [[44,526],[44,480],[215,480],[215,526]],s3: 386,s2: 596,i: 756},
+    {t: [[[0,530],[360,530],[360,600],[0,600]],[[0,530],[150,470],[150,530]]],f: [[200,509.5,'f']],h: [{s: 'r',x0: 120,x1: 300,y: 60,van: 0.2,tot: 7,n: 70}],z: 1300,w: 0,n: 'Extra 4',sol: [[176,484],[200,460],[224,484]],s3: 122,s2: 206,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[146,509.5,'f']],h: [{s: 'r',x0: -114,x1: 186,y: 50,van: 0.2,tot: 7,n: 70}],z: 1400,w: 40,n: 'Extra 5',sol: [[122,480],[146,480],[170,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[92,509.5,'f'],[162,518.5,'k']],h: [{s: 'r',x0: 12,x1: 242,y: 60,van: 0.2,tot: 7,n: 80}],z: 1500,w: 0,n: 'Extra 6',sol: [[68,480],[130,480],[191,480]],s3: 197,s2: 316,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[182,509.5,'f']],h: [{s: 'b',x: -10,y: 300,t: 0.8,vx: 106,vy: -160},{s: 'b',x: 370,y: 280,t: 3,vx: -99,vy: -170}],z: 1600,w: 0,n: 'Extra 7',sol: [[158,480],[182,480],[206,480]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[183,509.5,'f']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -89,vy: -220}],z: 1700,w: 0,n: 'Extra 8',sol: [[147,526],[147,480],[219,480],[219,526]],s3: 252,s2: 398,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[170,509.5,'f']],h: [{s: 'r',x0: 70,x1: 270,y: 60,van: 0.2,tot: 7,n: 65}],z: 1001,w: 0,n: 'Extra 9',sol: [[146,488],[170,440],[194,488]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[160,509.5,'f']],h: [{s: 'm',x: -20,y: 204,t: 0.4},{s: 'm',x: 380,y: 125,t: 2.2}],z: 1101,w: 0,n: 'Extra 10',sol: [[136,480],[160,480],[184,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[183,509.5,'f']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -89,vy: -220}],z: 1700,w: 0,n: 'Extra 8',sol: [[144,480],[183,480],[222,480]],s3: 136,s2: 226,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[170,509.5,'f']],h: [{s: 'r',x0: 70,x1: 270,y: 60,van: 0.2,tot: 7,n: 65}],z: 1001,w: 0,n: 'Extra 9',sol: [[146,480],[170,480],[194,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[160,509.5,'f']],h: [{s: 'm',x: -20,y: 204,t: 0.4},{s: 'm',x: 380,y: 125,t: 2.2}],z: 1101,w: 0,n: 'Extra 10',sol: [[136,465],[160,465],[184,465]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[155,509.5,'f']],h: [{s: 'k',x: 340,y: 441,t: [0.6,2.2,4],vx: -109,vy: -215}],z: 1201,w: 0,n: 'Extra 11',sol: [[131,480],[155,480],[179,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[150,530],[150,600],[0,600]],[[210,530],[360,530],[360,600],[210,600]],[[60,440],[130,440],[130,460],[60,460]]],f: [[95,419.5,'f']],h: [{s: 'r',x0: 20,x1: 200,y: 60,van: 0.2,tot: 7,n: 70}],z: 1301,w: 0,n: 'Extra 12',sol: [[71,390],[95,390],[119,390]],s3: 95,s2: 166,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[219,509.5,'f']],h: [{s: 'r',x0: 179,x1: 479,y: 50,van: 0.2,tot: 7,n: 70}],z: 1401,w: -55,n: 'Extra 13',sol: [[195,526],[195,474],[243,474]],s3: 165,s2: 270,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[219,509.5,'f']],h: [{s: 'r',x0: 179,x1: 479,y: 50,van: 0.2,tot: 7,n: 70}],z: 1401,w: -55,n: 'Extra 13',sol: [[195,480],[219,480],[243,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[132,509.5,'f'],[227,518.5,'k']],h: [{s: 'm',x: -20,y: 200,t: 0.5},{s: 'm',x: 380,y: 260,t: 2}],z: 1501,w: 0,n: 'Extra 14',sol: [[108,480],[182,480],[256,480]],s3: 230,s2: 366,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[134,509.5,'f']],h: [{s: 'b',x: 370,y: 300,t: 0.8,vx: -131,vy: -160},{s: 'b',x: -10,y: 280,t: 3,vx: 76,vy: -170},{s: 'r',x0: 54,x1: 214,y: 60,van: 4,tot: 7,n: 40}],z: 1601,w: 0,n: 'Extra 15',sol: [[110,473],[134,425],[158,473]],s3: 175,s2: 285,i: 650},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[120,509.5,'f'],[230,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -62,vy: -220},{s: 'b',x: 370,y: 260,t: 4,vx: -134,vy: -150}],z: 1702,w: 50,n: 'Extra 16',sol: [[84,526],[84,480],[271,480],[271,526]],s3: 407,s2: 628,i: 788},
-    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[233,509.5,'f']],h: [{s: 'r',x0: 103,x1: 350,y: 60,van: 0.2,tot: 7,n: 80}],z: 1002,w: 0,n: 'Extra 17',sol: [[209,488],[233,440],[257,488]],s3: 175,s2: 285,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[134,509.5,'f']],h: [{s: 'b',x: 370,y: 300,t: 0.8,vx: -131,vy: -160},{s: 'b',x: -10,y: 280,t: 3,vx: 76,vy: -170},{s: 'r',x0: 54,x1: 214,y: 60,van: 4,tot: 7,n: 40}],z: 1601,w: 0,n: 'Extra 15',sol: [[110,480],[134,480],[158,480]],s3: 95,s2: 166,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[122,509.5,'f'],[211,518.5,'k']],h: [{s: 'r',x0: 40,x1: 320,y: 60,van: 0.5,tot: 7,n: 70},{s: 'm',x: -20,y: 240,t: 1.5},{s: 'k',x: 340,y: 430,t: [2.5,5],vx: -73,vy: -220},{s: 'b',x: 370,y: 260,t: 4,vx: -133,vy: -150}],z: 1701,w: 0,n: 'Extra 16',sol: [[98,480],[169,480],[240,480]],s3: 222,s2: 354,i: 650},
+    {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[233,509.5,'f']],h: [{s: 'r',x0: 103,x1: 350,y: 60,van: 0.2,tot: 7,n: 80}],z: 1002,w: 0,n: 'Extra 17',sol: [[209,480],[233,480],[257,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[171,509.5,'f']],h: [{s: 'm',x: 380,y: 265,t: 0.4},{s: 'm',x: -20,y: 274,t: 2.2},{s: 'm',x: 155,y: -20,t: 3.5}],z: 1102,w: 0,n: 'Extra 18',sol: [[147,480],[171,480],[195,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]]],f: [[177,509.5,'f']],h: [{s: 'k',x: 20,y: 418,t: [0.6,1.8,3.2,4.6],vx: 76,vy: -267}],z: 1202,w: 0,n: 'Extra 19',sol: [[153,480],[177,480],[201,480]],s3: 95,s2: 166,i: 650},
     {t: [[[0,530],[360,530],[360,600],[0,600]],[[180,530],[360,420],[360,530]]],f: [[110,509.5,'f']],h: [{s: 'm',x: -20,y: 260,t: 0.5},{s: 'm',x: 380,y: 200,t: 2.5}],z: 1302,w: 0,n: 'Extra 20',sol: [[86,480],[110,480],[134,480]],s3: 95,s2: 166,i: 650}
@@ -4617,10 +4619,18 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
 
   // ---------- Trek de pin: Snuf de mol wil de muntjes, Ekster Ed ook
   (() => {
-    const P = RM.PIN, GW = P.GW, GH = P.GH, C = 6, W = GW * C, H = GH * C;
+    // C: beeldpunten per vakje; D: de halve dikte van een pin (in beeldpunten); STAPPEN: zoveel stappen van de zandbak per 1/60 s
+    const P = RM.PIN, GW = P.GW, GH = P.GH, C = 3, W = GW * C, H = GH * C, D = P.T / 2 * C, STAPPEN = 2;
     const HELM = [['#F5C330', '#C99A16'], ['#E8414E', '#9E2230'], ['#58B368', '#2E7A3E'], ['#FFD86B', '#B8860B']];
-    const KLEUR = [null, null, null, [74, 154, 226, 235], [226, 196, 132, 255], null, [176, 176, 170, 255], [132, 132, 126, 255], [112, 104, 98, 255], null, null];
-    const ZANDTINT = [[226, 196, 132], [214, 182, 118], [236, 208, 148], [220, 190, 126]];
+    // per soort een paar tinten; elke korrel houdt zijn eigen tint (S.tint), ook als hij valt
+    const TINT = [];
+    TINT[P.WATER] = [[66, 146, 222], [74, 154, 226], [80, 160, 230], [70, 150, 224]];
+    TINT[P.ZAND] = [[226, 196, 132], [214, 182, 118], [236, 208, 148], [220, 190, 126], [204, 172, 110], [232, 202, 140]];
+    TINT[P.CEMENT] = [[176, 176, 170], [168, 168, 162], [184, 184, 178], [172, 170, 164]];
+    TINT[P.BETON] = [[132, 132, 126], [126, 126, 120], [138, 136, 130]];
+    TINT[P.GRIND] = [[112, 104, 98], [92, 86, 82], [134, 126, 118], [104, 98, 94], [150, 142, 132], [84, 78, 74]];
+    TINT[P.MUNT] = [[233, 185, 73], [242, 200, 92], [222, 170, 58], [246, 212, 110]];
+    const WATER_TOP = [140, 196, 244];
     // achtergrond en muren worden één keer per level getekend
     function tekenMuren(S) {
       const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
@@ -4632,8 +4642,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       const is = (x, y) => x >= 0 && y >= 0 && x < GW && y < GH && recht[y * GW + x] === 1;
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
         if (!is(x, y)) continue;
-        const n = (x * 7 + y * 13) % 5; g.fillStyle = ['#7A4E2D', '#80532F', '#764B2B', '#7D5130', '#734929'][n]; g.fillRect(x * C, y * C, C, C);
-        if ((x + (y >> 2) * 3) % 9 === 0) { g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x * C, y * C, 1, C); }
+        const n = ((x >> 1) * 7 + (y >> 1) * 13) % 5; g.fillStyle = ['#7A4E2D', '#80532F', '#764B2B', '#7D5130', '#734929'][n]; g.fillRect(x * C, y * C, C, C);
+        if ((x + (y >> 3) * 6) % 18 === 0) { g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x * C, y * C, 1, C); }
       }
       g.fillStyle = '#1F2333';
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
@@ -4645,21 +4655,21 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       }
       for (const m of S.L.m) {
         if (typeof m[3] !== 'string') continue;
-        const [x, y, n, o] = m, a = o === 'd' ? [x * C + C, y * C + C / 2] : [x * C + C, (y + 1) * C - C / 2], b = o === 'd' ? [(x + n) * C, (y + n) * C - C / 2] : [(x + n) * C, (y + 1 - n) * C + C / 2];
+        const [x, y, n, o] = m, a = o === 'd' ? [x * C + D, y * C + 3] : [x * C + D, (y + 1) * C - 3], b = o === 'd' ? [(x + n) * C, (y + n) * C - 3] : [(x + n) * C, (y + 1 - n) * C + 3];
         g.lineCap = 'round'; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineWidth = 14; g.strokeStyle = '#1F2333'; g.stroke(); g.lineWidth = 10; g.strokeStyle = '#7A4E2D'; g.stroke();
         g.lineWidth = 2; g.strokeStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(a[0], a[1] - 3); g.lineTo(b[0], b[1] - 3); g.stroke();
       }
-      for (const [x, y, b] of (S.L.u || [])) { g.fillStyle = '#3B4050'; g.fillRect(x * C, y * C, b * C, C); g.fillStyle = '#9AA3B5'; for (let i = 0; i < b * C; i += 4) g.fillRect(x * C + i + 1, y * C + 1, 2, C - 2); g.strokeStyle = '#1F2333'; g.lineWidth = 2; g.strokeRect(x * C, y * C, b * C, C); }
+      for (const [x, y, b] of (S.L.u || [])) { const h = 2 * C; g.fillStyle = '#3B4050'; g.fillRect(x * C, y * C, b * C, h); g.fillStyle = '#9AA3B5'; for (let i = 0; i < b * C; i += 4) g.fillRect(x * C + i + 1, y * C + 1, 2, h - 2); g.strokeStyle = '#1F2333'; g.lineWidth = 2; g.strokeRect(x * C, y * C, b * C, h); }
       return c;
     }
     // waar een pin ligt en waar zijn knop zit (in beeldpunten)
     function pinLijn(p) {
       const { x, y, n, o, k } = p;
       let a, b, dx, dy;
-      if (o === 'h') { a = [x * C, (y + 1) * C]; b = [(x + n) * C, (y + 1) * C]; dx = k; dy = 0; }
-      else if (o === 'v') { a = [(x + 1) * C, y * C]; b = [(x + 1) * C, (y + n) * C]; dx = 0; dy = k; }
-      else if (o === 'd') { a = [x * C + C, y * C]; b = [(x + n) * C + C, (y + n) * C]; dx = k * 0.7071; dy = k * 0.7071; }
-      else { a = [x * C + C, (y + 1) * C]; b = [(x + n) * C + C, (y + 1 - n) * C]; dx = k * 0.7071; dy = -k * 0.7071; }
+      if (o === 'h') { a = [x * C, y * C + D]; b = [(x + n) * C, y * C + D]; dx = k; dy = 0; }
+      else if (o === 'v') { a = [x * C + D, y * C]; b = [x * C + D, (y + n) * C]; dx = 0; dy = k; }
+      else if (o === 'd') { a = [x * C + D, y * C]; b = [(x + n) * C + D, (y + n) * C]; dx = k * 0.7071; dy = k * 0.7071; }
+      else { a = [x * C + D, (y + 1) * C]; b = [(x + n) * C + D, (y + 1 - n) * C]; dx = k * 0.7071; dy = -k * 0.7071; }
       const eind = k > 0 ? b : a, begin = k > 0 ? a : b;
       const knop = [eind[0] + dx * 17, eind[1] + dy * 17];
       return { begin, eind, knop, dx, dy };
@@ -4769,7 +4779,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
           for (const q of S.pinnen) if (q.uit) q.t += dt;
           for (const f of S.figs) { if (f.blij > 0) f.blij -= dt; if (f.praat > 0) f.praat -= dt; if (!f.actief) f.t = (f.t || 0) + dt; }
           let n = 0;
-          while (acc >= 1 / 60 && n < 4) { acc -= 1 / 60; n++; for (let k = 0; k < 3; k++) P.stap(S); }
+          while (acc >= 1 / 60 && n < 4) { acc -= 1 / 60; n++; for (let k = 0; k < STAPPEN; k++) P.stap(S); }
           if (acc > 0.2) acc = 0;
           for (const [e, x] of S.ev.splice(0)) {
             if (e === 'munt') { A.geluid('munt'); S.figs.forEach(f => { if (f.soort === 'snuf') f.blij = 0.5; }); }
@@ -4784,19 +4794,31 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         },
         teken(g) {
           g.drawImage(muren, 0, 0);
-          const d = img.data, gg = S.g; let munten = [];
+          const d = img.data, gg = S.g, tint = S.tint; let munten = [];
           for (let i = 0, j = 0; i < gg.length; i++, j += 4) {
-            const t = gg[i];
-            if (t === P.MUNT) { munten.push(i); d[j + 3] = 0; continue; }
-            const k = KLEUR[t];
+            const t = gg[i], k = TINT[t];
             if (!k) { d[j + 3] = 0; continue; }
-            if (t === P.ZAND) { const z = ZANDTINT[(i * 2654435761 >>> 30)]; d[j] = z[0]; d[j + 1] = z[1]; d[j + 2] = z[2]; d[j + 3] = 255; }
-            else { d[j] = k[0]; d[j + 1] = k[1]; d[j + 2] = k[2]; d[j + 3] = k[3]; }
+            if (t === P.MUNT) munten.push(i);
+            const z = t === P.WATER && (i < GW || gg[i - GW] === P.LEEG) ? WATER_TOP : k[tint[i] % k.length];
+            d[j] = z[0]; d[j + 1] = z[1]; d[j + 2] = z[2]; d[j + 3] = t === P.WATER ? 238 : 255;
+          }
+          // het vak van een figuur is groter dan de tekening: kleur het per rij mee met wat ernaast ligt (dan staat Snuf in het water, niet in een wit vakje)
+          for (const f of S.figs) {
+            if (!f.actief && f.soort === 'ed') continue;
+            for (let y = f.y; y < f.y + f.h; y++) {
+              const l = f.x > 0 ? y * GW + f.x - 1 : -1, r = f.x + f.b < GW ? y * GW + f.x + f.b : -1, q = l >= 0 && TINT[gg[l]] && gg[l] !== P.MUNT ? l : r >= 0 && TINT[gg[r]] && gg[r] !== P.MUNT ? r : -1;
+              if (q < 0) continue;
+              const k = TINT[gg[q]], z = k[tint[q] % k.length];
+              for (let x = f.x, j = (y * GW + x) * 4; x < f.x + f.b; x++, j += 4) { d[j] = z[0]; d[j + 1] = z[1]; d[j + 2] = z[2]; d[j + 3] = gg[q] === P.WATER ? 238 : 255; }
+            }
           }
           lg.putImageData(img, 0, 0);
-          g.save(); g.imageSmoothingEnabled = true; g.drawImage(laagC, 0, 0, W, H); g.restore();
-          for (const i of munten) { const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; g.beginPath(); g.arc(x, y, 3.8, 0, 6.283); g.fillStyle = '#E9B949'; g.fill(); g.lineWidth = 1; g.strokeStyle = '#8A6410'; g.stroke(); }
-          for (const i of munten) { if (i % 3) continue; const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(x - 2, y - 2, 1.6, 1.6); }
+          g.save(); g.imageSmoothingEnabled = false; g.drawImage(laagC, 0, 0, W, H); g.restore();
+          // muntjes: een rand en een glimpje, zodat het echte munten blijven
+          g.lineWidth = 0.9; g.strokeStyle = '#9A7012';
+          g.beginPath(); for (const i of munten) { const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; g.moveTo(x + 1.9, y); g.arc(x, y, 1.9, 0, 6.283); } g.stroke();
+          g.fillStyle = 'rgba(255,255,255,.85)';
+          for (const i of munten) { if (S.tint[i] % 5) continue; const x = (i % GW) * C + C / 2, y = ((i / GW) | 0) * C + C / 2; g.fillRect(x - 1.2, y - 1.2, 1.1, 1.1); }
           for (const f of S.figs) if (f.soort === 'ed') tekenEd(g, f, tijd);
           for (const f of S.figs) if (f.soort === 'snuf') tekenSnuf(g, f, tijd, A.look);
           S.pinnen.forEach((q, i) => tekenPin(g, q, toetsen ? String(i + 1) : '', q.id === kies));
@@ -4897,6 +4919,34 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       if (praat) ballon(g, x + 10, y - 34 + wip, praat, { maat: 13, W });
     }
 
+    // schenken: een schuin flesje als veelhoek, en hoe hoog het sap daarin staat (het sap blijft waterpas)
+    const draaiOm = (pt, px, py, h) => [px + (pt[0] - px) * Math.cos(h) - (pt[1] - py) * Math.sin(h), py + (pt[0] - px) * Math.sin(h) + (pt[1] - py) * Math.cos(h)];
+    function snij(poly, s, kant) { // houd alleen wat onder (kant 1) of boven (kant -1) de lijn y = s ligt
+      const uit = [];
+      for (let i = 0; i < poly.length; i++) {
+        const p = poly[i], q = poly[(i + 1) % poly.length], pin = (p[1] - s) * kant >= 0, qin = (q[1] - s) * kant >= 0;
+        if (pin) uit.push(p); if (pin !== qin) { const f = (s - p[1]) / (q[1] - p[1]); uit.push([p[0] + (q[0] - p[0]) * f, s]); }
+      }
+      return uit;
+    }
+    function opp(poly) { let a = 0; for (let i = 0; i < poly.length; i++) { const p = poly[i], q = poly[(i + 1) % poly.length]; a += p[0] * q[1] - q[0] * p[1]; } return Math.abs(a) / 2; }
+    function peil(poly, A) { // de hoogte van het sap als er A vierkante beeldpunten in zit
+      let lo = Math.min(...poly.map(p => p[1])), hi = Math.max(...poly.map(p => p[1]));
+      if (A <= 0) return hi;
+      for (let k = 0; k < 26; k++) { const m = (lo + hi) / 2; if (opp(snij(poly, m, 1)) > A) lo = m; else hi = m; }
+      return (lo + hi) / 2;
+    }
+    // een flesje (breedte b, hoogte h) met de tuit in (0, 0), de hoek in de richting r gekanteld
+    const schuinFles = (b, h, r, hoek) => [[0, 0], [-r * b, 0], [-r * b, h], [0, h]].map(pt => draaiOm(pt, 0, 0, hoek));
+    // hoe ver moet je kantelen voordat het sap (v laagjes) net bij de tuit komt
+    function kantelVoor(v, b, h, uh, r) {
+      if (v <= 0) return Math.PI / 2;
+      let lo = 0, hi = Math.PI / 2;
+      for (let k = 0; k < 18; k++) { const m = (lo + hi) / 2; if (peil(schuinFles(b, h, r, r * m), v * uh * b) > 0) lo = m; else hi = m; }
+      return (lo + hi) / 2;
+    }
+    const zacht = x => x * x * (3 - 2 * x);
+
     function maak(def, A) {
       const S = Q.maak(def), vorm = VORM[A.look] || VORM[0];
       const N = S.f.length, rijen = N > 6 ? 2 : 1, perRij = Math.ceil(N / rijen);
@@ -4907,6 +4957,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       const zien = S.f.map(x => x.map((_, j) => !def.q || j === x.length - 1));
       let kies = -1, cursor = 0, anim = null, tijd = 0, hist = [], klaarT = -1, praat = def.q ? 'Wat zit eronder?' : (def.k ? 'Een kurk gaat pas open als die kleur af is.' : 'Giet maar!'), praatT = 3, schud = null, toetsen = false;
       const hoogte = i => Q.cap(def, i) * uh + vorm.hals;
+      // schenken: eerst naar het andere flesje toe en kantelen (tot T1), dan gieten (tot T2), dan terug (tot DUUR)
+      const DUUR = ZACHT ? 0.35 : 0.85, T1 = 0.22, T2 = 0.62;
       function bewaarStap() { hist.push({ f: S.f.map(x => x.slice()), z: zien.map(x => x.slice()), d: S.dicht.map(d => d.open), n: S.zetten }); if (hist.length > 300) hist.shift(); }
       function tik(i) {
         if (anim || klaarT >= 0) return;
@@ -4918,6 +4970,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         bewaarStap(); anim = { a: kies, b: i, n, k, t: 0 }; kies = -1; A.geluid('giet');
       }
       function praatZeg(s) { praat = s; praatT = 2.2; }
+      // hoeveel van het sap al gegoten is (0 tot 1)
+      const gegoten = () => !anim ? 0 : ZACHT ? Math.min(1, anim.t / DUUR) : Math.max(0, Math.min(1, (anim.t - T1) / (T2 - T1)));
       function landt() {
         const { a, b, n } = anim, open = S.dicht.map(d => d.open);
         Q.giet(S, a, b);
@@ -4935,14 +4989,30 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         return -1;
       }
       // een flesje tekenen: glas, laagjes, en bij een kurk het kurkje met de kleur die nodig is
-      function fles(g, i, x, voet, extra, schuin) {
+      // draai: { hoek, px, py } kantelt het flesje om het punt (px, py); dan blijft het sap waterpas
+      function fles(g, i, x, voet, extra, draai) {
         const c = Q.cap(def, i), h = c * uh, b = bw, top = voet - h, r = vorm.rand;
-        g.save(); g.translate(x + b / 2, voet); g.rotate(schuin || 0); g.translate(-(x + b / 2), -voet);
+        const basis = g.getTransform(), schuin = draai && Math.abs(draai.hoek) > 0.001;
+        g.save(); if (draai) { g.translate(draai.px, draai.py); g.rotate(draai.hoek); g.translate(-draai.px, -draai.py); }
         const pad = () => { g.beginPath(); g.moveTo(x, top); g.lineTo(x, voet - r); g.quadraticCurveTo(x, voet, x + r, voet); g.lineTo(x + b - r, voet); g.quadraticCurveTo(x + b, voet, x + b, voet - r); g.lineTo(x + b, top); };
         pad(); g.fillStyle = vorm.glas; g.fill();
         g.save(); pad(); g.closePath(); g.clip();
         const laag = S.f[i], vol = extra != null ? extra : laag.length;
-        for (let j = 0; j < Math.ceil(vol); j++) {
+        if (schuin) {
+          // in het schuine flesje: de laagjes liggen waterpas, van onder naar boven
+          const vlak = uh * b, poly = [[x, top], [x + b, top], [x + b, voet], [x, voet]].map(pt => draaiOm(pt, draai.px, draai.py, draai.hoek));
+          const x0 = Math.min(...poly.map(p => p[0])) - 4, x1 = Math.max(...poly.map(p => p[0])) + 4, gedraaid = g.getTransform();
+          g.setTransform(basis); let vorig = peil(poly, 0);
+          for (let j = 0; j < Math.ceil(vol); j++) {
+            const k = j < laag.length ? laag[j] : anim.k, deel = Math.min(1, vol - j), s = peil(poly, (j + deel) * vlak), verstopt = def.q && j < laag.length && !zien[i][j];
+            g.fillStyle = verstopt ? '#5E5A66' : KLEUR[k][0]; g.fillRect(x0, s, x1 - x0, vorig - s + 0.5);
+            g.fillStyle = verstopt ? '#4A4652' : KLEUR[k][1]; g.fillRect(x0, Math.max(s, vorig - 4), x1 - x0, Math.min(4, vorig - s));
+            const band = snij(snij(poly, s, 1), vorig, -1);
+            if (!verstopt && deel > 0.6 && band.length) vormpje(g, k, band.reduce((a, p) => a + p[0], 0) / band.length, (s + vorig) / 2, Math.min(5, uh * .2));
+            vorig = s;
+          }
+          g.setTransform(gedraaid);
+        } else for (let j = 0; j < Math.ceil(vol); j++) {
           const k = j < laag.length ? laag[j] : anim.k, y0 = voet - (j + 1) * uh, deel = Math.min(1, vol - j), y = voet - j * uh - deel * uh;
           const verstopt = def.q && j < laag.length && !zien[i][j];
           g.fillStyle = verstopt ? '#5E5A66' : KLEUR[k][0]; g.fillRect(x - 2, y, b + 4, deel * uh + 0.5);
@@ -4966,7 +5036,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       const I = {
         W, H, S,
         // voor de tests: een zet meteen uitvoeren
-        _zet(a, b) { kies = -1; tik(a); tik(b); if (anim) { anim.t = 0.5; landt(); } },
+        _zet(a, b) { kies = -1; tik(a); tik(b); if (anim) { anim.t = DUUR; landt(); } },
         ongedaan() { if (anim || klaarT >= 0 || !hist.length) return; const h = hist.pop(); S.f = h.f; h.z.forEach((z, i) => { zien[i] = z; }); S.dicht.forEach((d, j) => { d.open = h.d[j]; }); S.zetten = h.n; kies = -1; },
         kanOngedaan: () => hist.length > 0 && !anim && klaarT < 0,
         tip: def.q ? 'Tik op een flesje en daarna op een ander om te gieten. Vraagtekens zie je pas als ze bovenop liggen.' : def.k ? 'Tik op een flesje en daarna op een ander om te gieten. Een kurk gaat open als zijn kleur helemaal klaar is.' : 'Tik op een flesje en daarna op een ander om te gieten. Je mag alleen op dezelfde kleur gieten.',
@@ -4985,7 +5055,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         stap(dt) {
           tijd += dt; if (praatT > 0) praatT -= dt;
           if (schud) { schud.t += dt; if (schud.t > 0.35) schud = null; }
-          if (anim) { anim.t += dt; if (anim.t >= 0.5) landt(); }
+          if (anim) { anim.t += dt; if (anim.t >= DUUR) landt(); }
           if (klaarT >= 0) { klaarT += dt; if (klaarT > 1.1 && klaarT < 50) { klaarT = 99; A.klaar({ gewonnen: true, sterren: Q.sterren(def, S.zetten), titel: 'Proost!', tekst: 'Gesorteerd in ' + S.zetten + ' keer gieten. ' + (S.zetten <= def.p ? 'Korter kan niet.' : 'Het kan in ' + def.p + '.'), wacht: 200 }); } }
         },
         teken(g) {
@@ -4997,17 +5067,27 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
             const q = pos[i]; let x = q.x, voet = q.voet;
             if (i === kies) voet -= 18;
             if (schud && schud.i === i && !ZACHT) x += Math.sin(schud.t * 60) * 4 * (1 - schud.t / 0.35);
-            const extra = anim && i === anim.b ? S.f[i].length + anim.n * Math.max(0, Math.min(1, (anim.t - 0.16) / 0.28)) : null;
+            const extra = anim && i === anim.b ? S.f[i].length + anim.n * gegoten() : null;
             fles(g, i, x, voet, extra);
             if (toetsen && i === cursor) { g.lineWidth = 3; g.strokeStyle = '#2F6FB5'; g.setLineDash([5, 4]); g.strokeRect(x - 7, voet - hoogte(i) - 12, bw + 14, hoogte(i) + 22); g.setLineDash([]); }
           }
           if (anim) {
-            const a = pos[anim.a], b = pos[anim.b], p = Math.min(1, anim.t / 0.16), terug = anim.t > 0.44 ? (anim.t - 0.44) / 0.06 : 0, k = (1 - terug);
-            const rechts = b.x >= a.x ? 1 : -1, tx = b.x - rechts * (bw * 0.7), ty = b.voet - hoogte(anim.b) - 26;
-            const x = a.x + (tx - a.x) * p * k, voet = (a.voet - 18) + (ty - (a.voet - 18)) * p * k + hoogte(anim.a) * 0.15 * p * k;
-            const rest = S.f[anim.a].length - anim.n * Math.max(0, Math.min(1, (anim.t - 0.16) / 0.28));
-            if (anim.t > 0.14 && anim.t < 0.46) { const mx = rechts > 0 ? b.x + bw * 0.25 : b.x + bw * 0.75; g.fillStyle = KLEUR[anim.k][0]; g.fillRect(mx - 3, ty + 2, 6, b.voet - ty - S.f[anim.b].length * uh - 2); }
-            fles(g, anim.a, x, voet, rest, rechts * 1.15 * p * k);
+            const a = pos[anim.a], b = pos[anim.b], ha = Q.cap(def, anim.a) * uh, n0 = S.f[anim.a].length, rest = n0 - anim.n * gegoten();
+            if (ZACHT) fles(g, anim.a, a.x, a.voet - 18 * (1 - anim.t / DUUR), rest);
+            else {
+              // de tuit (de bovenhoek aan de kant van het andere flesje) gaat net boven de hals van het andere flesje hangen
+              const r = b.x >= a.x ? 1 : -1, tuitX = a.x + (r > 0 ? bw : 0);
+              const van = [tuitX, a.voet - 18 - ha], naar = [tuitX, a.voet - ha], boven = [b.x + bw / 2 - r * bw * 0.18, b.voet - Q.cap(def, anim.b) * uh - 26];
+              const kantel = v => Math.max(0.35, kantelVoor(v, bw, ha, uh, r));
+              let P, hoek;
+              if (anim.t < T1) { const e = zacht(anim.t / T1); P = [van[0] + (boven[0] - van[0]) * e, van[1] + (boven[1] - van[1]) * e - Math.sin(e * Math.PI) * 20]; hoek = kantel(n0) * e; }
+              else if (anim.t < T2) { P = boven; hoek = kantel(rest); }
+              else { const e = zacht(Math.min(1, (anim.t - T2) / (DUUR - T2))); P = [boven[0] + (naar[0] - boven[0]) * e, boven[1] + (naar[1] - boven[1]) * e - Math.sin(e * Math.PI) * 20]; hoek = kantel(rest) * (1 - e); }
+              // de straal: uit de tuit recht naar beneden, tot op het sap in het andere flesje
+              const f = gegoten();
+              if (anim.t >= T1 && f < 1) { const sy = b.voet - (S.f[anim.b].length + anim.n * f) * uh, sx = P[0] - r * 2; g.fillStyle = KLEUR[anim.k][0]; g.fillRect(sx - 2.5, P[1], 5, sy - P[1]); g.fillStyle = KLEUR[anim.k][1]; g.fillRect(sx + 1, P[1], 1.5, sy - P[1]); }
+              fles(g, anim.a, P[0] - (r > 0 ? bw : 0), P[1] + ha, rest, { hoek: r * hoek, px: P[0], py: P[1] });
+            }
           }
           tekenBubbel(g, 40, H - 50, tijd, klaarT >= 0, praatT > 0 ? praat : null);
           if (klaarT >= 0 && !ZACHT) for (let j = 0; j < 14; j++) { const t = (klaarT * 0.8 + j * 0.37) % 1.4; cirkel(g, 30 + (j * 53) % 300, H - 30 - t * 400, 4 + (j % 3) * 2, 'rgba(170,220,250,.7)', 'rgba(31,35,51,.5)', 1); }
@@ -5302,7 +5382,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         const { q, u } = act; act = null; sienPlek = { x: plek[q.i].x + plek[q.i].b * 0.28, y: plek[q.i].y + plek[q.i].h - 8 };
         if (!u.ok) {
           eind = q.soort === '-' ? { titel: 'Uitgegleden!', tekst: 'Sien gleed uit over de bananenschil en had geen kracht meer over.' } : { titel: 'In de modder!', tekst: (q.soort === 'b' ? 'Bertus de Brombeer' : 'Het andere team') + ' was sterker (' + q.n + ' tegen ' + u.voor + '). Plons, Sien ligt in de modderpoel.', hint: 'Tip: win eerst van kleinere teams, dan word je sterker.' };
-          eind.gewonnen = false; eind.wacht = 300; eindT = 0; A.geluid('plons'); return;
+          eind.gewonnen = false; eind.kamer = q.soort === '-' ? -1 : q.i; eind.wacht = 300; eindT = 0; A.geluid('plons'); return;
         }
         if (q.soort === 'p' || q.soort === 'd' || q.soort === 'b') { A.geluid('joepie'); zeg(['Ze doen mee!', 'Gewonnen!', 'Erbij!', 'Sterker!'][S.beurten % 4]); }
         else if (q.soort === '+') { A.geluid('plop'); zeg('Limonade: +' + q.n + '!'); }
@@ -5324,12 +5404,16 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         if (!actief && Q.toren(S) >= 0 && t > Q.toren(S)) { rr(g, x0 + tw / 2 - 40, top - 78, 80, 22, 6); vul(g, PAPIER, INKT, 2); tekst(g, 'Straks', x0 + tw / 2, top - 66, { maat: 12 }); }
       }
       function tekenKamer(g, q) {
-        const p = plek[q.i], weg = S.weg & (1 << q.i), mid = p.x + p.b / 2, voet = p.y + p.h - 8, s = Math.min(1, p.b / 90);
+        // de motor zet een kamer al op 'weg' zodra je hem kiest; laat de tegenstander staan tot het touwtrekken voorbij is
+        // (en na verlies, als Sien de modder in vliegt), en een voorwerp tot Sien erbij is
+        const team = q.soort === 'p' || q.soort === 'd' || q.soort === 'b', bezig = act && act.i === q.i;
+        const p = plek[q.i], mid = p.x + p.b / 2, voet = p.y + p.h - 8, s = Math.min(1, p.b / 90);
+        const weg = (S.weg & (1 << q.i)) && !(bezig && (team || act.t < 0.35)) && !(eind && eind.kamer === q.i);
         if (q.t === Q.toren(S) && Q.kan(S, q.i) && !act && !eind) { g.fillStyle = 'rgba(233,185,73,.22)'; g.fillRect(p.x + 2, p.y + 4, p.b - 4, p.h - 6); }
         if (toetsen && q.i === kies) { g.setLineDash([5, 4]); g.lineWidth = 3; g.strokeStyle = '#2F6FB5'; g.strokeRect(p.x + 3, p.y + 5, p.b - 6, p.h - 8); g.setLineDash([]); }
         if (p.b < tw - 1 && q.k > 0) { g.fillStyle = HOUT; g.fillRect(p.x - 2, p.y + 3, 4, p.h - 3); }
-        if (weg || (act && act.i === q.i && q.soort !== 'p' && q.soort !== 'd' && q.soort !== 'b')) return;
-        const tegen = act && act.i === q.i;
+        if (weg) return;
+        const tegen = bezig && team;
         if (q.soort === 'p' || q.soort === 'd') {
           const n = Math.min(3, 1 + Math.floor(Math.log10(q.n + 1) * 1.2)), kl = TEAMKLEUR[q.i % TEAMKLEUR.length];
           for (let j = 0; j < n; j++) popje(g, mid + (tegen ? 14 : 0) + (j - (n - 1) / 2) * 15 * s, voet - 12 * s, kl, 0.9 * s, tegen ? 0.25 : 0, (tijd + j) % 3.7 < 0.1);
@@ -5346,6 +5430,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       const I = {
         W, H, S,
         _kies: i => { tik(i); if (act) { act.t = act.duur; naAct(); } },
+        _tik: i => tik(i),
         _stil: () => { praatT = 0; },
         tip: def.t.length > 1 ? 'Maak de torens één voor één leeg. Bertus de Brombeer komt als allerlaatste.' : def.t[0].some(v => v.some(q => q[0] === 'k')) ? 'Zoek eerst de sleutel voor de kamer op slot.' : 'Tik op een kamer. Is Sien sterker, dan doet dat team mee. Alle kamers moeten leeg.',
         info: () => '💪 ' + Math.round(telt) + (S.sleutels ? ' · 🔑' : '') + ' · ★★★ bij ' + def.o,
@@ -5359,7 +5444,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
         rust: () => false,
         stap(dt) {
           tijd += dt; if (praatT > 0) praatT -= dt;
-          const doel = S.kracht; if (telt !== doel) { telt += (doel - telt) * Math.min(1, dt * 6); if (Math.abs(doel - telt) < 0.5) telt = doel; }
+          // Siens getal gaat pas omhoog als ze gewonnen heeft (of bij een voorwerp is), niet al bij het kiezen
+          const vecht = act && (act.q.soort === 'p' || act.q.soort === 'd' || act.q.soort === 'b'), doel = act && act.t < (vecht ? 1.15 : 0.35) ? act.u.voor : S.kracht; if (telt !== doel) { telt += (doel - telt) * Math.min(1, dt * 6); if (Math.abs(doel - telt) < 0.5) telt = doel; }
           if (act) { act.t += dt; if (act.t >= act.duur) naAct(); }
           if (eind) { eindT += dt; if (eindT > 1.1 && !eind.gemeld) { eind.gemeld = true; A.klaar(eind); } }
         },
@@ -5455,6 +5541,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       const S = Q.maak(def), kl = DOPKLEUR[A.look] || DOPKLEUR[0];
       let acc = 0, tijd = 0, fase = 'klaar', sleep = null, toets = 0, effecten = [], ottoT = 0, eind = null, eindT = 0, gestart = false, lucht = def.b;
       const ottoZ = def.z + 5;
+      // bij Otto gaan er zoveel dopjes af als Otto nodig heeft, de rest blijft staan
+      const zichtbaar = () => fase === 'otto' ? Math.max(0, Math.round(S.n - Math.min(S.n, def.b) * Math.min(1, ottoT / 1.6))) : S.n;
       function start() { if (fase === 'klaar') { fase = 'rennen'; A.geluid('zoef'); } }
       function toon(s, kleur, x) { effecten.push({ s, kleur, t: 0, x: x == null ? S.cx : x }); }
       function verwerkLog() {
@@ -5468,7 +5556,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
       const I = {
         W, H, S,
         tip: 'Sleep naar links en rechts (of gebruik de pijltjes) om de dopjes door de beste poortjes te sturen.',
-        info: () => '🧢 ' + S.n + ' dopjes · Otto ' + def.b + ' · ★★★ met ' + Math.ceil(def.q * 0.85) + ' over',
+        info: () => '🧢 ' + zichtbaar() + ' dopjes · Otto ' + def.b + ' · ★★★ met ' + Math.ceil(def.q * 0.85) + ' over',
         neer(p) { start(); sleep = { x: p.x, doel: S.doel }; },
         sleep(p) { if (sleep) S.doel = Math.max(-0.95, Math.min(0.95, sleep.doel + (p.x - sleep.x) / 120)); },
         los() { sleep = null; },
@@ -5493,7 +5581,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
             else if (S.klaar) { fase = 'otto'; ottoT = 0; }
           } else if (fase === 'otto') {
             ottoT += dt; const k = Math.min(1, ottoT / 1.6); lucht = Math.max(0, Math.round(def.b - Math.min(def.b, S.n) * k));
-            if (!ZACHT && Math.random() < dt * 18) A.geluid('pop');
+            if (!ZACHT && ottoT < 1.6 && Math.random() < dt * 18) A.geluid('pop'); // alleen zolang de dopjes Otto leegprikken
             if (ottoT > 1.7 && !eind) {
               if (S.over > 0) { A.geluid('prut'); eind = { gewonnen: true, sterren: Q.sterren(def, S.over), titel: 'Otto is leeg!', tekst: 'Pfffrrrt. Opblaas-Otto ligt plat, en er zijn nog ' + S.over + ' dopjes over. ' + (S.over >= Math.ceil(def.q * 0.85) ? 'Sterk gestuurd!' : 'Met meer dopjes over krijg je meer sterren.'), wacht: 700 }; }
               else { A.geluid('boing'); eind = { gewonnen: false, titel: 'Otto blijft staan', tekst: 'Er waren ' + def.b + ' dopjes nodig en je had er ' + S.n + '. Otto lacht en wiebelt.', hint: 'Tip: zoek de poortjes met × en +.', wacht: 300 }; }
@@ -5534,7 +5622,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
           }
           // de dopjes
           if (fase !== 'op') {
-            const n = fase === 'otto' ? Math.max(0, Math.round(S.n * (1 - Math.min(1, ottoT / 1.6)))) : S.n;
+            const n = zichtbaar();
             const zicht = Math.min(n, Q.MAXZ), r = Q.straal(Math.max(1, n));
             const lijst = []; for (let k = 0; k < zicht; k++) { const pl = Q.PLEK[Math.floor(k * Q.MAXZ / zicht)]; lijst.push([S.cx + pl[0] * r, CAM + pl[1] * r * 3, k]); }
             lijst.sort((a, b) => b[1] - a[1]);

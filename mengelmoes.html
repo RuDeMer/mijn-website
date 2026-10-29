@@ -406,6 +406,7 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
   const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
   const BRONNEN = {
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
+    groepjes: () => { const s = lees('rommelgroepjes-v1'); if (!s || !s.p) return null; let b = 0, r = 0, v = -9, z = 0; for (const d of Object.keys(s.p).map(Number).filter(n => n > 0).sort((a, c) => a - c)) { const x = String(s.p[d]); if (x[0] === 'w') { r = d === v + 1 ? r + 1 : 1; v = d; b = Math.max(b, r); } if ((x[0] === 'w' || x[0] === 'a') && x[1] === '0') z++; } return b ? [b, z] : null; },
     reclame: () => { const s = lees('reclame-v1'); if (!s || !s.s) return null; let n = 0; for (const v of Object.values(s.s)) for (const c of String(v)) n += Math.min(3, +c || 0); return n ? [n, (s.dag && s.dag.b) || 0] : null; },
     huis: () => { const s = lees('huisopstelten-v1'); return s && s.besteDag > 0 ? [Math.round(s.besteDag), Object.values(s.k || {}).reduce((n, k) => n + ((k && k.s) || []).filter(Boolean).length, 0)] : null; },
     duiker: () => { const s = lees('rubendeduiker-v1'); return s && s.beste && s.beste.avond > 0 ? [Math.round(s.beste.avond), Object.keys(s.boek || {}).length] : null; },
@@ -546,7 +547,7 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
   }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };

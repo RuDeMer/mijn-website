@@ -724,9 +724,9 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - **Er is geen aparte bronmap meer.** De map `_bron/` (met `bouw.py` en een kopie van elke pagina) is weer weggehaald, omdat hij GitHub en Claude Code traag maakte. **De pagina's in de repository zijn de bron.** Werk rechtstreeks in de pagina, bijvoorbeeld `rommelbeesten.html`. Er gaat niets verloren: elke pagina bevat alles wat nodig is.
 - **Waar oudere notities `bouw.py`, `_bron` of een `*_template.html` noemen:** dat bouwproces bestaat niet meer. Wat het deed, staat nu gewoon in de pagina's zelf.
 - **De gedeelde blokken** staan letterlijk in elke pagina, en moeten overal **precies gelijk** blijven:
-  - **het scorebord-script**: het `<script>`-blok met `const SLEUTELS` (koppelen, scorebord, tabbladbewaker, de knop "Koppel je apparaten", en sinds 27 oktober 2026 de hulp van Ruben en "Verwijder mijn gegevens van de server"). Het staat in 23 pagina's (stand 29 oktober 2026), en ook in `homepage-onderdelen.js` (daar zonder `<script>`-tags). Niet in de ideeënbox, de 404-pagina, Rommelhotel Online, de werkplaats, `index.html` en de drie juridische pagina's.
-  - **de grapjes**: het `<script>`-blok met `GRAPJES: verborgen grapjes`, in 20 pagina's en in `homepage-onderdelen.js`. Niet in Mengelmoes en Op Gevoel (eigen stijl), en niet in de werkplaats en de juridische pagina's.
-  - **versie 0.6, in de `<head>`**: van `<!-- versie 0.6: dezelfde stijl` tot en met de `</style>` daarna. In de werkplaats, het scorebord, de ideeënbox, de 404-pagina, Rommelhotel Online, de Vlaaienbakker, Rommelpoker, Rommelbeesten, Rommelwoord, Rommelhotel, Rommelrecht, het colofon, de privacyverklaring en de huisregels (14 pagina's).
+  - **het scorebord-script**: het `<script>`-blok met `const SLEUTELS` (koppelen, scorebord, tabbladbewaker, de knop "Koppel je apparaten", en sinds 27 oktober 2026 de hulp van Ruben en "Verwijder mijn gegevens van de server"). Het staat in 24 pagina's (stand 29 oktober 2026, met Rommelgroepjes), en ook in `homepage-onderdelen.js` (daar zonder `<script>`-tags). Niet in de ideeënbox, de 404-pagina, Rommelhotel Online, de werkplaats, `index.html` en de drie juridische pagina's.
+  - **de grapjes**: het `<script>`-blok met `GRAPJES: verborgen grapjes`, in 23 pagina's en in `homepage-onderdelen.js`. Niet in Mengelmoes en Op Gevoel (eigen stijl), en niet in de werkplaats en de juridische pagina's.
+  - **versie 0.6, in de `<head>`**: van `<!-- versie 0.6: dezelfde stijl` tot en met de `</style>` daarna. In de werkplaats, het scorebord, de ideeënbox, de 404-pagina, Rommelhotel Online, de Vlaaienbakker, Rommelpoker, Rommelbeesten, Rommelwoord, Rommelhotel, Rommelrecht, Rommelgroepjes, het colofon, de privacyverklaring en de huisregels (15 pagina's).
   - **versie 0.6, onderaan**: het `<script>`-blok met `__v6sub`, in dezelfde pagina's.
   - **de spelbalk van 0.6**: van `<!-- versie 0.6: de spelbalk bovenin` tot en met de `</style>` daarna, vlak voor `</head>`. In de spellen met een balk bovenin over het speelveld: Rob, Rommelarend, Rommelbel, Rommelkroon, Rommelland, Rommelritme en Vouwvlieger. Hij zet licht of donker (zoals de homepage) en maakt alleen de balk papier met stippen, met inktrandjes om de knoppen (als schaduw, zodat de balk even hoog blijft); het speelveld houdt zijn eigen stijl.
 - **Regels:** verander een gedeeld blok nooit in één pagina alleen. Moet het anders, vervang het dan in alle pagina's tegelijk (zie hieronder), en upload al die pagina's. `index.html` beheert de werkplaats: die verander je niet zomaar.
@@ -1012,3 +1012,76 @@ print('kopie in de werkplaats:', 'gelijk' if json.loads(m.group(1)) == h else 'V
 - **Scoreserver 2026-10-29** (gebouwd op 2026-10-28c): bewaart `vlaai` als 10-log (een oude score wordt één keer omgezet, in één batch, de volgorde blijft gelijk), geeft bij `vlaai` `log` en `elog` mee (en `score` als gewoon getal, hooguit 1,8 × 10^308), kent `oerknal` en `vbpres`, de maat bij koppelen is `[opnieuw, oerdeeg, Oerknallen, alles, deze ronde]` (als 10-log), en de controle tegen valsspelen (`valideerVlaai`, staat nog steeds uit) rekent met de 10-log en kent de Oerknal, de proeven en de nieuwe bakkers (`VB_BAK`; na een verkoop of Oerknal tussen twee opslagen de grootste bakkerij die je kon betalen, `vbLogPiek`). **Verander je bakkers, prijzen of bonussen in de motor, pas dan ook `VB_BAK` en `vbLogBonus` in de worker aan.**
 - **Getest** (29 oktober 2026): de grote getallen (rekenen, namen tot centiljard, heen en terug naar tekst), de motor tegen de oude regels, oude opslagen van Jeroen, Shanyta, NYA en net onder 10^308, voorbij 10^308 zonder Infinity of NaN, een oude en een nieuwe pagina om de beurt op dezelfde opslag, de Oerknal, de Oerbakkerij en een proef met de knoppen, de Bakwedstrijd; de scoreserver met 36 tests (oude en nieuwe pagina's door elkaar, omzetten, koppelen na een Oerknal) en de controle tegen valsspelen op 27.000 eerlijke stappen van de robotspeler (niets geweigerd) en 2.000 keer valsspelen (even streng als de oude controle, en ook voor de nieuwe dingen); het scorebord met de echte nieuwe scoreserver (oude en nieuwe scores door elkaar, tot 10^650), de homepage, de werkplaats en een paar spellen, op 1280, 390 en 360 breed, licht en donker, zonder fouten of CSP-overtredingen. Niet getest: Safari op een echte iPhone.
 
+
+## Rommelgroepjes (29 oktober 2026, Claude Code)
+
+- `rommelgroepjes.html`: een dagelijkse puzzel. 16 woorden verdeel je in vier groepjes van vier, met elk een verborgen verband. Je hebt vier levens. Zijn er drie van de vier goed, dan zegt het spel "Bijna! Eén woord hoort er niet bij".
+  - **Niveaus**, elk met een eigen kleur, symbool en blokje bij het delen:
+    - makkelijk: mandarijn ●, 🟧
+    - gemiddeld: zeegroen ▲, 🟩
+    - lastig: framboos ■, 🟥
+    - heel lastig: nachtblauw ★, 🟦
+  - **Verder op de pagina**: archief (een kalender, naspelen telt niet voor de reeks), statistieken, delen zonder woorden, uitleg bij het eerste bezoek, het toetsenbord (pijltjes, spatie, C, H, Esc) en een schermlezer.
+  - **Stijl**: met de blokken van 0.6, licht en donker.
+  - **Testhaak**: `window.__groepjes`.
+- **Opbouw van de pagina** (de pagina is de bron): de gedeelde blokken (scorebord, grapjes, 0.6), en in het eigen script de **motor** tussen `// ==== MOTOR begin` en `// ==== MOTOR eind`, zonder pagina en in Node te testen. Daarna volgt de weergave.
+- **De puzzels**:
+  - Ze staan versleuteld in `KISTJES`, tussen `// KISTJES begin` en `// KISTJES eind`. Puzzel *n* hoort bij dag *n*. Dag 1 is donderdag 29 oktober 2026, in Nederlandse tijd.
+  - De sleutel is AES-GCM, via PBKDF2 (100.000 rondes) uit `rommelgroepjes:<n>:<datum>`. Zo kun je de puzzels van komende dagen niet in de broncode lezen of doorzoeken.
+  - Wie de code naspeelt of de klok van zijn telefoon verzet, kan wel spieken. Dat kan bij een pagina zonder server niet anders (keuze A van Ruben).
+  - Is de voorraad op, dan begint het weer bij puzzel 1 (`puzzelVan`).
+  - **Nieuwe puzzels altijd achteraan, vóór de voorraad op is. Verander nooit een puzzel van een dag die al geweest is, en nooit de volgorde.**
+- **Een puzzel aanpassen of erbij zetten**:
+  1. Haal ze eruit met het script `uitpakken.mjs` (in het gereedschap van deze sessie, zie hieronder). Dat gebruikt de motor uit de pagina.
+  2. Pas het JSON-bestand aan.
+  3. Zet ze terug met `bouw.mjs`. Dat geeft elke puzzel een nieuwe willekeurige IV.
+
+  Een puzzel is daarbij `{ groepen: [{ niveau, verband, uitleg, woorden, per? }] }`. In het kistje zelf staat per puzzel alleen `[[verband, uitleg, [4 woorden], per?] × 4]`, op volgorde van niveau. Een `|` in een woord is een afbreekpunt.
+- **Hoe de puzzels gemaakt zijn**:
+  1. Acht makers maakten samen 400 puzzels. Elke maker kreeg eigen onderwerpen, ankerwoorden en letterspelletjes, en Ruben vroeg om echt moeilijke puzzels, met minstens twee valkuilen per puzzel.
+  2. Elke puzzel ging door de controle (`controle.py`):
+     - 16 verschillende woorden;
+     - de spelling volgens OpenTaal;
+     - elke regel (samenstelling, ook met meervoud zoals den → dennenboom, verstopt woord, letter ervoor of erachter, achterstevoren, husselen) nagerekend voor **alle 16** woorden;
+     - de lijst "ook" per groepje;
+     - geen kwetsende woorden, ook niet achterstevoren.
+  3. Daarna een tweede ronde: per woord een aparte nakijker (bij 350 puzzels), en een blinde oplosser bij 90 puzzels. Die vond bij 88 van de 90 maar één oplossing.
+  4. Fouten zijn hersteld met de voorstellen van de nakijkers, of de puzzel is weggelaten.
+  5. Dubbele groepjes tussen de makers: hooguit twee bijna-gelijke, met minstens 180 dagen ertussen. Hetzelfde verband nooit binnen 90 dagen, hetzelfde woord niet binnen 10 dagen, en een groepje over het rommelhoekje (32 in de voorraad) minstens 9 dagen uit elkaar.
+- **Voorraad en wat er nog moet**:
+  - 368 puzzels, tot en met 31 oktober 2027.
+  - **Dag 1 t/m 121** zijn allemaal door de nakijker per woord goedgekeurd.
+  - Daarna komen ook:
+    - 82 puzzels die twijfel kregen of die hersteld zijn (vanaf dag 122);
+    - 40 puzzels van maker G die nog niet apart zijn nagekeken (vanaf dag 186).
+  - **Kijk die na vóór hun datum** (een blinde oplosser en een nakijker per woord). Dat kan met het geheime beheermenu.
+  - Nog na te kijken: dag 122, 124-125, 127, 131, 134-135, 137, 139, 143, 147, 153, 157, 162-163, 168-171, 173, 175-177, 179, 184, 191-192, 195, 198-200, 202, 206, 210-211, 214-216, 218, 222-225, 227, 231, 233-234, 236, 241, 243, 250, 253, 256, 266, 268, 279-280, 286, 288-289, 291, 294, 296, 298, 301, 304, 306, 308, 312, 320, 322, 324-325, 332, 337, 340, 344, 346-347, 353, 363-364 (twijfel of hersteld), en dag 186-187, 242, 244, 247-249, 252, 254, 259, 261-262, 265, 267, 270, 275-277, 284, 287, 305, 307, 310, 313, 316, 319, 321, 333-334, 336, 342, 345, 348, 355, 358, 360, 362, 365-366, 368 (maker G, nog niet apart nagekeken).
+- **Geheim beheermenu**:
+  - Openen: typ "beheer", of houd het icoon bovenaan 2 seconden ingedrukt.
+  - Het vraagt het beheerwachtwoord van de werkplaats, en de scoreserver controleert dat (`/ideeen/alle`). Daarna geldt het alleen voor dit tabblad (sessionStorage `rg-beheer`).
+  - Je kunt dan elke puzzel spelen, ook van later. Zo'n voorproef wordt niet bewaard en telt nergens mee. Je kunt ook meteen de oplossing bekijken.
+  - Zet dit menu nergens op de site.
+- **Opslag** `rommelgroepjes-v1` (in `SLEUTELS`): `{ v: 1, p: { dag: tekstje }, uitleg, laatst, voortgangTotaal }`.
+  - Het tekstje is de uitkomst (`w` op de dag zelf opgelost, `a` later opgelost, `v` niet gelukt op de dag, `x` later niet gelukt, `b` bezig), dan het aantal fouten, dan per poging vier tekens 0-f (de woorden die je koos).
+  - Dat is ongeveer 15 kB per jaar. `voortgangTotaal` = het dagnummer van vandaag.
+  - De reeks en de cijfers rekent het spel uit `p` uit.
+- **Scorebord**: spel `groepjes`, `Scorebord.stuur('groepjes', beste reeks, puzzels zonder fouten)`.
+  - De reeks telt alleen puzzels die je op de dag zelf oploste.
+  - De grens is 5.000; de reeks groeit hooguit één per dag.
+  - `BRONNEN.groepjes` staat in het gedeelde blok, en de regel staat op `scorebord.html`.
+  - **Voor de scoreserver** (bovenop 2026-10-29, versie 2026-10-29b): `groepjes` in `SPELLEN` (max 5000), en `rommelgroepjes-v1` in `MAAT` (opgelost, zonder fouten, gespeeld) en in `VOEG` (per dag de beste uitkomst). De regels staan in de overdracht. Ruben zet ze zelf in Cloudflare.
+- **Elders op de site**:
+  - homepage-onderdelen: icoon `groepjes`, categorie Puzzels, het onderschrift "Zestien woorden, vier groepjes", en de voortgang ("Vandaag opgelost · reeks van n dagen").
+  - werkplaats: `SPELINFO` en `KAN.groepjes`.
+  - `privacy.html`.
+  - Het label op de homepage zet Ruben zelf via de werkplaats.
+- **Getest** (Node en Chromium):
+  - alle 368 puzzels pakken uit tot de bron, en met de sleutel van een andere dag lukt het niet;
+  - geen verband, uitleg of groepje leesbaar in de pagina;
+  - de dag rond middernacht en de zomertijd, 800 dagen achter elkaar;
+  - de reeks, kapotte opslag, bewaren en laden;
+  - middernacht tijdens het spelen (wordt archief), het archief, "al geprobeerd", niet gelukt;
+  - het beheermenu (een verkeerd en een goed wachtwoord, voorproef niet bewaard);
+  - alle 368 puzzels op 360 breed: elk woord past;
+  - licht en donker, 360, 390 en 1280 breed, zonder fouten of CSP-overtredingen.
+- **Het gereedschap** staat niet in de repository: controle, lijsten, opdracht voor makers en nakijkers, bouwen, uitpakken, volgorde en tests. Ruben kreeg het als zip. Zonder dat gereedschap kan het ook: de motor in de pagina kan alles uitpakken en versleutelen.

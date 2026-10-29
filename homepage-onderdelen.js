@@ -27,8 +27,30 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   const pagina = a => ((a.getAttribute('href') || '').split('/').pop() || '').replace(/\.html?$/, '').toLowerCase();
   const leesJSON = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   // grote getallen zoals de Vlaaienbakker ze schrijft (fmt() in vlaaienbakker.html): tot een miljoen voluit, dan met een naam tot deciljard, daarboven m × 10^e
-  const GETALNAMEN = [[1e63, 'deciljard'], [1e60, 'deciljoen'], [1e57, 'noniljard'], [1e54, 'noniljoen'], [1e51, 'octiljard'], [1e48, 'octiljoen'], [1e45, 'septiljard'], [1e42, 'septiljoen'], [1e39, 'sextiljard'], [1e36, 'sextiljoen'], [1e33, 'quintiljard'], [1e30, 'quintiljoen'], [1e27, 'quadriljard'], [1e24, 'quadriljoen'], [1e21, 'triljard'], [1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'miljard'], [1e6, 'miljoen']];
-  const groot = x => { x = Math.floor(x); if (x < 1e6) return x.toLocaleString('nl-NL'); if (x >= 1e66) { const e = Math.floor(Math.log10(x)); return (x / Math.pow(10, e)).toLocaleString('nl-NL', { maximumFractionDigits: 2 }) + ' × 10^' + e; } for (const [v, w] of GETALNAMEN) if (x >= v) { const y = x / v; return y.toLocaleString('nl-NL', { maximumFractionDigits: y < 100 ? 2 : 1 }) + ' ' + w; } return String(x); };
+  // grote getallen zoals de Vlaaienbakker ze schrijft: met een naam tot centiljard (10^603), daarboven als macht; met de keuze van de speler (getal in vlaaienbakker-v1)
+  const STAM = [['', 'm', 'b', 'tr', 'quadr', 'quint', 'sext', 'sept', 'oct', 'non'], ['', 'un', 'duo', 'tre', 'quattuor', 'quin', 'sex', 'septen', 'octo', 'novem'], ['', 'dec', 'vigint', 'trigint', 'quadragint', 'quinquagint', 'sexagint', 'septuagint', 'octogint', 'nonagint']];
+  const getalNaam = i => { const n = Math.ceil(i / 2); return (n < 10 ? STAM[0][n] : n === 100 ? 'cent' : STAM[1][n % 10] + STAM[2][Math.floor(n / 10)]) + (i % 2 ? 'iljoen' : 'iljard'); };
+  // lange getalnamen mogen afbreken tussen hun delen (quattuor-septuagint-iljoen): onzichtbare afbreekstreepjes
+  const zachtNaam = s => String(s).replace(/(quattuor|septen|novem|octo|quin|duo|tre|sex|un)(?=(dec|vigint|trigint|quadragint|quinquagint|sexagint|septuagint|octogint|nonagint)iljo?)/g, '$1­').replace(/([a-z]{4,})(iljoen|iljard)/g, '$1­$2');
+  const hoog = e => String(e).replace(/\d/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]), nl2 = (x, d) => x.toLocaleString('nl-NL', { maximumFractionDigits: d });
+  const alsMacht = L => { let e = Math.floor(L), m = Math.pow(10, L - e); if (Math.round(m * 100) / 100 >= 10) { m /= 10; e++; } return nl2(m, 2) + ' × 10' + hoog(e); };
+  // L: de 10-log; n: het gewone getal als dat er is (dan precies zoals het spel)
+  const grootLog = (L, n, stijl) => {
+    if (L < 6) return Math.floor(n != null ? n : Math.pow(10, L) + 1e-9).toLocaleString('nl-NL');
+    if (stijl === 'macht') return alsMacht(L);
+    let i = Math.floor((Math.floor(L + 1e-12) - 3) / 3); if (i > 200) return alsMacht(L);
+    let w = n != null && n < 1e300 ? Math.floor(n) / Math.pow(10, 3 * i + 3) : Math.pow(10, L - (3 * i + 3)), d = w < 100 ? 2 : 1;
+    if (Math.round(w * Math.pow(10, d)) / Math.pow(10, d) >= 1000) { i++; w /= 1000; d = 2; if (i > 200) return alsMacht(L); }
+    return nl2(w, d) + ' ' + zachtNaam(getalNaam(i)) + (stijl === 'beide' ? ' (10' + hoog(Math.floor(L + 1e-12)) + ')' : '');
+  };
+  // een getal uit de opslag van de Vlaaienbakker, als 10-log: boven 10^300 staat het precies als tekst in s.groot[pad]
+  const vbLog = (s, pad) => {
+    const x = pad.split('.').reduce((o, k) => (o == null ? undefined : o[k]), s), P = pad.startsWith('gilde.') ? 1e270 : 1e300;
+    const r = s.groot && /^\s*(\d+(?:\.\d+)?)(?:e([+-]?\d+))?\s*$/i.exec(String(s.groot[pad] || '')), g = r && parseFloat(r[1]) > 0 ? Math.log10(parseFloat(r[1])) + (r[2] ? parseInt(r[2], 10) : 0) : NaN;
+    if (typeof x !== 'number' || !isFinite(x)) return isFinite(g) ? g : -Infinity;
+    if (isFinite(g) && x >= P / 1e20) return g;
+    return x > 0 ? Math.log10(x) : -Infinity;
+  };
   // voortgang per spel, uit de opslag van dat spel. Elk spel bewaart zelf hoeveel er in totaal is (voortgangTotaal);
   // het getal erachter is de terugval voor opslag van vóór die tijd.
   const totaal = (s, n) => (s && s.voortgangTotaal > 0 ? s.voortgangTotaal : n);
@@ -37,7 +59,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     rubendeduiker: () => { const s = leesJSON('rubendeduiker-v1'); if (!s || !s.dag) return null; const t = totaal(s, 5), h = Math.min(s.hfd || 1, t + 1); return h > t ? ['Verhaal uitgespeeld · dag ' + s.dag, 1] : ['Hoofdstuk ' + h + ' van ' + t + ' · dag ' + s.dag, Math.min(1, (h - 1) / t)]; },
     rommelkroon: () => { const s = leesJSON('rommelkroon-v1'), t = totaal(s, 500); const n = s && s.opgelost ? Object.keys(s.opgelost).length : 0; return n ? [n + ' van ' + t + ' puzzels', Math.min(1, n / t)] : null; },
     rommelbeesten: () => { const s = leesJSON('rommelbeesten-v1'), t = totaal(s, 350); const heb = b => (Array.isArray(b) ? (b[0] || 0) + (b[1] || 0) > 0 : !!(b && (b.n || b.g || b > 0))); const n = s && s.bezit ? Object.values(s.bezit).filter(heb).length : 0; return n ? [n + ' van ' + t + ' kaarten', Math.min(1, n / t)] : null; },
-    vlaaienbakker: () => { const s = leesJSON('vlaaienbakker-v1'); const t = s ? (s.ooit || s.totaal || 0) : 0; return t >= 1 ? [groot(t) + ' vlaaien', null] : null; },
+    vlaaienbakker: () => { const s = leesJSON('vlaaienbakker-v1'); if (!s) return null; const pad = vbLog(s, 'alles') >= vbLog(s, 'ooit') ? 'alles' : 'ooit', L = vbLog(s, pad); if (!(L >= 0)) return null; const x = pad.split('.').reduce((o, k) => o && o[k], s); return [grootLog(L, typeof x === 'number' && L < 300 ? x : null, ['naam', 'macht', 'beide'].includes(s.getal) ? s.getal : 'naam') + ' vlaaien' + (s.oer && s.oer.n > 0 ? ' · ' + s.oer.n + (s.oer.n === 1 ? ' Oerknal' : ' Oerknallen') : ''), null]; },
     vouwvlieger: () => { const s = leesJSON('vouwvlieger-v1'); return s && s.best ? ['Record: ' + s.best, Math.min(1, s.best / 100)] : null; },
     rommelritme: () => { const s = leesJSON('rommelritme-v1'); if (!s || !s.best) return null; const w = Object.values(s.best), lv = Math.max(totaal(s, 6), w.length); const som = w.reduce((a, b) => a + b, 0); return som ? ['Gemiddeld ' + Math.round(som / lv) + '% per level', Math.min(1, som / (lv * 100))] : null; },
     rommelwoord: () => { const s = leesJSON('rommelwoord-stats-v1'); if (!s) return null; const r = s.reeks || s.streak || 0, g = s.gespeeld || s.played || 0; return g ? [r ? 'Reeks van ' + r + ' dagen' : g + ' keer gespeeld', null] : null; },
@@ -214,13 +236,28 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
   // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
   const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  // De Vlaaienbakker: een getal boven 10^300 staat in zijn opslag op dat plafond, en precies als tekst in s.groot[pad] ("4.2e400").
+  // vbLog geeft de 10-log (0 of niets: -Infinity), net als de scoreserver.
+  const vbLog = (s, pad) => {
+    if (!s) return -Infinity;
+    const P = pad.startsWith('gilde.') ? 1e270 : 1e300, x = pad.split('.').reduce((o, k) => (o == null ? undefined : o[k]), s);
+    const r = s.groot && /^\s*(\d+(?:\.\d+)?)(?:e([+-]?\d+))?\s*$/i.exec(String(s.groot[pad] || '')), g = r && parseFloat(r[1]) > 0 ? Math.log10(parseFloat(r[1])) + (r[2] ? parseInt(r[2], 10) : 0) : NaN;
+    if (typeof x !== 'number' || !isFinite(x)) return isFinite(g) ? g : -Infinity;
+    if (isFinite(g) && x >= P / 1e20) return g;
+    return x > 0 ? Math.log10(x) : -Infinity;
+  };
+  // spellen die hun score als 10-log sturen, en borden die een oude scoreserver nog niet kent (dan zeggen we niets)
+  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1 };
+  const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
   const BRONNEN = {
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
     reclame: () => { const s = lees('reclame-v1'); if (!s || !s.s) return null; let n = 0; for (const v of Object.values(s.s)) for (const c of String(v)) n += Math.min(3, +c || 0); return n ? [n, (s.dag && s.dag.b) || 0] : null; },
     huis: () => { const s = lees('huisopstelten-v1'); return s && s.besteDag > 0 ? [Math.round(s.besteDag), Object.values(s.k || {}).reduce((n, k) => n + ((k && k.s) || []).filter(Boolean).length, 0)] : null; },
     duiker: () => { const s = lees('rubendeduiker-v1'); return s && s.beste && s.beste.avond > 0 ? [Math.round(s.beste.avond), Object.keys(s.boek || {}).length] : null; },
     wheels: () => { const s = lees('rommelwheels-v1'); if (!s || !s.levels) return null; let p = 0, st = 0; for (const r of Object.values(s.levels)) { p += r.punten || 0; st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); } return p ? [p, st] : null; },
-    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    vlaai: () => { const s = lees('vlaaienbakker-v1'), L = vbLog(s, 'totaal'); return L >= 0 ? [L, Math.max(0, vbLog(s, 'vpsNu'))] : null; },
+    oerknal: () => { const s = lees('vlaaienbakker-v1'), o = s && s.oer; return o && o.n > 0 ? [Math.floor(Math.pow(10, Math.min(15, vbLog(s, 'oer.ooit')))), o.n] : null; },
+    vbpres: () => { const s = lees('vlaaienbakker-v1'); return s && Array.isArray(s.pres) && s.pres.length ? [s.pres.length, s.mijl || 0] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
     bel: () => { const s = lees('rommelbel-v1'); return s && s.eindeloos ? [s.eindeloos, Object.values(s.sterren || {}).reduce((a, b) => a + b, 0)] : null; },
@@ -232,7 +269,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
   };
   const VKEY = 'rommelhoekje-verstuurd';
-  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}, k = vkey(spel); const o = v[k]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[k] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
   let bezig = false;
   async function synchroniseer() {
     if (bezig || !speler || !speler.naam) return; bezig = true;
@@ -242,7 +279,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       for (const [spel, bron] of Object.entries(BRONNEN)) {
         let w = null; try { w = bron(); } catch (e) {}
         if (!w) continue;
-        const o = v[spel];
+        const o = v[vkey(spel)];
         if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
         await API.stuur(spel, w[0], w[1]);
       }
@@ -272,16 +309,19 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       await synchroniseer();
       return uitslag;
     },
-    // een score insturen (de server bewaart alleen je beste)
+    // een score insturen (de server bewaart alleen je beste). De Vlaaienbakker stuurt de 10-log (LOG_SPEL): dan gaat ook het gewone getal
+    // mee (hooguit 10^300), zodat een oudere scoreserver hem nog aanneemt.
     async stuur(spel, score, extra, direct) {
       laatst[spel] = [score, extra || 0];
       if (!API.doetMee()) return null;
       const inst = await klaar; if (!adres(inst)) return null;
+      const rauw = L => (L < 15 ? Math.round(Math.pow(10, L)) : Math.pow(10, Math.min(300, L)));
+      const lijf = LOG_SPEL[spel] ? { spel, naam: speler.naam, geheim: speler.geheim, score: rauw(score), extra: rauw(extra || 0), log: score, elog: extra || 0 } : { spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 };
       try {
-        const r = await metTijd(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const r = await metTijd(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify(lijf) });
         const j = await r.json().catch(() => ({}));
         if (r.ok) onthoud(spel, score, extra || 0);
-        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        if (!r.ok && j.fout && !NIEUW_BORD[spel]) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
         return r.ok ? j : null;
       } catch (e) { return null; }
     },

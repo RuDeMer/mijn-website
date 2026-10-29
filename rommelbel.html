@@ -104,13 +104,28 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   // Elk spel bewaart zijn beste score in deze browser. Doe je mee, dan sturen we die vanzelf door,
   // ook als je niet op de scorebordpagina komt. Alleen wat nieuw of beter is, gaat de deur uit.
   const lees = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  // De Vlaaienbakker: een getal boven 10^300 staat in zijn opslag op dat plafond, en precies als tekst in s.groot[pad] ("4.2e400").
+  // vbLog geeft de 10-log (0 of niets: -Infinity), net als de scoreserver.
+  const vbLog = (s, pad) => {
+    if (!s) return -Infinity;
+    const P = pad.startsWith('gilde.') ? 1e270 : 1e300, x = pad.split('.').reduce((o, k) => (o == null ? undefined : o[k]), s);
+    const r = s.groot && /^\s*(\d+(?:\.\d+)?)(?:e([+-]?\d+))?\s*$/i.exec(String(s.groot[pad] || '')), g = r && parseFloat(r[1]) > 0 ? Math.log10(parseFloat(r[1])) + (r[2] ? parseInt(r[2], 10) : 0) : NaN;
+    if (typeof x !== 'number' || !isFinite(x)) return isFinite(g) ? g : -Infinity;
+    if (isFinite(g) && x >= P / 1e20) return g;
+    return x > 0 ? Math.log10(x) : -Infinity;
+  };
+  // spellen die hun score als 10-log sturen, en borden die een oude scoreserver nog niet kent (dan zeggen we niets)
+  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1 };
+  const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
   const BRONNEN = {
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
     reclame: () => { const s = lees('reclame-v1'); if (!s || !s.s) return null; let n = 0; for (const v of Object.values(s.s)) for (const c of String(v)) n += Math.min(3, +c || 0); return n ? [n, (s.dag && s.dag.b) || 0] : null; },
     huis: () => { const s = lees('huisopstelten-v1'); return s && s.besteDag > 0 ? [Math.round(s.besteDag), Object.values(s.k || {}).reduce((n, k) => n + ((k && k.s) || []).filter(Boolean).length, 0)] : null; },
     duiker: () => { const s = lees('rubendeduiker-v1'); return s && s.beste && s.beste.avond > 0 ? [Math.round(s.beste.avond), Object.keys(s.boek || {}).length] : null; },
     wheels: () => { const s = lees('rommelwheels-v1'); if (!s || !s.levels) return null; let p = 0, st = 0; for (const r of Object.values(s.levels)) { p += r.punten || 0; st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); } return p ? [p, st] : null; },
-    vlaai: () => { const s = lees('vlaaienbakker-v1'); return s && s.totaal >= 1 ? [Math.floor(s.totaal), Math.floor(s.vpsNu || 0)] : null; },
+    vlaai: () => { const s = lees('vlaaienbakker-v1'), L = vbLog(s, 'totaal'); return L >= 0 ? [L, Math.max(0, vbLog(s, 'vpsNu'))] : null; },
+    oerknal: () => { const s = lees('vlaaienbakker-v1'), o = s && s.oer; return o && o.n > 0 ? [Math.floor(Math.pow(10, Math.min(15, vbLog(s, 'oer.ooit')))), o.n] : null; },
+    vbpres: () => { const s = lees('vlaaienbakker-v1'); return s && Array.isArray(s.pres) && s.pres.length ? [s.pres.length, s.mijl || 0] : null; },
     woord: () => { const s = lees('rommelwoord-stats-v1'); return s && s.besteReeks > 0 ? [s.besteReeks, s.gewonnen || 0] : null; },
     poker: () => { const s = lees('rommelpoker-record'); return s && s.verst > 0 ? [s.verst, Math.round(s.beste || 0)] : null; },
     bel: () => { const s = lees('rommelbel-v1'); return s && s.eindeloos ? [s.eindeloos, Object.values(s.sterren || {}).reduce((a, b) => a + b, 0)] : null; },
@@ -122,7 +137,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
   };
   const VKEY = 'rommelhoekje-verstuurd';
-  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}; const o = v[spel]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[spel] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
+  const onthoud = (spel, score, extra) => { const v = lees(VKEY) || {}, k = vkey(spel); const o = v[k]; if (!o || o.naam !== speler.naam || score > o.s || (score === o.s && extra > o.e)) { v[k] = { s: score, e: extra, naam: speler.naam }; try { localStorage.setItem(VKEY, JSON.stringify(v)); } catch (e) {} } };
   let bezig = false;
   async function synchroniseer() {
     if (bezig || !speler || !speler.naam) return; bezig = true;
@@ -132,7 +147,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       for (const [spel, bron] of Object.entries(BRONNEN)) {
         let w = null; try { w = bron(); } catch (e) {}
         if (!w) continue;
-        const o = v[spel];
+        const o = v[vkey(spel)];
         if (o && o.naam === speler.naam && o.s >= w[0] && o.e >= w[1]) continue;
         await API.stuur(spel, w[0], w[1]);
       }
@@ -162,16 +177,19 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       await synchroniseer();
       return uitslag;
     },
-    // een score insturen (de server bewaart alleen je beste)
+    // een score insturen (de server bewaart alleen je beste). De Vlaaienbakker stuurt de 10-log (LOG_SPEL): dan gaat ook het gewone getal
+    // mee (hooguit 10^300), zodat een oudere scoreserver hem nog aanneemt.
     async stuur(spel, score, extra, direct) {
       laatst[spel] = [score, extra || 0];
       if (!API.doetMee()) return null;
       const inst = await klaar; if (!adres(inst)) return null;
+      const rauw = L => (L < 15 ? Math.round(Math.pow(10, L)) : Math.pow(10, Math.min(300, L)));
+      const lijf = LOG_SPEL[spel] ? { spel, naam: speler.naam, geheim: speler.geheim, score: rauw(score), extra: rauw(extra || 0), log: score, elog: extra || 0 } : { spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 };
       try {
-        const r = await metTijd(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify({ spel, naam: speler.naam, geheim: speler.geheim, score, extra: extra || 0 }) });
+        const r = await metTijd(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify(lijf) });
         const j = await r.json().catch(() => ({}));
         if (r.ok) onthoud(spel, score, extra || 0);
-        if (!r.ok && j.fout) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        if (!r.ok && j.fout && !NIEUW_BORD[spel]) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
         return r.ok ? j : null;
       } catch (e) { return null; }
     },

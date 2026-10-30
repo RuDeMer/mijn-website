@@ -7,6 +7,14 @@ Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktobe
 - De controle tegen valsspelen kijkt ook naar "opnieuw beginnen" (anders kon je hem daarmee overslaan).
 - De generatie onthoudt de server als `gt`, het volgnummer waarmee hij begon. Een apparaat hoeft hem dus niet zelf te kennen.
 
+**Stand: fase 2 is gebouwd** (scoreserver 2026-10-30b, de knop Tijdmachine in het venster "Je account", de werkplaats). Wat er bij het bouwen anders is gegaan dan hieronder staat:
+- De tabel heet `geschiedenis`, in de database `rommeltijd` (binding `TIJD`). Zonder die binding staat hij in de gewone database.
+- `POST /tijdmachine` in plaats van `GET /tijdmachine?sleutel=`: dan staat de koppelcode nooit in een adres.
+- Bij spellen zonder geld, muntjes of kaarten voegt terugzetten het moment samen met wat er nu staat. Je krijgt terug wat je kwijt was, en de puzzel van vandaag kun je niet overdoen. Bij de andere spellen ga je precies terug.
+- Hooguit 10 keer terugzetten per dag per account.
+- Per keer gelijkzetten pakt de server hooguit 100 kB aan gewone versies in (vanwege de rekentijd); een opslag vanaf 200 kB bewaart hij onverpakt, hooguit eens per uur.
+- De scorebordnaam, instellingen en Rommelwoord staan niet in de tijdmachine van de speler (wel in de werkplaats).
+
 ---
 
 ## 0. Eerst: wat er al is

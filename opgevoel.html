@@ -284,7 +284,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     // welke versie van de server nu op dit apparaat staat (zie koppelSync), zodat de volgende keer gewoon verder gaat
     const v = JSON.parse(sessionStorage.getItem('koppel-herstel-v') || 'null'), K = JSON.parse(localStorage.getItem('rommelhoekje-koppel') || 'null');
     if (v && K && K.code === v.code) { K.staat = Object.assign(K.staat || {}, v.staat || {}); localStorage.setItem('rommelhoekje-koppel', JSON.stringify(K)); }
-    sessionStorage.removeItem('koppel-herstel'); sessionStorage.removeItem('koppel-herstel-v'); if (!['koppel-hulp', 'koppel-vervangen', 'koppel-samen', 'koppel-geweigerd', 'koppel-opnieuw'].some(x => sessionStorage.getItem(x))) sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+    sessionStorage.removeItem('koppel-herstel'); sessionStorage.removeItem('koppel-herstel-v'); if (!['koppel-hulp', 'koppel-vervangen', 'koppel-samen', 'koppel-geweigerd', 'koppel-opnieuw', 'koppel-terug'].some(x => sessionStorage.getItem(x))) sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
 })();
 (function () {
   // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
@@ -1068,6 +1068,9 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     .kp-rij { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .6rem; } .kp-rij input { flex: 1 1 12rem; font: inherit; padding: .55rem .7rem; border-radius: 6px; border: 2px solid #C9A24E; background: #FBF6E9; }
     .kp-knop { font: inherit; font-weight: 800; border: 0; border-radius: 6px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 2px 0 rgba(0,0,0,.3); } .kp-knop.hoofd { background: #C8323C; color: #fff; }
     .kp-klein { font-size: .82rem; color: #5E5643; } .kp-klein a, .kp-link { color: #9E2430; font: inherit; font-weight: 700; } .kp-link { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; } .kp-fout { color: #C8323C; font-weight: 700; min-height: 1.2em; }
+    .kp-lijst { list-style: none; margin: .6rem 0; padding: .15rem; max-height: min(50vh, 22rem); overflow: auto; display: grid; gap: .4rem; } .kp-dag { font-weight: 800; font-size: .82rem; margin-top: .3rem; }
+    .kp-keus { width: 100%; text-align: left; font: inherit; border: 2px solid #231A26; border-radius: 8px; padding: .5rem .7rem; cursor: pointer; background: #FBF6E9; color: #231A26; display: grid; gap: .1rem; } .kp-keus span { font-size: .85rem; color: #5E5643; } .kp-keus:hover { background: #fff; }
+    .kp-label { font-style: normal; font-size: .72rem; font-weight: 800; background: #C8323C; color: #fff; border-radius: 999px; padding: .05rem .45rem; margin-left: .25rem; white-space: nowrap; } .kp-dlg :focus-visible { outline: 3px solid #C8323C; outline-offset: 2px; }
     .kp-melding { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 9999; background: #FBF6E9; color: #231A26; font: 700 .92rem 'Bricolage Grotesque', system-ui, sans-serif; padding: .6rem .9rem; border-radius: 10px; box-shadow: 0 0 0 3px #231A26, 0 6px 0 3px rgba(0,0,0,.3); display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
     .kp-knopje { position: fixed; right: .9rem; bottom: .9rem; z-index: 50; font: 800 .88rem 'Bricolage Grotesque', system-ui, sans-serif; border: 0; border-radius: 999px; padding: .55rem .9rem; cursor: pointer; background: #FBF6E9; color: #231A26; box-shadow: 0 0 0 3px #231A26, 0 4px 0 3px rgba(0,0,0,.3); }`; document.head.appendChild(st); }
   function toonKoppelMelding(tekst, knop, doe) { stijl(); const m = document.createElement('div'); m.className = 'kp-melding'; m.setAttribute('role', 'status'); m.innerHTML = `<span>${tekst}</span>${knop ? `<button class="kp-knop hoofd" type="button">${knop}</button>` : ''}`; if (knop) m.querySelector('button').onclick = () => { m.remove(); doe(); }; document.body.appendChild(m); setTimeout(() => m.remove(), knop ? 20000 : 4000); }
@@ -1075,16 +1078,69 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
     const K = leesK();
     const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
-    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div><p class="kp-klein" style="margin-top:1rem">Wil je niet dat je voortgang op de server staat? <button class="kp-link" id="kp-weg" type="button">Verwijder mijn gegevens van de server</button>. Lees ook de <a href="privacy.html">privacyverklaring</a>.</p></div>`
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-tijd" type="button">⏪ Tijdmachine</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div><p class="kp-klein" style="margin-top:1rem">Wil je niet dat je voortgang op de server staat? <button class="kp-link" id="kp-weg" type="button">Verwijder mijn gegevens van de server</button>. Lees ook de <a href="privacy.html">privacyverklaring</a>.</p></div>`
       : `<div class="kp-in"><h2>Koppel je apparaten</h2>${K && K.uit ? '<p><b>Je voortgang staat nu alleen op dit apparaat.</b> Er gaat niets naar de server, tot je zelf een koppelcode maakt.</p>' : ''}<p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
-    const q = id => dlg.querySelector('#' + id);
+    const q = id => dlg.querySelector('#' + id); dlg.onclick = null;
     q('kp-dicht').onclick = () => dlg.close();
+    if (q('kp-tijd')) q('kp-tijd').onclick = () => tijdmachine('');
     if (q('kp-maak')) q('kp-maak').onclick = async () => { q('kp-maak').disabled = true; q('kp-fout').textContent = 'Even bezig...'; await maakKoppeling(); openKoppel(); };
     if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
     if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
     if (q('kp-weg')) q('kp-weg').onclick = async () => { if (!confirm('Je gegevens van de server halen?\n\nDan wissen we op de server: je voortgang van alle spellen, je Rommelbeesten-verzameling en, als je meedoet, je naam en scores op het scorebord. Op dit apparaat blijft je voortgang gewoon staan, maar je andere apparaten krijgen hem niet meer.\n\nDit apparaat bewaart daarna niets meer op de server, tot je zelf weer een koppelcode maakt.')) return; q('kp-fout').textContent = 'Even bezig...'; const f = await verwijderAccount(); if (f) { q('kp-fout').textContent = f; return; } openKoppel(); toonKoppelMelding('Je gegevens zijn van de server gehaald.'); };
     if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); IDB.leeg(); openKoppel(); };
     if (!dlg.open) dlg.showModal();
+  }
+  // ---------- de tijdmachine: eerdere versies van je spellen (30 dagen) bekijken en terugzetten, op al je apparaten tegelijk
+  const TM_SOORT = { botsing: 'van je andere apparaat', samen: 'van vóór het samenvoegen', opnieuw: 'van vóór opnieuw beginnen', weg: 'van vóór weghalen', hulp: 'van vóór hulp van Ruben', terug: 'van vóór terugzetten', dag: 'reservekopie' };
+  const tmEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const tmDag = t => { const d = new Date(t), n = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / 864e5); return n === 0 ? 'Vandaag' : n === 1 ? 'Gisteren' : d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); };
+  const tmUur = t => new Date(t).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+  async function tmVraag(pad, lijf) {
+    const K = leesK(), inst = await klaar, url = adres(inst); if (!K || !K.code || !url) throw new Error('Dit apparaat is niet gekoppeld.');
+    let r; try { r = await metTijd(url + pad, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(Object.assign({ code: K.code }, lijf)) }); } catch (e) { throw new Error('Dat lukte niet. Controleer je internet.'); }
+    const j = await r.json().catch(() => null);
+    if (j && j.fout === 'Niet gevonden') throw new Error('De tijdmachine is er nog niet. Probeer het later nog eens.');
+    if (!j || !j.ok) throw new Error((j && j.fout) || 'Dat lukte niet. Probeer het zo nog eens.');
+    return j;
+  }
+  // gelijkzetten, ook als het blok net al bezig was
+  async function tmSync(opties) { for (let i = 0; i < 20 && bezigK; i++) await new Promise(ok => setTimeout(ok, 400)); return koppelSync(true, opties); }
+  async function tijdmachine(sleutel, spel) {
+    const zet = html => { dlg.innerHTML = '<div class="kp-in">' + html + '</div>'; const f = dlg.querySelector('.kp-keus, .kp-knop'); if (f) f.focus(); };
+    const knoppen = (terug, extra) => `<div class="kp-rij">${extra || ''}<button class="kp-knop" type="button" data-tm-terug="${tmEsc(terug)}">Terug</button></div>`;
+    const fout = (tekst, terug) => zet(`<h2>⏪ Tijdmachine</h2><p class="kp-fout" role="alert">${tmEsc(tekst)}</p>${knoppen(terug)}`);
+    dlg.onclick = e => { const t = e.target.closest('[data-tm-terug]'); if (t) { if (t.dataset.tmTerug === 'account') { dlg.onclick = null; openKoppel(); } else tijdmachine(t.dataset.tmTerug === 'spellen' ? '' : t.dataset.tmTerug, spel); } };
+    zet('<h2>⏪ Tijdmachine</h2><p class="kp-klein" role="status">Even kijken wat er bewaard is...</p>');
+    if (!sleutel) {
+      let j; try { await tmSync(); j = await tmVraag('/tijdmachine', {}); } catch (e) { return fout(e.message, 'account'); }
+      const lijst = j.spellen || [];
+      zet(`<h2>⏪ Tijdmachine</h2><p>Ging er iets mis? Van de laatste ${j.dagen || 30} dagen staan hier eerdere versies van je spellen. Kies een spel.</p>${lijst.length ? '<ul class="kp-lijst">' + lijst.map(s => `<li><button class="kp-keus" type="button" data-sleutel="${tmEsc(s.sleutel)}"><b>${tmEsc(s.naam)}</b><span>${s.n} ${s.n === 1 ? 'moment' : 'momenten'} · ${s.weg ? 'nu weggehaald' : 'laatst ' + tmDag(s.laatst).toLowerCase() + ' ' + tmUur(s.laatst)}</span></button></li>`).join('') + '</ul>' : '<p class="kp-klein">Er is nog niets bewaard. Speel eerst een tijdje: elke keer dat je spel verandert, onthoudt de tijdmachine hoe het daarvoor was.</p>'}${knoppen('account')}`);
+      dlg.querySelectorAll('[data-sleutel]').forEach(b => { b.onclick = () => tijdmachine(b.dataset.sleutel, lijst.find(s => s.sleutel === b.dataset.sleutel)); });
+      return;
+    }
+    let j; try { j = await tmVraag('/tijdmachine', { sleutel }); } catch (e) { return fout(e.message, 'spellen'); }
+    const uitleg = j.precies ? 'Je gaat precies terug naar dat moment. Wat er nu staat, blijft in de tijdmachine, dus je kunt het ook weer terugzetten.' : 'Je krijgt terug wat je toen had. Wat je daarna haalde, blijft gewoon staan.';
+    let dag = '', rijen = '';
+    for (const m of j.momenten || []) { const d = tmDag(m.t); if (d !== dag) { dag = d; rijen += `<li class="kp-dag">${tmEsc(d.charAt(0).toUpperCase() + d.slice(1))}</li>`; } rijen += `<li><button class="kp-keus" type="button" data-moment="${tmEsc(m.id)}"><b>${tmUur(m.t)}${TM_SOORT[m.soort] ? ` <i class="kp-label">${TM_SOORT[m.soort]}</i>` : ''}</b><span>${tmEsc(m.wat || 'een eerdere versie')}</span></button></li>`; }
+    zet(`<h2>⏪ ${tmEsc(j.naam)}</h2><p class="kp-klein"><b>Nu:</b> ${tmEsc(j.nu ? j.nu.wat || 'je huidige spel' : 'nog niets')}</p><p class="kp-klein">${uitleg}</p>${rijen ? '<ul class="kp-lijst">' + rijen + '</ul>' : '<p>Van dit spel is (nog) geen eerdere versie bewaard.</p>'}${knoppen('spellen')}`);
+    dlg.querySelectorAll('[data-moment]').forEach(b => { b.onclick = () => {
+      const m = j.momenten.find(x => x.id === b.dataset.moment);
+      zet(`<h2>Terugzetten?</h2><p>${tmEsc(j.naam)} gaat terug naar <b>${tmEsc(tmDag(m.t).toLowerCase())} om ${tmUur(m.t)}</b>${m.wat ? ': ' + tmEsc(m.wat) : ''}.</p><p class="kp-klein">${uitleg} Je andere apparaten krijgen het ook.</p><p class="kp-fout" id="kp-fout" role="status"></p><div class="kp-rij"><button class="kp-knop hoofd" type="button" id="kp-ja">Zet terug</button><button class="kp-knop" type="button" data-tm-terug="${tmEsc(sleutel)}">Annuleren</button></div>`);
+      dlg.querySelector('#kp-ja').onclick = async () => {
+        const q = id => dlg.querySelector('#' + id); q('kp-ja').disabled = true; q('kp-fout').textContent = 'Even bezig...';
+        // eerst wat hier nog niet op de server stond (dat komt dan ook in de tijdmachine), dan terugzetten, dan het nieuwe moment ophalen
+        let r; try { await tmSync(); r = await tmVraag('/tijdmachine/terug', { sleutel, moment: m.id }); } catch (e) { q('kp-fout').textContent = e.message; q('kp-ja').disabled = false; return; }
+        const klaarTekst = r.al ? 'Alles van dat moment staat er al.' : '⏪ ' + j.naam + ' is teruggezet. Je andere apparaten krijgen het ook.';
+        // het spel van deze pagina: herladen, zodat het spel de teruggezette stand leest (zie bovenaan dit blok)
+        let weg = false; const hier = vanDezePagina(sleutel) && !r.al; addEventListener('pagehide', () => { weg = true; }, { once: true });
+        if (hier) try { sessionStorage.setItem('koppel-terug', klaarTekst); } catch (e) {}
+        await tmSync({ herlaad: hier });
+        await new Promise(ok => setTimeout(ok, 1500)); if (weg) return;
+        try { sessionStorage.removeItem('koppel-terug'); } catch (e) {}
+        zet(`<h2>⏪ Tijdmachine</h2><p>${tmEsc(klaarTekst)}</p>${knoppen('spellen', '<button class="kp-knop hoofd" type="button" id="kp-dicht2">Sluiten</button>')}`);
+        dlg.querySelector('#kp-dicht2').onclick = () => dlg.close();
+      };
+    }; });
   }
   API.koppel = openKoppel; API.koppelSync = koppelSync; API.gebruikCode = gebruikCode; API.opnieuw = opnieuw;
   // ---------- betrouwbaarheid: hetzelfde spel maar in één tabblad tegelijk, anders overschrijven ze elkaars voortgang
@@ -1125,6 +1181,8 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
   setTimeout(() => { const K = leesK(); if (!K || (!K.code && !K.uit)) maakKoppeling().catch(() => {}); }, 2500);
   // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
+  // teruggezet met de tijdmachine (op deze pagina): die melding gaat voor
+  try { const t = sessionStorage.getItem('koppel-terug'); if (t) { for (const x of ['koppel-terug', 'koppel-opnieuw', 'koppel-samen', 'koppel-vervangen']) sessionStorage.removeItem(x); addEventListener('load', () => setTimeout(() => toonKoppelMelding(tmEsc(t)), 900)); } } catch (e) {}
   try { if (sessionStorage.getItem('koppel-vervangen')) { sessionStorage.removeItem('koppel-vervangen'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald: daar was je verder.'), 900)); } } catch (e) {}
   try { if (sessionStorage.getItem('koppel-opnieuw')) { sessionStorage.removeItem('koppel-opnieuw'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Op een ander apparaat ben je hier opnieuw begonnen. Je vorige voortgang is bewaard.'), 900)); } } catch (e) {}
   try { if (sessionStorage.getItem('koppel-samen')) { sessionStorage.removeItem('koppel-samen'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Wat je op je andere apparaat deed, is erbij gezet.'), 900)); } } catch (e) {}

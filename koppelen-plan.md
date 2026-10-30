@@ -7,6 +7,21 @@ Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktobe
 - De controle tegen valsspelen kijkt ook naar "opnieuw beginnen" (anders kon je hem daarmee overslaan).
 - De generatie onthoudt de server als `gt`, het volgnummer waarmee hij begon. Een apparaat hoeft hem dus niet zelf te kennen.
 
+**Stand: fase 2 is gebouwd** (scoreserver 2026-10-30b, de knop Tijdmachine in het venster "Je account", de werkplaats). Wat er bij het bouwen anders is gegaan dan hieronder staat:
+- De tabel heet `geschiedenis`, in de database `rommeltijd` (binding `TIJD`). Zonder die binding staat hij in de gewone database.
+- `POST /tijdmachine` in plaats van `GET /tijdmachine?sleutel=`: dan staat de koppelcode nooit in een adres.
+- Bij spellen zonder geld, muntjes of kaarten voegt terugzetten het moment samen met wat er nu staat. Je krijgt terug wat je kwijt was, en de puzzel van vandaag kun je niet overdoen. Bij de andere spellen ga je precies terug.
+- Hooguit 10 keer terugzetten per dag per account.
+- Per keer gelijkzetten pakt de server hooguit 100 kB aan gewone versies in (vanwege de rekentijd); een opslag vanaf 200 kB bewaart hij onverpakt, hooguit eens per uur.
+- De scorebordnaam, instellingen en Rommelwoord staan niet in de tijdmachine van de speler (wel in de werkplaats).
+
+**Stand: fase 3 is gebouwd** (alleen de pagina's: `rommelhoekje-sw.js`, het manifest en de iconen, het gedeelde blok). Wat er anders is gegaan dan hieronder staat:
+- De wachtrij gaat ook in bij een verandering in een spel zonder internet (niet alleen bij het sluiten), en een open pagina zet zelf gelijk zodra de verbinding terug is.
+- Een noodstop: `const UIT = true;` in `rommelhoekje-sw.js`.
+- `display: minimal-ui` in het manifest, zodat een geïnstalleerde app een terugknop heeft.
+- De knop Tijdmachine staat er pas als de server hem kent; zo kunnen fase 2 en 3 online vóór de nieuwe scoreserver.
+- Het gedeelde blok werd groter dan 100.000 tekens: de controle van de gedeelde blokken kijkt nu naar `const HOME_ONDERDELEN`.
+
 ---
 
 ## 0. Eerst: wat er al is
@@ -278,7 +293,7 @@ Elke fase levert iets op dat werkt. Per fase komt eerst de scoreserver (ik lever
   - `instellingen.json`: bewaard, zodat het adres van de scoreserver ook offline bekend is.
   - Alleen pagina's die je al eens opende zijn offline te gebruiken. Ik bewaar niet vooraf de hele site (ongeveer 12 MB), want dat kost op een telefoon veel data.
 - **Background Sync** (Chrome en Android): wat in de wachtrij staat, verstuurt de service worker zodra er weer verbinding is, ook als de pagina dicht is. In Safari gebeurt dat bij het volgende bezoek, of zodra de verbinding terugkomt terwijl de pagina open is.
-- **Een manifest** `rommelhoekje.webmanifest`, met een icoon in de huisstijl (het prijskaartje van de favicon op het gaatjesbord). Het gedeelde blok zet de verwijzing in de pagina. Het uiterlijk van de site verandert niet.
+- **Een manifest** `rommelhoekje.webmanifest`, met een icoon in de stijl van de site (Rubens sticker op het papier met stippen van de site). Het gedeelde blok zet de verwijzing in de pagina. Het uiterlijk van de site verandert niet.
 - **Veiligheidsbeleid**: niets nodig. `worker-src 'self'` staat er al, en `manifest-src` valt terug op `default-src 'self'`.
 
 ### Fase 4: live doorspelen

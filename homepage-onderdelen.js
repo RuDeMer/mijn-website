@@ -1603,6 +1603,53 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
 .tg-rommel:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 2px; border-radius: 12px; }
 .tg-rommel.hup svg { animation: tg-hup .7s cubic-bezier(.3,1.6,.5,1); }
 @keyframes tg-hup { 0% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-22px) rotate(-160deg); } 70% { transform: translateY(0) rotate(-340deg) scale(1.08,.9); } 100% { transform: translateY(0) rotate(-360deg); } }
+.tg-dag { margin: .4rem 0 2.8rem; }
+.tg-dag-kop { display: flex; align-items: center; flex-wrap: wrap; gap: .9rem 1.2rem; margin: 0 0 1.3rem; }
+.tg-blad { position: relative; flex: none; width: 4.3rem; border: 3px solid var(--tg-rand); border-radius: .9rem; background: #FFFFFF; color: #231A26; text-align: center; box-shadow: 0 4px 0 rgba(35,26,38,.18); transform: rotate(-3deg); }
+.tg-blad::before { content: ''; display: block; height: 1.1rem; background: #C8323C; border-bottom: 3px solid #231A26; border-radius: .6rem .6rem 0 0; }
+.tg-blad i { position: absolute; top: .3rem; width: .5rem; height: .5rem; border-radius: 50%; background: #FBF6E9; border: 2px solid #231A26; } .tg-blad i:first-of-type { left: 22%; } .tg-blad i:last-of-type { right: 22%; }
+.tg-blad b { display: block; font-size: 1.85rem; line-height: 1; margin-top: .3rem; }
+.tg-blad span { display: block; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin: .15rem 0 .4rem; }
+.tg-blad .tg-blad-klaar { position: absolute; right: -.7rem; bottom: -.6rem; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; margin: 0; border-radius: 50%; border: 2.5px solid #231A26; background: #23704F; color: #FFFFFF; font-size: .95rem; line-height: 1; letter-spacing: 0; transform: rotate(10deg); }
+.tg-dag-tekst { flex: 1 1 15rem; min-width: 0; }
+.tg-dag-tekst h2 { margin: 0 0 .45rem; }
+.tg-dag-tekst p { margin: 0; color: var(--tg-zacht); font-size: .95rem; line-height: 1.4; }
+.tg-dag-teller { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: .35rem; font-weight: 800; font-size: .92rem; }
+.tg-stipjes { display: flex; gap: 5px; }
+.tg-stipjes i { width: 1.5rem; height: .6rem; border-radius: 999px; border: 2px solid var(--tg-knop-rand); }
+.tg-stipjes i.aan { background: #23704F; border-color: #23704F; }
+html[data-thema="donker"] .tg-stipjes i.aan { background: #7FD3A8; border-color: #7FD3A8; }
+.tg-dag-klok { font-weight: 700; font-size: .82rem; color: var(--tg-zacht); }
+.tg-dag-rij { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.tg-dk { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; min-width: 0; padding: 1rem 1rem 1.05rem; border-radius: 1.3rem; border: 3px solid var(--tg-rand); background: var(--tg-knop); color: var(--tg-tekst); text-decoration: none; box-shadow: 0 5px 0 rgba(35,26,38,.15); }
+html[data-thema="donker"] .tg-dk { box-shadow: var(--tg-schaduw); }
+.tg-dk:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 3px; }
+.tg-dk-ico { display: grid; place-items: center; width: 3.3rem; height: 3.3rem; border-radius: .95rem; border: 2.5px solid var(--tg-rand); }
+.tg-dk-ico svg { width: 80%; height: auto; }
+.tg-dk-naam { font-weight: 800; font-size: 1.05rem; line-height: 1.15; overflow-wrap: break-word; hyphens: manual; }
+.tg-dk-wat { font-size: .85rem; line-height: 1.3; color: var(--tg-zacht); margin-top: -.3rem; }
+.tg-dk-pil { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .75rem; border-radius: 999px; background: #C8323C; color: #FFFFFF; font-weight: 800; font-size: .82rem; line-height: 1.25; }
+.tg-dk-pil b { flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: #FFFFFF; }
+.tg-dk.is-bezig .tg-dk-pil { background: #E9B949; color: #231A26; } .tg-dk.is-bezig .tg-dk-pil b { background: #231A26; }
+.tg-dk.is-klaar .tg-dk-pil { background: #23704F; } .tg-dk.is-mis .tg-dk-pil { background: #6B5E52; }
+.tg-dk-reeks { display: flex; align-items: center; gap: .3rem; margin-top: auto; padding-top: .15rem; font-size: .8rem; font-weight: 700; line-height: 1.25; color: var(--tg-zacht); }
+.tg-dk-reeks svg { flex: none; width: 1.05rem; height: 1.05rem; }
+.tg-dk-reeks.gevaar { color: #A3401A; } html[data-thema="donker"] .tg-dk-reeks.gevaar { color: #FFB070; }
+.tg-dk-stempel { position: absolute; top: .85rem; right: .75rem; padding: .12rem .4rem; border: 2.5px solid currentColor; border-radius: .4rem; color: #23704F; font-weight: 800; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; transform: rotate(8deg); }
+html[data-thema="donker"] .tg-dk-stempel { color: #7FD3A8; }
+.tg-dk.is-mis .tg-dk-stempel { color: #6B5E52; } html[data-thema="donker"] .tg-dk.is-mis .tg-dk-stempel { color: #CFC5B4; }
+@media (prefers-reduced-motion: no-preference) {
+  .tg-dk { transition: box-shadow .18s ease; } .tg-dk-ico { transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+  .tg-dk:hover { box-shadow: var(--tg-zweef); } .tg-dk:hover .tg-dk-ico, .tg-dk:focus-visible .tg-dk-ico { transform: rotate(-7deg) scale(1.07); }
+  .tg-dk.is-open .tg-dk-pil b { animation: tg-puls 1.6s ease-in-out infinite; }
+}
+@keyframes tg-puls { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.85); } 60% { box-shadow: 0 0 0 6px rgba(255,255,255,0); } }
+@media (max-width: 900px) { .tg-dag-rij { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .tg-dag-kop { gap: .8rem 1rem; } .tg-dag-teller { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; } .tg-dag-tel, .tg-dag-klok { white-space: nowrap; } .tg-stipjes { order: -1; } .tg-dag-klok { margin-left: auto; }
+  .tg-dag-rij { gap: .75rem; } .tg-dk { padding: .85rem .8rem .9rem; border-radius: 1.1rem; gap: .45rem; } .tg-dk-ico { width: 2.8rem; height: 2.8rem; }
+  .tg-dk-naam { font-size: .98rem; } .tg-dk-stempel { top: .7rem; right: .55rem; font-size: .62rem; } .tg-dk-pil { padding: .28rem .6rem; font-size: .76rem; border-radius: .9rem; }
+}
 @media (max-width: 700px) {
   .tg-balk { flex-direction: column; gap: .8rem; } .tg-weergave { order: -1; align-self: flex-end; } .tg-weergave button { padding: 0 12px; } .tg-weergave .tg-woord { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .tg-filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .3rem; scrollbar-width: none; } .tg-filters::-webkit-scrollbar { display: none; }
@@ -1610,6 +1657,91 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
 }
 @media (prefers-reduced-motion: reduce) { .tg-vlak, body.v6-body { transition: none; } .tg-rommel.hup svg { animation: none; } .tg-tegel:hover .tg-vlak { transform: none; } }
 `;
+
+  // ================= de puzzels van vandaag: elke dag nieuw, met je reeks
+  // Elk spel bewaart zijn dag op zijn eigen manier; hier staat per spel hoe je dat leest (zie ook VOORTGANG in home_v8).
+  const lees = k => { try { const t = localStorage.getItem(k); return t ? JSON.parse(t) : null; } catch (e) { return null; } };
+  const twee = n => String(n).padStart(2, '0');
+  const isoVan = d => d.getFullYear() + '-' + twee(d.getMonth() + 1) + '-' + twee(d.getDate());
+  const lokaal = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 864e5);   // dagnummer volgens de klok van het apparaat, zoals Rommelwoord, Op Gevoel en Rommelkroon
+  const nlDag = () => { try { const m = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); return Math.round(Date.UTC(+m[1], m[2] - 1, +m[3]) / 864e5); } catch (e) { return lokaal(); } };   // Rommelgroepjes rekent in Nederlandse tijd
+  const fouten = f => f + (f === 1 ? ' fout' : ' fouten');
+  const DAGSPEL = {
+    'rommelwoord.html': () => {
+      const d = lokaal() - Date.UTC(2026, 9, 8) / 864e5, s = lees('rommelwoord-dag-v1') || {}, st = lees('rommelwoord-stats-v1') || {};
+      const hier = s.dag === d, n = hier && Array.isArray(s.pogingen) ? s.pogingen.length : 0, reeks = +st.laatsteWinst >= d - 1 ? +st.reeks || 0 : 0, wat = 'Woord ' + (d + 1);
+      if (hier && s.klaar) return s.gewonnen ? { stand: 'klaar', wat, uitslag: 'Geraden in ' + n, reeks } : { stand: 'mis', wat, uitslag: 'Niet geraden', reeks: 0 };
+      return { stand: n ? 'bezig' : 'open', wat: n ? 'Poging ' + (n + 1) + ' van 6' : wat, reeks };
+    },
+    'rommelgroepjes.html': () => {
+      const n = nlDag() - Date.UTC(2026, 9, 29) / 864e5 + 1, s = lees('rommelgroepjes-v1') || {}, p = s.p && typeof s.p === 'object' ? s.p : {}, x = String(p[n] || ''), f = +x[1] || 0, wat = 'Puzzel ' + n;
+      let reeks = 0; if (x[0] !== 'v') for (let d = x[0] === 'w' ? n : n - 1; d > 0 && String(p[d] || '')[0] === 'w'; d--) reeks++;
+      if (x[0] === 'w') return { stand: 'klaar', wat, uitslag: f ? 'Opgelost, ' + fouten(f) : 'Opgelost zonder fouten', reeks };
+      if (x[0] === 'v') return { stand: 'mis', wat, uitslag: 'Niet gelukt', reeks: 0 };
+      return { stand: x[0] === 'b' ? 'bezig' : 'open', wat: x[0] === 'b' && f ? wat + ' · ' + fouten(f) : wat, reeks };
+    },
+    'opgevoel.html': () => {
+      const s = lees('opgevoel-v1') || {}, nu = new Date(), k = isoVan(nu), g = new Date(nu); g.setDate(g.getDate() - 1);
+      const r = s.reeks || {}, reeks = r.laatste === k || r.laatste === isoVan(g) ? +r.lengte || 0 : 0, v = s.dagen && s.dagen[k], b = s.bezig && s.bezig.dag === k && Array.isArray(s.bezig.s) ? s.bezig.s.length : 0;
+      if (v) return { stand: 'klaar', wat: 'Vijf uitdagingen', uitslag: (+v.t || 0) + ' van 500 punten', reeks };
+      return { stand: b ? 'bezig' : 'open', wat: b ? b + ' van 5 uitdagingen gedaan' : 'Vijf uitdagingen', reeks };
+    },
+    'rommelkroon.html': () => {
+      const d = lokaal(), s = lees('rommelkroon-v1') || {}, dag = s.dag && typeof s.dag === 'object' ? s.dag : {}, m = [10, 7, 7, 8, 8, 9, 9][(d + 4) % 7], wat = 'Een ' + m + '×' + m + ' kroontjespuzzel';
+      const op = x => Array.isArray(dag[x]) && !!dag[x][2]; let reeks = 0; for (let x = op(d) ? d : d - 1; op(x); x--) reeks++;
+      if (Array.isArray(dag[d])) { const t = +dag[d][0] || 0; return { stand: 'klaar', wat, uitslag: 'Opgelost in ' + Math.floor(t / 60) + ':' + twee(Math.floor(t % 60)), reeks }; }
+      return { stand: s.bezig && s.bezig['d' + d] ? 'bezig' : 'open', wat, reeks };
+    },
+  };
+  const VLAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.8 3.3 4.8 5.6 4.8 10.4a4.8 4.8 0 0 1-9.6 0c0-2.6 1.4-4 2.2-6 .9 1.3 1.6 2.6 1.6 4 1.3-1.6 1.6-4.4 1-8.4z" fill="#F08A24" stroke="#231A26" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 13.2c.6 1.2 2 2 2 3.6a2 2 0 0 1-4 0c0-1.2.9-1.8 2-3.6z" fill="#FFE76A"/></svg>';
+  const dagen = n => n + (n === 1 ? ' dag' : ' dagen');
+  function maakDag(tegels, blok) {
+    const spellen = Object.keys(DAGSPEL).map(href => ({ href, i: tegels.findIndex(t => t.href === href) })).filter(x => x.i >= 0).map(x => Object.assign({ kleur: KLEUREN[x.i % KLEUREN.length] }, tegels[x.i]));
+    if (!spellen.length) return;
+    const sec = document.createElement('section'); sec.className = 'tg-dag'; sec.id = 'vandaag'; sec.setAttribute('aria-labelledby', 'tg-dag-kop');
+    sec.innerHTML = `<div class="tg-dag-kop"><div class="tg-blad" aria-hidden="true"><i></i><i></i><b></b><span></span></div>
+        <div class="tg-dag-tekst"><h2 id="tg-dag-kop"><span>Puzzels van vandaag</span></h2><p></p></div>
+        <div class="tg-dag-teller"><span class="tg-dag-tel"></span><span class="tg-stipjes" aria-hidden="true"></span><span class="tg-dag-klok"></span></div></div>
+      <div class="tg-dag-rij"></div>`;
+    blok.before(sec);
+    const rij = sec.querySelector('.tg-dag-rij'); let vorige = '', dagNu = -1;
+    const kaart = (sp, s) => {
+      const pil = s.stand === 'open' ? '<b></b>Speel nu' : s.stand === 'bezig' ? '<b></b>Ga verder' : veilig(s.uitslag);
+      const gevaar = s.reeks > 0 && (s.stand === 'open' || s.stand === 'bezig');
+      const reeks = s.stand === 'mis' ? 'Morgen een nieuwe kans' : s.reeks > 0 ? (gevaar ? 'Reeks van ' + dagen(s.reeks) + ': speel vandaag!' : dagen(s.reeks) + ' op rij') : 'Begin vandaag een reeks';
+      const zeg = sp.naam + ', ' + s.wat + ': ' + (s.stand === 'open' ? 'nog niet gespeeld' : s.stand === 'bezig' ? 'je bent bezig' : s.uitslag) + '. ' + reeks + '.';
+      return `<a class="tg-dk is-${s.stand}" href="${veilig(sp.href)}" aria-label="${veilig(zeg)}">
+        <span class="tg-dk-ico" style="background:${sp.kleur}" aria-hidden="true">${sp.icoon}</span>
+        <span class="tg-dk-naam" aria-hidden="true">${veilig(sp.naam).replace(/^Rommel(?=\S{5})/, 'Rommel\u00AD')}</span><span class="tg-dk-wat" aria-hidden="true">${veilig(s.wat)}</span>
+        <span class="tg-dk-pil" aria-hidden="true">${pil}</span>
+        <span class="tg-dk-reeks${gevaar ? ' gevaar' : ''}" aria-hidden="true">${s.reeks > 0 ? VLAM : ''}${veilig(reeks)}</span>
+        ${s.stand === 'klaar' || s.stand === 'mis' ? `<span class="tg-dk-stempel" aria-hidden="true">${s.stand === 'klaar' ? 'Gedaan' : 'Gespeeld'}</span>` : ''}
+      </a>`;
+    };
+    const klok = () => {
+      const nu = new Date(), m = new Date(nu); m.setHours(24, 0, 0, 0); const min = Math.floor((m - nu) / 60000), u = Math.floor(min / 60);
+      sec.querySelector('.tg-dag-klok').textContent = 'Nieuwe puzzels over ' + (min < 1 ? 'een paar tellen' : u ? u + ' u ' + (min % 60) + ' min' : min + ' min');
+    };
+    function vernieuw() {
+      const st = spellen.map(sp => { try { return DAGSPEL[sp.href](); } catch (e) { return { stand: 'open', wat: '', reeks: 0 }; } });
+      const sleutel = JSON.stringify(st);
+      if (sleutel !== vorige) {   // alleen opnieuw tekenen als er iets veranderde (anders raakt het toetsenbord zijn plek kwijt)
+        vorige = sleutel; rij.innerHTML = spellen.map((sp, i) => kaart(sp, st[i])).join('');
+        const gedaan = st.filter(s => s.stand === 'klaar' || s.stand === 'mis').length, alles = gedaan === st.length;
+        sec.querySelector('.tg-dag-tel').textContent = gedaan + ' van ' + st.length + ' gedaan';
+        sec.querySelector('.tg-stipjes').innerHTML = st.map((s, i) => `<i class="${i < gedaan ? 'aan' : ''}"></i>`).join('');
+        sec.querySelector('.tg-dag-tekst p').textContent = alles ? 'Alles gedaan voor vandaag, goed bezig! Morgen om middernacht liggen er nieuwe puzzels klaar.' : 'Elke nacht om 12 uur liggen er nieuwe puzzels klaar, voor iedereen dezelfde. Speel ze elke dag en bouw je reeks op.';
+        const blad = sec.querySelector('.tg-blad'), oud = blad.querySelector('.tg-blad-klaar'); if (oud) oud.remove();
+        if (alles) { const k = document.createElement('span'); k.className = 'tg-blad-klaar'; k.textContent = '✓'; blad.appendChild(k); }
+      }
+      const d = lokaal(); if (d !== dagNu) { dagNu = d; const nu = new Date(); sec.querySelector('.tg-blad b').textContent = nu.getDate(); sec.querySelector('.tg-blad span').textContent = nu.toLocaleDateString('nl-NL', { month: 'short' }).replace('.', ''); }
+      klok();
+    }
+    vernieuw();
+    setInterval(vernieuw, 20000);
+    addEventListener('pageshow', vernieuw); addEventListener('focus', vernieuw); addEventListener('storage', vernieuw);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) vernieuw(); });
+  }
 
   // ================= opbouwen (zodra home_v8 de categorieën heeft gezet)
   function bouw() {
@@ -1650,6 +1782,7 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
       <h2 id="tg-kop"><span>Alle spellen</span></h2>
       <div class="tg-raster">${tegels.map(tegelHTML).join('')}</div>`;
     v8.before(blok);
+    try { maakDag(tegels, blok); } catch (e) {}
     // de coulissen staan na de eerste rij kaartjes, dus in de oude weergave van home_v8: eerst eruit halen, dan pas verbergen
     const coul = $('.coulissen'); if (coul && v8.contains(coul)) blok.after(coul);
     // filteren

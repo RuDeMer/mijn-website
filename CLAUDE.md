@@ -721,6 +721,27 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 
 
+## Puzzels van vandaag op de homepage (30 oktober 2026)
+- Bovenaan de homepage, tussen het briefje en "Alle spellen", staat het blok **Puzzels van vandaag** (`maakDag` in `home_v6`, in `homepage-onderdelen.js`, `section#vandaag`). Het toont Rommelwoord, Rommelgroepjes, Op Gevoel en Rommelkroon (idee van Ruben: elke dag terugkomen).
+- Erin staan:
+  - een kalenderblaadje met de datum (met een vinkje als alles gedaan is);
+  - "x van 4 gedaan" met vier streepjes;
+  - hoe lang het nog duurt tot de nieuwe puzzels (om middernacht, met de klok van het apparaat).
+- Per spel een kaart:
+  - wat er vandaag is (Woord 23, Puzzel 2, Vijf uitdagingen, een 9×9 kroontjespuzzel);
+  - een knopje: Speel nu (met een kloppend stipje), Ga verder, of de uitslag (Geraden in 4, Opgelost in 2:31, 412 van 500 punten);
+  - een stempel Gedaan of Gespeeld;
+  - de reeks met een vlammetje. Is de reeks er al maar is vandaag nog niet gespeeld, dan staat er "Reeks van 5 dagen: speel vandaag!".
+- **Elk spel staat in `DAGSPEL`**: een functie die de opslag van dat spel leest en `{ stand: 'open' | 'bezig' | 'klaar' | 'mis', wat, uitslag, reeks }` geeft. Er wordt niets bewaard of verstuurd; het blok leest alleen.
+- Elk spel telt zijn dag op zijn eigen manier, en `DAGSPEL` doet dat precies na. Verandert een spel de opslag van zijn dag of de manier waarop het de dag telt, pas dan ook `DAGSPEL` aan:
+  - Rommelwoord: `rommelwoord-dag-v1` en `rommelwoord-stats-v1`, dag 1 is 8 oktober 2026, met de klok van het apparaat;
+  - Rommelgroepjes: `rommelgroepjes-v1`, dag 1 is 29 oktober 2026, in Nederlandse tijd;
+  - Op Gevoel: `opgevoel-v1`, `dagen` per datum, met de klok van het apparaat;
+  - Rommelkroon: `rommelkroon-v1`, `dag` per dagnummer, met de klok van het apparaat, en de grootte per weekdag.
+- Een spel dat niet als kaartje op de homepage staat, valt vanzelf weg. **Een nieuw dagspel**: zet een regel in `DAGSPEL`, op de plek waar het moet komen te staan.
+- Het blok wordt elke 20 seconden opnieuw berekend, en ook als je terugkomt op de pagina. Het wordt alleen opnieuw getekend als er iets veranderde, zodat het toetsenbord zijn plek houdt.
+- Getest in Chromium, op 1280, 390 en 360 breed, in licht en donker, met vier situaties: niets gespeeld, half gespeeld met reeksen, alles gedaan, en de overgang om middernacht met een nagemaakte klok. Er waren geen fouten, en niets steekt uit een kaart of uit het scherm.
+
 ## De pagina's zijn de bron (sinds 23 oktober 2026)
 - **Er is geen aparte bronmap meer.** De map `_bron/` (met `bouw.py` en een kopie van elke pagina) is weer weggehaald, omdat hij GitHub en Claude Code traag maakte. **De pagina's in de repository zijn de bron.** Werk rechtstreeks in de pagina, bijvoorbeeld `rommelbeesten.html`. Er gaat niets verloren: elke pagina bevat alles wat nodig is.
 - **Waar oudere notities `bouw.py`, `_bron` of een `*_template.html` noemen:** dat bouwproces bestaat niet meer. Wat het deed, staat nu gewoon in de pagina's zelf.

@@ -28,6 +28,14 @@ Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktobe
 - Twee tabbladen op één apparaat: met Web Locks laat een ander tabblad een spel dat elders open staat met rust (dat kon vroeger misgaan).
 - De vraag "waar wil je verder spelen" is een echt venster (`showModal`), zodat hij ook boven een venster van het spel komt.
 
+**Stand: fase 5 is gebouwd** (scoreserver 2026-10-30d, het gedeelde blok). Wat er anders is gegaan dan hieronder staat:
+- Elk apparaat heeft na 2,5 seconden vanzelf een eigen account. Daarom staan het invulveld en "Haal je account terug" nu ook in het venster van een apparaat dat al een account heeft (onder **Al een account op een ander apparaat?**). Vroeger moest je daarvoor eerst ontkoppelen.
+- Komt een apparaat binnen met een QR-code, dan maakt het geen eigen account zolang de vraag "Dit apparaat koppelen?" openstaat.
+- Het bewijs staat alleen in het stuk achter `#` van het adres. Dat stuk komt nooit bij GitHub of in een logboek; de pagina haalt het meteen uit het adres.
+- Een koppelbewijs werkt ook zonder `KOPPEL_SLEUTEL`; een passkey niet.
+- De passkey mag ook op een ander apparaat staan (zoals je telefoon die je computer helpt), niet alleen op het apparaat zelf.
+- Onderweg gerepareerd: in Rommelpoker waren de rode knoppen van het venster op een telefoon onzichtbaar, door een regel uit de stijl van het spel (`.hoofd`). De knoppen van het venster heten nu `kp-hoofd`.
+
 ---
 
 ## 0. Eerst: wat er al is

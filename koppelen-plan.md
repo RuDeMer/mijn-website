@@ -15,6 +15,13 @@ Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktobe
 - Per keer gelijkzetten pakt de server hooguit 100 kB aan gewone versies in (vanwege de rekentijd); een opslag vanaf 200 kB bewaart hij onverpakt, hooguit eens per uur.
 - De scorebordnaam, instellingen en Rommelwoord staan niet in de tijdmachine van de speler (wel in de werkplaats).
 
+**Stand: fase 3 is gebouwd** (alleen de pagina's: `rommelhoekje-sw.js`, het manifest en de iconen, het gedeelde blok). Wat er anders is gegaan dan hieronder staat:
+- De wachtrij gaat ook in bij een verandering in een spel zonder internet (niet alleen bij het sluiten), en een open pagina zet zelf gelijk zodra de verbinding terug is.
+- Een noodstop: `const UIT = true;` in `rommelhoekje-sw.js`.
+- `display: minimal-ui` in het manifest, zodat een geïnstalleerde app een terugknop heeft.
+- De knop Tijdmachine staat er pas als de server hem kent; zo kunnen fase 2 en 3 online vóór de nieuwe scoreserver.
+- Het gedeelde blok werd groter dan 100.000 tekens: de controle van de gedeelde blokken kijkt nu naar `const HOME_ONDERDELEN`.
+
 ---
 
 ## 0. Eerst: wat er al is

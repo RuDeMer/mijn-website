@@ -1014,12 +1014,15 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
-    const doe = async (modus, f) => { const d = await open(); if (!d) return null; return new Promise(ok => { try { const t = d.transaction('basis', modus), uit = f(t.objectStore('basis')); t.oncomplete = () => ok(uit ? uit.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } }); };
+    const doe = async (modus, f, tabel) => { const d = await open(); if (!d) return null; return new Promise(ok => { try { const t = d.transaction(tabel || 'basis', modus), uit = f(t.objectStore(tabel || 'basis')); t.oncomplete = () => ok(uit ? uit.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } }); };
     return {
       async alle() { const d = await open(); const m = new Map(); if (!d) return m; await new Promise(ok => { try { const t = d.transaction('basis', 'readonly'), s = t.objectStore('basis'), k = s.getAllKeys(), v = s.getAll(); t.oncomplete = () => { k.result.forEach((x, i) => m.set(x, v.result[i])); ok(); }; t.onerror = t.onabort = () => ok(); } catch (e) { ok(); } }); return m; },
       zet: (k, v) => doe('readwrite', s => s.put(v, k)),
       weg: k => doe('readwrite', s => s.delete(k)),
-      leeg: () => doe('readwrite', s => s.clear()),
+      leeg: () => Promise.all([doe('readwrite', s => s.clear()), doe('readwrite', s => s.clear(), 'uit')]),
+      // de wachtrij voor de service worker: wat zonder internet niet verstuurd kon worden (zie wachtrij)
+      uitZet: (k, v) => doe('readwrite', s => s.put(v, k), 'uit'),
+      uitWeg: k => doe('readwrite', s => s.delete(k), 'uit'),
     };
   })();
   let basisGeheugen = new Map(), basisGeladen = false;   // een kopie in het geheugen (één keer per pagina uit IndexedDB gelezen), ook voor het laatste verschil bij het sluiten
@@ -1035,8 +1038,8 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   // kent de server het nieuwe koppelen? (een uur onthouden; gaat er iets mis, dan meteen opnieuw kijken)
   async function serverV3(inst) {
     try { const c = JSON.parse(localStorage.getItem(KV) || 'null'); if (c && Date.now() - c.t < 3600e3 && c.u === adres(inst)) return c.v === 3; } catch (e) {}
-    let v = 2; try { const r = await metTijd(adres(inst) + '/status', { cache: 'no-store' }, 8000); const j = await r.json(); if (j && j.koppel >= 3) v = 3; } catch (e) { return false; }
-    try { localStorage.setItem(KV, JSON.stringify({ v, t: Date.now(), u: adres(inst) })); } catch (e) {}
+    let v = 2, tm = 0; try { const r = await metTijd(adres(inst) + '/status', { cache: 'no-store' }, 8000); const j = await r.json(); if (j && j.koppel >= 3) v = 3; if (j && j.tijdmachine) tm = 1; } catch (e) { return false; }
+    try { localStorage.setItem(KV, JSON.stringify({ v, tm, t: Date.now(), u: adres(inst) })); } catch (e) {}
     return v === 3;
   }
   const vergeetV3 = () => { try { localStorage.removeItem(KV); } catch (e) {} };
@@ -1162,6 +1165,17 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   }
   // bij het sluiten van een pagina: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is (alleen het verschil)
   function sluitSync3(K, url) {
+    const items = sluitItems(K, 60000); if (!items) return;
+    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1 }), keepalive: true }); } catch (e) {}
+  }
+  // zonder internet: wat er veranderde, in de wachtrij voor de service worker (die stuurt het zodra er weer verbinding is, ook als de
+  // pagina dicht is; Chrome en Android). Zet deze pagina later zelf gelijk, dan haalt ze de wachtrij weer weg.
+  function wachtrij(K, url) {
+    const items = sluitItems(K, 1.5e6); if (!items) return;
+    IDB.uitZet('sync', { url: url + '/sync', body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1 }), t: Date.now() })
+      .then(() => { if (navigator.serviceWorker && navigator.serviceWorker.ready) return navigator.serviceWorker.ready.then(r => r.sync && r.sync.register('rommelhoekje-sync')); }).catch(() => {});
+  }
+  function sluitItems(K, max) {
     let hs = {}; try { hs = JSON.parse(sessionStorage.getItem('koppel-herstel') || '{}') || {}; } catch (e) {}
     const items = {}; let grootte = 0;
     for (const k of SLEUTELS) {
@@ -1170,11 +1184,11 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
       const it = { t: st ? st.t || 0 : 0, h: st && st.h ? st.h : '', nh: hash(v) }, b = basisGeheugen.get(k);
       if (nieuw) it.nieuw = 1; if (K.hulpUit && K.hulpUit[k]) it.hulp = K.hulpUit[k];
       if (b && typeof b.data === 'string' && st && b.h === st.h && !it.nieuw) it.d = verschil(b.data, v); else it.data = v;
-      const n = it.d ? it.d[2].length + 40 : v.length; if (grootte + n > 60000) continue; grootte += n; items[k] = it;
+      const n = it.d ? it.d[2].length + 40 : v.length; if (grootte + n > max) continue; grootte += n; items[k] = it;
     }
-    if (!Object.keys(items).length) return;
-    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1 }), keepalive: true }); } catch (e) {}
+    return Object.keys(items).length ? items : null;
   }
+  const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
   // gelijkzetten: het nieuwe koppelen als de server het kent, anders het oude
   async function koppelSync(stil, opties) {
     opties = opties || {};
@@ -1182,7 +1196,7 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
     const inst = await klaar, url = adres(inst); if (!url) return null;
     bezigK = true; laatsteSync = Date.now();
     try {
-      if (await serverV3(inst)) { const j = await koppelSync3(stil, opties, K0, url); if (j || (await serverV3(inst))) return j; }
+      if (await serverV3(inst)) { const j = await koppelSync3(stil, opties, K0, url); if (j) IDB.uitWeg('sync'); if (j || (await serverV3(inst))) return j; }
       return await koppelSync2(stil, opties, K0, url);
     } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
   }
@@ -1254,7 +1268,7 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
     stijl(); if (!dlg) { dlg = document.createElement('dialog'); dlg.className = 'kp-dlg'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); }
     const K = leesK();
     const geleden = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'net' : m < 60 ? m + ' minuten geleden' : Math.round(m / 60) + ' uur geleden'; };
-    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button><button class="kp-knop" id="kp-tijd" type="button">⏪ Tijdmachine</button><button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div><p class="kp-klein" style="margin-top:1rem">Wil je niet dat je voortgang op de server staat? <button class="kp-link" id="kp-weg" type="button">Verwijder mijn gegevens van de server</button>. Lees ook de <a href="privacy.html">privacyverklaring</a>.</p></div>`
+    dlg.innerHTML = K && K.code ? `<div class="kp-in"><h2>Je account</h2><p>Je voortgang staat veilig op de server. Met deze code haal je hem op een ander apparaat op, of terug als je browser leeg is gemaakt. Bewaar hem goed:</p><div class="kp-code">${K.code}</div><p class="kp-klein">Vul deze code in op een ander apparaat om ook daar verder te spelen. ${K.laatst ? 'Laatst gelijkgezet: ' + geleden(K.laatst) + '.' : ''}</p><p class="kp-fout" id="kp-fout"></p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-nu" type="button">Nu gelijkzetten</button>${tmKan() ? '<button class="kp-knop" id="kp-tijd" type="button">⏪ Tijdmachine</button>' : ''}<button class="kp-knop" id="kp-los" type="button">Ontkoppelen</button><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div><p class="kp-klein" style="margin-top:1rem">Wil je niet dat je voortgang op de server staat? <button class="kp-link" id="kp-weg" type="button">Verwijder mijn gegevens van de server</button>. Lees ook de <a href="privacy.html">privacyverklaring</a>.</p></div>`
       : `<div class="kp-in"><h2>Koppel je apparaten</h2>${K && K.uit ? '<p><b>Je voortgang staat nu alleen op dit apparaat.</b> Er gaat niets naar de server, tot je zelf een koppelcode maakt.</p>' : ''}<p>Speel je op een computer én op een telefoon of tablet? Koppel ze, dan gaat je voortgang in alle spellen mee: je vlaaien, je Rommelbeesten, het hotel, je records en meer.</p><div class="kp-rij"><button class="kp-knop hoofd" id="kp-maak" type="button">Maak een koppelcode</button></div><p style="margin-top:1rem"><b>Heb je al een code?</b> Vul hem hier in:</p><div class="kp-rij"><input id="kp-invoer" placeholder="bijvoorbeeld rode-vlaai-raket-123" autocomplete="off" aria-label="Koppelcode"><button class="kp-knop" id="kp-koppel" type="button">Koppelen</button></div><p class="kp-fout" id="kp-fout"></p><p class="kp-klein">Je voortgang wordt zonder naam bewaard, alleen bij een versleutelde vorm van je code. Iedereen met je code kan je voortgang overnemen, dus deel hem alleen met je eigen apparaten.</p><div class="kp-rij"><button class="kp-knop" id="kp-dicht" type="button">Sluiten</button></div></div>`;
     const q = id => dlg.querySelector('#' + id); dlg.onclick = null;
     q('kp-dicht').onclick = () => dlg.close();
@@ -1268,6 +1282,7 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   }
   // ---------- de tijdmachine: eerdere versies van je spellen (30 dagen) bekijken en terugzetten, op al je apparaten tegelijk
   const TM_SOORT = { botsing: 'van je andere apparaat', samen: 'van vóór het samenvoegen', opnieuw: 'van vóór opnieuw beginnen', weg: 'van vóór weghalen', hulp: 'van vóór hulp van Ruben', terug: 'van vóór terugzetten', dag: 'reservekopie' };
+  const tmKan = () => { try { const c = JSON.parse(localStorage.getItem(KV) || 'null'); return !!(c && c.tm); } catch (e) { return false; } };
   const tmEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const tmDag = t => { const d = new Date(t), n = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / 864e5); return n === 0 ? 'Vandaag' : n === 1 ? 'Gisteren' : d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); };
   const tmUur = t => new Date(t).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -1354,6 +1369,14 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
     addEventListener('error', e => { if (e && e.message) meld(e.message, (e.lineno || '') + ':' + (e.colno || '')); });
     addEventListener('unhandledrejection', e => { const r = e && e.reason; if (r && r.name === 'AbortError') return; meld('Onafgehandeld: ' + ((r && r.message) || r), ''); });
   })();
+  // offline: de service worker van de hele site (rommelhoekje-sw.js) en het manifest, zodat de site ook te installeren is
+  try {
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker && (location.protocol === 'https:' || location.hostname === 'localhost') && !/\/werkplaats[^/]*$/.test(location.pathname)) {
+      addEventListener('load', () => { navigator.serviceWorker.register('rommelhoekje-sw.js', { scope: './', updateViaCache: 'none' }).catch(() => {}); });
+      const link = (rel, href) => { if (document.head && !document.querySelector('link[rel="' + rel + '"]')) { const l = document.createElement('link'); l.rel = rel; l.href = href; document.head.appendChild(l); } };
+      link('manifest', 'rommelhoekje.webmanifest'); link('apple-touch-icon', 'rommelhoekje-icoon-180.png');
+    }
+  } catch (e) {}
   // iedereen heeft een account: zonder koppelcode maakt dit apparaat er zelf een, en bewaart de server de voortgang
   setTimeout(() => { const K = leesK(); if (!K || (!K.code && !K.uit)) maakKoppeling().catch(() => {}); }, 2500);
   // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
@@ -1370,7 +1393,10 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   klaar.then(() => setTimeout(() => koppelSync(false), 600));
   // kort na een verandering in een spel gelijkzetten (hooguit eens per 30 seconden), en anders elke minuut even kijken
   let laatsteSync = 0, gepland = null;
-  const plan = ms => { if (gepland) return; gepland = setTimeout(() => { gepland = null; const nog = 30000 - (Date.now() - laatsteSync); if (nog > 0) return plan(nog); koppelSync(true); }, ms); };
+  const plan = ms => { if (gepland) return; gepland = setTimeout(() => { gepland = null; if (offline()) return naarWachtrij(); const nog = 30000 - (Date.now() - laatsteSync); if (nog > 0) return plan(nog); koppelSync(true); }, ms); };
+  const isV3 = () => { try { const c = JSON.parse(localStorage.getItem(KV) || 'null'); return !!(c && c.v === 3); } catch (e) { return false; } };
+  const naarWachtrij = () => { const K = leesK(); if (K && K.code && isV3()) klaar.then(inst => { const url = adres(inst); if (url) wachtrij(K, url); }); };
+  addEventListener('online', () => setTimeout(() => koppelSync(true), 1200));
   try {
     const zet = Storage.prototype.setItem, haalWeg = Storage.prototype.removeItem, opslag = localStorage;
     Storage.prototype.setItem = function (k, v) { const r = zet.call(this, k, v); if (this === opslag && SLEUTELS.includes(k)) plan(5000); return r; };
@@ -1383,8 +1409,7 @@ html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,
   addEventListener('load', () => addEventListener('pagehide', () => {
     const K = leesK(); if (!K || !K.code) return;
     // het nieuwe koppelen: alleen het verschil
-    let v3 = false; try { const c = JSON.parse(localStorage.getItem(KV) || 'null'); v3 = !!(c && c.v === 3); } catch (e) {}
-    if (v3) { klaar.then(inst => { const url = adres(inst); if (url) sluitSync3(K, url); }); return; }
+    if (isV3()) { klaar.then(inst => { const url = adres(inst); if (url) (offline() ? wachtrij : sluitSync3)(K, url); }); return; }
     if (K.v !== 2) return;
     // wat bij het herladen nog wordt neergezet, sturen we niet (dat is de versie die het niet wordt)
     let hs = {}; try { hs = JSON.parse(sessionStorage.getItem('koppel-herstel') || '{}') || {}; } catch (e) {}

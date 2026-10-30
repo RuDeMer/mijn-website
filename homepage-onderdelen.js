@@ -120,7 +120,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   // ---------- iconen: altijd de nieuwste (de homepage zelf heeft soms nog een oude lijst)
   // ontbreekt een icoon, of heeft een oude kaart een verkeerde naam? Raad het aan de pagina
   const RADEN = { rommelgroepjes: 'groepjes', reclame: 'reclame', huisopstelten: 'huis', rubendeduiker: 'duiker', rommelland: 'pretpark', rommelblok: 'blok', vouwvlieger: 'vlieger', rommelritme: 'ritme', rommelkroon: 'rommelkroon', rommelarend: 'arend', rob: 'rob', rommelbel: 'bel', rommelsteek: 'steek', productiefiets: 'fiets', steigerstress: 'steiger', rommelwheels: 'wheels', mengelmoes: 'mengelmoes', opgevoel: 'opgevoel', rommelrecht: 'recht', rommelbeesten: 'pakje', rommelhotel: 'hotel', vlaaienbakker: 'vlaai', rommelpoker: 'kaarten', rommelwoord: 'woord', scorebord: 'beker', ideeenbox: 'idee' };
-  document.querySelectorAll('.label-kaart[href]').forEach(a => { const g = RADEN[pagina(a)]; if (g && (typeof SPELICONEN === 'undefined' || !SPELICONEN[a.dataset.icoon])) a.dataset.icoon = g; });
+  document.querySelectorAll('.label-kaart[href]').forEach(a => { const g = RADEN[pagina(a)]; if (g && (typeof SPELICONEN === 'undefined' || !SPELICONEN[a.dataset.icoon] || a.dataset.icoon === 'doos')) a.dataset.icoon = g; });
   plek.querySelectorAll('[data-icoon]').forEach(s => { const a = labels.map(l => l.querySelector('.label-kaart')).find(x => x && x.getAttribute('href') === (s.closest('a') || {}).getAttribute?.('href')); if (a) s.dataset.icoon = a.dataset.icoon; });
   const vulIconen = () => {
     if (typeof SPELICONEN === 'undefined') return;

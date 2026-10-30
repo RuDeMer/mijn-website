@@ -293,7 +293,7 @@ Elke fase levert iets op dat werkt. Per fase komt eerst de scoreserver (ik lever
   - `instellingen.json`: bewaard, zodat het adres van de scoreserver ook offline bekend is.
   - Alleen pagina's die je al eens opende zijn offline te gebruiken. Ik bewaar niet vooraf de hele site (ongeveer 12 MB), want dat kost op een telefoon veel data.
 - **Background Sync** (Chrome en Android): wat in de wachtrij staat, verstuurt de service worker zodra er weer verbinding is, ook als de pagina dicht is. In Safari gebeurt dat bij het volgende bezoek, of zodra de verbinding terugkomt terwijl de pagina open is.
-- **Een manifest** `rommelhoekje.webmanifest`, met een icoon in de huisstijl (het prijskaartje van de favicon op het gaatjesbord). Het gedeelde blok zet de verwijzing in de pagina. Het uiterlijk van de site verandert niet.
+- **Een manifest** `rommelhoekje.webmanifest`, met een icoon in de stijl van de site (Rubens sticker op een tegel zoals op de homepage). Het gedeelde blok zet de verwijzing in de pagina. Het uiterlijk van de site verandert niet.
 - **Veiligheidsbeleid**: niets nodig. `worker-src 'self'` staat er al, en `manifest-src` valt terug op `default-src 'self'`.
 
 ### Fase 4: live doorspelen

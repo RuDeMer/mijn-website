@@ -348,7 +348,8 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 - `home_v8.js` draait in het iconenblok van de onderdelen (zodat het bij `SPELICONEN` kan) en ordent de homepage terwijl die laadt, zonder index.html te veranderen: je eigen kaarten, labels en volgorde uit de werkplaats blijven dus gewoon werken.
 - Alle kaarten uit "Aan de haak" worden verdeeld over vijf categorieën (`CATEGORIEEN`): Werelden om te ontdekken, Verzamelen en bouwen, Snel een potje, Puzzels, Rond het rommelhoekje. Bekende pagina's staan in de lijst; een nieuw spel komt vanzelf in de goede categorie aan de hand van de paginanaam en het soortlabel (puzzel, verzamel, avontuur, enzovoort), anders bij Snel een potje. Binnen een categorie blijft jouw volgorde staan. Het blokje "Binnenkort" verdwijnt.
 - Bovenaan: een menu met de categorieën (blijft staan bij scrollen), "Verder spelen" met de voortgang uit de opslag van elk spel (`VOORTGANG`), en een uitgelichte kaart voor het nieuwste spel (de laatste kaart met een Nieuw-stempel, behalve de ideeënbox). In de voet: links naar het scorebord, de ideeënbox en koppelen (het zwevende koppelknopje is daar dan weg).
-- De iconen worden na het laden nog eens gezet, omdat een oudere index.html zijn eigen, oudere iconenlijst meedraagt (dat gaf doosjes bij de nieuwste spellen). Kaarten met een onbekende iconnaam krijgen een icoon aan de hand van de paginanaam (`RADEN`).
+- De iconen worden na het laden nog eens gezet, omdat een oudere index.html zijn eigen, oudere iconenlijst meedraagt (dat gaf doosjes bij de nieuwste spellen). Kaarten met een onbekende iconnaam krijgen een icoon aan de hand van de paginanaam (`RADEN`), en sinds 30 oktober 2026 ook kaarten met het algemene doosje (`doos`) als de pagina in `RADEN` staat.
+- **Een nieuw icoon hoort ook in de werkplaats**: in `SPELICONEN` van `werkplaats.html` (met een naam in de keuzelijst en een regel in `raadIcoon`). Kent de werkplaats een icoon niet, dan maakt het Homepage-paneel er bij Zet online `doos` van (zo kreeg Huis op stelten een doosje).
 - Stijl: even hoge kaarten in een raster; op telefoons twee kaarten naast elkaar zonder beschrijving, geen gereedschap aan de zijkanten en een kleiner rek onder het briefje; alles wat buiten de pagina zwaait wordt afgeknipt.
 
 ## Werkplaats
@@ -1074,7 +1075,7 @@ print('kopie in de werkplaats:', 'gelijk' if json.loads(m.group(1)) == h else 'V
   - homepage-onderdelen: icoon `groepjes`, categorie Puzzels, het onderschrift "Zestien woorden, vier groepjes", en de voortgang ("Vandaag opgelost · reeks van n dagen").
   - werkplaats: `SPELINFO` en `KAN.groepjes`.
   - `privacy.html`.
-  - Het label op de homepage zet Ruben zelf via de werkplaats.
+  - Het label op de homepage staat erop sinds 30 oktober 2026 (versie 0.57, op verzoek van Ruben); de werkplaats kent het icoon `groepjes`.
 - **Getest** (Node en Chromium):
   - alle 368 puzzels pakken uit tot de bron, en met de sleutel van een andere dag lukt het niet;
   - geen verband, uitleg of groepje leesbaar in de pagina;

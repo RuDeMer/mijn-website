@@ -284,7 +284,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     // welke versie van de server nu op dit apparaat staat (zie koppelSync), zodat de volgende keer gewoon verder gaat
     const v = JSON.parse(sessionStorage.getItem('koppel-herstel-v') || 'null'), K = JSON.parse(localStorage.getItem('rommelhoekje-koppel') || 'null');
     if (v && K && K.code === v.code) { K.staat = Object.assign(K.staat || {}, v.staat || {}); localStorage.setItem('rommelhoekje-koppel', JSON.stringify(K)); }
-    sessionStorage.removeItem('koppel-herstel'); sessionStorage.removeItem('koppel-herstel-v'); if (!['koppel-hulp', 'koppel-vervangen', 'koppel-samen', 'koppel-geweigerd'].some(x => sessionStorage.getItem(x))) sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
+    sessionStorage.removeItem('koppel-herstel'); sessionStorage.removeItem('koppel-herstel-v'); if (!['koppel-hulp', 'koppel-vervangen', 'koppel-samen', 'koppel-geweigerd', 'koppel-opnieuw'].some(x => sessionStorage.getItem(x))) sessionStorage.setItem('koppel-melding', '1'); } } catch (e) {}
 })();
 (function () {
   // rommelhoekje-speler: gedeeld door alle pagina's van de site (zelfde adres = zelfde opslag)
@@ -453,6 +453,270 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   st.textContent = '.sb-blok{background:var(--papier,#FBF6E9);color:var(--inkt,#1F2333);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.92rem;line-height:1.4;text-align:left}.sb-blok p{margin:0 0 .4rem}.sb-blok p:last-child{margin:0}.sb-blok a{color:var(--rood-d,#9E2430);font-weight:700}.sb-mee{display:flex;gap:.4rem;flex-wrap:wrap}.sb-mee input{flex:1 1 8rem;min-width:0;font:inherit;padding:.4rem .6rem;border-radius:6px;border:2px solid var(--manila-d,#D9BE78);background:#fff}.sb-mee button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:.4rem .8rem;background:var(--rood,#C8323C);color:#fff;cursor:pointer}.sb-blok small{display:block;color:var(--zacht,#5E5643);margin-top:.35rem;font-size:.78rem}';
   document.head.appendChild(st);
 
+  // ==== REGELS begin
+  // De regels voor het koppelen: hoe twee versies van een spel samengaan. Deze tekst staat letterlijk hetzelfde in het gedeelde
+  // scorebord-blok van de site en in de scoreserver (de controle van de gedeelde blokken kijkt dat na). Verander hem dus altijd op allebei.
+  //   b = de gezamenlijke basis (de laatste versie waar beide apparaten het over eens waren; mag ontbreken),
+  //   s = wat de server al had (dat kwam eerst binnen), i = wat er nu binnenkomt (dat kwam later).
+  // De soorten regels: samen (wat op een van de twee gehaald is, blijft), beste (hoogste of snelste), teller (wat er op elk apparaat bij
+  // kwam, telt op; zonder basis de hoogste), keuze (een instelling: de laatste verandering wint), lopend (iets dat nog bezig is: de laatste
+  // versie, nooit gemengd), eerste (dagpuzzels: de eerste uitslag van een dag telt) en geheel (één hele versie wint: die met de meeste
+  // voortgang). Nooit geld, muntjes, kaarten of spullen samenvoegen: dan zou je iets kunnen verdubbelen. Een nieuw spel? Zet het in SPEL.
+  const REGELS = (() => {
+    const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+    const getal = (x, d = 0) => (typeof x === 'number' && isFinite(x) ? x : d);
+    const lijst = x => (Array.isArray(x) ? x : []);
+    const aantal = o => (isObj(o) ? Object.keys(o).length : 0);
+    const som = o => (isObj(o) ? Object.values(o).reduce((a, x) => a + getal(x), 0) : 0);
+    // hetzelfde, ook als de velden in een andere volgorde staan
+    const zelfde = (a, b) => { if (a === b) return true; if (typeof a !== typeof b || !a || !b || typeof a !== 'object') return false; if (Array.isArray(a)) return Array.isArray(b) && a.length === b.length && a.every((x, k) => zelfde(x, b[k])); if (Array.isArray(b)) return false; const ka = Object.keys(a).filter(k => a[k] !== undefined), kb = Object.keys(b).filter(k => b[k] !== undefined); return ka.length === kb.length && ka.every(k => zelfde(a[k], b[k])); };
+    const num = x => typeof x === 'number' && isFinite(x);
+    // ---------- de soorten regels, voor één waarde
+    const keuze = (b, s, i, c) => (!c.basis ? (i === undefined ? s : i) : zelfde(i, b) ? s : zelfde(s, b) ? i : i);
+    const lopend = keuze;
+    const eerste = (b, s, i) => (s === undefined ? i : s);
+    const max = (b, s, i) => (num(s) && num(i) ? Math.max(s, i) : num(i) ? i : num(s) ? s : i === undefined ? s : i);
+    // de snelste tijd: alleen getallen boven 0 tellen (0 betekent: nog geen tijd)
+    const snelste = (b, s, i) => { const g = [s, i].filter(x => num(x) && x > 0); return g.length ? Math.min(...g) : i === undefined ? s : i; };
+    const teller = (b, s, i, c) => (!num(s) || !num(i) ? max(b, s, i) : c.basis && num(b) && b <= s && b <= i ? s + i - b : Math.max(s, i));
+    // een saldo dat op en neer gaat (alleen met een basis: wat er op elk apparaat bij kwam en af ging); zonder basis: niets (dan geheel)
+    const saldo = (b, s, i, c) => (c.basis && num(b) && num(s) && num(i) ? s + i - b : undefined);
+    const of = (b, s, i) => (s ? s : i ? i : i === undefined ? s : i);
+    const samenLijst = (b, s, i, c) => (Array.isArray(s) && Array.isArray(i) ? [...new Set([...s, ...i])] : keuze(b, s, i, c));
+    // ---------- een object veld voor veld: per veld een regel (of een object met regels), '*' voor alle andere velden
+    function pas(regel, b, s, i, c) { return typeof regel === 'function' ? regel(b, s, i, c) : velden(regel, b, s, i, c); }
+    function velden(schema, b, s, i, c) {
+      if (!isObj(s) || !isObj(i)) return keuze(b, s, i, c);
+      const bb = isObj(b) ? b : {}, r = {};
+      for (const k of new Set([...Object.keys(s), ...Object.keys(i)])) {
+        const regel = k in schema ? schema[k] : '*' in schema ? schema['*'] : keuze;
+        const v = pas(regel, bb[k], s[k], i[k], c);
+        if (v !== undefined) r[k] = v;
+      }
+      return r;
+    }
+    const elk = regel => ({ '*': regel });
+    // ---------- hulpjes voor een paar spellen
+    // Rommelpoker: ontdekt staat als een rijtje bitjes in base64 (6 per teken, nieuwe dingen achteraan)
+    const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    const bitjes = (b, s, i, c) => {
+      if (typeof s !== 'string' || typeof i !== 'string' || /[^A-Za-z0-9_-]/.test(s + i)) return keuze(b, s, i, c);
+      let r = ''; for (let k = 0; k < Math.max(s.length, i.length); k++) r += B64[Math.max(0, B64.indexOf(s[k] || 'A')) | Math.max(0, B64.indexOf(i[k] || 'A'))];
+      return r.replace(/A+$/, '');
+    };
+    // Rommelsteek: een patroon als rijtje 0 en 1 (een steekje gaat nooit weg)
+    const steekjes = (b, s, i, c) => (typeof s === 'string' && typeof i === 'string' && s.length === i.length && /^[01]+$/.test(s + i) ? Array.from(s, (x, k) => (x === '1' || i[k] === '1' ? '1' : '0')).join('') : keuze(b, s, i, c));
+    // Zoals in de reclame: de sterren van een spelletje als rijtje cijfers (0 tot 3), per level de meeste
+    const cijfers = (b, s, i, c) => {
+      if (typeof s !== 'string' || typeof i !== 'string' || /[^0-3]/.test(s + i)) return keuze(b, s, i, c);
+      let r = ''; for (let k = 0; k < Math.max(s.length, i.length); k++) r += String(Math.max(+(s[k] || 0), +(i[k] || 0)));
+      return r.replace(/0+$/, '');
+    };
+    // dezelfde dag op twee apparaten gespeeld: dan telt een teller voor die dag maar één keer
+    const dagTeller = (b, s, i, c, zelfdeNieuweDag) => { const t = teller(b, s, i, c); return num(t) && c.basis && num(b) && zelfdeNieuweDag ? Math.max(t - 1, getal(s), getal(i)) : t; };
+    const MEDAILLE = { goud: 3, zilver: 2, brons: 1 };
+    const VV_PRIJS = { wit: 0, krant: 25, kraan: 50, neon: 90, goud: 150, regenboog: 300, startvouw: 40, magneet: 70, dubbel: 140 };
+    // Mengelmoes: dezelfde naam is dezelfde sticker (zoals norm() in het spel)
+    const mmNaam = x => String(x || '').normalize('NFKC').toLocaleLowerCase('nl').trim().replace(/\s+/g, ' ');
+    // de Vlaaienbakker: een getal boven 10^300 staat als tekst in groot[pad]; als 10-log (zoals vbLog in de scoreserver)
+    const vlog = (s, pad) => {
+      const x = pad.split('.').reduce((o, k) => (o == null ? undefined : o[k]), s), P = pad.startsWith('gilde.') ? 1e270 : 1e300;
+      const r = s && s.groot && /^\s*(\d+(?:\.\d+)?)(?:e([+-]?\d+))?\s*$/i.exec(String(s.groot[pad] || '')), g = r && parseFloat(r[1]) > 0 ? Math.log10(parseFloat(r[1])) + (r[2] ? parseInt(r[2], 10) : 0) : NaN;
+      if (!num(x)) return isFinite(g) ? g : 0;
+      if (isFinite(g) && x >= P / 1e20) return g;
+      return x > 0 ? Math.max(0, Math.log10(x)) : 0;
+    };
+    const rbHeb = x => (Array.isArray(x) ? getal(x[0]) + getal(x[1]) : 0);
+    // ---------- de maat: hoe verder, hoe hoger (dezelfde maat als 'Verder spelen' op de homepage); bij gelijke stand telt het volgende getal
+    const MAAT = {
+      'vlaaienbakker-v1': s => { const o = isObj(s.oer) ? s.oer : {}; return [getal(s.opnieuw), vlog(s, 'oer.ooit'), getal(o.n), Math.max(vlog(s, 'alles'), vlog(s, 'ooit'), vlog(s, 'totaal')), vlog(s, 'totaal')]; },
+      'vlaaienbakker-week-v1': s => [getal(s.week), getal(s.totaal)],
+      'rommelbeesten-v1': s => { const b = isObj(s.bezit) ? Object.values(s.bezit) : []; return [b.filter(x => rbHeb(x) > 0).length, b.reduce((a, x) => a + rbHeb(x), 0), getal((s.stats || {}).pakjes)]; },
+      'rommelkroon-v1': s => [aantal(s.opgelost), aantal(s.dag), aantal(s.bezig)],
+      'rommelrecht-v1': s => [Object.keys(isObj(s.gehaald) ? s.gehaald : {}).filter(k => !k.startsWith('dag-')).length, Object.values(isObj(s.manieren) ? s.manieren : {}).reduce((a, m) => a + lijst(m).length, 0), aantal(s.dag)],
+      'rommelarend-v1': s => [lijst(s.ontdekt).length, lijst(s.veren).length, Object.values(isObj(s.races) ? s.races : {}).reduce((a, r) => a + ((r && MEDAILLE[r.medaille]) || 0), 0)],
+      'rommelbel-v1': s => [som(s.sterren), getal(s.eindeloos), getal(s.open)],
+      'rommelritme-v1': s => [som(s.best), aantal(s.gehaald), som(s.pogingen)],
+      'rommelsteek-v1': s => [Object.keys(isObj(s.af) ? s.af : {}).filter(k => !/^dag/.test(k)).length, aantal(s.af), Object.values(isObj(s.werk) ? s.werk : {}).reduce((a, w) => a + (String(w).split('1').length - 1), 0)],
+      'rommelwheels-v1': s => { let st = 0, p = 0; for (const r of Object.values(isObj(s.levels) ? s.levels : {})) { if (!r) continue; st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); p += getal(r.punten); } return [st, p, getal(s.gespeeld)]; },
+      'rommelhotel-v1': s => { const v = isObj(s.verhaal) ? s.verhaal : {}; return [aantal(v.opgelost), getal(v.stap), lijst(s.badges).length, getal(s.munten)]; },
+      'rommelpoker-record': s => [getal(s.verst), getal(s.beste)],
+      'rommelpoker-spel-v2': s => [getal(s.i), getal(s.score)],
+      'rommelwoord-stats-v1': s => [getal(s.gespeeld) || getal(s.played), getal(s.gewonnen) || getal(s.won)],
+      'rommelwoord-dag-v1': s => [getal(s.dag), s.klaar ? 1 : 0, lijst(s.pogingen).length],
+      'vouwvlieger-v1': s => [getal(s.sterren), getal(s.best), getal(s.gespeeld)],
+      'rommelrob-v1': s => [getal(s.totaal), getal(s.best)],
+      'productiefiets-v1': s => [getal(s.gespeeld), getal(s.bestMeter), getal(s.best)],
+      'steiger-v1': s => [som(s.sterren), som(s.scores)],
+      'mengelmoes-v1': s => [lijst(s.el).length],
+      'opgevoel-v1': s => [aantal(s.dagen), Object.values(isObj(s.records) ? s.records : {}).reduce((a, r) => a + getal(r && r.n), 0)],
+      'rubendeduiker-v1': s => [getal(s.hfd), getal(s.dag), aantal(s.boek)],
+      'huisopstelten-v1': s => [Object.values(isObj(s.k) ? s.k : {}).reduce((a, k) => a + (isObj(k) ? lijst(k.s).filter(Boolean).length : 0), 0), getal(s.besteDag), lijst(s.album).length],
+      'rommelland-v1': s => [getal(s.nieuw), getal(s.dag), aantal(s.doelen), getal(s.totaalGasten)],
+      'reclame-v1': s => { const d = isObj(s.dag) ? s.dag : {}; let n = 0; for (const v of Object.values(isObj(s.s) ? s.s : {})) for (const x of String(v)) n += Math.min(3, +x || 0); return [n, getal(d.n), getal(d.b)]; },
+      'rommelgroepjes-v1': s => { let o = 0, z = 0, g = 0; for (const v of Object.values(isObj(s.p) ? s.p : {})) { const x = String(v); g++; if (x[0] === 'w' || x[0] === 'a') { o++; if (x[1] === '0') z++; } } return [o, z, g]; },
+      'rommelhoekje-speler': s => [s && s.naam ? 1 : 0],
+    };
+    const maatVan = (sleutel, s) => { try { return MAAT[sleutel] && isObj(s) ? MAAT[sleutel](s).map(x => getal(x)) : []; } catch (e) { return []; } };
+    const vergelijk = (a, b) => { for (let k = 0; k < Math.max(a.length, b.length); k++) { const x = getal(a[k]), y = getal(b[k]); if (x !== y) return x > y ? 1 : -1; } return 0; };
+    // ---------- de regels per spel. geheel: één hele versie wint (met de maat); keuze: de velden die toch per instelling meegaan.
+    // velden: per veld een regel (wat er niet staat, is keuze); na: nog iets rechtzetten (geeft het null, dan wordt het toch geheel).
+    const SPEL = {
+      'vlaaienbakker-v1': { geheel: true, keuze: ['getal'] },
+      'vlaaienbakker-week-v1': { geheel: true },
+      'rommelbeesten-v1': { geheel: true, keuze: ['geluid'] },
+      'rommelhotel-v1': { geheel: true, keuze: ['look', 'geluid', 'zoom'] },
+      'rommelland-v1': { geheel: true },
+      'rubendeduiker-v1': { geheel: true, keuze: ['inst'] },
+      'rommelpoker-spel-v2': { geheel: true },
+      'rommelblok-v2': { geheel: true },
+      'rommelpoker-record': { velden: { verst: max, beste: max, win: elk(max), gezien: elk(bitjes), inst: keuze, voortgangTotaal: max,
+        tel: { h: elk(teller), standGewonnen: max, maxSteen: max, maxIjzer: max, verst: max, beste: max, '*': teller } } },
+      'rommelkroon-v1': {
+        velden: {
+          // per puzzel: de beste keer (minder hints, dan sneller), zoals de scoreserver het al deed
+          opgelost: elk((b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; }),
+          // per dag: liefst de keer die op de dag zelf was, dan de snelste; 'op de dag zelf' blijft aan als het één keer aan stond
+          dag: elk((b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; }),
+          bezig: elk(lopend), auto: keuze, inst: keuze, laatste: keuze, uitleg: of, voortgangTotaal: max,
+        },
+        na: r => { if (isObj(r.bezig)) for (const k of Object.keys(r.bezig)) if ((isObj(r.opgelost) && r.opgelost[k]) || (k[0] === 'd' && isObj(r.dag) && r.dag[k.slice(1)])) delete r.bezig[k]; return r; },
+      },
+      'rommelrecht-v1': { velden: { v: max, gehaald: elk(of), manieren: elk(samenLijst), dag: elk(samenLijst), voortgangTotaal: max } },
+      'rommelgroepjes-v1': { velden: { v: max, uitleg: of, laatst: max, voortgangTotaal: max,
+        // per dag: de eerste definitieve uitslag telt (w, a, v of x); is er nog geen, dan de langste poging
+        p: elk((b, s, i) => { if (typeof s !== 'string' || typeof i !== 'string') return s === undefined ? i : s; const ks = /^[wavx]/.test(s), ki = /^[wavx]/.test(i); return ks ? s : ki ? i : i.length >= s.length ? i : s; }) } },
+      'rommelwoord-dag-v1': { velden: {}, na: (r, b, s, i) => {
+        // zelfde dag: wie het eerst klaar was, anders de langste poging; een nieuwere dag wint van een oudere
+        if (getal(s.dag) !== getal(i.dag)) return getal(i.dag) > getal(s.dag) ? i : s;
+        if (s.klaar) return s; if (i.klaar) return i;
+        return lijst(i.pogingen).length >= lijst(s.pogingen).length ? i : s;
+      } },
+      'rommelwoord-stats-v1': { velden: { gespeeld: teller, gewonnen: teller, verdeling: (b, s, i, c) => (Array.isArray(s) && Array.isArray(i) ? Array.from({ length: Math.max(s.length, i.length) }, (x, k) => teller(lijst(b)[k], getal(s[k]), getal(i[k]), c)) : keuze(b, s, i, c)), besteReeks: max, laatsteWinst: max },
+        na: (r, b, s, i) => { r.reeks = getal(i.laatsteWinst, -9) > getal(s.laatsteWinst, -9) ? i.reeks : getal(s.laatsteWinst, -9) > getal(i.laatsteWinst, -9) ? s.reeks : Math.max(getal(s.reeks), getal(i.reeks)); if (num(r.besteReeks) && num(r.reeks)) r.besteReeks = Math.max(r.besteReeks, r.reeks); return r; } },
+      'opgevoel-v1': {
+        velden: { v: max, records: elk({ best: max, n: teller, som: teller }), dagen: elk(eerste), bezig: lopend, inst: keuze,
+          stat: { dag: { n: teller, som: teller, best: max }, vrij: { n: teller, som: teller, best: max } }, reeks: (b, s, i) => s },
+        na: (r, b, s, i) => {
+          if (isObj(r.dagen)) { const d = Object.keys(r.dagen).sort(); for (const k of d.slice(0, Math.max(0, d.length - 120))) delete r.dagen[k]; }
+          const rs = isObj(s.reeks) ? s.reeks : {}, ri = isObj(i.reeks) ? i.reeks : {}, nieuw = String(ri.laatste || '') > String(rs.laatste || '') ? ri : String(rs.laatste || '') > String(ri.laatste || '') ? rs : getal(ri.lengte) >= getal(rs.lengte) ? ri : rs;
+          if (isObj(s.reeks) || isObj(i.reeks)) r.reeks = Object.assign({}, nieuw, { beste: Math.max(getal(rs.beste), getal(ri.beste), getal(nieuw.lengte)) });
+          if (isObj(r.bezig) && isObj(r.dagen) && r.dagen[r.bezig.dag]) r.bezig = null;
+          return r;
+        },
+      },
+      'reclame-v1': {
+        velden: { v: max, s: elk(cijfers), look: elk(keuze), voortgangTotaal: max, dag: (b, s, i) => s },
+        na: (r, b, s, i, c) => {
+          const x = isObj(s.dag) ? s.dag : null, y = isObj(i.dag) ? i.dag : null, z = isObj(b && b.dag) ? b.dag : {};
+          if (!x || !y) { r.dag = x || y || r.dag; return r; }
+          const nieuwer = getal(y.d) > getal(x.d), gelijk = getal(y.d) === getal(x.d);
+          r.dag = Object.assign({}, x, { d: Math.max(getal(x.d), getal(y.d)), s: nieuwer ? getal(y.s) : gelijk ? Math.max(getal(x.s), getal(y.s)) : getal(x.s), r: nieuwer ? getal(y.r) : gelijk ? Math.max(getal(x.r), getal(y.r)) : getal(x.r),
+            n: dagTeller(z.n, getal(x.n), getal(y.n), c, gelijk && getal(x.d) > getal(z.d)), b: Math.max(getal(x.b), getal(y.b), getal(x.r), getal(y.r)) });
+          return r;
+        },
+      },
+      'huisopstelten-v1': {
+        velden: { v: max, k: elk((b, s, i) => (isObj(s) && isObj(i) ? Object.assign({}, s, { s: [0, 1, 2].map(k => (lijst(s.s)[k] || lijst(i.s)[k] ? 1 : 0)), t: snelste(undefined, s.t, i.t), c: max(undefined, s.c, i.c) }) : isObj(s) ? s : i)),
+          album: samenLijst, besteDag: max, inst: keuze, voortgangTotaal: max, dag: (b, s, i) => s, dagen: (b, s, i) => s },
+        na: (r, b, s, i, c) => {
+          const x = isObj(s.dag) ? s.dag : null, y = isObj(i.dag) ? i.dag : null, z = isObj(b && b.dag) ? b.dag : {};
+          r.dag = x && y ? (getal(y.n) > getal(x.n) ? y : x) : x || y || null;
+          if (num(s.dagen) || num(i.dagen)) r.dagen = dagTeller(b && b.dagen, getal(s.dagen), getal(i.dagen), c, !!(x && y) && getal(x.n) === getal(y.n) && getal(x.n) > getal(z.n));
+          return r;
+        },
+      },
+      'rommelsteek-v1': { velden: { werk: elk(steekjes), af: elk(max), voortgangTotaal: max } },
+      'rommelwheels-v1': {
+        velden: { v: max, opbouw: max, gespeeld: teller, voortgangTotaal: max,
+          levels: elk({ gehaald: of, alle: of, heel: of, besteTijd: snelste, oudeTijd: snelste, punten: max, maxSterren: max }),
+          // zelfgemaakte levels, per level apart: nieuw op één apparaat blijft, weggehaald op één (en niet veranderd op het andere) is weg
+          eigen: (b, s, i, c) => {
+            if (!Array.isArray(s) || !Array.isArray(i)) return keuze(b, s, i, c);
+            const id = l => (isObj(l) ? String(l.id) : ''), B = new Map(lijst(b).map(l => [id(l), l])), S = new Map(s.map(l => [id(l), l])), I = new Map(i.map(l => [id(l), l])), r = [];
+            for (const k of new Set([...S.keys(), ...I.keys()])) {
+              const x = S.get(k), y = I.get(k), z = B.get(k);
+              if (x && y) r.push(c.basis ? keuze(z, x, y, c) : y);
+              else if (x) { if (!(c.basis && z && zelfde(x, z))) r.push(x); }
+              else if (!(c.basis && z && zelfde(y, z))) r.push(y);
+            }
+            return r.slice(0, 30);
+          } } },
+      'rommelarend-v1': { velden: { ontdekt: samenLijst, veren: samenLijst, gestart: of, voortgangTotaal: max,
+        races: elk((b, s, i) => (isObj(s) && isObj(i) ? Object.assign({}, s, { tijd: snelste(undefined, s.tijd, i.tijd), medaille: (MEDAILLE[i.medaille] || 0) > (MEDAILLE[s.medaille] || 0) ? i.medaille : s.medaille }) : isObj(s) ? s : i)) } },
+      'rommelbel-v1': { velden: { open: max, sterren: elk(max), scores: elk(max), eindeloos: max, gespeeld: teller, voortgangTotaal: max } },
+      'rommelritme-v1': { velden: { best: elk(max), pogingen: elk(teller), gehaald: elk(of), voortgangTotaal: max } },
+      'vouwvlieger-v1': { velden: { best: max, sterren: teller, gespeeld: teller, spaar: saldo, skins: samenLijst, upg: samenLijst },
+        // sterren uitgeven op twee apparaten tegelijk: kocht je op allebei hetzelfde, dan krijg je één keer je sterren terug.
+        // Gaf je samen meer uit dan je had, dan voegen we niet samen (anders kreeg je iets gratis): dan wint de meeste voortgang.
+        na: (r, b, s, i, c) => {
+          if (!c.basis || !isObj(b) || !num(r.spaar)) return null;
+          const oud = new Set([...lijst(b.skins), ...lijst(b.upg)]), beide = [...lijst(s.skins), ...lijst(s.upg)].filter(x => !oud.has(x) && [...lijst(i.skins), ...lijst(i.upg)].includes(x));
+          r.spaar = getal(r.spaar) + beide.reduce((a, x) => a + getal(VV_PRIJS[x]), 0);
+          return r.spaar >= 0 ? r : null;
+        } },
+      'rommelrob-v1': { velden: { best: max, bestSpam: max, totaal: teller, gespeeld: teller } },
+      'productiefiets-v1': { velden: { best: max, bestMeter: max, gespeeld: teller, koffie: teller } },
+      'steiger-v1': { velden: { sterren: elk(max), scores: elk(max) } },
+      'mengelmoes-v1': { velden: { v: max, stats: { pogingen: teller, mislukt: teller, gestart: snelste }, el: (b, s, i) => s, werk: (b, s, i) => s },
+        // je stickers op naam samen; de verwijzingen (recepten en het werkvlak) wijzen daarna naar de goede plek in de nieuwe lijst
+        na: (r, b, s, i, c) => {
+          const el = lijst(s.el).map(x => (Array.isArray(x) ? x.slice() : x)), plek = new Map(), naar = [];
+          el.forEach((x, k) => { if (Array.isArray(x)) plek.set(mmNaam(x[0]), k); });
+          lijst(i.el).forEach((x, k) => {
+            if (!Array.isArray(x)) { naar[k] = -1; return; }
+            const n = mmNaam(x[0]);
+            if (plek.has(n)) { const j = plek.get(n); naar[k] = j; if (x[4] && Array.isArray(el[j])) el[j][4] = 1; return; }
+            const y = x.slice(); y[2] = getal(y[2], -1) >= 0 ? getal(naar[y[2]], -1) : -1; y[3] = getal(y[3], -1) >= 0 ? getal(naar[y[3]], -1) : -1;
+            naar[k] = el.length; plek.set(n, el.length); el.push(y);
+          });
+          r.el = el;
+          // het werkvlak is iets dat bezig is: de laatste versie, met de verwijzingen goed gezet
+          const w = lopend(b && b.werk, s.werk, i.werk, c);
+          r.werk = w === i.werk && w !== s.werk ? lijst(w).map(x => (Array.isArray(x) && naar[x[0]] >= 0 ? [naar[x[0]], x[1], x[2]] : null)).filter(Boolean) : w;
+          return r;
+        } },
+      'rommelblok-v3': { velden: { v: max, inst: elk(keuze),
+        // je gedeelde werelden, per wereld; de sleutel van de eigenaar blijft bewaard
+        samen: (b, s, i, c) => {
+          if (!Array.isArray(s) || !Array.isArray(i)) return keuze(b, s, i, c);
+          const r = s.filter(isObj).map(x => Object.assign({}, x)), m = new Map(r.map(x => [x.i, x]));
+          for (const y of i.filter(isObj)) { const x = m.get(y.i); if (!x) { const z = Object.assign({}, y); r.push(z); m.set(y.i, z); } else if (!x.k && y.k) x.k = y.k; }
+          return r.slice(0, 10);
+        } } },
+      'rommelhoekje-eitjes': { velden: elk(samenLijst) },
+      'rommelhoekje-speler': { heel: true },
+      'gereedschap-v2': { heel: true },
+      'rommelhoekje-thema': { tekst: true },
+      'rommelblok-taal': { tekst: true },
+    };
+    const leesJ = t => { if (typeof t !== 'string') return undefined; try { return JSON.parse(t); } catch (e) { return undefined; } };
+    // Twee versies samenvoegen. bT, sT en iT zijn de opslag als tekst (bT mag null zijn: geen basis bekend).
+    // Geeft { data, wie }: wie is 'in' (de binnenkomende versie blijft), 'server' (wat de server had blijft) of 'samen' (iets nieuws).
+    function voeg(sleutel, bT, sT, iT) {
+      if (sT === iT || typeof sT !== 'string') return { data: iT, wie: 'in' };
+      if (typeof iT !== 'string') return { data: sT, wie: 'server' };
+      const spec = SPEL[sleutel] || { geheel: true }, c = { basis: typeof bT === 'string' };
+      const uit = r => { const t = typeof r === 'string' ? r : JSON.stringify(r); if (t === iT || zelfde(r, leesJ(iT))) return { data: iT, wie: 'in' }; if (t === sT || zelfde(r, leesJ(sT))) return { data: sT, wie: 'server' }; return { data: t, wie: 'samen' }; };
+      if (spec.tekst) return uit(keuze(bT === null ? undefined : bT, sT, iT, c));
+      const b = leesJ(bT), s = leesJ(sT), i = leesJ(iT);
+      if (spec.heel) return s === undefined || i === undefined ? { data: iT, wie: 'in' } : uit(keuze(b, s, i, c));
+      // kapotte opslag: dan wint de leesbare, en anders wat het laatst binnenkwam
+      if (!isObj(s) || !isObj(i)) return isObj(s) ? { data: sT, wie: 'server' } : { data: iT, wie: 'in' };
+      const geheel = () => {
+        const w = vergelijk(maatVan(sleutel, i), maatVan(sleutel, s)) >= 0 ? i : s;
+        if (!spec.keuze) return uit(w);
+        const r = Object.assign({}, w); for (const k of spec.keuze) { const v = keuze(isObj(b) ? b[k] : undefined, s[k], i[k], c); if (v === undefined) delete r[k]; else r[k] = v; }
+        return uit(r);
+      };
+      if (spec.geheel) return geheel();
+      let r; try { r = velden(spec.velden || {}, b, s, i, c); if (spec.na) r = spec.na(r, isObj(b) ? b : null, s, i, c); } catch (e) { r = null; }
+      return r === null || r === undefined ? geheel() : uit(r);
+    }
+    const soort = sleutel => { const s = SPEL[sleutel]; return !s || s.geheel ? 'geheel' : s.tekst || s.heel ? 'keuze' : 'samen'; };
+    return { voeg, soort, maat: (sleutel, t) => maatVan(sleutel, typeof t === 'string' ? leesJ(t) : t), vergelijk, MAAT, SPEL };
+  })();
+  // ==== REGELS eind
   // ================================================================ KOPPELEN: dezelfde voortgang op al je apparaten
   // Een koppelcode (een paar woorden en een getal) verbindt je apparaten. De server bewaart je voortgang alleen bij een versleutelde vorm van die code.
   // De volgorde bepaalt de server (zijn eigen klok), niet de klok van een apparaat. Per spel onthoudt dit apparaat in staat[sleutel] de laatste
@@ -486,12 +750,9 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
   let bezigK = false, eersteK = true;
   const APPARAAT = (() => { try { let a = localStorage.getItem('rommel-apparaat'); if (!a) { a = Array.from(crypto.getRandomValues(new Uint8Array(12)), x => x.toString(16).padStart(2, '0')).join(''); localStorage.setItem('rommel-apparaat', a); } return a; } catch (e) { return ''; } })();
-  async function koppelSync(stil, opties) {
-    opties = opties || {};
-    const K0 = leesK(); if (!K0 || !K0.code || bezigK) return null;
-    const inst = await klaar; const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return null;
-    bezigK = true;
-    try {
+  // het oude koppelen (v2): voor een scoreserver die het nieuwe nog niet kent
+  async function koppelSync2(stil, opties, K0, url) {
+    {
       // de eerste keer met deze versie van de site (overgang): alles meesturen, zodat de server per spel kan kijken of het klopt
       const staat0 = K0.staat || {}, overgang = K0.v !== 2, dag = new Date().toDateString(), groot = Object.assign({}, K0.groot || {});
       const items = {}, bekend = {}, bekendH = {}, verstuurd = {}, teGroot = {};
@@ -565,6 +826,188 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
         toonKoppelMelding(samenHier ? 'Wat je op je andere apparaat deed, is erbij gezet.' : 'Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', haal);
       }
       return j;
+    }
+  }
+  // ================================================================ KOPPELEN 2.0 (v3): alleen wat er veranderde, ingepakt, met generaties
+  // Kent de server het nieuwe koppelen (/status zegt koppel: 3), dan gaat het zo; anders zoals hierboven (v2).
+  // Per spel bewaart dit apparaat in IndexedDB (rommelhoekje, basis) de laatste versie waarover het het met de server eens was. Daarvan
+  // gaat alleen het verschil mee. Bij een botsing vraagt de server om de hele opslag en die basis, en voegen de REGELS samen.
+  // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
+  // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v';
+  const IDB = (() => {
+    let db = null;
+    const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
+    const doe = async (modus, f) => { const d = await open(); if (!d) return null; return new Promise(ok => { try { const t = d.transaction('basis', modus), uit = f(t.objectStore('basis')); t.oncomplete = () => ok(uit ? uit.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } }); };
+    return {
+      async alle() { const d = await open(); const m = new Map(); if (!d) return m; await new Promise(ok => { try { const t = d.transaction('basis', 'readonly'), s = t.objectStore('basis'), k = s.getAllKeys(), v = s.getAll(); t.oncomplete = () => { k.result.forEach((x, i) => m.set(x, v.result[i])); ok(); }; t.onerror = t.onabort = () => ok(); } catch (e) { ok(); } }); return m; },
+      zet: (k, v) => doe('readwrite', s => s.put(v, k)),
+      weg: k => doe('readwrite', s => s.delete(k)),
+      leeg: () => doe('readwrite', s => s.clear()),
+    };
+  })();
+  let basisGeheugen = new Map(), basisGeladen = false;   // een kopie in het geheugen (één keer per pagina uit IndexedDB gelezen), ook voor het laatste verschil bij het sluiten
+  const zetBasis = (k, v) => { basisGeheugen.set(k, v); return IDB.zet(k, v); };
+  // inpakken en uitpakken (deflate-raw); kan de browser dat niet, dan gaat het gewoon onverpakt
+  const kanInpakken = (() => { try { new CompressionStream('deflate-raw'); return true; } catch (e) { return false; } })();
+  const inpak = async t => new Uint8Array(await new Response(new Blob([t]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
+  const uitpak = async b => new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  const naarB64 = u => { let s = ''; for (let i = 0; i < u.length; i += 32768) s += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(s); };
+  const vanB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  // het verschil tussen twee teksten: [plek, hoeveel tekens eruit, wat erin]
+  const verschil = (a, b) => { const m = Math.min(a.length, b.length); let p = 0; while (p < m && a.charCodeAt(p) === b.charCodeAt(p)) p++; let e = 0; while (e < m - p && a.charCodeAt(a.length - 1 - e) === b.charCodeAt(b.length - 1 - e)) e++; return [p, a.length - p - e, b.slice(p, b.length - e)]; };
+  // kent de server het nieuwe koppelen? (een uur onthouden; gaat er iets mis, dan meteen opnieuw kijken)
+  async function serverV3(inst) {
+    try { const c = JSON.parse(localStorage.getItem(KV) || 'null'); if (c && Date.now() - c.t < 3600e3 && c.u === adres(inst)) return c.v === 3; } catch (e) {}
+    let v = 2; try { const r = await metTijd(adres(inst) + '/status', { cache: 'no-store' }, 8000); const j = await r.json(); if (j && j.koppel >= 3) v = 3; } catch (e) { return false; }
+    try { localStorage.setItem(KV, JSON.stringify({ v, t: Date.now(), u: adres(inst) })); } catch (e) {}
+    return v === 3;
+  }
+  const vergeetV3 = () => { try { localStorage.removeItem(KV); } catch (e) {} };
+  // opnieuw beginnen in een spel: roep dit aan vlak vóór het spel zijn nieuwe, lege stand bewaart (of zijn opslag weghaalt).
+  // We onthouden hoe de opslag er op dat moment uitzag: schrijft het spel daarna niets nieuws (bijvoorbeeld in een test), dan telt het niet.
+  const nuH = k => { try { const v = localStorage.getItem(k); return v === null ? '' : hash(v); } catch (e) { return ''; } };
+  function opnieuw(sleutel) { const K = leesK(); if (!K || !K.code || !SLEUTELS.includes(sleutel)) return; (K.opnieuw = K.opnieuw || {})[sleutel] = nuH(sleutel); schrijfK(K); }
+  const isOpnieuw = (K, k, v) => !!(K.opnieuw && k in K.opnieuw && K.opnieuw[k] !== (v === null ? '' : hash(v)));
+  // per spel: wat er naar de server gaat (of null als er niets veranderde)
+  async function item3(k, v, st, b, K, groot, dag) {
+    const nieuw = isOpnieuw(K, k, v);
+    if (v === null) return st && st.h && st.h !== 'weg' && !String(st.h).startsWith('hulp:') ? { t: st.t || 0, h: st.h, weg: 1, nieuw: nieuw ? 1 : undefined } : null;
+    const hv = hash(v);
+    if (st && st.h === hv && !nieuw) return null;
+    if (v.length > MAX3) { if (groot[k] !== dag) { groot[k] = dag; return { teGroot: v.length }; } return null; }
+    const it = { t: st ? st.t || 0 : 0, h: st && st.h ? st.h : '', nh: hv };
+    if (nieuw) it.nieuw = 1;
+    if (K.hulpUit && K.hulpUit[k]) it.hulp = K.hulpUit[k];
+    if (v.length > GROOT && kanInpakken) { const z = naarB64(await inpak(v)); if (z.length > 2.6e6) { if (groot[k] !== dag) { groot[k] = dag; return { teGroot: v.length }; } return null; } it.z = z; return it; }
+    if (b && typeof b.data === 'string' && st && b.h === st.h && !nieuw) { const d = verschil(b.data, v); if (d[2].length < v.length * 0.7) { it.d = d; return it; } }
+    it.data = v; return it;
+  }
+  async function koppelSync3(stil, opties, K0, url) {
+    const staat0 = K0.staat || {}, dag = new Date().toDateString(), groot = Object.assign({}, K0.groot || {});
+    if (!basisGeladen) { basisGeheugen = await IDB.alle(); basisGeladen = true; }
+    const basis = basisGeheugen;
+    const items = {}, kent = {}, kentH = {}, verstuurd = {}, teGroot = {};
+    for (const k of SLEUTELS) {
+      let v = null; try { v = localStorage.getItem(k); } catch (e) {}
+      const st = staat0[k];
+      if (st) { kent[k] = st.t || 0; if (st.h) kentH[k] = st.h; }
+      const it = await item3(k, v, st, basis.get(k), K0, groot, dag);
+      if (!it) continue;
+      if (it.teGroot) { teGroot[k] = it.teGroot; continue; }
+      items[k] = it; verstuurd[k] = v;
+    }
+    const H0 = leesH();
+    const stuurOp = async lijf => {
+      const tekst = JSON.stringify(lijf), z = kanInpakken && tekst.length > 600;
+      const r = await metTijd(url + '/sync' + (z ? '?z=1' : ''), { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: z ? new Blob([await inpak(tekst)]) : tekst }, 20000);
+      const j = await r.json().catch(() => null);
+      // een oude scoreserver (die geen v: 3 terugzegt): opnieuw kijken welke versie hij is; even te druk of in onderhoud: gewoon later nog eens
+      if (r.ok && j && j.ok && j.v !== 3) vergeetV3();
+      return r.ok && j && j.ok && j.v === 3 ? j : null;
+    };
+    const lijf = { v: 3, code: K0.code, items, kent, kentH, apparaat: APPARAAT, hulpKan: 1, ontvangen: H0.ontvangen, gezien: H0.gezien, teGroot, koppelen: opties.koppelen ? 1 : 0 };
+    let j = await stuurOp(lijf); if (!j) return null;
+    // de server wil van een paar spellen de hele opslag en de basis (een botsing, of een verschil dat niet meer klopte): meteen nog eens
+    if (Array.isArray(j.stuur) && j.stuur.length) {
+      const nog = {};
+      for (const k of j.stuur) { if (!items[k]) continue; const v = verstuurd[k], b = basis.get(k), it = Object.assign({}, items[k]); delete it.d; if (typeof v === 'string' && !it.z) it.data = v; if (b && typeof b.data === 'string' && staat0[k] && b.h === staat0[k].h) it.basis = b.data; nog[k] = it; }
+      const j2 = Object.keys(nog).length ? await stuurOp(Object.assign({}, lijf, { items: nog, ontvangen: [], gezien: [], teGroot: {} })) : null;
+      if (j2) { for (const s of ['gezet', 'vervangen', 'geweigerd', 'gelijk']) j[s] = Object.assign({}, j[s] || {}, j2[s] || {}); j.items = Object.assign({}, j.items || {}, j2.items || {}); j.hulp = j2.hulp || j.hulp; }
+      for (const k of j.stuur) if (!(j.gezet && j.gezet[k]) && !(j.vervangen && j.vervangen[k])) { delete verstuurd[k]; }
+    }
+    // opnieuw lezen: een ander tabblad kan intussen ook iets hebben bijgewerkt
+    const K = leesK(); if (!K || K.code !== K0.code) return null;
+    K.staat = K.staat || {}; K.groot = groot;
+    const H = leesH(); H.ontvangen = H.ontvangen.filter(n => !H0.ontvangen.includes(n)); H.gezien = H.gezien.filter(n => !H0.gezien.includes(n));
+    const lees = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const naamOpnieuw = () => { try { speler = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) {} document.dispatchEvent(new CustomEvent('scorebord-naam')); };
+    const wacht = [];
+    // wat de server van dit apparaat aannam: dat is nu de gezamenlijke versie
+    for (const [k, g] of Object.entries(j.gezet || {})) if (k in verstuurd && !(j.vervangen && j.vervangen[k]) && g && g.h) {
+      K.staat[k] = { t: g.t, h: g.h }; wacht.push(zetBasis(k, { t: g.t, h: g.h, data: verstuurd[k] }));
+      if (K.opnieuw && items[k] && items[k].nieuw) delete K.opnieuw[k];
+      if (K.hulpUit && items[k] && items[k].hulp) delete K.hulpUit[k];
+    }
+    if (K.hulpUit && !Object.keys(K.hulpUit).length) delete K.hulpUit;
+    // een opnieuw-beginnen waarna het spel niets nieuws schreef, telt niet
+    if (K.opnieuw) for (const k of Object.keys(K.opnieuw)) if (!(items[k] && items[k].nieuw) && K.opnieuw[k] === nuH(k)) delete K.opnieuw[k];
+    if (K.opnieuw && !Object.keys(K.opnieuw).length) delete K.opnieuw;
+    for (const [k, t] of Object.entries(j.gelijk || {})) if (K.staat[k] && K.staat[k].h === kentH[k]) K.staat[k].t = t;
+    const herstel = {}, herstelStaat = {}; let nieuwHier = false, geweigerdHier = '', vervangenHier = false, samenHier = false, opnieuwHier = false, hulpHier = false;
+    // voor wie het nieuwe antwoord leest (zoals Rommelland): items met de opslag als tekst
+    const terug = Object.assign({}, j, { items: {} });
+    for (const [k, it] of Object.entries(j.items || {})) {
+      if (!SLEUTELS.includes(k) || !it) continue;
+      let data; if (it.weg) data = null; else if (typeof it.z === 'string') { try { data = await uitpak(vanB64(it.z)); } catch (e) { continue; } } else if (typeof it.data === 'string') data = it.data; else continue;
+      if (data !== null) terug.items[k] = { t: it.t, data };
+      const hier = lees(k), st = K.staat[k], weg = j.geweigerd && j.geweigerd[k], verv = j.vervangen && j.vervangen[k], nieuw = { t: it.t, h: it.h || (data === null ? 'weg' : hash(data)) };
+      if (hier === data) { K.staat[k] = nieuw; wacht.push(zetBasis(k, { t: it.t, h: nieuw.h, data })); continue; }
+      // Mag de versie van de server hier neergezet worden? Alleen als hier intussen niet verder gespeeld is.
+      let mag;
+      if (k in verstuurd) mag = !!(weg || verv) && hier === verstuurd[k];
+      else if (hier === null) mag = !st || st.h === 'weg' || it.t > (st.t || 0);
+      else mag = !!st && st.h === hash(hier);
+      if (!mag) continue;
+      wacht.push(zetBasis(k, { t: it.t, h: nieuw.h, data }));
+      if (vanDezePagina(k)) { herstel[k] = data; herstelStaat[k] = nieuw; nieuwHier = true; if (weg) geweigerdHier = weg; else if (verv === 'samen') samenHier = true; else if (verv === 'opnieuw') opnieuwHier = true; else if (verv) vervangenHier = true; }
+      else { try { if (data === null) localStorage.removeItem(k); else localStorage.setItem(k, data); } catch (e) {} K.staat[k] = nieuw; if (k === SKEY) naamOpnieuw(); }
+    }
+    // hulp van Ruben: neerzetten, en altijd laten zien wat hij deed (zie toonHulp); er verandert nooit iets zonder bericht
+    const berichten = [];
+    for (const h of Array.isArray(j.hulp) ? j.hulp : []) {
+      if (!h || !h.nr || !/^[a-z0-9-]{3,40}$/.test(h.sleutel || '') || !['zet', 'wijzig', 'wis'].includes(h.soort)) continue;
+      if (H.gehad.includes(h.nr)) { if (!H.ontvangen.includes(h.nr)) H.ontvangen.push(h.nr); continue; }
+      let nieuw = null, ops = null; const oud = h.sleutel in herstel ? herstel[h.sleutel] : lees(h.sleutel);
+      try { if (h.soort === 'zet') nieuw = String(h.data); else if (h.soort === 'wijzig') { ops = JSON.parse(h.data); nieuw = wijzig(oud, ops); } } catch (e) { continue; }
+      if (vanDezePagina(h.sleutel)) { herstel[h.sleutel] = nieuw; delete herstelStaat[h.sleutel]; nieuwHier = true; hulpHier = true; }
+      else { try { if (nieuw === null) localStorage.removeItem(h.sleutel); else localStorage.setItem(h.sleutel, nieuw); } catch (e) {} }
+      if (h.sleutel === SKEY) naamOpnieuw();
+      if (nieuw === null) delete K.staat[h.sleutel]; else { K.staat[h.sleutel] = { h: 'hulp:' + h.nr, t: 0 }; (K.hulpUit = K.hulpUit || {})[h.sleutel] = h.nr; }
+      H.gehad.push(h.nr); H.ontvangen.push(h.nr);
+      berichten.push({ nr: h.nr, cadeau: !!(ops && ops.length && ops.every(o => 'erbij' in o && o.erbij > 0)), titel: String(h.titel || '').slice(0, 60), bericht: String(h.bericht || '').slice(0, 300) });
+    }
+    schrijfH(H);
+    K.laatst = Date.now(); K.v = 3; schrijfK(K);
+    await Promise.all(wacht);
+    if (berichten.length && !hulpHier) { toonHulp(berichten); setTimeout(() => koppelSync(true), 1500); }
+    // nieuwe voortgang voor het spel dat nu open is: neerzetten bij het herladen (bovenaan dit blok, vóór het spel zijn opslag leest)
+    if (nieuwHier) {
+      const bewaar = soort => { try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); sessionStorage.setItem('koppel-herstel-v', JSON.stringify({ code: K.code, staat: herstelStaat })); if (soort) sessionStorage.setItem(soort[0], soort[1]); } catch (e) {} location.reload(); };
+      if (hulpHier) { bewaar(['koppel-hulp', JSON.stringify(berichten)]); return terug; }
+      if (geweigerdHier) { bewaar(['koppel-geweigerd', geweigerdHier]); return terug; }
+      if (opnieuwHier) { bewaar(['koppel-opnieuw', '1']); return terug; }
+      if (vervangenHier) { bewaar(['koppel-vervangen', '1']); return terug; }
+      if ((eersteK && !stil) || opties.herlaad) { bewaar(samenHier ? ['koppel-samen', '1'] : null); return terug; }
+      const haal = async () => { const x = await koppelSync(true, { herlaad: true }); if (!x && bezigK) setTimeout(haal, 1500); };
+      toonKoppelMelding(samenHier ? 'Wat je op je andere apparaat deed, is erbij gezet.' : 'Op een ander apparaat is verder gespeeld.', 'Haal die voortgang op', haal);
+    }
+    return terug;
+  }
+  // bij het sluiten van een pagina: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is (alleen het verschil)
+  function sluitSync3(K, url) {
+    let hs = {}; try { hs = JSON.parse(sessionStorage.getItem('koppel-herstel') || '{}') || {}; } catch (e) {}
+    const items = {}; let grootte = 0;
+    for (const k of SLEUTELS) {
+      if (k in hs) continue; let v = null; try { v = localStorage.getItem(k); } catch (e) {}
+      const st = (K.staat || {})[k], nieuw = isOpnieuw(K, k, v); if (v === null || (st && st.h === hash(v) && !nieuw)) continue;
+      const it = { t: st ? st.t || 0 : 0, h: st && st.h ? st.h : '', nh: hash(v) }, b = basisGeheugen.get(k);
+      if (nieuw) it.nieuw = 1; if (K.hulpUit && K.hulpUit[k]) it.hulp = K.hulpUit[k];
+      if (b && typeof b.data === 'string' && st && b.h === st.h && !it.nieuw) it.d = verschil(b.data, v); else it.data = v;
+      const n = it.d ? it.d[2].length + 40 : v.length; if (grootte + n > 60000) continue; grootte += n; items[k] = it;
+    }
+    if (!Object.keys(items).length) return;
+    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1 }), keepalive: true }); } catch (e) {}
+  }
+  // gelijkzetten: het nieuwe koppelen als de server het kent, anders het oude
+  async function koppelSync(stil, opties) {
+    opties = opties || {};
+    const K0 = leesK(); if (!K0 || !K0.code || bezigK) return null;
+    const inst = await klaar, url = adres(inst); if (!url) return null;
+    bezigK = true; laatsteSync = Date.now();
+    try {
+      if (await serverV3(inst)) { const j = await koppelSync3(stil, opties, K0, url); if (j || (await serverV3(inst))) return j; }
+      return await koppelSync2(stil, opties, K0, url);
     } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
   }
   const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
@@ -580,7 +1023,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     let rb = ''; try { const s = JSON.parse(localStorage.getItem('rommelbeesten-speler') || 'null'); if (s && s.geheim) rb = String(s.geheim); } catch (e) {}
     try { const r = await metTijd(u + '/account/weg', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, rb }) }); const j = await r.json().catch(() => ({})); if (r.status === 404) return 'Dit kan nog niet: de server krijgt binnenkort een nieuwe versie. Stuur Ruben anders een berichtje via de ideeënbox (kies Mijn gegevens).'; if (!r.ok) return j.fout || 'Dat lukte niet. Probeer het later opnieuw.'; } catch (e) { return 'Dat lukte niet. Controleer je internet en probeer het opnieuw.'; }
     if (API.doetMee()) await API.stopEnVerwijder();
-    schrijfK({ uit: true, sinds: Date.now() });
+    schrijfK({ uit: true, sinds: Date.now() }); IDB.leeg();
     return '';
   }
   // het bericht als Ruben je hielp: je ziet altijd wat hij deed
@@ -640,10 +1083,10 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     if (q('kp-koppel')) { const ga = async () => { q('kp-fout').textContent = 'Even bezig...'; const f = await gebruikCode(q('kp-invoer').value); if (f) q('kp-fout').textContent = f; else openKoppel(); }; q('kp-koppel').onclick = ga; q('kp-invoer').onkeydown = e => { if (e.key === 'Enter') ga(); }; }
     if (q('kp-nu')) q('kp-nu').onclick = async () => { q('kp-fout').textContent = 'Even bezig...'; const j = await koppelSync(true); q('kp-fout').textContent = j ? 'Alles is gelijkgezet.' : 'Dat lukte niet. Controleer je internet.'; };
     if (q('kp-weg')) q('kp-weg').onclick = async () => { if (!confirm('Je gegevens van de server halen?\n\nDan wissen we op de server: je voortgang van alle spellen, je Rommelbeesten-verzameling en, als je meedoet, je naam en scores op het scorebord. Op dit apparaat blijft je voortgang gewoon staan, maar je andere apparaten krijgen hem niet meer.\n\nDit apparaat bewaart daarna niets meer op de server, tot je zelf weer een koppelcode maakt.')) return; q('kp-fout').textContent = 'Even bezig...'; const f = await verwijderAccount(); if (f) { q('kp-fout').textContent = f; return; } openKoppel(); toonKoppelMelding('Je gegevens zijn van de server gehaald.'); };
-    if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); openKoppel(); };
+    if (q('kp-los')) q('kp-los').onclick = () => { if (!confirm('Ontkoppelen? Je voortgang blijft op dit apparaat staan, maar gaat niet meer mee naar je andere apparaten.')) return; schrijfK(null); IDB.leeg(); openKoppel(); };
     if (!dlg.open) dlg.showModal();
   }
-  API.koppel = openKoppel; API.koppelSync = koppelSync; API.gebruikCode = gebruikCode;
+  API.koppel = openKoppel; API.koppelSync = koppelSync; API.gebruikCode = gebruikCode; API.opnieuw = opnieuw;
   // ---------- betrouwbaarheid: hetzelfde spel maar in één tabblad tegelijk, anders overschrijven ze elkaars voortgang
   (function tabbladBewaker() {
     if (!('BroadcastChannel' in window)) return;
@@ -683,6 +1126,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   setTimeout(() => { const K = leesK(); if (!K || (!K.code && !K.uit)) maakKoppeling().catch(() => {}); }, 2500);
   // werd een opslag geweigerd (valsspelen)? Dan even uitleggen waarom de stand terug is gezet
   try { if (sessionStorage.getItem('koppel-vervangen')) { sessionStorage.removeItem('koppel-vervangen'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald: daar was je verder.'), 900)); } } catch (e) {}
+  try { if (sessionStorage.getItem('koppel-opnieuw')) { sessionStorage.removeItem('koppel-opnieuw'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Op een ander apparaat ben je hier opnieuw begonnen. Je vorige voortgang is bewaard.'), 900)); } } catch (e) {}
   try { if (sessionStorage.getItem('koppel-samen')) { sessionStorage.removeItem('koppel-samen'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Wat je op je andere apparaat deed, is erbij gezet.'), 900)); } } catch (e) {}
   try { const w = sessionStorage.getItem('koppel-geweigerd'); if (w) { sessionStorage.removeItem('koppel-geweigerd'); addEventListener('load', () => setTimeout(() => alert('Je voortgang ging sneller dan de server kon controleren (' + w + '), dus hij is teruggezet naar de laatste goedgekeurde stand.\n\nSpeel je hetzelfde spel in twee tabbladen of op twee apparaten tegelijk? Gebruik er dan één tegelijk, dan gebeurt dit niet meer. Klopt er iets niet, laat het Ruben weten via de ideeënbox.'), 400)); } } catch (e) {}
   // op de homepage en het scorebord een knopje
@@ -690,12 +1134,24 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   try { const hb = sessionStorage.getItem('koppel-hulp'); if (hb) { sessionStorage.removeItem('koppel-hulp'); const lijst = JSON.parse(hb); addEventListener('load', () => setTimeout(() => { toonHulp(lijst); setTimeout(() => koppelSync(true), 1500); }, 500)); } } catch (e) {}
   try { if (sessionStorage.getItem('koppel-melding')) { sessionStorage.removeItem('koppel-melding'); addEventListener('DOMContentLoaded', () => toonKoppelMelding('Je voortgang van je andere apparaat is opgehaald.')); } } catch (e) {}
   klaar.then(() => setTimeout(() => koppelSync(false), 600));
-  setInterval(() => { if (!document.hidden) koppelSync(true); }, 30000);
+  // kort na een verandering in een spel gelijkzetten (hooguit eens per 30 seconden), en anders elke minuut even kijken
+  let laatsteSync = 0, gepland = null;
+  const plan = ms => { if (gepland) return; gepland = setTimeout(() => { gepland = null; const nog = 30000 - (Date.now() - laatsteSync); if (nog > 0) return plan(nog); koppelSync(true); }, ms); };
+  try {
+    const zet = Storage.prototype.setItem, haalWeg = Storage.prototype.removeItem, opslag = localStorage;
+    Storage.prototype.setItem = function (k, v) { const r = zet.call(this, k, v); if (this === opslag && SLEUTELS.includes(k)) plan(5000); return r; };
+    Storage.prototype.removeItem = function (k) { const r = haalWeg.call(this, k); if (this === opslag && SLEUTELS.includes(k)) plan(5000); return r; };
+  } catch (e) {}
+  setInterval(() => { if (!document.hidden && Date.now() - laatsteSync > 55000) koppelSync(true); }, 60000);
   // eerst het spel laten opslaan, dan pas meesturen
   document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => koppelSync(true), 400); });
   // bij het sluiten: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is
   addEventListener('load', () => addEventListener('pagehide', () => {
-    const K = leesK(); if (!K || !K.code || K.v !== 2) return;
+    const K = leesK(); if (!K || !K.code) return;
+    // het nieuwe koppelen: alleen het verschil
+    let v3 = false; try { const c = JSON.parse(localStorage.getItem(KV) || 'null'); v3 = !!(c && c.v === 3); } catch (e) {}
+    if (v3) { klaar.then(inst => { const url = adres(inst); if (url) sluitSync3(K, url); }); return; }
+    if (K.v !== 2) return;
     // wat bij het herladen nog wordt neergezet, sturen we niet (dat is de versie die het niet wordt)
     let hs = {}; try { hs = JSON.parse(sessionStorage.getItem('koppel-herstel') || '{}') || {}; } catch (e) {}
     klaar.then(inst => { const url = (inst.scoreUrl || '').replace(/\/+$/, ''); if (!url) return; const items = {}; let grootte = 0;

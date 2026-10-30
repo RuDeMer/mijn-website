@@ -1,6 +1,11 @@
 # Plan: een nieuw hart voor het koppelen
 
-Voorstel van Claude Code, 30 oktober 2026. **Nog niet goedgekeurd.** Er is nog niets gebouwd of veranderd.
+Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktober 2026**, met de keuzes die steeds als eerste stonden.
+
+**Stand: fase 1 is gebouwd** (scoreserver 2026-10-30, het gedeelde blok, de spellen). Wat er bij het bouwen anders is gegaan dan hieronder staat:
+- Bij Rommelpoker en Rommelbeesten roept het spel nu toch zelf `Scorebord.opnieuw` aan (bij "Nieuw spel", na verlies en bij "Alles wissen"). Een weggehaalde opslag zonder `opnieuw` wint namelijk alleen als het apparaat niet achterliep: zo veegt een apparaat dat achterloopt geen nieuwere voortgang weg.
+- De controle tegen valsspelen kijkt ook naar "opnieuw beginnen" (anders kon je hem daarmee overslaan).
+- De generatie onthoudt de server als `gt`, het volgnummer waarmee hij begon. Een apparaat hoeft hem dus niet zelf te kennen.
 
 ---
 
@@ -107,8 +112,8 @@ Verder geldt overal:
 |---|---|---|---|
 | Ruben de Duiker ("Opnieuw beginnen", "Nieuw spel") | Schrijft een nieuwe, lege stand. | Een ander apparaat met je oude spel heeft meer voortgang, en zet dat oude spel terug. | `Scorebord.opnieuw('rubendeduiker-v1')` |
 | Mengelmoes ("Opnieuw") | Schrijft een nieuwe, lege stand. | Hetzelfde. | `Scorebord.opnieuw('mengelmoes-v1')` |
-| Rommelpoker ("Nieuw spel", en na verlies) | Wist het lopende potje. | Een ander apparaat zet het oude potje terug. | Niets aan het spel: wissen wordt in het gedeelde blok vanzelf een nieuwe generatie. |
-| Rommelbeesten (beheermenu, "Alles wissen") | Wist de opslag. | Hetzelfde. | Niets aan het spel, om dezelfde reden. |
+| Rommelpoker ("Nieuw spel", en na verlies) | Wist het lopende potje. | Een ander apparaat zet het oude potje terug. | `Scorebord.opnieuw('rommelpoker-spel-v2')` vóór het wissen. |
+| Rommelbeesten (beheermenu, "Alles wissen") | Wist de opslag. | Hetzelfde. | `Scorebord.opnieuw('rommelbeesten-v1')` vóór het wissen. |
 | Vlaaienbakker ("Opnieuw beginnen") | Nieuwe stand, met `opnieuw` + 1. | Gaat al goed (`opnieuw` staat vooraan in de maat). | Voor de zekerheid ook `Scorebord.opnieuw`. |
 | Rommelland ("Opnieuw beginnen", "Ongedaan maken", "Vorig park") | Eigen oplossing met `nieuw`. | Gaat al goed. | `Scorebord.opnieuw` in `zetPark`. De eigen oplossing blijft voorlopig staan, voor oude apparaten. |
 | Rommelkroon, Rommelsteek, Rommelwheels ("Opnieuw" bij één puzzel of level) | Maakt alleen dat ene bord leeg. | Niets: dat is geen nieuwe start van het hele spel. | Niets. |

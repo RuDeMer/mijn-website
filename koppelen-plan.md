@@ -22,6 +22,12 @@ Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktobe
 - De knop Tijdmachine staat er pas als de server hem kent; zo kunnen fase 2 en 3 online vóór de nieuwe scoreserver.
 - Het gedeelde blok werd groter dan 100.000 tekens: de controle van de gedeelde blokken kijkt nu naar `const HOME_ONDERDELEN`.
 
+**Stand: fase 4 is gebouwd** (scoreserver 2026-10-30c, de worker `rommellive`, het gedeelde blok, de vier dagpuzzels). Wat er anders is gegaan dan hieronder staat:
+- De server belt ook zelf aan als de pagina nog geen open deurbel had (`bel: 1`) en bij het sluiten van een pagina, niet alleen na hulp en terugzetten.
+- Het live-haakje zit nu in de vier dagpuzzels (Rommelwoord, Rommelgroepjes, Op Gevoel en Rommelkroon), niet in alle puzzelspellen.
+- Twee tabbladen op één apparaat: met Web Locks laat een ander tabblad een spel dat elders open staat met rust (dat kon vroeger misgaan).
+- De vraag "waar wil je verder spelen" is een echt venster (`showModal`), zodat hij ook boven een venster van het spel komt.
+
 ---
 
 ## 0. Eerst: wat er al is

@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' wss://rommellive.rubendm.workers.dev https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Rommelarend – Ruben's rommelhoekje</title>
 <meta name="description" content="Vlieg als arend over Parijs. Ontdek de Eiffeltoren, de Arc de Triomphe, de Notre-Dame en meer, verzamel gouden veren en vlieg wedstrijden door ringen.">
@@ -585,7 +585,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
   const hash = t => { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ':' + t.length; };
   const pagina = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
-  const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(pagina);
+  const EIGEN = { rob: 'rommelrob', steigerstress: 'steiger' };   // pagina's die anders heten dan hun opslag
+  const vanDezePagina = k => pagina && pagina !== 'index' && k.startsWith(EIGEN[pagina] || pagina);
   let bezigK = false, eersteK = true;
   const APPARAAT = (() => { try { let a = localStorage.getItem('rommel-apparaat'); if (!a) { a = Array.from(crypto.getRandomValues(new Uint8Array(12)), x => x.toString(16).padStart(2, '0')).join(''); localStorage.setItem('rommel-apparaat', a); } return a; } catch (e) { return ''; } })();
   // het oude koppelen (v2): voor een scoreserver die het nieuwe nog niet kent
@@ -747,7 +748,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       if (r.ok && j && j.ok && j.v !== 3) vergeetV3();
       return r.ok && j && j.ok && j.v === 3 ? j : null;
     };
-    const lijf = { v: 3, code: K0.code, items, kent, kentH, apparaat: APPARAAT, hulpKan: 1, ontvangen: H0.ontvangen, gezien: H0.gezien, teGroot, koppelen: opties.koppelen ? 1 : 0 };
+    const lijf = { v: 3, code: K0.code, items, kent, kentH, apparaat: APPARAAT, hulpKan: 1, ontvangen: H0.ontvangen, gezien: H0.gezien, teGroot, koppelen: opties.koppelen ? 1 : 0, live: LIVE.kan ? 1 : 0, bel: LIVE.open(K0.code) ? 0 : 1 };
     let j = await stuurOp(lijf); if (!j) return null;
     // de server wil van een paar spellen de hele opslag en de basis (een botsing, of een verschil dat niet meer klopte): meteen nog eens
     if (Array.isArray(j.stuur) && j.stuur.length) {
@@ -775,6 +776,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     if (K.opnieuw) for (const k of Object.keys(K.opnieuw)) if (!(items[k] && items[k].nieuw) && K.opnieuw[k] === nuH(k)) delete K.opnieuw[k];
     if (K.opnieuw && !Object.keys(K.opnieuw).length) delete K.opnieuw;
     for (const [k, t] of Object.entries(j.gelijk || {})) if (K.staat[k] && K.staat[k].h === kentH[k]) K.staat[k].t = t;
+    const elders = await openElders(), liveNu = [], geschreven = [];
     const herstel = {}, herstelStaat = {}; let nieuwHier = false, geweigerdHier = '', vervangenHier = false, samenHier = false, opnieuwHier = false, hulpHier = false;
     // voor wie het nieuwe antwoord leest (zoals Rommelland): items met de opslag als tekst
     const terug = Object.assign({}, j, { items: {} });
@@ -790,19 +792,28 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       else if (hier === null) mag = !st || st.h === 'weg' || it.t > (st.t || 0);
       else mag = !!st && st.h === hash(hier);
       if (!mag) continue;
+      // staat dit spel in een ander tabblad open, dan zet dat tabblad het zelf neer (anders bewaart het spel daar straks zijn oude stand)
+      if (!vanDezePagina(k) && elders(k)) continue;
+      // een spel dat live kan bijwerken (Scorebord.live): meteen in het open spel, zonder te herladen (behalve als er om herladen
+      // gevraagd is, zoals na terugzetten met de tijdmachine)
+      if (vanDezePagina(k) && liveHaak[k] && !weg && verv !== 'opnieuw' && !opties.herlaad) {
+        let ok = false; try { ok = liveHaak[k](leesJSON(data), data) !== false; } catch (e) { ok = false; }
+        if (ok) { wacht.push(zetBasis(k, { t: it.t, h: nieuw.h, data })); try { if (data === null) localStorage.removeItem(k); else localStorage.setItem(k, data); } catch (e) {} K.staat[k] = nieuw; liveNu.push(verv === 'samen'); continue; }
+      }
       wacht.push(zetBasis(k, { t: it.t, h: nieuw.h, data }));
       if (vanDezePagina(k)) { herstel[k] = data; herstelStaat[k] = nieuw; nieuwHier = true; if (weg) geweigerdHier = weg; else if (verv === 'samen') samenHier = true; else if (verv === 'opnieuw') opnieuwHier = true; else if (verv) vervangenHier = true; }
-      else { try { if (data === null) localStorage.removeItem(k); else localStorage.setItem(k, data); } catch (e) {} K.staat[k] = nieuw; if (k === SKEY) naamOpnieuw(); }
+      else { try { if (data === null) localStorage.removeItem(k); else localStorage.setItem(k, data); } catch (e) {} K.staat[k] = nieuw; geschreven.push(k); if (k === SKEY) naamOpnieuw(); }
     }
     // hulp van Ruben: neerzetten, en altijd laten zien wat hij deed (zie toonHulp); er verandert nooit iets zonder bericht
     const berichten = [];
     for (const h of Array.isArray(j.hulp) ? j.hulp : []) {
       if (!h || !h.nr || !/^[a-z0-9-]{3,40}$/.test(h.sleutel || '') || !['zet', 'wijzig', 'wis'].includes(h.soort)) continue;
       if (H.gehad.includes(h.nr)) { if (!H.ontvangen.includes(h.nr)) H.ontvangen.push(h.nr); continue; }
+      if (!vanDezePagina(h.sleutel) && elders(h.sleutel)) continue;   // dat tabblad zet het zelf neer
       let nieuw = null, ops = null; const oud = h.sleutel in herstel ? herstel[h.sleutel] : lees(h.sleutel);
       try { if (h.soort === 'zet') nieuw = String(h.data); else if (h.soort === 'wijzig') { ops = JSON.parse(h.data); nieuw = wijzig(oud, ops); } } catch (e) { continue; }
       if (vanDezePagina(h.sleutel)) { herstel[h.sleutel] = nieuw; delete herstelStaat[h.sleutel]; nieuwHier = true; hulpHier = true; }
-      else { try { if (nieuw === null) localStorage.removeItem(h.sleutel); else localStorage.setItem(h.sleutel, nieuw); } catch (e) {} }
+      else { try { if (nieuw === null) localStorage.removeItem(h.sleutel); else localStorage.setItem(h.sleutel, nieuw); } catch (e) {} geschreven.push(h.sleutel); }
       if (h.sleutel === SKEY) naamOpnieuw();
       if (nieuw === null) delete K.staat[h.sleutel]; else { K.staat[h.sleutel] = { h: 'hulp:' + h.nr, t: 0 }; (K.hulpUit = K.hulpUit || {})[h.sleutel] = h.nr; }
       H.gehad.push(h.nr); H.ontvangen.push(h.nr);
@@ -812,6 +823,9 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     K.laatst = Date.now(); K.v = 3; schrijfK(K);
     await Promise.all(wacht);
     if (berichten.length && !hulpHier) { toonHulp(berichten); setTimeout(() => koppelSync(true), 1500); }
+    // voor de homepage (Puzzels van vandaag): er staat iets nieuws in de opslag
+    if (geschreven.length) try { dispatchEvent(new CustomEvent('rommelhoekje-bijgewerkt', { detail: { sleutels: geschreven } })); } catch (e) {}
+    if (liveNu.length && !nieuwHier) toonKoppelMelding(liveNu.some(x => x) ? 'Wat je op je andere apparaat deed, is erbij gezet.' : 'Bijgewerkt met je andere apparaat.');
     // nieuwe voortgang voor het spel dat nu open is: neerzetten bij het herladen (bovenaan dit blok, vóór het spel zijn opslag leest)
     if (nieuwHier) {
       const bewaar = soort => { try { sessionStorage.setItem('koppel-herstel', JSON.stringify(herstel)); sessionStorage.setItem('koppel-herstel-v', JSON.stringify({ code: K.code, staat: herstelStaat })); if (soort) sessionStorage.setItem(soort[0], soort[1]); } catch (e) {} location.reload(); };
@@ -828,13 +842,13 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   // bij het sluiten van een pagina: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is (alleen het verschil)
   function sluitSync3(K, url) {
     const items = sluitItems(K, 60000); if (!items) return;
-    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1 }), keepalive: true }); } catch (e) {}
+    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1, live: 1 }), keepalive: true }); } catch (e) {}
   }
   // zonder internet: wat er veranderde, in de wachtrij voor de service worker (die stuurt het zodra er weer verbinding is, ook als de
   // pagina dicht is; Chrome en Android). Zet deze pagina later zelf gelijk, dan haalt ze de wachtrij weer weg.
   function wachtrij(K, url) {
     const items = sluitItems(K, 1.5e6); if (!items) return;
-    IDB.uitZet('sync', { url: url + '/sync', body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1 }), t: Date.now() })
+    IDB.uitZet('sync', { url: url + '/sync', body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1, live: 1 }), t: Date.now() })
       .then(() => { if (navigator.serviceWorker && navigator.serviceWorker.ready) return navigator.serviceWorker.ready.then(r => r.sync && r.sync.register('rommelhoekje-sync')); }).catch(() => {});
   }
   function sluitItems(K, max) {
@@ -858,10 +872,130 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     const inst = await klaar, url = adres(inst); if (!url) return null;
     bezigK = true; laatsteSync = Date.now();
     try {
-      if (await serverV3(inst)) { const j = await koppelSync3(stil, opties, K0, url); if (j) IDB.uitWeg('sync'); if (j || (await serverV3(inst))) return j; }
+      if (await serverV3(inst)) { const j = await koppelSync3(stil, opties, K0, url); if (j) { IDB.uitWeg('sync'); LIVE.na(j); } if (j || (await serverV3(inst))) return j; }
       return await koppelSync2(stil, opties, K0, url);
     } catch (e) { return null; } finally { bezigK = false; eersteK = false; }
   }
+  // ================================================================ LIVE (koppelen 2.0, fase 4): de deurbel
+  // Met een kaartje uit het antwoord op /sync opent deze pagina een WebSocket naar de deurbel van haar account (de worker rommellive).
+  // Zette dit apparaat iets op de server, dan belt het aan; belt een ander apparaat aan, dan zet deze pagina meteen gelijk. Valt de
+  // verbinding weg, dan opnieuw, steeds wat later (tot 2 minuten). Zonder deurbel (een oude scoreserver) werkt alles zoals eerst.
+  // Staat een spel met geld, muntjes of kaarten (geheel in de REGELS) ook op een ander apparaat open, dan vraagt de pagina die er als
+  // laatste bij kwam waar je verder wilt spelen, net als bij twee tabbladen.
+  const leesJSON = t => { if (typeof t !== 'string') return null; try { return JSON.parse(t); } catch (e) { return null; } };
+  const liveHaak = {};
+  // welke spellen in een ander tabblad (van deze site) open staan: elk spel houdt een slot vast (Web Locks)
+  const SLOT = 'rommelhoekje-pagina:', spelPagina = !!pagina && pagina !== 'index' && SLEUTELS.some(k => vanDezePagina(k));
+  async function openElders() {
+    let namen = [];
+    try { if (navigator.locks && navigator.locks.query) { const q = await navigator.locks.query(); namen = (q.held || []).map(l => l.name).filter(n => n && n.startsWith(SLOT)).map(n => n.slice(SLOT.length)); } } catch (e) {}
+    const anders = namen.filter(p => p && p !== pagina);
+    return k => anders.some(p => k.startsWith(EIGEN[p] || p));
+  }
+  const LIVE = (() => {
+    const kan = typeof WebSocket !== 'undefined' && !!APPARAAT;
+    const TAB = Math.random().toString(36).slice(2, 10).replace(/[^a-z0-9]/g, '') || 'tab0';
+    const PAG = SLEUTELS.some(k => vanDezePagina(k) && k !== 'rommelblok-v2' && REGELS.soort(k) === 'geheel') ? (pagina + (location.hash === '#wedstrijd' ? '-wedstrijd' : '')).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 48) : null;
+    let ws = null, wsCode = '', kaartCode = '', isOpen = false, kaart = null, kaartT = 0, wacht = 1000, poging = null, pingKlok = null, pongT = 0, opAf = null, stop = false, dicht = false;
+    const zend = m => { try { if (ws && isOpen) ws.send(typeof m === 'string' ? m : JSON.stringify(m)); } catch (e) {} };
+    const rust = ms => new Promise(ok => setTimeout(ok, ms));
+    // na elk gelijkzetten: een nieuw kaartje bewaren, en aanbellen als dit apparaat iets op de server zette
+    const sluit = () => { if (!ws) return; const s = ws; ws = null; isOpen = false; clearTimeout(pingKlok); try { s.close(1000); } catch (e) {} };
+    function na(j) {
+      if (!kan || !j) return;
+      // een andere koppelcode (een code ingevuld, of een nieuw account): de deurbel van het nieuwe account
+      const code = (leesK() || {}).code || '';
+      if (ws && wsCode !== code) sluit();
+      const s = {}; for (const [k, g] of Object.entries(j.gezet || {})) if (g && typeof g.t === 'number') s[k] = g.t;
+      for (const k of Object.keys(j.vervangen || {})) if (j.items && j.items[k] && typeof j.items[k].t === 'number') s[k] = j.items[k].t;   // samengevoegd: ook nieuw
+      if (Object.keys(s).length) zend({ t: 'nieuw', s });
+      if (j.live && typeof j.live.k === 'string' && /^(wss:\/\/[a-z0-9.-]+|ws:\/\/(localhost|127\.0\.0\.1))(:\d+)?\/live$/.test(j.live.url || '')) { kaart = j.live; kaartT = Date.now(); kaartCode = code; if (!ws && !stop && !dicht) { clearTimeout(poging); poging = null; verbind(); } }
+    }
+    async function verbind() {
+      poging = null;
+      if (!kan || ws || stop || dicht) return;
+      // een kaartje is twee minuten geldig: anders eerst gelijkzetten (dan missen we ook niets van wat er intussen gebeurde)
+      if (!kaart || Date.now() - kaartT > 100000) { kaart = null; const j = await koppelSync(true); if (!j) opnieuw(); return; }
+      const k = kaart; kaart = null; wsCode = kaartCode;
+      let s; try { s = new WebSocket(k.url + '?k=' + encodeURIComponent(k.k) + '&tab=' + TAB); } catch (e) { opnieuw(); return; }
+      ws = s; let sinds = 0;
+      s.onopen = () => { if (ws !== s) return; isOpen = true; sinds = Date.now(); pongT = sinds; if (PAG) zend({ t: 'open', p: PAG }); klop(); };
+      s.onmessage = e => { if (ws !== s) return; if (e.data === 'q') { pongT = Date.now(); return; } const m = leesJSON(e.data); if (m && typeof m === 'object') ontvang(m); };
+      s.onclose = e => {
+        if (ws !== s) return; ws = null; isOpen = false; clearTimeout(pingKlok);
+        if (opAf) { const f = opAf; opAf = null; f(); }
+        if (sinds && Date.now() - sinds > 30000) wacht = 1000;
+        if (e.code !== 4000) opnieuw();   // 4000: er staan te veel pagina's van dit account open; dan pas weer bij terugkomen
+      };
+      s.onerror = () => {};
+    }
+    function opnieuw() { if (stop || dicht || ws || poging) return; const ms = Math.round(wacht * (0.7 + Math.random() * 0.6)); wacht = Math.min(120000, wacht * 2); poging = setTimeout(verbind, ms); }
+    // elke 50 seconden even kloppen (de deurbel antwoordt zonder wakker te worden); kwam er te lang niets terug, dan opnieuw verbinden
+    function klop() { clearTimeout(pingKlok); pingKlok = setTimeout(() => { if (!isOpen) return; if (Date.now() - pongT > 110000) { try { ws.close(); } catch (e) {} return; } zend('p'); klop(); }, 50000); }
+    function nuMeteen() { if (stop || dicht || ws) return; clearTimeout(poging); poging = null; wacht = 1000; verbind(); }
+    // een seintje van een ander apparaat
+    function ontvang(m) {
+      if (m.t === 'nieuw') {
+        const s = m.s && typeof m.s === 'object' ? m.s : {}, sinds = Date.now();
+        const bekend = () => { const st = (leesK() || {}).staat || {}; return Object.keys(s).length > 0 && Object.entries(s).every(([k, t]) => !SLEUTELS.includes(k) || (st[k] && (st[k].t || 0) >= t)); };
+        if (!m.alles && bekend()) return;   // al bekend (een ander tabblad van dit apparaat zette al gelijk)
+        const haal = async () => {
+          if (!m.alles ? bekend() : !spelPagina && ((leesK() || {}).laatst || 0) > sinds) return;
+          for (let i = 0; i < 30 && bezigK; i++) await rust(300);
+          await koppelSync(true);
+        };
+        // de tabbladen van dit apparaat één voor één (dan zet er maar één gelijk, en komt hulp maar één keer aan)
+        setTimeout(() => { try { if (navigator.locks && navigator.locks.request) { navigator.locks.request('rommelhoekje-live-sync', haal).catch(() => {}); return; } } catch (e) {} haal(); }, 60 + Math.random() * 300);
+      }
+      else if (m.t === 'ook' && PAG && m.p === PAG) vraag();
+      else if (m.t === 'geef' && PAG && m.p === PAG) geefAf();
+      else if (m.t === 'af' && opAf) { const f = opAf; opAf = null; f(); }
+    }
+    // ---- hetzelfde spel open op twee apparaten: waar wil je verder spelen?
+    let vraagOpen = false;
+    function vraag() {
+      if (vraagOpen || stop || !document.body) return; vraagOpen = true;
+      // een echt venster (showModal): dat komt boven alles, ook boven een venster dat het spel zelf al open had (zoals de dagbonus)
+      if (!document.getElementById('kp-ook-stijl')) { const st = document.createElement('style'); st.id = 'kp-ook-stijl'; st.textContent = 'dialog.kp-ook{border:0;border-radius:14px;padding:1.2rem 1.3rem;margin:auto;max-width:min(26rem,94vw);background:#FBF6E9;color:#231A26;box-shadow:0 10px 40px rgba(0,0,0,.4);font-family:system-ui,sans-serif}dialog.kp-ook::backdrop{background:rgba(10,14,30,.75)}'; document.head.appendChild(st); }
+      const w = document.createElement('dialog'); w.className = 'kp-ook'; w.setAttribute('role', 'alertdialog'); w.setAttribute('aria-labelledby', 'kp-ook-kop');
+      w.addEventListener('cancel', e => e.preventDefault());
+      w.innerHTML = '<h2 id="kp-ook-kop" style="margin:0 0 .4rem">Dit spel staat ook open op een ander apparaat</h2><p data-tekst style="margin:0 0 .9rem;line-height:1.45">Als je op twee apparaten tegelijk speelt, telt straks maar één van de twee. De andere bewaren we wel 30 dagen in de tijdmachine. Waar wil je verder spelen?</p><p data-knoppen style="display:flex;gap:.5rem;flex-wrap:wrap;margin:0"><button type="button" data-hier style="font:inherit;font-weight:800;border:0;border-radius:8px;padding:.6rem .9rem;background:#C8323C;color:#fff;cursor:pointer">Hier verder spelen</button><button type="button" data-daar style="font:inherit;font-weight:800;border:0;border-radius:8px;padding:.6rem .9rem;background:#E3D9CA;color:#231A26;cursor:pointer">Op het andere apparaat</button></p>';
+      document.body.appendChild(w); try { w.showModal(); } catch (e) { w.setAttribute('open', ''); } try { w.querySelector('[data-hier]').focus(); } catch (e) {}
+      w.querySelector('[data-hier]').onclick = async () => {
+        w.querySelector('[data-knoppen]').remove(); w.querySelector('[data-tekst]').textContent = 'Even je voortgang van je andere apparaat ophalen…';
+        const af = new Promise(ok => { opAf = ok; setTimeout(ok, 6000); });
+        zend({ t: 'neem', p: PAG }); await af; opAf = null;
+        for (let i = 0; i < 30 && bezigK; i++) await rust(300);
+        await koppelSync(true, { herlaad: true });   // staat daar iets nieuwers, dan herlaadt de pagina daarmee
+        w.remove(); vraagOpen = false;
+      };
+      w.querySelector('[data-daar]').onclick = () => { stop = true; try { sessionStorage.setItem('ander-apparaat', '1'); } catch (e) {} location.replace('./'); };
+    }
+    // een ander apparaat speelt hier verder: eerst versturen wat dit apparaat nog heeft, dan stoppen (naar de homepage, met uitleg)
+    async function geefAf() {
+      if (stop) return; stop = true;
+      for (let i = 0; i < 20 && bezigK; i++) await rust(300);
+      try { await koppelSync(true); } catch (e) {}
+      zend({ t: 'af', p: PAG });
+      try { sessionStorage.setItem('ander-apparaat', '1'); } catch (e) {}
+      location.replace('./');
+    }
+    if (kan) {
+      addEventListener('online', nuMeteen);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) nuMeteen(); });
+      // bij weggaan dicht (dan kan de browser de pagina bewaren voor de terugknop), en bij terugkomen weer open
+      addEventListener('pagehide', () => { dicht = true; clearTimeout(poging); poging = null; if (ws) { const s = ws; ws = null; isOpen = false; clearTimeout(pingKlok); try { s.close(1000); } catch (e) {} } });
+      addEventListener('pageshow', e => { if (e.persisted) { dicht = false; nuMeteen(); } });
+    }
+    // open: is de deurbel open (eventueel: voor dit account)
+    return { kan, na, open: code => isOpen && (!code || code === wsCode), uit: () => { stop = true; clearTimeout(poging); poging = null; sluit(); }, PAG };
+  })();
+  // een spel dat wat er op een ander apparaat gebeurde meteen kan laten zien (zonder te herladen): Scorebord.live(sleutel, f).
+  // f(nieuweStand, tekst) zet de nieuwe stand in het spel (de opslag zelf zet het blok daarna neer); geeft f false, dan kan het nu niet
+  // (bijvoorbeeld midden in een puzzel), en gaat het zoals altijd. Alleen voor spellen die kunnen samenvoegen (niet geheel in de REGELS).
+  function live(sleutel, f) { if (typeof f === 'function' && SLEUTELS.includes(sleutel) && vanDezePagina(sleutel) && REGELS.soort(sleutel) !== 'geheel') liveHaak[sleutel] = f; }
+  // dit spel staat open (voor de andere tabbladen, zie openElders)
+  if (spelPagina) try { if (navigator.locks && navigator.locks.request) { let los = null; const pak = () => navigator.locks.request(SLOT + pagina, { mode: 'shared' }, () => new Promise(ok => { los = ok; })).catch(() => {}); pak(); addEventListener('pagehide', () => { if (los) { los(); los = null; } }); addEventListener('pageshow', e => { if (e.persisted && !los) pak(); }); } } catch (e) {}
   const WOORD1 = ['rode', 'gele', 'blauwe', 'groene', 'paarse', 'gouden', 'zilveren', 'vrolijke', 'snelle', 'slimme', 'dappere', 'stille', 'grote', 'kleine', 'gekke', 'warme'];
   const WOORD2 = ['vlaai', 'raket', 'zolder', 'kraan', 'lamp', 'vos', 'uil', 'beer', 'trommel', 'vlieger', 'ster', 'koepel', 'piano', 'wolk', 'kikker', 'draak', 'tram', 'molen', 'sok', 'hoed', 'fiets', 'toren', 'boot', 'pinguin'];
   function maakCode() { const a = new Uint32Array(5); crypto.getRandomValues(a); return [WOORD1[a[0] % WOORD1.length], WOORD2[a[1] % WOORD2.length], WOORD2[a[2] % WOORD2.length], WOORD2[a[3] % WOORD2.length], 1000 + a[4] % 9000].join('-'); }
@@ -875,7 +1009,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     let rb = ''; try { const s = JSON.parse(localStorage.getItem('rommelbeesten-speler') || 'null'); if (s && s.geheim) rb = String(s.geheim); } catch (e) {}
     try { const r = await metTijd(u + '/account/weg', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code: K.code, rb }) }); const j = await r.json().catch(() => ({})); if (r.status === 404) return 'Dit kan nog niet: de server krijgt binnenkort een nieuwe versie. Stuur Ruben anders een berichtje via de ideeënbox (kies Mijn gegevens).'; if (!r.ok) return j.fout || 'Dat lukte niet. Probeer het later opnieuw.'; } catch (e) { return 'Dat lukte niet. Controleer je internet en probeer het opnieuw.'; }
     if (API.doetMee()) await API.stopEnVerwijder();
-    schrijfK({ uit: true, sinds: Date.now() }); IDB.leeg();
+    schrijfK({ uit: true, sinds: Date.now() }); IDB.leeg(); LIVE.uit();
     return '';
   }
   // het bericht als Ruben je hielp: je ziet altijd wat hij deed
@@ -995,7 +1129,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       };
     }; });
   }
-  API.koppel = openKoppel; API.koppelSync = koppelSync; API.gebruikCode = gebruikCode; API.opnieuw = opnieuw;
+  API.koppel = openKoppel; API.koppelSync = koppelSync; API.gebruikCode = gebruikCode; API.opnieuw = opnieuw; API.live = live; API.deurbel = () => LIVE.open();
   // ---------- betrouwbaarheid: hetzelfde spel maar in één tabblad tegelijk, anders overschrijven ze elkaars voortgang
   (function tabbladBewaker() {
     if (!('BroadcastChannel' in window)) return;
@@ -1016,6 +1150,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       w.querySelector('[data-daar]').onclick = stopHier; }
     kanaal.postMessage({ soort: 'hallo', pagina: naam, van: ik });
   })();
+  try { if (sessionStorage.getItem('ander-apparaat')) { sessionStorage.removeItem('ander-apparaat'); addEventListener('load', () => setTimeout(() => toonKoppelMelding('Je speelt nu verder op je andere apparaat. Hier is het spel gestopt, zodat je voortgang niet wordt overschreven.', 'Oké', () => {}), 500)); } } catch (e) {}
   try { if (sessionStorage.getItem('ander-tabblad')) { sessionStorage.removeItem('ander-tabblad'); addEventListener('load', () => setTimeout(() => alert('Je speelt dit spel nu verder in een ander tabblad. Hier is het gestopt, zodat je voortgang niet wordt overschreven.'), 300)); } } catch (e) {}
   // ---------- betrouwbaarheid: een reservekopie van elke opslag; is een opslag kapot, dan komt de laatste goede terug
   (function reserve() {
@@ -1064,7 +1199,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     Storage.prototype.setItem = function (k, v) { const r = zet.call(this, k, v); if (this === opslag && SLEUTELS.includes(k)) plan(5000); return r; };
     Storage.prototype.removeItem = function (k) { const r = haalWeg.call(this, k); if (this === opslag && SLEUTELS.includes(k)) plan(5000); return r; };
   } catch (e) {}
-  setInterval(() => { if (!document.hidden && Date.now() - laatsteSync > 55000) koppelSync(true); }, 60000);
+  setInterval(() => { if (!document.hidden && Date.now() - laatsteSync > (LIVE.open() ? 295000 : 55000)) koppelSync(true); }, 60000);
   // eerst het spel laten opslaan, dan pas meesturen
   document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => koppelSync(true), 400); });
   // bij het sluiten: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is

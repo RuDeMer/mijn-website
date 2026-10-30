@@ -935,7 +935,8 @@ button { font: inherit; }
   // gaat alleen het verschil mee. Bij een botsing vraagt de server om de hele opslag en die basis, en voegen de REGELS samen.
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v';
+  // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 6;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
@@ -1010,7 +1011,7 @@ button { font: inherit; }
       if (r.ok && j && j.ok && j.v !== 3) vergeetV3();
       return r.ok && j && j.ok && j.v === 3 ? j : null;
     };
-    const lijf = { v: 3, code: K0.code, items, kent, kentH, apparaat: APPARAAT, hulpKan: 1, ontvangen: H0.ontvangen, gezien: H0.gezien, teGroot, koppelen: opties.koppelen ? 1 : 0, live: LIVE.kan ? 1 : 0, bel: LIVE.open(K0.code) ? 0 : 1 };
+    const lijf = { v: 3, code: K0.code, items, kent, kentH, apparaat: APPARAAT, hulpKan: 1, ontvangen: H0.ontvangen, gezien: H0.gezien, teGroot, koppelen: opties.koppelen ? 1 : 0, live: LIVE.kan ? 1 : 0, bel: LIVE.open(K0.code) ? 0 : 1, bv: BV };
     let j = await stuurOp(lijf); if (!j) return null;
     // de server wil van een paar spellen de hele opslag en de basis (een botsing, of een verschil dat niet meer klopte): meteen nog eens
     if (Array.isArray(j.stuur) && j.stuur.length) {
@@ -1104,13 +1105,13 @@ button { font: inherit; }
   // bij het sluiten van een pagina: als allerlaatste (na de opslag van het spel) nog snel versturen wat veranderd is (alleen het verschil)
   function sluitSync3(K, url) {
     const items = sluitItems(K, 60000); if (!items) return;
-    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1, live: 1 }), keepalive: true }); } catch (e) {}
+    try { fetch(url + '/sync', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1, live: 1, bv: BV }), keepalive: true }); } catch (e) {}
   }
   // zonder internet: wat er veranderde, in de wachtrij voor de service worker (die stuurt het zodra er weer verbinding is, ook als de
   // pagina dicht is; Chrome en Android). Zet deze pagina later zelf gelijk, dan haalt ze de wachtrij weer weg.
   function wachtrij(K, url) {
     const items = sluitItems(K, 1.5e6); if (!items) return;
-    IDB.uitZet('sync', { url: url + '/sync', body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1, live: 1 }), t: Date.now() })
+    IDB.uitZet('sync', { url: url + '/sync', body: JSON.stringify({ v: 3, code: K.code, items, kent: {}, apparaat: APPARAAT, alleenSturen: 1, live: 1, bv: BV }), t: Date.now() })
       .then(() => { if (navigator.serviceWorker && navigator.serviceWorker.ready) return navigator.serviceWorker.ready.then(r => r.sync && r.sync.register('rommelhoekje-sync')); }).catch(() => {});
   }
   function sluitItems(K, max) {

@@ -36,6 +36,12 @@ Voorstel van Claude Code, 30 oktober 2026. **Goedgekeurd door Ruben op 30 oktobe
 - De passkey mag ook op een ander apparaat staan (zoals je telefoon die je computer helpt), niet alleen op het apparaat zelf.
 - Onderweg gerepareerd: in Rommelpoker waren de rode knoppen van het venster op een telefoon onzichtbaar, door een regel uit de stijl van het spel (`.hoofd`). De knoppen van het venster heten nu `kp-hoofd`.
 
+**Stand: fase 6 is gebouwd** (scoreserver 2026-10-30e, de werkplaats, en het gedeelde blok stuurt zijn versienummer mee). Daarmee zijn alle zes fases af. Wat er anders is gegaan dan hieronder staat:
+- "Apparaten die achterlopen": het blok stuurt nu `bv: 6` mee (het versienummer van het blok). Apparaten zonder dat nummer gebruiken een pagina van vóór fase 6; `v: 2` is een heel oude pagina.
+- "Geweigerde versies": de controle tegen valsspelen staat uit, dus het tabje toont wat er wél gebeurt: botsingen, samengevoegd, een oude versie na opnieuw beginnen, te groot, zelf teruggezet en koppelen.
+- Erbij: het profiel van een speler toont nu ook zijn apparaten (welke versie, wanneer) en passkeys, en Ruben kan een passkey weghalen.
+- De wachter belt elke 5 minuten bij een lege kamer van de deurbel aan; de kaartjes worden per 25 geteld (dus ongeveer).
+
 ---
 
 ## 0. Eerst: wat er al is

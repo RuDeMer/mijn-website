@@ -1511,6 +1511,7 @@ function kaartBouwer(scope) {
     for (const b of W.bruggen) brugAs(b);
     // het peil van elk water: de Seine (groot) op het peil van de rivier, vijvers en kanalen net onder hun oever
     for (const v of W.water) { const r = v.rings[0], A = Math.abs(opp(r)); if (A > 3e5) { v.peil = W.peil; continue; } let laag = Infinity; for (let k = 0; k < r.length; k += 2) laag = Math.min(laag, hoogteM(r[k], r[k + 1])); v.peil = Math.max(W.peil, laag - 0.8); }
+    sluizen();
     // waterlijsten per vak van 250 m, voor snel 'is hier water?'
     W.waterVak = new Map();
     W.water.forEach((v, i) => { const r = v.rings[0]; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = 0; k < r.length; k += 2) { x0 = Math.min(x0, r[k]); x1 = Math.max(x1, r[k]); z0 = Math.min(z0, r[k + 1]); z1 = Math.max(z1, r[k + 1]); } v.box = [x0, z0, x1, z1]; for (let a = Math.floor(x0 / 250); a <= Math.floor(x1 / 250); a++) for (let b = Math.floor(z0 / 250); b <= Math.floor(z1 / 250); b++) { const k = a + ',' + b; if (!W.waterVak.has(k)) W.waterVak.set(k, []); W.waterVak.get(k).push(i); } });
@@ -1524,6 +1525,55 @@ function kaartBouwer(scope) {
     return null;
   }
   const isWater = (x, z) => !!waterOp(x, z);
+  // kanalen met sluizen: een lang kanaal dat oploopt (zoals het Canal Saint-Martin, 12 m over 1,2 km) had één peil, het laagste,
+  // en lag verderop in een diepe sleuf. Nu wordt het vlak geknipt waar de kade 2,5 m hoger of lager is geworden (een sluis),
+  // en krijgt elk pand een eigen peil net onder zijn kades. In maakWater komt op de knip een sluismuurtje naar het hogere pand.
+  function sluisKnip(ring, cx, cz, dx, dz, kant) {
+    const n = ring.length / 2, uit = [], f = i => kant * ((ring[i * 2] - cx) * dx + (ring[i * 2 + 1] - cz) * dz);
+    for (let i = 0; i < n; i++) { const j = (i + 1) % n, fi = f(i), fj = f(j); if (fi >= 0) uit.push(ring[i * 2], ring[i * 2 + 1]); if ((fi >= 0) !== (fj >= 0)) { const tt = fi / (fi - fj); uit.push(ring[i * 2] + (ring[j * 2] - ring[i * 2]) * tt, ring[i * 2 + 1] + (ring[j * 2 + 1] - ring[i * 2 + 1]) * tt); } }
+    return uit.length >= 6 ? Float64Array.from(uit) : null;
+  }
+  function sluizen() {
+    const uit = [];
+    for (const v of W.water) {
+      const r = v.rings[0]; if (Math.abs(opp(r)) > 3e5) { uit.push(v); continue; }
+      let lo = Infinity, hi = -Infinity; for (let k = 0; k < r.length; k += 2) { const h = hoogteM(r[k], r[k + 1]); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+      if (hi - lo < 3.5) { uit.push(v); continue; }
+      // punten langs de lijn van het kanaal (of, zonder lijn, langs de lange as van het vlak), met de hoogte van de kade
+      const lijnen = [];
+      for (const l of W.kanaal) { const run = []; for (let k = 0; k + 3 < l.length; k += 2) { const ax = l[k], az = l[k + 1], bx = l[k + 2], bz = l[k + 3], L = Math.hypot(bx - ax, bz - az); if (L < 0.01) continue; for (let s = 0; s < L; s += 12) { const x = ax + (bx - ax) * s / L, z = az + (bz - az) * s / L; if (inVlak(v, x, z)) run.push({ x, z, dx: (bx - ax) / L, dz: (bz - az) / L, g: hoogteM(x, z) }); else if (run.length) { lijnen.push(run.splice(0)); } } } if (run.length) lijnen.push(run); }
+      // de sluizen: steeds als de kade 2,5 m hoger of lager is dan bij de vorige sluis
+      const sluis = [];
+      for (const run of lijnen) {
+        if (run.length < 4) continue;
+        // eerst gladstrijken (de mediaan over zo'n 130 m), zodat een brug of een los gebouw langs de kade geen sluis maakt
+        const gl = run.map((p, i) => { const w = run.slice(Math.max(0, i - 5), i + 6).map(q => q.g).sort((a, b) => a - b); return w[w.length >> 1]; });
+        let basis = gl[0]; run.forEach((p, i) => { if (Math.abs(gl[i] - basis) > 2.5) { if (!sluis.some(q => Math.hypot(q.x - p.x, q.z - p.z) < 45)) sluis.push(p); basis = gl[i]; } });
+      }
+      if (!sluis.length) { uit.push(v); continue; }
+      let stukken = [v.rings];
+      for (const c of sluis) {
+        const volgend = [];
+        for (const rs of stukken) {
+          // alleen knippen als de lijn dit stuk vlak bij de sluis kruist (niet een ander deel van een gebogen kanaal verderop)
+          const r0 = rs[0], n = r0.length / 2; let ver = false, kruis = 0;
+          for (let i = 0; i < n; i++) { const j = (i + 1) % n, fi = (r0[i * 2] - c.x) * c.dx + (r0[i * 2 + 1] - c.z) * c.dz, fj = (r0[j * 2] - c.x) * c.dx + (r0[j * 2 + 1] - c.z) * c.dz; if ((fi >= 0) !== (fj >= 0)) { const tt = fi / (fi - fj), x = r0[i * 2] + (r0[j * 2] - r0[i * 2]) * tt, z = r0[i * 2 + 1] + (r0[j * 2 + 1] - r0[i * 2 + 1]) * tt; kruis++; if (Math.hypot(x - c.x, z - c.z) > 90) ver = true; } }
+          if (ver || kruis < 2) { volgend.push(rs); continue; }
+          for (const kant of [1, -1]) { const buiten = sluisKnip(rs[0], c.x, c.z, c.dx, c.dz, kant); if (!buiten || Math.abs(opp(buiten)) < 20) continue; const gaten = []; for (let k = 1; k < rs.length; k++) { const g = sluisKnip(rs[k], c.x, c.z, c.dx, c.dz, kant); if (g && Math.abs(opp(g)) > 2) gaten.push(g); } volgend.push([buiten, ...gaten]); }
+        }
+        stukken = volgend;
+      }
+      if (W.debug) console.log('sluizen', Math.round(r[0]), Math.round(r[1]), 'opp', Math.round(Math.abs(opp(r))), 'stukken', stukken.length, 'opp', stukken.map(rs => Math.round(Math.abs(opp(rs[0])))).join(','), 'sluis', sluis.length);
+      for (const rs of stukken) {
+        // het peil: net onder de lage kades van dit pand (een laag punt waar een zijtak begint telt niet mee)
+        const r0 = rs[0], hs = []; for (let k = 0; k < r0.length; k += 2) hs.push(hoogteM(r0[k], r0[k + 1])); hs.sort((a, b) => a - b); const laag = hs[Math.floor(hs.length * 0.15)];
+        // welke randen liggen op een knip: daar geen kade, maar een sluismuurtje (in maakWater)
+        const op = rs.map(ring => { const n = ring.length / 2, f = new Uint8Array(n); for (let i = 0; i < n; i++) { const j = (i + 1) % n; for (const c of sluis) if (Math.abs((ring[i * 2] - c.x) * c.dx + (ring[i * 2 + 1] - c.z) * c.dz) < 0.05 && Math.abs((ring[j * 2] - c.x) * c.dx + (ring[j * 2 + 1] - c.z) * c.dz) < 0.05) { f[i] = 1; break; } } return f; });
+        uit.push({ k: v.k, rings: rs, peil: Math.max(W.peil, laag - 0.8), sluis: op });
+      }
+    }
+    W.water = uit;
+  }
   // een brug: de lange as, de uiteinden, en een dek dat van de ene kade naar de andere loopt (de kades liggen niet altijd even hoog)
   const IJZER = /passerelle|pont des arts|alexandre iii|bir-hakeim|austerlitz|arcole|solf[ée]rino|debilly|senghor|simone de beauvoir|morland|viaduc|pont-m[ée]tro|mirabeau|pont rouelle/i;
   function brugAs(b) {
@@ -1963,7 +2013,9 @@ function kaartBouwer(scope) {
         for (let i = 0; i < n; i++) {
           const j = (i + 1) % n, ax = r[i * 2], az = r[i * 2 + 1], bx = r[j * 2], bz = r[j * 2 + 1], L = Math.hypot(bx - ax, bz - az); if (L < 0.05) continue;
           let nx = -(bz - az) / L, nz = (bx - ax) / L; if (!pos) { nx = -nx; nz = -nz; }
-          const ha = hoogteM(ax - nx * 3, az - nz * 3), hb = hoogteM(bx - nx * 3, bz - nz * 3); if (Math.max(ha, hb) < v.peil + 0.8) continue;
+          let ha = hoogteM(ax - nx * 3, az - nz * 3), hb = hoogteM(bx - nx * 3, bz - nz * 3);
+          if (v.sluis && v.sluis[v.rings.indexOf(r)][i]) { const b = waterOp((ax + bx) / 2 - nx * 1.5, (az + bz) / 2 - nz * 1.5); if (!b || b === v || b.peil < v.peil + 0.2) continue; ha = hb = b.peil + 0.25; }
+          else if (Math.max(ha, hb) < v.peil + 0.8) continue;
           const y0 = yw - 2 * S, NX = N8(nx), NZ = N8(nz), a0 = BK.v(ax * S, y0, az * S, NX, 0, NZ, 0, -2), b0 = BK.v(bx * S, y0, bz * S, NX, 0, NZ, L, -2), b1 = BK.v(bx * S, yVan(hb), bz * S, NX, 0, NZ, L, hb - v.peil), a1 = BK.v(ax * S, yVan(ha), az * S, NX, 0, NZ, 0, ha - v.peil);
           if (pos) { BK.t(a0, b0, b1); BK.t(a0, b1, a1); } else { BK.t(a0, b1, b0); BK.t(a0, a1, b1); }
         }

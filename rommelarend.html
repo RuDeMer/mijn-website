@@ -2043,7 +2043,9 @@ const AK = (() => {
     float akRuis(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(akHash(i), akHash(i + vec2(1.0, 0.0)), f.x), mix(akHash(i + vec2(0.0, 1.0)), akHash(i + vec2(1.0, 1.0)), f.x), f.y); }
     vec3 lin(vec3 c) { return pow(c, vec3(2.2)); }`;
   function maakMateriaal(opties, vertDecl, vertMain, fragDecl, fragKleur, fragRuw, fragLicht, sleutel, vertBegin) {
-    const m = new THREE.MeshStandardMaterial(Object.assign({ color: '#ffffff', roughness: 0.85, metalness: 0 }, opties));
+    // ver weg: Lambert (licht per hoekpunt, geen glans, geen schaduw), dat scheelt per pixel veel rekenwerk
+    const L = opties && opties.lambert, o = Object.assign({}, opties); delete o.lambert; if (L) { delete o.roughness; delete o.metalness; }
+    const m = L ? new THREE.MeshLambertMaterial(Object.assign({ color: '#ffffff' }, o)) : new THREE.MeshStandardMaterial(Object.assign({ color: '#ffffff', roughness: 0.85, metalness: 0 }, o));
     m.onBeforeCompile = sh => {
       Object.assign(sh.uniforms, U);
       sh.vertexShader = 'uniform float uNacht; uniform float uTijd; uniform float uWind;\n' + vertDecl + '\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + (vertBegin || '')).replace('#include <project_vertex>', '#include <project_vertex>\n' + vertMain);
@@ -2053,11 +2055,11 @@ const AK = (() => {
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (fragRuw || ''))
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (fragLicht || ''));
     };
-    m.customProgramCacheKey = () => 'ak-' + sleutel;
+    m.customProgramCacheKey = () => 'ak-' + sleutel + (L ? '-ver' : '');
     return m;
   }
   // gebouwen: gevels (per stijl) en daken in één materiaal
-  const gebouwMat = maakMateriaal({}, 'attribute vec4 aG; attribute vec4 aS; varying vec4 vG; varying vec4 vS;', 'vG = aG; vS = aS;', 'varying vec4 vG; varying vec4 vS;', `
+  const maakGebouwMat = lambert => maakMateriaal({ lambert }, 'attribute vec4 aG; attribute vec4 aS; varying vec4 vG; varying vec4 vS;', 'vG = aG; vS = aS;', 'varying vec4 vG; varying vec4 vS;', `
     float soort = vS.x, seed = vS.z / 255.0; float u = vG.x, v = vG.y, len = vG.z, H = vG.w, lv = max(1.0, vS.y);
     vec3 kl = vec3(0.8);
     if (soort < 19.5) {
@@ -2145,8 +2147,9 @@ const AK = (() => {
     diffuseColor.rgb = lin(kl);`,
     'roughnessFactor = mix(roughnessFactor, 0.12, akGlas) * (1.0 - uRegen * 0.4);',
     'totalEmissiveRadiance += akLicht * lin(akLichtKleur) * 2.2;', 'gebouw');
+  const gebouwMat = maakGebouwMat(false), gebouwMatVer = maakGebouwMat(true);
   // de grond: één mesh per tegel; de laag (aL) schuift een tikje naar de camera, zodat paden boven gras en straten boven paden liggen
-  const grondMat = maakMateriaal({ vertexColors: true, roughness: 0.92 }, 'attribute float aL; varying vec3 vWp;',
+  const maakGrondMat = lambert => maakMateriaal({ vertexColors: true, roughness: 0.92, lambert }, 'attribute float aL; varying vec3 vWp;',
     'gl_Position.z -= aL * 0.00008 * gl_Position.w; vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;',
     'varying vec3 vWp;', `
     diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));
@@ -2155,7 +2158,8 @@ const AK = (() => {
     diffuseColor.rgb *= 0.9 + 0.2 * r;
     if (uRegen > 0.0) diffuseColor.rgb *= 1.0 - uRegen * 0.3;`,
     'roughnessFactor = mix(roughnessFactor, 0.25, uRegen);', '', 'grond');
-  grondMat.polygonOffset = true; grondMat.polygonOffsetFactor = 1; grondMat.polygonOffsetUnits = 1;
+  const grondMat = maakGrondMat(false), grondMatVer = maakGrondMat(true);
+  for (const m of [grondMat, grondMatVer]) { m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 1; }
   // kades en bruggen: natuursteen in lagen
   const kadeMat = maakMateriaal({ side: THREE.DoubleSide }, 'attribute vec2 aK; varying vec2 vK;', 'vK = aK;', 'varying vec2 vK;', `
     float laag = fract(vK.y / 0.55), blok = fract(vK.x / 1.1 + step(0.5, fract(vK.y / 1.1)) * 0.5);
@@ -2230,8 +2234,8 @@ const AK = (() => {
       if (t.groep) { wereld.remove(t.groep); verwijder(t.groep); t.groep = null; }
       if (a.leeg || t.gewenst < 0) { t.niveau = -1; return; }
       const G = new THREE.Group(), d = a.delen, dicht = a.niveau === 0;
-      if (d.grond) { const m = new THREE.Mesh(geo(d.grond), grondMat); m.receiveShadow = dicht; G.add(m); }
-      if (d.gebouw) { const m = new THREE.Mesh(geo(d.gebouw), gebouwMat); m.castShadow = dicht; m.receiveShadow = true; G.add(m); }
+      if (d.grond) { const m = new THREE.Mesh(geo(d.grond), dicht ? grondMat : grondMatVer); m.receiveShadow = dicht; G.add(m); }
+      if (d.gebouw) { const m = new THREE.Mesh(geo(d.gebouw), dicht ? gebouwMat : gebouwMatVer); m.castShadow = dicht; m.receiveShadow = dicht; G.add(m); }
       if (d.bomen && d.bomen.length) { if (dicht) { t.boomInst = bomenMesh(d.bomen, true); t.boomPunt = puntenMesh(d.bomen); G.add(t.boomInst, t.boomPunt); } else { t.boomInst = null; t.boomPunt = null; G.add(puntenMesh(d.bomen)); } }
       if (d.lampen && d.lampen.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(d.lampen, 3)); const p = new THREE.Points(g, lampMat); p.frustumCulled = false; G.add(p); }
       // een doos voor 'in beeld?'
@@ -2277,7 +2281,7 @@ const AK = (() => {
     const cx = camera.position.x / SCHAAL, cz = camera.position.z / SCHAAL;
     const zien = []; for (const [id, t] of T) if (t.groep) { t.groep.visible = !t.box || frustum.intersectsBox(t.box); if (t.groep.visible) { const d = tegelAfstand(id, cx, cz); zien.push([d, t]); if (t.boomInst) { const echt = d < R.bomen; t.boomInst.visible = echt; t.boomPunt.visible = !echt; } } }
     // tekenvolgorde: eerst alle gebouwen van dichtbij naar ver, dan de grond, dan de bomen. Wat achter een gebouw ligt, hoeft de kaart dan niet meer te kleuren.
-    zien.sort((a, b) => a[0] - b[0]); zien.forEach(([, t], i) => { for (const c of t.groep.children) c.renderOrder = (c.material === gebouwMat ? 1000 : c.material === grondMat ? 2000 : c.material === boomMat ? 3000 : 4000) + i; });
+    zien.sort((a, b) => a[0] - b[0]); zien.forEach(([, t], i) => { for (const c of t.groep.children) c.renderOrder = (c.material === gebouwMat || c.material === gebouwMatVer ? 1000 : c.material === grondMat || c.material === grondMatVer ? 2000 : c.material === boomMat ? 3000 : 4000) + i; });
     return zien.length;
   }
   // ---------------------------------------------------------------- laden: de kop, het globale stuk, dan de tegels (dichtbij eerst), in stukken

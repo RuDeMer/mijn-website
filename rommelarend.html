@@ -2275,8 +2275,10 @@ const AK = (() => {
   function zichtbaar(camera) {
     PM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); frustum.setFromProjectionMatrix(PM);
     const cx = camera.position.x / SCHAAL, cz = camera.position.z / SCHAAL;
-    let n = 0; for (const [id, t] of T) if (t.groep) { t.groep.visible = !t.box || frustum.intersectsBox(t.box); if (t.groep.visible) { n++; if (t.boomInst) { const echt = tegelAfstand(id, cx, cz) < R.bomen; t.boomInst.visible = echt; t.boomPunt.visible = !echt; } } }
-    return n;
+    const zien = []; for (const [id, t] of T) if (t.groep) { t.groep.visible = !t.box || frustum.intersectsBox(t.box); if (t.groep.visible) { const d = tegelAfstand(id, cx, cz); zien.push([d, t]); if (t.boomInst) { const echt = d < R.bomen; t.boomInst.visible = echt; t.boomPunt.visible = !echt; } } }
+    // tekenvolgorde: eerst alle gebouwen van dichtbij naar ver, dan de grond, dan de bomen. Wat achter een gebouw ligt, hoeft de kaart dan niet meer te kleuren.
+    zien.sort((a, b) => a[0] - b[0]); zien.forEach(([, t], i) => { for (const c of t.groep.children) c.renderOrder = (c.material === gebouwMat ? 1000 : c.material === grondMat ? 2000 : c.material === boomMat ? 3000 : 4000) + i; });
+    return zien.length;
   }
   // ---------------------------------------------------------------- laden: de kop, het globale stuk, dan de tegels (dichtbij eerst), in stukken
   let voortgang = { binnen: 0, totaal: 0, tegels: 0, klaar: false };
@@ -2887,7 +2889,7 @@ const AL = (() => {
         #include <tonemapping_fragment>
         #include <encodings_fragment>
       }` });
-  const lucht = new THREE.Mesh(new THREE.SphereGeometry(3000, 32, 16), luchtMat); lucht.renderOrder = -1; lucht.frustumCulled = false; scene.add(lucht);
+  const lucht = new THREE.Mesh(new THREE.SphereGeometry(3000, 32, 16), luchtMat); lucht.renderOrder = 9000; // als laatste van het dichte: alleen waar nog niets staat (diepte 1) lucht.frustumCulled = false; scene.add(lucht);
   const sterGeo = new THREE.BufferGeometry(), sp = []; for (let i = 0; i < 1500; i++) { const a = Math.random() * 6.283, b = Math.asin(Math.random() * 0.95 + 0.04); sp.push(Math.cos(a) * Math.cos(b) * 2800, Math.sin(b) * 2800, Math.sin(a) * Math.cos(b) * 2800); }
   sterGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
   const sterren = new THREE.Points(sterGeo, new THREE.PointsMaterial({ color: '#FFFFFF', size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0, fog: false, depthWrite: false })); sterren.frustumCulled = false; scene.add(sterren);

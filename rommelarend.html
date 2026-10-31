@@ -3032,7 +3032,7 @@ const AL = (() => {
   const vlek = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: vlekTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4 })); vlek.renderOrder = 2; scene.add(vlek);
   // ---------------------------------------------------------------- de houding: zweven, klapwieken, duiken, remmen en zitten, vloeiend gemengd
   // de vleugels ingevouwen langs het lijf: de arm naar achteren en iets omlaag, het vlak van de veren rechtop tegen de flank
-  const ZIT = {}; for (const k of [1, -1]) { const x = new THREE.Vector3(0, -0.28 * k, k).normalize(), z0 = new THREE.Vector3(0, -1, 0), y = new THREE.Vector3().crossVectors(z0, x).normalize(), z = new THREE.Vector3().crossVectors(x, y); const e = new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z), 'YXZ'); ZIT[k] = [e.x, e.y, e.z]; }
+  const ZIT = {}; for (const k of [1, -1]) { const x = new THREE.Vector3(0, 0.5 * k, 0.87 * k).normalize(), z0 = new THREE.Vector3(0, -0.87, 0.5), y = new THREE.Vector3().crossVectors(z0, x).normalize(), z = new THREE.Vector3().crossVectors(x, y); const e = new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z), 'YXZ'); ZIT[k] = [e.x, e.y, e.z]; }
   const P = { fase: 0, vorigeFase: 0, wKlap: 0, wDuik: 0, wRem: 0, wZit: 0, kijkY: 0, kijkX: 0, kijkDoelY: 0, kijkDoelX: 0, kijkT: 0, poetsT: 6, poets: 0 };
   const mix3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
   function animeer(dt, t) {
@@ -3049,8 +3049,8 @@ const AL = (() => {
     const ruimte = A.ruimte === undefined ? 50 : A.ruimte, grondF = Math.max(0.1, Math.min(1, (ruimte - 3) / 10));
     const sn = Math.min(1, A.snel / 90), wapper = sn * sn * (1 - P.wZit);
     const rolMax = Math.asin(Math.max(0.03, Math.min(1, (ruimte - 2.2) / 12))), rol = Math.max(-rolMax, Math.min(rolMax, A.roll)) * (1 - P.wZit);
-    lijf.rotation.set(A.pitch * 0.9 * (1 - P.wRem) * (1 - P.wZit) + P.wRem * 0.55 + P.wZit * 0.42, 0, rol, 'YXZ');
-    lijf.position.y = -cf * 0.16 * P.wKlap * AREND_SCHAAL + P.wZit * 0.0;
+    lijf.rotation.set(A.pitch * 0.9 * (1 - P.wRem) * (1 - P.wZit) + P.wRem * 0.55 * (1 - P.wZit) + P.wZit * 0.95, 0, rol, 'YXZ');
+    lijf.position.y = -cf * 0.16 * P.wKlap * AREND_SCHAAL + P.wZit * 0.42; /* rechtop op zijn poten */
     for (const v of vleugels) {
       const k = v.kant, tril = Math.sin(t * 3.3) * 0.02 + Math.sin(t * 7.1) * 0.008 + (Math.sin(t * 19 + k) * 0.012 + Math.sin(t * 31) * 0.006) * wapper;
       const zweef = [0, -k * 0.04, k * (0.12 + tril - A.pitch * 0.12 - k * A.draai * 0.06 * Math.min(1, ruimte / 12) + (ruimte < 9 ? (9 - ruimte) * 0.012 : 0))];
@@ -3059,14 +3059,15 @@ const AL = (() => {
       s = mix3(s, [0, -k * 0.95, k * 0.18], P.wDuik);
       s = mix3(s, [-0.25 + 0.15 * sf, k * 0.35, k * (0.55 + 0.35 * cf)], P.wRem);
       s = mix3(s, ZIT[k], P.wZit);
-      v.schouder.rotation.set(s[0], s[1], s[2], 'YXZ');
+      v.schouder.rotation.set(s[0], s[1], s[2], 'YXZ'); v.schouder.position.x = k * (0.72 + 0.3 * P.wZit); v.schouder.scale.x = 1 - 0.63 * P.wZit; v.schouder.scale.z = 1 - 0.4 * P.wZit; /* ingevouwen: korter en tegen de flank */
       let p = mix3([0, -k * 0.06, k * (-0.05 + tril * 1.5)], [0, -k * (0.06 + 0.75 * opslagF), k * (0.35 * opslagF - 0.12 * Math.max(0, sf))], P.wKlap);
-      p = mix3(p, [0, -k * 1.15, -k * 0.1], P.wDuik); p = mix3(p, [0, k * 0.12, k * (0.18 + 0.25 * opslagF)], P.wRem); p = mix3(p, [0, -k * 2.95, k * 0.12], P.wZit);
+      p = mix3(p, [0, -k * 1.15, -k * 0.1], P.wDuik); p = mix3(p, [0, k * 0.12, k * (0.18 + 0.25 * opslagF)], P.wRem); p = mix3(p, [0, k * 0.06, 0], P.wZit);
       v.pols.rotation.set(p[0], p[1], p[2], 'YXZ');
       for (const vg of v.vingers) {
         const open = ((0.1 + 0.35 * opslagF * P.wKlap) * (1 - P.wDuik) + P.wRem * 0.55) * (1 - P.wZit);
         const flutter = Math.sin(t * (24 + vg.i * 3) + vg.i * 1.7) * 0.03 * wapper;
-        vg.houder.rotation.set(0, k * (vg.basis - vg.i * open * 0.12 + (vg.i - 3) * 0.02 * (1 - P.wDuik) - P.wDuik * 0.5 - P.wZit * 0.9), k * (0.05 * vg.i * (1 - P.wKlap) * (1 - P.wDuik) * (1 - P.wZit) + 0.08 * opslagF * P.wKlap + flutter), 'YXZ');
+        const vy = vg.basis - vg.i * open * 0.12 + (vg.i - 3) * 0.02 * (1 - P.wDuik) - P.wDuik * 0.5, zy = Math.PI / 2 - 0.04 - vg.i * 0.018; /* zittend: de slagpennen netjes naast elkaar */
+        vg.houder.rotation.set(0, k * (vy + (zy - vy) * P.wZit), k * (0.05 * vg.i * (1 - P.wKlap) * (1 - P.wDuik) * (1 - P.wZit) + 0.08 * opslagF * P.wKlap + flutter), 'YXZ');
       }
     }
     // de kop blijft recht als het lichaam kantelt, kijkt de bocht in, en kijkt rond als hij zit
@@ -3074,14 +3075,14 @@ const AL = (() => {
     if (P.kijkT < 0) { P.kijkT = zit ? 1.2 + Math.random() * 2.5 : 2 + Math.random() * 3; P.kijkDoelY = zit ? (Math.random() - 0.5) * 2.4 : 0; P.kijkDoelX = zit ? (Math.random() - 0.4) * 0.6 : 0; }
     const kd = zit ? P.kijkDoelY : -A.draai * 0.5 + (A.kijkNaar || 0);
     P.kijkY += (kd - P.kijkY) * Math.min(1, dt * (zit ? 7 : 5)); P.kijkX += ((zit ? P.kijkDoelX : 0) - P.kijkX) * Math.min(1, dt * 4);
-    kop.rotation.set(-A.pitch * 0.6 * (1 - P.wZit) - P.wZit * 0.3 + P.kijkX + 0.05 * Math.sin(t * 1.3), P.kijkY, -rol * 0.7, 'YXZ');
+    kop.rotation.set(-A.pitch * 0.6 * (1 - P.wZit) - P.wZit * 0.82 + P.kijkX + 0.05 * Math.sin(t * 1.3), P.kijkY, -rol * 0.7, 'YXZ');
     // de staart waaiert uit bij klimmen, sturen en remmen, en is smal bij duiken
     const waaier = Math.max(0.3, 1 + Math.max(0, A.klim) * 0.7 + Math.abs(A.draai) * 0.4 - P.wDuik * 0.6 + 0.2 * (A.snel < 22 ? 1 : 0) + P.wRem * 1.2 - P.wZit * 0.5);
     for (const { v, f } of staartVeren) v.rotation.set(Math.sin(t * 27 + f * 9) * 0.03 * wapper, f * 0.32 * waaier, 0);
     staart.rotation.set(-A.klim * 0.22 * (1 - P.wZit) + 0.06 * Math.sin(t * 2.1) + P.wRem * 0.55 - P.wZit * 0.25, 0, A.draai * 0.35 * (1 - P.wZit));
     // de poten: opgetrokken, of naar beneden bij landen en zitten
     const uit = Math.max(P.wRem, P.wZit);
-    for (const p of poten) { p.poot.rotation.x = -1.5 * (1 - uit) - 0.2 * uit + P.wZit * 0.42; p.poot.position.set(p.poot.position.x, -0.35 - uit * 0.3, 0.9 + (1 - uit) * 0.5); p.voet.rotation.x = -0.6 * (1 - uit) - P.wZit * 0.42 + P.wRem * 0.5; }
+    for (const p of poten) { p.poot.rotation.x = -1.5 * (1 - uit) - 0.2 * uit * (1 - P.wZit) - P.wZit * 0.95; /* zittend: de poten recht naar beneden */ p.poot.position.set(p.poot.position.x, -0.35 - uit * 0.3, 0.9 + (1 - uit) * 0.5); p.voet.rotation.x = -0.6 * (1 - uit) + P.wRem * 0.5 * (1 - P.wZit); }
     // af en toe de veren schudden als hij zit
     if (zit) { P.poetsT -= dt; if (P.poetsT < 0) { P.poetsT = 5 + Math.random() * 6; P.poets = 0.6; } } if (P.poets > 0) { P.poets -= dt; lijf.rotation.z += Math.sin(P.poets * 40) * 0.05; }
   }

@@ -3064,58 +3064,269 @@ const AL = (() => {
       renderer.shadowMap.needsUpdate = true;
     }
   }
-  // ---------------------------------------------------------------- de arend: een zeearend, opgebouwd uit losse veren
-  const veerTex = (basis, rand, schacht) => { const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d'); g.fillStyle = basis; g.fillRect(0, 0, 128, 128);
-    for (let r = 0; r < 9; r++) for (let k = 0; k < 7; k++) { const x = k * 20 + (r % 2) * 10 - 6, y = r * 15 - 4; const gr = g.createLinearGradient(x, y, x, y + 18); gr.addColorStop(0, rand); gr.addColorStop(1, basis); g.fillStyle = gr; g.beginPath(); g.ellipse(x + 10, y + 9, 11, 12, 0, 0, Math.PI); g.fill(); g.strokeStyle = schacht; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 10, y); g.lineTo(x + 10, y + 18); g.stroke(); }
-    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
-  const penTex = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 256; const g = c.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#3E2A1A'); gr.addColorStop(0.7, '#2A1C12'); gr.addColorStop(1, '#16100A'); g.fillStyle = gr; g.fillRect(0, 0, 64, 256); g.strokeStyle = 'rgba(255,240,220,.25)'; g.lineWidth = 2; g.beginPath(); g.moveTo(32, 0); g.lineTo(32, 256); g.stroke(); g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1; for (let y = 6; y < 256; y += 5) { g.beginPath(); g.moveTo(32, y); g.lineTo(2, y + 10); g.moveTo(32, y); g.lineTo(62, y + 10); g.stroke(); } const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; })();
-  const witPenTex = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#F2EEE6'; g.fillRect(0, 0, 64, 256); g.strokeStyle = 'rgba(120,110,90,.35)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(32, 0); g.lineTo(32, 256); g.stroke(); g.strokeStyle = 'rgba(120,110,90,.12)'; for (let y = 6; y < 256; y += 6) { g.beginPath(); g.moveTo(32, y); g.lineTo(2, y + 12); g.moveTo(32, y); g.lineTo(62, y + 12); g.stroke(); } const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; })();
-  const lijfTex = veerTex('#4A3220', '#6A4A30', 'rgba(20,12,6,.5)'); lijfTex.repeat.set(4, 3);
-  const dekTex = veerTex('#55392A', '#7A5638', 'rgba(20,12,6,.45)');
-  const kopTex = veerTex('#F2EEE4', '#FFFFFF', 'rgba(140,130,110,.25)'); kopTex.repeat.set(3, 2);
-  const AM = o => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));
-  const lijfMat = AM({ map: lijfTex }), dekMat = AM({ map: dekTex, side: THREE.DoubleSide }), penMat = AM({ map: penTex, side: THREE.DoubleSide, roughness: 0.75 }), witMat = AM({ map: kopTex }), witPenMat = AM({ map: witPenTex, side: THREE.DoubleSide }), geelMat = AM({ color: new THREE.Color('#E8B030').convertSRGBToLinear(), roughness: 0.4 }), klauwMat = AM({ color: new THREE.Color('#141210').convertSRGBToLinear(), roughness: 0.4 });
-  const veerVorm = (lang, breed) => { const sh = new THREE.Shape(); sh.moveTo(-breed * 0.3, 0); sh.quadraticCurveTo(-breed * 0.55, lang * 0.4, -breed * 0.12, lang * 0.95); sh.lineTo(0, lang); sh.lineTo(breed * 0.12, lang * 0.95); sh.quadraticCurveTo(breed * 0.55, lang * 0.4, breed * 0.3, 0); sh.closePath(); const g = new THREE.ShapeGeometry(sh, 6); g.rotateX(Math.PI / 2); const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / breed + 0.5, uv.getY(i) / lang); return g; };
+  // ---------------------------------------------------------------- de arend: een zeearend van losse, gebogen veren
+  // Elke veer is een gebogen vlak met een eigen omtrek (afgerond, spits, of met 'vingers' bij de slagpennen) en een stukje van
+  // één verenplaatje. Wat samen beweegt is samengevoegd tot één tekenopdracht: het lijf, de kop, de snavel en de ogen, per
+  // vleugel de arm en de hand, elke slagpen, elke staartveer en de poten (zo'n 40 in plaats van 133).
+  const { arend, lijf, kop, poten, staart, staartVeren, vleugels } = (() => {
+  const glad = (a, b, t) => { const x = Math.max(0, Math.min(1, (t - a) / (b - a))); return x * x * (3 - 2 * x); };
+  const kleurL = h => new THREE.Color(h).convertSRGBToLinear();
+  // het verenplaatje: per soort veer een strook (de punt boven, de voet onder, de schacht in het midden)
+  const VEL = (() => {
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d'), H = 512, R = {}; let x0 = 0;
+    const veer = (naam, w, o) => {
+      R[naam] = [(x0 + 1.5) / 1024, (x0 + w - 1.5) / 1024]; const cx = x0 + w / 2;
+      g.save(); g.beginPath(); g.rect(x0, 0, w, H); g.clip();
+      const gr = g.createLinearGradient(0, H, 0, 0); gr.addColorStop(0, o.voet); gr.addColorStop(0.28, o.mid); gr.addColorStop(0.82, o.punt); gr.addColorStop(1, o.punt2 || o.punt);
+      g.fillStyle = gr; g.fillRect(x0, 0, w, H);
+      // de baarden: dunne lijntjes schuin van de schacht naar de rand, richting de punt
+      for (let y = H + w * 0.4; y > -10; y -= 2.1) for (const k of [-1, 1]) {
+        const l = Math.sin(y * 0.31 + k * 1.7) * 0.6 + Math.sin(y * 0.07 + k) * 0.4;
+        g.strokeStyle = l > 0 ? o.licht : o.donker; g.globalAlpha = 0.1 + 0.16 * Math.abs(l); g.lineWidth = 1.1;
+        g.beginPath(); g.moveTo(cx + k * 2, y); g.quadraticCurveTo(cx + k * w * 0.26, y - w * 0.1, cx + k * w * 0.52, y - w * 0.34); g.stroke();
+      }
+      // een paar splitjes in de vlag
+      g.globalAlpha = 0.5; g.strokeStyle = o.donker; g.lineWidth = 1.4;
+      for (let i = 0; i < 7; i++) { const y = 60 + ((i * 97) % 380), k = i % 2 ? 1 : -1; g.beginPath(); g.moveTo(cx + k * w * 0.18, y); g.quadraticCurveTo(cx + k * w * 0.32, y - w * 0.12, cx + k * w * 0.52, y - w * 0.3); g.stroke(); }
+      // een lichte of donkere zoom langs de rand en de punt
+      if (o.zoom) {
+        for (const k of [-1, 1]) { const zg = g.createLinearGradient(cx + k * w * 0.3, 0, cx + k * w * 0.5, 0); zg.addColorStop(0, 'rgba(0,0,0,0)'); zg.addColorStop(1, o.zoom); g.globalAlpha = 0.22; g.fillStyle = zg; g.fillRect(k < 0 ? x0 : cx, 0, w / 2, H); }
+        const tg = g.createLinearGradient(0, 70, 0, 0); tg.addColorStop(0, 'rgba(0,0,0,0)'); tg.addColorStop(1, o.zoom); g.globalAlpha = 0.9; g.fillStyle = tg; g.fillRect(x0, 0, w, 70);
+      }
+      // de schacht: dik en licht bij de voet, dun en donkerder naar de punt
+      g.globalAlpha = 1; const sg = g.createLinearGradient(0, H, 0, 0); sg.addColorStop(0, o.schacht); sg.addColorStop(1, o.schachtP || o.schacht);
+      g.fillStyle = sg; g.beginPath(); g.moveTo(cx - 3.4, H); g.lineTo(cx - 0.7, 0); g.lineTo(cx + 0.7, 0); g.lineTo(cx + 3.4, H); g.closePath(); g.fill();
+      g.globalAlpha = 0.35; g.strokeStyle = '#000'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx + 3.6, H); g.lineTo(cx + 1, 0); g.stroke();
+      // dons aan de voet
+      g.globalAlpha = 0.25; g.strokeStyle = o.dons || o.voet; for (let i = 0; i < 40; i++) { const y = H - 6 - (i * 13) % 60, x = x0 + ((i * 37) % w); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 6, y - 8, x + 2, y - 16); g.stroke(); }
+      g.restore(); x0 += w;
+    };
+    veer('slag', 160, { voet: '#8A7A6A', mid: '#30241A', punt: '#1E1712', punt2: '#15110D', licht: '#6A5848', donker: '#000000', schacht: '#D8CCB8', schachtP: '#3C3027' });
+    veer('arm', 160, { voet: '#8C7866', mid: '#3B2B1F', punt: '#2D2117', punt2: '#4A3A2C', licht: '#6E5A48', donker: '#0A0604', schacht: '#C8B8A0', schachtP: '#3E3024' });
+    veer('dek', 160, { voet: '#5A4636', mid: '#47321F', punt: '#523A26', licht: '#7A5E44', donker: '#22160D', schacht: '#2E2117', zoom: '#9A7A56' });
+    veer('onder', 160, { voet: '#4E3E32', mid: '#33251B', punt: '#3C2C20', licht: '#5E4A3A', donker: '#140D08', schacht: '#261B13', zoom: '#5A4636' });
+    veer('staart', 160, { voet: '#A89E8E', mid: '#ECE8E0', punt: '#F7F4EE', punt2: '#FCFAF6', licht: '#FFFFFF', donker: '#A49A8A', schacht: '#FFFFFF', schachtP: '#E4DED2', dons: '#FFFFFF' });
+    // effen: voor de rand van de vleugel, onder de dekveren
+    R.effen = [(x0 + 2) / 1024, 1 - 2 / 1024]; g.fillStyle = '#4A3526'; g.fillRect(x0, 0, 1024 - x0, H);
+    for (let i = 0; i < 900; i++) { g.globalAlpha = 0.12; g.fillStyle = i % 2 ? '#6E5238' : '#2A1C12'; g.fillRect(x0 + (i * 53) % (1024 - x0), (i * 151) % H, 3, 2); }
+    g.globalAlpha = 1;
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return { t, R };
+  })();
+  // het verenkleed van lijf, kop en dijen: rijen dakpanveertjes die naar de staart wijzen (grijs, de kleur komt per hoekpunt)
+  const vachtTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#B4ADA3'; g.fillRect(0, 0, 256, 256);
+    const rijen = 12, per = 9, rh = 256 / rijen, bw = 256 / per, hash = n => { const s = Math.sin(n * 127.1 + 0.5) * 43758.5453; return s - Math.floor(s); };
+    for (let r = -4; r <= rijen + 1; r++) for (let k = -1; k <= per; k++) {
+      const rm = ((r % rijen) + rijen) % rijen, km = ((k % per) + per) % per, n = rm * 31 + km * 7;
+      const x = k * bw + (rm % 2) * bw / 2 + (hash(n) - 0.5) * 9, y = r * rh + (hash(n + 3) - 0.5) * 7, b = bw * (0.5 + hash(n + 5) * 0.16), l = rh * (2.4 + hash(n + 7)), sch = (hash(n + 11) - 0.5) * 0.5;
+      for (const dx of [-256, 0, 256]) {
+        const cx = x + dx; if (cx < -bw * 2 || cx > 256 + bw * 2) continue;
+        const vorm = () => { g.beginPath(); g.moveTo(cx - b, y + l); g.lineTo(cx - b * 0.95, y + b * 0.5); g.quadraticCurveTo(cx - b * 0.9 + sch * b, y - b * 0.05, cx + sch * b, y - b * 0.18); g.quadraticCurveTo(cx + b * 0.9 + sch * b, y - b * 0.05, cx + b * 0.95, y + b * 0.5); g.lineTo(cx + b, y + l); g.closePath(); };
+        g.save(); g.translate(0, -1.6); vorm(); g.fillStyle = 'rgba(40,30,20,0.28)'; g.fill(); g.restore();
+        vorm(); const gr = g.createLinearGradient(0, y, 0, y + l * 0.7), v = 0.92 + hash(n + 9) * 0.08; gr.addColorStop(0, `rgb(${246 * v | 0},${242 * v | 0},${234 * v | 0})`); gr.addColorStop(0.5, `rgb(${222 * v | 0},${216 * v | 0},${206 * v | 0})`); gr.addColorStop(1, '#ADA59A'); g.fillStyle = gr; g.fill();
+        g.globalAlpha = 0.12; g.strokeStyle = '#5A5048'; g.lineWidth = 0.8;
+        for (let i = 1; i < 6; i++) { g.beginPath(); g.moveTo(cx + sch * 2, y + i * 3); g.lineTo(cx - b * 0.8, y + i * 3 + b * 0.6); g.moveTo(cx + sch * 2, y + i * 3); g.lineTo(cx + b * 0.8, y + i * 3 + b * 0.6); g.stroke(); }
+        g.globalAlpha = 1;
+      }
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+  })();
+  const veerMat = new THREE.MeshStandardMaterial({ map: VEL.t, vertexColors: true, roughness: 0.82, metalness: 0, side: THREE.DoubleSide });
+  const vachtMat = new THREE.MeshStandardMaterial({ map: vachtTex, vertexColors: true, roughness: 0.9, metalness: 0 });
+  const kaalMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.32, metalness: 0 });
+  // een raster van hoekpunten: f(a, b) geeft [x, y, z, u, v] voor a en b van 0 tot 1
+  function raster(nr, nk, f, rond) {
+    const pos = [], uv = [], idx = [];
+    for (let i = 0; i <= nr; i++) for (let j = 0; j <= nk; j++) { const p = f(i / nr, j / nk); pos.push(p[0], p[1], p[2]); uv.push(p[3], p[4]); }
+    for (let i = 0; i < nr; i++) for (let j = 0; j < nk; j++) { const a = i * (nk + 1) + j, b = a + 1, c = a + nk + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+    if (rond) { const N = g.attributes.normal; for (let i = 0; i <= nr; i++) { const a = i * (nk + 1), b = a + nk, x = N.getX(a) + N.getX(b), y = N.getY(a) + N.getY(b), z = N.getZ(a) + N.getZ(b), l = Math.hypot(x, y, z) || 1; N.setXYZ(a, x / l, y / l, z / l); N.setXYZ(b, x / l, y / l, z / l); } }
+    return g;
+  }
+  // delen samenvoegen tot één vorm, met per hoekpunt een kleur (vast, of een functie van de plek)
+  const M4 = (x, y, z, rx, ry, rz, s) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx || 0, ry || 0, rz || 0, 'YXZ')), new THREE.Vector3(s || 1, s || 1, s || 1));
+  function samen(delen, spiegel) {
+    let n = 0; for (const d of delen) n += d.g.attributes.position.count;
+    const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), kl = new Float32Array(n * 3), idx = [];
+    const v = new THREE.Vector3(), nm = new THREE.Matrix3(), sp = new THREE.Matrix4().makeScale(spiegel ? -1 : 1, 1, 1); let o = 0;
+    for (const d of delen) {
+      const P = d.g.attributes.position, N = d.g.attributes.normal, U = d.g.attributes.uv, m = new THREE.Matrix4().multiplyMatrices(sp, d.m || new THREE.Matrix4()), om = m.determinant() < 0; nm.getNormalMatrix(m);
+      const k0 = typeof d.kl === 'function' ? null : (d.kl || new THREE.Color(1, 1, 1));
+      for (let i = 0; i < P.count; i++) {
+        v.fromBufferAttribute(P, i); const k = k0 || d.kl(v.x, v.y, v.z, U.getX(i), U.getY(i)); v.applyMatrix4(m); pos[(o + i) * 3] = v.x; pos[(o + i) * 3 + 1] = v.y; pos[(o + i) * 3 + 2] = v.z;
+        v.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[(o + i) * 3] = v.x; nor[(o + i) * 3 + 1] = v.y; nor[(o + i) * 3 + 2] = v.z;
+        uv[(o + i) * 2] = U.getX(i); uv[(o + i) * 2 + 1] = U.getY(i); kl[(o + i) * 3] = k.r; kl[(o + i) * 3 + 1] = k.g; kl[(o + i) * 3 + 2] = k.b;
+      }
+      const I = d.g.index.array; for (let i = 0; i < I.length; i += 3) om ? idx.push(o + I[i], o + I[i + 2], o + I[i + 1]) : idx.push(o + I[i], o + I[i + 1], o + I[i + 2]);
+      o += P.count;
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.BufferAttribute(kl, 3)); g.setIndex(idx); g.computeBoundingSphere();
+    return g;
+  }
+  // één veer: de voet in de oorsprong, de punt naar +z, de schacht op x = 0. a = het deel van de breedte aan de kant -x.
+  // vinger: de slagpennen worden voorbij het midden smaller (de 'vingers' aan de vleugelpunt). bol: de randen lager dan de schacht.
+  function veer(L, B, o) {
+    o = o || {}; const a = o.a === undefined ? 0.5 : o.a, rl = Math.min(0.5, (B / L) * (o.punt || 1)), [u0, u1] = VEL.R[o.soort || 'dek'];
+    return raster(o.nr || 7, 6, (ti, sj) => {
+      const t = 1 - Math.pow(1 - ti, 1.45), s = sj * 2 - 1;
+      let w = o.spits ? Math.pow(Math.sin(Math.PI * Math.min(0.999, 0.12 + t * 0.88)), 0.75) * (1 - 0.3 * t) : (t < 0.12 ? 0.62 + t / 0.12 * 0.38 : 1);
+      if (!o.spits && t > 1 - rl) w *= Math.sqrt(Math.max(0, 1 - Math.pow((t - (1 - rl)) / rl, 2)));
+      let wa = a, wb = 1 - a; if (o.vinger) { wa *= 1 - 0.46 * glad(0.4, 0.62, t); wb *= 1 - 0.36 * glad(0.48, 0.7, t); }
+      const x = (s < 0 ? s * wa : s * wb) * 2 * B * w + (o.zij || 0) * L * t * t;
+      const y = -(o.bol === undefined ? 0.1 : o.bol) * B * w * s * s + (o.buig || 0) * L * t * t;
+      return [x, y, t * L, u0 + (s * 0.5 + 0.5) * (u1 - u0), t];
+    });
+  }
+  // een buis langs punten, met per punt een straal (of [breed, hoog])
+  function buis(pts, stralen, nk, uvf) {
+    const T = new THREE.Vector3(), N = new THREE.Vector3(), B_ = new THREE.Vector3(), op = new THREE.Vector3(0, 1, 0);
+    return raster(pts.length - 1, nk, (ai, bj) => {
+      const i = Math.round(ai * (pts.length - 1)), p = pts[i], q = pts[Math.min(pts.length - 1, i + 1)], r = pts[Math.max(0, i - 1)];
+      T.subVectors(q, r).normalize(); N.crossVectors(T, Math.abs(T.y) > 0.9 ? B_.set(1, 0, 0) : op).normalize(); B_.crossVectors(T, N);
+      const st = stralen[i], rx = Array.isArray(st) ? st[0] : st, ry = Array.isArray(st) ? st[1] : st, f = bj * Math.PI * 2;
+      return [p.x + N.x * Math.cos(f) * rx + B_.x * Math.sin(f) * ry, p.y + N.y * Math.cos(f) * rx + B_.y * Math.sin(f) * ry, p.z + N.z * Math.cos(f) * rx + B_.z * Math.sin(f) * ry, uvf ? uvf(ai, bj)[0] : bj, uvf ? uvf(ai, bj)[1] : ai];
+    }, true);
+  }
+  // een vloeiende lijn door sleutelwaarden (Catmull-Rom)
+  const kromme = (xs, ys) => x => { let i = 0; while (i < xs.length - 2 && x > xs[i + 1]) i++; const t = Math.max(0, Math.min(1, (x - xs[i]) / (xs[i + 1] - xs[i]))), p0 = ys[Math.max(0, i - 1)], p1 = ys[i], p2 = ys[i + 1], p3 = ys[Math.min(ys.length - 1, i + 2)]; return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t); };
+  const ruisK = (k, n, sterk) => { const s = Math.sin(n * 91.7) * 43758.5; const r = 1 + (s - Math.floor(s) - 0.5) * (sterk || 0.16); return new THREE.Color(k.r * r, k.g * r, k.b * r); };
+  const BRUIN = kleurL('#76583F'), ROOM = kleurL('#F4EEE2'), WIT = new THREE.Color(1, 1, 1);
   const arend = new THREE.Group(), lijf = new THREE.Group(); arend.add(lijf);
-  const profiel = [[0.0, -2.2], [0.5, -2.05], [0.88, -1.5], [1.08, -0.6], [1.05, 0.3], [0.86, 1.2], [0.55, 1.95], [0.25, 2.35], [0.0, 2.45]].map(([r, y]) => new THREE.Vector2(r, y));
-  const rompGeo = new THREE.LatheGeometry(profiel, 18); rompGeo.rotateX(Math.PI / 2); rompGeo.scale(1, 0.8, 1);
-  lijf.add(new THREE.Mesh(rompGeo, lijfMat));
-  const nek = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.86, 0.9, 16, 1, true), witMat); nek.rotation.x = Math.PI / 2 - 0.35; nek.position.set(0, 0.28, -2.0); lijf.add(nek);
-  const kop = new THREE.Group(); kop.position.set(0, 0.48, -2.45); lijf.add(kop);
-  const kopBol = new THREE.Mesh(new THREE.SphereGeometry(0.68, 20, 16), witMat); kopBol.scale.set(0.92, 0.88, 1.2); kop.add(kopBol);
-  const wenkbrauw = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.14, 0.42), witMat); wenkbrauw.position.set(0, 0.26, -0.38); wenkbrauw.rotation.x = 0.25; kop.add(wenkbrauw);
-  const was = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.3, 12), geelMat); was.rotation.x = Math.PI / 2; was.position.set(0, 0.0, -0.78); kop.add(was);
-  const bovensnavel = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.8, 12), geelMat); bovensnavel.rotation.x = -Math.PI / 2 - 0.18; bovensnavel.position.set(0, 0.02, -1.25); kop.add(bovensnavel);
-  const haak = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.32, 8), geelMat); haak.rotation.x = Math.PI + 0.45; haak.position.set(0, -0.12, -1.62); kop.add(haak);
-  const ondersnavel = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.6, 10), geelMat); ondersnavel.rotation.x = -Math.PI / 2 + 0.1; ondersnavel.position.set(0, -0.16, -1.12); kop.add(ondersnavel);
-  for (const x of [-0.36, 0.36]) { const oog = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), AM({ color: new THREE.Color('#F0C020').convertSRGBToLinear(), roughness: 0.15 })); oog.position.set(x, 0.12, -0.5); kop.add(oog); const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshBasicMaterial({ color: '#050505' })); pupil.position.set(x * 1.12, 0.12, -0.58); kop.add(pupil); }
-  // poten: bij het vliegen opgetrokken onder de staart, bij het landen naar voren en naar beneden
+  // ---- het lijf: doorsneden van de nek tot de staart (breedte, boven, onder, midden)
+  {
+    const zs = [-2.75, -2.35, -1.85, -1.2, -0.45, 0.35, 1.1, 1.7, 2.15, 2.42];
+    const bw = kromme(zs, [0.36, 0.56, 0.84, 1.04, 1.1, 1.0, 0.8, 0.56, 0.32, 0.04]), bt = kromme(zs, [0.36, 0.5, 0.62, 0.72, 0.74, 0.66, 0.54, 0.38, 0.22, 0.03]);
+    const bb = kromme(zs, [0.4, 0.62, 0.92, 1.02, 0.98, 0.86, 0.66, 0.42, 0.22, 0.03]), by = kromme(zs, [0.46, 0.36, 0.2, 0.1, 0.06, 0.05, 0.07, 0.1, 0.12, 0.12]);
+    const romp = raster(34, 26, (a, b) => { const z = zs[0] + a * (zs[zs.length - 1] - zs[0]), f = b * Math.PI * 2, c = -Math.cos(f); return [bw(z) * Math.sin(f), by(z) + c * (c > 0 ? bt(z) : bb(z)), z, b * 7, a * 6]; }, true);
+    const kl = (x, y, z) => { const nek = glad(-1.75, -2.45, z), buik = glad(0.1, -0.6, y), lic = 0.9 + 0.12 * Math.sin(x * 9 + z * 4) * Math.sin(z * 7); const k = new THREE.Color().copy(BRUIN).multiplyScalar(lic * (0.82 + 0.14 * buik)); k.lerp(ROOM, nek); return k; };
+    const delen = [{ g: romp, kl }];
+    // de bovenste staartdekveren (bruin, over de voet van de staart) en de witte onderstaartdekveren
+    for (let i = 0; i < 7; i++) { const f = (i - 3) / 3; delen.push({ g: veer(1.15 - Math.abs(f) * 0.25, 0.2, { soort: 'dek', bol: 0.14, buig: -0.04 }), m: M4(f * 0.3, 0.5 - Math.abs(f) * 0.07, 1.5, 0.26, f * 0.25, 0), kl: ruisK(WIT, i) }); }
+    for (let i = 0; i < 5; i++) { const f = (i - 2) / 2; delen.push({ g: veer(0.85, 0.2, { soort: 'staart', bol: 0.15, buig: 0.05 }), m: M4(f * 0.26, -0.36, 1.6, -0.3, f * 0.3, 0), kl: ruisK(WIT, i + 9, 0.08) }); }
+    // het lijf heeft het verenkleed, de dekveren het verenplaatje
+    lijf.add(new THREE.Mesh(samen([delen[0]]), vachtMat)); lijf.add(new THREE.Mesh(samen(delen.slice(1)), veerMat));
+  }
+  // ---- de kop: een langwerpige schedel met een platte kruin, een uitstekende wenkbrauwboog boven de ogen en een haaksnavel
+  const kop = new THREE.Group(); kop.position.set(0, 0.5, -2.55); lijf.add(kop);
+  const OOG = [0.315, 0.1, -0.46], OOGR = 0.1;
+  {
+    const schedel = raster(18, 24, (a, b) => {
+      const th = a * Math.PI, f = b * Math.PI * 2; let x = Math.sin(th) * Math.sin(f) * 0.55, y = Math.cos(th) * 0.53, z = -Math.sin(th) * Math.cos(f) * 0.74;
+      if (y > 0.22) y = 0.22 + (y - 0.22) * 0.55;                       // platte kruin
+      if (z < -0.28) { const k = 1 - 0.36 * glad(-0.28, -0.74, z); x *= k; y = y * k - 0.04 * glad(-0.4, -0.74, z); } // smaller naar de snavel
+      if (z > 0.2) y -= 0.08 * glad(0.2, 0.7, z) * (y > 0 ? 1 : 0.3); // het achterhoofd loopt af naar de nek
+      return [x, y, z, b * 6, a * 4];
+    }, true);
+    const kl = (x, y, z) => { let k = new THREE.Color().copy(ROOM).multiplyScalar(0.96 + 0.05 * Math.sin(x * 23) * Math.sin(z * 17)); const d = Math.hypot(Math.abs(x) - OOG[0], y - OOG[1], z - OOG[2]); k.lerp(kleurL('#8E8577'), 0.55 * glad(0.2, 0.11, d)); return k; };
+    const delen = [{ g: schedel, kl }];
+    // de wenkbrauwboog: een richel boven elk oog
+    for (const s of [1, -1]) delen.push({ g: raster(6, 10, (a, b) => { const th = a * Math.PI, f = b * Math.PI * 2; return [Math.sin(th) * Math.sin(f) * 0.15, Math.cos(th) * 0.045, -Math.sin(th) * Math.cos(f) * 0.25, b, a]; }, true), m: M4(s * 0.28, 0.205, -0.45, 0.22, s * 0.28, s * -0.5), kl: () => ROOM });
+    const vacht = delen;
+    kop.add(new THREE.Mesh(samen(vacht), vachtMat));
+    // de snavel: een zijdelings platte, gebogen bovensnavel met een haak, een kortere ondersnavel en een gele washuid
+    const bez = (p, t) => { const u = 1 - t; return [u * u * u * p[0][0] + 3 * u * u * t * p[1][0] + 3 * u * t * t * p[2][0] + t * t * t * p[3][0], u * u * u * p[0][1] + 3 * u * u * t * p[1][1] + 3 * u * t * t * p[2][1] + t * t * t * p[3][1]]; };
+    // de doorsnede is een omgekeerde U: volle breedte tot aan de snijrand, zodat de smallere ondersnavel er half in valt
+    const snavel = (boven, onder, breed, macht) => raster(18, 16, (a, b) => {
+      const s = a, f = b * Math.PI * 2, T = bez(boven, s), O = bez(onder, s), c = Math.cos(f), sn = Math.sin(f), m = (1 - Math.sign(c) * Math.pow(Math.abs(c), 0.7)) / 2, w = breed * Math.pow(1 - s, macht) + 0.005;
+      return [w * Math.sign(sn) * Math.pow(Math.abs(sn), 0.5) * (1 - 0.18 * (1 - m)), T[0] + (O[0] - T[0]) * m, T[1] + (O[1] - T[1]) * m, b, a];
+    }, true);
+    const geel = kleurL('#EAB43C'), hoorn = kleurL('#D29A30'), was = kleurL('#EDBE48'), mond = kleurL('#7A5020');
+    const boven = snavel([[0.17, -0.62], [0.25, -0.9], [0.22, -1.2], [-0.25, -1.27]], [[-0.13, -0.62], [-0.125, -0.88], [-0.1, -1.08], [-0.25, -1.27]], 0.19, 0.55);
+    const onder = snavel([[-0.105, -0.64], [-0.11, -0.86], [-0.13, -0.98], [-0.16, -1.06]], [[-0.27, -0.62], [-0.27, -0.84], [-0.22, -0.98], [-0.16, -1.06]], 0.15, 0.7);
+    const snavelKl = (x, y, z, u, v) => { const k = geel.clone().lerp(hoorn, glad(0.6, 0.98, v)); const onderkant = glad(0.36, 0.46, Math.min(Math.abs(u - 0.5), 0.5)); return k.lerp(mond, 0.55 * onderkant * (1 - glad(0.55, 0.8, v))); };
+    const kaal = [{ g: boven, kl: snavelKl }, { g: onder, kl: (x, y, z, u, v) => geel.clone().multiplyScalar(0.88).lerp(hoorn, glad(0.5, 1, v)) }];
+    // de washuid aan de voet van de snavel (iets dikker, met een neusgat), die zacht in de kop overgaat
+    kaal.push({ g: raster(6, 18, (a, b) => { const f = b * Math.PI * 2, z = -0.76 + a * 0.22, r = 0.84 + 0.22 * a; return [Math.sin(f) * 0.2 * r, 0.02 - Math.cos(f) * 0.205 * r, z, b, a]; }, true), kl: (x, y, z) => (Math.hypot(Math.abs(x) - 0.16, y - 0.07, z + 0.7) < 0.04 ? kleurL('#3A2410') : was) });
+    // de ogen: een licht-gele iris met een zwarte pupil, half onder de wenkbrauwboog
+    for (const s of [1, -1]) { const kijk = new THREE.Vector3(s * 0.8, 0.05, -0.62).normalize(); kaal.push({ g: raster(10, 16, (a, b) => { const th = a * Math.PI, f = b * Math.PI * 2; return [Math.sin(th) * Math.cos(f) * OOGR, Math.cos(th) * OOGR, Math.sin(th) * Math.sin(f) * OOGR, b, a]; }, true), m: M4(s * OOG[0], OOG[1], OOG[2]), kl: (x, y, z) => { const d = (x * kijk.x + y * kijk.y + z * kijk.z) / OOGR; return d > 0.9 ? kleurL('#070504') : d > 0.55 ? kleurL('#E8C64A').lerp(kleurL('#B07818'), glad(0.82, 0.6, d)) : kleurL('#2A2014'); } }); }
+    kop.add(new THREE.Mesh(samen(kaal), kaalMat));
+  }
+  // ---- de poten: bevederde dijen ('broek'), een half bevederde loop met gele schubben, vier tenen met zwarte klauwen
   const poten = [];
-  for (const x of [-0.35, 0.35]) {
-    const poot = new THREE.Group(); poot.position.set(x, -0.55, 0.9);
-    const been = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 1.1, 8), geelMat); been.position.y = -0.55; poot.add(been);
-    const dij = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), lijfMat); dij.scale.set(1, 1.3, 1); poot.add(dij);
+  for (const kant of [-1, 1]) {
+    const poot = new THREE.Group(); poot.position.set(kant * 0.35, -0.55, 0.9);
+    const broek = raster(12, 16, (a, b) => { const th = a * Math.PI, f = b * Math.PI * 2, rafel = a > 0.6 ? 1 + 0.16 * Math.sin(f * 7) * glad(0.6, 0.95, a) : 1; return [Math.sin(th) * Math.sin(f) * 0.3 * rafel, -0.2 + Math.cos(th) * 0.45 * (a > 0.5 ? 1.15 : 1), -Math.sin(th) * Math.cos(f) * 0.34 * rafel, b * 2, a * 2]; }, true);
+    poot.add(new THREE.Mesh(samen([{ g: broek, kl: (x, y) => BRUIN.clone().multiplyScalar(0.8 - 0.08 * glad(0, -0.8, y)) }]), vachtMat));
+    const loop = buis([new THREE.Vector3(0, -0.6, 0), new THREE.Vector3(0, -0.85, 0.01), new THREE.Vector3(0, -0.98, 0.02), new THREE.Vector3(0, -1.08, 0.02), new THREE.Vector3(0, -1.14, 0.0)], [0.13, 0.12, 0.115, 0.12, 0.13], 10);
+    const geel = kleurL('#E3B03A');
+    poot.add(new THREE.Mesh(samen([{ g: loop, kl: (x, y) => geel.clone().multiplyScalar(0.82 + 0.18 * Math.abs(Math.sin(y * 52))) }]), kaalMat));
     const voet = new THREE.Group(); voet.position.y = -1.1; poot.add(voet);
-    for (const [a, l] of [[-0.4, 0.42], [0, 0.48], [0.4, 0.42], [Math.PI, 0.32]]) { const teen = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, l, 6), geelMat); teen.rotation.x = Math.PI / 2; teen.rotation.y = a; teen.position.set(Math.sin(a) * l * 0.5, 0, -Math.cos(a) * l * 0.5); voet.add(teen); const k = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.16, 6), klauwMat); k.rotation.x = -Math.PI / 2 - 0.7; k.position.set(Math.sin(a) * l, -0.04, -Math.cos(a) * l); voet.add(k); }
+    const tenen = [];
+    for (const [hoek, l] of [[-0.42, 0.5], [0, 0.58], [0.42, 0.5], [Math.PI, 0.38]]) {
+      const pts = [], str = [], kl = [];
+      for (let i = 0; i <= 8; i++) { const t = i / 8, d = t * l; pts.push(new THREE.Vector3(Math.sin(hoek) * d, -0.05 - 0.04 * Math.sin(t * Math.PI) - 0.03 * t, -Math.cos(hoek) * d)); str.push((0.085 - 0.03 * t) * (1 + 0.1 * Math.cos(t * Math.PI * 6))); }
+      tenen.push({ g: buis(pts, str, 8), kl: (x, y, z, u, v) => geel.clone().multiplyScalar(0.8 + 0.2 * Math.abs(Math.cos(v * 30))) });
+      // de klauw: een gebogen, spits toelopende haak
+      const kp = [], ks = [], e = pts[8];
+      for (let i = 0; i <= 7; i++) { const t = i / 7, a = t * 1.5; kp.push(new THREE.Vector3(e.x + Math.sin(hoek) * Math.sin(a) * 0.15, e.y - (1 - Math.cos(a)) * 0.15 + 0.02, e.z - Math.cos(hoek) * Math.sin(a) * 0.15)); ks.push(0.05 * (1 - t) + 0.004); }
+      tenen.push({ g: buis(kp, ks, 7), kl: () => kleurL('#141110') });
+    }
+    voet.add(new THREE.Mesh(samen(tenen), kaalMat));
     lijf.add(poot); poten.push({ poot, voet });
   }
-  const staart = new THREE.Group(); staart.position.set(0, 0.08, 2.05); lijf.add(staart);
-  const staartVeren = [], staartGeo = veerVorm(2.6, 0.62);
-  for (let i = 0; i < 12; i++) { const v = new THREE.Mesh(staartGeo, witPenMat), f = (i - 5.5) / 5.5; v.position.set(f * 0.42, -Math.abs(f) * 0.02 + (i % 2) * 0.012, 0); staart.add(v); staartVeren.push({ v, f }); }
-  const armpen = veerVorm(2.7, 0.62), dekveer = veerVorm(1.5, 0.66), kleinDek = veerVorm(0.9, 0.6), slagpen = [3.7, 3.6, 3.4, 3.1, 2.8, 2.5, 2.2].map(l => veerVorm(l, 0.46));
+  // ---- de staart: twaalf witte stuurpennen, een wigvorm (de middelste het langst)
+  const staart = new THREE.Group(); staart.position.set(0, 0.1, 2.0); lijf.add(staart);
+  const staartVeren = [];
+  for (let i = 0; i < 12; i++) {
+    const f = (i - 5.5) / 5.5, g = samen([{ g: veer(2.35 - Math.abs(f) * 0.5, 0.29, { soort: 'staart', bol: 0.07, buig: 0.035, punt: 1.1 }), kl: ruisK(WIT, i, 0.06) }]);
+    const v = new THREE.Mesh(g, veerMat); v.position.set(f * 0.36, -Math.abs(f) * 0.05 + (i % 2) * 0.014, -Math.abs(f) * 0.08); staart.add(v); staartVeren.push({ v, f });
+  }
+  // ---- de vleugels: de arm (schouder tot pols) en de hand (pols tot punt), elk één vorm, plus zeven losse slagpennen
+  // Gebouwd voor de rechtervleugel (+x) en gespiegeld voor de linker. Voor is -z, de veren wijzen naar achteren (+z).
+  const vleugelProfiel = (z, b, voor) => (z < -0.4 ? Math.sqrt(Math.max(0, 1 - Math.pow((z + 0.4) / (voor + 0.4), 2))) : Math.exp(-Math.pow((z + 0.4) / 0.75, 2))) * b;
+  function armDelen() {
+    const D = [], lang = 4.3, dik = x => 0.21 - 0.09 * (x / lang), voor = x => -0.78 + 0.08 * (x / lang), top = (x, z) => 0.02 + vleugelProfiel(z, dik(x), voor(x)), bodem = (x, z) => 0.02 - 0.45 * vleugelProfiel(z, dik(x), voor(x));
+    // de voorrand: een afgeplatte buis onder de dekveren
+    D.push({ g: raster(10, 12, (a, b) => { const x = 0.02 + a * lang, f = b * Math.PI * 2, zc = (voor(x) - 0.06) / 2, ra = (-0.06 - voor(x)) / 2; return [x, 0.02 + Math.sin(f) * dik(x) * (Math.sin(f) > 0 ? 1 : 0.5), zc - Math.cos(f) * ra, VEL.R.effen[0] + b * (VEL.R.effen[1] - VEL.R.effen[0]), a]; }, true), kl: WIT });
+    // rijen dekveren, van voor naar achter steeds langer; de voorste rij ligt bovenop
+    const rij = (n, L, B, zb, til, soort, x0, x1, onderkant, zaad) => {
+      for (let i = 0; i < n; i++) {
+        const r1 = Math.sin(i * 12.9 + zaad * 4.1) * 0.5 + 0.5, Li = L * (0.88 + 0.24 * r1), zbi = zb + (Math.sin(i * 5.7 + zaad) * 0.03), x = x0 + (x1 - x0) * (i + 0.5) / n + Math.sin(i * 7.3 + zaad) * 0.03, zt = zbi + Li, y0 = onderkant ? bodem(x, zbi) - til : top(x, zbi) + til, y1 = onderkant ? bodem(x, zt) - til * 0.5 : top(x, zt) + til * 0.5;
+        const helling = Math.atan2(y1 - y0, Li), yaw = Math.sin(i * 3.1 + zaad) * 0.05 + (x / lang) * 0.06;
+        D.push({ g: veer(Li, B, { soort, bol: onderkant ? -0.06 : 0.05, buig: 0, a: 0.5 }), m: M4(x, y0, zbi, -helling, yaw, 0), kl: ruisK(WIT, i * 13 + zaad, 0.2) });
+      }
+    };
+    rij(16, 0.48, 0.15, -0.8, 0.07, 'dek', 0.12, 4.2, false, 1);
+    rij(15, 0.62, 0.18, -0.62, 0.055, 'dek', 0.18, 4.15, false, 2);
+    rij(13, 0.86, 0.21, -0.42, 0.04, 'dek', 0.2, 4.1, false, 3);
+    rij(11, 1.42, 0.25, -0.16, 0.022, 'dek', 0.25, 4.1, false, 4);
+    // onderkant: ondervleugeldekveren
+    rij(12, 0.75, 0.2, -0.72, 0.05, 'onder', 0.15, 4.15, true, 5);
+    rij(11, 1.3, 0.25, -0.46, 0.025, 'onder', 0.2, 4.1, true, 6);
+    // de armpennen (de binnenste, de tertials, wijzen naar het lijf)
+    for (let i = 0; i < 11; i++) {
+      const x = 0.32 + i * 0.37, L = i === 0 ? 2.25 : i === 1 ? 2.6 : 2.78 - (i - 2) * 0.025, yaw = i === 0 ? -0.32 : i === 1 ? -0.13 : -0.02 + i * 0.006;
+      D.push({ g: veer(L, 0.34, { soort: 'arm', a: 0.55, bol: 0.06, buig: -0.02, punt: 0.85 }), m: M4(x, 0.0 - i * 0.004, -0.1, 0, yaw, 0), kl: ruisK(WIT, i * 5 + 40, 0.12) });
+    }
+    return D;
+  }
+  const POLS = 4.25, SLAG = [3.7, 3.6, 3.42, 3.15, 2.85, 2.55, 2.25];
+  const slagBasis = i => Math.PI / 2 - (0.08 + i * 0.16), slagPlek = i => [2.2 - i * 0.3, -0.01 * i, -0.05 + i * 0.04];
+  function handDelen() {
+    const D = [], lang = 2.2, dik = x => 0.12 - 0.07 * (x / lang), voor = x => -0.66 + 0.24 * (x / lang);
+    D.push({ g: raster(8, 12, (a, b) => { const x = -0.1 + a * lang, f = b * Math.PI * 2, zc = (voor(x) - 0.02) / 2, ra = (-0.02 - voor(x)) / 2; return [x, 0.01 + Math.sin(f) * dik(x) * (Math.sin(f) > 0 ? 1 : 0.5), zc - Math.cos(f) * ra, VEL.R.effen[0] + b * (VEL.R.effen[1] - VEL.R.effen[0]), a]; }, true), kl: WIT });
+    // kleine dekveren op de voorrand
+    for (let i = 0; i < 9; i++) { const x = 0.05 + i * 0.23; D.push({ g: veer(0.5, 0.14, { soort: 'dek', bol: 0.14 }), m: M4(x, 0.02 + dik(x) * 0.9, voor(x) + 0.02, -0.12, 0.1 + i * 0.08, 0), kl: ruisK(WIT, i + 70, 0.2) }); }
+    // handdekveren over de voet van elke slagpen, en eronder de ondervleugeldekveren
+    for (let i = 0; i < 7; i++) { const [x, y, z] = slagPlek(i), b = slagBasis(i); D.push({ g: veer(1.2 - i * 0.04, 0.22, { soort: 'onder', a: 0.4, bol: 0.12, buig: -0.03 }), m: M4(x - Math.sin(b) * 0.25, 0.035 + dik(x) + i * 0.008, z - 0.2, 0.06, b, 0), kl: ruisK(WIT, i + 80, 0.18) }); D.push({ g: veer(1.0 - i * 0.03, 0.22, { soort: 'onder', bol: -0.1 }), m: M4(x - Math.sin(b) * 0.25, y - 0.06, z - 0.2, 0, b, 0), kl: ruisK(WIT, i + 90, 0.18) }); }
+    // de duimvleugel (alula): drie smalle veertjes op de pols, naar buiten en voren
+    for (let i = 0; i < 3; i++) D.push({ g: veer(0.62 + i * 0.12, 0.12, { soort: 'arm', a: 0.35, bol: 0.08, buig: 0.02 }), m: M4(0.0 + i * 0.05, 0.1 + i * 0.012, -0.55 + i * 0.03, 0, 1.95 - i * 0.12, 0), kl: ruisK(WIT, i + 100, 0.1) });
+    return D;
+  }
+  const slagGeo = SLAG.map((L, i) => veer(L, 0.25, { soort: 'slag', a: 0.68, vinger: true, bol: 0.07, buig: 0.035, punt: 1.6, nr: 9 }));
   const vleugels = [];
   for (const kant of [1, -1]) {
-    const schouder = new THREE.Group(); schouder.position.set(kant * 0.72, 0.32, -0.5);
-    const voorrand = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 4.3, 10), dekMat); voorrand.rotation.z = Math.PI / 2; voorrand.position.set(kant * 2.15, 0.02, -0.15); schouder.add(voorrand);
-    for (let i = 0; i < 10; i++) { const x = kant * (0.35 + i * 0.41); const p = new THREE.Mesh(armpen, penMat); p.position.set(x, -0.02 - i * 0.002, 0.0); p.rotation.y = kant * (-0.02 * i); schouder.add(p); const d = new THREE.Mesh(dekveer, dekMat); d.position.set(x, 0.05, -0.35); d.rotation.y = kant * -0.04; schouder.add(d); const k = new THREE.Mesh(kleinDek, dekMat); k.position.set(x + kant * 0.2, 0.09, -0.62); schouder.add(k); }
-    const pols = new THREE.Group(); pols.position.x = kant * 4.25; schouder.add(pols);
-    const handRand = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 2.3, 8), dekMat); handRand.rotation.z = Math.PI / 2; handRand.position.set(kant * 1.15, 0.02, -0.12); pols.add(handRand);
+    const sp = kant < 0, schouder = new THREE.Group(); schouder.position.set(kant * 0.72, 0.32, -0.5);
+    schouder.add(new THREE.Mesh(samen(armDelen(), sp), veerMat));
+    const pols = new THREE.Group(); pols.position.x = kant * POLS; schouder.add(pols);
+    pols.add(new THREE.Mesh(samen(handDelen(), sp), veerMat));
     const vingers = [];
-    for (let i = 0; i < 7; i++) { const houder = new THREE.Group(); houder.position.set(kant * (2.2 - i * 0.3), -0.01 * i, -0.05 + i * 0.04); const pen = new THREE.Mesh(slagpen[i], penMat); houder.add(pen); const basis = Math.PI / 2 - (0.08 + i * 0.16); houder.rotation.y = kant * basis; pols.add(houder); vingers.push({ houder, basis, i }); }
-    for (let i = 0; i < 5; i++) { const d = new THREE.Mesh(dekveer, dekMat); d.position.set(kant * (0.2 + i * 0.42), 0.06, -0.3); d.rotation.y = kant * (Math.PI / 2 - 0.9 - i * 0.12) * 0.4; d.scale.set(0.8, 1, 0.85); pols.add(d); }
+    for (let i = 0; i < 7; i++) { const houder = new THREE.Group(), [x, y, z] = slagPlek(i); houder.position.set(kant * x, y, z); houder.add(new THREE.Mesh(samen([{ g: slagGeo[i], kl: ruisK(WIT, i + 120, 0.1) }], sp), veerMat)); const basis = slagBasis(i); houder.rotation.y = kant * basis; pols.add(houder); vingers.push({ houder, basis, i }); }
     lijf.add(schouder); vleugels.push({ schouder, pols, vingers, kant });
   }
-  const AREND_SCHAAL = 0.22; // spanwijdte zo'n 6 m: nog groter dan echt (2 m), maar wel in verhouding met de huizen lijf.scale.setScalar(AREND_SCHAAL); scene.add(arend);
+  return { arend, lijf, kop, poten, staart, staartVeren, vleugels };
+  })();
+  const AREND_SCHAAL = 0.22; lijf.scale.setScalar(AREND_SCHAAL); scene.add(arend); // spanwijdte zo'n 6 m: groter dan echt (2 m), maar in verhouding met de huizen
   arend.traverse(o => { if (o.isMesh) o.castShadow = true; });
   // een zachte schaduwvlek onder de arend (op elk dak, ook zonder schaduwkaart)
   const vlekTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
@@ -3615,17 +3826,48 @@ const AL = (() => {
     });
   };
   let VEREN = [];
-  const veerGeo = new THREE.ConeGeometry(1.2, 5, 6); veerGeo.scale(S * 0.85, S * 0.85, S * 0.32);
-  const veerMat = new THREE.MeshLambertMaterial({ color: '#FFD84A', emissive: '#7A5A00' }), gloedMat = new THREE.MeshBasicMaterial({ color: '#FFE76A', transparent: true, opacity: 0.22, depthWrite: false });
+  // de gouden veer: een echte veer (een gebogen schacht, een smalle en een brede vlag met een paar splitjes, dons aan de voet),
+  // getekend op een plaatje met doorzichtige randen, van metaalachtig goud, met een zachte gloed eromheen
+  const goudVeerTex = (() => {
+    const c = document.createElement('canvas'); c.width = 128; c.height = 512; const g = c.getContext('2d');
+    const top = 10, voet = 430, bodem = 506, sx = t => 60 + 9 * Math.sin(t * Math.PI * 0.85) - 4 * t, wa = t => 24 * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + t * 0.97)), 0.55) * (1 - 0.3 * t), wb = t => 44 * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + t * 0.97)), 0.6) * (1 - 0.2 * t);
+    const yv = t => voet - t * (voet - top);
+    g.beginPath(); for (let i = 0; i <= 60; i++) { const t = i / 60; g.lineTo(sx(t) - wa(t), yv(t)); } for (let i = 60; i >= 0; i--) { const t = i / 60; g.lineTo(sx(t) + wb(t), yv(t)); } g.closePath();
+    g.save(); g.clip();
+    const gr = g.createLinearGradient(0, 0, 128, 0); gr.addColorStop(0, '#9A6612'); gr.addColorStop(0.32, '#E7B232'); gr.addColorStop(0.5, '#FFE48A'); gr.addColorStop(0.68, '#F2C043'); gr.addColorStop(1, '#A26C14'); g.fillStyle = gr; g.fillRect(0, 0, 128, 512);
+    const vg = g.createLinearGradient(0, voet, 0, top); vg.addColorStop(0, 'rgba(120,70,0,0.35)'); vg.addColorStop(0.5, 'rgba(255,240,180,0)'); vg.addColorStop(1, 'rgba(255,250,210,0.35)'); g.fillStyle = vg; g.fillRect(0, 0, 128, 512);
+    // de baarden: schuin naar de punt, afwisselend licht en donker
+    for (let y = voet + 30; y > top - 40; y -= 2.4) { const t = Math.max(0, Math.min(1, (voet - y) / (voet - top))); for (const k of [-1, 1]) { const l = Math.sin(y * 0.33 + k) * 0.6 + Math.sin(y * 0.09) * 0.4; g.strokeStyle = l > 0 ? '#FFF2B8' : '#7A4C08'; g.globalAlpha = 0.14 + 0.2 * Math.abs(l); g.lineWidth = 1.2; g.beginPath(); g.moveTo(sx(t), y); g.quadraticCurveTo(sx(t) + k * 18, y - 8, sx(t) + k * 50, y - 26); g.stroke(); } }
+    g.restore(); g.globalAlpha = 1;
+    // splitjes in de vlag: dunne, schuine kieren vanaf de rand
+    g.globalCompositeOperation = 'destination-out';
+    for (const [t, k, d] of [[0.3, 1, 0.75], [0.52, 1, 0.6], [0.7, 1, 0.5], [0.44, -1, 0.7], [0.62, -1, 0.55]]) { const y = yv(t), w = k > 0 ? wb(t) : wa(t), x0 = sx(t) + k * w * (1 - d); g.beginPath(); g.moveTo(x0, y + 3); g.lineTo(sx(t) + k * (w + 6), y - 14); g.lineTo(sx(t) + k * (w + 6), y - 18); g.lineTo(x0, y + 1); g.closePath(); g.fill(); }
+    g.globalCompositeOperation = 'source-over';
+    // dons aan de voet van de vlag
+    for (let i = 0; i < 70; i++) { const k = i % 2 ? 1 : -1, y = voet + 6 - (i * 7) % 46, x = sx(0) + k * 2; g.strokeStyle = i % 3 ? '#F6D466' : '#FFF0B0'; g.globalAlpha = 0.55; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + k * 10, y - 4, x + k * (16 + (i * 5) % 14), y + 6, x + k * (22 + (i * 3) % 16), y - 4 + (i % 5)); g.stroke(); }
+    // de schacht en de kale spoel onderaan
+    g.globalAlpha = 1; g.strokeStyle = '#FFF6D0'; g.lineCap = 'round';
+    g.beginPath(); for (let i = 0; i <= 50; i++) { const t = i / 50; g.lineTo(sx(t), yv(t)); } g.lineWidth = 2.6; g.stroke();
+    g.beginPath(); g.moveTo(sx(0), voet); g.quadraticCurveTo(sx(0) - 1, (voet + bodem) / 2, sx(0) - 3, bodem); g.lineWidth = 4.2; g.strokeStyle = '#F4D27A'; g.stroke(); g.lineWidth = 1.4; g.strokeStyle = '#FFFBEA'; g.stroke();
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
+  })();
+  const veerGeo = (() => { const L = 5.4 * S, B = L * 0.25, g = new THREE.BufferGeometry(), pos = [], uv = [], idx = [], NR = 16, NK = 6;
+    for (let i = 0; i <= NR; i++) for (let j = 0; j <= NK; j++) { const t = i / NR, s = j / NK * 2 - 1; pos.push(s * B / 2, t * L - L / 2, 0.06 * L * Math.sin(t * Math.PI) - 0.07 * B * s * s + 0.04 * L * t * t); uv.push(j / NK, t); }
+    for (let i = 0; i < NR; i++) for (let j = 0; j < NK; j++) { const a = i * (NK + 1) + j; idx.push(a, a + 1, a + NK + 1, a + 1, a + NK + 2, a + NK + 1); }
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); g.rotateZ(-0.28); return g; })();
+  const veerMat = new THREE.MeshStandardMaterial({ map: goudVeerTex, emissiveMap: goudVeerTex, emissive: new THREE.Color('#FFC040'), emissiveIntensity: 0.38, metalness: 0.7, roughness: 0.32, alphaTest: 0.45, side: THREE.DoubleSide });
+  const gloedTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,236,150,1)'); gr.addColorStop(0.3, 'rgba(255,210,90,0.45)'); gr.addColorStop(1, 'rgba(255,200,60,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  const gloedMat = new THREE.SpriteMaterial({ map: gloedTex, color: '#FFD86A', transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
   let veerMeshes = [];
   function maakVeren() {
     VEREN = VEER_PLEK();
-    veerMeshes = VEREN.map(v => { const m = new THREE.Mesh(veerGeo, veerMat); m.position.set(v.x * S, AK.yVan(v.y), v.z * S); m.visible = !V.veren.includes(v.id); const g = new THREE.Mesh(new THREE.SphereGeometry(3.2 * S, 10, 8), gloedMat); m.add(g); scene.add(m); return m; });
+    veerMeshes = VEREN.map((v, i) => { const m = new THREE.Mesh(veerGeo, veerMat); m.position.set(v.x * S, AK.yVan(v.y), v.z * S); m.visible = !V.veren.includes(v.id); const g = new THREE.Sprite(gloedMat); g.scale.setScalar(7 * S); m.add(g); m.rotation.y = i * 1.7; scene.add(m); return m; });
   }
   function pakVeer(v, i) { veerMeshes[i].visible = false; V.veren.push(v.id); bewaar(); fx.veer(); deeltjes(v.x * S, AK.yVan(v.y), v.z * S, 18, '#FFD84A'); melding(`Gouden veer! ${V.veren.length} van ${VEREN.length}`, 'veer'); stuurScore(); tekenHud(); }
   function checkVeren(dt) {
+    gloedMat.opacity = 0.45 + 0.15 * Math.sin(performance.now() / 420);
     const xm = A.x / S, ym = A.y / S + NUL, zm = A.z / S;
-    VEREN.forEach((v, i) => { const m = veerMeshes[i]; if (!m.visible) return; m.rotation.y += dt * 2.4; m.position.y = AK.yVan(v.y) + Math.sin(performance.now() / 600 + i) * 0.25; if (Math.hypot(xm - v.x, ym - v.y, zm - v.z) < (mobiel ? 13 : 11)) pakVeer(v, i); });
+    VEREN.forEach((v, i) => { const m = veerMeshes[i]; if (!m.visible) return; const nu = performance.now() / 1000; m.rotation.y += dt * 1.5; m.rotation.x = Math.sin(nu * 0.9 + i) * 0.12; m.position.y = AK.yVan(v.y) + Math.sin(nu * 1.7 + i) * 0.25; if (Math.hypot(xm - v.x, ym - v.y, zm - v.z) < (mobiel ? 13 : 11)) pakVeer(v, i); });
   }
   function landGeland(D) {
     melding('Geland op ' + D.naam + '. Klap of druk omhoog om weer op te vliegen.', 'land');

@@ -74,6 +74,17 @@ body { display: flex; flex-direction: column; padding-top: env(safe-area-inset-t
 body.ar-fotostand .ar-hud, body.ar-fotostand .ar-knoppen-boven, body.ar-fotostand .ar-touch, body.ar-fotostand #ar-mini { display: none !important; }
 .ar-knop[aria-pressed="true"] { background: var(--goud); }
 .ar-kaart a { color: inherit; }
+.ar-stad { display: inline-flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; margin: .15rem 0 .55rem; padding: .35rem .85rem; border-radius: 999px; border: 2px solid var(--inkt); background: var(--papier); color: var(--inkt); font: inherit; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.ar-stad span { font-size: .82em; opacity: .75; text-decoration: underline; }
+.ar-stad:focus-visible { outline: 3px solid var(--goud); outline-offset: 2px; }
+.ar-steden { list-style: none; margin: .6rem 0; padding: 0; display: grid; gap: .6rem; }
+.ar-stadkaart { display: grid; grid-template-columns: auto 1fr auto; gap: .2rem .8rem; align-items: center; padding: .7rem .85rem; border-radius: 12px; border: 2px solid var(--inkt); background: var(--papier); color: var(--inkt); }
+.ar-stadkaart p { margin: .15rem 0 0; }
+.ar-stadkaart.hier { box-shadow: 0 0 0 3px var(--goud); }
+.ar-stadkaart.binnenkort { border-style: dashed; opacity: .75; grid-template-columns: auto 1fr; }
+.ar-vlag { font-size: 2rem; line-height: 1; }
+.ar-hier { font-size: .8rem; font-weight: 700; padding: .2rem .5rem; border-radius: 999px; background: var(--goud); color: var(--inkt); white-space: nowrap; }
+@media (max-width: 480px) { .ar-stadkaart { grid-template-columns: auto 1fr; } .ar-stadkaart .ar-knop, .ar-hier { grid-column: 1 / -1; justify-self: start; } }
 @media (prefers-reduced-motion: reduce) { #ar-ontdekt { transition: none; } }
 </style>
 <!-- versie 0.6: de spelbalk bovenin, in de stijl van de homepage, met licht en donker (de keuze op de homepage geldt overal) -->
@@ -116,12 +127,13 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   <div id="ar-kaart-groot" hidden><canvas id="ar-kaart-doek" aria-label="Kaart van Parijs"></canvas></div>
   <div class="ar-scherm" id="ar-menu" hidden>
     <div class="ar-kaart ar-menu-kaart">
-      <h1>Rommelarend<small>Vlieg als arend over Parijs</small></h1>
+      <h1>Rommelarend<small id="ar-sub">Vlieg als arend over Parijs</small></h1>
+      <button class="ar-stad" id="ar-stad" data-actie="steden" type="button"><b>🇫🇷 Parijs</b><span>Kies een stad</span></button>
       <p id="ar-menu-stand"></p>
       <div class="ar-menu-knoppen">
         <button class="ar-knop hoofd" id="ar-verder" data-actie="vrij" type="button">Begin met vliegen</button>
         <button class="ar-knop" data-actie="races" type="button">Wedstrijden door ringen</button>
-        <button class="ar-knop" data-actie="dagboek" type="button">Mijn Parijs</button>
+        <button class="ar-knop" id="ar-dagboekknop" data-actie="dagboek" type="button">Mijn Parijs</button>
         <button class="ar-knop" data-actie="instellingen" type="button">Instellingen</button>
       </div>
       <p id="ar-uitleg"></p>
@@ -1496,6 +1508,7 @@ function kaartBouwer(scope) {
       W.bruggen.push({ dek, naam, vlakken: v, x0, x1, z0, z1 });
     }
     W.seine = leesLijnen(L, 1)[0]; W.kanaal = leesLijnen(L, 1); W.hoofdwegen = leesLijnen(L, 2);
+    for (const b of W.bruggen) brugAs(b);
     // het peil van elk water: de Seine (groot) op het peil van de rivier, vijvers en kanalen net onder hun oever
     for (const v of W.water) { const r = v.rings[0], A = Math.abs(opp(r)); if (A > 3e5) { v.peil = W.peil; continue; } let laag = Infinity; for (let k = 0; k < r.length; k += 2) laag = Math.min(laag, hoogteM(r[k], r[k + 1])); v.peil = Math.max(W.peil, laag - 0.8); }
     // waterlijsten per vak van 250 m, voor snel 'is hier water?'
@@ -1511,6 +1524,22 @@ function kaartBouwer(scope) {
     return null;
   }
   const isWater = (x, z) => !!waterOp(x, z);
+  // een brug: de lange as, de uiteinden, en een dek dat van de ene kade naar de andere loopt (de kades liggen niet altijd even hoog)
+  const IJZER = /passerelle|pont des arts|alexandre iii|bir-hakeim|austerlitz|arcole|solf[ée]rino|debilly|senghor|simone de beauvoir|morland|viaduc|pont-m[ée]tro|mirabeau|pont rouelle/i;
+  function brugAs(b) {
+    let ring = b.vlakken[0].rings[0]; for (const v of b.vlakken) if (Math.abs(opp(v.rings[0])) > Math.abs(opp(ring))) ring = v.rings[0];
+    const n = ring.length / 2; let cx = 0, cz = 0; for (let i = 0; i < n; i++) { cx += ring[i * 2] / n; cz += ring[i * 2 + 1] / n; }
+    let best = 0, bh = 0; for (let a = 0; a < 180; a += 3) { const h = a * Math.PI / 180, ux = Math.cos(h), uz = Math.sin(h); let lo = 1e9, hi = -1e9; for (let i = 0; i < n; i++) { const s = (ring[i * 2] - cx) * ux + (ring[i * 2 + 1] - cz) * uz; lo = Math.min(lo, s); hi = Math.max(hi, s); } if (hi - lo > best) { best = hi - lo; bh = h; } }
+    const ux = Math.cos(bh), uz = Math.sin(bh); let s0 = 1e9, s1 = -1e9; for (let i = 0; i < n; i++) { const s = (ring[i * 2] - cx) * ux + (ring[i * 2 + 1] - cz) * uz; s0 = Math.min(s0, s); s1 = Math.max(s1, s); }
+    // de hoogte van de straat aan elk uiteinde: het eerste stukje land vanaf de rand naar binnen
+    const eind = (vanaf, stap) => { for (let k = 0; k < 40; k++) { const s = vanaf + stap * (2 + k * 2); if ((stap > 0 && s > s1) || (stap < 0 && s < s0)) break; const x = cx + ux * s, z = cz + uz * s; if (!isWater(x, z)) return hoogteM(x, z); } return null; };
+    let hA = eind(s0, 1), hB = eind(s1, -1); const minDek = W.peil + 6.5;
+    if (hA === null && hB === null) hA = hB = Math.max(b.dek, minDek); else if (hA === null) hA = hB; else if (hB === null) hB = hA;
+    Object.assign(b, { cx, cz, ux, uz, s0, s1, hA, hB, ijzer: IJZER.test(b.naam || '') });
+    b.dekS = s => { const tt = Math.max(0, Math.min(1, (s - s0) / ((s1 - s0) || 1))); return Math.max(hA + (hB - hA) * tt, minDek); };
+    b.dekOp = (x, z) => b.dekS((x - cx) * ux + (z - cz) * uz);
+    b.dek = (hA + hB) / 2;
+  }
   function brugOp(x, z) { for (const b of W.bruggen) { if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) continue; for (const v of b.vlakken) if (inVlak(v, x, z)) return b; } return null; }
   function hoogteM(x, z) {
     const H = W.H; if (!H) return NUL;
@@ -1702,6 +1731,12 @@ function kaartBouwer(scope) {
     }
     return uit;
   }
+  // de onderkant van een overkapping (van onderen zichtbaar)
+  function platOnder(B, rings, y, soort, lv, seed) {
+    const { plat: p, idx } = driehoeken(rings), basis = B.nv;
+    for (let i = 0; i < p.length; i += 2) B.v(p[i] * SCHAAL, y, p[i + 1] * SCHAAL, 0, -127, 0, p[i], p[i + 1], 1, 1, soort, lv, seed, 0);
+    for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2], s = (p[b * 2] - p[a * 2]) * (p[c * 2 + 1] - p[a * 2 + 1]) - (p[b * 2 + 1] - p[a * 2 + 1]) * (p[c * 2] - p[a * 2]); if (s > 0) B.t(basis + a, basis + b, basis + c); else B.t(basis + a, basis + c, basis + b); }
+  }
   function plat(B, rings, y, soort, lv, seed, ex) {
     const { plat: p, idx } = driehoeken(rings), basis = B.nv, S = SCHAAL;
     for (let i = 0; i < p.length; i += 2) B.v(p[i] * S, y, p[i + 1] * S, 0, 127, 0, p[i], p[i + 1], 1, 1, soort, lv, seed, ex || 0);
@@ -1747,7 +1782,7 @@ function kaartBouwer(scope) {
     return Object.assign({}, g, { rings, blind: a.blind });
   }
   function maakGebouwSimpel(B, g) {
-    const S = SCHAAL, r = g.rings[0], n = r.length / 2, info = dakInfo(g), voet = info.laag - 1.5, top = info.top + (info.dak === 1 ? 1.8 : info.dak === 4 ? 3.5 : info.dak === 2 ? 1.2 : 0), st = g.stijl, lv = Math.min(255, g.lv), seed = Math.floor(g.seed * 255), H = top - info.laag;
+    const S = SCHAAL, r = g.rings[0], n = r.length / 2, info = dakInfo(g), voet = info.laag - 1.5 + g.mh, top = info.top + (info.dak === 1 ? 1.8 : info.dak === 4 ? 3.5 : info.dak === 2 ? 1.2 : 0), st = g.stijl, lv = Math.min(255, g.lv), seed = Math.floor(g.seed * 255), H = top - info.laag;
     for (let i = 0; i < n; i++) {
       if (g.blind[i] && H < 26) continue; // ver weg: muren tegen de buren laten we weg (die zie je toch niet)
       const j = (i + 1) % n, ax = r[i * 2], az = r[i * 2 + 1], bx = r[j * 2], bz = r[j * 2 + 1], dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz); if (L < 0.05) continue;
@@ -1755,7 +1790,7 @@ function kaartBouwer(scope) {
       const a0 = B.v(ax * S, y0, az * S, nx, 0, nz, 0, -1.5, L, info.top - info.laag, so, lv, seed, 0), b0 = B.v(bx * S, y0, bz * S, nx, 0, nz, L, -1.5, L, info.top - info.laag, so, lv, seed, 0), b1 = B.v(bx * S, y1, bz * S, nx, 0, nz, L, H, L, info.top - info.laag, so, lv, seed, 0), a1 = B.v(ax * S, y1, az * S, nx, 0, nz, 0, H, L, info.top - info.laag, so, lv, seed, 0);
       B.t(a0, b1, b0); B.t(a0, a1, b1);
     }
-    plat(B, [r], (top - NUL) * S, info.dak === 1 ? 20 : info.dak === 4 ? 21 : info.dak === 2 ? 22 : info.dak === 3 ? 24 : 23, lv, seed);
+    plat(B, [r], (top - NUL) * S, info.dak === 1 ? 20 : info.dak === 4 ? 21 : info.dak === 2 ? 22 : info.dak === 3 ? (st === 8 ? 27 : 24) : 23, lv, seed);
   }
   function maakGebouw(B, g, detail) {
     const S = SCHAAL, ring0 = g.rings[0], n0 = ring0.length / 2, info = dakInfo(g), laag = info.laag;
@@ -1805,7 +1840,7 @@ function kaartBouwer(scope) {
           blok(B, cx, cz, ux, uz, lang * 0.92, 0.38, y + hoogC, 0.5, 26, seed, lv);
         }
       }
-    } else if (dak === 3) plat(B, g.rings, yT, 24, lv, seed);
+    } else if (dak === 3) { plat(B, g.rings, yT, st === 8 ? 27 : 24, lv, seed); if (st === 8) platOnder(B, g.rings, (laag + g.mh - NUL) * S, 27, lv, seed); }
     else {
       plat(B, g.rings, yT, 23, lv, seed);
       // een lage rand om een plat dak
@@ -1874,7 +1909,7 @@ function kaartBouwer(scope) {
     const S = SCHAAL, p = w.pts, n = p.length / 2, h = w.breed / 2;
     for (let i = 0; i < n - 1; i++) {
       const ax = p[i * 2], az = p[i * 2 + 1], bx = p[i * 2 + 2], bz = p[i * 2 + 3], L = Math.hypot(bx - ax, bz - az); if (L < 0.01) continue;
-      const br = brugOp((ax + bx) / 2, (az + bz) / 2), ya = br ? br.dek + 0.35 : hoogteM(ax, az), yb = br ? br.dek + 0.35 : hoogteM(bx, bz);
+      const br = brugOp((ax + bx) / 2, (az + bz) / 2), ya = br ? br.dekOp(ax, az) + 0.35 : hoogteM(ax, az), yb = br ? br.dekOp(bx, bz) + 0.35 : hoogteM(bx, bz);
       const nx = -(bz - az) / L * h, nz = (bx - ax) / L * h;
       const a = B.v((ax + nx) * S, (ya - NUL) * S, (az + nz) * S, 0, 127, 0, k[0], k[1], k[2], 4), b = B.v((bx + nx) * S, (yb - NUL) * S, (bz + nz) * S, 0, 127, 0, k[0], k[1], k[2], 4), c = B.v((bx - nx) * S, (yb - NUL) * S, (bz - nz) * S, 0, 127, 0, k[0], k[1], k[2], 4), d = B.v((ax - nx) * S, (ya - NUL) * S, (az - nz) * S, 0, 127, 0, k[0], k[1], k[2], 4);
       const s = (nx * (bz - az) - nz * (bx - ax)); if (s > 0) { B.t(a, b, c); B.t(a, c, d); } else { B.t(a, c, b); B.t(a, d, c); }
@@ -1936,41 +1971,53 @@ function kaartBouwer(scope) {
     }
     return { water: BW.klaar(), kade: BK.klaar(), bruggen: maakBruggen() };
   }
-  // bruggen: een dek met een borstwering, en daaronder bogen op pijlers in het water
+  // bruggen: een dek dat van kade naar kade loopt, borstweringen langs de lange kanten, en daaronder bogen op pijlers in het water.
+  // aK.y + 1000 betekent: ijzer (donker geverfd metaal) in plaats van natuursteen.
   function maakBruggen() {
-    const S = SCHAAL, B = kadeBak(), botsing = [];
+    const S = SCHAAL, B = kadeBak();
     for (const br of W.bruggen) for (const v of br.vlakken) {
-      const ring = v.rings[0], n = ring.length / 2, yTop = br.dek + 0.3, yOnder = br.dek - 1.4;
-      // de lange as: de langste richting van de vorm
-      let cx = 0, cz = 0; for (let i = 0; i < n; i++) { cx += ring[i * 2] / n; cz += ring[i * 2 + 1] / n; }
-      let best = 0, bh = 0; for (let a = 0; a < 180; a += 3) { const h = a * Math.PI / 180, ux = Math.cos(h), uz = Math.sin(h); let lo = 1e9, hi = -1e9; for (let i = 0; i < n; i++) { const s = (ring[i * 2] - cx) * ux + (ring[i * 2 + 1] - cz) * uz; lo = Math.min(lo, s); hi = Math.max(hi, s); } if (hi - lo > best) { best = hi - lo; bh = h; } }
-      const ux = Math.cos(bh), uz = Math.sin(bh), vx = -uz, vz = ux;
-      let s0 = 1e9, s1 = -1e9, t0 = 1e9, t1 = -1e9; for (let i = 0; i < n; i++) { const dx = ring[i * 2] - cx, dz = ring[i * 2 + 1] - cz, s = dx * ux + dz * uz, t = dx * vx + dz * vz; s0 = Math.min(s0, s); s1 = Math.max(s1, s); t0 = Math.min(t0, t); t1 = Math.max(t1, t); }
+      const ring = v.rings[0], n = ring.length / 2, cx = br.cx, cz = br.cz, ux = br.ux, uz = br.uz, vx = -uz, vz = ux, M = br.ijzer ? 1000 : 0, dikte = br.ijzer ? 0.9 : 1.4;
+      const sVan = (x, z) => (x - cx) * ux + (z - cz) * uz, tVan = (x, z) => (x - cx) * vx + (z - cz) * vz, dek = s => br.dekS(s);
+      let s0 = 1e9, s1 = -1e9, t0 = 1e9, t1 = -1e9; for (let i = 0; i < n; i++) { const s = sVan(ring[i * 2], ring[i * 2 + 1]), tt = tVan(ring[i * 2], ring[i * 2 + 1]); s0 = Math.min(s0, s); s1 = Math.max(s1, s); t0 = Math.min(t0, tt); t1 = Math.max(t1, tt); }
+      const tm = (t0 + t1) / 2, wereld = (s, tt) => [cx + ux * s + vx * tt, cz + uz * s + vz * tt];
       // het stuk boven water langs de as
-      let w0 = null, w1 = null; for (let s = s0; s <= s1; s += 2) { if (isWater(cx + ux * s, cz + uz * s)) { if (w0 === null) w0 = s; w1 = s; } }
-      // het dek: bovenkant, onderkant en zijkanten volgen de vorm
+      let w0 = null, w1 = null; for (let s = s0; s <= s1; s += 2) { const [x, z] = wereld(s, tm); if (isWater(x, z)) { if (w0 === null) w0 = s; w1 = s; } }
+      // het dek: boven en onder, met de hoogte van het dek op elke plek
       const { plat: p, idx } = driehoeken([ring]);
-      for (const [y, ny] of [[yTop, 127], [yOnder, -127]]) { const basis = B.nv; for (let i = 0; i < p.length; i += 2) B.v(p[i] * S, yVan(y), p[i + 1] * S, 0, ny, 0, p[i], p[i + 1]); for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2], s = (p[b * 2] - p[a * 2]) * (p[c * 2 + 1] - p[a * 2 + 1]) - (p[b * 2 + 1] - p[a * 2 + 1]) * (p[c * 2] - p[a * 2]); if ((s > 0) === (ny > 0)) B.t(basis + a, basis + c, basis + b); else B.t(basis + a, basis + b, basis + c); } }
+      for (const [boven, ny] of [[true, 127], [false, -127]]) {
+        const basis = B.nv;
+        for (let i = 0; i < p.length; i += 2) { const s = sVan(p[i], p[i + 1]), y = dek(s) + (boven ? 0.3 : -dikte); B.v(p[i] * S, yVan(y), p[i + 1] * S, 0, ny, 0, s, boven ? 2 : 0.5 + M); }
+        for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2], o = (p[b * 2] - p[a * 2]) * (p[c * 2 + 1] - p[a * 2 + 1]) - (p[b * 2 + 1] - p[a * 2 + 1]) * (p[c * 2] - p[a * 2]); if ((o > 0) === (ny > 0)) B.t(basis + a, basis + c, basis + b); else B.t(basis + a, basis + b, basis + c); }
+      }
+      // de randen: overal de zijkant van het dek, en alleen langs de lange kanten een borstwering (de uiteinden lopen door in de straat)
       const pos = opp(ring) > 0;
       for (let i = 0; i < n; i++) {
         const j = (i + 1) % n, ax = ring[i * 2], az = ring[i * 2 + 1], bx = ring[j * 2], bz = ring[j * 2 + 1], L = Math.hypot(bx - ax, bz - az); if (L < 0.05) continue;
         let nx = (bz - az) / L, nz = -(bx - ax) / L; if (!pos) { nx = -nx; nz = -nz; }
-        const yR = yTop + 1.1, NX = N8(nx), NZ = N8(nz), a0 = B.v(ax * S, yVan(yOnder), az * S, NX, 0, NZ, 0, 0), b0 = B.v(bx * S, yVan(yOnder), bz * S, NX, 0, NZ, L, 0), b1 = B.v(bx * S, yVan(yR), bz * S, NX, 0, NZ, L, 2.8), a1 = B.v(ax * S, yVan(yR), az * S, NX, 0, NZ, 0, 2.8);
+        const lang = Math.abs(((bx - ax) * ux + (bz - az) * uz) / L) > 0.6, ya = dek(sVan(ax, az)), yb = dek(sVan(bx, bz)), boven = lang ? (br.ijzer ? 1.0 : 1.15) : 0.3;
+        const NX = N8(nx), NZ = N8(nz), a0 = B.v(ax * S, yVan(ya - dikte), az * S, NX, 0, NZ, 0, M), b0 = B.v(bx * S, yVan(yb - dikte), bz * S, NX, 0, NZ, L, M), b1 = B.v(bx * S, yVan(yb + boven), bz * S, NX, 0, NZ, L, dikte + boven + M), a1 = B.v(ax * S, yVan(ya + boven), az * S, NX, 0, NZ, 0, dikte + boven + M);
         if (pos) { B.t(a0, b1, b0); B.t(a0, a1, b1); } else { B.t(a0, b0, b1); B.t(a0, b1, a1); }
       }
-      botsing.push({ ring, dek: br.dek });
       if (w0 === null || w1 - w0 < 8) continue;
-      // bogen: het zijaanzicht als vorm (onder het dek, met boogopeningen tussen de pijlers), aan beide kanten van de brug, met het gewelf ertussen
-      const wv = waterOp(cx + ux * (w0 + w1) / 2, cz + uz * (w0 + w1) / 2), pl = wv ? wv.peil : W.peil, spanTot = w1 - w0 + 8, na = Math.max(1, Math.round(spanTot / 34)), span = spanTot / na, pijler = Math.min(6, span * 0.18), yW = pl - 1.5, yBoog = Math.max(pl + 2.5, yOnder - Math.min(7, span * 0.28));
+      // bogen: het zijaanzicht (onder het dek, met boogopeningen tussen de pijlers), aan beide kanten van de brug, met het gewelf ertussen.
+      // Stenen bruggen hebben bogen van zo'n 30 m, ijzeren bredere en plattere (de Pont Alexandre III één grote boog).
+      const [mx, mz] = wereld((w0 + w1) / 2, tm), wv = waterOp(mx, mz), pl = wv ? wv.peil : W.peil, spanTot = w1 - w0 + 8;
+      const na = /alexandre iii/i.test(br.naam || '') ? 1 : Math.max(1, Math.round(spanTot / (br.ijzer ? 42 : 32))), span = spanTot / na, pijler = Math.min(br.ijzer ? 4 : 6, span * 0.16), yW = pl - 1.5;
+      // de boog: begint net boven het water (op de pijler) en loopt als een halve ellips tot ruim een meter onder het dek; ijzer platter
+      const onder = s => dek(s) - dikte, voet = pl + (br.ijzer ? 2.2 : 0.9), kruin = s => Math.max(voet + 1.5, Math.min(onder(s) - (br.ijzer ? 0.5 : 1.1), voet + span * (br.ijzer ? 0.22 : 0.5)));
       const profiel = []; // (s, y) tegen de klok in
-      profiel.push([w0 - 4, yOnder]);
-      for (let k = 0; k < na; k++) { const a = w0 - 4 + k * span + (k ? pijler / 2 : 0), b = w0 - 4 + (k + 1) * span - (k < na - 1 ? pijler / 2 : 0); profiel.push([a, yW]); for (let q = 0; q <= 10; q++) { const t = q / 10, s = a + (b - a) * t, e = Math.sin(t * Math.PI); profiel.push([s, yW + 0.01 + (yBoog - yW) * Math.min(1, e * 1.6) + (yOnder - 0.3 - yBoog) * Math.pow(e, 3)]); } profiel.push([b, yW]); }
-      profiel.push([w1 + 4, yOnder]);
-      // vlak per kant (earcut op het profiel), en het gewelf tussen de twee kanten
+      profiel.push([w0 - 4, onder(w0 - 4)]);
+      for (let k = 0; k < na; k++) {
+        const a = w0 - 4 + k * span + (k ? pijler / 2 : 0), b = w0 - 4 + (k + 1) * span - (k < na - 1 ? pijler / 2 : 0); profiel.push([a, yW]);
+        profiel.push([a, voet]);
+        for (let q = 1; q < 16; q++) { const tt = q / 16, s = a + (b - a) * tt, e = Math.sqrt(Math.max(0, 1 - (2 * tt - 1) * (2 * tt - 1))); profiel.push([s, voet + (kruin((a + b) / 2) - voet) * e]); }
+        profiel.push([b, voet]);
+        profiel.push([b, yW]);
+      }
+      profiel.push([w1 + 4, onder(w1 + 4)]);
       const pp = new Float64Array(profiel.length * 2); profiel.forEach(([s, y], i) => { pp[i * 2] = s; pp[i * 2 + 1] = y; }); const tri = earcut(pp, []);
-      const wereld = (s, t) => [cx + ux * s + vx * t, cz + uz * s + vz * t];
-      for (const t of [t0 + 0.6, t1 - 0.6]) { const basis = B.nv, nrm = t > (t0 + t1) / 2 ? 1 : -1; for (const [s, y] of profiel) { const [x, z] = wereld(s, t); B.v(x * S, yVan(y), z * S, N8(vx * nrm), 0, N8(vz * nrm), s, y - pl); } for (let i = 0; i < tri.length; i += 3) { if (nrm > 0) B.t(basis + tri[i], basis + tri[i + 1], basis + tri[i + 2]); else B.t(basis + tri[i], basis + tri[i + 2], basis + tri[i + 1]); } }
-      for (let i = 0; i < profiel.length; i++) { const [sa, ya] = profiel[i], [sb, yb] = profiel[(i + 1) % profiel.length]; if (ya === yOnder && yb === yOnder) continue; const ex = sb - sa, ey = yb - ya, el = Math.hypot(ex, ey) || 1, ns = ey / el, nyy = -ex / el; const [xa0, za0] = wereld(sa, t0 + 0.6), [xb0, zb0] = wereld(sb, t0 + 0.6), [xa1, za1] = wereld(sa, t1 - 0.6), [xb1, zb1] = wereld(sb, t1 - 0.6); const NX = N8(ux * ns), NY = N8(nyy), NZ = N8(uz * ns); const a = B.v(xa0 * S, yVan(ya), za0 * S, NX, NY, NZ, sa, 0), b = B.v(xb0 * S, yVan(yb), zb0 * S, NX, NY, NZ, sb, 0), c = B.v(xb1 * S, yVan(yb), zb1 * S, NX, NY, NZ, sb, 3), d = B.v(xa1 * S, yVan(ya), za1 * S, NX, NY, NZ, sa, 3); B.t(a, c, b); B.t(a, d, c); }
+      for (const tt of [t0 + 0.6, t1 - 0.6]) { const basis = B.nv, nrm = tt > tm ? 1 : -1; for (const [s, y] of profiel) { const [x, z] = wereld(s, tt); B.v(x * S, yVan(y), z * S, N8(vx * nrm), 0, N8(vz * nrm), s, y - pl + M); } for (let i = 0; i < tri.length; i += 3) { if (nrm > 0) B.t(basis + tri[i], basis + tri[i + 1], basis + tri[i + 2]); else B.t(basis + tri[i], basis + tri[i + 2], basis + tri[i + 1]); } }
+      for (let i = 0; i < profiel.length - 1; i++) { const [sa, ya] = profiel[i], [sb, yb] = profiel[i + 1]; const ex = sb - sa, ey = yb - ya, el = Math.hypot(ex, ey) || 1, ns = ey / el, nyy = -ex / el; const [xa0, za0] = wereld(sa, t0 + 0.6), [xb0, zb0] = wereld(sb, t0 + 0.6), [xa1, za1] = wereld(sa, t1 - 0.6), [xb1, zb1] = wereld(sb, t1 - 0.6); const NX = N8(ux * ns), NY = N8(nyy), NZ = N8(uz * ns); const a = B.v(xa0 * S, yVan(ya), za0 * S, NX, NY, NZ, sa, 0.2 + M), b = B.v(xb0 * S, yVan(yb), zb0 * S, NX, NY, NZ, sb, 0.2 + M), c = B.v(xb1 * S, yVan(yb), zb1 * S, NX, NY, NZ, sb, 3 + M), d = B.v(xa1 * S, yVan(ya), za1 * S, NX, NY, NZ, sa, 3 + M); B.t(a, c, b); B.t(a, d, c); }
     }
     return B.klaar();
   }
@@ -1998,7 +2045,7 @@ function kaartBouwer(scope) {
 // ==== KAARTBOUWER eind
 // ==== KAART begin: Parijs uit OpenStreetMap (© OpenStreetMap-bijdragers, ODbL), in tegels van 500 m, verkleind in verhouding
 const AK = (() => {
-  const SCHAAL = 0.6, NUL = 30, BESTAND = 'rommelarend-parijs.bin?v=1';
+  const SCHAAL = 0.6, NUL = 30; let BESTAND = 'rommelarend-parijs.bin?v=2';
   const KB = kaartBouwer(null); // dezelfde lezer als in de worker, voor botsen en hoogtes
   // ---------------------------------------------------------------- uitpakken (DecompressionStream, of een klein inflate voor oude browsers)
   async function uitpakken(u8) {
@@ -2067,7 +2114,7 @@ const AK = (() => {
       float bg = st < 0.5 ? 4.4 : st < 1.5 ? 3.4 : st > 4.5 && st < 5.5 ? 5.0 : 3.6;
       float fh = lv > 1.5 ? max(2.6, (H - bg) / (lv - 1.0)) : H;
       float vv = v - bg; float fl = v < bg ? 0.0 : 1.0 + floor(vv / fh); float fy = v < bg ? v / bg : fract(vv / fh);
-      float nW = max(1.0, floor(len / (st > 1.5 && st < 2.5 ? 1.8 : 3.0) + 0.3)); float cx = u / len * nW; float col = floor(cx); float fx = fract(cx);
+      float nW = max(1.0, floor(len / (st > 1.5 && st < 2.5 ? 1.8 : st > 2.5 && st < 3.5 ? 4.2 : 3.0) + 0.3)); float cx = u / len * nW; float col = floor(cx); float fx = fract(cx);
       float boven = step(H - 0.9, v);
       vec3 steen;
       if (st < 0.5) steen = mix(vec3(0.82, 0.76, 0.65), vec3(0.76, 0.71, 0.62), seed);
@@ -2077,7 +2124,8 @@ const AK = (() => {
       else if (st < 4.5) steen = vec3(0.80, 0.76, 0.66);
       else if (st < 5.5) steen = seed < 0.5 ? vec3(0.62, 0.36, 0.28) : vec3(0.74, 0.70, 0.62);
       else if (st < 6.5) steen = seed < 0.5 ? vec3(0.92, 0.89, 0.82) : vec3(0.86, 0.78, 0.64);
-      else steen = vec3(0.66, 0.30, 0.24);
+      else if (st < 7.5) steen = vec3(0.66, 0.30, 0.24);
+      else steen = vec3(0.80, 0.72, 0.48);
       float ruis = akRuis(vec2(u * 0.9 + seed * 40.0, v * 1.7));
       steen *= 0.94 + 0.09 * ruis;
       if (st < 0.5 || st > 2.5 && st < 4.5) steen *= 0.965 + 0.035 * step(0.12, fract(v / 0.52));
@@ -2085,6 +2133,9 @@ const AK = (() => {
       kl = steen;
       if (blind > 0.5) {
         kl = mix(vec3(0.78, 0.74, 0.68), vec3(0.70, 0.67, 0.62), akRuis(vec2(u * 0.3, v * 0.2) + seed * 9.0)) * (0.95 + 0.05 * step(0.5, fract(u / 2.3)));
+      } else if (st > 7.5) {
+        // een overkapping: een rand van lamellen van geel glas
+        float lamel = step(0.5, fract(u / 1.2)); kl = mix(vec3(0.74, 0.66, 0.42), vec3(0.62, 0.56, 0.37), lamel) * (0.92 + 0.08 * akRuis(vec2(u * 0.2, v))); akGlas = 0.5;
       } else if (st > 1.5 && st < 2.5) {
         float band = step(fract(v / 3.6), 0.22); float stijl = step(fract(u / 1.8), 0.06);
         akGlas = (1.0 - band) * (1.0 - stijl);
@@ -2096,6 +2147,8 @@ const AK = (() => {
         float isBg = 1.0 - step(0.5, fl);
         float raam = (1.0 - isBg) * step(rx0, fx) * step(fx, 1.0 - rx0) * step(ry0, fy) * step(fy, ry1) * (1.0 - boven);
         if (st > 3.5 && st < 4.5) raam = step(0.4, fx) * step(fx, 0.6) * step(0.25, v / H) * step(v / H, 0.8) * (1.0 - step(0.9, fract(v / 6.0)));
+        float paleis = step(2.5, st) * step(st, 3.5);
+        if (paleis > 0.5) { float dxr = (fx - 0.5) / (0.5 - rx0); raam *= step(fy, ry1 - 0.13 * (1.0 - sqrt(max(0.0, 1.0 - dxr * dxr)))); }
         float winkel = 0.0;
         if (isBg > 0.5 && st < 1.5) winkel = step(0.1, fx) * step(fx, 0.9) * step(0.08, fy) * step(fy, 0.78);
         if (isBg > 0.5 && (st > 2.5 && st < 3.5 || st > 6.5)) winkel = step(0.32, fx) * step(fx, 0.68) * step(0.2, fy) * step(fy, 0.85);
@@ -2112,6 +2165,12 @@ const AK = (() => {
           float spijl = 0.55 + 0.45 * step(0.5, fract(u * 6.0)) * step(0.04, fy);
           kl = mix(kl, vec3(0.05, 0.05, 0.06), hek * spijl * (fl > 0.5 ? 1.0 : 0.0));
           float plaat = door * step(0.0, fy) * step(fy, 0.035) * (1.0 - isBg); kl = mix(kl, steen * 0.75, plaat);
+        }
+        if (paleis > 0.5) {
+          // paleis: pilasters tussen de ramen, een geblokte begane grond en een balustrade onder de dakrand
+          float pil = (1.0 - isBg) * (step(fx, 0.08) + step(0.92, fx)) * (1.0 - boven); kl = mix(kl, steen * 1.07, pil);
+          if (isBg > 0.5) kl *= 0.92 + 0.08 * step(0.12, fract(v / 0.62));
+          float bal = step(H - 1.6, v) * step(v, H - 0.6); kl = mix(kl, steen * (0.82 + 0.26 * step(0.45, fract(u / 0.42))), bal);
         }
         float lijst = step(abs(v - bg), 0.18) + step(H - 0.55, v) * step(v, H - 0.15);
         kl = mix(kl, steen * 1.08, clamp(lijst, 0.0, 1.0) * 0.9);
@@ -2140,8 +2199,11 @@ const AK = (() => {
       kl = mix(vec3(0.35, 0.45, 0.52), vec3(0.15, 0.17, 0.2), step(0.85, fract(u / 1.6)) + step(0.9, fract(v / 1.6))); akGlas = 0.8;
     } else if (soort < 25.5) {
       kl = mix(vec3(0.78, 0.73, 0.66), vec3(0.62, 0.38, 0.30), step(0.85, seed) * step(0.5, vS.y)) * (0.9 + 0.1 * akRuis(vec2(u, v) * 2.0));
-    } else {
+    } else if (soort < 26.5) {
       kl = vec3(0.66, 0.34, 0.24) * (0.8 + 0.2 * step(0.5, fract(u * 2.2)));
+    } else {
+      // het dak van een overkapping (La Canopée): lamellen van geel glas
+      float lam = step(0.42, fract(u * 0.55 + v * 0.18)); kl = mix(vec3(0.82, 0.74, 0.48), vec3(0.68, 0.62, 0.42), lam); akGlas = 0.35;
     }
     if (uRegen > 0.0) kl *= 1.0 - uRegen * 0.25;
     diffuseColor.rgb = lin(kl);`,
@@ -2162,10 +2224,14 @@ const AK = (() => {
   for (const m of [grondMat, grondMatVer]) { m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 1; }
   // kades en bruggen: natuursteen in lagen
   const kadeMat = maakMateriaal({ side: THREE.DoubleSide }, 'attribute vec2 aK; varying vec2 vK;', 'vK = aK;', 'varying vec2 vK;', `
-    float laag = fract(vK.y / 0.55), blok = fract(vK.x / 1.1 + step(0.5, fract(vK.y / 1.1)) * 0.5);
-    vec3 k = mix(vec3(0.78, 0.73, 0.62), vec3(0.70, 0.66, 0.58), akRuis(vK * 0.8)) * (0.9 + 0.1 * step(0.08, laag) * step(0.04, blok));
-    k *= mix(0.55, 1.0, smoothstep(0.0, 1.6, vK.y));
-    diffuseColor.rgb = lin(k);`, '', '', 'kade');
+    float ijzer = step(500.0, vK.y); vec2 kk = vec2(vK.x, vK.y - ijzer * 1000.0);
+    float laag = fract(kk.y / 0.55), blok = fract(kk.x / 1.1 + step(0.5, fract(kk.y / 1.1)) * 0.5);
+    vec3 k = mix(vec3(0.78, 0.73, 0.62), vec3(0.70, 0.66, 0.58), akRuis(kk * 0.8)) * (0.9 + 0.1 * step(0.08, laag) * step(0.04, blok));
+    // ijzeren bruggen: groengrijs geverfd metaal met naden en klinknagels
+    vec3 m = vec3(0.24, 0.29, 0.28) * (0.9 + 0.1 * step(0.08, fract(kk.x / 2.4))) * (0.94 + 0.06 * step(0.5, fract(kk.y / 0.8)));
+    k = mix(k, m, ijzer);
+    k *= mix(0.55, 1.0, smoothstep(0.0, 1.6, kk.y));
+    diffuseColor.rgb = lin(k);`, 'roughnessFactor = mix(roughnessFactor, 0.55, ijzer);', '', 'kade');
   // bomen: een kruin die zacht meewiegt in de wind
   const boomMat = maakMateriaal({ vertexColors: true, roughness: 0.95 }, '', '', '', '', '', '', 'boom',
     'float akH = max(0.0, transformed.y - 1.0); vec4 akW = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0); transformed.x += sin(uTijd * 1.3 + akW.x * 0.07) * 0.05 * akH * uWind; transformed.z += cos(uTijd * 1.1 + akW.z * 0.07) * 0.04 * akH * uWind;');
@@ -2181,6 +2247,15 @@ const AK = (() => {
   const puntTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'); const gr = g.createRadialGradient(16, 13, 2, 16, 16, 15); gr.addColorStop(0, '#fff'); gr.addColorStop(0.75, '#ccc'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(16, 16, 15, 0, 7); g.fill(); return new THREE.CanvasTexture(c); })();
   const puntMat = new THREE.PointsMaterial({ size: 8 * SCHAAL, map: puntTex, vertexColors: true, alphaTest: 0.5, sizeAttenuation: true });
   const gloedTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'); const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,240,210,1)'); gr.addColorStop(0.25, 'rgba(255,200,120,0.6)'); gr.addColorStop(1, 'rgba(255,170,80,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })();
+  // 's nachts: een warme lichtvlek op straat onder elke lantaarn (opgeteld bij wat er ligt)
+  const plasTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  const plasMat = new THREE.MeshBasicMaterial({ map: plasTex, color: '#FFB060', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+  function plassenMesh(l) {
+    const n = l.length / 3, pos = new Float32Array(n * 12), uv = new Float32Array(n * 8), idx = new Uint32Array(n * 6), r = 9 * SCHAAL;
+    for (let i = 0; i < n; i++) { const x = l[i * 3], y = l[i * 3 + 1] - 5.45 * SCHAAL, z = l[i * 3 + 2]; pos.set([x - r, y, z - r, x + r, y, z - r, x + r, y, z + r, x - r, y, z + r], i * 12); uv.set([0, 0, 1, 0, 1, 1, 0, 1], i * 8); idx.set([i * 4, i * 4 + 2, i * 4 + 1, i * 4, i * 4 + 3, i * 4 + 2], i * 6); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeBoundingSphere();
+    const m = new THREE.Mesh(g, plasMat); m.renderOrder = 5; return m;
+  }
   const lampMat = new THREE.PointsMaterial({ size: 5 * SCHAAL, map: gloedTex, color: '#FFD9A0', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
   // water: donker, met rimpels, de lucht in de weerspiegeling en een glinstering van de zon
   const rimpelTex = (() => { const N = 256, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), img = g.createImageData(N, N), h = new Float32Array(N * N); for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const a = x / N * 6.283, b = y / N * 6.283; h[y * N + x] = Math.sin(a * 3 + Math.sin(b * 2) * 1.5) * 0.5 + Math.sin(b * 5 + a) * 0.3 + Math.sin((a + b) * 7) * 0.2 + Math.sin(a * 11 - b * 4) * 0.1 + Math.sin(a * 17 + b * 13) * 0.06; } for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, dx = h[y * N + ((x + 1) % N)] - h[i], dy = h[((y + 1) % N) * N + x] - h[i], k = i * 4; img.data[k] = 128 + dx * 160; img.data[k + 1] = 128 + dy * 160; img.data[k + 2] = 255; img.data[k + 3] = 255; } g.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
@@ -2239,7 +2314,7 @@ const AK = (() => {
       if (d.grond) { const m = new THREE.Mesh(geo(d.grond, true), dicht ? grondMat : grondMatVer); m.receiveShadow = dicht; G.add(m); }
       if (d.gebouw) { const m = new THREE.Mesh(geo(d.gebouw, true), dicht ? gebouwMat : gebouwMatVer); m.castShadow = dicht; m.receiveShadow = dicht; G.add(m); }
       if (d.bomen && d.bomen.length) { if (dicht) { t.boomInst = bomenMesh(d.bomen, true); t.boomPunt = puntenMesh(d.bomen); G.add(t.boomInst, t.boomPunt); } else { t.boomInst = null; t.boomPunt = null; G.add(puntenMesh(d.bomen)); } }
-      if (d.lampen && d.lampen.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(d.lampen, 3)); const p = new THREE.Points(g, lampMat); p.frustumCulled = false; G.add(p); }
+      if (d.lampen && d.lampen.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(d.lampen, 3)); const p = new THREE.Points(g, lampMat); p.frustumCulled = false; G.add(p, plassenMesh(d.lampen)); }
       // een doos voor 'in beeld?'
       const b = new THREE.Box3(); G.children.forEach(c => { if (c.geometry && !c.geometry.boundingBox) c.geometry.computeBoundingBox(); if (c.geometry) b.union(c.geometry.boundingBox); });
       t.box = b; t.groep = G; t.niveau = a.niveau; G.matrixAutoUpdate = false; G.children.forEach(c => { c.matrixAutoUpdate = false; });
@@ -2289,6 +2364,7 @@ const AK = (() => {
   // ---------------------------------------------------------------- laden: de kop, het globale stuk, dan de tegels (dichtbij eerst), in stukken
   let voortgang = { binnen: 0, totaal: 0, tegels: 0, klaar: false };
   async function laad(sc, opties) {
+    if (opties && opties.bestand) BESTAND = opties.bestand;
     scene = sc; wereld = new THREE.Group(); wereld.matrixAutoUpdate = false; scene.add(wereld); opNieuw = opties && opties.opNieuw;
     maakWerker();
     const r = await fetch(BESTAND); if (!r.ok) throw new Error('kaart ' + r.status);
@@ -2366,7 +2442,7 @@ const AK = (() => {
   }
   function tegelsGeladen(x, z, r) { for (let a = x - r; a <= x + r; a += 250) for (let b = z - r; b <= z + r; b += 250) { const t = T.get(tegelVan(a, b)); if (t && !t.data && !voortgang.klaar) return false; } return true; }
   return {
-    SCHAAL, NUL, U, WU, R, T, stats, voortgang, laad, kijk, zichtbaar, globaal, gebouwMat, grondMat, kadeMat, waterMat, boomMat, lampMat, puntMat, rimpelTex, maakMateriaal, GLSL,
+    SCHAAL, NUL, U, WU, R, T, stats, voortgang, laad, kijk, zichtbaar, globaal, gebouwMat, grondMat, kadeMat, waterMat, boomMat, lampMat, plasMat, puntMat, rimpelTex, maakMateriaal, GLSL,
     hoogteM: (x, z) => KB.hoogteM(x, z), isWater: (x, z) => KB.isWater(x, z), waterPeil: (x, z) => { const v = KB.waterOp(x, z); return v ? v.peil : null; }, brugOp: (x, z) => KB.brugOp(x, z), yVan: m => (m - NUL) * SCHAAL, mVan: y => y / SCHAAL + NUL,
     gebouwOp, botsGebouw, hoogsteBij, tegelsGeladen, tegelVoorKaart, plekVoorMensen, W: KB.W, KB, get kop() { return kop; },
     bezig: () => { let n = 0; for (const t of T.values()) if (t.bezig) n++; return n; },
@@ -2422,7 +2498,7 @@ const AL = (() => {
       if (soort === 'steen') frag = 'float lg = fract(vPw.y / 0.33); diffuseColor.rgb *= 0.93 + 0.07 * smoothstep(0.0, 0.08, lg); diffuseColor.rgb *= 0.92 + 0.1 * fract(sin(dot(floor(vPw.xz * 1.6 + vPw.y), vec2(12.9, 78.2))) * 4375.5);';
       sh.fragmentShader = 'uniform float uNacht; varying vec3 vPw;\n' + sh.fragmentShader
         .replace('#include <color_fragment>', '#include <color_fragment>\n' + frag)
-        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (soort === 'goud' ? 'totalEmissiveRadiance += uNacht * vec3(0.55, 0.33, 0.06);' : soort === 'steen' ? 'totalEmissiveRadiance += uNacht * diffuseColor.rgb * vec3(1.0, 0.72, 0.42) * 0.55;' : soort === 'glas' ? 'totalEmissiveRadiance += uNacht * vec3(0.5, 0.36, 0.18);' : soort === 'rood' ? 'totalEmissiveRadiance += uNacht * vec3(0.9, 0.08, 0.06);' : ''));
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (soort === 'goud' ? 'totalEmissiveRadiance += uNacht * vec3(0.30, 0.18, 0.035);' : soort === 'steen' ? 'totalEmissiveRadiance += uNacht * diffuseColor.rgb * vec3(1.0, 0.74, 0.46) * (0.13 + 0.12 * fract(sin(dot(floor(vPw.xz * 0.15), vec2(12.9, 78.2))) * 4375.5));' : soort === 'glas' ? 'totalEmissiveRadiance += uNacht * vec3(0.28, 0.20, 0.10);' : soort === 'rood' ? 'totalEmissiveRadiance += uNacht * vec3(0.9, 0.08, 0.06);' : ''));
     };
     m.customProgramCacheKey = () => 'al-' + soort;
     return m;
@@ -2475,7 +2551,7 @@ const AL = (() => {
     const w = y => { for (let i = 1; i < KN.length; i++) if (y <= KN[i][0]) { const [y0, a] = KN[i - 1], [y1, b] = KN[i], t = (y - y0) / (y1 - y0), s = t * t * (3 - 2 * t); return a + (b - a) * (t * 0.6 + s * 0.4); } return KN[KN.length - 1][1]; };
     const dik = y => (y < 57.6 ? 25 - y * 0.16 : y < 115.7 ? 15.8 - (y - 57.6) * 0.1 : w(y));
     const tex = (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d'); g.strokeStyle = '#fff'; g.lineCap = 'square'; g.lineWidth = 9; g.strokeRect(0, 0, 128, 128); g.lineWidth = 5; g.beginPath(); g.moveTo(0, 0); g.lineTo(128, 128); g.moveTo(128, 0); g.lineTo(0, 128); g.stroke(); g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, 64); g.lineTo(128, 64); g.moveTo(64, 0); g.lineTo(64, 128); g.stroke(); g.lineWidth = 1.6; for (let k = 16; k < 128; k += 32) { g.beginPath(); g.moveTo(k, 0); g.lineTo(0, k); g.moveTo(128 - k, 128); g.lineTo(128, 128 - k); g.moveTo(128 - k, 0); g.lineTo(128, k); g.moveTo(k, 128); g.lineTo(0, 128 - k); g.stroke(); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; })();
-    const mk = alpha => { const m = new THREE.MeshStandardMaterial(Object.assign({ color: '#ffffff', roughness: 0.62, metalness: 0.35 }, alpha ? { alphaMap: tex, alphaTest: 0.5, side: THREE.DoubleSide } : {})); m.onBeforeCompile = sh => { sh.uniforms.uNacht = AK.U.uNacht; sh.vertexShader = 'varying float vH;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vH = position.y;'); sh.fragmentShader = 'uniform float uNacht; varying float vH;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n float hh = clamp(vH / 300.0, 0.0, 1.0); diffuseColor.rgb = pow(mix(vec3(0.36, 0.27, 0.20), vec3(0.56, 0.45, 0.34), hh), vec3(2.2));').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += uNacht * pow(vec3(1.0, 0.62, 0.22), vec3(2.2)) * (1.7 - hh * 0.7);'); }; m.customProgramCacheKey = () => 'eiffel' + (alpha ? 'a' : 'b'); return m; };
+    const mk = alpha => { const m = new THREE.MeshStandardMaterial(Object.assign({ color: '#ffffff', roughness: 0.62, metalness: 0.35 }, alpha ? { alphaMap: tex, alphaTest: 0.5, side: THREE.DoubleSide } : {})); m.onBeforeCompile = sh => { sh.uniforms.uNacht = AK.U.uNacht; sh.vertexShader = 'varying float vH;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vH = position.y;'); sh.fragmentShader = 'uniform float uNacht; varying float vH;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n float hh = clamp(vH / 300.0, 0.0, 1.0); diffuseColor.rgb = pow(mix(vec3(0.36, 0.27, 0.20), vec3(0.56, 0.45, 0.34), hh), vec3(2.2));').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += uNacht * pow(vec3(1.0, 0.62, 0.22), vec3(2.2)) * (0.85 - hh * 0.35);'); }; m.customProgramCacheKey = () => 'eiffel' + (alpha ? 'a' : 'b'); return m; };
     M.eiffelIjzer = M.eiffelIjzer || mk(false); M.eiffelVak = M.eiffelVak || mk(true);
     const B = Mod(), STAP = 6;
     const vlak = (a, b, c, d, hu) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, d.x, d.y, d.z], 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, hu, 0, hu, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); B.geo('eiffelVak', g); };
@@ -2777,7 +2853,7 @@ const AL = (() => {
       const p = PLAATS[id]; if (!p) continue;
       const [x, z, hg] = p, h = hg * Math.PI / 180, c = Math.cos(h), s = Math.sin(h), grond = (MODEL[id].grond || AK.hoogteM)(x, z);
       let r; try { r = MODEL[id](); } catch (e) { console.error('model', id, e); continue; }
-      const basis = id === 'alexandre' ? (AK.brugOp(x, z) || { dek: grond }).dek + 0.3 : id === 'canal' ? (AK.waterPeil(x, z) || grond) : id === 'moulinrouge' ? grond : grond;
+      const basis = id === 'alexandre' ? (AK.brugOp(x, z) ? AK.brugOp(x, z).dekOp(x, z) : grond) + 0.3 : id === 'canal' ? (AK.waterPeil(x, z) || grond) : id === 'moulinrouge' ? grond : grond;
       r.G.position.set(x * S, AK.yVan(basis), z * S); r.G.rotation.y = -h; r.G.scale.setScalar(S); r.G.updateMatrixWorld(true);
       G.add(r.G); STATE.modellen[id] = r;
       const naarW = (lx, lz) => [x + lx * c - lz * s, z + lx * s + lz * c];
@@ -2834,6 +2910,16 @@ const AL = (() => {
   if (typeof opslag.uur !== 'number') opslag.uur = { ochtend: 7.5, middag: 13, avond: 19.6, nacht: 23.5 }[opslag.tijd] || 13;
   if (opslag.dagloop === undefined) opslag.dagloop = true;
   if (!opslag.weer) opslag.weer = 'wisselend';
+  // ---------------------------------------------------------------- de steden. Een nieuwe stad: een regel hier, een eigen kaartbestand (rommelarend-<stad>.bin),
+  // en eigen plekken, veren, wedstrijden en thermiek (nu alleen voor Parijs gebouwd). Parijs bewaart zijn voortgang bovenin de opslag (zoals altijd),
+  // een andere stad in opslag.steden[id] (ontdekt, veren, races).
+  const STEDEN = [
+    { id: 'parijs', naam: 'Parijs', land: 'Frankrijk', vlag: '🇫🇷', tekst: 'De Seine met haar bruggen, de Eiffeltoren, de Notre-Dame, Montmartre en nog 26 plekken.', kaart: 'rommelarend-parijs.bin?v=2' },
+  ];
+  if (!STEDEN.some(s => s.id === opslag.stad)) opslag.stad = 'parijs';
+  const STAD = STEDEN.find(s => s.id === opslag.stad);
+  const voortgangVan = id => { if (id === 'parijs') return opslag; opslag.steden = opslag.steden && typeof opslag.steden === 'object' ? opslag.steden : {}; const v = opslag.steden[id] = Object.assign({ ontdekt: [], veren: [], races: {} }, opslag.steden[id] || {}); if (!Array.isArray(v.ontdekt)) v.ontdekt = []; if (!Array.isArray(v.veren)) v.veren = []; if (!v.races || typeof v.races !== 'object') v.races = {}; return v; };
+  const V = voortgangVan(STAD.id);
   const bewaar = () => { try { opslag.voortgangTotaal = AL.BEZ.length; } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
   // per apparaat (niet koppelen): de kwaliteit
   let app = {}; try { app = JSON.parse(localStorage.getItem(KEY_APP) || '{}') || {}; } catch (e) {}
@@ -2960,6 +3046,7 @@ const AL = (() => {
     AK.U.uNacht.value = W.nacht; AK.U.uRegen.value = wn.regen; AK.U.uWind.value = 0.7 + wn.wolk * 0.8 + wn.regen;
     AK.WU.uHorizon.value.copy(L.rand); AK.WU.uZenit.value.copy(L.boven); AK.WU.uZonDir.value.copy(ld); AK.WU.uZonKleur.value.copy(opZon ? L.zon : KL('#8090C0'));
     sterren.material.opacity = Math.max(0, W.nacht - wn.wolk * 0.8);
+    AK.lampMat.opacity = Math.min(1, W.nacht * 1.2); AK.plasMat.opacity = W.nacht * 0.5; AK.lampMat.visible = AK.plasMat.visible = W.nacht > 0.02;
     W.lichtDir = ld;
     // reflecties: een getekend luchtverloop, alleen opnieuw als het licht merkbaar veranderd is
     pmremT -= dt;
@@ -3025,7 +3112,7 @@ const AL = (() => {
     for (let i = 0; i < 5; i++) { const d = new THREE.Mesh(dekveer, dekMat); d.position.set(kant * (0.2 + i * 0.42), 0.06, -0.3); d.rotation.y = kant * (Math.PI / 2 - 0.9 - i * 0.12) * 0.4; d.scale.set(0.8, 1, 0.85); pols.add(d); }
     lijf.add(schouder); vleugels.push({ schouder, pols, vingers, kant });
   }
-  const AREND_SCHAAL = 0.62; lijf.scale.setScalar(AREND_SCHAAL); scene.add(arend);
+  const AREND_SCHAAL = 0.22; // spanwijdte zo'n 6 m: nog groter dan echt (2 m), maar wel in verhouding met de huizen lijf.scale.setScalar(AREND_SCHAAL); scene.add(arend);
   arend.traverse(o => { if (o.isMesh) o.castShadow = true; });
   // een zachte schaduwvlek onder de arend (op elk dak, ook zonder schaduwkaart)
   const vlekTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
@@ -3048,12 +3135,12 @@ const AL = (() => {
     const cf = Math.cos(P.fase), sf = Math.sin(P.fase), opslagF = Math.max(0, -sf), amp = 0.78 * (A.klapT > 0 ? 1 : 0.82);
     const ruimte = A.ruimte === undefined ? 50 : A.ruimte, grondF = Math.max(0.1, Math.min(1, (ruimte - 3) / 10));
     const sn = Math.min(1, A.snel / 90), wapper = sn * sn * (1 - P.wZit);
-    const rolMax = Math.asin(Math.max(0.03, Math.min(1, (ruimte - 2.2) / 12))), rol = Math.max(-rolMax, Math.min(rolMax, A.roll)) * (1 - P.wZit);
+    const rolMax = Math.asin(Math.max(0.03, Math.min(1, (ruimte - 0.8) / 4.5))), rol = Math.max(-rolMax, Math.min(rolMax, A.roll)) * (1 - P.wZit);
     lijf.rotation.set(A.pitch * 0.9 * (1 - P.wRem) * (1 - P.wZit) + P.wRem * 0.55 * (1 - P.wZit) + P.wZit * 0.95, 0, rol, 'YXZ');
-    lijf.position.y = -cf * 0.16 * P.wKlap * AREND_SCHAAL + P.wZit * 0.42; /* rechtop op zijn poten */
+    lijf.position.y = -cf * 0.16 * P.wKlap * AREND_SCHAAL + P.wZit * 0.15; /* rechtop op zijn poten */
     for (const v of vleugels) {
       const k = v.kant, tril = Math.sin(t * 3.3) * 0.02 + Math.sin(t * 7.1) * 0.008 + (Math.sin(t * 19 + k) * 0.012 + Math.sin(t * 31) * 0.006) * wapper;
-      const zweef = [0, -k * 0.04, k * (0.12 + tril - A.pitch * 0.12 - k * A.draai * 0.06 * Math.min(1, ruimte / 12) + (ruimte < 9 ? (9 - ruimte) * 0.012 : 0))];
+      const zweef = [0, -k * 0.04, k * (0.12 + tril - A.pitch * 0.12 - k * A.draai * 0.06 * Math.min(1, ruimte / 12) + (ruimte < 3.5 ? (3.5 - ruimte) * 0.03 : 0))];
       const klap = [0.04 * sf, -k * (0.04 + 0.12 * opslagF), k * amp * cf * (cf < 0 ? grondF : 1)];
       let s = mix3(zweef, klap, P.wKlap);
       s = mix3(s, [0, -k * 0.95, k * 0.18], P.wDuik);
@@ -3091,7 +3178,7 @@ const AL = (() => {
   const A = { x: START.x, y: START.y, z: START.z, yaw: START.yaw, pitch: 0, roll: 0, snel: 30, vy: 0, klapT: 0, stoot: 0, staat: 'vlieg', draai: 0, klim: 0, duik: false, ruimte: 50, landDoel: null, landFase: 0, zitT: 0, opT: 0 };
   const inv = { draai: 0, klim: 0, snel: false, snelToets: false, land: false };
   const toets = {};
-  const STRAAL = 1.4; // botsstraal in eenheden
+  const STRAAL = 0.7; // botsstraal in eenheden
   const mM = { x: () => A.x / S, z: () => A.z / S, y: () => A.y / S + NUL };
   addEventListener('keydown', e => {
     if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
@@ -3113,7 +3200,7 @@ const AL = (() => {
   veld.addEventListener('pointermove', e => { if (e.pointerId === fotoSleep.id) { fotoCam.hoek -= (e.clientX - fotoSleep.x) * 0.008; fotoCam.hoogte = Math.max(-0.3, Math.min(1.3, fotoCam.hoogte + (e.clientY - fotoSleep.y) * 0.005)); fotoSleep.x = e.clientX; fotoSleep.y = e.clientY; G.vuil = true; return; } if (e.pointerId !== knuppel.id) return; knuppel.x = e.clientX; knuppel.y = e.clientY; toonKnuppel(true); });
   const los = e => { if (e.pointerId === fotoSleep.id) fotoSleep.id = null; if (e.pointerId !== knuppel.id) return; knuppel.id = null; toonKnuppel(false); };
   veld.addEventListener('pointerup', los); veld.addEventListener('pointercancel', los);
-  veld.addEventListener('wheel', e => { if (G.scherm === 'foto') { fotoCam.af = Math.max(4, Math.min(80, fotoCam.af * (e.deltaY > 0 ? 1.1 : 0.9))); G.vuil = true; e.preventDefault(); } }, { passive: false });
+  veld.addEventListener('wheel', e => { if (G.scherm === 'foto') { fotoCam.af = Math.max(2, Math.min(60, fotoCam.af * (e.deltaY > 0 ? 1.1 : 0.9))); G.vuil = true; e.preventDefault(); } }, { passive: false });
   function toonKnuppel(aan) { const k = $('ar-knuppel'); if (!aan || !mobiel) { k.hidden = true; return; } k.hidden = false; k.style.left = knuppel.x0 + 'px'; k.style.top = knuppel.y0 + 'px'; const dx = Math.max(-50, Math.min(50, knuppel.x - knuppel.x0)), dy = Math.max(-50, Math.min(50, knuppel.y - knuppel.y0)); $('ar-knop-binnen').style.transform = `translate(${dx}px, ${dy}px)`; }
   $('ar-klap').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); klap(); geluidStart(); });
   $('ar-duik').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); inv.snel = true; geluidStart(); });
@@ -3145,7 +3232,7 @@ const AL = (() => {
   }
   // de vloer onder een punt (meters): water, een brugdek of de grond
   function vloerM(xm, zm, ym) {
-    const br = AK.brugOp(xm, zm); if (br && ym > br.dek - 0.5) return { h: br.dek + 0.3, water: false, brug: br };
+    const br = AK.brugOp(xm, zm), dk = br ? br.dekOp(xm, zm) : 0; if (br && ym > dk - 0.5) return { h: dk + 0.3, water: false, brug: br };
     const wp = AK.waterPeil(xm, zm); if (wp !== null) return { h: wp, water: true, brug: br };
     return { h: AK.hoogteM(xm, zm), water: false, brug: br };
   }
@@ -3183,7 +3270,7 @@ const AL = (() => {
     let draai = stoot ? inv.draai * 0.3 : inv.draai, klim = stoot ? 0 : inv.klim, duik = A.duik && !stoot;
     // landen: de automatische piloot stuurt naar de plek, remt af en gaat zitten
     if (A.staat === 'land' && A.landDoel) {
-      const D = A.landDoel, tx = D.x * S, ty = AK.yVan(D.y) + 0.95, tz = D.z * S, dx = tx - A.x, dz = tz - A.z, dh = Math.hypot(dx, dz), dy = ty - A.y;
+      const D = A.landDoel, tx = D.x * S, ty = AK.yVan(D.y) + 0.34, tz = D.z * S, dx = tx - A.x, dz = tz - A.z, dh = Math.hypot(dx, dz), dy = ty - A.y;
       A.landT += dt; const doelYaw = Math.atan2(-dx, -dz); let dyaw = doelYaw - A.yaw; dyaw = Math.atan2(Math.sin(dyaw), Math.cos(dyaw));
       draai = Math.max(-1, Math.min(1, -dyaw * 2.2)); duik = false;
       const wilSnel = Math.max(7, Math.min(32, dh * 0.55)); A.snel += (wilSnel - A.snel) * Math.min(1, dt * 1.6);
@@ -3208,13 +3295,13 @@ const AL = (() => {
     const xm = mM.x(), zm = mM.z(); let ym = mM.y();
     const cy = Math.cos(A.yaw), sy = Math.sin(A.yaw);
     let v = vloerM(xm, zm, ym), vh = v.h;
-    for (const [r, f] of [[7, 0], [-7, 0], [0, 6]]) { const px = xm + (cy * r - sy * f) / S, pz = zm + (-sy * r - cy * f) / S; const w = vloerM(px, pz, ym); if (!w.water) vh = Math.max(vh, w.h - 0.4); }
-    const min = vh + (v.water ? 2.0 : 4.0);
+    for (const [r, f] of [[3.2, 0], [-3.2, 0], [0, 2.5]]) { const px = xm + (cy * r - sy * f) / S, pz = zm + (-sy * r - cy * f) / S; const w = vloerM(px, pz, ym); if (!w.water) vh = Math.max(vh, w.h - 0.4); }
+    const min = vh + (v.water ? 1.0 : 2.0);
     if (ym < min) { const eerst = !A.raakt; A.y = AK.yVan(min); A.pitch = Math.max(A.pitch, 0.12); if (A.snel > 50) A.snel -= 20 * dt; A.raakt = true; raakEffect(v.water, eerst); }
     else if (ym > min + 3) A.raakt = false;
     ym = mM.y();
     // onder een brug door: niet door het dek heen
-    if (v.brug && ym < v.brug.dek - 0.5 && ym > v.brug.dek - 1.6 - STRAAL / S) { A.y = AK.yVan(v.brug.dek - 1.7 - STRAAL / S); A.vy = Math.min(A.vy, 0); S_.schud = 0.25; fx.bots(); melding('Au! Een brug. Er net onderdoor kan wel!', 'bots'); }
+    const btop = v.brug ? v.brug.dekOp(xm, zm) : 0, bdk = btop - (v.brug && v.brug.ijzer ? 0.9 : 1.4); if (v.brug && ym < btop - 0.5 && ym > bdk - 0.2 - STRAAL / S) { A.y = AK.yVan(bdk - 0.3 - STRAAL / S); A.vy = Math.min(A.vy, 0); S_.schud = 0.25; fx.bots(); melding('Au! Een brug. Er net onderdoor kan wel!', 'bots'); }
     A.ruimte = A.y - AK.yVan(vh);
     if (A.y > AK.yVan(700)) { A.y -= (A.y - AK.yVan(700)) * dt * 2; A.pitch = Math.min(A.pitch, 0); }
     // de rand van de kaart: vriendelijk terugsturen
@@ -3247,19 +3334,19 @@ const AL = (() => {
     pos.copy(doel).add(x.add(t).multiplyScalar(e));
   };
   function camVolg(dt, direct) {
-    const af = [13, 26, 8][G.camera], hoog = [3.8, 9, 2.2][G.camera];
+    const af = [6, 14, 3.4][G.camera], hoog = [1.8, 5, 1.0][G.camera];
     if (A.staat === 'zit') {
-      zitCam.hoek += dt * 0.12 * (G.scherm === 'spel' ? 1 : 0.5); const r = 11;
+      zitCam.hoek += dt * 0.12 * (G.scherm === 'spel' ? 1 : 0.5); const r = 4.5;
       camDoel.set(A.x + Math.sin(A.yaw + zitCam.hoek) * r, A.y + r * zitCam.hoogte, A.z + Math.cos(A.yaw + zitCam.hoek) * r);
-      camKijk.set(A.x, A.y + 0.6, A.z);
+      camKijk.set(A.x, A.y + 0.25, A.z);
     } else {
       zitCam.hoek *= 0.95;
-      camDoel.set(A.x + Math.sin(A.yaw) * af, A.y + hoog - A.pitch * 5, A.z + Math.cos(A.yaw) * af);
-      camKijk.set(A.x - Math.sin(A.yaw) * 18, A.y + 1.2 + Math.sin(A.pitch) * 8, A.z - Math.cos(A.yaw) * 18);
+      camDoel.set(A.x + Math.sin(A.yaw) * af, A.y + hoog - A.pitch * 2.4, A.z + Math.cos(A.yaw) * af);
+      camKijk.set(A.x - Math.sin(A.yaw) * 10, A.y + 0.5 + Math.sin(A.pitch) * 4, A.z - Math.cos(A.yaw) * 10);
     }
     // niet in een gebouw of onder de grond
-    const gm = vloerM(camDoel.x / S, camDoel.z / S, camDoel.y / S + NUL); if (camDoel.y < AK.yVan(gm.h) + 2) camDoel.y = AK.yVan(gm.h) + 2;
-    for (let k = 0; k < 6; k++) { const b = AK.botsGebouw(camDoel.x / S, camDoel.y / S + NUL, camDoel.z / S, 1.2); if (!b) break; camDoel.lerp(arend.position, 0.25); }
+    const gm = vloerM(camDoel.x / S, camDoel.z / S, camDoel.y / S + NUL); if (camDoel.y < AK.yVan(gm.h) + 1) camDoel.y = AK.yVan(gm.h) + 1;
+    for (let k = 0; k < 6; k++) { const b = AK.botsGebouw(camDoel.x / S, camDoel.y / S + NUL, camDoel.z / S, 0.7); if (!b) break; camDoel.lerp(arend.position, 0.25); }
     if (direct || SNELWEG) { camPos.copy(camDoel); camVel.set(0, 0, 0); } else veer(camPos, camVel, camDoel, A.duik ? 7 : 5, dt);
     camera.position.copy(camPos);
     const schud = S_.schud > 0 ? S_.schud : 0; if (S_.schud > 0) S_.schud -= dt;
@@ -3525,14 +3612,14 @@ const AL = (() => {
     });
   };
   let VEREN = [];
-  const veerGeo = new THREE.ConeGeometry(1.2, 5, 6); veerGeo.scale(S * 1.1, S * 1.1, S * 0.4);
+  const veerGeo = new THREE.ConeGeometry(1.2, 5, 6); veerGeo.scale(S * 0.85, S * 0.85, S * 0.32);
   const veerMat = new THREE.MeshLambertMaterial({ color: '#FFD84A', emissive: '#7A5A00' }), gloedMat = new THREE.MeshBasicMaterial({ color: '#FFE76A', transparent: true, opacity: 0.22, depthWrite: false });
   let veerMeshes = [];
   function maakVeren() {
     VEREN = VEER_PLEK();
-    veerMeshes = VEREN.map(v => { const m = new THREE.Mesh(veerGeo, veerMat); m.position.set(v.x * S, AK.yVan(v.y), v.z * S); m.visible = !opslag.veren.includes(v.id); const g = new THREE.Mesh(new THREE.SphereGeometry(3.2 * S, 10, 8), gloedMat); m.add(g); scene.add(m); return m; });
+    veerMeshes = VEREN.map(v => { const m = new THREE.Mesh(veerGeo, veerMat); m.position.set(v.x * S, AK.yVan(v.y), v.z * S); m.visible = !V.veren.includes(v.id); const g = new THREE.Mesh(new THREE.SphereGeometry(3.2 * S, 10, 8), gloedMat); m.add(g); scene.add(m); return m; });
   }
-  function pakVeer(v, i) { veerMeshes[i].visible = false; opslag.veren.push(v.id); bewaar(); fx.veer(); deeltjes(v.x * S, AK.yVan(v.y), v.z * S, 18, '#FFD84A'); melding(`Gouden veer! ${opslag.veren.length} van ${VEREN.length}`, 'veer'); stuurScore(); tekenHud(); }
+  function pakVeer(v, i) { veerMeshes[i].visible = false; V.veren.push(v.id); bewaar(); fx.veer(); deeltjes(v.x * S, AK.yVan(v.y), v.z * S, 18, '#FFD84A'); melding(`Gouden veer! ${V.veren.length} van ${VEREN.length}`, 'veer'); stuurScore(); tekenHud(); }
   function checkVeren(dt) {
     const xm = A.x / S, ym = A.y / S + NUL, zm = A.z / S;
     VEREN.forEach((v, i) => { const m = veerMeshes[i]; if (!m.visible) return; m.rotation.y += dt * 2.4; m.position.y = AK.yVan(v.y) + Math.sin(performance.now() / 600 + i) * 0.25; if (Math.hypot(xm - v.x, ym - v.y, zm - v.z) < (mobiel ? 13 : 11)) pakVeer(v, i); });
@@ -3540,7 +3627,7 @@ const AL = (() => {
   function landGeland(D) {
     melding('Geland op ' + D.naam + '. Klap of druk omhoog om weer op te vliegen.', 'land');
     VEREN.forEach((v, i) => { if (veerMeshes[i].visible && Math.hypot(v.x - D.x, v.z - D.z) < 12 && Math.abs(v.y - D.y) < 6) pakVeer(v, i); });
-    if (D.rust) { const b = B_(D.rust.id); if (b && !opslag.ontdekt.includes(b.id)) ontdek(b); }
+    if (D.rust) { const b = B_(D.rust.id); if (b && !V.ontdekt.includes(b.id)) ontdek(b); }
   }
   // wedstrijden: nieuwe routes door het echte Parijs (nieuwe id's). De vijf oude staan in de Erelijst en hun medailles tellen mee.
   const OUD = { eiffel: 'Rondje Eiffeltoren', seine: 'Langs de Seine', champs: 'Door de Arc', montmartre: 'Montmartre', tour: 'De grote tour' };
@@ -3558,7 +3645,7 @@ const AL = (() => {
         for (let x = b.x0; x <= b.x1; x += 4) for (let z = b.z0; z <= b.z1; z += 4) { if (!AK.isWater(x, z) || AK.brugOp(x, z) !== b) continue; const d = Math.hypot(x - cx, z - cz); if (d < bd) { bd = d; best = [x, z]; } }
         if (!best) continue; const s0 = opS(best[0], best[1]);
         if (vorigeS !== null) { const [mx, mz] = opLijn(sn, sl, (vorigeS + s0) / 2); L.push(R_(mx, mz, 7, { water: true })); }
-        L.push(R_(best[0], best[1], 3.4, { water: true, door: true, klein: true })); vorigeS = s0;
+        L.push(R_(best[0], best[1], 2.4, { water: true, door: true, klein: true })); vorigeS = s0;
       }
       return L; } },
     { id: 'r-lanen', robot: 55, naam: 'De twaalf lanen', tekst: 'Over de Champs-Élysées, dwars door de Arc de Triomphe, en een rondje om het plein.', maak: () => { const C = B_('concorde'), E = B_('arc'), L = []; for (let i = 0; i < 7; i++) { const t = 0.06 + i * 0.13; L.push(R_(C.x + (E.x - C.x) * t, C.z + (E.z - C.z) * t, 28)); } L.push(R_(E.x, E.z, 15, { door: true, klein: true })); for (let i = 1; i <= 6; i++) { const a = Math.atan2(E.z - C.z, E.x - C.x) + i * Math.PI / 3; L.push(R_(E.x + Math.cos(a) * 100, E.z + Math.sin(a) * 100, 30)); } return L; } },
@@ -3586,7 +3673,7 @@ const AL = (() => {
   }
   const ringGroep = new THREE.Group(); scene.add(ringGroep);
   const ringMat = new THREE.MeshBasicMaterial({ color: '#5EE6FF', transparent: true, opacity: 0.8 }), volgendeMat = new THREE.MeshBasicMaterial({ color: '#8AFF6A', transparent: true, opacity: 0.95 });
-  const ringGeo = new THREE.TorusGeometry(mobiel ? 9 : 8, 0.7, 6, 28), kleinGeo = new THREE.TorusGeometry(mobiel ? 5 : 4.4, 0.45, 6, 24);
+  const ringGeo = new THREE.TorusGeometry(mobiel ? 6.2 : 5.5, 0.5, 6, 28), kleinGeo = new THREE.TorusGeometry(mobiel ? 2.6 : 2.2, 0.3, 6, 24);
   let race = null;
   function startRace(R) {
     if (!AK.voortgang.klaar) { melding('Parijs is nog niet helemaal geladen. Nog even geduld...', 'race'); return; }
@@ -3599,15 +3686,15 @@ const AL = (() => {
   }
   function checkRace(dt) {
     if (!race) return; race.t += dt;
-    const p = race.R.ringen[race.i], rr = (p.klein ? (mobiel ? 6.5 : 5.6) : (mobiel ? 11 : 10)) / S;
+    const p = race.R.ringen[race.i], rr = (p.klein ? (mobiel ? 3.8 : 3.2) : (mobiel ? 8 : 7)) / S;
     if (Math.hypot(A.x / S - p.x, A.y / S + NUL - p.y, A.z / S - p.z) < rr) { race.meshes[race.i].visible = false; race.i++; fx.ring(); if (race.i >= race.R.ringen.length) return eindeRace(); race.meshes[race.i].material = volgendeMat; }
     $('ar-race').textContent = `${race.R.naam} · ring ${race.i + 1} van ${race.R.ringen.length} · ${race.t.toFixed(1)} s`;
   }
   const MED = ['brons', 'zilver', 'goud'];
   function eindeRace() {
     const R = race.R, t = Math.round(race.t * 10) / 10, medaille = t <= R.goud ? 'goud' : t <= R.zilver ? 'zilver' : t <= R.brons ? 'brons' : null;
-    const oud = opslag.races[R.id], beter = !oud || !oud.tijd || t < oud.tijd;
-    if (!oud) opslag.races[R.id] = { tijd: t, medaille }; else { if (beter) oud.tijd = t; if (medaille && MED.indexOf(medaille) > MED.indexOf(oud.medaille)) oud.medaille = medaille; }
+    const oud = V.races[R.id], beter = !oud || !oud.tijd || t < oud.tijd;
+    if (!oud) V.races[R.id] = { tijd: t, medaille }; else { if (beter) oud.tijd = t; if (medaille && MED.indexOf(medaille) > MED.indexOf(oud.medaille)) oud.medaille = medaille; }
     bewaar(); stuurScore(); ringGroep.clear(); race = null; $('ar-race').hidden = true; fx.fanfare();
     venster(`<h2>${R.naam}: gehaald!</h2><p class="ar-groot">${t.toFixed(1)} s</p><p>${medaille ? 'Je verdient een <b>' + medaille + 'en</b> medaille!' : 'Net geen medaille. Voor brons moet je binnen ' + R.brons + ' seconden zijn.'}${beter && oud ? ' Een nieuw record!' : ''}</p><p class="ar-klein">Goud: ${R.goud} s · zilver: ${R.zilver} s · brons: ${R.brons} s</p><div class="ar-rij"><button class="ar-knop hoofd" data-race="${R.id}" type="button">Nog een keer</button><button class="ar-knop" data-actie="races" type="button">Andere wedstrijd</button><button class="ar-knop" data-actie="vrij" type="button">Vrij vliegen</button></div>`);
   }
@@ -3617,22 +3704,23 @@ const AL = (() => {
     ontdekT -= dt; if (ontdekT > 0) return; ontdekT = 0.25;
     const xm = A.x / S, ym = A.y / S + NUL, zm = A.z / S;
     for (const b of BEZ) {
-      if (opslag.ontdekt.includes(b.id)) continue;
+      if (V.ontdekt.includes(b.id)) continue;
       if (b.water) { const w = AK.waterPeil(xm, zm); if (w !== null && ym - w < 20) ontdek(b); continue; }
       if (Math.hypot(xm - b.x, zm - b.z) < b.r && ym - AK.hoogteM(b.x, b.z) < b.laag) ontdek(b);
     }
     if (A.thermiek > 0.2 && !G.thermiekGezien) { G.thermiekGezien = true; melding('Warme lucht! Draai hier rondjes en je stijgt vanzelf, zonder te klappen.', 'thermiek'); }
   }
-  function ontdek(b) { opslag.ontdekt.push(b.id); bewaar(); stuurScore(); fx.ontdek(); tekenHud(); toonOntdekt(b); }
-  function toonOntdekt(b) { const k = $('ar-ontdekt'); k.innerHTML = `<small>Ontdekt! ${opslag.ontdekt.length} van ${BEZ.length}</small><b>${b.naam}</b><span>${b.feit}</span>`; k.hidden = false; k.classList.remove('weg'); clearTimeout(toonOntdekt.t); toonOntdekt.t = setTimeout(() => { k.classList.add('weg'); setTimeout(() => { k.hidden = true; }, 600); }, 8000); }
+  function ontdek(b) { V.ontdekt.push(b.id); bewaar(); stuurScore(); fx.ontdek(); tekenHud(); toonOntdekt(b); }
+  function toonOntdekt(b) { const k = $('ar-ontdekt'); k.innerHTML = `<small>Ontdekt! ${V.ontdekt.length} van ${BEZ.length}</small><b>${b.naam}</b><span>${b.feit}</span>`; k.hidden = false; k.classList.remove('weg'); clearTimeout(toonOntdekt.t); toonOntdekt.t = setTimeout(() => { k.classList.add('weg'); setTimeout(() => { k.hidden = true; }, 600); }, 8000); }
   // ---------------------------------------------------------------- deeltjes (veertjes, stof, druppels)
   const deeltjesLijst = [], deeltjeGeo = new THREE.PlaneGeometry(0.5, 1.0);
   function deeltjes(x, y, z, n, kleur) { const m = new THREE.MeshBasicMaterial({ color: kleur, side: THREE.DoubleSide, transparent: true }); for (let i = 0; i < n; i++) { const d = new THREE.Mesh(deeltjeGeo, m); d.position.set(x, y, z); d.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 12, Math.random() * 8, (Math.random() - 0.5) * 12), t: 1.4 }; scene.add(d); deeltjesLijst.push(d); } }
   function updateDeeltjes(dt) { for (let i = deeltjesLijst.length - 1; i >= 0; i--) { const d = deeltjesLijst[i], u = d.userData; u.t -= dt; u.v.y -= 7 * dt; d.position.addScaledVector(u.v, dt); d.rotation.x += dt * 5; d.rotation.y += dt * 3; d.material.opacity = Math.max(0, u.t / 1.4); if (u.t <= 0) { scene.remove(d); deeltjesLijst.splice(i, 1); } } }
   // ---------------------------------------------------------------- beeld: hud, kaartje, kaart en meldingen
   const G = { scherm: 'laden', camera: 0, vuil: true, thermiekGezien: false };
-  const punten = () => opslag.ontdekt.length * 100 + opslag.veren.length * 25 + Object.values(opslag.races).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r && r.medaille] || 0), 0);
-  function tekenHud() { $('ar-tel').innerHTML = `<span title="Bezienswaardigheden">🏛 ${opslag.ontdekt.length}/${BEZ.length}</span><span title="Gouden veren">🪶 ${opslag.veren.length}/${VEREN.length || 60}</span><span title="Punten">★ ${punten()}</span>`; $('ar-race').hidden = !race; }
+  const puntenVan = v => (v.ontdekt || []).length * 100 + (v.veren || []).length * 25 + Object.values(v.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r && r.medaille] || 0), 0);
+  const punten = () => puntenVan(opslag) + Object.entries(opslag.steden || {}).reduce((a, [, v]) => a + puntenVan(v || {}), 0);
+  function tekenHud() { $('ar-tel').innerHTML = `<span title="Bezienswaardigheden">🏛 ${V.ontdekt.length}/${BEZ.length}</span><span title="Gouden veren">🪶 ${V.veren.length}/${VEREN.length || 60}</span><span title="Punten">★ ${punten()}</span>`; $('ar-race').hidden = !race; }
   const meld = $('ar-melding'); let meldSoort = '', meldTot = 0;
   function melding(t, soort) { const nu = performance.now(); if (soort === meldSoort && nu < meldTot - 1500) return; meldSoort = soort; meldTot = nu + 2800; meld.textContent = t; meld.hidden = false; }
   // de kaart van Parijs: water, groen, gebouwen en hoofdwegen, getekend terwijl de tegels binnenkomen
@@ -3657,7 +3745,7 @@ const AL = (() => {
     if (!kaartM) return; const M = mini.width, [kx, kz] = naarK(A.x / S, A.z / S), zoom = M / (1300 * kaartM);
     mg.save(); mg.clearRect(0, 0, M, M); mg.beginPath(); mg.arc(M / 2, M / 2, M / 2 - 2, 0, 7); mg.clip();
     mg.translate(M / 2, M / 2); mg.rotate(A.yaw); mg.scale(zoom, zoom); mg.drawImage(kaartDoek, -kx, -kz);
-    for (const b of BEZ) { if (b.water) continue; const [bx, bz] = naarK(b.x, b.z); mg.fillStyle = opslag.ontdekt.includes(b.id) ? '#E9B949' : '#FFFFFF'; mg.strokeStyle = '#231A26'; mg.lineWidth = 1.5 / zoom; mg.beginPath(); mg.arc(bx - kx, bz - kz, 5 / zoom, 0, 7); mg.fill(); mg.stroke(); }
+    for (const b of BEZ) { if (b.water) continue; const [bx, bz] = naarK(b.x, b.z); mg.fillStyle = V.ontdekt.includes(b.id) ? '#E9B949' : '#FFFFFF'; mg.strokeStyle = '#231A26'; mg.lineWidth = 1.5 / zoom; mg.beginPath(); mg.arc(bx - kx, bz - kz, 5 / zoom, 0, 7); mg.fill(); mg.stroke(); }
     if (race) { const p = race.R.ringen[race.i], [rx, rz] = naarK(p.x, p.z); mg.fillStyle = '#8AFF6A'; mg.strokeStyle = '#1F5A1A'; mg.beginPath(); mg.arc(rx - kx, rz - kz, 6 / zoom, 0, 7); mg.fill(); mg.stroke(); }
     mg.restore();
     // pijl naar de volgende ring als die buiten het kaartje valt
@@ -3670,7 +3758,7 @@ const AL = (() => {
     const groot = $('ar-kaart-groot'); if (!groot.hidden) { groot.hidden = true; return; } if (!kaartM) return;
     const c = $('ar-kaart-doek'), g = c.getContext('2d'); c.width = 1400; c.height = Math.round(1400 * kaartDoek.height / kaartDoek.width); g.drawImage(kaartDoek, 0, 0, c.width, c.height);
     const f = c.width / kaartDoek.width;
-    for (const b of BEZ) { if (b.water) continue; const [x, z] = naarK(b.x, b.z), o = opslag.ontdekt.includes(b.id); g.fillStyle = o ? '#E9B949' : '#FFFFFF'; g.strokeStyle = '#231A26'; g.lineWidth = 3; g.beginPath(); g.arc(x * f, z * f, 8, 0, 7); g.fill(); g.stroke(); g.font = '700 15px system-ui, sans-serif'; g.fillStyle = '#231A26'; g.strokeStyle = 'rgba(251,246,233,.9)'; g.lineWidth = 4; const naam = o ? b.naam.replace(/^(De|Het) /, '') : '???'; g.strokeText(naam, x * f + 11, z * f + 5); g.fillText(naam, x * f + 11, z * f + 5); }
+    for (const b of BEZ) { if (b.water) continue; const [x, z] = naarK(b.x, b.z), o = V.ontdekt.includes(b.id); g.fillStyle = o ? '#E9B949' : '#FFFFFF'; g.strokeStyle = '#231A26'; g.lineWidth = 3; g.beginPath(); g.arc(x * f, z * f, 8, 0, 7); g.fill(); g.stroke(); g.font = '700 15px system-ui, sans-serif'; g.fillStyle = '#231A26'; g.strokeStyle = 'rgba(251,246,233,.9)'; g.lineWidth = 4; const naam = o ? b.naam.replace(/^(De|Het) /, '') : '???'; g.strokeText(naam, x * f + 11, z * f + 5); g.fillText(naam, x * f + 11, z * f + 5); }
     const [ax, az] = naarK(A.x / S, A.z / S); g.save(); g.translate(ax * f, az * f); g.rotate(-A.yaw); g.fillStyle = '#C8323C'; g.strokeStyle = '#FBF6E9'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, -14); g.lineTo(10, 11); g.lineTo(0, 5); g.lineTo(-10, 11); g.closePath(); g.fill(); g.stroke(); g.restore();
     g.font = '600 13px system-ui, sans-serif'; g.fillStyle = 'rgba(35,26,38,.75)'; g.textAlign = 'right'; g.fillText('© OpenStreetMap-bijdragers', c.width - 10, c.height - 10); g.textAlign = 'left';
     groot.hidden = false;
@@ -3683,16 +3771,23 @@ const AL = (() => {
   // ---------------------------------------------------------------- menu's
   function venster(html) { $('ar-venster-in').innerHTML = html; $('ar-venster').hidden = false; G.scherm = 'venster'; G.vuil = true; }
   function sluitMenus() { $('ar-venster').hidden = true; $('ar-menu').hidden = true; }
-  function menu() { sluitMenus(); $('ar-menu').hidden = false; G.scherm = 'menu'; $('ar-menu-stand').textContent = `${opslag.ontdekt.length} van ${BEZ.length} plekken · ${opslag.veren.length} van ${VEREN.length || 60} gouden veren · ${punten()} punten`; $('ar-verder').textContent = opslag.gestart ? 'Verder vliegen' : 'Begin met vliegen'; }
+  function menu() { sluitMenus(); $('ar-menu').hidden = false; G.scherm = 'menu'; $('ar-sub').textContent = 'Vlieg als arend over ' + STAD.naam; $('ar-stad').innerHTML = `<b>${STAD.vlag} ${STAD.naam}</b><span>Kies een stad</span>`; $('ar-dagboekknop').textContent = 'Mijn ' + STAD.naam; $('ar-menu-stand').textContent = `${V.ontdekt.length} van ${BEZ.length} plekken · ${V.veren.length} van ${VEREN.length || 60} gouden veren · ${punten()} punten`; $('ar-verder').textContent = opslag.gestart ? 'Verder vliegen' : 'Begin met vliegen'; }
   function pauze() { if (A.staat === 'land') { A.staat = 'vlieg'; A.landDoel = null; } venster(`<h2>Pauze</h2><p>Even uitrusten op een dakgoot.</p><div class="ar-rij"><button class="ar-knop hoofd" data-actie="verder" type="button">Verder vliegen</button><button class="ar-knop" data-actie="menu" type="button">Naar het menu</button></div>`); }
   const medTekst = r => (r ? (r.tijd ? 'Record ' + r.tijd.toFixed(1) + ' s' : '') + (r.medaille ? (r.tijd ? ' · ' : '') + r.medaille : '') : '');
   function racesLijst() {
     if (!RACES && AK.voortgang.klaar) maakRaces();
-    const lijst = (RACES || RACE_DEF).map(R => { const r = opslag.races[R.id]; return `<li><button class="ar-race-knop" data-race="${R.id}" type="button"><b>${R.naam}</b><span>${R.tekst}</span><small>${r ? medTekst(r) : 'Nog niet gevlogen'}${R.ringen ? ' · ' + R.ringen.length + ' ringen' : ''}</small></button></li>`; }).join('');
-    const oud = Object.keys(OUD).filter(id => opslag.races[id]).map(id => `<li><b>${OUD[id]}</b><span>${medTekst(opslag.races[id])}</span></li>`).join('');
+    const lijst = (RACES || RACE_DEF).map(R => { const r = V.races[R.id]; return `<li><button class="ar-race-knop" data-race="${R.id}" type="button"><b>${R.naam}</b><span>${R.tekst}</span><small>${r ? medTekst(r) : 'Nog niet gevlogen'}${R.ringen ? ' · ' + R.ringen.length + ' ringen' : ''}</small></button></li>`; }).join('');
+    const oud = Object.keys(OUD).filter(id => V.races[id]).map(id => `<li><b>${OUD[id]}</b><span>${medTekst(V.races[id])}</span></li>`).join('');
     venster(`<h2>Wedstrijden</h2><p>Vlieg zo snel mogelijk door alle ringen. De groene ring is de volgende; op je kaartje zie je hem als groene stip.</p><ul class="ar-lijst">${lijst}</ul>${oud ? `<h3>Erelijst: de oude routes</h3><p class="ar-klein">Deze wedstrijden vloog je in het oude, nagemaakte Parijs. Je medailles blijven staan en tellen mee voor je punten.</p><ul class="ar-dagboek">${oud.replace(/<li>/g, '<li class="ja">')}</ul>` : ''}<div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Terug</button></div>`);
   }
-  function dagboek() { venster(`<h2>Mijn Parijs</h2><p>${opslag.ontdekt.length} van ${BEZ.length} plekken ontdekt, en ${opslag.veren.length} van ${VEREN.length || 60} gouden veren gevonden.</p><ul class="ar-dagboek">${BEZ.map(b => opslag.ontdekt.includes(b.id) ? `<li class="ja"><b>${b.naam}</b><span>${b.feit}</span></li>` : `<li><b>???</b><span>${b.water ? 'Nog niet ontdekt. Scheer eens laag over het water.' : 'Nog niet ontdekt. Vlieg laag langs om hem te vinden.'}</span></li>`).join('')}</ul><div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Terug</button></div>`); }
+  // de steden: elke stad met zijn eigen voortgang; wisselen laadt de pagina opnieuw met de kaart van die stad
+  function steden() {
+    const kaarten = STEDEN.map(s => { const v = voortgangVan(s.id), hier = s.id === STAD.id;
+      return `<li class="ar-stadkaart${hier ? ' hier' : ''}"><span class="ar-vlag" aria-hidden="true">${s.vlag}</span><div><b>${s.naam}</b> <span class="ar-klein">${s.land}</span><p class="ar-klein">${s.tekst}</p><p class="ar-klein">${hier ? v.ontdekt.length + ' van ' + BEZ.length + ' plekken ontdekt' : (v.ontdekt.length ? v.ontdekt.length + ' plekken ontdekt' : 'Nog niet bezocht')}</p></div>${hier ? '<span class="ar-hier">Hier vlieg je nu</span>' : `<button class="ar-knop hoofd" data-stad="${s.id}" type="button">Vlieg hier</button>`}</li>`; }).join('');
+    venster(`<h2>Kies een stad</h2><p>Waar wil je vliegen? Elke stad heeft eigen plekken, gouden veren en wedstrijden, en je punten tellen samen.</p><ul class="ar-steden">${kaarten}<li class="ar-stadkaart binnenkort"><span class="ar-vlag" aria-hidden="true">🗺️</span><div><b>Meer steden volgen</b><p class="ar-klein">Er komen nog meer steden bij om overheen te vliegen.</p></div></li></ul><div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Terug</button></div>`);
+  }
+  function kiesStad(id) { if (id === STAD.id || !STEDEN.some(s => s.id === id)) return menu(); opslag.stad = id; bewaar(); location.reload(); }
+  function dagboek() { venster(`<h2>Mijn ${STAD.naam}</h2><p>${V.ontdekt.length} van ${BEZ.length} plekken ontdekt, en ${V.veren.length} van ${VEREN.length || 60} gouden veren gevonden.</p><ul class="ar-dagboek">${BEZ.map(b => V.ontdekt.includes(b.id) ? `<li class="ja"><b>${b.naam}</b><span>${b.feit}</span></li>` : `<li><b>???</b><span>${b.water ? 'Nog niet ontdekt. Scheer eens laag over het water.' : 'Nog niet ontdekt. Vlieg laag langs om hem te vinden.'}</span></li>`).join('')}</ul><div class="ar-rij"><button class="ar-knop" data-actie="menu" type="button">Terug</button></div>`); }
   const uurTekst = u => { const h = Math.floor(u) % 24, m = Math.floor((u % 1) * 60); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; };
   function instellingen() {
     const knop = (attr, w, t, aan) => `<button class="ar-knop" ${attr}="${w}" aria-pressed="${aan}" type="button">${t}</button>`;
@@ -3716,18 +3811,19 @@ const AL = (() => {
     if (q) { zetKwaliteit(q.dataset.kwal); document.querySelectorAll('[data-kwal]').forEach(b => b.setAttribute('aria-pressed', String(b === q))); return; }
     if (f) { fotoCam.filter = f.dataset.filter; document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b === f))); renderer.domElement.style.filter = FILTER[fotoCam.filter].css; return; }
     if (r) { startRace({ id: r.dataset.race }); return; }
+    const kies = e.target.closest('[data-stad]'); if (kies) { kiesStad(kies.dataset.stad); return; }
     if (!a) return; const wat = a.dataset.actie;
     if (wat === 'vrij' || wat === 'verder') { if (wat === 'vrij' && race) { ringGroep.clear(); race = null; } sluitMenus(); G.scherm = 'spel'; if (!opslag.gestart) { opslag.gestart = true; bewaar(); setTimeout(() => melding(mobiel ? 'Sleep links om te sturen. Tik op Klap om hoger te komen, en op Land om op een dak te gaan zitten.' : 'Pijltjes of WASD om te sturen, spatie om te klappen, shift om te duiken, E om te landen.', 'uitleg'), 400); } camVolg(0, true); tekenHud(); geluidStart(); }
-    if (wat === 'menu') menu(); if (wat === 'races') racesLijst(); if (wat === 'dagboek') dagboek(); if (wat === 'instellingen') instellingen();
+    if (wat === 'menu') menu(); if (wat === 'races') racesLijst(); if (wat === 'dagboek') dagboek(); if (wat === 'steden') steden(); if (wat === 'instellingen') instellingen();
     if (wat === 'foto-bewaar') bewaarFoto(); if (wat === 'foto-sluit') stopFoto();
   });
   document.addEventListener('input', e => { if (e.target.id === 'ar-in-volume') { opslag.volume = e.target.value / 100; zetVolume(); } if (e.target.id === 'ar-in-uur' || e.target.id === 'ar-foto-uur') { W.uur = +e.target.value; opslag.uur = W.uur; const o = $('ar-uur-tekst'); if (o) o.textContent = uurTekst(W.uur); laatsteEnv = -99; G.vuil = true; } });
   document.addEventListener('change', e => { const id = e.target.id; if (id === 'ar-in-omgekeerd') { opslag.omgekeerd = e.target.checked; bewaar(); } if (id === 'ar-in-dagloop') { opslag.dagloop = e.target.checked; bewaar(); } if (id === 'ar-in-geluid') { opslag.geluid = e.target.checked; bewaar(); if (opslag.geluid) geluidStart(); zetVolume(); } if (id === 'ar-in-volume' || id === 'ar-in-uur' || id === 'ar-foto-uur') bewaar(); if (id === 'ar-in-kantel') { opslag.kantel = e.target.checked; bewaar(); if (opslag.kantel && window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } });
   $('ar-menuknop').addEventListener('click', e => { e.stopPropagation(); if (G.scherm === 'spel') pauze(); });
   // ---------------------------------------------------------------- de fotostand: alles stil, rond de arend draaien, een filter kiezen en bewaren
-  const fotoCam = { hoek: 0.6, hoogte: 0.25, af: 14, filter: 'normaal' }, fotoSleep = { id: null, x: 0, y: 0 };
+  const fotoCam = { hoek: 0.6, hoogte: 0.25, af: 6, filter: 'normaal' }, fotoSleep = { id: null, x: 0, y: 0 };
   const FILTER = { normaal: { naam: 'Gewoon', css: '' }, zw: { naam: 'Zwart-wit', css: 'grayscale(1) contrast(1.1)' }, sepia: { naam: 'Oud', css: 'sepia(0.85) contrast(1.05)' }, warm: { naam: 'Warm', css: 'saturate(1.25) sepia(0.25) brightness(1.04)' } };
-  function startFoto() { G.scherm = 'foto'; fotoCam.hoek = 0.6; fotoCam.hoogte = 0.25; fotoCam.af = 14; document.body.classList.add('ar-fotostand'); const f = $('ar-foto'); f.hidden = false; f.innerHTML = `<div class="ar-foto-balk"><b>Fotostand</b><span class="ar-klein">Sleep om rond te kijken, scroll of knijp om in en uit te zoomen.</span><label class="ar-vink">Tijd <input type="range" id="ar-foto-uur" min="0" max="24" step="0.25" value="${W.uur.toFixed(2)}" aria-label="Tijd van de dag"></label><div class="ar-rij">${Object.entries(FILTER).map(([k, f2]) => `<button class="ar-knop" data-filter="${k}" aria-pressed="${fotoCam.filter === k}" type="button">${f2.naam}</button>`).join('')}</div><div class="ar-rij"><button class="ar-knop hoofd" data-actie="foto-bewaar" type="button">Bewaar foto</button><button class="ar-knop" data-actie="foto-sluit" type="button">Klaar</button></div></div>`; renderer.domElement.style.filter = FILTER[fotoCam.filter].css; G.vuil = true; }
+  function startFoto() { G.scherm = 'foto'; fotoCam.hoek = 0.6; fotoCam.hoogte = 0.25; fotoCam.af = 6; document.body.classList.add('ar-fotostand'); const f = $('ar-foto'); f.hidden = false; f.innerHTML = `<div class="ar-foto-balk"><b>Fotostand</b><span class="ar-klein">Sleep om rond te kijken, scroll of knijp om in en uit te zoomen.</span><label class="ar-vink">Tijd <input type="range" id="ar-foto-uur" min="0" max="24" step="0.25" value="${W.uur.toFixed(2)}" aria-label="Tijd van de dag"></label><div class="ar-rij">${Object.entries(FILTER).map(([k, f2]) => `<button class="ar-knop" data-filter="${k}" aria-pressed="${fotoCam.filter === k}" type="button">${f2.naam}</button>`).join('')}</div><div class="ar-rij"><button class="ar-knop hoofd" data-actie="foto-bewaar" type="button">Bewaar foto</button><button class="ar-knop" data-actie="foto-sluit" type="button">Klaar</button></div></div>`; renderer.domElement.style.filter = FILTER[fotoCam.filter].css; G.vuil = true; }
   function stopFoto() { G.scherm = 'spel'; document.body.classList.remove('ar-fotostand'); $('ar-foto').hidden = true; renderer.domElement.style.filter = ''; camVolg(0, true); }
   function fotoCamera() { const r = fotoCam.af; camera.position.set(A.x + Math.sin(A.yaw + fotoCam.hoek) * r * Math.cos(fotoCam.hoogte), A.y + r * Math.sin(fotoCam.hoogte) + 0.5, A.z + Math.cos(A.yaw + fotoCam.hoek) * r * Math.cos(fotoCam.hoogte)); const gm = AK.yVan(vloerM(camera.position.x / S, camera.position.z / S, camera.position.y / S + NUL).h) + 0.8; if (camera.position.y < gm) camera.position.y = gm; camera.lookAt(A.x, A.y + 0.4, A.z); camera.fov = 50; camera.updateProjectionMatrix(); }
   function bewaarFoto() {
@@ -3782,7 +3878,7 @@ const AL = (() => {
     klokken: uur => { const xm = A.x / S, zm = A.z / S; const kerk = [['notredame', 196], ['sacrecoeur', 233], ['madeleine', 262], ['invalides', 175]].map(([id, f]) => { const b = B_(id); return [Math.hypot(b.x - xm, b.z - zm), f]; }).sort((a, b) => a[0] - b[0])[0]; if (kerk[0] > 2600) return; const vol = 0.09 * Math.max(0.15, 1 - kerk[0] / 2600), n = Math.min(6, ((uur + 11) % 12) + 1); for (let i = 0; i < n; i++) kerkklok(kerk[1], i * 1.6, vol); },
   };
   // ---------------------------------------------------------------- scorebord
-  function stuurScore() { if (window.Scorebord) Scorebord.stuur('arend', punten(), opslag.ontdekt.length); }
+  function stuurScore() { if (window.Scorebord) Scorebord.stuur('arend', punten(), V.ontdekt.length); }
   // ---------------------------------------------------------------- de lus: alleen tekenen als het nodig is, met een vast budget
   function maat() { const r = veld.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); renderer.domElement.style.width = r.width + 'px'; renderer.domElement.style.height = r.height + 'px'; camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); for (const f of LEVEN.fonteinen) f.mat.uniforms.uPx.value = renderer.getPixelRatio() * r.height * 0.5; G.vuil = true; }
   if (window.ResizeObserver) new ResizeObserver(maat).observe(veld); else addEventListener('resize', maat);
@@ -3817,7 +3913,7 @@ const AL = (() => {
     if (W.lichtDir && Math.abs(W.uur - (G.schaduwUur || 0)) > 0.1) { G.schaduwUur = W.uur; renderer.shadowMap.needsUpdate = true; }
     // de schaduwvlek onder de arend
     const vl = vloerM(A.x / S, A.z / S, A.y / S + NUL), dakOnder = AK.gebouwOp(A.x / S, A.z / S), vy = Math.max(AK.yVan(vl.h), dakOnder ? AK.yVan(dakOnder.hoogste) : -1e9), hv = A.y - vy;
-    vlek.visible = hv < 60 && A.staat !== 'zit'; if (vlek.visible) { vlek.position.set(A.x, vy + 0.15, A.z); const sc = 5 + hv * 0.08; vlek.scale.set(sc, 1, sc); vlek.material.opacity = Math.max(0, 1 - hv / 60) * (1 - W.nacht * 0.7); }
+    vlek.visible = hv < 60 && A.staat !== 'zit'; if (vlek.visible) { vlek.position.set(A.x, vy + 0.15, A.z); const sc = 1.8 + hv * 0.04; vlek.scale.set(sc, 1, sc); vlek.material.opacity = Math.max(0, 1 - hv / 60) * (1 - W.nacht * 0.7); }
     AK.kijk(camera.position.x / S, camera.position.z / S, nu); AL.update(dt, t); if (LEVEN.boten) updateLeven(dt, t); updateGeluid(dt); updateDeeltjes(dt);
     // de kaart tekenen terwijl de tegels binnenkomen (een paar per beeld)
     if (kaartM) for (let k = 0; k < 2 && kaartRij.length; k++) tekenKaartTegel(kaartRij.shift());
@@ -3834,9 +3930,10 @@ const AL = (() => {
   maat(); zetLicht(1); arend.position.set(A.x, A.y, A.z); camVolg(0, true);
   requestAnimationFrame(lus);
   const laden = $('ar-laden');
-  const toonVoortgang = () => { if (G.scherm !== 'laden') return; const v = AK.voortgang, p = v.totaal ? Math.round(v.binnen / v.totaal * 100) : 0; laden.textContent = 'Parijs wordt gebouwd... ' + (p ? p + '%' : ''); setTimeout(toonVoortgang, 250); };
+  const toonVoortgang = () => { if (G.scherm !== 'laden') return; const v = AK.voortgang, p = v.totaal ? Math.round(v.binnen / v.totaal * 100) : 0; laden.textContent = STAD.naam + ' wordt gebouwd... ' + (p ? p + '%' : ''); setTimeout(toonVoortgang, 250); };
   toonVoortgang();
   AK.laad(scene, {
+    bestand: STAD.kaart,
     opGlobaal: () => {
       AL.bouw(scene); begin_kaart(); for (const st of AK.kop.stukken) if (st.soort === 1) kaartRij.push(st.t);
       maakBoten(); maakAutos(); maakDuiven(); maakMeeuwen(); maakMensen(); maakFonteinen(); maakVlaggen(); maakRegen();

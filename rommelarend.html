@@ -2205,10 +2205,12 @@ const AK = (() => {
       }` });
   Object.assign(waterMat.uniforms, WU);
   // ---------------------------------------------------------------- van platte lijsten naar three.js
-  function geo(d) {
+  // vrij: na het doorsturen naar de grafische kaart de lijsten in het werkgeheugen loslaten (scheelt tientallen MB)
+  const laatLos = function () { this.array = null; };
+  function geo(d, vrij) {
     const g = new THREE.BufferGeometry();
-    for (const k in d.attrs) { const a = d.attrs[k]; g.setAttribute(k, new THREE.BufferAttribute(a.a, a.d, a.norm)); }
-    g.setIndex(new THREE.BufferAttribute(d.idx, 1)); g.computeBoundingBox(); g.computeBoundingSphere(); return g;
+    for (const k in d.attrs) { const a = d.attrs[k], at = new THREE.BufferAttribute(a.a, a.d, a.norm); if (vrij) at.onUpload(laatLos); g.setAttribute(k, at); }
+    const ix = new THREE.BufferAttribute(d.idx, 1); if (vrij) ix.onUpload(laatLos); g.setIndex(ix); g.computeBoundingBox(); g.computeBoundingSphere(); return g;
   }
   const M4 = new THREE.Matrix4(), QQ = new THREE.Quaternion(), SV = new THREE.Vector3(), PV = new THREE.Vector3(), YA = new THREE.Vector3(0, 1, 0), KC = new THREE.Color();
   function bomenMesh(arr, schaduw) {
@@ -2234,8 +2236,8 @@ const AK = (() => {
       if (t.groep) { wereld.remove(t.groep); verwijder(t.groep); t.groep = null; }
       if (a.leeg || t.gewenst < 0) { t.niveau = -1; return; }
       const G = new THREE.Group(), d = a.delen, dicht = a.niveau === 0;
-      if (d.grond) { const m = new THREE.Mesh(geo(d.grond), dicht ? grondMat : grondMatVer); m.receiveShadow = dicht; G.add(m); }
-      if (d.gebouw) { const m = new THREE.Mesh(geo(d.gebouw), dicht ? gebouwMat : gebouwMatVer); m.castShadow = dicht; m.receiveShadow = dicht; G.add(m); }
+      if (d.grond) { const m = new THREE.Mesh(geo(d.grond, true), dicht ? grondMat : grondMatVer); m.receiveShadow = dicht; G.add(m); }
+      if (d.gebouw) { const m = new THREE.Mesh(geo(d.gebouw, true), dicht ? gebouwMat : gebouwMatVer); m.castShadow = dicht; m.receiveShadow = dicht; G.add(m); }
       if (d.bomen && d.bomen.length) { if (dicht) { t.boomInst = bomenMesh(d.bomen, true); t.boomPunt = puntenMesh(d.bomen); G.add(t.boomInst, t.boomPunt); } else { t.boomInst = null; t.boomPunt = null; G.add(puntenMesh(d.bomen)); } }
       if (d.lampen && d.lampen.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(d.lampen, 3)); const p = new THREE.Points(g, lampMat); p.frustumCulled = false; G.add(p); }
       // een doos voor 'in beeld?'
@@ -2848,6 +2850,9 @@ const AL = (() => {
   let kwal = KWAL[app.k] ? app.k : automatisch(), K = KWAL[kwal];
   // ---------------------------------------------------------------- renderer en scene
   const renderer = new THREE.WebGLRenderer({ antialias: !mobiel, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+  // raakt de grafische kaart de 3D-wereld kwijt (kan op een telefoon op de achtergrond), dan bewaren en de pagina opnieuw laden: de stad zelf staat alleen nog op de kaart
+  renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); bewaar(); });
+  renderer.domElement.addEventListener('webglcontextrestored', () => location.reload());
   let dpr = Math.min(window.devicePixelRatio || 1, K.dpr); renderer.setPixelRatio(dpr);
   renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;

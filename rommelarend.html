@@ -3830,11 +3830,11 @@ const AL = (() => {
   // getekend op een plaatje met doorzichtige randen, van metaalachtig goud, met een zachte gloed eromheen
   const goudVeerTex = (() => {
     const c = document.createElement('canvas'); c.width = 128; c.height = 512; const g = c.getContext('2d');
-    const top = 10, voet = 430, bodem = 506, sx = t => 60 + 9 * Math.sin(t * Math.PI * 0.85) - 4 * t, wa = t => 24 * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + t * 0.97)), 0.55) * (1 - 0.3 * t), wb = t => 44 * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + t * 0.97)), 0.6) * (1 - 0.2 * t);
+    const top = 10, voet = 430, bodem = 506, sx = t => 60 + 9 * Math.sin(t * Math.PI * 0.85) - 4 * t, wa = t => 30 * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + t * 0.97)), 0.55) * (1 - 0.3 * t), wb = t => 51 * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + t * 0.97)), 0.6) * (1 - 0.2 * t);
     const yv = t => voet - t * (voet - top);
     g.beginPath(); for (let i = 0; i <= 60; i++) { const t = i / 60; g.lineTo(sx(t) - wa(t), yv(t)); } for (let i = 60; i >= 0; i--) { const t = i / 60; g.lineTo(sx(t) + wb(t), yv(t)); } g.closePath();
     g.save(); g.clip();
-    const gr = g.createLinearGradient(0, 0, 128, 0); gr.addColorStop(0, '#9A6612'); gr.addColorStop(0.32, '#E7B232'); gr.addColorStop(0.5, '#FFE48A'); gr.addColorStop(0.68, '#F2C043'); gr.addColorStop(1, '#A26C14'); g.fillStyle = gr; g.fillRect(0, 0, 128, 512);
+    const gr = g.createLinearGradient(0, 0, 128, 0); gr.addColorStop(0, '#7A4A08'); gr.addColorStop(0.3, '#D9A024'); gr.addColorStop(0.47, '#FFE68E'); gr.addColorStop(0.62, '#E8B030'); gr.addColorStop(1, '#84520A'); g.fillStyle = gr; g.fillRect(0, 0, 128, 512);
     const vg = g.createLinearGradient(0, voet, 0, top); vg.addColorStop(0, 'rgba(120,70,0,0.35)'); vg.addColorStop(0.5, 'rgba(255,240,180,0)'); vg.addColorStop(1, 'rgba(255,250,210,0.35)'); g.fillStyle = vg; g.fillRect(0, 0, 128, 512);
     // de baarden: schuin naar de punt, afwisselend licht en donker
     for (let y = voet + 30; y > top - 40; y -= 2.4) { const t = Math.max(0, Math.min(1, (voet - y) / (voet - top))); for (const k of [-1, 1]) { const l = Math.sin(y * 0.33 + k) * 0.6 + Math.sin(y * 0.09) * 0.4; g.strokeStyle = l > 0 ? '#FFF2B8' : '#7A4C08'; g.globalAlpha = 0.14 + 0.2 * Math.abs(l); g.lineWidth = 1.2; g.beginPath(); g.moveTo(sx(t), y); g.quadraticCurveTo(sx(t) + k * 18, y - 8, sx(t) + k * 50, y - 26); g.stroke(); } }
@@ -3851,11 +3851,11 @@ const AL = (() => {
     g.beginPath(); g.moveTo(sx(0), voet); g.quadraticCurveTo(sx(0) - 1, (voet + bodem) / 2, sx(0) - 3, bodem); g.lineWidth = 4.2; g.strokeStyle = '#F4D27A'; g.stroke(); g.lineWidth = 1.4; g.strokeStyle = '#FFFBEA'; g.stroke();
     const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
   })();
-  const veerGeo = (() => { const L = 5.4 * S, B = L * 0.25, g = new THREE.BufferGeometry(), pos = [], uv = [], idx = [], NR = 16, NK = 6;
+  const veerGeo = (() => { const L = 5.2 * S, B = L * 0.3, g = new THREE.BufferGeometry(), pos = [], uv = [], idx = [], NR = 16, NK = 6;
     for (let i = 0; i <= NR; i++) for (let j = 0; j <= NK; j++) { const t = i / NR, s = j / NK * 2 - 1; pos.push(s * B / 2, t * L - L / 2, 0.06 * L * Math.sin(t * Math.PI) - 0.07 * B * s * s + 0.04 * L * t * t); uv.push(j / NK, t); }
     for (let i = 0; i < NR; i++) for (let j = 0; j < NK; j++) { const a = i * (NK + 1) + j; idx.push(a, a + 1, a + NK + 1, a + 1, a + NK + 2, a + NK + 1); }
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); g.rotateZ(-0.28); return g; })();
-  const veerMat = new THREE.MeshStandardMaterial({ map: goudVeerTex, emissiveMap: goudVeerTex, emissive: new THREE.Color('#FFC040'), emissiveIntensity: 0.38, metalness: 0.7, roughness: 0.32, alphaTest: 0.45, side: THREE.DoubleSide });
+  const veerMat = new THREE.MeshStandardMaterial({ map: goudVeerTex, emissiveMap: goudVeerTex, emissive: new THREE.Color('#FFC040'), emissiveIntensity: 0.3, metalness: 0.75, roughness: 0.3, alphaTest: 0.45, side: THREE.DoubleSide });
   const gloedTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,236,150,1)'); gr.addColorStop(0.3, 'rgba(255,210,90,0.45)'); gr.addColorStop(1, 'rgba(255,200,60,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
   const gloedMat = new THREE.SpriteMaterial({ map: gloedTex, color: '#FFD86A', transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
   let veerMeshes = [];
@@ -3865,7 +3865,7 @@ const AL = (() => {
   }
   function pakVeer(v, i) { veerMeshes[i].visible = false; V.veren.push(v.id); bewaar(); fx.veer(); deeltjes(v.x * S, AK.yVan(v.y), v.z * S, 18, '#FFD84A'); melding(`Gouden veer! ${V.veren.length} van ${VEREN.length}`, 'veer'); stuurScore(); tekenHud(); }
   function checkVeren(dt) {
-    gloedMat.opacity = 0.45 + 0.15 * Math.sin(performance.now() / 420);
+    gloedMat.opacity = (0.3 + 0.45 * W.nacht) + 0.12 * Math.sin(performance.now() / 420); veerMat.emissiveIntensity = 0.3 + 0.9 * W.nacht;
     const xm = A.x / S, ym = A.y / S + NUL, zm = A.z / S;
     VEREN.forEach((v, i) => { const m = veerMeshes[i]; if (!m.visible) return; const nu = performance.now() / 1000; m.rotation.y += dt * 1.5; m.rotation.x = Math.sin(nu * 0.9 + i) * 0.12; m.position.y = AK.yVan(v.y) + Math.sin(nu * 1.7 + i) * 0.25; if (Math.hypot(xm - v.x, ym - v.y, zm - v.z) < (mobiel ? 13 : 11)) pakVeer(v, i); });
   }

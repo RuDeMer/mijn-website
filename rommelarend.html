@@ -2835,9 +2835,9 @@ const AL = (() => {
   if (!window.THREE) { $('ar-laden').textContent = 'De 3D-wereld kon niet laden. Controleer je internet en vernieuw de pagina.'; return; }
   // ---------------------------------------------------------------- kwaliteit: Zuinig, Normaal, Mooi
   const KWAL = {
-    zuinig: { naam: 'Zuinig', dpr: mobiel ? 1.25 : 1, fps: 30, r: [450, 1000, 1900, 220], schaduw: 0, spiegel: false, leven: 0.5, regen: 500 },
-    normaal: { naam: 'Normaal', dpr: mobiel ? 1.5 : 1.5, fps: 60, r: [700, 1500, 2800, 380], schaduw: 2048, spiegel: false, leven: 1, regen: 1200 },
-    mooi: { naam: 'Mooi', dpr: 2, fps: 60, r: [1000, 2200, 4200, 650], schaduw: 4096, spiegel: true, leven: 1.3, regen: 2000 },
+    zuinig: { naam: 'Zuinig', dpr: mobiel ? 1.25 : 1, fps: 30, r: [450, 1000, 1900, 220], schaduw: 0, env: false, leven: 0.5, regen: 500 },
+    normaal: { naam: 'Normaal', dpr: mobiel ? 1.5 : 1.5, fps: 60, r: [700, 1500, 2800, 380], schaduw: 2048, env: false, leven: 1, regen: 1200 },
+    mooi: { naam: 'Mooi', dpr: 2, fps: 60, r: [1000, 2200, 4200, 650], schaduw: 4096, env: true, leven: 1.3, regen: 2000 },
   };
   const kernen = navigator.hardwareConcurrency || 4, geheugen = navigator.deviceMemory || 8;
   const automatisch = () => (mobiel ? (kernen < 8 || geheugen < 6 ? 'zuinig' : 'normaal') : kernen <= 2 ? 'zuinig' : 'normaal');
@@ -2859,13 +2859,23 @@ const AL = (() => {
   }
   zetSchaduw();
   // ---------------------------------------------------------------- de lucht: kleurverloop, zon, maan, sterren en wolken (in de shader, zonder extra vormen)
-  const LU = { boven: { value: new THREE.Color() }, rand: { value: new THREE.Color() }, zonDir: { value: new THREE.Vector3(0, 1, 0) }, zonKleur: { value: new THREE.Color() }, maanDir: { value: new THREE.Vector3(0, -1, 0) }, bewolking: { value: 0.3 }, wolkKleur: { value: new THREE.Color() }, wolkSchaduw: { value: new THREE.Color() }, tijd: { value: 0 }, nacht: { value: 0 } };
+  // wolken: één keer een naadloos ruispatroon (5 lagen) in een plaatje, zodat de lucht per pixel alleen twee keer hoeft op te zoeken
+  const wolkTex = (() => {
+    const N = 256, v = new Float32Array(N * N); let zaad = 12345; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
+    for (let o = 0, a = 0.5, f = 4; o < 5; o++, a *= 0.5, f *= 2) {
+      const r = new Float32Array(f * f); for (let i = 0; i < f * f; i++) r[i] = rnd();
+      for (let y = 0; y < N; y++) { const fy = y / N * f, iy = Math.floor(fy), ty = fy - iy, sy = ty * ty * (3 - 2 * ty), y0 = iy % f, y1 = (iy + 1) % f;
+        for (let x = 0; x < N; x++) { const fx = x / N * f, ix = Math.floor(fx), tx = fx - ix, sx = tx * tx * (3 - 2 * tx), x0 = ix % f, x1 = (ix + 1) % f;
+          v[y * N + x] += a * ((r[y0 * f + x0] * (1 - sx) + r[y0 * f + x1] * sx) * (1 - sy) + (r[y1 * f + x0] * (1 - sx) + r[y1 * f + x1] * sx) * sy); } }
+    }
+    const c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), img = g.createImageData(N, N);
+    for (let i = 0; i < N * N; i++) { const b = Math.round(Math.min(1, v[i]) * 255); img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = b; img.data[i * 4 + 3] = 255; }
+    g.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+  })();
+  const LU = { wolkTex: { value: wolkTex }, boven: { value: new THREE.Color() }, rand: { value: new THREE.Color() }, zonDir: { value: new THREE.Vector3(0, 1, 0) }, zonKleur: { value: new THREE.Color() }, maanDir: { value: new THREE.Vector3(0, -1, 0) }, bewolking: { value: 0.3 }, wolkKleur: { value: new THREE.Color() }, wolkSchaduw: { value: new THREE.Color() }, tijd: { value: 0 }, nacht: { value: 0 } };
   const luchtMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: LU,
     vertexShader: 'varying vec3 vD; void main() { vD = normalize(position); vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position = p.xyww; }',
-    fragmentShader: `uniform vec3 boven; uniform vec3 rand; uniform vec3 zonDir; uniform vec3 zonKleur; uniform vec3 maanDir; uniform float bewolking; uniform vec3 wolkKleur; uniform vec3 wolkSchaduw; uniform float tijd; uniform float nacht; varying vec3 vD;
-      float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-      float rs(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h2(i), h2(i + vec2(1, 0)), f.x), mix(h2(i + vec2(0, 1)), h2(i + vec2(1, 1)), f.x), f.y); }
-      float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * rs(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }
+    fragmentShader: `uniform vec3 boven; uniform vec3 rand; uniform vec3 zonDir; uniform vec3 zonKleur; uniform vec3 maanDir; uniform float bewolking; uniform vec3 wolkKleur; uniform vec3 wolkSchaduw; uniform float tijd; uniform float nacht; uniform sampler2D wolkTex; varying vec3 vD;
       void main() {
         vec3 d = normalize(vD); float h = clamp(d.y, 0.0, 1.0);
         vec3 c = mix(rand, boven, pow(h, 0.45)); if (d.y < 0.0) c = rand;
@@ -2875,7 +2885,7 @@ const AL = (() => {
         float m = max(dot(d, normalize(maanDir)), 0.0); float maan = smoothstep(0.99955, 0.99975, m) * nacht;
         if (d.y > 0.0) {
           vec2 p = d.xz / (d.y + 0.08) * 1.6 + vec2(tijd * 0.004, tijd * 0.0015);
-          float w = fbm(p) * 0.75 + fbm(p * 3.1 + 4.0) * 0.25;
+          float w = texture2D(wolkTex, p * 0.25).r * 0.75 + texture2D(wolkTex, p * 0.775 + 0.37).r * 0.25;
           float dekking = smoothstep(1.0 - bewolking * 0.95 - 0.05, 1.0 - bewolking * 0.95 + 0.28, w);
           float dik = smoothstep(0.0, 0.6, dekking);
           vec3 wk = mix(wolkSchaduw, wolkKleur, clamp(0.55 + 0.45 * dot(normalize(vec3(d.x, 0.3, d.z)), zd) - (w - 0.5) * 0.6, 0.0, 1.0));
@@ -2908,7 +2918,9 @@ const AL = (() => {
   const L = { boven: new THREE.Color(), rand: new THREE.Color(), zon: new THREE.Color(), mist: new THREE.Color(), h1: new THREE.Color(), h2: new THREE.Color(), wolk: new THREE.Color(), wolkS: new THREE.Color(), zonI: 1, hemiI: 0.6, bel: 1 };
   scene.fog = new THREE.Fog(new THREE.Color('#AFC8DE'), 300, 1700);
   function weerVanDag(dag) { const r = ((Math.sin(dag * 91.37) * 43758.5453) % 1 + 1) % 1; return r < 0.5 ? 'helder' : r < 0.72 ? 'bewolkt' : r < 0.86 ? 'mist' : 'regen'; }
-  let pmremT = 0, laatsteEnv = -99;
+  let pmremT = 0, laatsteEnv = -99, envTex = null;
+  function glans(tex) { scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.isMeshStandardMaterial && (m.metalness >= 0.3 || m.roughness <= 0.3)) { if (!m.envMap !== !tex) m.needsUpdate = true; m.envMap = tex; } }); }
+  const envOpnieuw = () => { laatsteEnv = -99; pmremT = 0; };
   const pmrem = new THREE.PMREMGenerator(renderer);
   function zetLicht(dt) {
     // zon: op naar het oosten (+x) rond 6:30, in het zuiden (+z) om 13:30, onder in het westen rond 20:30
@@ -2933,7 +2945,7 @@ const AL = (() => {
     // zon of maan als lichtbron
     const opZon = el > -3; const ld = opZon ? W.zonDir : LU.maanDir.value;
     zon.color.copy(opZon ? L.zon : KL('#7C8EC8')); zon.intensity = (opZon ? L.zonI * Math.min(1, (el + 3) / 6) : 0.28) * (0.35 + 0.65 * wn.licht);
-    hemi.color.copy(L.h1); hemi.groundColor.copy(L.h2); hemi.intensity = L.hemiI * (0.7 + 0.3 * wn.licht);
+    hemi.color.copy(L.h1); hemi.groundColor.copy(L.h2); hemi.intensity = L.hemiI * (0.7 + 0.3 * wn.licht) * (K.env ? 1 : 1.35);
     renderer.toneMappingExposure = L.bel;
     scene.fog.color.copy(L.mist); { const ver = K.r[2] * S / Math.max(1, wn.mist * (wn.mist > 1.5 ? 1.25 : 1)); scene.fog.far = ver; scene.fog.near = ver * (wn.mist > 1.5 ? 0.02 : 0.18); }
     AK.U.uNacht.value = W.nacht; AK.U.uRegen.value = wn.regen; AK.U.uWind.value = 0.7 + wn.wolk * 0.8 + wn.regen;
@@ -2947,7 +2959,9 @@ const AL = (() => {
       const ed = document.createElement('canvas'); ed.width = 256; ed.height = 128; const eg = ed.getContext('2d'), gr = eg.createLinearGradient(0, 0, 0, 128);
       const hx = c => '#' + c.clone().convertLinearToSRGB().getHexString(); gr.addColorStop(0, hx(L.boven)); gr.addColorStop(0.47, hx(L.rand)); gr.addColorStop(0.53, hx(L.mist)); gr.addColorStop(1, '#3A3632'); eg.fillStyle = gr; eg.fillRect(0, 0, 256, 128);
       const etex = new THREE.CanvasTexture(ed); etex.encoding = THREE.sRGBEncoding; etex.mapping = THREE.EquirectangularReflectionMapping;
-      const rt = pmrem.fromEquirectangular(etex); etex.dispose(); if (scene.environment) scene.environment.dispose(); scene.environment = rt.texture;
+      const rt = pmrem.fromEquirectangular(etex); etex.dispose(); const oud = envTex; envTex = rt.texture;
+      // de omgevingskaart kost per pixel veel rekenwerk: op Mooi voor alles, anders alleen voor wat glanst (goud, koper, glas, metaal)
+      scene.environment = K.env ? envTex : null; glans(K.env ? null : envTex); if (oud) oud.dispose();
       renderer.shadowMap.needsUpdate = true;
     }
   }
@@ -3684,7 +3698,7 @@ const AL = (() => {
   }
   function zetKwaliteit(k) {
     if (k === 'auto') { delete app.k; kwal = automatisch(); } else { app.k = k; kwal = k; } bewaarApp(); K = KWAL[kwal];
-    AK.R.r0 = K.r[0]; AK.R.r1 = K.r[1]; AK.R.r2 = K.r[2]; AK.R.bomen = K.r[3]; dpr = Math.min(window.devicePixelRatio || 1, K.dpr); renderer.setPixelRatio(dpr); maat(); zetSchaduw(); G.vuil = true;
+    AK.R.r0 = K.r[0]; AK.R.r1 = K.r[1]; AK.R.r2 = K.r[2]; AK.R.bomen = K.r[3]; dpr = Math.min(window.devicePixelRatio || 1, K.dpr); renderer.setPixelRatio(dpr); maat(); zetSchaduw(); envOpnieuw(); G.vuil = true;
   }
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-actie]'), r = e.target.closest('[data-race]'), w = e.target.closest('[data-weer]'), q = e.target.closest('[data-kwal]'), f = e.target.closest('[data-filter]');

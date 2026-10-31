@@ -2001,6 +2001,9 @@ function kaartBouwer(scope) {
       if (w0 === null || w1 - w0 < 8) continue;
       // bogen: het zijaanzicht (onder het dek, met boogopeningen tussen de pijlers), aan beide kanten van de brug, met het gewelf ertussen.
       // Stenen bruggen hebben bogen van zo'n 30 m, ijzeren bredere en plattere (de Pont Alexandre III één grote boog).
+      // de breedte van het dek boven het water (de uiteinden van een brug lopen vaak breder uit): daar komen de zijkanten van de bogen
+      const sm = (w0 + w1) / 2, ts = []; for (let i = 0; i < n; i++) { const j = (i + 1) % n, sa = sVan(ring[i * 2], ring[i * 2 + 1]), sb = sVan(ring[j * 2], ring[j * 2 + 1]); if ((sa - sm) * (sb - sm) > 0 || sa === sb) continue; const f = (sm - sa) / (sb - sa), ta = tVan(ring[i * 2], ring[i * 2 + 1]), tb = tVan(ring[j * 2], ring[j * 2 + 1]); ts.push(ta + (tb - ta) * f); }
+      const bt0 = ts.length >= 2 ? Math.min(...ts) : t0, bt1 = ts.length >= 2 ? Math.max(...ts) : t1;
       const [mx, mz] = wereld((w0 + w1) / 2, tm), wv = waterOp(mx, mz), pl = wv ? wv.peil : W.peil, spanTot = w1 - w0 + 8;
       const na = /alexandre iii/i.test(br.naam || '') ? 1 : Math.max(1, Math.round(spanTot / (br.ijzer ? 42 : 32))), span = spanTot / na, pijler = Math.min(br.ijzer ? 4 : 6, span * 0.16), yW = pl - 1.5;
       // de boog: begint net boven het water (op de pijler) en loopt als een halve ellips tot ruim een meter onder het dek; ijzer platter
@@ -2016,8 +2019,8 @@ function kaartBouwer(scope) {
       }
       profiel.push([w1 + 4, onder(w1 + 4)]);
       const pp = new Float64Array(profiel.length * 2); profiel.forEach(([s, y], i) => { pp[i * 2] = s; pp[i * 2 + 1] = y; }); const tri = earcut(pp, []);
-      for (const tt of [t0 + 0.6, t1 - 0.6]) { const basis = B.nv, nrm = tt > tm ? 1 : -1; for (const [s, y] of profiel) { const [x, z] = wereld(s, tt); B.v(x * S, yVan(y), z * S, N8(vx * nrm), 0, N8(vz * nrm), s, y - pl + M); } for (let i = 0; i < tri.length; i += 3) { if (nrm > 0) B.t(basis + tri[i], basis + tri[i + 1], basis + tri[i + 2]); else B.t(basis + tri[i], basis + tri[i + 2], basis + tri[i + 1]); } }
-      for (let i = 0; i < profiel.length - 1; i++) { const [sa, ya] = profiel[i], [sb, yb] = profiel[i + 1]; const ex = sb - sa, ey = yb - ya, el = Math.hypot(ex, ey) || 1, ns = ey / el, nyy = -ex / el; const [xa0, za0] = wereld(sa, t0 + 0.6), [xb0, zb0] = wereld(sb, t0 + 0.6), [xa1, za1] = wereld(sa, t1 - 0.6), [xb1, zb1] = wereld(sb, t1 - 0.6); const NX = N8(ux * ns), NY = N8(nyy), NZ = N8(uz * ns); const a = B.v(xa0 * S, yVan(ya), za0 * S, NX, NY, NZ, sa, 0.2 + M), b = B.v(xb0 * S, yVan(yb), zb0 * S, NX, NY, NZ, sb, 0.2 + M), c = B.v(xb1 * S, yVan(yb), zb1 * S, NX, NY, NZ, sb, 3 + M), d = B.v(xa1 * S, yVan(ya), za1 * S, NX, NY, NZ, sa, 3 + M); B.t(a, c, b); B.t(a, d, c); }
+      for (const tt of [bt0 + 0.6, bt1 - 0.6]) { const basis = B.nv, nrm = tt > (bt0 + bt1) / 2 ? 1 : -1; for (const [s, y] of profiel) { const [x, z] = wereld(s, tt); B.v(x * S, yVan(y), z * S, N8(vx * nrm), 0, N8(vz * nrm), s, y - pl + M); } for (let i = 0; i < tri.length; i += 3) { if (nrm > 0) B.t(basis + tri[i], basis + tri[i + 1], basis + tri[i + 2]); else B.t(basis + tri[i], basis + tri[i + 2], basis + tri[i + 1]); } }
+      for (let i = 0; i < profiel.length - 1; i++) { const [sa, ya] = profiel[i], [sb, yb] = profiel[i + 1]; const ex = sb - sa, ey = yb - ya, el = Math.hypot(ex, ey) || 1, ns = ey / el, nyy = -ex / el; const [xa0, za0] = wereld(sa, bt0 + 0.6), [xb0, zb0] = wereld(sb, bt0 + 0.6), [xa1, za1] = wereld(sa, bt1 - 0.6), [xb1, zb1] = wereld(sb, bt1 - 0.6); const NX = N8(ux * ns), NY = N8(nyy), NZ = N8(uz * ns); const a = B.v(xa0 * S, yVan(ya), za0 * S, NX, NY, NZ, sa, 0.2 + M), b = B.v(xb0 * S, yVan(yb), zb0 * S, NX, NY, NZ, sb, 0.2 + M), c = B.v(xb1 * S, yVan(yb), zb1 * S, NX, NY, NZ, sb, 3 + M), d = B.v(xa1 * S, yVan(ya), za1 * S, NX, NY, NZ, sa, 3 + M); B.t(a, c, b); B.t(a, d, c); }
     }
     return B.klaar();
   }
@@ -2177,7 +2180,7 @@ const AK = (() => {
         kl = mix(kl, steen * 0.62, step(H - 0.15, v));
         if (isBg > 0.5 && st < 1.5) { float luifel = step(0.78, fy) * step(fy, 0.9) * step(0.1, fx) * step(fx, 0.9) * step(0.55, akHash(vec2(col, seed * 31.0))); vec3 lk = seed > 0.66 ? vec3(0.50, 0.08, 0.10) : seed > 0.33 ? vec3(0.07, 0.26, 0.18) : vec3(0.10, 0.14, 0.32); kl = mix(kl, lk, luifel); }
         float h2 = akHash(vec2(col * 1.7 + seed * 50.0, fl * 3.3 + seed * 20.0));
-        akLicht = akGlas * step(0.45, h2) * uNacht * (winkel > 0.5 ? 1.6 : 1.0);
+        akLicht = akGlas * step(0.55, h2) * uNacht * (winkel > 0.5 ? 1.5 : 1.0) * (0.75 + 0.5 * fract(h2 * 7.3));
         akLichtKleur = mix(vec3(1.0, 0.70, 0.38), vec3(1.0, 0.86, 0.62), h2);
       }
       kl *= mix(0.72, 1.0, smoothstep(0.0, 6.0, v));
@@ -2208,7 +2211,7 @@ const AK = (() => {
     if (uRegen > 0.0) kl *= 1.0 - uRegen * 0.25;
     diffuseColor.rgb = lin(kl);`,
     'roughnessFactor = mix(roughnessFactor, 0.12, akGlas) * (1.0 - uRegen * 0.4);',
-    'totalEmissiveRadiance += akLicht * lin(akLichtKleur) * 2.2;', 'gebouw');
+    'totalEmissiveRadiance += akLicht * lin(akLichtKleur) * 1.5;', 'gebouw');
   const gebouwMat = maakGebouwMat(false), gebouwMatVer = maakGebouwMat(true);
   // de grond: één mesh per tegel; de laag (aL) schuift een tikje naar de camera, zodat paden boven gras en straten boven paden liggen
   const maakGrondMat = lambert => maakMateriaal({ vertexColors: true, roughness: 0.92, lambert }, 'attribute float aL; varying vec3 vWp;',

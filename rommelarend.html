@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' wss://rommellive.rubendm.workers.dev https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Rommelarend – Ruben's rommelhoekje</title>
-<meta name="description" content="Vlieg als arend over het echte Parijs, Amsterdam en Londen. Ontdek 85 bezienswaardigheden, land op daken en torens, verzamel gouden veren en vlieg wedstrijden door ringen.">
+<meta name="description" content="Vlieg als arend over het echte Parijs, Amsterdam, Londen en New York. Ontdek 115 bezienswaardigheden, land op daken en torens, verzamel gouden veren en vlieg wedstrijden door ringen.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2226%22%20fill%3D%22%238EC5EE%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22/%3E%3Cpath%20d%3D%22M14%2050h36%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M28%2050l4-30%204%2030z%22%20fill%3D%22%237A6248%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M27%2040h10M29%2030h6%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%221.8%22/%3E%3Cpath%20d%3D%22M10%2026q10-8%2018-2l4%203%204-3q8-6%2018%202q-8%200-12%206l-10%202-10-2q-4-6-12-6z%22%20fill%3D%22%235A3A22%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2227%22%20r%3D%223.2%22%20fill%3D%22%23F4F0E6%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M32%2029l1.6%202.4h-3.2z%22%20fill%3D%22%23E9B949%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Special+Elite&display=swap" rel="stylesheet">
@@ -1608,7 +1608,7 @@ function kaartBouwer(scope) {
     const vlag = L.u8(), m = L.vu(), pts = new Float64Array(m * 2), boven = new Float32Array(m), cum = new Float64Array(m); let lx = 0, lz = 0;
     for (let j = 0; j < m; j++) { lx += L.vs(); lz += L.vs(); pts[j * 2] = lx * Q; pts[j * 2 + 1] = lz * Q; if (j) cum[j] = cum[j - 1] + Math.hypot(pts[j * 2] - pts[j * 2 - 2], pts[j * 2 + 1] - pts[j * 2 - 1]); }
     for (let j = 0; j < m; j++) boven[j] = L.vu() / 10;
-    return { vlag, s: vlag & 7, zij: (vlag >> 3) & 1, brug: (vlag >> 4) & 1, stijl: (vlag >> 5) & 3, pts, boven, cum };
+    return { vlag, s: vlag & 7, zij: (vlag >> 3) & 1, brug: (vlag >> 4) & 1, stijl: (vlag >> 5) & 7, pts, boven, cum };
   }
   // welke sporen in welke tegel liggen (per stukje, met een marge)
   function spoorIndex() {
@@ -1715,6 +1715,8 @@ function kaartBouwer(scope) {
   }
   // een brug: de lange as, de uiteinden, en een dek dat van de ene kade naar de andere loopt (de kades liggen niet altijd even hoog)
   const IJZER = /passerelle|pont des arts|alexandre iii|bir-hakeim|austerlitz|arcole|solf[ée]rino|debilly|senghor|simone de beauvoir|morland|viaduc|pont-m[ée]tro|mirabeau|pont rouelle|westminster bridge|lambeth bridge|vauxhall bridge|chelsea bridge|albert bridge|battersea|blackfriars|southwark bridge|hungerford|golden jubilee|millennium|cannon street|grosvenor|wandsworth bridge|putney|hammersmith/i;
+  // de grote bruggen over de East River (New York): een dek ver boven het water (vrij, in m), met een helling (g) vanaf de uiteinden. Torens, kabels en vakwerk tekenen de modellen.
+  const HOOG = [[/^brooklyn bridge$/i, { vrij: 41, g: 0.16, bocht: 3.5 }], [/^manhattan bridge$/i, { vrij: 41, g: 0.08, bocht: 3 }], [/^williamsburg bridge$/i, { vrij: 41, g: 0.08, bocht: 3 }], [/queensboro bridge$/i, { vrij: 40, g: 0.11, bocht: 0 }]];
   function brugAs(b) {
     let ring = b.vlakken[0].rings[0]; for (const v of b.vlakken) if (Math.abs(opp(v.rings[0])) > Math.abs(opp(ring))) ring = v.rings[0];
     const n = ring.length / 2; let cx = 0, cz = 0; for (let i = 0; i < n; i++) { cx += ring[i * 2] / n; cz += ring[i * 2 + 1] / n; }
@@ -1724,8 +1726,16 @@ function kaartBouwer(scope) {
     const eind = (vanaf, stap) => { for (let k = 0; k < 40; k++) { const s = vanaf + stap * (2 + k * 2); if ((stap > 0 && s > s1) || (stap < 0 && s < s0)) break; const x = cx + ux * s, z = cz + uz * s; if (!isWater(x, z)) return hoogteM(x, z); } return null; };
     let hA = eind(s0, 1), hB = eind(s1, -1); const minDek = W.peil + (W.brugVrij || 6.5);
     if (hA === null && hB === null) hA = hB = Math.max(b.dek, minDek); else if (hA === null) hA = hB; else if (hB === null) hB = hA;
-    Object.assign(b, { cx, cz, ux, uz, s0, s1, hA, hB, ijzer: IJZER.test(b.naam || '') });
+    const hoog = (HOOG.find(([r]) => r.test(b.naam || '')) || [])[1];
+    Object.assign(b, { cx, cz, ux, uz, s0, s1, hA, hB, ijzer: IJZER.test(b.naam || ''), hoog });
     b.dekS = s => { const tt = Math.max(0, Math.min(1, (s - s0) / ((s1 - s0) || 1))); return Math.max(hA + (hB - hA) * tt, minDek); };
+    if (hoog) {
+      // het water langs de as: daar ligt het dek het hoogst (in het midden van de grote overspanning nog iets hoger)
+      let w0 = null, w1 = null; for (let s = s0; s <= s1; s += 2) if (isWater(cx + ux * s, cz + uz * s)) { if (w0 === null) w0 = s; w1 = s; }
+      const wm = w0 === null ? (s0 + s1) / 2 : (w0 + w1) / 2, wh = w0 === null ? 1 : Math.max(20, (w1 - w0) / 2), top = W.peil + hoog.vrij;
+      Object.assign(b, { w0, w1 });
+      b.dekS = s => { const q = Math.min(1, ((s - wm) / wh) * ((s - wm) / wh)); return Math.max(minDek, Math.min(top - hoog.bocht * q, hA + hoog.g * (s - s0), hB + hoog.g * (s1 - s))); };
+    }
     b.dekOp = (x, z) => b.dekS((x - cx) * ux + (z - cz) * uz);
     b.dek = (hA + hB) / 2;
   }
@@ -1944,6 +1954,21 @@ function kaartBouwer(scope) {
     const t = P.map(([x, z]) => B.v(x * S, yB, z * S, 0, 127, 0, x, z, 1, 1, soort, lv || 1, seed, 0));
     const s0 = (P[1][0] - P[0][0]) * (P[2][1] - P[0][1]) - (P[1][1] - P[0][1]) * (P[2][0] - P[0][0]);
     if (s0 > 0) { B.t(t[0], t[2], t[1]); B.t(t[0], t[3], t[2]); } else { B.t(t[0], t[1], t[2]); B.t(t[0], t[2], t[3]); }
+  }
+  // een houten watertank op een New Yorks dak: duigen met stalen banden (35), een kegeldak, een platform en vier stalen poten (36)
+  const fract = x => x - Math.floor(x);
+  function watertank(B, cx, cz, y0, r, h, seed, lv) {
+    const S = SCHAAL, n = 10, yP = y0 + 3.0, yA = (yP - NUL) * S, yB = (yP + h - NUL) * S, yK = (yP + h + r * 0.7 - NUL) * S, omt = 2 * Math.PI * r;
+    for (const [dx, dz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) blok(B, cx + dx * r * 0.62, cz + dz * r * 0.62, 1, 0, 0.24, 0.24, y0 - 0.1, 3.1, 36, seed, lv);
+    blok(B, cx, cz, 1, 0, r * 1.55, r * 1.55, yP - 0.22, 0.22, 36, seed, lv);
+    const top = B.v(cx * S, yK, cz * S, 0, 127, 0, 0, 0, 1, 1, 36, lv, seed, 0);
+    for (let i = 0; i < n; i++) {
+      const a0 = i / n * 2 * Math.PI, a1 = (i + 1) / n * 2 * Math.PI, am = (a0 + a1) / 2, x0 = cx + Math.cos(a0) * r, z0 = cz + Math.sin(a0) * r, x1 = cx + Math.cos(a1) * r, z1 = cz + Math.sin(a1) * r, NX = N8(Math.cos(am)), NZ = N8(Math.sin(am)), u0 = omt * i / n, u1 = omt * (i + 1) / n;
+      const a = B.v(x0 * S, yA, z0 * S, NX, 0, NZ, u0, 0, omt, h, 35, lv, seed, 0), b = B.v(x1 * S, yA, z1 * S, NX, 0, NZ, u1, 0, omt, h, 35, lv, seed, 0), c = B.v(x1 * S, yB, z1 * S, NX, 0, NZ, u1, h, omt, h, 35, lv, seed, 0), d = B.v(x0 * S, yB, z0 * S, NX, 0, NZ, u0, h, omt, h, 35, lv, seed, 0);
+      B.t(a, c, b); B.t(a, d, c);
+      const e0 = B.v(x0 * S * 1 + Math.cos(a0) * 0.15 * S, yB, z0 * S + Math.sin(a0) * 0.15 * S, N8(Math.cos(am) * 0.55), 104, N8(Math.sin(am) * 0.55), 0, 0, 1, 1, 36, lv, seed, 0), e1 = B.v(x1 * S + Math.cos(a1) * 0.15 * S, yB, z1 * S + Math.sin(a1) * 0.15 * S, N8(Math.cos(am) * 0.55), 104, N8(Math.sin(am) * 0.55), 0, 0, 1, 1, 36, lv, seed, 0);
+      B.t(e0, top, e1);
+    }
   }
   // de bovenkant van een gebouw (in meters) op een plek: voor botsen en landen. Mansarde: tot de top, behalve aan de rand.
   // woonboten en péniches (dak 7) liggen op het water: het peil van het water eronder (of ernaast)
@@ -2196,6 +2221,11 @@ function kaartBouwer(scope) {
     }
     else {
       plat(B, g.rings, yT, 23, lv, seed);
+      // New York: op veel tenements en pre-war flats staat een houten watertank (alleen dichtbij)
+      if (detail && W.ny && (st === 11 || st === 12) && lv >= 5 && lv <= 24 && fract(g.seed * 13.7) < 0.5) {
+        const r = ring0; let cx = 0, cz = 0; for (let i = 0; i < n0; i++) { cx += r[i * 2] / n0; cz += r[i * 2 + 1] / n0; }
+        if (Math.abs(opp(r)) > 180 && inRing(r, cx, cz)) { const rt = 1.8 + fract(g.seed * 5.3) * 0.8; watertank(B, cx + (fract(g.seed * 3.1) - 0.5) * 4, cz + (fract(g.seed * 7.9) - 0.5) * 4, yT / S + NUL, rt, 3.6 + rt * 0.8, seed, lv); }
+      }
       // een lage rand om een plat dak (extra 4: in de gevelshader geen topgevel)
       if (detail && dik > 3) { const r = ring0, d = new Float64Array(n0).fill(0.35), r2 = inspring(r, d), y2 = yT + 0.7 * S; for (let i = 0; i < n0; i++) { const j = (i + 1) % n0, L = Math.hypot(r[j * 2] - r[i * 2], r[j * 2 + 1] - r[i * 2 + 1]); if (L < 0.5) continue; const nx = N8(-(r2[i * 2] - r[i * 2])), nz = N8(-(r2[i * 2 + 1] - r[i * 2 + 1])); void nx; void nz; const ex = (r[j * 2 + 1] - r[i * 2 + 1]) / L, ez = -(r[j * 2] - r[i * 2]) / L, a = B.v(r[i * 2] * S, yT, r[i * 2 + 1] * S, N8(ex), 0, N8(ez), 0, H, L, H, st, lv, seed, 4), b = B.v(r[j * 2] * S, yT, r[j * 2 + 1] * S, N8(ex), 0, N8(ez), L, H, L, H, st, lv, seed, 4), c = B.v(r[j * 2] * S, y2, r[j * 2 + 1] * S, N8(ex), 0, N8(ez), L, H + 0.7, L, H, st, lv, seed, 4), e = B.v(r[i * 2] * S, y2, r[i * 2 + 1] * S, N8(ex), 0, N8(ez), 0, H + 0.7, L, H, st, lv, seed, 4); B.t(a, c, b); B.t(a, e, c); } }
     }
@@ -2342,7 +2372,7 @@ function kaartBouwer(scope) {
   function maakBruggen() {
     const S = SCHAAL, B = kadeBak();
     for (const br of W.bruggen) for (const v of br.vlakken) {
-      const ring = v.rings[0], n = ring.length / 2, cx = br.cx, cz = br.cz, ux = br.ux, uz = br.uz, vx = -uz, vz = ux, M = br.ijzer ? 1000 : 0, dikte = br.ijzer ? 0.9 : 1.4;
+      const ring = v.rings[0], n = ring.length / 2, cx = br.cx, cz = br.cz, ux = br.ux, uz = br.uz, vx = -uz, vz = ux, M = br.ijzer || br.hoog ? 1000 : 0, dikte = br.hoog ? 2.6 : br.ijzer ? 0.9 : 1.4;
       const sVan = (x, z) => (x - cx) * ux + (z - cz) * uz, tVan = (x, z) => (x - cx) * vx + (z - cz) * vz, dek = s => br.dekS(s);
       let s0 = 1e9, s1 = -1e9, t0 = 1e9, t1 = -1e9; for (let i = 0; i < n; i++) { const s = sVan(ring[i * 2], ring[i * 2 + 1]), tt = tVan(ring[i * 2], ring[i * 2 + 1]); s0 = Math.min(s0, s); s1 = Math.max(s1, s); t0 = Math.min(t0, tt); t1 = Math.max(t1, tt); }
       const tm = (t0 + t1) / 2, wereld = (s, tt) => [cx + ux * s + vx * tt, cz + uz * s + vz * tt];
@@ -2363,6 +2393,20 @@ function kaartBouwer(scope) {
         const lang = Math.abs(((bx - ax) * ux + (bz - az) * uz) / L) > 0.6, ya = dek(sVan(ax, az)), yb = dek(sVan(bx, bz)), boven = lang ? (br.ijzer ? 1.0 : 1.15) : 0.3;
         const NX = N8(nx), NZ = N8(nz), a0 = B.v(ax * S, yVan(ya - dikte), az * S, NX, 0, NZ, 0, M), b0 = B.v(bx * S, yVan(yb - dikte), bz * S, NX, 0, NZ, L, M), b1 = B.v(bx * S, yVan(yb + boven), bz * S, NX, 0, NZ, L, dikte + boven + M), a1 = B.v(ax * S, yVan(ya + boven), az * S, NX, 0, NZ, 0, dikte + boven + M);
         if (pos) { B.t(a0, b1, b0); B.t(a0, a1, b1); } else { B.t(a0, b0, b1); B.t(a0, b1, a1); }
+      }
+      if (br.hoog) {
+        // een hoge brug: op het land pijlers onder het dek (om de 36 m, van steen bij de Brooklyn Bridge, anders van staal), boven het water niets (de torens zijn een model)
+        const steen = /brooklyn/i.test(br.naam || ''), MM = steen ? 0 : 1000, bw = steen ? 3.2 : 0.9;
+        for (let s = s0 + 18; s < s1 - 10; s += 36) {
+          const [x, z] = wereld(s, tm); if (isWater(x, z)) continue; const yo = dek(s) - dikte, yg = hoogteM(x, z) - 0.5; if (yo - yg < 3) continue;
+          for (const tt of steen ? [tm] : [t0 + (t1 - t0) * 0.15, t1 - (t1 - t0) * 0.15]) {
+            const hw = steen ? (t1 - t0) / 2 - 0.5 : bw, hl = steen ? 4 : bw, [px, pz] = wereld(s, tt), hoek = [[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]].map(([a, b2]) => [px + ux * a + vx * b2, pz + uz * a + vz * b2]);
+            for (let k = 0; k < 4; k++) { const [ax, az] = hoek[k], [bx, bz] = hoek[(k + 1) % 4], L = Math.hypot(bx - ax, bz - az), nx = (bz - az) / L, nz = -(bx - ax) / L, NX = N8(nx), NZ = N8(nz);
+              const a0 = B.v(ax * S, yVan(yg), az * S, NX, 0, NZ, 0, MM + 0.2), b0 = B.v(bx * S, yVan(yg), bz * S, NX, 0, NZ, L, MM + 0.2), b1 = B.v(bx * S, yVan(yo), bz * S, NX, 0, NZ, L, MM + yo - yg), a1 = B.v(ax * S, yVan(yo), az * S, NX, 0, NZ, 0, MM + yo - yg);
+              B.t(a0, b1, b0); B.t(a0, a1, b1); }
+          }
+        }
+        continue;
       }
       if (w0 === null || w1 - w0 < 8) continue;
       // bogen: het zijaanzicht (onder het dek, met boogopeningen tussen de pijlers), aan beide kanten van de brug, met het gewelf ertussen.
@@ -2478,7 +2522,7 @@ function kaartBouwer(scope) {
             continue;
           }
           // een viaduct: het dek naast het grind, en de muren met bogen (baksteen, natuursteen) of een dek op pijlers (beton, ijzer)
-          const hd = 2.4, yt0 = ya - 0.03, yt1 = yb - 0.03, va = A.voet, vb = Bh.voet, st = l.stijl, kMuur = st === 0 ? 3 : st === 3 ? 6 : st === 2 ? 5 : 4;
+          const hd = 2.4, yt0 = ya - 0.03, yt1 = yb - 0.03, va = A.voet, vb = Bh.voet, st = l.stijl, kMuur = st === 0 ? 3 : st === 3 ? 6 : st === 2 || st === 4 ? 5 : 4;
           strook(hd, yt0, yt1, hw, yt0, yt1, 0, 1, 0, 0, 0, 0, 0, 7, 0); strook(-hw, yt0, yt1, -hd, yt0, yt1, 0, 1, 0, 0, 0, 0, 0, 7, 0);
           const mx2 = (P0x + P1x) / 2, mz2 = (P0z + P1z) / 2, links = !buur(mx2 + nX * 4.4, mz2 + nZ * 4.4, li), rechts = !buur(mx2 - nX * 4.4, mz2 - nZ * 4.4, li);
           if (st === 0 || st === 3) {
@@ -2496,16 +2540,17 @@ function kaartBouwer(scope) {
             }
           } else {
             // een dek op pijlers: de zijkanten en de onderkant van het dek, een hek, en pijlers
-            const dik = st === 2 ? 1.25 : 1.0;
+            const dik = st === 4 ? 1.7 : st === 2 ? 1.25 : 1.0;   // de el van New York: hoge stalen liggers
             if (links) strook(hd, yt0 - dik, yt1 - dik, hd, yt0 + 0.12, yt1 + 0.12, nX, 0, nZ, 0, 0, dik, dik, kMuur, 0);
             if (rechts) strook(-hd, yt0 + 0.12, yt1 + 0.12, -hd, yt0 - dik, yt1 - dik, -nX, 0, -nZ, dik, dik, 0, 0, kMuur, 0);
             strook(-hd, yt0 - dik, yt1 - dik, hd, yt0 - dik, yt1 - dik, 0, -1, 0, 0, 0, 0, 0, 7, 0);
             if (niveau < 2) for (const c of [hd - 0.08, -hd + 0.08]) if (c > 0 ? links : rechts) strook(c, yt0 + 0.12, yt1 + 0.12, c, yt0 + 1.05, yt1 + 1.05, c > 0 ? nX : -nX, 0, c > 0 ? nZ : -nZ, 0, 0, 1, 1, 9, 0);
-            const af = st === 2 ? 18 : 24, ka = Math.floor(u0 / af), kb = Math.floor(u1 / af);
+            const af = st === 4 ? 15 : st === 2 ? 18 : 24, ka = Math.floor(u0 / af), kb = Math.floor(u1 / af);
             for (let kk = ka + 1; kk <= kb; kk++) {
               const t = (kk * af - u0) / Math.max(1e-6, u1 - u0), cx = P0x + (P1x - P0x) * t, cz = P0z + (P1z - P0z) * t, yv = va + (vb - va) * t, yo = yt0 + (yt1 - yt0) * t - dik;
               if (yo - yv < 0.5) continue;
-              if (st === 2) for (const c of [1.6, -1.6]) blok(cx + nX * c, cz + nZ * c, ux, uz, 1.1, 1.1, yv, yo, 6);
+              if (st === 4) { for (const c of [2.0, -2.0]) blok(cx + nX * c, cz + nZ * c, ux, uz, 0.32, 0.32, yv, yo, 5); blok(cx, cz, ux, uz, 0.3, 2.35, yo - 0.7, yo, 5); }   // stalen kolommen met een dwarsligger
+              else if (st === 2) for (const c of [1.6, -1.6]) blok(cx + nX * c, cz + nZ * c, ux, uz, 1.1, 1.1, yv, yo, 6);
               else blok(cx, cz, ux, uz, 1.4, 2.2, yv, yo, 4);
             }
           }
@@ -2516,7 +2561,7 @@ function kaartBouwer(scope) {
   }
   // ---------------------------------------------------------------- berichten
   function verwerk(m) {
-    if (m.soort === 'kop') { leesKop(m.data); return { soort: 'kop' }; }
+    if (m.soort === 'kop') { leesKop(m.data); W.ny = !!m.ny; return { soort: 'kop' }; }
     if (m.soort === 'globaal') { leesGlobaal(m.data); const g = maakWater(); return { soort: 'globaal', delen: g }; }
     if (m.soort === 'tegel') { leesTegel(m.id, m.data); return { soort: 'tegel', id: m.id }; }
     if (m.soort === 'bouw') {
@@ -2577,7 +2622,7 @@ const AK = (() => {
     setTimeout(() => { try { antwoord(KBW.inst.verwerk(m)); } catch (e) { console.error(e); } }, 0);
   }
   // ---------------------------------------------------------------- materialen
-  const U = { uNacht: { value: 0 }, uTijd: { value: 0 }, uRegen: { value: 0 }, uWind: { value: 1 }, uKerk: { value: new THREE.Vector3(0.80, 0.76, 0.66) }, uKap: { value: new THREE.Vector3(0.74, 0.66, 0.42) } };   // uKap: de kleur van glazen overkappingen (Parijs geel, Londen grijsblauw)   // uKerk: de steen van gewone kerken (in Amsterdam baksteen)
+  const U = { uNacht: { value: 0 }, uTijd: { value: 0 }, uRegen: { value: 0 }, uWind: { value: 1 }, uKerk: { value: new THREE.Vector3(0.80, 0.76, 0.66) }, uKap: { value: new THREE.Vector3(0.74, 0.66, 0.42) }, uNY: { value: 0 } };   // uNY: New York (de gevelstijlen 10 tot en met 15 worden dan New Yorks)   // uKap: de kleur van glazen overkappingen (Parijs geel, Londen grijsblauw)   // uKerk: de steen van gewone kerken (in Amsterdam baksteen)
   const GLSL = `
     float akHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float akRuis(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(akHash(i), akHash(i + vec2(1.0, 0.0)), f.x), mix(akHash(i + vec2(0.0, 1.0)), akHash(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -2590,7 +2635,7 @@ const AK = (() => {
     m.onBeforeCompile = sh => {
       Object.assign(sh.uniforms, U);
       sh.vertexShader = 'uniform float uNacht; uniform float uTijd; uniform float uWind;\n' + vertDecl + '\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + (vertBegin || '')).replace('#include <project_vertex>', '#include <project_vertex>\n' + vertMain);
-      sh.fragmentShader = 'uniform float uNacht; uniform float uTijd; uniform float uRegen; uniform vec3 uKerk; uniform vec3 uKap;\n' + GLSL + fragDecl + '\n' + sh.fragmentShader
+      sh.fragmentShader = 'uniform float uNacht; uniform float uTijd; uniform float uRegen; uniform vec3 uKerk; uniform vec3 uKap; uniform float uNY;\n' + GLSL + fragDecl + '\n' + sh.fragmentShader
         .replace('void main() {', 'void main() {\n float akGlas = 0.0; float akLicht = 0.0; vec3 akLichtKleur = vec3(1.0, 0.75, 0.45);')
         .replace('#include <color_fragment>', '#include <color_fragment>\n' + fragKleur)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (fragRuw || ''))
@@ -2631,7 +2676,102 @@ const AK = (() => {
       bk9 *= 0.93 + 0.1 * akRuis(vec2(u * 3.1, v * 6.3) + seed * 11.0) * (1.0 - verf9);
       if (blind > 0.5) {
         vec3 bkL = st > 13.5 ? vec3(0.52, 0.42, 0.32) : st > 11.5 ? vec3(0.56, 0.24, 0.17) : vec3(0.63, 0.55, 0.42);   // Londen: muren tegen de buren
+        if (uNY > 0.5 && st > 9.5) bkL = st > 14.5 ? vec3(0.70, 0.61, 0.48) : st > 11.5 && st < 12.5 ? vec3(0.62, 0.50, 0.38) : vec3(0.50, 0.29, 0.22);   // New York: gewone baksteen
         kl = st > 9.5 ? bkL * (0.86 + 0.08 * akRuis(vec2(u * 0.4, v * 0.3) + seed * 5.0)) : st > 8.5 ? bk9 * 0.92 : mix(vec3(0.78, 0.74, 0.68), vec3(0.70, 0.67, 0.62), akRuis(vec2(u * 0.3, v * 0.2) + seed * 9.0)) * (0.95 + 0.05 * step(0.5, fract(u / 2.3)));
+      } else if (st > 9.5 && uNY > 0.5) {
+        // New York: 10 brownstone (rijtjeshuizen van bruine zandsteen met een stoep), 11 tenement (baksteen, winkels en zwarte brandtrappen),
+        // 12 pre-war appartementen (lichte baksteen op een stenen voet), 13 gietijzer (SoHo: grote ramen tussen zuiltjes), 14 eenvoudige baksteen,
+        // 15 art deco (stenen pijlers met raamstroken). Bovenaan een kroonlijst; ver weg vervaagt alles tot een gemiddelde kleur.
+        float fw = akFw, isB = 1.0 - step(10.5, st), isT = step(10.5, st) * (1.0 - step(11.5, st)), isP = step(11.5, st) * (1.0 - step(12.5, st));
+        float isG = step(12.5, st) * (1.0 - step(13.5, st)), isK = step(13.5, st) * (1.0 - step(14.5, st)), isD = step(14.5, st);
+        float pand = isB > 0.5 ? 6.1 : (isT + isK) > 0.5 ? 7.6 : 0.0;
+        float nP = (pand > 0.0 && lv < 7.5) ? max(1.0, floor(len / pand + 0.5)) : 1.0;
+        float pw = len / nP, pi = min(nP - 1.0, floor(u / pw)), pu = u - pi * pw;
+        float ps = nP > 1.5 ? fract(seed * 7.77 + pi * 0.6180339 + 0.31) : seed;
+        vec3 bk = isB > 0.5 ? (ps < 0.72 ? mix(vec3(0.33, 0.23, 0.17), vec3(0.45, 0.31, 0.22), fract(ps * 3.1)) : ps < 0.88 ? vec3(0.52, 0.25, 0.18) : vec3(0.62, 0.55, 0.45))
+          : isT > 0.5 ? (ps < 0.34 ? vec3(0.55, 0.25, 0.17) : ps < 0.55 ? vec3(0.44, 0.25, 0.18) : ps < 0.70 ? vec3(0.68, 0.56, 0.40) : ps < 0.84 ? vec3(0.40, 0.17, 0.13) : ps < 0.93 ? vec3(0.78, 0.74, 0.65) : vec3(0.52, 0.52, 0.50))
+          : isP > 0.5 ? (ps < 0.40 ? vec3(0.74, 0.63, 0.48) : ps < 0.65 ? vec3(0.64, 0.51, 0.38) : ps < 0.85 ? vec3(0.55, 0.29, 0.21) : vec3(0.80, 0.74, 0.62))
+          : isG > 0.5 ? (ps < 0.40 ? vec3(0.86, 0.84, 0.78) : ps < 0.60 ? vec3(0.62, 0.62, 0.60) : ps < 0.80 ? vec3(0.84, 0.77, 0.62) : vec3(0.27, 0.32, 0.29))
+          : isK > 0.5 ? (ps < 0.45 ? vec3(0.56, 0.30, 0.22) : ps < 0.75 ? vec3(0.50, 0.41, 0.33) : vec3(0.62, 0.53, 0.42))
+          : (ps < 0.45 ? vec3(0.80, 0.76, 0.66) : ps < 0.75 ? vec3(0.72, 0.62, 0.48) : vec3(0.66, 0.64, 0.60));
+        float baksteen = isT + isP + isK + isD * step(0.45, ps) * step(ps, 0.75);
+        float laagB = floor(v / 0.075), voeg = max(step(fract(v / 0.075), 0.15), step(fract(u / 0.215 + 0.5 * mod(laagB, 2.0)), 0.07)) * baksteen * (1.0 - smoothstep(0.008, 0.022, fw));
+        bk *= 0.93 + 0.1 * akRuis(vec2(u * 2.7, v * 5.9) + ps * 13.0);
+        kl = mix(bk, vec3(0.72, 0.69, 0.63), voeg * 0.4);
+        vec3 wit = vec3(0.90, 0.89, 0.85), steenL = vec3(0.80, 0.77, 0.68), glasA = vec3(0.06, 0.08, 0.10), glasB = vec3(0.20, 0.24, 0.29), zwart = vec3(0.05, 0.05, 0.06);
+        float dun = 1.0 - smoothstep(0.015, 0.04, fw);
+        if (v < H + 0.01) {
+          float bgH = lv > 1.5 ? (isB > 0.5 ? min(3.0, H * 0.3) : isT > 0.5 ? 4.0 : isK > 0.5 ? 3.6 : isD > 0.5 ? 6.0 : 4.8) : H;
+          float fh = lv > 1.5 ? max(2.6, (H - bgH) / (lv - 1.0)) : H;
+          float fl = v < bgH ? 0.0 : 1.0 + floor((v - bgH) / fh), y = v < bgH ? v : v - bgH - (fl - 1.0) * fh;
+          float onder = 1.0 - step(0.5, fl), kroonH = isD > 0.5 ? 1.4 : isP > 0.5 ? 1.0 : 0.9, kroon = step(H - kroonH, v);
+          float nW = isB > 0.5 ? 3.0 : (isT + isK) > 0.5 ? max(2.0, floor(pw / 2.4 + 0.3)) : max(2.0, floor(pw / (isG > 0.5 ? 2.8 : isD > 0.5 ? 1.8 : 2.0) + 0.3));
+          float cw = pw / nW, col = min(nW - 1.0, floor(pu / cw)), dx = pu - (col + 0.5) * cw, adx = abs(dx);
+          float ww = isG > 0.5 ? cw * 0.4 : isD > 0.5 ? cw * 0.33 : min(cw * 0.3, isP > 0.5 ? 0.62 : 0.55);
+          float y0 = onder > 0.5 ? (isB > 0.5 ? 0.9 : 0.4) : (isG > 0.5 ? 0.5 : isD > 0.5 ? 0.25 : 0.85);
+          float y1 = onder > 0.5 ? bgH - (isB > 0.5 ? 0.6 : 0.9) : fh - (isG > 0.5 ? 0.55 : isD > 0.5 ? 0.25 : 0.55);
+          // de deur: bij een brownstone de stoep (een trap naar de deur op de eerste verdieping), anders een deur in de begane grond
+          float deurKol = 1.0 - step(0.5, abs(col - (ps < 0.5 ? 0.0 : nW - 1.0)));
+          float stoep = isB * deurKol * onder * step(adx, cw * 0.46);
+          float pDeur = isB * deurKol * (1.0 - step(1.5, fl)) * (1.0 - onder) * step(adx, 0.6) * step(y, 2.6);
+          float winkel = onder * (isT + isG + isK * step(0.5, ps)) * (1.0 - (isT + isK) * deurKol * step(nW, 2.5) * 0.0);
+          float voet = onder * (isP + isD + isK * (1.0 - step(0.5, ps)));
+          float raamOk = (1.0 - kroon) * (1.0 - stoep) * (1.0 - pDeur) * (1.0 - winkel);
+          float inR = raamOk * step(adx, ww) * step(y0, y) * step(y, y1), k = isG > 0.5 ? 0.09 : 0.07;
+          float glas = inR * step(adx, ww - k) * step(y0 + k, y) * step(y, y1 - k);
+          float midY = (y0 + y1) * 0.5;
+          float roede = glas * clamp(step(abs(y - midY), 0.035) + isG * step(abs(abs(dx) - (ww - k) * 0.34), 0.03) * dun, 0.0, 1.0);
+          // boven elk raam een stenen latei (bij brownstones een zware kap), eronder een dorpel
+          float latei = raamOk * (1.0 - isD) * (1.0 - isG) * step(adx, ww + (isB > 0.5 ? 0.16 : 0.08)) * step(y1, y) * step(y, y1 + (isB > 0.5 ? 0.34 : 0.22));
+          float dorpel = raamOk * (1.0 - isD) * step(adx, ww + 0.07) * step(y0 - 0.09, y) * step(y, y0);
+          // art deco: lichte pijlers tussen donkere stroken (de borstweringen tussen de ramen); gietijzer: zuiltjes en een lijst per verdieping
+          float strook = isD * (1.0 - onder) * (1.0 - kroon) * step(adx, ww) * (1.0 - glas);
+          float pijler = isD * (1.0 - onder) * (1.0 - kroon) * step(ww + 0.12, adx);
+          float zuil = isG * (1.0 - kroon) * step(ww + 0.06, adx) * step(adx, cw * 0.5) * (step(cw * 0.5 - 0.22, adx) + step(adx, ww + 0.24));
+          float lijstG = isG * (1.0 - onder) * (1.0 - kroon) * step(y, 0.42);
+          // de begane grond: winkels (grote ruiten, een luifel en een naambord), een stenen voet, of het souterrain met de stoep
+          float etalage = winkel * step(0.25, fract(pu / max(2.0, pw * 0.5) + 0.06)) * step(fract(pu / max(2.0, pw * 0.5) + 0.06), 0.94) * step(0.35, y) * step(y, bgH - 1.1);
+          float luifel = winkel * step(bgH - 1.05, y) * step(y, bgH - 0.45) * step(0.3, ps * 10.0 - floor(ps * 10.0) + 0.3);
+          float bord = winkel * step(bgH - 0.45, y);
+          vec3 luifelK = fract(ps * 5.3) < 0.3 ? vec3(0.45, 0.07, 0.07) : fract(ps * 5.3) < 0.55 ? vec3(0.06, 0.24, 0.14) : fract(ps * 5.3) < 0.75 ? vec3(0.07, 0.12, 0.30) : vec3(0.10, 0.10, 0.10);
+          float voetLijn = voet * step(fract(v / 0.6), 0.05);
+          float lobby = voet * deurKol * step(adx, 1.0) * step(0.1, y) * step(y, min(3.2, bgH - 0.6));
+          float trap = stoep * step(fract(y / 0.2), 0.5) * 0.3, trapRand = stoep * step(cw * 0.4, adx);
+          // de brandtrap: zwarte bordessen met een hekje op elke verdieping, en een schuine trap ertussen (bij tenements, en soms bij gewone baksteen)
+          float bt = (isT + isK * step(0.6, ps)) * (1.0 - onder) * (1.0 - kroon) * step(abs(pu - pw * 0.5), pw * 0.34);
+          float lx = clamp((pu - pw * 0.16) / (pw * 0.68), 0.0, 1.0), tl = mod(fl, 2.0) < 0.5 ? lx : 1.0 - lx;
+          float brand = bt * clamp(step(y, 0.12) + step(abs(y - 1.0), 0.04) + step(abs(fract(pu / 0.16) - 0.5) * 0.16, 0.012) * step(y, 1.0) * dun + step(abs(y - tl * fh), 0.09) * step(0.12, y) + step(abs(pu - pw * 0.5) , pw * 0.34) * step(pw * 0.335, abs(pu - pw * 0.5)) * step(y, 1.0), 0.0, 1.0);
+          // bovenaan: een kroonlijst met consoles (tenement, brownstone, gietijzer), of een stenen borstwering
+          float cons = step(fract(pu / 0.9 + 0.5), 0.16) * step(v, H - 0.25);
+          vec3 kroonK = isT > 0.5 ? (fract(ps * 3.3) < 0.4 ? vec3(0.20, 0.20, 0.19) : fract(ps * 3.3) < 0.7 ? vec3(0.42, 0.34, 0.26) : vec3(0.74, 0.70, 0.62)) : isB > 0.5 ? vec3(0.24, 0.17, 0.13) : isG > 0.5 ? bk * 0.92 : steenL;
+          kl = mix(kl, steenL * (0.95 + 0.05 * step(0.05, fract(v / 0.6))), voet * (1.0 - lobby));
+          kl = mix(kl, bk * 1.12, isB * (1.0 - onder) * step(y, 0.12));
+          kl = mix(kl, mix(bk * 1.08, bk * 0.86, step(0.5, fract(y / 0.2))), stoep);
+          kl = mix(kl, zwart, trapRand * step(y, 1.15) * 0.85);
+          kl = mix(kl, isB > 0.5 ? bk * 0.82 : steenL, latei + dorpel * 0.9);
+          kl = mix(kl, vec3(0.34, 0.33, 0.31) * (isD > 0.5 ? 1.0 : 0.0) + bk * 0.0, strook);
+          kl = mix(kl, steenL * 1.05, pijler * 0.55);
+          kl = mix(kl, wit * 0.97, zuil + lijstG * 0.8);
+          vec3 glasK = mix(glasA, glasB, smoothstep(y0, y1, y) * 0.8 + 0.2 * akRuis(vec2(col * 3.1 + pi * 7.0, fl * 2.3) + seed));
+          kl = mix(kl, glasK, glas);
+          kl = mix(kl, isD > 0.5 ? vec3(0.30, 0.31, 0.32) : wit, roede);
+          kl = mix(kl, mix(zwart * 2.0, glasB * 1.3, step(0.06, fract(pu / 1.3))), etalage);
+          kl = mix(kl, luifelK * (0.85 + 0.15 * step(0.5, fract(pu / 0.5))), luifel);
+          kl = mix(kl, vec3(0.12, 0.12, 0.13), bord);
+          kl = mix(kl, vec3(0.10, 0.10, 0.11), lobby);
+          kl = mix(kl, vec3(0.16, 0.10, 0.07), pDeur * step(0.15, y));
+          kl = mix(kl, zwart, brand * 0.92);
+          kl = mix(kl, kroonK * (0.9 - 0.25 * cons), kroon * (isT + isB + isG + isP * 0.6 + isK * 0.4 + isD * 0.8));
+          kl = mix(kl, kroonK * 0.55, kroon * step(v, H - kroonH + 0.12) * (isT + isB + isG));
+          akGlas = max(glas * (1.0 - roede), etalage * 0.8);
+          float h9 = akHash(vec2(col * 1.7 + pi * 5.3 + seed * 50.0, fl * 3.3 + seed * 20.0));
+          akLicht = (glas * step(0.5, h9) * (0.7 + 0.5 * fract(h9 * 7.3)) + etalage * 1.1 + lobby * 0.6) * uNacht;
+          akLichtKleur = mix(vec3(1.0, 0.68, 0.36), vec3(1.0, 0.88, 0.66), h9);
+          float ver9 = clamp(fw * 3.2 - 0.3, 0.0, 1.0);
+          kl = mix(kl, mix(bk, vec3(0.32, 0.33, 0.36), 0.3), ver9); akLicht *= 1.0 - ver9 * 0.45;
+        } else {
+          kl = mix(kl, steenL * 0.9, step(H + 0.56, v) * step(3.5, vS.w));
+        }
       } else if (st > 9.5) {
         // Londen: 10 rijtjeshuizen van gele 'London stock'-baksteen, 11 wit gepleisterde Regency-huizen, 12 rode baksteen (Victoriaans),
         // 14 eenvoudige baksteen (pakhuizen en flats). Schuiframen, een gekleurde voordeur met een bovenlicht, zwarte hekjes, balkonnetjes.
@@ -2944,9 +3084,16 @@ const AK = (() => {
       } else if (soort < 33.5) {
         // 33: donker hout (de hijsbalk van een grachtenpand)
         kl = vec3(0.13, 0.10, 0.08) * (0.85 + 0.15 * akRuis(vec2(u * 6.0, v * 6.0)));
-      } else {
+      } else if (soort < 34.5) {
         // 34: een Londense schoorsteen van gele baksteen (vaak zwart van het roet)
         kl = mix(vec3(0.60, 0.53, 0.41), vec3(0.42, 0.37, 0.30), step(0.6, seed)) * (0.88 + 0.12 * step(0.16, fract(v / 0.075))) * (0.92 + 0.08 * akRuis(vec2(u, v) * 3.0 + seed));
+      } else if (soort < 35.5) {
+        // 35: een houten watertank (New York): verweerde duigen met zwarte stalen banden
+        kl = mix(vec3(0.40, 0.33, 0.26), vec3(0.55, 0.47, 0.37), seed) * (0.84 + 0.16 * mix(step(0.12, fract(u / 0.24)), 0.86, smoothstep(0.02, 0.06, akFw))) * (0.9 + 0.1 * akRuis(vec2(u * 0.5, v * 4.0)));
+        kl = mix(kl, vec3(0.10, 0.10, 0.11), step(abs(fract(v / 0.85) - 0.5), 0.045) * (1.0 - smoothstep(0.04, 0.12, akFw)));
+      } else {
+        // 36: zwart staal (de poten, het platform en het dak van een watertank)
+        kl = vec3(0.12, 0.12, 0.13) * (0.9 + 0.1 * akRuis(vec2(u, v) * 3.0));
       }
     }
     if (uRegen > 0.0) kl *= 1.0 - uRegen * 0.25;
@@ -3173,7 +3320,7 @@ const AK = (() => {
   // ---------------------------------------------------------------- laden: de kop, het globale stuk, dan de tegels (dichtbij eerst), in stukken
   let voortgang = { binnen: 0, totaal: 0, tegels: 0, klaar: false };
   async function laad(sc, opties) {
-    if (opties && opties.bestand) BESTAND = opties.bestand; if (opties && opties.kerk) U.uKerk.value.set(...opties.kerk); if (opties && opties.kap) U.uKap.value.set(...opties.kap);
+    if (opties && opties.bestand) BESTAND = opties.bestand; if (opties && opties.kerk) U.uKerk.value.set(...opties.kerk); if (opties && opties.kap) U.uKap.value.set(...opties.kap); U.uNY.value = opties && opties.ny ? 1 : 0;
     scene = sc; wereld = new THREE.Group(); wereld.matrixAutoUpdate = false; scene.add(wereld); opNieuw = opties && opties.opNieuw;
     maakWerker();
     const r = await fetch(BESTAND); if (!r.ok) throw new Error('kaart ' + r.status);
@@ -3184,7 +3331,7 @@ const AK = (() => {
     let buf = new Uint8Array(0), basis = 0; // buf begint op positie 'basis' in het bestand
     const neem = async (pos, n) => { while (basis + buf.length < pos + n) { if (delen.length) { const nb = new Uint8Array(buf.length + delen.reduce((a, d) => a + d.length, 0)); nb.set(buf); let o = buf.length; for (const d of delen) { nb.set(d, o); o += d.length; } buf = nb; delen = []; } else if (!(await meer())) throw new Error('kaart te kort'); } const uit = buf.slice(pos - basis, pos - basis + n); if (pos - basis > 2e6) { buf = buf.slice(pos - basis); basis = pos; } return uit; };
     const kl = new DataView((await neem(0, 4)).buffer).getUint32(0, true);
-    const kb = await neem(4, kl); kop = KB.leesKop(kb.slice()); stuur({ soort: 'kop', data: kb.slice() });
+    const kb = await neem(4, kl); kop = KB.leesKop(kb.slice()); stuur({ soort: 'kop', data: kb.slice(), ny: U.uNY.value });
     for (let i = 0; i < kop.nx * kop.nz; i++) T.set(i, { niveau: -1, groep: null, bezig: false, gewenst: -1, data: null, seq: 0, box: null });
     let pos = 4 + kl;
     for (const st of kop.stukken) {
@@ -3661,7 +3808,7 @@ const AL = (() => {
   // ---------------------------------------------------------------- Amsterdam: 26 plekken (meters vanaf de Dam; x = oost, z = zuid)
   // id's nooit veranderen of hergebruiken; nieuwe plekken altijd achteraan.
   const BEZ_A = [
-    { id: 'a-centraal', naam: 'Het Centraal Station', x: 533, z: -674, r: 230, top: 46, feit: 'Het station staat op drie kunstmatige eilanden in het IJ, op bijna 9.000 houten palen. Het is ontworpen door Pierre Cuypers, dezelfde architect als het Rijksmuseum.' },
+    { id: 'a-centraal', naam: 'Het Centraal Station', x: 525, z: -626, r: 230, top: 46, feit: 'Het station staat op drie kunstmatige eilanden in het IJ, op bijna 9.000 houten palen. Het is ontworpen door Pierre Cuypers, dezelfde architect als het Rijksmuseum.' },
     { id: 'a-paleis', naam: 'Het Koninklijk Paleis', x: -93, z: -8, r: 140, top: 51, feit: 'Gebouwd als stadhuis in de zeventiende eeuw, op 13.659 houten palen. Op de koepel staat een windwijzer in de vorm van een schip.' },
     { id: 'a-monument', naam: 'Het Nationaal Monument', x: 53, z: 24, r: 90, top: 22, feit: 'Een witte zuil van 22 meter op de Dam, ter herinnering aan de slachtoffers van de Tweede Wereldoorlog. Elk jaar op 4 mei is hier de Nationale Herdenking.' },
     { id: 'a-nieuwekerk', naam: 'De Nieuwe Kerk', x: -63, z: -96, r: 120, top: 36, feit: 'Ondanks de naam is ze al meer dan 600 jaar oud. Hier worden de koningen en koninginnen van Nederland ingehuldigd.' },
@@ -3692,7 +3839,7 @@ const AL = (() => {
   const MODEL_A = {};
   // de plaats van elk model: [x, z, richting in graden van de lokale x-as]
   const PLAATS_A = {
-    centraal: [533, -690, 30.2], paleis: [-93, -8, 91.5], monument: [53, 24, 30], nieuwekerk: [-63, -96, -38.7], westertoren: [-623, -161, -87.1],
+    centraal: [525, -626, 30.2], paleis: [-93, -8, 91.5], monument: [53, 24, 30], nieuwekerk: [-63, -96, -38.7], westertoren: [-623, -161, -87.1],
     oudekerk: [345, -140, -3.5], munttoren: [35, 670, -123.7], rijksmuseum: [-513, 1454, 39.4], concertgebouw: [-929, 1873, -32.5], magerebrug: [656, 1057, 163.1],
     montelbaan: [881, 116, 99.3], schreierstoren: [648, -365, 111.3], waag: [518, 34, 153.8], adam: [646, -1190, -130.9], eye: [553, -1256, -144.3],
     nemo: [1334, -124, -88.2], scheepvaart: [1500, 95, 61.7], gooyer: [2280, 702, -45.6], zuiderkerk: [464, 318, 119.2], beurs: [205, -172, 127.3],
@@ -3719,7 +3866,7 @@ const AL = (() => {
   function ramenZ(B, m, z0, z1, x, y0, y1, n, rij, h, b) { for (let r = 0; r < rij; r++) for (let i = 0; i < n; i++) { const z = z0 + (z1 - z0) * (i + 0.5) / n, y = y0 + (y1 - y0) * (r + 0.5) / rij; B.doos(m, 0.3, h || 2.2, b || 1.4, x, y - (h || 2.2) / 2, z); } }
   // Centraal Station: een lange gevel van baksteen met witte banden, twee torens met klokken in het midden, en erachter de boogkappen over de sporen
   MODEL_A.centraal = () => {
-    const B = Mod(), L = 250;
+    const B = Mod(), L = 300;
     B.doos('ams', L, 17, 24, 0, 0, 36); for (const y of [5, 11]) B.doos('zandsteen', L + 0.4, 0.6, 24.4, 0, y, 36); B.doos('zandsteen', L + 0.6, 0.8, 24.6, 0, 16.4, 36); B.zadel('leien', L, 25, 7, 0, 17.2, 36);
     ramen(B, 'zwartglas', -L / 2 + 4, L / 2 - 4, 48, 1, 2, 16, 52, 2, 3.2, 1.8);
     for (const x of [-L / 2 + 12, L / 2 - 12]) { B.doos('ams', 24, 22, 28, x, 0, 36); B.zadel('leien', 28, 24, 7, x, 22, 36, Math.PI / 2); }
@@ -3728,8 +3875,10 @@ const AL = (() => {
     for (const x of [-14, 14]) { B.doos('ams', 8.5, 34, 8.5, x, 0, 50); B.doos('zandsteen', 9, 1, 9, x, 34, 50); B.doos('ams', 7, 5, 7, x, 35, 50); B.cil('wit', 2.4, 2.4, 0.3, x, 31, 54.4, 20, 0); B.piramide('leien', 7, 5, x, 40, 50); B.kegel('goud', 0.3, 2, x, 45, 50, 6); }
     for (const x of [-14, 14]) { const g = new THREE.CylinderGeometry(2.4, 2.4, 0.4, 24); g.rotateX(Math.PI / 2); g.translate(x, 31, 54.4); B.geo('wit', g); }
     // de kappen over de sporen: twee bogen van ijzer en glas
-    for (const [z, span, len] of [[0, 46, 240], [-34, 26, 200]]) { const g = new THREE.CylinderGeometry(span / 2, span / 2, len, 28, 1, true, -Math.PI / 2, Math.PI); g.rotateZ(Math.PI / 2); g.scale(1, 0.8, 1); g.translate(0, 6, z); B.geo('glas', g); for (let x = -len / 2; x <= len / 2; x += 12) { const r = new THREE.TorusGeometry(span / 2, 0.35, 4, 24, Math.PI); r.rotateY(Math.PI / 2); r.scale(1, 0.8, 1); r.translate(x, 6, z); B.geo('ijzer', r); } B.doos('ijzer', len, 6, 0.6, 0, 0, z - span / 2); B.doos('ijzer', len, 6, 0.6, 0, 0, z + span / 2); }
-    return { G: B.groep(), bots: [['doos', 0, 36, 125, 13, 0, 24], ['doos', 0, 0, 120, 23, 0, 24.5], ['doos', 0, -34, 100, 13, 0, 16.5], ['doos', -14, 50, 4.5, 4.5, 0, 45], ['doos', 14, 50, 4.5, 4.5, 0, 45]], rust: [[-14, 45.2, 50, 'de westtoren van het Centraal Station'], [14, 45.2, 50, 'de oosttoren van het Centraal Station'], [0, 33, 38, 'het dak van het Centraal Station']] };
+    // achter het gebouw: het perroneiland (de sporen liggen 4,6 m boven de straat, zoals in de kaart) met twee kappen van ijzer en glas
+    B.doos('grijs', 560, 4.6, 92, -35, 0, -30);
+    for (const [z, span, len] of [[-14, 56, 300], [-56, 34, 260]]) { const g = new THREE.CylinderGeometry(span / 2, span / 2, len, 28, 1, true, -Math.PI / 2, Math.PI); g.rotateZ(Math.PI / 2); g.scale(1, 0.8, 1); g.translate(-25, 9.6, z); B.geo('glas', g); for (let x = -len / 2; x <= len / 2; x += 12) { const r = new THREE.TorusGeometry(span / 2, 0.35, 4, 24, Math.PI); r.rotateY(Math.PI / 2); r.scale(1, 0.8, 1); r.translate(x - 25, 9.6, z); B.geo('ijzer', r); } B.doos('ijzer', len, 5, 0.6, -25, 4.6, z - span / 2); B.doos('ijzer', len, 5, 0.6, -25, 4.6, z + span / 2); }
+    return { G: B.groep(), bots: [['doos', 0, 36, 150, 13, 0, 24], ['doos', -25, -14, 150, 28, 0, 32], ['doos', -25, -56, 130, 17, 0, 23.5], ['doos', -35, -30, 280, 46, 0, 4.6], ['doos', -14, 50, 4.5, 4.5, 0, 45], ['doos', 14, 50, 4.5, 4.5, 0, 45]], rust: [[-14, 45.2, 50, 'de westtoren van het Centraal Station'], [14, 45.2, 50, 'de oosttoren van het Centraal Station'], [0, 33, 38, 'het dak van het Centraal Station']] };
   };
   // Het Koninklijk Paleis: een zandstenen blok met een fronton, en op het dak een koepeltoren met een gouden schip
   MODEL_A.paleis = () => {
@@ -4244,6 +4393,437 @@ const AL = (() => {
     globe: [2123, -84, 0], tate: [1962, -25, -175.3], piccadilly: [-466, -283, 0],
   };
   STAD_PLEK.londen = { BEZ: BEZ_L, MODEL: MODEL_L, PLAATS: PLAATS_L };
+  // ==== PLEKKEN NEW YORK
+  // ---------------------------------------------------------------- New York: 30 plekken (meters vanaf het Empire State Building; x = oost, z = zuid)
+  // id's nooit veranderen of hergebruiken; nieuwe plekken altijd achteraan. De straten van Manhattan liggen 29 graden gedraaid: daar is de lokale x langs de straten (naar de East River) en z langs de avenues (naar downtown).
+  const BEZ_N = [
+    { id: 'n-empire', naam: 'Het Empire State Building', x: 0, z: 0, r: 120, top: 443, feit: 'Gebouwd in 1931, in nog geen veertien maanden. Bovenin wordt de toren elke avond in andere kleuren verlicht.' },
+    { id: 'n-chrysler', naam: 'Het Chrysler Building', x: 869, z: -353, r: 100, top: 319, feit: 'Een art-decotoren met een kroon van glimmend roestvrij staal. Op de hoeken zitten stalen adelaars.' },
+    { id: 'n-wtc', naam: 'One World Trade Center', x: -2321, z: 3936, r: 120, top: 541, feit: 'Met 541 meter het hoogste gebouw van Amerika. De hoogte is in voet precies 1776: het jaar dat de Verenigde Staten onafhankelijk werden.' },
+    { id: 'n-oculus', naam: 'De Oculus', x: -2172, z: 4097, r: 100, top: 50, feit: 'Een station dat lijkt op een vogel die opstijgt: witte stalen ribben als vleugels, met daaronder een enorme witte hal.' },
+    { id: 'n-vrijheid', naam: 'Het Vrijheidsbeeld', x: -4962, z: 6573, r: 130, top: 93, feit: 'Een cadeau van Frankrijk uit 1886. Het beeld is van koper, dat door de jaren groen is geworden. Het binnenwerk is gemaakt door Gustave Eiffel.' },
+    { id: 'n-ellis', naam: 'Ellis Island', x: -4539, z: 5475, r: 130, top: 46, feit: 'Hier kwamen tussen 1892 en 1954 zo\'n twaalf miljoen mensen aan die in Amerika wilden gaan wonen, ook veel Nederlanders.' },
+    { id: 'n-brooklynbrug', naam: 'De Brooklyn Bridge', x: -947, z: 4702, r: 220, top: 84, feit: 'De eerste brug over de East River, uit 1883. Met de twee stenen torens met spitse bogen was het toen de langste hangbrug ter wereld.' },
+    { id: 'n-manhattanbrug', naam: 'De Manhattan Bridge', x: -415, z: 4591, r: 200, top: 102, feit: 'Een blauwe hangbrug uit 1909. Over de brug rijden auto\'s en ook metro\'s.' },
+    { id: 'n-queensboro', naam: 'De Queensboro Bridge', x: 2639, z: -929, r: 220, top: 105, feit: 'Een stalen brug over de East River en het smalle Roosevelt Island. Naast de brug gaat een kabelbaan naar het eiland.' },
+    { id: 'n-centralpark', naam: 'Central Park', x: 1709, z: -3827, r: 700, top: 25, water: false, feit: 'Een park van vier kilometer lang midden in Manhattan, met meren, bossen, een dierentuin en in de winter een schaatsbaan.' },
+    { id: 'n-timessquare', naam: 'Times Square', x: -74, z: -861, r: 110, top: 111, feit: 'Het plein met de grote lichtschermen. Op oudejaarsavond zakt hier om middernacht een grote bal van licht naar beneden.' },
+    { id: 'n-flatiron', naam: 'Het Flatiron Building', x: -336, z: 826, r: 80, top: 87, feit: 'Een driehoekig gebouw uit 1902, op de plek waar Broadway en Fifth Avenue elkaar kruisen. Het lijkt op een strijkijzer.' },
+    { id: 'n-rockefeller', naam: 'Rockefeller Center', x: 508, z: -1190, r: 140, top: 260, feit: 'Een groep art-decogebouwen. In de winter staat hier een enorme kerstboom bij de schaatsbaan, en bovenop de hoogste toren is een uitkijkterras.' },
+    { id: 'n-grandcentral', naam: 'Grand Central Terminal', x: 707, z: -468, r: 120, top: 50, feit: 'Een groot station uit 1913, met 44 perrons. Het plafond van de hal is beschilderd met de sterrenhemel.' },
+    { id: 'n-vessel', naam: 'The Vessel', x: -1391, z: -596, r: 80, top: 46, feit: 'Een bouwwerk van 154 trappen die als een honingraat in elkaar grijpen. Van boven kijk je uit over de Hudson.' },
+    { id: 'n-washington', naam: 'Washington Square', x: -965, z: 1911, r: 90, top: 24, feit: 'Een marmeren boog in een park waar studenten, schakers en straatmuzikanten samenkomen. Hier begint Fifth Avenue.' },
+    { id: 'n-vn', naam: 'Het hoofdkantoor van de Verenigde Naties', x: 1481, z: -54, r: 140, top: 154, feit: 'Hier vergaderen bijna alle landen van de wereld. Het terrein hoort officieel niet bij Amerika, maar bij de hele wereld.' },
+    { id: 'n-stpatrick', naam: 'St. Patrick\'s Cathedral', x: 788, z: -1125, r: 100, top: 101, feit: 'Een gotische kathedraal van wit marmer tussen de wolkenkrabbers van Fifth Avenue. De twee torens zijn 100 meter hoog.' },
+    { id: 'n-guggenheim', naam: 'Het Guggenheim Museum', x: 2258, z: -3837, r: 80, top: 28, feit: 'Een wit museum als een omgekeerde taart. Binnen loop je langs de schilderijen via één lange spiraal naar beneden.' },
+    { id: 'n-met', naam: 'Het Metropolitan Museum of Art', x: 1875, z: -3442, r: 170, top: 30, feit: 'Een van de grootste musea ter wereld, aan de rand van Central Park, met onder meer een complete Egyptische tempel.' },
+    { id: 'n-natuur', naam: 'Het American Museum of Natural History', x: 977, z: -3638, r: 150, top: 46, feit: 'Het museum met de dinosaurusskeletten en een blauwe vinvis van 29 meter die aan het plafond hangt.' },
+    { id: 'n-msg', naam: 'Madison Square Garden', x: -660, z: -232, r: 110, top: 46, feit: 'Een ronde zaal voor basketbal, ijshockey en concerten, gebouwd boven het drukste treinstation van Amerika.' },
+    { id: 'n-beurs', naam: 'De New York Stock Exchange', x: -2154, z: 4599, r: 90, top: 40, feit: 'De beurs aan Wall Street. De straat dankt haar naam aan een houten muur die de Nederlanders hier rond 1650 bouwden, toen de stad nog Nieuw-Amsterdam heette.' },
+    { id: 'n-woolworth', naam: 'Het Woolworth Building', x: -1910, z: 3997, r: 90, top: 241, feit: 'Een gotische wolkenkrabber uit 1913, de \'kathedraal van de handel\'. Zeventien jaar lang was het het hoogste gebouw ter wereld.' },
+    { id: 'n-intrepid', naam: 'De Intrepid', x: -1283, z: -1814, r: 170, top: 50, feit: 'Een vliegdekschip uit de Tweede Wereldoorlog, nu een museum aan de Hudson, met vliegtuigen op het dek en een onderzeeboot ernaast.' },
+    { id: 'n-highline', naam: 'De High Line', x: -1650, z: 0, r: 520, top: 12, feit: 'Een park op een oud spoorviaduct, ruim twee kilometer lang en negen meter boven de straat, met bloemen, gras en bankjes.' },
+    { id: 'n-littleisland', naam: 'Little Island', x: -2078, z: 721, r: 90, top: 20, feit: 'Een park in de Hudson dat op 132 betonnen bloempotten staat. Elke pot heeft een andere hoogte, zodat het park golft.' },
+    { id: 'n-seaport', naam: 'South Street Seaport', x: -1401, z: 4741, r: 120, top: 55, feit: 'De oude haven aan de East River, met houten pieren en een groot zeilschip uit 1885.' },
+    { id: 'n-hudson', naam: 'De Hudson', x: -2690, z: 937, r: 450, top: 20, water: true, feit: 'De rivier aan de westkant van Manhattan. In 1609 voer de Engelse ontdekkingsreiziger Henry Hudson hier in opdracht van de Nederlanders naar boven.' },
+    { id: 'n-eastriver', naam: 'De East River', x: 1281, z: 2826, r: 320, top: 20, water: true, feit: 'Eigenlijk geen rivier maar een zeestraat tussen Manhattan en Brooklyn, waar het water met eb en vloed heen en weer stroomt.' },
+  ];
+  laagZet(BEZ_N);
+  M.kalk = mat('#D8CEB8', { roughness: 0.85 }, 'steen'); M.nygraniet = mat('#BBAE98', { roughness: 0.9 }, 'steen'); M.beton = mat('#C3BFB6', { roughness: 0.92 }, 'steen');
+  M.vrijheid = mat('#76AE98', { roughness: 0.55, metalness: 0.25 }, 'koper'); M.vessel = mat('#B4774A', { roughness: 0.35, metalness: 0.7 }, 'brons'); M.nyblauw = mat('#8FA7BC', { roughness: 0.45, metalness: 0.45 }, 'staal');
+  M.wtcglas = mat('#86AAC4', { roughness: 0.06, metalness: 0.9 }, 'glas'); M.terra = M.terra || mat('#C9A27A', { roughness: 0.85 }, 'steen'); M.kabel = mat('#6E6861', { roughness: 0.7, metalness: 0.3 }, 'staal'); M.creme = mat('#E6DCC6', { roughness: 0.8 }, 'steen');
+  M.romp = mat('#6E777E', { roughness: 0.55, metalness: 0.35 }, 'staal'); M.dekhout = mat('#5A5550', { roughness: 0.8 }, 'hout'); M.nyrood = mat('#A8292C', { roughness: 0.5 }, 'rood'); M.gras = mat('#5E8C3E', { roughness: 0.95 }, 'gras');
+  // een materiaal dat 's avonds zelf licht geeft (de kroon van een wolkenkrabber, de lampen van een brug)
+  const nyMat = (kleur, opties, gloed, soort) => { const m = mat(kleur, opties, soort || 'ny'); const oud = m.onBeforeCompile; m.onBeforeCompile = sh => { oud(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += uNacht * vec3(' + gloed.map(v => v.toFixed(3)).join(', ') + ');'); }; m.customProgramCacheKey = () => 'ny-' + kleur + gloed.join(','); return m; };
+  M.nylicht = nyMat('#EFE6D2', { roughness: 0.7 }, [0.95, 0.78, 0.45]); M.kroonlicht = nyMat('#E8EEF2', { roughness: 0.2, metalness: 0.5 }, [1.1, 1.05, 0.9]); M.lampjes = nyMat('#F4EED8', { roughness: 0.5 }, [1.4, 1.2, 0.8]);
+  // de lichtschermen van Times Square: blokken in felle kleuren die langzaam wisselen, ook overdag
+  M.scherm = (() => { const m = new THREE.MeshBasicMaterial({ color: '#ffffff' }); m.onBeforeCompile = sh => { sh.uniforms.uTijd = AK.U.uTijd; sh.vertexShader = 'varying vec3 vPw;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vPw = (modelMatrix * vec4(transformed, 1.0)).xyz;'); sh.fragmentShader = 'uniform float uTijd; varying vec3 vPw;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n vec2 q = floor(vec2(vPw.x + vPw.z, vPw.y) / 3.2); float k = fract(sin(dot(q + floor(uTijd * 0.25 + q.x * 0.13), vec2(12.9, 78.2))) * 4375.5); vec3 c = 0.5 + 0.5 * cos(6.283 * (k + vec3(0.0, 0.33, 0.67))); diffuseColor.rgb = pow(c * (0.75 + 0.25 * fract(k * 7.0)), vec3(2.2));'); }; m.customProgramCacheKey = () => 'scherm'; return m; })();
+  // verticale raamstroken op de vier gevels van een blok (breedte w langs x, diepte d langs z), van y0 tot y1, om de 'st' meter
+  const nyStroken = (B, m, w, d, y0, y1, st, cx, cz, bw) => { cx = cx || 0; cz = cz || 0; bw = bw || 1.3; const h = y1 - y0; for (let x = -w / 2 + st / 2; x < w / 2; x += st) for (const k of [-1, 1]) B.doos(m, bw, h, 0.3, cx + x, y0, cz + k * (d / 2 + 0.05)); for (let z = -d / 2 + st / 2; z < d / 2; z += st) for (const k of [-1, 1]) B.doos(m, 0.3, h, bw, cx + k * (w / 2 + 0.05), y0, cz + z); };
+  // een rij gebouwlagen (setbacks) [breedte, diepte, hoogte boven] op elkaar, met raamstroken
+  const nyTrap = (B, m, lagen, glas, st) => { let y = 0; const bots = []; for (const [w, d, top, ex] of lagen) { B.doos(m, w, top - y, d, 0, y, 0); if (glas) nyStroken(B, glas, w, d, y + 1, top - 1, st || 3.2); if (ex) ex(y, top); bots.push(['doos', 0, 0, w / 2, d / 2, y, top]); y = top; } return bots; };
+  const MODEL_N = {};
+  // een gevel die het patroon zelf tekent (in meters van het model, dus scherp van dichtbij en zonder duizenden blokjes): stenen pijlers,
+  // raamkolommen met borstweringen en glas, stijlen tussen de kolommen, 's avonds hier en daar een verlicht raam, en eventueel aangelicht (flood)
+  const nyGevel = (naam, o) => {
+    const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.8, metalness: 0.04 }), L = h => { const c = new THREE.Color(h).convertSRGBToLinear(); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }, f = v => v.toFixed(3);
+    m.onBeforeCompile = sh => {
+      sh.uniforms.uNacht = AK.U.uNacht;
+      sh.vertexShader = 'varying vec3 vLp; varying vec3 vLn;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vLp = position; vLn = normal;');
+      sh.fragmentShader = 'uniform float uNacht; varying vec3 vLp; varying vec3 vLn;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n float gvGlas = 0.0, gvLicht = 0.0, gvFlood = 0.0;')
+        .replace('#include <color_fragment>', `#include <color_fragment>
+          vec3 n = normalize(vLn); float top = step(0.6, abs(n.y)), hor = abs(n.x) > abs(n.z) ? vLp.z : vLp.x, P = ${f(o.P)}, W = ${f(o.W)}, F = ${f(o.F)};
+          float fw = max(fwidth(hor), fwidth(vLp.y)), kx = abs(fract(hor / P) - 0.5) * P, inC = step(kx, W * 0.5), vy = fract(vLp.y / F) * F;
+          float gl = inC * step(${f(o.g0)}, vy) * step(vy, F - ${f(o.g1)}), ver = smoothstep(P * 0.12, P * 0.5, fw);
+          vec3 c = ${L(o.steen)} * (0.95 + 0.07 * fract(sin(dot(floor(vec2(hor * 0.9, vLp.y * 2.6)), vec2(12.9898, 78.233))) * 43758.5));
+          c = mix(c, ${L(o.borst)}, inC); c = mix(c, ${L(o.glas)}, gl); c = mix(c, ${L(o.stijl)}, step(abs(kx - W * 0.5), ${f(o.mw)}) * (1.0 - ver));
+          c = mix(c, mix(${L(o.steen)}, mix(${L(o.borst)}, ${L(o.glas)}, 0.55), W / P), ver); c = mix(c, ${L(o.dak)}, top);
+          gvGlas = gl * (1.0 - top) * (1.0 - ver); float id = floor(hor / P) * 3.7 + floor(vLp.y / F) * 17.3; gvLicht = gl * (1.0 - top) * step(0.56, fract(sin(id * 12.9898) * 43758.5));
+          gvFlood = step(${f(o.floodY || 9999)}, vLp.y); diffuseColor.rgb = c;`)
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, 0.14, gvGlas);')
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n totalEmissiveRadiance += uNacht * (gvLicht * vec3(1.0, 0.72, 0.42) * 0.8 + gvFlood * diffuseColor.rgb * ${L(o.flood || '#000000')} * 2.2);`);
+    };
+    m.customProgramCacheKey = () => 'nygevel-' + naam; return m;
+  };
+  M.esb = nyGevel('esb', { steen: '#D2CBBA', borst: '#7A8087', glas: '#2B333C', stijl: '#EEF0F2', dak: '#8F8C85', P: 1.6, W: 0.98, F: 3.75, g0: 0.55, g1: 0.35, mw: 0.08, floodY: 262, flood: '#FFE8B8' });
+  M.chr = nyGevel('chr', { steen: '#ECE9E2', borst: '#4F5258', glas: '#262C34', stijl: '#4F5258', dak: '#8C8A86', P: 1.95, W: 1.0, F: 3.6, g0: 0.9, g1: 0.55, mw: 0.0 });
+  M.alu = mat('#D5D9DD', { roughness: 0.38, metalness: 0.25 }, 'staal'); M.nirosta = mat('#E2E6EB', { roughness: 0.26, metalness: 0.35 }, 'staal'); M.chrband = mat('#43464C', { roughness: 0.85 }, 'steen');
+  M.mastglas = nyMat('#3A4651', { roughness: 0.15, metalness: 0.5 }, [1.0, 0.86, 0.55]);
+  // de zonnestraalbogen van de kroon van het Chrysler Building: roestvrij staal met een rij driehoekige ramen, die 's avonds oplichten
+  M.zonboog = (() => {
+    const teken = licht => { const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d');
+      if (licht) { g.fillStyle = '#000'; g.fillRect(0, 0, 512, 256); } else { const v = g.createRadialGradient(256, 256, 20, 256, 256, 256); v.addColorStop(0, '#C9CFD6'); v.addColorStop(0.7, '#EEF1F4'); v.addColorStop(1, '#B9C0C8'); g.fillStyle = v; g.fillRect(0, 0, 512, 256); g.strokeStyle = '#8E969F'; g.lineWidth = 6; g.beginPath(); g.arc(256, 256, 244, Math.PI, 0); g.stroke(); g.lineWidth = 3; g.beginPath(); g.arc(256, 256, 120, Math.PI, 0); g.stroke(); }
+      g.fillStyle = licht ? '#FFF6E2' : '#232930'; const N = 11;
+      for (let i = 0; i < N; i++) { const a0 = Math.PI + (i + 0.16) / N * Math.PI, a1 = Math.PI + (i + 0.84) / N * Math.PI, am = (a0 + a1) / 2; g.beginPath(); g.moveTo(256 + Math.cos(am) * 128, 256 + Math.sin(am) * 128); g.lineTo(256 + Math.cos(a0) * 228, 256 + Math.sin(a0) * 228); g.lineTo(256 + Math.cos(a1) * 228, 256 + Math.sin(a1) * 228); g.closePath(); g.fill(); }
+      const t = new THREE.CanvasTexture(c); t.repeat.set(0.5, 1); t.offset.set(0.5, 0); t.anisotropy = 4; if (!licht) t.encoding = THREE.sRGBEncoding; return t; };
+    const m = new THREE.MeshStandardMaterial({ map: teken(false), emissive: '#ffffff', emissiveMap: teken(true), roughness: 0.3, metalness: 0.3, side: THREE.DoubleSide });
+    m.onBeforeCompile = sh => { sh.uniforms.uNacht = AK.U.uNacht; sh.fragmentShader = 'uniform float uNacht;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance *= uNacht * 1.4;'); };
+    m.customProgramCacheKey = () => 'zonboog'; return m;
+  })();
+  // een blok met ingesprongen hoeken (zoals bij art-decotorens): twee of drie blokken door elkaar, met iets verschillende daken (anders flikkert het dak)
+  const nyKruis = (B, m, maten, y0, y1, bots) => maten.forEach(([w, d], i) => { B.doos(m, w, y1 + i * 0.12 - y0, d, 0, y0, 0); if (bots) bots.push(['doos', 0, 0, w / 2, d / 2, y0, y1]); });
+  // Het Empire State Building: lichtgrijze kalksteen met aluminium borstweringen en glimmende stalen stijlen, een voet van vijf verdiepingen met de ingang aan Fifth Avenue,
+  // in trappen met ingesprongen hoeken naar de toren, het uitkijkterras op de 86e, de art-decomast met aluminium vinnen en vier vleugels, de 102e en de antenne.
+  // 's Avonds is de top aangelicht.
+  MODEL_N.empire = () => {
+    const B = Mod(), bots = [], E = 'esb';
+    B.doos(E, 129, 25, 59, 0, 0, 0); B.doos('kalk', 129.6, 1, 59.6, 0, 25, 0); bots.push(['doos', 0, 0, 64.5, 29.5, 0, 26]);
+    B.doos(E, 1.4, 17, 16, 65, 0, 0); B.doos('donker', 0.4, 12, 9, 65.8, 0, 0); B.doos('alu', 0.5, 1.2, 12, 65.9, 12.5, 0); B.doos('kalk', 2, 1.4, 18, 65.2, 17, 0);
+    for (const k of [-1, 1]) B.doos('donker', 9, 9, 0.4, k * 30, 0, 29.7);
+    // het silhouet: de brede onderbouw in trappen tot de 30e verdieping, dan de slanke schacht met diep ingesprongen hoeken (drie stappen),
+    // en boven de 72e weer trappen naar het terras. Op de randen van de trappen een lichte stenen lijst.
+    const trap = (maten, y0, y1) => { nyKruis(B, E, maten, y0, y1, bots); for (const [w, d] of maten) B.doos('kalk', w + 0.5, 0.7, d + 0.5, 0, y1 + 0.4, 0); };
+    trap([[118, 44], [108, 50], [98, 54]], 26, 85); trap([[102, 40], [94, 45], [86, 48]], 86.2, 99); trap([[88, 36], [80, 41], [72, 44]], 100.2, 116);
+    nyKruis(B, E, [[64, 26], [56, 33], [48, 40]], 117.2, 263, bots);
+    for (const k of [-1, 1]) for (const [x, z, w, d] of [[k * 31.5, 0, 1.2, 26.6], [k * 27.5, k * 15.8, 0.8, 0.8], [k * 23.5, k * 19.5, 0.8, 0.8]]) B.doos('kalk', w, 145.6, d, x, 117.2, z);
+    trap([[42, 24], [36, 29], [30, 33]], 263.6, 297); trap([[32, 22], [26, 26]], 298.2, 312);
+    B.doos(E, 28, 8, 20, 0, 313, 0); bots.push(['doos', 0, 0, 14, 10, 313, 321]);
+    for (const [w, d] of [[28, 20]]) for (const k of [-1, 1]) { B.doos('kalk', w, 1.1, 0.6, 0, 321, k * d / 2); B.doos('kalk', 0.6, 1.1, d, k * w / 2, 321, 0); for (let x = -w / 2; x <= w / 2; x += 1.6) B.doos('staal', 0.08, 2.4, 0.08, x, 321.7, k * d / 2); for (let z = -d / 2; z <= d / 2; z += 1.6) B.doos('staal', 0.08, 2.4, 0.08, k * w / 2, 321.7, z); B.doos('staal', w, 0.1, 0.1, 0, 324, k * d / 2); B.doos('staal', 0.1, 0.1, d, k * w / 2, 324, 0); }
+    // de mast: een achthoekige kern van glas met aluminium vinnen, vier vleugels op de schuine hoeken, de 102e verdieping en de antenne
+    B.cil('mastglas', 9, 8, 26, 0, 320, 0, 16); for (let a = 0; a < 16; a++) { const h = a / 16 * Math.PI * 2 + Math.PI / 16; B.doos('alu', 0.9, 26, 2.2, Math.cos(h) * 8.8, 320, Math.sin(h) * 8.8, -h); }
+    for (let a = 0; a < 4; a++) { const h = a * Math.PI / 2 + Math.PI / 4, c = Math.cos(h), s = Math.sin(h); for (const [r, y, hh, b] of [[10.5, 320, 16, 5], [9.6, 336, 7, 4], [8.8, 343, 4, 3]]) B.doos('esb', b, hh, 2.6, c * r, y, s * r, -h); B.kegel('alu', 1.0, 3, c * 9.4, 347, s * 9.4, 4); }
+    B.cil('kalk', 8.4, 8.4, 1.2, 0, 346, 0, 16); B.cil('mastglas', 7, 5.6, 20, 0, 347, 0, 16); for (let a = 0; a < 16; a++) { const h = a / 16 * Math.PI * 2; B.doos('alu', 0.7, 20, 1.5, Math.cos(h) * (6.3), 347, Math.sin(h) * 6.3, -h); }
+    B.cil('alu', 5.8, 5.8, 1, 0, 367, 0, 16); B.cil('mastglas', 4.4, 4.4, 6, 0, 368, 0, 16); for (let a = 0; a < 12; a++) { const h = a / 12 * Math.PI * 2; B.doos('alu', 0.3, 6, 0.6, Math.cos(h) * 4.45, 368, Math.sin(h) * 4.45, -h); }
+    B.cil('alu', 4.8, 3.2, 3, 0, 374, 0, 16); B.cil('alu', 2.6, 2.2, 7, 0, 377, 0, 12); B.cil('staal', 1.5, 1.1, 18, 0, 384, 0, 8); B.cil('staal', 1.1, 0.35, 41, 0, 402, 0, 8);
+    for (let y = 388; y < 440; y += 7) B.cil(y % 14 < 7 ? 'nyrood' : 'wit', 1.35 - (y - 388) * 0.017, 1.35 - (y - 388) * 0.017, 1.4, 0, y, 0, 8); B.bol('rood', 0.55, 0, 443.2, 0, 6);
+    bots.push(['cil', 0, 0, 10, 320, 346], ['cil', 0, 0, 7, 346, 374], ['cil', 0, 0, 4.8, 374, 384], ['cil', 0, 0, 1.6, 384, 443]);
+    return { G: B.groep(), bots, rust: [[12.5, 321.3, 0, 'het uitkijkterras op de 86e verdieping'], [0, 384.2, 0, 'de punt van de mast van het Empire State Building']] };
+  };
+  // Het Chrysler Building: witte baksteen met donkere raamstroken en banden van donkergrijze baksteen, een voet met de ingang aan Lexington Avenue,
+  // trappen naar de toren, op de 31e verdieping de gevleugelde radiatordoppen en een rand met wieldoppen, op de 61e de stalen adelaars,
+  // en de kroon: zeven lagen zonnestraalbogen van roestvrij staal met driehoekige ramen (die 's avonds oplichten), met de naald erbovenop
+  MODEL_N.chrysler = () => {
+    const B = Mod(), bots = [], C = 'chr';
+    B.doos(C, 63, 21, 63, 0, 0, 0); B.doos('chrband', 63.4, 1.6, 63.4, 0, 19.6, 0); bots.push(['doos', 0, 0, 31.5, 31.5, 0, 60]);
+    B.doos('donker', 0.4, 12, 8, 31.8, 0, 0); B.fronton('donker', 8, 5, 0.4, 31.8, 12, 0, Math.PI / 2); B.fronton('nirosta', 10, 6.4, 0.3, 32.1, 12, 0, Math.PI / 2);
+    B.doos(C, 61, 39, 61, 0, 21, 0); for (const y of [40, 57.8]) B.doos('chrband', 61.4, 1.6, 61.4, 0, y, 0);
+    for (const [w, y0, y1] of [[54, 60, 76], [48, 76, 92], [42, 92, 112], [38, 112, 120]]) { nyKruis(B, C, [[w, w - 4], [w - 4, w]], y0, y1, bots); B.doos('chrband', w + 0.4, 1.4, w - 3.6, 0, y1 - 1.4, 0); B.doos('chrband', w - 3.6, 1.4, w + 0.4, 0, y1 - 1.4, 0); }
+    // de 31e verdieping: een band met wieldoppen en op de hoeken gevleugelde radiatordoppen
+    B.doos('chrband', 38.6, 2.6, 38.6, 0, 117.2, 0); for (let i = -2; i <= 2; i++) for (let f = 0; f < 4; f++) { const g = new THREE.CylinderGeometry(0.8, 0.8, 0.3, 14); g.rotateX(Math.PI / 2); g.translate(i * 6.5, 118.5, 19.45); g.rotateY(f * Math.PI / 2); B.geo('nirosta', g); }
+    for (let a = 0; a < 4; a++) { const h = a * Math.PI / 2 + Math.PI / 4, c = Math.cos(h), s = Math.sin(h), x = c * 26.6, z = s * 26.6;
+      B.doos('nirosta', 3.2, 3.6, 2, x, 120, z, -h); B.bol('nirosta', 1.2, x + c * 1.8, 123.4, z + s * 1.8, 8); for (const k of [-1, 1]) { const g = new THREE.BoxGeometry(0.3, 2.2, 5.5); g.rotateX(k * 0.5); g.translate(0, 124.4, k * 2.6); g.rotateY(-h); g.translate(x, 0, z); B.geo('nirosta', g); } }
+    nyKruis(B, C, [[36, 30], [30, 36]], 120, 236, bots); for (const y of [150, 180, 210]) { B.doos('chrband', 36.3, 1.2, 30.3, 0, y, 0); B.doos('chrband', 30.3, 1.2, 36.3, 0, y, 0); }
+    B.doos('chrband', 36.4, 2, 36.4, 0, 230, 0);
+    // de adelaars op de 61e verdieping
+    for (let a = 0; a < 4; a++) { const h = a * Math.PI / 2 + Math.PI / 4, c = Math.cos(h), s = Math.sin(h), R = 24.5;
+      const lijf = new THREE.BoxGeometry(7, 1.6, 1.8); lijf.translate(R, 232.8, 0); lijf.rotateY(-h); B.geo('nirosta', lijf);
+      const kop = new THREE.BoxGeometry(1.8, 1.9, 1.5); kop.translate(R + 4.2, 233.6, 0); kop.rotateY(-h); B.geo('nirosta', kop);
+      const snavel = new THREE.ConeGeometry(0.45, 1.6, 6); snavel.rotateZ(-Math.PI / 2 - 0.4); snavel.translate(R + 5.6, 233.2, 0); snavel.rotateY(-h); B.geo('nirosta', snavel);
+      for (const k of [-1, 1]) { const v = new THREE.BoxGeometry(4.2, 0.3, 2.4); v.rotateX(k * 0.55); v.translate(R + 0.8, 233.8, k * 1.6); v.rotateY(-h); B.geo('nirosta', v); } void c; void s; }
+    // de kroon: zeven lagen, elke laag kleiner, met op elke kant een zonnestraalboog
+    for (let i = 0; i < 7; i++) {
+      const w = 30 - i * 3.75, y = 236 + i * 6.3; B.doos('nirosta', w, 6.4, w, 0, y, 0); B.piramide('nirosta', w, w * 0.42, 0, y + 6.4, 0);
+      const s = new THREE.Shape(); s.moveTo(1, 0); s.absarc(0, 0, 1, 0, Math.PI, false); s.closePath();
+      for (let f = 0; f < 4; f++) { const g = new THREE.ShapeGeometry(s, 24); g.scale(w / 2, w / 2, 1); g.translate(0, y, w / 2 + 0.08); g.rotateY(f * Math.PI / 2); B.geo('zonboog', g);
+        const rand = new THREE.TorusGeometry(w / 2, 0.22, 4, 24, Math.PI); rand.translate(0, y, w / 2 + 0.12); rand.rotateY(f * Math.PI / 2); B.geo('nirosta', rand); }
+      bots.push(['doos', 0, 0, w / 2, w / 2, y, y + 6.4]);
+    }
+    B.kegel('nirosta', 2.4, 40, 0, 279, 0, 8); for (let y = 282; y < 312; y += 5) B.cil('nirosta', 1.9 - (y - 279) * 0.055, 1.9 - (y - 279) * 0.055, 0.5, 0, y, 0, 8);
+    bots.push(['cil', 0, 0, 7, 280, 290], ['cil', 0, 0, 2, 290, 319]);
+    return { G: B.groep(), bots, rust: [[0, 280.4, 0, 'de kroon van het Chrysler Building'], [17.3, 234.8, 17.3, 'een stalen adelaar van het Chrysler Building']] };
+  };
+  // One World Trade Center: een glazen toren die van een vierkant onderaan draait naar een gekanteld vierkant bovenaan (acht driehoeken), op een sokkel van glazen lamellen, met een spits
+  MODEL_N.wtc = () => {
+    const B = Mod(), Y0 = 56, Y1 = 417, a = 30.5, t = 31.8;
+    B.doos('staal', 61, Y0, 61, 0, 0, 0); for (let x = -29; x <= 29; x += 2) for (const k of [-1, 1]) { B.doos('glas', 0.5, Y0 - 4, 1.2, x, 2, k * 30.9); B.doos('glas', 1.2, Y0 - 4, 0.5, k * 30.9, 2, x); }
+    const C = [[a, a], [-a, a], [-a, -a], [a, -a]], T = C.map((c, i) => { const d = C[(i + 1) % 4]; return [(c[0] + d[0]) / 2 / a * t, (c[1] + d[1]) / 2 / a * t]; }), pos = [];
+    const drie = (p, q, r) => { const ux = q[0] - p[0], uy = q[1] - p[1], uz = q[2] - p[2], vx = r[0] - p[0], vy = r[1] - p[1], vz = r[2] - p[2], nx = uy * vz - uz * vy, nz = ux * vy - uy * vx, mx = p[0] + q[0] + r[0], mz = p[2] + q[2] + r[2]; if (nx * mx + nz * mz < 0) { const w = q; q = r; r = w; } pos.push(...p, ...q, ...r); };
+    for (let i = 0; i < 4; i++) { const c0 = [C[i][0], Y0, C[i][1]], c1 = [C[(i + 1) % 4][0], Y0, C[(i + 1) % 4][1]], tk = [T[i][0], Y1, T[i][1]], tv = [T[(i + 3) % 4][0], Y1, T[(i + 3) % 4][1]]; drie(c0, c1, tk); drie(c0, tk, tv); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); B.geo('wtcglas', g);
+    const top = new THREE.CylinderGeometry(t + 0.6, t + 0.6, 4, 4, 1); top.translate(0, Y1 + 2, 0); B.geo('staal', top);
+    B.cil('staal', 3.6, 3.6, 8, 0, Y1 + 4, 0, 12); B.cil('staal', 1.4, 0.5, 112, 0, Y1 + 12, 0, 8); for (let y = Y1 + 20; y < Y1 + 110; y += 14) B.cil('wit', 2.2, 2.2, 0.8, 0, y, 0, 10); B.bol('lampjes', 0.9, 0, 541, 0, 8);
+    return { G: B.groep(), bots: [['doos', 0, 0, 30.5, 30.5, 0, Y0], ['cil', 0, 0, 38, Y0, 180], ['cil', 0, 0, 34, 180, 320], ['cil', 0, 0, 31, 320, Y1 + 4], ['cil', 0, 0, 1.5, Y1 + 4, 541]], rust: [[0, Y1 + 4.3, 0, 'het dak van One World Trade Center']] };
+  };
+  // De Oculus: een witte hal met stalen ribben die als vleugels omhoog steken
+  MODEL_N.oculus = () => {
+    const B = Mod(), L = 55, R = 16;
+    const hal = new THREE.SphereGeometry(1, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2); hal.scale(L, 14, R); B.geo('wit', hal);
+    B.doos('glas', 2 * L * 0.92, 0.6, 3, 0, 13.2, 0);
+    for (let i = -13; i <= 13; i++) { const x = i * 4, f = 1 - Math.abs(i) / 15, h = 22 + 26 * f, z0 = R * Math.sqrt(Math.max(0, 1 - (x / L) * (x / L))); for (const k of [-1, 1]) { B.balk('wit', V(x * 0.97, 1, k * Math.max(2, z0 * 0.9)), V(x * 1.12, h, k * (z0 * 0.6 + 4 + 14 * f)), 0.9); } }
+    return { G: B.groep(), bots: [['doos', 0, 0, L, R, 0, 14], ['doos', 0, -14, L * 0.7, 6, 14, 46], ['doos', 0, 14, L * 0.7, 6, 14, 46]], rust: [[0, 14.3, 0, 'het dak van de Oculus']] };
+  };
+  // Het Vrijheidsbeeld: een groen koperen beeld in een gewaad met plooien, de rechterarm omhoog met de vergulde fakkel, links de tablet tegen het lichaam,
+  // het hoofd met de kroon met zeven stralen; op een granieten sokkel met loggia's, op het stervormige Fort Wood
+  M.vrijheid = mat('#7FB7A1', { roughness: 0.6, metalness: 0.15 }, 'koper'); M.sokkel = mat('#B9AE9B', { roughness: 0.9 }, 'steen');
+  MODEL_N.vrijheid = () => {
+    const B = Mod(), ster = new THREE.Shape(), G = 'vrijheid';
+    for (let i = 0; i < 22; i++) { const a = i / 22 * Math.PI * 2, r = i % 2 ? 31 : 46; if (i) ster.lineTo(Math.cos(a) * r, Math.sin(a) * r); else ster.moveTo(r, 0); }
+    const fort = new THREE.ExtrudeGeometry(ster, { depth: 8, bevelEnabled: false }); fort.rotateX(-Math.PI / 2); B.geo('oud', fort);
+    B.doos('sokkel', 28, 4, 28, 0, 8, 0); B.cil('sokkel', 13.8, 11.2, 21, 0, 12, 0, 4, Math.PI / 4); B.doos('sokkel', 17.4, 2, 17.4, 0, 33, 0);
+    B.cil('sokkel', 9.6, 9, 10, 0, 35, 0, 4, Math.PI / 4); for (const k of [-1, 1]) for (const as of [0, 1]) for (const dx of [-3.4, 0, 3.4]) { if (as) B.doos('donker', 0.4, 5, 1.6, k * 6.6, 37, dx); else B.doos('donker', 1.6, 5, 0.4, dx, 37, k * 6.6); }
+    for (const k of [-1, 1]) for (const as of [0, 1]) for (const dx of [-5.1, -1.7, 1.7, 5.1]) { if (as) B.cil('sokkel', 0.45, 0.45, 5.4, k * 6.75, 36.8, dx, 8); else B.cil('sokkel', 0.45, 0.45, 5.4, dx, 36.8, k * 6.75, 8); }
+    B.doos('sokkel', 14.2, 1.2, 14.2, 0, 45, 0); B.doos('sokkel', 13, 0.9, 13, 0, 46.2, 0);
+    const y0 = 47.1;
+    // het gewaad: een draaivorm met plooien, van voren naar achteren iets platter
+    const prof = [[0, 0], [5.6, 0], [5.3, 4], [4.8, 10], [4.2, 16], [3.8, 20], [3.6, 23], [3.9, 25.5], [3.3, 27], [1.4, 28], [1.1, 29]].map(([r, y]) => new THREE.Vector2(r, y));
+    const kleed = new THREE.LatheGeometry(prof, 36), pk = kleed.attributes.position;
+    for (let i = 0; i < pk.count; i++) { const x = pk.getX(i), y = pk.getY(i), z = pk.getZ(i), a = Math.atan2(z, x), f = 1 + 0.06 * Math.sin(a * 13 + y * 0.15) * Math.max(0, 1 - y / 24); pk.setXYZ(i, x * f, y + y0, z * f * 0.78); }
+    kleed.computeVertexNormals(); B.geo(G, kleed);
+    B.balk(G, V(-3.4, y0 + 14, 0.6), V(3.2, y0 + 25, -0.4), 1.2);   // de sjerp over de borst
+    B.cil(G, 1.2, 0.9, 2.2, 0, y0 + 28, 0, 12);   // de hals
+    const kop = new THREE.SphereGeometry(2.1, 16, 12); kop.scale(0.92, 1.12, 1); kop.translate(0, y0 + 31.4, -0.2); B.geo(G, kop);
+    B.doos(G, 0.7, 0.9, 0.9, 0, y0 + 31.2, -2.25); B.cil(G, 2.25, 2.25, 0.9, 0, y0 + 32.6, -0.2, 18);
+    for (let i = 0; i < 7; i++) { const a = -Math.PI / 2 + (i - 3) * 0.4, c = Math.cos(a), s = Math.sin(a); B.balk(G, V(c * 2.1, y0 + 33.2, -0.2 + s * 2.1), V(c * 5.4, y0 + 35.2 + (i === 3 ? 0.4 : 0), -0.2 + s * 5.4), 0.38); }
+    // de rechterarm omhoog met de fakkel
+    B.balk(G, V(3.2, y0 + 25.6, 0.2), V(4.0, y0 + 33.5, 0.7), 1.9); B.balk(G, V(4.0, y0 + 33.5, 0.7), V(4.5, y0 + 40.6, 0.9), 1.3); B.bol(G, 0.9, 4.5, y0 + 40.8, 0.9, 8);
+    B.cil(G, 0.45, 0.6, 2.8, 4.55, y0 + 41.2, 0.9, 8); B.cil('goud', 1.55, 0.9, 1.4, 4.55, y0 + 44, 0.9, 14); B.cil('goud', 1.65, 1.65, 0.3, 4.55, y0 + 45.3, 0.9, 14);
+    B.kegel('lampjes', 1.1, 2.2, 4.55, y0 + 45.5, 0.9, 10);
+    // de linkerarm, gebogen, met de tablet tegen het lichaam
+    B.balk(G, V(-3.3, y0 + 25.2, 0), V(-4.0, y0 + 19.2, -0.6), 1.5); B.balk(G, V(-4.0, y0 + 19.2, -0.6), V(-3.4, y0 + 22, -2.6), 1.1);
+    const tab = new THREE.BoxGeometry(1.1, 7.2, 4.2); tab.rotateX(-0.25); tab.rotateZ(0.12); tab.translate(-4.5, y0 + 20.5, -1.4); B.geo(G, tab);
+    B.cil(G, 5.9, 5.9, 0.6, 0, y0 - 0.3, 0, 24);
+    return { G: B.groep(), bots: [['cil', 0, 0, 45, 0, 8], ['doos', 0, 0, 14, 14, 8, 33], ['doos', 0, 0, 8.7, 8.7, 33, y0], ['cil', 0, 0, 5.4, y0, y0 + 26], ['cil', 0, 0, 3, y0 + 26, y0 + 34], ['cil', 4.4, 0.8, 1.6, y0 + 34, y0 + 46.5]],
+      rust: [[4.55, y0 + 47.8, 0.9, 'de fakkel van het Vrijheidsbeeld'], [0, y0 + 35.6, -0.2, 'de kroon van het Vrijheidsbeeld'], [5, 47.3, 5, 'de sokkel van het Vrijheidsbeeld']] };
+  };
+  // Ellis Island: het hoofdgebouw van rode baksteen met witte randen, vier torens met koperen koepels en drie grote boogramen
+  MODEL_N.ellis = () => {
+    const B = Mod(), P = 'baksteen';
+    B.doos(P, 112, 22, 52, 0, 0, -4); B.doos('leien', 110, 3, 50, 0, 22, -4); for (const y of [8, 15, 21]) B.doos('creme', 112.6, 0.8, 52.6, 0, y, -4);
+    for (const k of [-1, 1]) ramen(B, 'zwartglas', -52, 52, -4 + k * 26.05, k, 3, 20, 24, 3, 2.6, 1.3);
+    for (let i = -1; i <= 1; i++) { const g = new THREE.CylinderGeometry(4.2, 4.2, 0.5, 16, 1, false, -Math.PI / 2, Math.PI); g.rotateX(Math.PI / 2); g.translate(i * 12, 15, 22.3); B.geo('zwartglas', g); B.doos('zwartglas', 8.4, 8, 0.5, i * 12, 7, 22.3); }
+    for (const [x, z] of [[-26, 22], [26, 22], [-26, -30], [26, -30]]) { B.doos('creme', 8, 32, 8, x, 0, z); B.doos(P, 7.4, 30, 7.4, x, 1, z); B.cil('koper', 4.6, 4.6, 2, x, 32, z, 12); B.koepel('koper', 4.6, 1.4, x, 34, z, 12); B.cil('koper', 0.9, 0.5, 4, x, 40.3, z, 8); B.kegel('koper', 0.5, 2, x, 44.3, z, 6); }
+    return { G: B.groep(), bots: [['doos', 0, -4, 56, 26, 0, 25], ['cil', -26, 22, 4.6, 0, 46], ['cil', 26, 22, 4.6, 0, 46], ['cil', -26, -30, 4.6, 0, 46], ['cil', 26, -30, 4.6, 0, 46]],
+      rust: [[-26, 46.3, 22, 'een koperen torentje van Ellis Island'], [0, 25.2, -4, 'het dak van het hoofdgebouw van Ellis Island']] };
+  };
+  const PLAATS_N = {
+    empire: [0, 0, 29], chrysler: [869, -353, 29], wtc: [-2321, 3936, 27.3], oculus: [-2172, 4097, 38.1], vrijheid: [-4962, 6573, 135], ellis: [-4539, 5475, 44.1],
+    brooklynbrug: [-947, 4702, 45], manhattanbrug: [-415, 4591, 66], williamsburg: [1152, 3875, 21], queensboro: [2639, -929, 30],
+    timessquare: [-74, -861, 29], flatiron: [-336, 826, 29.2], rockefeller: [508, -1190, 29.3], grandcentral: [707, -468, 29.2], vessel: [-1391, -596, 57.8], washington: [-965, 1911, 32.5],
+    vn: [1481, -54, 28.7], stpatrick: [788, -1125, 28.5], guggenheim: [2258, -3837, 29.1], msg: [-660, -232, 29.1], beurs: [-2154, 4599, 26.2], woolworth: [-1910, 3997, 31.4],
+    intrepid: [-1283, -1814, 25.5], highline: [-1650, 0, 0], littleisland: [-2078, 721, 22], seaport: [-1401, 4741, 30],
+  };
+  // ---- de bruggen over de East River: het dek tekent de kaart (hoog boven het water); hier de torens, kabels en het vakwerk, gemeten langs het echte dek
+  const nyBrug = (id, re) => {
+    const [X0, Z0, hg] = PLAATS_N[id], h = hg * Math.PI / 180, c = Math.cos(h), s = Math.sin(h), W = lx => [X0 + lx * c, Z0 + lx * s];
+    const br = AK.W.bruggen.find(b => re.test(b.naam || '')), dek = (x, z) => (br ? br.dekOp(x, z) : AK.hoogteM(x, z)), basis = dek(X0, Z0) + 0.3;
+    const yd = lx => { const [x, z] = W(lx); return dek(x, z) + 0.3 - basis; }, yg = lx => { const [x, z] = W(lx), w = AK.waterPeil(x, z); return (w !== null ? w : AK.hoogteM(x, z)) - basis; };
+    const stukken = []; for (let lx = -1000; lx <= 1000; lx += 2) { const [x, z] = W(lx); if (AK.isWater(x, z)) { const l = stukken[stukken.length - 1]; if (l && lx - l[1] <= 6) l[1] = lx; else stukken.push([lx, lx]); } }
+    const sO = br ? (X0 - br.cx) * br.ux + (Z0 - br.cz) * br.uz : 0;
+    return { yd, yg, stukken: stukken.filter(q => q[1] - q[0] > 40), e0: br ? br.s0 - sO : -500, e1: br ? br.s1 - sO : 500 };
+  };
+  // een hangbrug: twee torens, kabels met een doorhang, hangers, (bij de Brooklyn Bridge) schuine tuien, ankerblokken op het land en eventueel vakwerk langs het dek
+  const hangbrug = (K, o) => {
+    const B = Mod(), bots = [], rust = [], [ta, tb] = o.torens, tm = (ta + tb) / 2, half = (tb - ta) / 2, yw = K.yg(ta), ytop = yw + o.H, b2 = o.breed / 2;
+    for (const tx of [ta, tb]) {
+      if (o.stijl === 'steen') {
+        const sh = new THREE.Shape(); sh.moveTo(-20, yw - 2); sh.lineTo(20, yw - 2); sh.lineTo(20, ytop - 2); sh.lineTo(-20, ytop - 2); sh.closePath();
+        const yd = K.yd(tx);
+        for (const zc of [-7.4, 7.4]) { const g = new THREE.Path(), w = 5.3, s0 = yd + 21, ap = yd + 33, n = 10; g.moveTo(zc - w, yd); g.lineTo(zc - w, s0); for (let i = 1; i <= n; i++) { const t = i / n; g.lineTo(zc - w + w * Math.sin(t * Math.PI / 2) * 1.0, s0 + (ap - s0) * Math.sin(t * Math.PI / 2) * (0.6 + 0.4 * t)); } for (let i = n - 1; i >= 0; i--) { const t = i / n; g.lineTo(zc + w - w * Math.sin(t * Math.PI / 2), s0 + (ap - s0) * Math.sin(t * Math.PI / 2) * (0.6 + 0.4 * t)); } g.lineTo(zc + w, yd); g.closePath(); sh.holes.push(g); }
+        const toren = new THREE.ExtrudeGeometry(sh, { depth: 16, bevelEnabled: false }); toren.translate(0, 0, -8); toren.rotateY(Math.PI / 2); toren.translate(tx, 0, 0); B.geo('nygraniet', toren);
+        B.doos('nygraniet', 19, 2.2, 43, tx, ytop - 2, 0); B.doos('nygraniet', 17, 1.2, 41, tx, ytop + 0.2, 0); B.doos('nygraniet', 22, 6, 46, tx, yw - 3, 0);
+        for (const k of [-1, 1]) bots.push(['doos', tx, k * 16.3, 8, 3.8, yw - 3, ytop + 1.4]); bots.push(['doos', tx, 0, 8, 2.2, yw - 3, ytop + 1.4], ['doos', tx, 0, 8, 20, yd + 33, ytop + 1.4]);
+        rust.push([tx, ytop + 1.6, 0, 'een stenen toren van de Brooklyn Bridge']);
+      } else {
+        const m = o.toren, poot = o.stijl === 'vakwerk' ? 3.2 : 4.2;
+        for (const k of [-1, 1]) { B.doos(m, poot, ytop - yw + 3, poot * 1.4, tx, yw - 3, k * (b2 + 1)); bots.push(['doos', tx, k * (b2 + 1), poot / 2 + 0.5, poot * 0.7 + 0.5, yw - 3, ytop + 3]); }
+        B.doos('beton', 14, 6, o.breed + 10, tx, yw - 4, 0);
+        for (const y of [K.yd(tx) - 3, (K.yd(tx) + ytop) / 2, ytop - 2]) B.doos(m, poot * 0.9, 2.2, o.breed + 2, tx, y, 0);
+        if (o.stijl === 'vakwerk') { for (let y = yw; y < ytop - 6; y += 9) for (const k of [-1, 1]) { B.balk(m, V(tx, y, k * (b2 + 1)), V(tx, y + 9, -k * (b2 + 1)), 0.5); B.balk(m, V(tx - 1.6, y, k * (b2 + 1)), V(tx - 1.6, y + 9, k * (b2 + 1)), 0.4); } }
+        else { const g = new THREE.TorusGeometry(b2 - 1, 1.1, 6, 18, Math.PI); g.rotateY(Math.PI / 2); g.translate(tx, ytop - 10, 0); B.geo(m, g); }
+        for (const k of [-1, 1]) { B.cil(m, 1.6, 1.0, 3, tx, ytop + 0.2, k * (b2 + 1), 8); B.bol(m, 1.0, tx, ytop + 3.6, k * (b2 + 1), 8); }
+        rust.push([tx, ytop + 4.8, b2 + 1, 'de top van een toren van de ' + o.naam]);
+      }
+    }
+    // de kabels: in de grote overspanning een doorhang, daarbuiten schuin naar de ankerblokken
+    const laag = K.yd(tm) + (o.stijl === 'steen' ? 2.5 : 4), kab = x => laag + (ytop - 2.5 - laag) * Math.pow((x - tm) / half, 2);
+    const a0 = K.e0 + 22, a1 = K.e1 - 22;
+    for (const az of [a0, a1]) { const ya = K.yg(az), yt = K.yd(az) + 6; B.doos(o.stijl === 'steen' ? 'nygraniet' : 'beton', 30, yt - ya + 1, o.breed + 8, az, ya - 1, 0); }
+    for (const z of o.kabels) {
+      let vorige = null; for (let i = 0; i <= 40; i++) { const x = ta + (tb - ta) * i / 40, p = V(x, kab(x), z); if (vorige) B.balk(o.kabel, vorige, p, 0.55); vorige = p; }
+      for (const [t0, a] of [[ta, a0], [tb, a1]]) { let v = V(t0, ytop - 2.5, z); for (let i = 1; i <= 8; i++) { const f = i / 8, x = t0 + (a - t0) * f, y = ytop - 2.5 + (K.yd(a) + 6 - ytop + 2.5) * f - 6 * f * (1 - f), p = V(x, y, z); B.balk(o.kabel, v, p, 0.55); if (o.zijHang) for (let q = 0; q < 2; q++) { const xx = x - (a - t0) / 16 * q, yy = y + (q ? 0.3 : 0); if (Math.abs(xx - t0) > 6) B.balk('donker', V(xx, yy, z), V(xx, K.yd(xx) + 0.6, z), 0.14); } v = p; } }
+      for (let x = ta + 8; x < tb - 4; x += 8) B.balk('donker', V(x, kab(x), z), V(x, K.yd(x) + 0.6, z), 0.14);
+      if (o.tuien) for (const t0 of [ta, tb]) for (const k of [-1, 1]) for (let i = 1; i <= 11; i++) B.balk('kabel', V(t0 + k * 2, ytop - 8, z), V(t0 + k * (6 + i * 10), K.yd(t0 + k * (6 + i * 10)) + 0.6, z), 0.1);
+    }
+    // vakwerk langs het dek: onder het dek (Manhattan Bridge) of erboven (Williamsburg Bridge)
+    if (o.vakwerk) for (const k of [-1, 1]) { const z = k * (b2 - 0.5), [d0, d1] = o.vakwerk; let vB = null, vO = null;
+      for (let x = ta - 140; x <= tb + 140; x += 12) { const yb = K.yd(x) + d0, yo = K.yd(x) + d1, pB = V(x, yb, z), pO = V(x, yo, z); if (vB) { B.balk(o.toren, vB, pB, 0.7); B.balk(o.toren, vO, pO, 0.7); B.balk(o.toren, (x / 12) % 2 ? vB : vO, (x / 12) % 2 ? pO : pB, 0.4); } B.balk(o.toren, pB, pO, 0.45); vB = pB; vO = pO; } }
+    return { G: B.groep(), bots, rust };
+  };
+  MODEL_N.brooklynbrug = () => { const K = nyBrug('brooklynbrug', /^brooklyn bridge$/i), w = K.stukken[0] || [-300, 200]; return hangbrug(K, { naam: 'Brooklyn Bridge', stijl: 'steen', torens: [w[0] + 38, w[1] - 38], H: 84, breed: 26, kabels: [-12.4, -4.2, 4.2, 12.4], kabel: 'kabel', tuien: true, zijHang: true }); };
+  MODEL_N.brooklynbrug.opBrug = true;
+  MODEL_N.manhattanbrug = () => { const K = nyBrug('manhattanbrug', /^manhattan bridge$/i), w = K.stukken[0] || [-400, 170]; return hangbrug(K, { naam: 'Manhattan Bridge', stijl: 'staal', toren: 'nyblauw', torens: [w[0] + 70, w[1] - 70], H: 102, breed: 36, kabels: [-17.5, -15.5, 15.5, 17.5], kabel: 'nyblauw', zijHang: true, vakwerk: [-8.5, -2.4] }); };
+  MODEL_N.manhattanbrug.opBrug = true;
+  MODEL_N.williamsburg = () => { const K = nyBrug('williamsburg', /^williamsburg bridge$/i), w = K.stukken[0] || [-260, 300]; return hangbrug(K, { naam: 'Williamsburg Bridge', stijl: 'vakwerk', toren: 'ijzer', torens: [w[0] + 42, w[1] - 42], H: 102, breed: 36, kabels: [-17.5, -15, 15, 17.5], kabel: 'ijzer', vakwerk: [-2.4, 9] }); };
+  MODEL_N.williamsburg.opBrug = true;
+  // De Queensboro Bridge: een stalen vakwerkbrug met vier pijlers en torentjes met spitsen, over de twee armen van de East River en Roosevelt Island
+  MODEL_N.queensboro = () => {
+    const K = nyBrug('queensboro', /queensboro bridge$/i), B = Mod(), bots = [], st = K.stukken.length >= 2 ? K.stukken : [[-390, -104], [116, 350]];
+    const P = [st[0][0] - 6, st[0][1] + 6, st[st.length - 1][0] - 6, st[st.length - 1][1] + 6];
+    for (const px of P) { const yw = K.yg(px), yd = K.yd(px); B.doos('nygraniet', 16, yd - yw, 34, px, yw - 1, 0);
+      for (const k of [-1, 1]) for (const kk of [-1, 1]) { B.doos('ijzer', 2.2, 52, 2.2, px + kk * 5, yd, k * 13.5); B.kegel('ijzer', 1.4, 10, px + kk * 5, yd + 52, k * 13.5, 4); }
+      for (const y of [yd + 20, yd + 40, yd + 50]) for (const k of [-1, 1]) B.doos('ijzer', 12, 1.5, 1.5, px, y, k * 13.5);
+      B.doos('ijzer', 1.5, 1.5, 28.5, px - 5, yd + 50, 0); B.doos('ijzer', 1.5, 1.5, 28.5, px + 5, yd + 50, 0);
+      bots.push(['doos', px, 0, 6.2, 15, yw - 1, yd + 52]); }
+    const piek = x => { let d = 1e9; for (const p of P) d = Math.min(d, Math.abs(x - p)); return 9 + 36 * Math.pow(Math.max(0, 1 - d / 140), 1.4); };
+    for (const k of [-1, 1]) { const z = k * 13.5; let vB = null, vO = null, i = 0;
+      for (let x = P[0] - 150; x <= P[3] + 150; x += 12, i++) { const yb = K.yd(x) - 2.4, yo = K.yd(x) + piek(x), pB = V(x, yb, z), pO = V(x, yo, z); if (vB) { B.balk('ijzer', vB, pB, 0.8); B.balk('ijzer', vO, pO, 0.9); B.balk('ijzer', i % 2 ? vB : vO, i % 2 ? pO : pB, 0.45); } B.balk('ijzer', pB, pO, 0.5); if (i % 2) B.balk('ijzer', V(x, yo, z), V(x, yo, -z), 0.35); vB = pB; vO = pO; } }
+    return { G: B.groep(), bots, rust: P.slice(1, 3).map(px => [px + 5, K.yd(px) + 62.2, 13.5, 'een torentje van de Queensboro Bridge']) };
+  };
+  MODEL_N.queensboro.opBrug = true;
+  // Times Square: One Times Square, helemaal bedekt met lichtschermen, en de rode trappen
+  MODEL_N.timessquare = () => {
+    const B = Mod(); B.doos('kalk', 26, 111, 20, 0, 0, 0); B.doos('scherm', 26.6, 70, 20.6, 0, 18, 0); B.doos('scherm', 22, 14, 20.8, 0, 94, 0); B.cil('staal', 1.2, 0.8, 8, 0, 111, 0, 8); B.bol('kroonlicht', 2.2, 0, 120, 0, 12);
+    for (const [x, z, w, h, y] of [[-40, -60, 30, 22, 12], [38, -120, 26, 30, 16], [-42, -170, 24, 26, 10], [30, -220, 30, 20, 20]]) B.doos('scherm', w, h, 1.2, x, y, z, (x > 0 ? -1 : 1) * 0.5);
+    const tx = -30, tz = -340; for (let i = 0; i < 12; i++) B.doos('nyrood', 18, 0.4, 2.2, tx, i * 0.4, tz - 10 + i * 1.6); B.doos('scherm', 18, 4, 0.5, tx, 0, tz + 10);
+    return { G: B.groep(), bots: [['doos', 0, 0, 13.3, 10.3, 0, 111], ['cil', 0, 0, 2.2, 111, 122]], rust: [[0, 122.3, 0, 'de bal op het dak van One Times Square'], [tx, 5.2, tz + 6, 'de rode trappen op Times Square']] };
+  };
+  // Het Flatiron Building: een driehoekig gebouw van lichte terracotta met een ronde punt, rijen ramen en een zware kroonlijst
+  MODEL_N.flatiron = () => {
+    const B = Mod(), O = [[-10.0, 19.8], [-7.4, 21.7], [15.7, 21.8], [17.2, 21.3], [18.4, 19.3], [-3.1, -31.7], [-4.5, -33.2], [-5.9, -33.7], [-8.3, -33.2], [-10.4, -30.5], [-10.5, 18.0]];
+    const vorm = (sc, y0, h, m) => { const s = new THREE.Shape(); O.forEach(([x, z], i) => i ? s.lineTo(x * sc, -z * sc) : s.moveTo(x * sc, -z * sc)); const g = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); g.translate(0, y0, 0); B.geo(m, g); };
+    vorm(1, 0, 84, 'creme'); vorm(1.03, 6, 1.2, 'kalk'); vorm(1.05, 80, 2.2, 'kalk'); vorm(0.98, 84, 2.8, 'creme');
+    for (let y = 10; y < 80; y += 3.6) vorm(1.008, y, 1.8, 'zwartglas');
+    for (let y = 10; y < 80; y += 3.6) vorm(1.012, y + 0.2, 1.4, 'creme');
+    return { G: B.groep(), bots: [['doos', 4, 4, 11, 15, 0, 87], ['doos', -6, -24, 5, 10, 0, 87]], rust: [[-6.5, 87.1, -27, 'de punt van het Flatiron Building'], [4, 87.1, 10, 'het dak van het Flatiron Building']] };
+  };
+  // Rockefeller Center: de schaatsbaan met het gouden beeld van Prometheus en een ring van vlaggen (de toren zelf komt uit de kaart)
+  MODEL_N.rockefeller = () => {
+    const B = Mod(), x = 104; B.doos('grijs', 38, 0.6, 24, x, -3.2, 0); B.doos('wit', 36, 0.4, 22, x, -3.0, 0); for (const k of [-1, 1]) B.doos('grijs', 40, 3.2, 1, x, -3.2, k * 12.5); B.doos('grijs', 1, 3.2, 26, x + 20, -3.2, 0);
+    B.doos('goud', 2, 2.4, 3, x - 14, -2.6, 0); B.bol('goud', 0.9, x - 14, 0.6, -0.5, 8); B.balk('goud', V(x - 14, -0.4, 1.2), V(x - 14.6, 1.4, 2.4), 0.5); B.cil('goud', 0.2, 0.2, 7, x - 16, -3, 0, 6); void 0;
+    return { G: B.groep(), bots: [], rust: [[35.8, 260.3, 0.3, 'het uitkijkterras bovenop Rockefeller Center']], vlaggen: [[x - 18, 6, -12], [x - 18, 6, 12], [x - 8, 6, -13], [x - 8, 6, 13], [x + 4, 6, -13], [x + 4, 6, 13]] };
+  };
+  // Grand Central Terminal: de gevel aan 42nd Street met drie grote boogramen, zuilen, de klok en een beeldengroep, met erachter de grote hal
+  MODEL_N.grandcentral = () => {
+    const B = Mod(), F = 52;
+    B.doos('kalk', 92, 30, 104, 0, 0, 0); B.doos('kalk', 70, 8, 90, 0, 30, -4); B.doos('koper', 68, 0.6, 88, 0, 38, -4);
+    for (let i = -1; i <= 1; i++) { const g = new THREE.CylinderGeometry(7, 7, 0.5, 18, 1, false, -Math.PI / 2, Math.PI); g.rotateX(Math.PI / 2); g.translate(i * 22, 17, F + 0.1); B.geo('zwartglas', g); B.doos('zwartglas', 14, 13, 0.5, i * 22, 4, F + 0.1); for (let k = 1; k < 4; k++) B.doos('kalk', 0.4, 20, 0.7, i * 22 - 7 + k * 3.5, 4, F + 0.3); }
+    B.zuilenRij('kalk', 8, 1.1, 22, -36, F + 1.5, 36, F + 1.5, 4); B.doos('kalk', 92, 3, 3, 0, 26, F + 1); B.doos('kalk', 70, 3, 2, 0, 29, F + 0.5);
+    B.doos('kalk', 26, 10, 3, 0, 30, F + 0.5); schijf(B, 'goud', 2.4, 0, 34, F + 2.4, 0); schijf(B, 'wit', 1.9, 0, 34, F + 2.6, 0); for (const k of [-1, 0, 1]) B.doos('groenbrons', 2.2, 7, 2, k * 5, 38, F); B.bol('groenbrons', 1.4, 0, 46, F, 8);
+    for (const k of [-1, 1]) ramenZ(B, 'zwartglas', -40, 40, k * 46.05, 6, 26, 10, 2, 5, 3);
+    return { G: B.groep(), bots: [['doos', 0, 0, 46, 52, 0, 30], ['doos', 0, -4, 35, 45, 30, 38.6], ['doos', 0, F, 13, 2, 30, 47]], rust: [[0, 47.6, F, 'de beeldengroep bovenop Grand Central'], [0, 38.9, -4, 'het dak van Grand Central']] };
+  };
+  // The Vessel: een koperkleurige honingraat van trappen, als een kom die naar boven breder wordt
+  MODEL_N.vessel = () => {
+    const B = Mod(), H = 45.7, n = 16, r = y => 7.5 + y / H * 15.5;
+    for (let k = 0; k < n; k++) { const y0 = k * H / n, y1 = (k + 1) * H / n; for (let i = 0; i < 16; i++) { const a = (i + (k % 2) * 0.5) / 16 * Math.PI * 2, b = a + Math.PI * 2 / 32, c = a - Math.PI * 2 / 32;
+      B.balk('vessel', V(Math.cos(a) * r(y0), y0, Math.sin(a) * r(y0)), V(Math.cos(b) * r(y1), y1, Math.sin(b) * r(y1)), 0.9); B.balk('vessel', V(Math.cos(a) * r(y0), y0, Math.sin(a) * r(y0)), V(Math.cos(c) * r(y1), y1, Math.sin(c) * r(y1)), 0.9); } }
+    for (let k = 1; k <= n; k += 3) B.geo('vessel', new THREE.TorusGeometry(r(k * H / n), 0.3, 4, 32).rotateX(Math.PI / 2).translate(0, k * H / n, 0));
+    B.cil('grijs', 8, 8, 0.4, 0, 0, 0, 24);
+    return { G: B.groep(), bots: [['cil', 0, 0, 13, 0, 22], ['cil', 0, 0, 20, 22, H]], rust: [[r(H) - 1, H + 0.3, 0, 'de bovenste trap van The Vessel']] };
+  };
+  // De boog op Washington Square: wit marmer, met een grote boog en een kroonlijst
+  MODEL_N.washington = () => {
+    const B = Mod(), s = new THREE.Shape(); s.moveTo(-9.3, 0); s.lineTo(9.3, 0); s.lineTo(9.3, 23.5); s.lineTo(-9.3, 23.5); s.closePath();
+    const g = new THREE.Path(); g.moveTo(-4.4, 0); g.lineTo(-4.4, 11.5); g.absarc(0, 11.5, 4.4, Math.PI, 0, true); g.lineTo(4.4, 0); g.closePath(); s.holes.push(g);
+    const geo = new THREE.ExtrudeGeometry(s, { depth: 6.1, bevelEnabled: false }); geo.translate(0, 0, -3.05); B.geo('wit', geo);
+    B.doos('wit', 19.4, 1, 6.6, 0, 17, 0); B.doos('wit', 19.6, 1.2, 6.8, 0, 22.3, 0); for (const k of [-1, 1]) { B.doos('wit', 2.4, 7, 1.2, k * 6.8, 2, 3.5); B.doos('wit', 2.4, 7, 1.2, k * 6.8, 2, -3.5); }
+    B.cil('grijs', 10, 10, 0.6, 0, 0, -45, 24); B.cil('water', 9.4, 9.4, 0.65, 0, 0, -45, 24);
+    return { G: B.groep(), bots: [['doos', -6.85, 0, 2.45, 3.05, 0, 23.5], ['doos', 6.85, 0, 2.45, 3.05, 0, 23.5], ['doos', 0, 0, 9.3, 3.05, 15.9, 23.5]], rust: [[0, 23.8, 0, 'de boog op Washington Square']], fonteinen: [[0, 0.6, -45, 4]] };
+  };
+  // De Verenigde Naties: het Secretariaat (een smalle glazen schijf met marmeren zijkanten) en de Algemene Vergadering met een koepeltje
+  MODEL_N.vn = () => {
+    const B = Mod();
+    B.doos('wtcglas', 21.6, 154, 88, 0, 0, 0); for (const k of [-1, 1]) B.doos('wit', 22.2, 155, 1.2, 0, 0, k * 44.4); for (let y = 12; y < 150; y += 36) B.doos('grijs', 22, 3.5, 88.2, 0, y, 0);
+    const ga = new THREE.CylinderGeometry(1, 1, 1, 4, 1); void ga;
+    B.doos('wit', 60, 22, 100, -34, 0, -130); B.doos('wit', 56, 6, 70, -34, 22, -130); B.koepel('koper', 12, 0.5, -34, 28, -130, 20); B.doos('zwartglas', 0.4, 16, 60, -34 + 30.1, 3, -130);
+    B.doos('wit', 30, 12, 120, 30, 0, -60);
+    return { G: B.groep(), bots: [['doos', 0, 0, 11, 44.5, 0, 155], ['doos', -34, -130, 30, 50, 0, 28], ['doos', 30, -60, 15, 60, 0, 12]], rust: [[0, 155.2, 0, 'het dak van het Secretariaat van de VN'], [-34, 34.2, -130, 'de koepel van de Algemene Vergadering']] };
+  };
+  // St. Patrick's Cathedral: een gotische kerk van wit marmer met twee spitse torens aan Fifth Avenue
+  MODEL_N.stpatrick = () => {
+    const B = Mod(), m = 'wit';
+    B.doos(m, 94, 30, 34, 7, 0, 0); B.zadel('leien', 94, 34, 12, 7, 30, 0); B.doos(m, 30, 30, 56, 20, 0, 0); B.zadel('leien', 56, 30, 12, 20, 30, 0, Math.PI / 2);
+    for (let x = -36; x <= 50; x += 7) for (const k of [-1, 1]) { if (Math.abs(x - 20) < 16) continue; B.doos(m, 2, 26, 3, x, 0, k * 18); B.kegel(m, 0.9, 6, x, 26, k * 18, 4); }
+    for (const k of [-1, 1]) ramen(B, 'zwartglas', -34, 50, k * 17.05, k, 8, 28, 12, 1, 14, 2.4);
+    for (const k of [-1, 1]) { B.doos(m, 14, 50, 14, -33, 0, k * 11); B.cil(m, 6.5, 6.5, 6, -33, 50, k * 11, 8); B.kegel(m, 6.6, 45, -33, 56, k * 11, 8); for (const [dx, dz] of [[-6, -6], [6, -6], [-6, 6], [6, 6]]) B.kegel(m, 1, 8, -33 + dx, 50, k * 11 + dz, 4); B.kegel('goud', 0.3, 3, -33, 100.5, k * 11, 6); }
+    B.doos('zwartglas', 0.5, 20, 9, -40.1, 6, 0); const r = new THREE.CylinderGeometry(4, 4, 0.5, 16); r.rotateZ(Math.PI / 2); r.translate(-40.2, 32, 0); B.geo('zwartglas', r);
+    return { G: B.groep(), bots: [['doos', 7, 0, 47, 17, 0, 40], ['doos', 20, 0, 15, 28, 0, 40], ['doos', -33, -11, 7, 7, 0, 56], ['doos', -33, 11, 7, 7, 0, 56], ['cil', -33, -11, 3.5, 56, 101], ['cil', -33, 11, 3.5, 56, 101]],
+      rust: [[-33, 101.6, -11, 'een torenspits van St. Patrick\'s'], [7, 42.2, 0, 'het dak van St. Patrick\'s']] };
+  };
+  // Het Guggenheim Museum: een witte spiraal die naar boven breder wordt, met een glazen koepel, een kleiner rond gebouw en de toren erachter
+  MODEL_N.guggenheim = () => {
+    const B = Mod(), rz = 10;
+    for (let i = 0; i < 6; i++) { const rb = 15 + i * 1.4, rt = rb + 1.4; B.cil('wit', rb, rt, 3.6, 0, i * 4.6, rz, 40); B.cil('zwartglas', rb - 0.3, rb - 0.3, 1.0, 0, i * 4.6 + 3.6, rz, 40); }
+    B.koepel('glas', 13, 0.3, 0, 27.6, rz, 24); for (let a = 0; a < 12; a++) B.balk('wit', V(0, 31.5, rz), V(Math.cos(a / 12 * 6.283) * 13, 27.6, rz + Math.sin(a / 12 * 6.283) * 13), 0.25);
+    B.cil('wit', 9, 10, 14, 0, 0, -20, 32); B.doos('wit', 34, 4, 10, 0, 0, -6); B.doos('kalk', 22, 3, 14, 6, 14, -22);
+    return { G: B.groep(), bots: [['cil', 0, rz, 22, 0, 28], ['cil', 0, -20, 10, 0, 14]], rust: [[0, 31.8, rz, 'de glazen koepel van het Guggenheim'], [0, 14.2, -20, 'het kleine ronde gebouw van het Guggenheim']] };
+  };
+  // Madison Square Garden: een ronde zaal met witte ribben en een donkere band bovenaan
+  MODEL_N.msg = () => {
+    const B = Mod();
+    B.cil('beton', 62, 62, 40, 0, 0, 0, 48); B.cil('donker', 62.4, 62.4, 5, 0, 36, 0, 48); for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; B.doos('wit', 1.4, 36, 1.2, Math.cos(a) * 62.4, 0, Math.sin(a) * 62.4, -a); }
+    const d = new THREE.SphereGeometry(62, 36, 6, 0, Math.PI * 2, 0, Math.PI / 2); d.scale(1, 0.1, 1); d.translate(0, 41, 0); B.geo('grijs', d);
+    return { G: B.groep(), bots: [['cil', 0, 0, 62, 0, 47]], rust: [[0, 47.2, 0, 'het dak van Madison Square Garden']] };
+  };
+  // De New York Stock Exchange: een marmeren gevel met zes zuilen en een fronton, en een grote Amerikaanse vlag ervoor
+  MODEL_N.beurs = () => {
+    const B = Mod(), F = 22;
+    B.doos('wit', 44, 34, 70, 0, 0, 0); B.doos('wit', 4, 6, 40, F, 0, 0); B.zuilenRij('wit', 6, 1.4, 16, F + 2.5, -15, F + 2.5, 15, 6);
+    B.doos('wit', 4, 3, 36, F + 1.5, 22, 0); B.fronton('wit', 36, 7, 4, F + 1.5, 25, 0, Math.PI / 2); B.doos('zwartglas', 0.4, 14, 26, F + 0.1, 7, 0);
+    for (const k of [-1, 1]) ramen(B, 'zwartglas', -18, 18, k * 35.05, k, 4, 30, 8, 5, 2.6, 1.3);
+    return { G: B.groep(), bots: [['doos', 0, 0, 22, 35, 0, 34], ['doos', F + 2, 0, 3, 18, 0, 32]], rust: [[F + 1.5, 32.4, 0, 'het fronton van de beurs aan Wall Street']], vlaggen: [[F + 6, 12, 0]] };
+  };
+  // Het Woolworth Building: een gotische toren van lichte terracotta, met een groene koperen spits en torentjes
+  MODEL_N.woolworth = () => {
+    const B = Mod(), m = 'creme', tx = -10;
+    B.doos(m, 58, 112, 44, 0, 0, 0); nyStroken(B, 'zwartglas', 58, 44, 8, 110, 2.6, 0, 0, 1.1);
+    B.doos(m, 26, 98, 26, tx, 112, 0); nyStroken(B, 'zwartglas', 26, 26, 113, 208, 2.6, tx, 0, 1.1); for (const [x, z] of [[-13, -13], [13, -13], [-13, 13], [13, 13]]) { B.doos(m, 2.4, 100, 2.4, tx + x, 112, z); B.kegel(m, 1.4, 8, tx + x, 212, z, 4); }
+    B.doos(m, 22, 8, 22, tx, 210, 0); B.piramide('koper', 20, 16, tx, 218, 0); B.cil('koper', 2, 1.4, 4, tx, 233, 0, 8); B.kegel('goud', 0.8, 4, tx, 237, 0, 8);
+    return { G: B.groep(), bots: [['doos', 0, 0, 29, 22, 0, 112], ['doos', tx, 0, 13, 13, 112, 218], ['cil', tx, 0, 6, 218, 241]], rust: [[tx, 241.2, 0, 'de spits van het Woolworth Building'], [20, 112.3, 0, 'het dak onder de toren van het Woolworth Building']] };
+  };
+  // De Intrepid: een grijs vliegdekschip met een eiland aan de zijkant en vliegtuigen op het dek, met ernaast de onderzeeboot Growler
+  MODEL_N.intrepid = () => {
+    const B = Mod(), s = new THREE.Shape(); s.moveTo(-138, -14); s.lineTo(110, -16); s.quadraticCurveTo(138, -10, 140, 0); s.quadraticCurveTo(138, 10, 110, 16); s.lineTo(-138, 14); s.closePath();
+    const romp = new THREE.ExtrudeGeometry(s, { depth: 18, bevelEnabled: false }); romp.rotateX(-Math.PI / 2); romp.translate(0, -6, 0); B.geo('romp', romp);
+    const dk = new THREE.Shape(); dk.moveTo(-138, -22); dk.lineTo(120, -22); dk.lineTo(142, -8); dk.lineTo(142, 8); dk.lineTo(120, 22); dk.lineTo(-30, 30); dk.lineTo(-138, 22); dk.closePath();
+    const dek = new THREE.ExtrudeGeometry(dk, { depth: 1.2, bevelEnabled: false }); dek.rotateX(-Math.PI / 2); dek.translate(0, 12, 0); B.geo('dekhout', dek);
+    B.doos('romp', 30, 16, 8, 10, 13.2, -24); B.doos('romp', 14, 8, 6, 10, 29, -24); B.cil('romp', 0.6, 0.4, 14, 14, 37, -24, 6); B.doos('wit', 260, 0.08, 0.6, 0, 13.25, 0);
+    for (const [x, z, a] of [[-90, 8, 0.2], [-60, -10, -0.1], [-25, 12, 0.3], [30, -8, 0], [70, 10, -0.2], [100, -6, 0.1]]) { const g = new THREE.Group(); void g; B.doos('grijs', 14, 1.6, 2, x, 13.6, z, a); B.doos('grijs', 3, 0.4, 11, x - 1, 14.2, z, a); B.doos('grijs', 2, 2.4, 0.4, x - 6.5, 14.2, z, a); }
+    const sub = new THREE.CylinderGeometry(4, 4, 90, 14); sub.rotateZ(Math.PI / 2); sub.scale(1, 0.75, 1); sub.translate(70, 0.5, -65); B.geo('donker', sub); B.doos('donker', 8, 5, 3, 76, 2, -65);
+    return { G: B.groep(), bots: [['doos', 0, 0, 140, 22, -6, 13.2], ['doos', 10, -24, 15, 4, 13, 37], ['doos', 70, -65, 45, 4, -3, 7]], rust: [[10, 37.3, -24, 'het eiland van de Intrepid'], [-60, 13.5, 0, 'het vliegdek van de Intrepid']] };
+  };
+  MODEL_N.intrepid.grond = (x, z) => { const w = AK.waterPeil(x, z); return w !== null ? w : AK.hoogteM(x, z); };
+  // De High Line: een park op een oud spoorviaduct van negen meter hoog, met stalen liggers en bloemen en gras bovenop
+  MODEL_N.highline = () => {
+    const B = Mod(), P = [[-1912, 975], [-1904, 955], [-1896, 901], [-1881, 857], [-1890, 828], [-1876, 786], [-1863, 733], [-1832, 628], [-1801, 572], [-1768, 362], [-1646, 129], [-1589, 31], [-1533, -70], [-1493, -155], [-1458, -218], [-1378, -364], [-1372, -396], [-1378, -433], [-1401, -481], [-1440, -510], [-1475, -524], [-1676, -637], [-1701, -670], [-1711, -705], [-1704, -751], [-1645, -857], [-1599, -886], [-1550, -887]];
+    const [X0, Z0] = PLAATS_N.highline, g0 = AK.hoogteM(X0, Z0), bots = [];
+    for (let i = 0; i < P.length - 1; i++) {
+      const ax = P[i][0] - X0, az = P[i][1] - Z0, bx = P[i + 1][0] - X0, bz = P[i + 1][1] - Z0, L = Math.hypot(bx - ax, bz - az), h = -Math.atan2(bz - az, bx - ax), mx = (ax + bx) / 2, mz = (az + bz) / 2, ga = AK.hoogteM(P[i][0], P[i][1]) - g0, gb = AK.hoogteM(P[i + 1][0], P[i + 1][1]) - g0, y = Math.max(ga, gb) + 8;
+      B.doos('ijzer', L + 1, 1.6, 10, mx, y - 1.6, mz, h); B.doos('beton', L + 1, 0.4, 9, mx, y, mz, h); B.doos('gras', L * 0.98, 0.25, 3.6, mx, y + 0.4, mz, h);
+      for (let t = 0; t < L; t += 18) { const px = ax + (bx - ax) * t / L, pz = az + (bz - az) * t / L, gy = AK.hoogteM(P[i][0] + (P[i + 1][0] - P[i][0]) * t / L, P[i][1] + (P[i + 1][1] - P[i][1]) * t / L) - g0; for (const k of [-1, 1]) B.doos('ijzer', 0.8, y - 1.6 - gy, 0.8, px - Math.sin(-h) * 4.2 * k, gy, pz + Math.cos(-h) * 4.2 * k, h); }
+    }
+    return { G: B.groep(), bots, rust: [[P[12][0] - X0, AK.hoogteM(P[12][0], P[12][1]) - g0 + 8.7, P[12][1] - Z0, 'een bankje op de High Line']] };
+  };
+  // Little Island: een golvend park op betonnen 'bloempotten' van verschillende hoogte in de Hudson
+  MODEL_N.littleisland = () => {
+    const B = Mod(), hoog = (x, z) => 6 + 10 * Math.max(0, Math.min(1, (40 - x) / 80)) * (0.6 + 0.4 * Math.max(0, Math.min(1, (z + 40) / 80))) + 3 * Math.sin(x * 0.06) * Math.cos(z * 0.05);
+    for (let x = -42; x <= 42; x += 7) for (let z = -38; z <= 38; z += 7) { if (Math.abs(x) + Math.abs(z) * 0.6 > 58) continue; const h = hoog(x, z); B.cil('beton', 0.9, 1.1, h - 2.6, x, -2, z, 8); B.cil('beton', 3.6, 1.0, 2.8, x, h - 4.8, z, 4, Math.PI / 4); }
+    const g = new THREE.PlaneGeometry(92, 82, 23, 20); g.rotateX(-Math.PI / 2); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), uit = Math.abs(x) + Math.abs(z) * 0.6 > 60; p.setY(i, uit ? hoog(Math.sign(x) * 42, Math.sign(z) * 30) - 3 : hoog(x, z) - 1.9); } g.computeVertexNormals(); B.geo('gras', g);
+    for (const z of [-20, 22]) B.doos('beton', 60, 0.6, 4, -70, 2.5, z);
+    return { G: B.groep(), bots: [['doos', 0, 0, 44, 40, -3, 12]], rust: [[-30, hoog(-30, 20) - 1.5, 20, 'de hoogste heuvel van Little Island']] };
+  };
+  MODEL_N.littleisland.grond = (x, z) => { const w = AK.waterPeil(x, z); return w !== null ? w : AK.hoogteM(x, z); };
+  // South Street Seaport: het zeilschip Wavertree (1885) aan de pier, met drie masten en ra's
+  MODEL_N.seaport = () => {
+    const B = Mod(), s = new THREE.Shape(); s.moveTo(-40, -5.5); s.lineTo(28, -6); s.quadraticCurveTo(38, -3, 42, 0); s.quadraticCurveTo(38, 3, 28, 6); s.lineTo(-40, 5.5); s.lineTo(-41, 0); s.closePath();
+    const romp = new THREE.ExtrudeGeometry(s, { depth: 9, bevelEnabled: false }); romp.rotateX(-Math.PI / 2); romp.translate(0, -4, 0); B.geo('donker', romp);
+    const dek = new THREE.ShapeGeometry(s); dek.rotateX(-Math.PI / 2); dek.translate(0, 5.05, 0); B.geo('hout', dek); B.doos('wit', 80, 0.5, 12.2, 0, 3.5, 0);
+    for (const [x, h] of [[24, 46], [2, 50], [-20, 44]]) { B.cil('hout', 0.6, 0.25, h, x, 5, 0, 8); for (let i = 0; i < 5; i++) { const y = 14 + i * (h - 16) / 5, l = 26 - i * 4; B.balk('hout', V(x, 5 + y, -l / 2), V(x, 5 + y, l / 2), 0.28); } for (const k of [-1, 1]) B.balk('donker', V(x, 5 + h * 0.75, 0), V(x, 5.3, k * 6), 0.09); B.balk('donker', V(x, 5 + h - 1, 0), V(x + 18, 5.5, 0), 0.08); }
+    B.balk('hout', V(41, 4.8, 0), V(56, 9, 0), 0.45);
+    return { G: B.groep(), bots: [['doos', 0, 0, 41, 6, -4, 5.4], ['cil', 2, 0, 0.8, 5, 55]], rust: [[2, 55.2, 0, 'de grote mast van de Wavertree']] };
+  };
+  MODEL_N.seaport.grond = (x, z) => { const w = AK.waterPeil(x, z); return w !== null ? w : AK.hoogteM(x, z); };
+  STAD_PLEK.newyork = { BEZ: BEZ_N, MODEL: MODEL_N, PLAATS: PLAATS_N };
   let BEZ = BEZ_P, MOD = MODEL_P, PLAATS = PLAATS_P;
   function kies(stad) { const s = STAD_PLEK[stad] || STAD_PLEK.parijs; BEZ = s.BEZ; MOD = s.MODEL; PLAATS = s.PLAATS; }
   const STATE = { botsers: [], rust: [], fonteinen: [], vlaggen: [], molen: null, bootjes: [], modellen: {}, groep: null };
@@ -4316,8 +4896,9 @@ const AL = (() => {
   // en de andere steden in dezelfde lijsten, met eigen namen.
   const STEDEN = [
     { id: 'parijs', naam: 'Parijs', land: 'Frankrijk', vlag: '🇫🇷', tekst: 'De Seine met haar bruggen, de Eiffeltoren, de Notre-Dame, Montmartre en nog 26 plekken.', kaart: 'rommelarend-parijs.bin?v=4' },
-    { id: 'amsterdam', naam: 'Amsterdam', land: 'Nederland', vlag: '🇳🇱', tekst: 'De grachten met hun smalle huizen en topgevels, het IJ, de Dam, het Rijksmuseum en de Westertoren.', kaart: 'rommelarend-amsterdam.bin?v=3', kerk: [0.55, 0.31, 0.24] },
+    { id: 'amsterdam', naam: 'Amsterdam', land: 'Nederland', vlag: '🇳🇱', tekst: 'De grachten met hun smalle huizen en topgevels, het IJ, de Dam, het Rijksmuseum en de Westertoren.', kaart: 'rommelarend-amsterdam.bin?v=4', kerk: [0.55, 0.31, 0.24] },
     { id: 'londen', naam: 'Londen', land: 'Verenigd Koninkrijk', vlag: '🇬🇧', tekst: 'De Theems met Tower Bridge, Big Ben, St Paul\'s, de London Eye, The Shard en Greenwich.', kaart: 'rommelarend-londen.bin?v=2', kerk: [0.80, 0.78, 0.72], kap: [0.60, 0.64, 0.68] },
+    { id: 'newyork', naam: 'New York', land: 'Verenigde Staten', vlag: '🇺🇸', tekst: 'De wolkenkrabbers van Manhattan, het Vrijheidsbeeld, de Brooklyn Bridge, Central Park en de rivieren eromheen.', kaart: 'rommelarend-newyork.bin?v=1', kerk: [0.74, 0.70, 0.62], kap: [0.62, 0.66, 0.70], ny: 1 },
   ];
   if (!STEDEN.some(s => s.id === opslag.stad)) opslag.stad = 'parijs';
   const STAD = STEDEN.find(s => s.id === opslag.stad);
@@ -4792,7 +5373,7 @@ const AL = (() => {
   }
   // ---------------------------------------------------------------- de vlucht (wereldeenheden; meters = eenheden / SCHAAL)
   // het beginpunt per stad: Parijs boven de Concorde, Amsterdam ten zuiden van de Dam met de neus naar het noorden (Centraal Station)
-  const START = STAD.id === 'londen' ? { x: 300 * S, y: AK.yVan(32) + 45, z: 150 * S, yaw: 2.99 } : STAD.id === 'amsterdam' ? { x: -40 * S, y: AK.yVan(30) + 45, z: 420 * S, yaw: 0.1 } : { x: -2024 * S + 60, y: AK.yVan(34) + 60, z: -1335 * S + 40, yaw: 2.05 };
+  const START = STAD.id === 'newyork' ? { x: -3000 * S, y: AK.yVan(28) + 60, z: 6000 * S, yaw: -0.45 } : STAD.id === 'londen' ? { x: 300 * S, y: AK.yVan(32) + 45, z: 150 * S, yaw: 2.99 } : STAD.id === 'amsterdam' ? { x: -40 * S, y: AK.yVan(30) + 45, z: 420 * S, yaw: 0.1 } : { x: -2024 * S + 60, y: AK.yVan(34) + 60, z: -1335 * S + 40, yaw: 2.05 };
   const A = { x: START.x, y: START.y, z: START.z, yaw: START.yaw, pitch: 0, roll: 0, snel: 30, vy: 0, klapT: 0, stoot: 0, staat: 'vlieg', draai: 0, klim: 0, duik: false, ruimte: 50, landDoel: null, landFase: 0, zitT: 0, opT: 0 };
   const inv = { draai: 0, klim: 0, snel: false, snelToets: false, land: false };
   const toets = {};
@@ -4873,7 +5454,7 @@ const AL = (() => {
   }
   function opstijgen() { A.staat = 'op'; A.opT = 0.7; A.vy = 9; A.snel = 22; A.pitch = 0.35; fx.klap(1); deeltjes(A.x, A.y, A.z, 6, '#6A4A30'); }
   // ---------------------------------------------------------------- thermiek: warme lucht boven zonnige pleinen en parken
-  const THERMIEK = (STAD.id === 'londen' ? [[-2629, 6, 140], [-1700, -2200, 140], [-1300, 300, 80], [-600, 500, 80], [8900, 3300, 120], [-1800, 3200, 110], [-3700, 50, 120], [-2300, -3600, 100], [4400, -1300, 70]] : STAD.id === 'amsterdam' ? [[-747, 1689, 110], [-1637, 1680, 120], [-1134, -1504, 100], [1888, 1388, 100], [238, 2056, 70], [0, 0, 70], [1623, 785, 90], [-3172, 785, 110], [-48, -3104, 120]] : [[-4060, -380, 110], [-2024, -1335, 90], [-2650, -620, 80], [-1400, -900, 90], [1120, -1080, 70], [1492, 28, 70], [-850, 760, 90], [2518, -3001, 100], [-4428, -973, 80], [-430, -3580, 90], [400, 2600, 90], [3600, 560, 90], [-6800, -900, 160], [-2200, -2400, 80]]).map(([x, z, r]) => ({ x, z, r }));
+  const THERMIEK = (STAD.id === 'newyork' ? [[1709, -3827, 160], [-960, 1911, 60], [-2643, 5013, 90], [-197, 716, 50], [207, -573, 50], [-917, 5160, 80], [-2620, 6580, 140], [-5852, 4934, 160], [-1397, -598, 80]] : STAD.id === 'londen' ? [[-2629, 6, 140], [-1700, -2200, 140], [-1300, 300, 80], [-600, 500, 80], [8900, 3300, 120], [-1800, 3200, 110], [-3700, 50, 120], [-2300, -3600, 100], [4400, -1300, 70]] : STAD.id === 'amsterdam' ? [[-747, 1689, 110], [-1637, 1680, 120], [-1134, -1504, 100], [1888, 1388, 100], [238, 2056, 70], [0, 0, 70], [1623, 785, 90], [-3172, 785, 110], [-48, -3104, 120]] : [[-4060, -380, 110], [-2024, -1335, 90], [-2650, -620, 80], [-1400, -900, 90], [1120, -1080, 70], [1492, 28, 70], [-850, 760, 90], [2518, -3001, 100], [-4428, -973, 80], [-430, -3580, 90], [400, 2600, 90], [3600, 560, 90], [-6800, -900, 160], [-2200, -2400, 80]]).map(([x, z, r]) => ({ x, z, r }));
   function thermiekKracht(xm, zm) { if (W.el < 12 || W.weerNu.regen > 0.4) return 0; let k = 0; for (const t of THERMIEK) { const d = Math.hypot(xm - t.x, zm - t.z); if (d < t.r) k = Math.max(k, 1 - d / t.r); } return k * Math.min(1, (W.el - 12) / 15) * (1 - W.weerNu.wolk * 0.6); }
   // ---------------------------------------------------------------- de vlucht zelf
   const vorigePlek = { x: 0, y: 0, z: 0, ok: false };
@@ -5086,6 +5667,18 @@ const AL = (() => {
       ],
       2: [{ naam: 'DLR', L: 14, H: 3.5, deuren: [0], dw: 1.7, n: [4, 6], v: [11, 15], metro: true, kl: { kast: '#F4F4F2', onder: '#D42E24', band: '#F4F4F2', deur: '#2A57A5', dak: '#B9BDC1', kop: '#D42E24', streep: '#2A57A5' } }],
       3: [{ naam: 'Underground', L: 17, H: 3.65, deuren: [-0.3, 0, 0.3], dw: 1.6, n: [7, 8], v: [11, 16], metro: true, kl: { kast: '#F3F3F1', onder: '#14248F', band: '#F3F3F1', deur: '#DC241F', dak: '#C4C7CA', kop: '#DC241F' } }],
+    },
+    newyork: {
+      1: [
+        { naam: 'LIRR', L: 26, H: 3.9, deuren: [-0.36, 0.36], dw: 1.3, n: [6, 10], v: [18, 28], kl: { kast: '#C5CACE', onder: '#5A6066', band: '#C5CACE', deur: '#B3B9BE', dak: '#959BA0', kop: '#C5CACE', rand: '#262A2F', streep: '#2E58A6' } },
+        { naam: 'Metro-North', L: 26, H: 3.9, deuren: [-0.36, 0.36], dw: 1.3, n: [6, 10], v: [18, 28], stroom: true, kl: { kast: '#CBD0D4', onder: '#30508F', band: '#CBD0D4', deur: '#B8BEC3', dak: '#9AA0A5', kop: '#CBD0D4', rand: '#24282D', streep: '#C3262E' } },
+        { naam: 'NJ Transit', L: 26, H: 4.8, dubbel: true, deuren: [-0.36, 0.36], dw: 1.3, n: [5, 8], v: [16, 26], stroom: true, kl: { kast: '#C8CCD0', onder: '#4E545A', band: '#C8CCD0', deur: '#B5BBC0', dak: '#8F959A', kop: '#C8CCD0', rand: '#22262B', streep: '#E26A23' } },
+      ],
+      2: [{ naam: 'Light Rail', L: 28, H: 3.6, deuren: [-0.3, 0, 0.3], dw: 1.4, n: [1, 2], v: [10, 15], metro: true, kl: { kast: '#ECECE9', onder: '#22408E', band: '#ECECE9', deur: '#C9CDD1', dak: '#B3B7BB', kop: '#ECECE9', streep: '#E38B2D' } }],
+      3: [
+        { naam: 'Subway', L: 18.4, H: 3.7, deuren: [-0.37, -0.12, 0.12, 0.37], dw: 1.3, n: [8, 10], v: [10, 16], metro: true, kl: { kast: '#B9BEC3', onder: '#6C7177', band: '#B9BEC3', deur: '#AEB4BA', dak: '#8E9398', kop: '#2A2E34', rand: '#23272B' } },
+        { naam: 'PATH', L: 15.6, H: 3.6, deuren: [-0.33, 0, 0.33], dw: 1.3, n: [7, 8], v: [10, 15], metro: true, kl: { kast: '#C5C9CD', onder: '#5E6369', band: '#C5C9CD', deur: '#B4BABF', dak: '#94999E', kop: '#C5C9CD', rand: '#23272B', streep: '#2F5DAA' } },
+      ],
     },
     amsterdam: {
       1: [
@@ -5390,6 +5983,9 @@ const AL = (() => {
       g.strokeStyle = '#FFFFFF'; g.lineWidth = 12; g.beginPath(); g.moveTo(0, 0); g.lineTo(96, 64); g.moveTo(96, 0); g.lineTo(0, 64); g.stroke();
       g.strokeStyle = '#C8102E'; g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(96, 64); g.moveTo(96, 0); g.lineTo(0, 64); g.stroke();
       g.fillStyle = '#FFFFFF'; g.fillRect(38, 0, 20, 64); g.fillRect(0, 22, 96, 20); g.fillStyle = '#C8102E'; g.fillRect(42, 0, 12, 64); g.fillRect(0, 26, 96, 12);
+    } else if (STAD.id === 'newyork') {
+      for (let i = 0; i < 13; i++) { g.fillStyle = i % 2 ? '#FFFFFF' : '#B22234'; g.fillRect(0, Math.round(i * 64 / 13), 96, Math.ceil(64 / 13) + 1); }
+      g.fillStyle = '#3C3B6E'; g.fillRect(0, 0, 40, 35); g.fillStyle = '#FFFFFF'; for (let r = 0; r < 5; r++) for (let k = 0; k < 6; k++) g.fillRect(3 + k * 6.3 + (r % 2) * 3, 3 + r * 6.5, 2, 2);
     } else if (STAD.id === 'amsterdam') { g.fillStyle = '#AE1C28'; g.fillRect(0, 0, 96, 22); g.fillStyle = '#FFFFFF'; g.fillRect(0, 22, 96, 21); g.fillStyle = '#21468B'; g.fillRect(0, 43, 96, 21); }
     else { g.fillStyle = '#002395'; g.fillRect(0, 0, 32, 64); g.fillStyle = '#FFFFFF'; g.fillRect(32, 0, 32, 64); g.fillStyle = '#ED2939'; g.fillRect(64, 0, 32, 64); }
     const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
@@ -5426,7 +6022,7 @@ const AL = (() => {
   const lok = (id, lx, lz) => { const p = AL.PLAATS[id], h = p[2] * Math.PI / 180, c = Math.cos(h), s = Math.sin(h); return [p[0] + lx * c - lz * s, p[1] + lx * s + lz * c]; };
   const grondOf = (x, z) => { const w = AK.waterPeil(x, z); return w !== null ? w : AK.hoogteM(x, z); };
   // 60 gouden veren. v0 tot en met v39 houden hun id (zo blijven gevonden veren gevonden), op de plek die er het best bij past; v40 tot en met v59 zijn nieuw.
-  const VEER_PLEK = () => STAD.id === 'londen' ? VEER_LON() : STAD.id === 'amsterdam' ? VEER_AMS() : VEER_PARIJS();
+  const VEER_PLEK = () => STAD.id === 'newyork' ? VEER_NY() : STAD.id === 'londen' ? VEER_LON() : STAD.id === 'amsterdam' ? VEER_AMS() : VEER_PARIJS();
   const VEER_PARIJS = () => {
     const L = [], E = B_('eiffel'), rust = naam => AL.STATE.rust.find(r => r.naam === naam);
     const p = (x, z, h, extra) => L.push(Object.assign({ x, z, h }, extra || {}));
@@ -5597,7 +6193,30 @@ const AL = (() => {
     } },
     { id: 'a-tour', robot: 132, naam: 'Amsterdam in één vlucht', tekst: 'Elf plekken achter elkaar, van het Centraal Station tot het Paleis op de Dam.', maak: () => [['centraal', 60], ['nicolaas', 66], ['schreierstoren', 30], ['montelbaan', 56], ['waag', 36], ['zuiderkerk', 70], ['munttoren', 48], ['rijksmuseum', 62], ['concertgebouw', 42], ['westertoren', 92], ['paleis', 60]].map(([id, h]) => { const b = B_('a-' + id); return R_(b.x, b.z, h); }) },
   ];
-  const RACE_DEF = STAD.id === 'londen' ? RACE_DEF_LON : STAD.id === 'amsterdam' ? RACE_DEF_AMS : RACE_DEF_PARIJS;
+  // ==== NY VEREN EN WEDSTRIJDEN
+  // New York: 40 gouden veren (nv0 tot en met nv39): op torenspitsen en zitplekken, laag boven de rivieren, in de parken en hoog boven Manhattan
+  const VEER_NY = () => {
+    const L = [], rust = naam => AL.STATE.rust.find(r => r.naam === naam), p = (x, z, h, extra) => L.push(Object.assign({ x, z, h }, extra || {}));
+    for (const n of ['de punt van de mast van het Empire State Building', 'het uitkijkterras op de 86e verdieping', 'de kroon van het Chrysler Building', 'de fakkel van het Vrijheidsbeeld', 'een koperen torentje van Ellis Island', 'een stenen toren van de Brooklyn Bridge', 'de top van een toren van de Manhattan Bridge', 'een torentje van de Queensboro Bridge', 'de bal op het dak van One Times Square', 'de punt van het Flatiron Building', 'het uitkijkterras bovenop Rockefeller Center', 'de beeldengroep bovenop Grand Central', 'de bovenste trap van The Vessel', 'de boog op Washington Square', 'een torenspits van St. Patrick\'s', 'de spits van het Woolworth Building', 'het eiland van de Intrepid', 'de grote mast van de Wavertree']) { const r = rust(n); if (r) L.push({ x: r.x, z: r.z, y: r.y + 1.4, rust: true }); else p(0, 0, 500); }
+    // laag boven de Hudson en de East River (4 m boven het water)
+    const sn = AK.W.seine, sl = lijnLengtes(sn), tot = sl[sl.length - 1]; for (let i = 0; i < 8; i++) { const [x, z] = opLijn(sn, sl, tot * (0.05 + i * 0.125)); p(x, z, 4, { water: true }); }
+    // de parken, de oevers en hoog boven de stad
+    for (const [x, z, h] of [[1997, -4069, 10], [1280, -3150, 8], [1246, -2850, 10], [-2643, 5013, 12], [-917, 5160, 10], [-2620, 6580, 14], [-197, 716, 10], [207, -573, 10], [-5852, 4934, 12], [3008, -1395, 10], [1491, 3769, 8], [-3484, 1272, 8], [300, -800, 300], [-2000, 4400, 260]]) p(x, z, h);
+    return L.slice(0, 40).map((q, i) => {
+      let y = q.y !== undefined ? q.y : (q.water ? (AK.waterPeil(q.x, q.z) ?? grondOf(q.x, q.z)) : grondOf(q.x, q.z)) + q.h;
+      if (!q.rust && !q.water) { let k = 0; while ((AK.botsGebouw(q.x, y, q.z, 4) || AL.bots(q.x, y, q.z, 4)) && k++ < 60) y += 4; }
+      return { id: 'nv' + i, x: q.x, y, z: q.z, rust: !!q.rust };
+    });
+  };
+  // vijf wedstrijden door New York (id's beginnen met n-). Bewust geen ringen rond One World Trade Center.
+  const RACE_DEF_NY = [
+    { id: 'n-bruggen', robot: 149, naam: 'Onder de bruggen van de East River', tekst: 'Laag over het water, onder de Brooklyn Bridge, de Manhattan Bridge, de Williamsburg Bridge en de Queensboro Bridge door.', maak: () => onderBruggen(['Brooklyn Bridge', 'Manhattan Bridge', 'Williamsburg Bridge', 'Queensboro Bridge']) },
+    { id: 'n-midtown', robot: 92, naam: 'Tussen de wolkenkrabbers', tekst: 'Van het Flatiron Building langs het Empire State Building, Grand Central en het Chrysler Building naar Rockefeller Center en Times Square.', maak: () => [['flatiron', 0, -120, 70], ['empire', 110, 0, 180], ['empire', 0, -110, 300], ['grandcentral', 0, 120, 90], ['chrysler', 80, 0, 260], ['vn', -60, 0, 140], ['stpatrick', -75, 0, 120], ['rockefeller', 104, 0, 120], ['rockefeller', 36, 0, 290], ['timessquare', 0, -150, 250]].map(([id, lx, lz, h]) => { const [x, z] = lok(id, lx, lz); return R_(x, z, h); }) },
+    { id: 'n-haven', robot: 158, naam: 'Rond het Vrijheidsbeeld', tekst: 'Van de Battery over de haven, een rondje om het Vrijheidsbeeld, langs Ellis Island en terug via Governors Island.', maak: () => { const V2 = B_('n-vrijheid'), E = B_('n-ellis'), L = [R_(-2700, 5350, 25, { water: true }), R_(-3500, 5900, 30, { water: true })]; for (let i = 0; i < 5; i++) { const a = -2.2 + i / 5 * Math.PI * 2; L.push(R_(V2.x + Math.cos(a) * 150, V2.z + Math.sin(a) * 150, 55 + i * 6)); } L.push(R_(E.x + 40, E.z + 120, 40, { water: true }), R_(E.x + 260, E.z - 40, 30, { water: true }), R_(-2620, 6450, 40), R_(-2450, 5500, 25, { water: true })); return L; } },
+    { id: 'n-park', robot: 60, naam: 'Over Central Park', tekst: 'Laag over Central Park van zuid naar noord, over de meren en het grote waterbassin.', maak: () => { const L = []; for (let t = 150; t <= 3150; t += 375) L.push(R_(774 + 0.485 * t, -1893 - 0.875 * t, 18)); return L; } },
+    { id: 'n-tour', robot: 261, naam: 'New York in één vlucht', tekst: 'Tien plekken achter elkaar, van de Brooklyn Bridge tot Central Park.', maak: () => [['brooklynbrug', 120], ['woolworth', 280], ['washington', 190], ['flatiron', 170], ['empire', 470], ['chrysler', 340], ['vn', 180], ['rockefeller', 290], ['timessquare', 140], ['centralpark', 40]].map(([id, h]) => { const b = B_('n-' + id); return R_(b.x, b.z, h); }) },
+  ];
+  const RACE_DEF = STAD.id === 'newyork' ? RACE_DEF_NY : STAD.id === 'londen' ? RACE_DEF_LON : STAD.id === 'amsterdam' ? RACE_DEF_AMS : RACE_DEF_PARIJS;
   let RACES = null;
   function maakRaces() {
     RACES = RACE_DEF.map(R => {
@@ -5663,7 +6282,7 @@ const AL = (() => {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const toevalVan = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0) / 4294967296; };
   const INKT = ['var(--rg-rood)', 'var(--rg-blauw)', 'var(--rg-groen)', 'var(--rg-paars)', 'var(--rg-bruin)'], VORM = ['', 'hoek', 'ovaal'];
-  const LABELKLEUR = { parijs: ['#285A8C', '#B5303A'], amsterdam: ['#B5303A', '#24212B'], londen: ['#1E3A6E', '#B5303A'] };
+  const LABELKLEUR = { parijs: ['#285A8C', '#B5303A'], amsterdam: ['#B5303A', '#24212B'], londen: ['#1E3A6E', '#B5303A'], newyork: ['#24212B', '#C8A23A'] };
   const MAANDEN = ['JAN', 'FEB', 'MRT', 'APR', 'MEI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DEC'];
   const ICOON = {
     plek: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#B5303A" stroke-width="2"/><circle cx="10" cy="10" r="5.2" fill="none" stroke="#B5303A" stroke-width="1"/><path d="M10 6.6l1 2.1 2.3.3-1.7 1.6.4 2.3-2-1.1-2 1.1.4-2.3-1.7-1.6 2.3-.3z" fill="#B5303A"/></svg>',
@@ -5674,7 +6293,7 @@ const AL = (() => {
   // een ansichtkaart van de stad: lucht, de skyline, het water, 'Groeten uit', een postzegel en een poststempel van vandaag
   function ansicht(id) {
     const d = new Date(), datum = d.getDate() + ' ' + MAANDEN[d.getMonth()], jaar = d.getFullYear(), n = AL.BEZ_VAN(id).length;
-    const P = { parijs: { l: ['#F9D2A5', '#A5C9E6'], w: '#5D8DB4', t: '#1E4F8A', z: '#B5303A', zon: [210, 70] }, amsterdam: { l: ['#FDE0AE', '#9FCFEE'], w: '#4D86A6', t: '#D2601A', z: '#285A8C', zon: [180, 62] }, londen: { l: ['#F4C3B2', '#A8C4E3'], w: '#587C9B', t: '#B5303A', z: '#1E3A6E', zon: [195, 66] } }[id] || { l: ['#F9D2A5', '#A5C9E6'], w: '#5D8DB4', t: '#1E4F8A', z: '#B5303A', zon: [200, 70] };
+    const P = { parijs: { l: ['#F9D2A5', '#A5C9E6'], w: '#5D8DB4', t: '#1E4F8A', z: '#B5303A', zon: [210, 70] }, amsterdam: { l: ['#FDE0AE', '#9FCFEE'], w: '#4D86A6', t: '#D2601A', z: '#285A8C', zon: [180, 62] }, londen: { l: ['#F4C3B2', '#A8C4E3'], w: '#587C9B', t: '#B5303A', z: '#1E3A6E', zon: [195, 66] }, newyork: { l: ['#F7CFA4', '#9DC2E5'], w: '#4C7BA2', t: '#24212B', z: '#B22234', zon: [66, 86] } }[id] || { l: ['#F9D2A5', '#A5C9E6'], w: '#5D8DB4', t: '#1E4F8A', z: '#B5303A', zon: [200, 70] };
     const naam = (STEDEN.find(s => s.id === id) || STAD).naam.toUpperCase();
     let stad = '';
     if (id === 'parijs') {
@@ -5695,6 +6314,16 @@ const AL = (() => {
         stad += `<rect x="${x + 13}" y="146" width="8" height="12" fill="${['#2E6B3F', '#24212B', '#9E2B2B', '#2F5DA8'][i % 4]}" stroke="#F4EFE4" stroke-width="1"/>`;
         stad += `<rect x="${x}" y="161" width="${w}" height="22" fill="${k}" opacity=".28"/>`; }
       stad += '<circle cx="6" cy="146" r="13" fill="#4F7F3E"/><circle cx="296" cy="142" r="15" fill="#4F7F3E"/><path d="M0 157h300v4H0z" fill="#7A7468"/>';
+    } else if (id === 'newyork') {
+      for (const [x, w, h] of [[40, 16, 34], [58, 12, 48], [118, 14, 52], [168, 12, 44], [214, 16, 30], [252, 12, 26], [268, 18, 38]]) stad += `<rect x="${x}" y="${160 - h}" width="${w}" height="${h}" fill="#8EA3B9"/>`;
+      stad += '<path d="M90 160V94L100 54l10 40v66z" fill="#A9BFD6"/><path d="M100 54V30" stroke="#A9BFD6" stroke-width="1.6"/><path d="M100 54L94 94M100 54l6 40" stroke="#C8D6E4" stroke-width=".7"/>';
+      stad += '<g fill="#DCD2BE"><rect x="136" y="104" width="28" height="56"/><rect x="140" y="84" width="20" height="20"/><rect x="144" y="62" width="12" height="22"/><rect x="147" y="52" width="6" height="10"/><rect x="148.5" y="38" width="3" height="14"/></g><path d="M150 38V20" stroke="#BDB3A0" stroke-width="1"/>';
+      for (let x = 139; x < 162; x += 3) stad += `<path d="M${x} 106V158" stroke="#9AA3AE" stroke-width=".8"/>`;
+      stad += '<rect x="186" y="78" width="18" height="82" fill="#E8E4DB"/>'; for (let i = 0; i < 5; i++) { const r = 9 - i * 1.7, y = 78 - i * 5; stad += `<path d="M${195 - r} ${y}a${r} ${r} 0 0 1 ${2 * r} 0z" fill="#C9CFD6" stroke="#8E959D" stroke-width=".6"/>`; } stad += '<path d="M195 54V30" stroke="#C9CFD6" stroke-width="1.6"/>';
+      stad += '<g fill="#B8AE9C"><rect x="20" y="132" width="20" height="28"/><rect x="23" y="124" width="14" height="8"/></g><g fill="#76AE98"><path d="M25 124l2-24h6l2 24z"/><circle cx="30" cy="96" r="3.2"/><path d="M33 102l4-20 2 1-3 20z"/><rect x="24" y="106" width="3" height="8"/></g><circle cx="38" cy="79" r="2.4" fill="#F2B632"/><path d="M27 93l-2-3M30 92v-4M33 93l2-3" stroke="#76AE98" stroke-width="1"/>';
+      stad += '<g fill="#C9B99A">'; for (const x of [236, 280]) stad += `<path d="M${x} 160V108h10v52z"/>`; stad += '</g><g fill="#5C6B7C">'; for (const x of [236, 280]) stad += `<path d="M${x + 2} 140v-10l1.5-4 1.5 4v10zM${x + 6} 140v-10l1.5-4 1.5 4v10z"/>`; stad += '</g>';
+      stad += '<path d="M206 142H300" stroke="#6A6F76" stroke-width="2.4"/><path d="M206 140Q224 126 241 110Q263 150 285 110Q293 124 300 130" stroke="#5E646B" stroke-width="1.1" fill="none"/>'; for (let x = 246; x < 282; x += 4) stad += `<path d="M${x} ${(110 + 40 * (1 - Math.pow((x - 263) / 22, 2)) * 0.98).toFixed(1)}V141" stroke="#5E646B" stroke-width=".4"/>`;
+      stad += '<path d="M0 158h210v4H0z" fill="#7A7468"/>';
     } else {
       stad += '<path d="M222 160h18l-8-96z" fill="#A9BCD1"/><g fill="#DDD7CA"><path d="M258 128a14 14 0 0 1 28 0z"/><rect x="258" y="128" width="28" height="12"/><rect x="270" y="106" width="4" height="9"/><rect x="250" y="140" width="44" height="20"/></g>';
       stad += '<g stroke="#EEF2F6" fill="none"><circle cx="160" cy="112" r="36" stroke-width="2.2"/><path d="M160 76v72M124 112h72M135 87l50 50M185 87l-50 50" stroke-width=".9"/></g><path d="M150 160l10-48 10 48" stroke="#EEF2F6" stroke-width="2" fill="none"/>';
@@ -5839,7 +6468,7 @@ const AL = (() => {
       <h3>Beeld</h3><div class="ar-rij">${Object.entries(KWAL).map(([k, q]) => knop('data-kwal', k, q.naam, kwal === k)).join('')}${knop('data-kwal', 'auto', 'Automatisch', !app.k)}</div><p class="ar-klein">Zuinig: minder ver kijken en geen schaduwen, voor een koele laptop of een oudere telefoon. Mooi: verder kijken en scherpere schaduwen. Je keuze geldt alleen op dit apparaat.</p>
       <h3>Besturing</h3><label class="ar-vink"><input type="checkbox" id="ar-in-omgekeerd" ${opslag.omgekeerd ? 'checked' : ''}> Omhoog en omlaag omdraaien (zoals een vliegtuig)</label>${mobiel ? `<label class="ar-vink"><input type="checkbox" id="ar-in-kantel" ${opslag.kantel ? 'checked' : ''}> Sturen door je telefoon te kantelen</label>` : ''}
       <h3>Geluid</h3><label class="ar-vink"><input type="checkbox" id="ar-in-geluid" ${opslag.geluid ? 'checked' : ''}> Geluid</label><label class="ar-vink">Volume <input type="range" id="ar-in-volume" min="0" max="100" value="${Math.round(opslag.volume * 100)}" style="flex:1" aria-label="Volume"></label>
-      <p class="ar-klein">Kaart: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap-bijdragers</a> (ODbL). Hoogtes: Mapzen Terrain Tiles (Copernicus EU-DEM, SRTM).</p>
+      <p class="ar-klein">Kaart: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap-bijdragers</a> (ODbL). Hoogtes: Mapzen Terrain Tiles (Copernicus EU-DEM, SRTM, USGS 3DEP).</p>
       <div class="ar-rij"><button class="ar-knop hoofd" data-actie="menu" type="button">Klaar</button></div>`);
   }
   function zetKwaliteit(k) {
@@ -5976,7 +6605,7 @@ const AL = (() => {
   const toonVoortgang = () => { if (G.scherm !== 'laden') return; const v = AK.voortgang, p = v.totaal ? Math.round(v.binnen / v.totaal * 100) : 0; const lt = $('ar-laden-tekst'), lb = $('ar-laden-balk'); if (lt) lt.textContent = STAD.naam + ' wordt gebouwd...'; if (lb) lb.style.width = p + '%'; setTimeout(toonVoortgang, 250); };
   toonVoortgang();
   AK.laad(scene, {
-    bestand: STAD.kaart, kerk: STAD.kerk, kap: STAD.kap,
+    bestand: STAD.kaart, kerk: STAD.kerk, kap: STAD.kap, ny: STAD.ny,
     opGlobaal: () => {
       AL.bouw(scene); begin_kaart(); for (const st of AK.kop.stukken) if (st.soort === 1) kaartRij.push(st.t);
       maakBoten(); maakAutos(); maakTreinen(); maakDuiven(); maakMeeuwen(); maakMensen(); maakFonteinen(); maakVlaggen(); maakRegen();

@@ -2198,7 +2198,7 @@ const AK = (() => {
     setTimeout(() => { try { antwoord(KBW.inst.verwerk(m)); } catch (e) { console.error(e); } }, 0);
   }
   // ---------------------------------------------------------------- materialen
-  const U = { uNacht: { value: 0 }, uTijd: { value: 0 }, uRegen: { value: 0 }, uWind: { value: 1 } };
+  const U = { uNacht: { value: 0 }, uTijd: { value: 0 }, uRegen: { value: 0 }, uWind: { value: 1 }, uKerk: { value: new THREE.Vector3(0.80, 0.76, 0.66) } };   // uKerk: de steen van gewone kerken (in Amsterdam baksteen)
   const GLSL = `
     float akHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float akRuis(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(akHash(i), akHash(i + vec2(1.0, 0.0)), f.x), mix(akHash(i + vec2(0.0, 1.0)), akHash(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -2211,7 +2211,7 @@ const AK = (() => {
     m.onBeforeCompile = sh => {
       Object.assign(sh.uniforms, U);
       sh.vertexShader = 'uniform float uNacht; uniform float uTijd; uniform float uWind;\n' + vertDecl + '\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + (vertBegin || '')).replace('#include <project_vertex>', '#include <project_vertex>\n' + vertMain);
-      sh.fragmentShader = 'uniform float uNacht; uniform float uTijd; uniform float uRegen;\n' + GLSL + fragDecl + '\n' + sh.fragmentShader
+      sh.fragmentShader = 'uniform float uNacht; uniform float uTijd; uniform float uRegen; uniform vec3 uKerk;\n' + GLSL + fragDecl + '\n' + sh.fragmentShader
         .replace('void main() {', 'void main() {\n float akGlas = 0.0; float akLicht = 0.0; vec3 akLichtKleur = vec3(1.0, 0.75, 0.45);')
         .replace('#include <color_fragment>', '#include <color_fragment>\n' + fragKleur)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (fragRuw || ''))
@@ -2236,7 +2236,7 @@ const AK = (() => {
       else if (st < 1.5) steen = seed < 0.25 ? vec3(0.86, 0.82, 0.72) : seed < 0.5 ? vec3(0.82, 0.72, 0.57) : seed < 0.7 ? vec3(0.88, 0.86, 0.82) : seed < 0.85 ? vec3(0.81, 0.69, 0.61) : vec3(0.76, 0.74, 0.69);
       else if (st < 2.5) steen = mix(vec3(0.55, 0.62, 0.68), vec3(0.72, 0.72, 0.70), seed);
       else if (st < 3.5) steen = vec3(0.86, 0.82, 0.72);
-      else if (st < 4.5) steen = vec3(0.80, 0.76, 0.66);
+      else if (st < 4.5) steen = uKerk;
       else if (st < 5.5) steen = seed < 0.5 ? vec3(0.62, 0.36, 0.28) : vec3(0.74, 0.70, 0.62);
       else if (st < 6.5) steen = seed < 0.5 ? vec3(0.92, 0.89, 0.82) : vec3(0.86, 0.78, 0.64);
       else if (st < 7.5) steen = vec3(0.66, 0.30, 0.24);
@@ -2527,7 +2527,7 @@ const AK = (() => {
   // ---------------------------------------------------------------- laden: de kop, het globale stuk, dan de tegels (dichtbij eerst), in stukken
   let voortgang = { binnen: 0, totaal: 0, tegels: 0, klaar: false };
   async function laad(sc, opties) {
-    if (opties && opties.bestand) BESTAND = opties.bestand;
+    if (opties && opties.bestand) BESTAND = opties.bestand; if (opties && opties.kerk) U.uKerk.value.set(...opties.kerk);
     scene = sc; wereld = new THREE.Group(); wereld.matrixAutoUpdate = false; scene.add(wereld); opNieuw = opties && opties.opNieuw;
     maakWerker();
     const r = await fetch(BESTAND); if (!r.ok) throw new Error('kaart ' + r.status);
@@ -3330,7 +3330,7 @@ const AL = (() => {
   // en de andere steden in dezelfde lijsten, met eigen namen.
   const STEDEN = [
     { id: 'parijs', naam: 'Parijs', land: 'Frankrijk', vlag: '🇫🇷', tekst: 'De Seine met haar bruggen, de Eiffeltoren, de Notre-Dame, Montmartre en nog 26 plekken.', kaart: 'rommelarend-parijs.bin?v=2' },
-    { id: 'amsterdam', naam: 'Amsterdam', land: 'Nederland', vlag: '🇳🇱', tekst: 'De grachten met hun smalle huizen en topgevels, het IJ, de Dam, het Rijksmuseum en de Westertoren.', kaart: 'rommelarend-amsterdam.bin?v=1' },
+    { id: 'amsterdam', naam: 'Amsterdam', land: 'Nederland', vlag: '🇳🇱', tekst: 'De grachten met hun smalle huizen en topgevels, het IJ, de Dam, het Rijksmuseum en de Westertoren.', kaart: 'rommelarend-amsterdam.bin?v=1', kerk: [0.55, 0.31, 0.24] },
   ];
   if (!STEDEN.some(s => s.id === opslag.stad)) opslag.stad = 'parijs';
   const STAD = STEDEN.find(s => s.id === opslag.stad);
@@ -4338,11 +4338,19 @@ const AL = (() => {
   };
   // vijf wedstrijden door Amsterdam (id's beginnen met a-)
   const RACE_DEF_AMS = [
-    { id: 'a-grachten', robot: 60, naam: 'Door de grachten', tekst: 'Laag boven de Prinsengracht, tussen de bomen en de grachtenpanden door.', straat: true, maak: () => { const sn = AK.W.seine, sl = lijnLengtes(sn), tot = sl[sl.length - 1], L = []; for (let s = 120; s < tot - 60; s += 170) { const [x, z] = opLijn(sn, sl, s); L.push(R_(x, z, 6, { water: true, door: true })); } return L; } },
-    { id: 'a-torens', robot: 50, naam: 'Langs de torens', tekst: 'Van de Westertoren naar de Nieuwe Kerk, het Paleis, de Oude Kerk, de Zuiderkerk en de Munttoren.', maak: () => [['westertoren', 70], ['nieuwekerk', 50], ['paleis', 60], ['oudekerk', 72], ['zuiderkerk', 66], ['munttoren', 48]].flatMap(([id, h]) => { const b = B_('a-' + id); return [R_(b.x + 40, b.z - 30, h), R_(b.x - 30, b.z + 40, h * 0.8)]; }) },
-    { id: 'a-ij', robot: 45, naam: 'Over het IJ', tekst: 'Van het Centraal Station over het water naar het Eye, rond de A\'DAM Toren en terug langs NEMO.', maak: () => { const C = B_('a-centraal'), E = B_('a-eye'), A = B_('a-adam'), N = B_('a-nemo'); const L = [R_(C.x, C.z - 140, 25, { water: true }), R_(C.x - 60, C.z - 380, 15, { water: true }), R_(E.x - 80, E.z - 40, 35), R_(A.x - 60, A.z - 60, 60)]; for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2; L.push(R_(A.x + Math.cos(a) * 55, A.z + Math.sin(a) * 55, 70 + i * 6)); } L.push(R_(A.x + 120, A.z + 260, 30, { water: true }), R_(N.x - 120, N.z - 60, 20, { water: true }), R_(N.x + 40, N.z, 40)); return L; } },
-    { id: 'a-amstel', robot: 50, naam: 'Langs de Amstel', tekst: 'Laag over de Amstel, langs de Blauwbrug, de Magere Brug en Carré.', straat: true, maak: () => { const K = AK.W.kanaal || [], am = K.find(l => { let mx = 0, mz = 0, n = l.length / 2; for (let i = 0; i < l.length; i += 2) { mx += l[i] / n; mz += l[i + 1] / n; } return Math.hypot(mx - 800, mz - 1400) < 900; }) || AK.W.seine, sl = lijnLengtes(am), tot = sl[sl.length - 1], L = []; for (let s = 80; s < Math.min(tot - 40, 2400); s += 160) { const [x, z] = opLijn(am, sl, s); L.push(R_(x, z, 7, { water: true, door: true })); } return L; } },
-    { id: 'a-tour', robot: 150, naam: 'Amsterdam in één vlucht', tekst: 'Elf plekken achter elkaar, van het Centraal Station tot het Paleis op de Dam.', maak: () => [['centraal', 60], ['nicolaas', 66], ['schreierstoren', 30], ['montelbaan', 56], ['waag', 36], ['zuiderkerk', 70], ['munttoren', 48], ['rijksmuseum', 62], ['concertgebouw', 42], ['westertoren', 92], ['paleis', 60]].map(([id, h]) => { const b = B_('a-' + id); return R_(b.x, b.z, h); }) },
+    { id: 'a-grachten', robot: 62, naam: 'Door de grachten', tekst: 'Laag boven de Prinsengracht, tussen de bomen en de grachtenpanden door.', straat: true, maak: () => { const sn = AK.W.seine, sl = lijnLengtes(sn), tot = sl[sl.length - 1], L = []; for (let s = 120; s < tot - 60; s += 170) { const [x, z] = opLijn(sn, sl, s); L.push(R_(x, z, 6, { water: true, door: true })); } return L; } },
+    { id: 'a-torens', robot: 72, naam: 'Langs de torens', tekst: 'Van de Westertoren naar de Nieuwe Kerk, het Paleis, de Oude Kerk, de Zuiderkerk en de Munttoren.', maak: () => [['westertoren', 70], ['nieuwekerk', 50], ['paleis', 60], ['oudekerk', 72], ['zuiderkerk', 66], ['munttoren', 48]].flatMap(([id, h]) => { const b = B_('a-' + id); return [R_(b.x + 40, b.z - 30, h), R_(b.x - 30, b.z + 40, h * 0.8)]; }) },
+    { id: 'a-ij', robot: 37, naam: 'Over het IJ', tekst: 'Van het Centraal Station over het water naar het Eye, langs de A\'DAM Toren en over het IJ naar NEMO.', maak: () => { const C = B_('a-centraal'), E = B_('a-eye'), A = B_('a-adam'), N = B_('a-nemo'); return [R_(C.x, C.z - 200, 25, { water: true }), R_(C.x - 60, C.z - 380, 15, { water: true }), R_(E.x + 20, E.z + 115, 18, { water: true }), R_(A.x + 10, A.z + 70, 40), R_(A.x + 90, A.z + 20, 60), R_(900, -850, 25, { water: true }), R_(1000, -700, 15, { water: true }), R_(1250, -300, 15, { water: true }), R_(N.x - 120, N.z - 60, 20, { water: true }), R_(N.x + 40, N.z, 40)]; } },
+    { id: 'a-amstel', robot: 52, naam: 'Langs de Amstel', tekst: 'Laag over de Amstel, langs Carré, door het midden van de Magere Brug en over de Blauwbrug naar het Muntplein.', straat: true, maak: () => {
+      // de Amstel komt van het zuiden de stad in (de langste lijn die bij de Hoge Sluis ophoudt); daarna gaat het water zonder lijn door tot het Muntplein
+      const K = AK.W.kanaal || []; let am = null, best = 1e9;
+      for (const l of K) { const n = l.length; let tot = 0; for (let i = 2; i < n; i += 2) tot += Math.hypot(l[i] - l[i - 2], l[i + 1] - l[i - 1]); if (tot < 3000) continue; for (const [x, z] of [[l[0], l[1]], [l[n - 2], l[n - 1]]]) { const d = Math.hypot(x - 720, z - 1280); if (d < best) { best = d; am = l; } } }
+      const L = [];
+      if (am && best < 300) { if (Math.hypot(am[0] - 720, am[1] - 1280) < 300) { am = am.slice(); const r = []; for (let i = am.length - 2; i >= 0; i -= 2) r.push(am[i], am[i + 1]); am = r; } const sl = lijnLengtes(am), tot = sl[sl.length - 1]; for (let s = Math.max(0, tot - 1750); s < tot - 60; s += 170) { const [x, z] = opLijn(am, sl, s); L.push(R_(x, z, 7, { water: true, door: true })); } }
+      const M = B_('a-magerebrug'); for (const [x, z, h] of [[670, 1205, 7], [M.x, M.z, 6], [605, 885, 7], [562, 722, 8], [440, 652, 7], [335, 642, 6]]) L.push(R_(x, z, h, { water: true, door: true }));
+      return L;
+    } },
+    { id: 'a-tour', robot: 132, naam: 'Amsterdam in één vlucht', tekst: 'Elf plekken achter elkaar, van het Centraal Station tot het Paleis op de Dam.', maak: () => [['centraal', 60], ['nicolaas', 66], ['schreierstoren', 30], ['montelbaan', 56], ['waag', 36], ['zuiderkerk', 70], ['munttoren', 48], ['rijksmuseum', 62], ['concertgebouw', 42], ['westertoren', 92], ['paleis', 60]].map(([id, h]) => { const b = B_('a-' + id); return R_(b.x, b.z, h); }) },
   ];
   const RACE_DEF = STAD.id === 'amsterdam' ? RACE_DEF_AMS : RACE_DEF_PARIJS;
   let RACES = null;
@@ -4623,7 +4631,7 @@ const AL = (() => {
   const toonVoortgang = () => { if (G.scherm !== 'laden') return; const v = AK.voortgang, p = v.totaal ? Math.round(v.binnen / v.totaal * 100) : 0; laden.textContent = STAD.naam + ' wordt gebouwd... ' + (p ? p + '%' : ''); setTimeout(toonVoortgang, 250); };
   toonVoortgang();
   AK.laad(scene, {
-    bestand: STAD.kaart,
+    bestand: STAD.kaart, kerk: STAD.kerk,
     opGlobaal: () => {
       AL.bouw(scene); begin_kaart(); for (const st of AK.kop.stukken) if (st.soort === 1) kaartRij.push(st.t);
       maakBoten(); maakAutos(); maakDuiven(); maakMeeuwen(); maakMensen(); maakFonteinen(); maakVlaggen(); maakRegen();

@@ -1313,3 +1313,11 @@ print('kopie in de werkplaats:', 'gelijk' if json.loads(m.group(1)) == h else 'V
   - alle 368 puzzels op 360 breed: elk woord past;
   - licht en donker, 360, 390 en 1280 breed, zonder fouten of CSP-overtredingen.
 - **Het gereedschap** staat niet in de repository: controle, lijsten, opdracht voor makers en nakijkers, bouwen, uitpakken, volgorde en tests. Ruben kreeg het als zip. Zonder dat gereedschap kan het ook: de motor in de pagina kan alles uitpakken en versleutelen.
+
+## Homepage op oudere iPads (2 november 2026, Claude Code)
+
+- Ruben zag op een iPad iconen die niet goed stonden. In de nieuwste Safari (WebKit 26.6) en Chromium staat alles goed, op telefoon-, iPad- (staand, liggend, gedraaid) en computerformaat. Twee dingen gingen mis in een oudere Safari:
+  - **`?.` in `homepage-onderdelen.js`** (bij de iconen van home_v8): Safari ouder dan 13.1 (iPadOS 13.3 of ouder) kan het hele bestand dan niet lezen, en tekent geen enkel icoon. Herschreven zonder `?.`.
+  - **`aspect-ratio`** (de vierkante tegels in home_v6): Safari ouder dan 15 (iPadOS 14 of ouder) kent het niet. Dan worden de tegels platte strookjes, en lopen de iconen over de rand en over het stickertje Nieuw. Nu is er een reserve in `@supports not (aspect-ratio: 1 / 1)`: een leeg `::after` met `padding-top: 100%` houdt de tegel vierkant, en de rondjes krijgen een hoogte in procenten. Nieuwe browsers merken daar niets van.
+- **Regel**: houd `homepage-onderdelen.js` leesbaar als ES2018 (Safari 12): geen `?.`, `??`, `??=`, `||=` of klasse-velden. Controle: `NODE_PATH=/opt/node-tools/node_modules node -e "require('acorn').parse(require('fs').readFileSync('homepage-onderdelen.js','utf8'),{ecmaVersion:2018})"`. Nieuwere CSS mag, met een reserve als de opmaak ervan afhangt.
+- **Testen in de tekenmotor van Safari** in een cloudsessie: de WebKit-build die bij Playwright hoort (`webkit-ubuntu-24.04.zip` van cdn.playwright.dev) in de kladmap, met de ontbrekende bibliotheken via `apt-get download` en `dpkg -x` (ook Mesa voor EGL), gestart met `webkit.launch({ executablePath: '<map>/pw_run.sh', env: { EGL_PLATFORM: 'surfaceless', LIBGL_ALWAYS_SOFTWARE: '1', ... } })`. Een oudere Safari nabootsen: de CSS die hij niet kent uit `homepage-onderdelen.js` halen (via `route`) en kijken wat er overblijft.

@@ -1656,13 +1656,15 @@ function kaartBouwer(scope) {
     W.brugVrij = L.p + 4 <= L.b.length ? L.f32() : 6.5;
     // daarachter (sinds november 2026): het spoor, en de lange routes voor de treinen
     if (L.p < L.b.length) { const n = L.vu(); for (let i = 0; i < n; i++) W.spoor.push(leesSpoor(L)); const nr = L.vu(); for (let i = 0; i < nr; i++) W.routes.push(leesSpoor(L)); spoorIndex(); }
-    for (const b of W.bruggen) brugAs(b);
     // het peil van elk water: de Seine (groot) op het peil van de rivier, vijvers en kanalen net onder hun oever
     for (const v of W.water) { const r = v.rings[0], A = Math.abs(opp(r)); if (A > 3e5) { v.peil = W.peil; continue; } let laag = Infinity; for (let k = 0; k < r.length; k += 2) laag = Math.min(laag, hoogteM(r[k], r[k + 1])); v.peil = Math.max(W.peil, laag - 0.8); }
     sluizen();
     // waterlijsten per vak van 250 m, voor snel 'is hier water?'
     W.waterVak = new Map();
     W.water.forEach((v, i) => { const r = v.rings[0]; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = 0; k < r.length; k += 2) { x0 = Math.min(x0, r[k]); x1 = Math.max(x1, r[k]); z0 = Math.min(z0, r[k + 1]); z1 = Math.max(z1, r[k + 1]); } v.box = [x0, z0, x1, z1]; for (let a = Math.floor(x0 / 250); a <= Math.floor(x1 / 250); a++) for (let b = Math.floor(z0 / 250); b <= Math.floor(z1 / 250); b++) { const k = a + ',' + b; if (!W.waterVak.has(k)) W.waterVak.set(k, []); W.waterVak.get(k).push(i); } });
+    // de bruggen pas nu: brugAs kijkt waar het water is (daarvoor bestond waterVak nog niet, en was alles land)
+    for (const b of W.bruggen) brugAs(b);
+    spoorOverBruggen();
     return W;
   }
   const inRing = (r, x, z) => { let c = false; for (let i = 0, n = r.length / 2, j = n - 1; i < n; j = i++) { const xi = r[i * 2], zi = r[i * 2 + 1], xj = r[j * 2], zj = r[j * 2 + 1]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
@@ -1730,6 +1732,16 @@ function kaartBouwer(scope) {
     let ring = b.vlakken[0].rings[0]; for (const v of b.vlakken) if (Math.abs(opp(v.rings[0])) > Math.abs(opp(ring))) ring = v.rings[0];
     const n = ring.length / 2; let cx = 0, cz = 0; for (let i = 0; i < n; i++) { cx += ring[i * 2] / n; cz += ring[i * 2 + 1] / n; }
     let best = 0, bh = 0; for (let a = 0; a < 180; a += 3) { const h = a * Math.PI / 180, ux = Math.cos(h), uz = Math.sin(h); let lo = 1e9, hi = -1e9; for (let i = 0; i < n; i++) { const s = (ring[i * 2] - cx) * ux + (ring[i * 2 + 1] - cz) * uz; lo = Math.min(lo, s); hi = Math.max(hi, s); } if (hi - lo > best) { best = hi - lo; bh = h; } }
+    // De langste lijn door het vlak is bij een scheve brug (een parallellogram) een diagonaal: dan stonden de bogen schuin onder het dek.
+    // Kies daarom uit de richtingen van de randen (en die langste lijn) de richting waarin de brug echt over het water gaat:
+    // de uiteinden op het land, de zijkanten in het midden boven het water.
+    { const hoeken = new Map(); for (let i = 0; i < n; i++) { const j = (i + 1) % n, dx = ring[j * 2] - ring[i * 2], dz = ring[j * 2 + 1] - ring[i * 2 + 1], L = Math.hypot(dx, dz); if (L < 0.5) continue; let h = Math.atan2(dz, dx); if (h < 0) h += Math.PI; if (h >= Math.PI) h -= Math.PI; const k = Math.round(h / (Math.PI / 60)) % 60; hoeken.set(k, (hoeken.get(k) || 0) + L); }
+      const kand = [bh, ...[...hoeken.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => k * Math.PI / 60)];
+      const punten = h => { const ux = Math.cos(h), uz = Math.sin(h), vx = -uz, vz = ux; let s0 = 1e9, s1 = -1e9, t0 = 1e9, t1 = -1e9; for (let i = 0; i < n; i++) { const dx = ring[i * 2] - cx, dz = ring[i * 2 + 1] - cz, s = dx * ux + dz * uz, t = dx * vx + dz * vz; s0 = Math.min(s0, s); s1 = Math.max(s1, s); t0 = Math.min(t0, t); t1 = Math.max(t1, t); }
+        let p = 0; for (const f of [-0.3, 0, 0.3]) { const tt = (t0 + t1) / 2 + (t1 - t0) * f; if (!isWater(cx + ux * (s0 - 3) + vx * tt, cz + uz * (s0 - 3) + vz * tt)) p += 1; if (!isWater(cx + ux * (s1 + 3) + vx * tt, cz + uz * (s1 + 3) + vz * tt)) p += 1; }
+        for (const f of [-0.15, 0, 0.15]) { const ss = (s0 + s1) / 2 + (s1 - s0) * f; if (isWater(cx + ux * ss + vx * (t0 - 3), cz + uz * ss + vz * (t0 - 3))) p += 1; if (isWater(cx + ux * ss + vx * (t1 + 3), cz + uz * ss + vz * (t1 + 3))) p += 1; }
+        return p + (s1 - s0) / Math.max(1, (s1 - s0) + (t1 - t0)) * 0.5; };
+      let bp = punten(bh); for (const h of kand.slice(1)) { const p = punten(h); if (p > bp + 0.6) { bp = p; bh = h; } } }
     const ux = Math.cos(bh), uz = Math.sin(bh); let s0 = 1e9, s1 = -1e9; for (let i = 0; i < n; i++) { const s = (ring[i * 2] - cx) * ux + (ring[i * 2 + 1] - cz) * uz; s0 = Math.min(s0, s); s1 = Math.max(s1, s); }
     // de hoogte van de straat aan elk uiteinde: het eerste stukje land vanaf de rand naar binnen
     const eind = (vanaf, stap) => { for (let k = 0; k < 40; k++) { const s = vanaf + stap * (2 + k * 2); if ((stap > 0 && s > s1) || (stap < 0 && s < s0)) break; const x = cx + ux * s, z = cz + uz * s; if (!isWater(x, z)) return hoogteM(x, z); } return null; };
@@ -1749,6 +1761,70 @@ function kaartBouwer(scope) {
     b.dek = (hA + hB) / 2;
   }
   function brugOp(x, z) { for (const b of W.bruggen) { if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) continue; for (const v of b.vlakken) if (inVlak(v, x, z)) return b; } return null; }
+  // Het spoor en de bruggen. Een spoor op een viaduct dat een brug op komt, lag altijd op het dek van die brug:
+  // - een metro op de bovenverdieping van een wegbrug (Bir-Hakeim, Bercy) zakte van het viaduct schuin naar het wegdek;
+  // - een smalle spoorbrug (Pont Rouelle, de spoorbruggen in Amsterdam, Blackfriars) kreeg het dek van de straat aan de uiteinden,
+  //   zodat het spoor er meters naar beneden op zakte.
+  // Nu: komt het spoor hoger aan dan het dek (2,5 m of meer), dan is de brug een spoorbrug (smal: het dek gaat omhoog naar het spoor)
+  // of een wegbrug met het spoor erboven (breed: het spoor blijft op zijn eigen hoogte, op kolommen op het dek).
+  function spoorOverBruggen() {
+    const runs = [], perBrug = new Map();
+    for (const l of [...W.spoor, ...W.routes]) {
+      l.over = null; if (l.s === 4 || !l.brug) continue;
+      const p = l.pts, n = p.length / 2; let cur = null, vorig = null;
+      const eigen = (x, z, b) => hoogteM(x, z) + b;
+      for (let j = 0; j < n - 1; j++) {
+        const ax = p[j * 2], az = p[j * 2 + 1], bx = p[j * 2 + 2], bz = p[j * 2 + 3], L = Math.hypot(bx - ax, bz - az), m = Math.max(1, Math.ceil(L / 3));
+        for (let q = j ? 1 : 0; q <= m; q++) {
+          const t = q / m, x = ax + (bx - ax) * t, z = az + (bz - az) * t, u = l.cum[j] + L * t, b = l.boven[j] + (l.boven[j + 1] - l.boven[j]) * t, br = b > 1 ? brugOp(x, z) : null;
+          if (br && !cur && vorig) cur = { l, br, u0: vorig.u, y0: vorig.y, x0: vorig.x, z0: vorig.z, d0: br.dekOp(x, z) };
+          else if (cur && br !== cur.br) { Object.assign(cur, { u1: u, y1: eigen(x, z, b), x1: x, z1: z, d1: cur.br.dekOp(vorig.x, vorig.z) }); runs.push(cur); cur = null; if (br && vorig) cur = { l, br, u0: vorig.u, y0: vorig.y, x0: vorig.x, z0: vorig.z, d0: br.dekOp(x, z) }; }
+          vorig = { u, x, z, y: br ? NaN : eigen(x, z, b) };
+        }
+      }
+    }
+    for (const r of runs) {
+      if (r.br.hoog || !isFinite(r.y0) || !isFinite(r.y1)) continue;
+      r.hoger = Math.min(r.y0 - r.d0, r.y1 - r.d1); if (!(r.hoger > 2.5)) continue;
+      if (!perBrug.has(r.br)) perBrug.set(r.br, []); perBrug.get(r.br).push(r);
+    }
+    for (const [br, rs] of perBrug) {
+      // hoe breed is de brug (dwars op de as), en hoeveel sporen gaan erover?
+      // (de oppervlakte gedeeld door de lengte: een scheve brug is een parallellogram, dan zegt de breedte dwars op de as te veel)
+      let A = 0; for (const v of br.vlakken) A += Math.abs(opp(v.rings[0]));
+      const breed = A / Math.max(1, br.s1 - br.s0), sporen = new Set(rs.filter(r => W.spoor.includes(r.l)).map(r => r.l)).size || 1;
+      br._breed = breed; br._sporen = sporen; br._lang = br.s1 - br.s0;
+      if (/spoor|metro|métro|railway|viaduc|rail bridge/i.test(br.naam || '') || breed < sporen * 4.6 + 10) {
+        // een spoorbrug: het dek ligt op het spoor (aan elk uiteinde de hoogte waarop het spoor aankomt)
+        const pt = []; for (const r of rs) { pt.push([(r.x0 - br.cx) * br.ux + (r.z0 - br.cz) * br.uz, r.y0], [(r.x1 - br.cx) * br.ux + (r.z1 - br.cz) * br.uz, r.y1]); }
+        pt.sort((a, b) => a[0] - b[0]); const [sa, ya] = pt[0], [sb, yb] = pt[pt.length - 1], hel = (yb - ya) / Math.max(1, sb - sa);
+        const nA = Math.min(br.hA + 15, ya + hel * (br.s0 - sa) - 0.3), nB = Math.min(br.hB + 15, yb + hel * (br.s1 - sb) - 0.3);
+        if (nA > br.hA || nB > br.hB) {
+          const hA = Math.max(br.hA, nA), hB = Math.max(br.hB, nB), s0 = br.s0, s1 = br.s1, minDek = W.peil + (W.brugVrij || 6.5);
+          Object.assign(br, { hA, hB, dek: (hA + hB) / 2, spoorbrug: true });
+          br.dekS = s => { const tt = Math.max(0, Math.min(1, (s - s0) / ((s1 - s0) || 1))); return Math.max(hA + (hB - hA) * tt, minDek); };
+        }
+      } else {
+        // een wegbrug met het spoor erboven: het spoor houdt zijn eigen hoogte (van het ene uiteinde naar het andere)
+        // (zo'n 6,8 m boven het wegdek, zoals de metro over Bir-Hakeim; kwam hij hoger aan, dan zakt hij op de oprit met hooguit 4% naar die hoogte)
+        for (const r of rs) {
+          const y0 = Math.min(r.y0, r.d0 + 6.8), y1 = Math.min(r.y1, r.d1 + 6.8), e0 = r.y0 - y0, e1 = r.y1 - y1;
+          (r.l.over || (r.l.over = [])).push({ u0: r.u0, u1: r.u1, y0, y1, e0, e1, R0: e0 / 0.04, R1: e1 / 0.04 }); br.spoorBoven = true;
+        }
+      }
+    }
+  }
+  // het spoor boven een wegbrug (zie spoorOverBruggen): de hoogte op afstand u langs het spoor, of null
+  // (op de oprit ervoor en erna: { d } = hoeveel lager dan de gewone hoogte; op de brug: { y } = de hoogte zelf)
+  function spoorBoven(l, u) {
+    if (!l.over) return null;
+    for (const r of l.over) {
+      if (u >= r.u0 && u <= r.u1) return { y: r.y0 + (r.y1 - r.y0) * (u - r.u0) / Math.max(0.01, r.u1 - r.u0) };
+      if (r.e0 > 0 && u < r.u0 && u > r.u0 - r.R0) return { d: -r.e0 * (1 - (r.u0 - u) / r.R0) };
+      if (r.e1 > 0 && u > r.u1 && u < r.u1 + r.R1) return { d: -r.e1 * (1 - (u - r.u1) / r.R1) };
+    }
+    return null;
+  }
   function hoogteM(x, z) {
     const H = W.H; if (!H) return NUL;
     let fx = (x - H.x0) / H.r, fz = (z - H.z0) / H.r; fx = Math.max(0, Math.min(H.w - 1.001, fx)); fz = Math.max(0, Math.min(H.h - 1.001, fz));
@@ -1922,7 +1998,7 @@ function kaartBouwer(scope) {
   const N8 = v => Math.max(-127, Math.min(127, Math.round(v * 127)));
   // ---------------------------------------------------------------- gebouwen
   // aG = (u langs de gevel in m, v boven de voet in m, lengte van de rand, muurhoogte)  aS = (soort, verdiepingen, zaadje x 255, extra)
-  // soort: 0..15 gevelstijl (+40 blinde muur), 20 zink, 21 lei, 22 pannen, 23 plat dak, 24 glas, 25 schoorsteen, 26 schoorsteenpotjes, 27 glazen overkapping, 28 Amsterdamse pannen, 29-32 boot (romp, kajuit, dek, dak), 33 donker hout (hijsbalk), 34 Londense schoorsteen
+  // soort: 0..15 gevelstijl (+40 blinde muur), 20 zink, 21 lei, 22 pannen, 23 plat dak, 24 glas, 25 schoorsteen, 26 schoorsteenpotjes, 27 glazen overkapping, 28 Amsterdamse pannen, 29-32 boot (romp, kajuit, dek, dak), 33 donker hout (hijsbalk), 34 Londense schoorsteen, 35-36 watertank, 37 installatie op een plat dak, 38 trappenhuis op het dak
   const gebouwBak = () => new Bak({ position: [Float32Array, 3], normal: [Int8Array, 3, true], aG: [Float32Array, 4], aS: [Uint8Array, 4] });
   function inspring(pts, d) {
     const n = pts.length / 2, uit = new Float64Array(pts.length);
@@ -2235,6 +2311,22 @@ function kaartBouwer(scope) {
         const r = ring0; let cx = 0, cz = 0; for (let i = 0; i < n0; i++) { cx += r[i * 2] / n0; cz += r[i * 2 + 1] / n0; }
         if (Math.abs(opp(r)) > 180 && inRing(r, cx, cz)) { const rt = 1.8 + fract(g.seed * 5.3) * 0.8; watertank(B, cx + (fract(g.seed * 3.1) - 0.5) * 4, cz + (fract(g.seed * 7.9) - 0.5) * 4, yT / S + NUL, rt, 3.6 + rt * 0.8, seed, lv); }
       }
+      // op een groot plat dak (kantoren, flats, warenhuizen): een trappenhuis en installaties (alleen dichtbij); zo is een plat dak geen kale doos meer
+      if (detail && st !== 8 && !(W.ny && (st === 11 || st === 12) && lv >= 5 && lv <= 24)) {
+        const r = ring0, A = Math.abs(opp(r));
+        if (A > 220) {
+          let cx = 0, cz = 0; for (let i = 0; i < n0; i++) { cx += r[i * 2] / n0; cz += r[i * 2 + 1] / n0; }
+          let bl = 0, ux = 1, uz = 0; for (let i = 0; i < n0; i++) { const j = (i + 1) % n0, dx = r[j * 2] - r[i * 2], dz = r[j * 2 + 1] - r[i * 2 + 1], L = Math.hypot(dx, dz); if (L > bl) { bl = L; ux = dx / L; uz = dz / L; } }
+          const aantal = A > 2500 ? 5 : A > 900 ? 4 : A > 450 ? 3 : 2, R = Math.sqrt(A) * 0.3, y0 = yT / S + NUL - 0.05;
+          for (let k = 0; k < aantal; k++) {
+            const f1 = fract(g.seed * (17.3 + k * 5.1)), f2 = fract(g.seed * (29.7 + k * 3.3)), ox = (f1 - 0.5) * 2 * R, oz = (f2 - 0.5) * 2 * R;
+            const px = cx + ux * ox - uz * oz, pz = cz + uz * ox + ux * oz, groot = k === 0 && lv >= 3;
+            const lang = groot ? 3.4 + f1 * 2.2 : 1.4 + f2 * 2.4, breed = groot ? 2.6 + f2 * 1.2 : 1.1 + f1 * 1.5, hoog = groot ? 2.9 : 0.9 + f2 * 0.9;
+            let binnen = true; for (const [a, b] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const qx = px + ux * a * (lang / 2 + 0.6) - uz * b * (breed / 2 + 0.6), qz = pz + uz * a * (lang / 2 + 0.6) + ux * b * (breed / 2 + 0.6); if (!inRing(r, qx, qz)) { binnen = false; break; } }
+            if (binnen) blok(B, px, pz, ux, uz, lang, breed, y0, hoog, groot ? 38 : 37, seed, lv);
+          }
+        }
+      }
       // een lage rand om een plat dak (extra 4: in de gevelshader geen topgevel)
       if (detail && dik > 3) { const r = ring0, d = new Float64Array(n0).fill(0.35), r2 = inspring(r, d), y2 = yT + 0.7 * S; for (let i = 0; i < n0; i++) { const j = (i + 1) % n0, L = Math.hypot(r[j * 2] - r[i * 2], r[j * 2 + 1] - r[i * 2 + 1]); if (L < 0.5) continue; const nx = N8(-(r2[i * 2] - r[i * 2])), nz = N8(-(r2[i * 2 + 1] - r[i * 2 + 1])); void nx; void nz; const ex = (r[j * 2 + 1] - r[i * 2 + 1]) / L, ez = -(r[j * 2] - r[i * 2]) / L, a = B.v(r[i * 2] * S, yT, r[i * 2 + 1] * S, N8(ex), 0, N8(ez), 0, H, L, H, st, lv, seed, 4), b = B.v(r[j * 2] * S, yT, r[j * 2 + 1] * S, N8(ex), 0, N8(ez), L, H, L, H, st, lv, seed, 4), c = B.v(r[j * 2] * S, y2, r[j * 2 + 1] * S, N8(ex), 0, N8(ez), L, H + 0.7, L, H, st, lv, seed, 4), e = B.v(r[i * 2] * S, y2, r[i * 2 + 1] * S, N8(ex), 0, N8(ez), 0, H + 0.7, L, H, st, lv, seed, 4); B.t(a, c, b); B.t(a, e, c); } }
     }
@@ -2284,7 +2376,8 @@ function kaartBouwer(scope) {
     for (let j = 0; j <= NC; j++) for (let i = 0; i <= NC; i++) { const x = ox + i * CEL, z = oz + j * CEL, h = hoogteM(x, z), k = j * (NC + 1) + i; hh[k] = h; const dx = hoogteM(x + 8, z) - hoogteM(x - 8, z), dz = hoogteM(x, z + 8) - hoogteM(x, z - 8), l = Math.hypot(dx, 16, dz); nn[k * 3] = N8(-dx / l); nn[k * 3 + 1] = N8(16 / l); nn[k * 3 + 2] = N8(-dz / l); }
     const hIn = (x, z) => { let fi = (x - ox) / CEL, fj = (z - oz) / CEL; const i = Math.max(0, Math.min(NC - 1, Math.floor(fi))), j = Math.max(0, Math.min(NC - 1, Math.floor(fj))); fi -= i; fj -= j; const h00 = hh[j * (NC + 1) + i], h10 = hh[j * (NC + 1) + i + 1], h01 = hh[(j + 1) * (NC + 1) + i], h11 = hh[(j + 1) * (NC + 1) + i + 1]; return fi >= fj ? h00 + (h10 - h00) * fi + (h11 - h10) * fj : h00 + (h11 - h01) * fi + (h01 - h00) * fj; };
     const nIn = (x, z) => { const i = Math.max(0, Math.min(NC, Math.round((x - ox) / CEL))), j = Math.max(0, Math.min(NC, Math.round((z - oz) / CEL))), k = (j * (NC + 1) + i) * 3; return [nn[k], nn[k + 1], nn[k + 2]]; };
-    const punt = (x, z, k, laag) => { const n = nIn(x, z), r = RM ? RM(x, z) : RGEEN; return B.v(x * S, (hIn(x, z) - NUL) * S, z * S, n[0], n[1], n[2], k[0], k[1], k[2], laag, r[0], r[1], RM ? r[2] : RC, r[3], r[4], r[5]); };
+    let SUB = 0;   // sublaagje binnen een laag (0 tot 7): elke weg een eigen, zodat twee wegen die over elkaar liggen niet om de beurt winnen (dat flikkerde)
+    const punt = (x, z, k, laag) => { const n = nIn(x, z), r = RM ? RM(x, z) : RGEEN; return B.v(x * S, (hIn(x, z) - NUL) * S, z * S, n[0], n[1], n[2], k[0], k[1], k[2], laag * 8 + SUB, r[0], r[1], RM ? r[2] : RC, r[3], r[4], r[5]); };
     const drie = (a, b, c, k, laag) => {
       const i0 = Math.max(0, Math.floor((Math.min(a[0], b[0], c[0]) - ox) / CEL)), i1 = Math.min(NC - 1, Math.floor((Math.max(a[0], b[0], c[0]) - ox) / CEL)), j0 = Math.max(0, Math.floor((Math.min(a[1], b[1], c[1]) - oz) / CEL)), j1 = Math.min(NC - 1, Math.floor((Math.max(a[1], b[1], c[1]) - oz) / CEL));
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
@@ -2311,7 +2404,7 @@ function kaartBouwer(scope) {
     for (const w of T.wegen) {
       const k = WKL[w.k], h = w.breed / 2, laag = WLAAG[w.k] || 4, p = w.pts, n = p.length / 2;
       if (w.brug) { wegOpBrug(B, w, k, true); continue; }
-      const M = wegMaten(w, kr), code = 10 + w.k;
+      const M = wegMaten(w, kr), code = 10 + w.k; SUB = 1 + (T.wegen.indexOf(w) % 7);
       for (let i = 0; i < n - 1; i++) {
         const ax = p[i * 2], az = p[i * 2 + 1], bx = p[i * 2 + 2], bz = p[i * 2 + 3], L = Math.hypot(bx - ax, bz - az); if (L < 0.01) continue;
         const dx = (bx - ax) / L, dz = (bz - az) / L, nx = -dz * h, nz = dx * h, q = [[ax + nx, az + nz], [bx + nx, bz + nz], [bx - nx, bz - nz], [ax - nx, az - nz]];
@@ -2319,7 +2412,7 @@ function kaartBouwer(scope) {
         RM = (x, z) => { const l = (x - ax) * dx + (z - az) * dz, v = (x - ax) * -dz + (z - az) * dx, uu = ua + l; return [Math.round((ub + l) * 10), kl16(v * 100), code, Math.round(h * 100), kl16((uu - st.u0 - st.h0) * 10), kl16((st.u1 - uu - st.h1) * 10)]; };
         drie(q[0], q[1], q[2], k, laag); drie(q[0], q[2], q[3], k, laag);
       }
-      RM = null; RC = 9;
+      RM = null; RC = 9; SUB = 0;
       if (w.k <= 4 && h > 2) for (let i = 0; i < n; i++) { const cx = p[i * 2], cz = p[i * 2 + 1], rond = []; for (let s = 0; s < 8; s++) rond.push([cx + Math.cos(s / 8 * 6.283) * h, cz + Math.sin(s / 8 * 6.283) * h]); for (let s = 1; s < 7; s++) drie(rond[0], rond[s], rond[s + 1], k, laag); }
       RC = 0;
     }
@@ -2333,7 +2426,7 @@ function kaartBouwer(scope) {
       const br = brugOp((ax + bx) / 2, (az + bz) / 2), ya = br ? br.dekOp(ax, az) + 0.35 : hoogteM(ax, az), yb = br ? br.dekOp(bx, bz) + 0.35 : hoogteM(bx, bz);
       const nx = -(bz - az) / L * h, nz = (bx - ax) / L * h, u0 = uL % 2400, code = 10 + w.k, hc = Math.round(h * 100);
       const r = (u, v) => dicht ? [Math.round(u * 10), kl16(v * 100), code, hc, 30000, 30000] : [];
-      const a = B.v((ax + nx) * S, (ya - NUL) * S, (az + nz) * S, 0, 127, 0, k[0], k[1], k[2], 4, ...r(u0, h)), b = B.v((bx + nx) * S, (yb - NUL) * S, (bz + nz) * S, 0, 127, 0, k[0], k[1], k[2], 4, ...r(u0 + L, h)), c = B.v((bx - nx) * S, (yb - NUL) * S, (bz - nz) * S, 0, 127, 0, k[0], k[1], k[2], 4, ...r(u0 + L, -h)), d = B.v((ax - nx) * S, (ya - NUL) * S, (az - nz) * S, 0, 127, 0, k[0], k[1], k[2], 4, ...r(u0, -h));
+      const a = B.v((ax + nx) * S, (ya - NUL) * S, (az + nz) * S, 0, 127, 0, k[0], k[1], k[2], 36, ...r(u0, h)), b = B.v((bx + nx) * S, (yb - NUL) * S, (bz + nz) * S, 0, 127, 0, k[0], k[1], k[2], 36, ...r(u0 + L, h)), c = B.v((bx - nx) * S, (yb - NUL) * S, (bz - nz) * S, 0, 127, 0, k[0], k[1], k[2], 36, ...r(u0 + L, -h)), d = B.v((ax - nx) * S, (ya - NUL) * S, (az - nz) * S, 0, 127, 0, k[0], k[1], k[2], 36, ...r(u0, -h));
       uL += L;
       const s = (nx * (bz - az) - nz * (bx - ax)); if (s > 0) { B.t(a, b, c); B.t(a, c, d); } else { B.t(a, c, b); B.t(a, d, c); }
     }
@@ -2352,7 +2445,7 @@ function kaartBouwer(scope) {
       if (niveau >= 2 && !nat) { const a = id[j * (N + 1) + i], b = id[j * (N + 1) + i + 2], c = id[(j + 2) * (N + 1) + i + 2], d = id[(j + 2) * (N + 1) + i]; B.t(a, c, b); B.t(a, d, c); continue; }
       cel(i, j); cel(i + 1, j); cel(i, j + 1); cel(i + 1, j + 1);
     }
-    const leg = (rings, k, laag) => { const { plat: p, idx } = driehoeken(rings), basis = B.nv; for (let i = 0; i < p.length; i += 2) B.v(p[i] * S, (hoogteM(p[i], p[i + 1]) + 0.8 - NUL) * S, p[i + 1] * S, 0, 127, 0, k[0], k[1], k[2], laag); for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2], s = (p[b * 2] - p[a * 2]) * (p[c * 2 + 1] - p[a * 2 + 1]) - (p[b * 2 + 1] - p[a * 2 + 1]) * (p[c * 2] - p[a * 2]); if (s > 0) B.t(basis + a, basis + c, basis + b); else B.t(basis + a, basis + b, basis + c); } };
+    const leg = (rings, k, laag) => { const { plat: p, idx } = driehoeken(rings), basis = B.nv; for (let i = 0; i < p.length; i += 2) B.v(p[i] * S, (hoogteM(p[i], p[i + 1]) + 0.8 - NUL) * S, p[i + 1] * S, 0, 127, 0, k[0], k[1], k[2], laag * 8 + 4); for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2], s = (p[b * 2] - p[a * 2]) * (p[c * 2 + 1] - p[a * 2 + 1]) - (p[b * 2 + 1] - p[a * 2 + 1]) * (p[c * 2] - p[a * 2]); if (s > 0) B.t(basis + a, basis + c, basis + b); else B.t(basis + a, basis + b, basis + c); } };
     const minOpp = niveau > 1 ? 2500 : 300;
     for (const v of T.plein) if (Math.abs(opp(v.rings[0])) > minOpp) leg(v.rings, K8(v.k === 2 ? KLEUR.spoor : KLEUR.plein), 1);
     for (const v of T.groen) if (Math.abs(opp(v.rings[0])) > minOpp) leg(v.rings, GK[v.k] || GK[1], 2);
@@ -2362,15 +2455,41 @@ function kaartBouwer(scope) {
   }
   // ---------------------------------------------------------------- bomen: per boom plek, grootte en kleur
   const BOOMKLEUR = [[0.27, 0.40, 0.17], [0.30, 0.42, 0.18], [0.24, 0.38, 0.16], [0.30, 0.44, 0.20], [0.34, 0.44, 0.18], [0.29, 0.41, 0.20], [0.36, 0.40, 0.22], [0.16, 0.28, 0.16]];
+  // De bomen: die uit OSM (een boom per punt), en in parken, bossen, begraafplaatsen en tuinen vanzelf meer (in OSM staan in de meeste parken maar een paar
+  // bomen getekend; Central Park had er bijna geen). In een park in groepjes met open grasvelden ertussen, nooit op een pad, in het water of in een gebouw.
+  // Per boom 8 getallen: plek (3), grootte, draaiing + 10 × de soort (0 loofboom, 1 hoge boom, 2 naaldboom), en de kleur.
+  const hashB = (x, z) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
+  function parkBomen(T, dichtheid, bestaand) {
+    const uit = []; if (!T.groen || !T.groen.length) return uit;
+    const VAK = 5, sl = (x, z) => Math.floor(x / VAK) * 100003 + Math.floor(z / VAK), vrij = new Set();
+    for (const w of T.wegen) { const p = w.pts, h = w.breed / 2 + 1.5; for (let i = 0; i < p.length / 2 - 1; i++) { const ax = p[i * 2], az = p[i * 2 + 1], bx = p[i * 2 + 2], bz = p[i * 2 + 3], L = Math.hypot(bx - ax, bz - az); if (L < 0.01) continue; const nx = -(bz - az) / L, nz = (bx - ax) / L;
+      for (let t = 0; t <= L; t += 2.5) { const x = ax + (bx - ax) * t / L, z = az + (bz - az) * t / L; for (let o = -h; o <= h; o += 2.5) vrij.add(sl(x + nx * o, z + nz * o)); vrij.add(sl(x + nx * h, z + nz * h)); vrij.add(sl(x - nx * h, z - nz * h)); } } }
+    for (const g of T.gebouwen) { const [x0, z0, x1, z1] = g.box; for (let x = x0 - 2; x <= x1 + 2; x += VAK) for (let z = z0 - 2; z <= z1 + 2; z += VAK) vrij.add(sl(x, z)); }
+    for (let i = 0; i < bestaand.length; i += 2) vrij.add(sl(bestaand[i], bestaand[i + 1]));
+    const DICHT = { 1: 1 / 150, 2: 1 / 38, 3: 1 / 200, 5: 1 / 280 }; let totaal = 0;
+    for (const v of T.groen) {
+      const d0 = DICHT[v.k]; if (!d0) continue; const r = v.rings[0], A = Math.abs(opp(r)); if (A < (v.k === 2 ? 150 : 500)) continue;
+      const dens = d0 * dichtheid * (v.k === 1 ? 1.7 : 1), sp = Math.sqrt(1 / dens); let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < r.length; i += 2) { x0 = Math.min(x0, r[i]); x1 = Math.max(x1, r[i]); z0 = Math.min(z0, r[i + 1]); z1 = Math.max(z1, r[i + 1]); }
+      for (let gx = Math.floor(x0 / sp) * sp; gx < x1 && totaal < 3500; gx += sp) for (let gz = Math.floor(z0 / sp) * sp; gz < z1 && totaal < 3500; gz += sp) {
+        const h1 = hashB(gx, gz), h2 = hashB(gz + 3.1, gx - 7.7), x = gx + (h1 - 0.5) * sp * 0.9, z = gz + (h2 - 0.5) * sp * 0.9;
+        if (v.k === 1) { const gr = 0.5 + 0.5 * Math.sin(x / 37 + Math.sin(z / 53) * 2.1) * Math.cos(z / 41 - Math.sin(x / 61) * 1.7); if (gr < 0.42 + 0.25 * hashB(Math.floor(x / 90), Math.floor(z / 90))) continue; }
+        if (vrij.has(sl(x, z)) || !inRing(r, x, z)) continue; let gat = false; for (let k = 1; k < v.rings.length; k++) if (inRing(v.rings[k], x, z)) { gat = true; break; } if (gat || isWater(x, z)) continue;
+        const h3 = hashB(x * 1.3, z * 0.7), soort = v.k === 2 ? (h3 < 0.35 ? 2 : h3 < 0.6 ? 1 : 0) : v.k === 3 ? (h3 < 0.3 ? 2 : h3 < 0.55 ? 1 : 0) : (h3 < 0.08 ? 2 : h3 < 0.3 ? 1 : 0), b = BOOMKLEUR[Math.floor(hashB(z, x) * 7)], vv = 0.82 + 0.3 * hashB(x + 1, z + 2), rr = (soort === 2 ? 3.0 : 3.4) + 2.4 * hashB(x - 5, z + 9);
+        uit.push(x * SCHAAL, yVan(hoogteM(x, z)), z * SCHAAL, rr * SCHAAL, (x + z) % 6.283 + 10 * soort, Math.pow(b[0] * vv, 2.2), Math.pow(b[1] * vv, 2.2), Math.pow(b[2] * vv, 2.2)); totaal++;
+      }
+    }
+    return uit;
+  }
   function maakBomen(T, dichtheid) {
     const n = T.bomen.length / 2, uit = new Float32Array(n * 8); let m = 0;
     for (let i = 0; i < n; i++) {
       const x = T.bomen[i * 2], z = T.bomen[i * 2 + 1], c = T.boomSoort[i], kl = c & 15, gr = c >> 4, f = ((x * 7.31 + z * 3.17) % 1 + 1) % 1;
       if (dichtheid < 1 && f > dichtheid) continue;
-      const r = (gr === 0 ? 2.6 : gr === 1 ? 4.0 : 5.4) * (0.85 + 0.3 * f), b = BOOMKLEUR[kl] || BOOMKLEUR[0], v = 0.85 + 0.3 * (((x * 13.7 + z * 7.9) % 1 + 1) % 1);
-      uit.set([x * SCHAAL, yVan(hoogteM(x, z)), z * SCHAAL, r * SCHAAL, (x + z) % 6.283, Math.pow(b[0] * v, 2.2), Math.pow(b[1] * v, 2.2), Math.pow(b[2] * v, 2.2)], m * 8); m++;
+      const r = (gr === 0 ? 2.6 : gr === 1 ? 4.0 : 5.4) * (0.85 + 0.3 * f), b = BOOMKLEUR[kl] || BOOMKLEUR[0], v = 0.85 + 0.3 * (((x * 13.7 + z * 7.9) % 1 + 1) % 1), soort = kl === 7 ? 2 : hashB(x, z) < 0.25 ? 1 : 0;
+      uit.set([x * SCHAAL, yVan(hoogteM(x, z)), z * SCHAAL, r * SCHAAL, (x + z) % 6.283 + 10 * soort, Math.pow(b[0] * v, 2.2), Math.pow(b[1] * v, 2.2), Math.pow(b[2] * v, 2.2)], m * 8); m++;
     }
-    return uit.slice(0, m * 8);
+    const extra = parkBomen(T, dichtheid, T.bomen); if (!extra.length) return uit.slice(0, m * 8);
+    const alles = new Float32Array(m * 8 + extra.length); alles.set(uit.subarray(0, m * 8)); alles.set(extra, m * 8); return alles;
   }
   // straatlantaarns langs de straten (alleen dichtbij): elke 32 m aan beide kanten
   function maakLampen(T) {
@@ -2385,6 +2504,13 @@ function kaartBouwer(scope) {
   const kadeBak = () => new Bak({ position: [Float32Array, 3], normal: [Int8Array, 3, true], aK: [Float32Array, 2] });
   function maakWater() {
     const S = SCHAAL, BW = new Bak({ position: [Float32Array, 3] }), BK = kadeBak();
+    // een vlak van vier hoeken (x, hoogte in m, z) met een normaal; de volgorde zo dat de voorkant naar de normaal kijkt
+    const vier = (P, nx, ny, nz, A) => {
+      const ex = P[1][0] - P[0][0], ey = P[1][1] - P[0][1], ez = P[1][2] - P[0][2], fx = P[2][0] - P[0][0], fy = P[2][1] - P[0][1], fz = P[2][2] - P[0][2];
+      const om = ((ey * fz - ez * fy) * nx + (ez * fx - ex * fz) * ny + (ex * fy - ey * fx) * nz) < 0;
+      const id = P.map((q, i) => BK.v(q[0] * S, yVan(q[1]), q[2] * S, N8(nx), N8(ny), N8(nz), A[i][0], A[i][1]));
+      if (om) { BK.t(id[0], id[2], id[1]); BK.t(id[0], id[3], id[2]); } else { BK.t(id[0], id[1], id[2]); BK.t(id[0], id[2], id[3]); }
+    };
     for (const v of W.water) {
       const yw = yVan(v.peil);
       const { plat: p, idx } = driehoeken(v.rings), basis = BW.nv;
@@ -2395,11 +2521,28 @@ function kaartBouwer(scope) {
         for (let i = 0; i < n; i++) {
           const j = (i + 1) % n, ax = r[i * 2], az = r[i * 2 + 1], bx = r[j * 2], bz = r[j * 2 + 1], L = Math.hypot(bx - ax, bz - az); if (L < 0.05) continue;
           let nx = -(bz - az) / L, nz = (bx - ax) / L; if (!pos) { nx = -nx; nz = -nz; }
-          let ha = hoogteM(ax - nx * 3, az - nz * 3), hb = hoogteM(bx - nx * 3, bz - nz * 3);
+          let ha = hoogteM(ax - nx * 3, az - nz * 3), hb = hoogteM(bx - nx * 3, bz - nz * 3), M = 0;
+          // een gat in het water onder een brug is een pijler: een rechte muur tot onder het dek (in de steen of het ijzer van de brug), niet schuin tot de hoogte van de kade
+          const bg = r !== v.rings[0] ? brugOp((ax + bx) / 2 - nx * 1.2, (az + bz) / 2 - nz * 1.2) : null;
+          if (bg && !bg.hoog) { ha = hb = bg.dekOp((ax + bx) / 2, (az + bz) / 2) - (bg.ijzer ? 0.9 : 1.4); M = bg.ijzer ? 1000 : 0; }
+          if (bg && !bg.hoog) { const y0 = yw - 2 * S, NX = N8(nx), NZ = N8(nz), a0 = BK.v(ax * S, y0, az * S, NX, 0, NZ, 0, -2 + M), b0 = BK.v(bx * S, y0, bz * S, NX, 0, NZ, L, -2 + M), b1 = BK.v(bx * S, yVan(hb), bz * S, NX, 0, NZ, L, hb - v.peil + M), a1 = BK.v(ax * S, yVan(ha), az * S, NX, 0, NZ, 0, ha - v.peil + M);
+            if (pos) { BK.t(a0, b0, b1); BK.t(a0, b1, a1); } else { BK.t(a0, b1, b0); BK.t(a0, a1, b1); } continue; }
           if (v.sluis && v.sluis[v.rings.indexOf(r)][i]) { const b = waterOp((ax + bx) / 2 - nx * 1.5, (az + bz) / 2 - nz * 1.5); if (!b || b === v || b.peil < v.peil + 0.2) continue; ha = hb = b.peil + 0.25; }
           else if (Math.max(ha, hb) < v.peil + 0.8) continue;
           const y0 = yw - 2 * S, NX = N8(nx), NZ = N8(nz), a0 = BK.v(ax * S, y0, az * S, NX, 0, NZ, 0, -2), b0 = BK.v(bx * S, y0, bz * S, NX, 0, NZ, L, -2), b1 = BK.v(bx * S, yVan(hb), bz * S, NX, 0, NZ, L, hb - v.peil), a1 = BK.v(ax * S, yVan(ha), az * S, NX, 0, NZ, 0, ha - v.peil);
           if (pos) { BK.t(a0, b0, b1); BK.t(a0, b1, a1); } else { BK.t(a0, b1, b0); BK.t(a0, a1, b1); }
+          // een hoge kade (zoals langs de Seine en de Theems) krijgt bovenop een borstwering van steen: 95 cm hoog, 45 cm dik
+          // (niet waar een brug aansluit, en niet bij een sluis)
+          if (!(v.sluis && v.sluis[v.rings.indexOf(r)][i]) && Math.min(ha, hb) - v.peil > 3.2 && L > 0.4) {
+            const mx = (ax + bx) / 2, mz = (az + bz) / 2;
+            if (!brugOp(mx + nx * 2.5, mz + nz * 2.5) && !brugOp(mx - nx * 1.5, mz - nz * 1.5) && !brugOp(ax + nx * 1.5, az + nz * 1.5) && !brugOp(bx + nx * 1.5, bz + nz * 1.5)) {
+              const D = 0.45, HP = 0.95, pa = ha - v.peil, pb = hb - v.peil, ix = -nx * D, iz = -nz * D;
+              vier([[ax, ha, az], [bx, hb, bz], [bx, hb + HP, bz], [ax, ha + HP, az]], nx, 0, nz, [[0, pa], [L, pb], [L, pb + HP], [0, pa + HP]]);
+              vier([[ax + ix, ha - 0.1, az + iz], [bx + ix, hb - 0.1, bz + iz], [bx + ix, hb + HP, bz + iz], [ax + ix, ha + HP, az + iz]], -nx, 0, -nz, [[0, pa], [L, pb], [L, pb + HP], [0, pa + HP]]);
+              vier([[ax - nx * 0.06, ha + HP + 0.1, az - nz * 0.06], [bx - nx * 0.06, hb + HP + 0.1, bz - nz * 0.06], [bx + ix * 1.25, hb + HP + 0.1, bz + iz * 1.25], [ax + ix * 1.25, ha + HP + 0.1, az + iz * 1.25]], 0, 1, 0, [[0, pa + 9], [L, pb + 9], [L, pb + 9.4], [0, pa + 9.4]]);
+              vier([[ax - nx * 0.06, ha + HP, az - nz * 0.06], [bx - nx * 0.06, hb + HP, bz - nz * 0.06], [bx - nx * 0.06, hb + HP + 0.1, bz - nz * 0.06], [ax - nx * 0.06, ha + HP + 0.1, az - nz * 0.06]], nx, 0, nz, [[0, pa + 9], [L, pb + 9], [L, pb + 9.1], [0, pa + 9.1]]);
+            }
+          }
         }
       }
     }
@@ -2420,7 +2563,8 @@ function kaartBouwer(scope) {
       const { plat: p, idx } = driehoeken([ring]);
       for (const [boven, ny] of [[true, 127], [false, -127]]) {
         const basis = B.nv;
-        for (let i = 0; i < p.length; i += 2) { const s = sVan(p[i], p[i + 1]), y = dek(s) + (boven ? 0.3 : -dikte); B.v(p[i] * S, yVan(y), p[i + 1] * S, 0, ny, 0, s, boven ? 2 : 0.5 + M); }
+        const bw = Math.min(127, Math.max(1, Math.floor(t1 - t0))), ijTop = br.ijzer ? 20000 : 0;   // bovenop: de breedte en de afstand tot de rand (voor stoep en asfalt in de schaduwcode)
+        for (let i = 0; i < p.length; i += 2) { const s = sVan(p[i], p[i + 1]), y = dek(s) + (boven ? 0.3 : -dikte); B.v(p[i] * S, yVan(y), p[i + 1] * S, 0, ny, 0, s, boven && !br.hoog ? 3000 + ijTop + bw * 128 + Math.max(0, Math.min(bw, tVan(p[i], p[i + 1]) - t0)) : boven ? 2 : 0.5 + M); }
         for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2], o = (p[b * 2] - p[a * 2]) * (p[c * 2 + 1] - p[a * 2 + 1]) - (p[b * 2 + 1] - p[a * 2 + 1]) * (p[c * 2] - p[a * 2]); if ((o > 0) === (ny > 0)) B.t(basis + a, basis + c, basis + b); else B.t(basis + a, basis + b, basis + c); }
       }
       // de randen: overal de zijkant van het dek, en alleen langs de lange kanten een borstwering (de uiteinden lopen door in de straat)
@@ -2478,7 +2622,8 @@ function kaartBouwer(scope) {
   // 5 ijzer (de metro van Parijs), 6 natuursteen (Parijs), 7 het dek, 8 een dijk met gras, 9 een hek. Bij 3 en 6: extra = 1 + de hoogte van de muur (dan met bogen).
   const spoorBak = () => new Bak({ position: [Float32Array, 3], normal: [Int8Array, 3, true], aP: [Float32Array, 4] });
   const UPER = 1235;   // u begint per lijnstuk opnieuw na 1235 m (een veelvoud van 0,65 en 9,5): kleine getallen blijven ook op een telefoon precies
-  function spoorH(x, z, b, brug) {
+  function spoorH(x, z, b, brug, l, u) {
+    if (brug && l && l.over) { const o = spoorBoven(l, u); if (o && o.y !== undefined) { const br = brugOp(x, z), d = br ? br.dekOp(x, z) : hoogteM(x, z); return { y: o.y + 0.25, voet: d, g: d, opBrug: false, opDek: !!br }; } if (o) b += o.d; }
     if (brug) { const br = brugOp(x, z); if (br) return { y: br.dekOp(x, z) + 0.3, voet: null, g: br.dekOp(x, z), opBrug: true }; }
     const g = hoogteM(x, z); let voet = g;
     if (b > 1.2 && isWater(x, z)) { const w = waterOp(x, z); voet = (w ? w.peil : W.peil) - 0.5; }
@@ -2524,7 +2669,7 @@ function kaartBouwer(scope) {
           const t0 = q / m, t1 = (q + 1) / m;
           P0x = ax + (bx - ax) * t0; P0z = az + (bz - az) * t0; P1x = ax + (bx - ax) * t1; P1z = az + (bz - az) * t1; u0 = ub + L * t0; u1 = ub + L * t1;
           const b0 = l.boven[j] + (l.boven[j + 1] - l.boven[j]) * t0, b1 = l.boven[j] + (l.boven[j + 1] - l.boven[j]) * t1;
-          const A = spoorH(P0x, P0z, b0, l.brug), Bh = spoorH(P1x, P1z, b1, l.brug);
+          const A = spoorH(P0x, P0z, b0, l.brug, l, l.cum[j] + L * t0), Bh = spoorH(P1x, P1z, b1, l.brug, l, l.cum[j] + L * t1);
           if (tram) {
             // een tram in de straat: alleen de rails, net boven het wegdek
             if (niveau > 0) continue;
@@ -2587,7 +2732,8 @@ function kaartBouwer(scope) {
             for (let kk = ka + 1; kk <= kb; kk++) {
               const t = (kk * af - u0) / Math.max(1e-6, u1 - u0), cx = P0x + (P1x - P0x) * t, cz = P0z + (P1z - P0z) * t, yv = va + (vb - va) * t, yo = yt0 + (yt1 - yt0) * t - dik;
               if (yo - yv < 0.5) continue;
-              if (st === 4) { for (const c of [2.0, -2.0]) blok(cx + nX * c, cz + nZ * c, ux, uz, 0.32, 0.32, yv, yo, 5); blok(cx, cz, ux, uz, 0.3, 2.35, yo - 0.7, yo, 5); }   // stalen kolommen met een dwarsligger
+              if (A.opDek || Bh.opDek) { for (const c of [1.7, -1.7]) blok(cx + nX * c, cz + nZ * c, ux, uz, 0.42, 0.42, yv, yo, 5); }   // op een brugdek: dunne ijzeren kolommen (zoals de bovenverdieping van Bir-Hakeim)
+              else if (st === 4) { for (const c of [2.0, -2.0]) blok(cx + nX * c, cz + nZ * c, ux, uz, 0.32, 0.32, yv, yo, 5); blok(cx, cz, ux, uz, 0.3, 2.35, yo - 0.7, yo, 5); }   // stalen kolommen met een dwarsligger
               else if (st === 2) for (const c of [1.6, -1.6]) blok(cx + nX * c, cz + nZ * c, ux, uz, 1.1, 1.1, yv, yo, 6);
               else blok(cx, cz, ux, uz, 1.4, 2.2, yv, yo, 4);
             }
@@ -2616,7 +2762,7 @@ function kaartBouwer(scope) {
     loop(antw); return lijst;
   }
   if (scope) scope.onmessage = e => { try { const a = verwerk(e.data); if (a) scope.postMessage(a, overdracht(a)); } catch (err) { scope.postMessage({ soort: 'fout', tekst: String(err && err.stack || err), id: e.data && e.data.id }); } };
-  return { verwerk, W, leesKop, leesGlobaal, leesTegel, hoogteM, isWater, waterOp, brugOp, dakInfo, inRing, earcut, opp, SCHAAL, NUL };
+  return { verwerk, W, leesKop, leesGlobaal, leesTegel, hoogteM, isWater, waterOp, brugOp, spoorBoven, dakInfo, inRing, earcut, opp, SCHAAL, NUL };
 }
 // ==== KAARTBOUWER eind
 // ==== KAART begin: Parijs uit OpenStreetMap (© OpenStreetMap-bijdragers, ODbL), in tegels van 500 m, verkleind in verhouding
@@ -2660,7 +2806,7 @@ const AK = (() => {
     setTimeout(() => { try { antwoord(KBW.inst.verwerk(m)); } catch (e) { console.error(e); } }, 0);
   }
   // ---------------------------------------------------------------- materialen
-  const U = { uNacht: { value: 0 }, uTijd: { value: 0 }, uRegen: { value: 0 }, uWind: { value: 1 }, uKerk: { value: new THREE.Vector3(0.80, 0.76, 0.66) }, uKap: { value: new THREE.Vector3(0.74, 0.66, 0.42) }, uNY: { value: 0 }, uStad: { value: 0 } };   // uStad: 0 Parijs, 1 Amsterdam, 2 Londen, 3 New York (de belijning en de stoep)   // uNY: New York (de gevelstijlen 10 tot en met 15 worden dan New Yorks)   // uKap: de kleur van glazen overkappingen (Parijs geel, Londen grijsblauw)   // uKerk: de steen van gewone kerken (in Amsterdam baksteen)
+  const U = { uHorizon: { value: new THREE.Color('#C6DAEE') }, uZenit: { value: new THREE.Color('#3F7BC8') }, uNacht: { value: 0 }, uTijd: { value: 0 }, uRegen: { value: 0 }, uWind: { value: 1 }, uKerk: { value: new THREE.Vector3(0.80, 0.76, 0.66) }, uKap: { value: new THREE.Vector3(0.74, 0.66, 0.42) }, uNY: { value: 0 }, uStad: { value: 0 } };   // uStad: 0 Parijs, 1 Amsterdam, 2 Londen, 3 New York (de belijning en de stoep)   // uNY: New York (de gevelstijlen 10 tot en met 15 worden dan New Yorks)   // uKap: de kleur van glazen overkappingen (Parijs geel, Londen grijsblauw)   // uKerk: de steen van gewone kerken (in Amsterdam baksteen)
   const GLSL = `
     // een hash zonder sin: die gaf bij grote getallen (gevels van honderden meters) grote vlakken in plaats van losse ramen
     float akHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -2674,8 +2820,9 @@ const AK = (() => {
     m.onBeforeCompile = sh => {
       Object.assign(sh.uniforms, U);
       sh.vertexShader = 'uniform float uNacht; uniform float uTijd; uniform float uWind;\n' + vertDecl + '\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + (vertBegin || '')).replace('#include <project_vertex>', '#include <project_vertex>\n' + vertMain);
-      sh.fragmentShader = 'uniform float uNacht; uniform float uTijd; uniform float uRegen; uniform vec3 uKerk; uniform vec3 uKap; uniform float uNY; uniform float uStad;\n' + GLSL + fragDecl + '\n' + sh.fragmentShader
-        .replace('void main() {', 'void main() {\n float akGlas = 0.0; float akLicht = 0.0; vec3 akLichtKleur = vec3(1.0, 0.75, 0.45);')
+      sh.fragmentShader = 'uniform float uNacht; uniform float uTijd; uniform float uRegen; uniform vec3 uKerk; uniform vec3 uKap; uniform float uNY; uniform float uStad; uniform vec3 uHorizon; uniform vec3 uZenit;\n' + GLSL + fragDecl + '\n' + sh.fragmentShader
+        .replace('void main() {', 'void main() {\n float akGlas = 0.0; float akLicht = 0.0; vec3 akLichtKleur = vec3(1.0, 0.75, 0.45); float akHelling = 0.0;')
+        .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n if (akHelling > 0.0) normal = normalize(mix(normal, normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition))), akHelling));')
         .replace('#include <color_fragment>', '#include <color_fragment>\n' + fragKleur)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' + (fragRuw || ''))
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + (fragLicht || ''));
@@ -2686,8 +2833,9 @@ const AK = (() => {
   // gebouwen: gevels (per stijl) en daken in één materiaal
   const maakGebouwMat = lambert => maakMateriaal({ lambert }, 'attribute vec4 aG; attribute vec4 aS; varying vec4 vG; varying vec4 vS;', 'vG = aG; vS = aS;', 'varying vec4 vG; varying vec4 vS;', `
     float soort = floor(vS.x + 0.5), seed = floor(vS.z + 0.5) / 255.0; float u = vG.x, v = vG.y, len = vG.z, H = vG.w, lv = max(1.0, floor(vS.y + 0.5)); float akFw = max(fwidth(vG.x), fwidth(vG.y));   // hoe groot een pixel is (m): kleine patronen vervagen ver weg, anders korrelen en flikkeren ze   // afgerond: een varying is niet overal precies gelijk, en de hash reageert daar heel gevoelig op
-    vec3 kl = vec3(0.8);
+    vec3 kl = vec3(0.8); float akGevel = 0.0;
     if (soort < 19.5 || soort > 39.5) {
+      akGevel = 1.0;
       float blind = step(39.5, soort); float st = soort - blind * 40.0;
       float bg = st < 0.5 ? 4.4 : st < 1.5 ? 3.4 : st > 4.5 && st < 5.5 ? 5.0 : 3.6;
       float fh = lv > 1.5 ? max(2.6, (H - bg) / (lv - 1.0)) : H;
@@ -3135,15 +3283,38 @@ const AK = (() => {
         // 35: een houten watertank (New York): verweerde duigen met zwarte stalen banden
         kl = mix(vec3(0.40, 0.33, 0.26), vec3(0.55, 0.47, 0.37), seed) * (0.84 + 0.16 * mix(step(0.12, fract(u / 0.24)), 0.86, smoothstep(0.02, 0.06, akFw))) * (0.9 + 0.1 * akRuis(vec2(u * 0.5, v * 4.0)));
         kl = mix(kl, vec3(0.10, 0.10, 0.11), step(abs(fract(v / 0.85) - 0.5), 0.045) * (1.0 - smoothstep(0.04, 0.12, akFw)));
-      } else {
+      } else if (soort < 36.5) {
         // 36: zwart staal (de poten, het platform en het dak van een watertank)
         kl = vec3(0.12, 0.12, 0.13) * (0.9 + 0.1 * akRuis(vec2(u, v) * 3.0));
+      } else if (soort < 37.5) {
+        // 37: een installatie op een plat dak: gegalvaniseerd staal met roosters
+        kl = mix(vec3(0.60, 0.61, 0.60), vec3(0.50, 0.51, 0.52), seed) * (0.86 + 0.14 * mix(step(0.35, fract(v / 0.09)), 0.75, smoothstep(0.02, 0.06, akFw))) * (0.94 + 0.06 * akRuis(vec2(u, v) * 2.0));
+        if (H > 1.01) kl = mix(kl, vec3(0.70, 0.71, 0.70), step(H - 0.06, v)); else kl = vec3(0.56, 0.57, 0.56) * (0.9 + 0.1 * step(0.5, fract(u / 0.6)));
+      } else {
+        // 38: een trappenhuis op het dak: gepleisterd, met een deur
+        kl = mix(vec3(0.74, 0.72, 0.68), vec3(0.62, 0.61, 0.58), seed) * (0.93 + 0.07 * akRuis(vec2(u * 0.6, v * 0.2) + seed * 9.0));
+        kl = mix(kl, vec3(0.20, 0.22, 0.24), step(abs(u - len * 0.5), 0.45) * step(v, 2.1) * step(1.5, len));
+        if (H > 1.01) kl *= mix(0.8, 1.0, smoothstep(0.0, 0.6, v));   // (bovenop is H 1 en v de wereld)
       }
+    }
+    if (akGevel > 0.5) {
+      // geen blokkendoos: een zachte schaduw onderaan de gevel (waar hij de straat raakt) en onder de kroonlijst,
+      // en verwering: lange, vage strepen van boven naar beneden, per gebouw anders
+      kl *= mix(0.72, 1.0, smoothstep(0.0, 3.2, v));
+      kl *= 1.0 - 0.13 * smoothstep(H - 2.4, H - 1.0, v) * (1.0 - step(H - 0.9, v)) * step(6.0, H) * (1.0 - akGlas);
+      kl *= 0.92 + 0.08 * smoothstep(0.15, 0.85, akRuis(vec2(u * 0.5 + seed * 31.0, v * 0.04 + seed * 7.0)));
     }
     if (uRegen > 0.0) kl *= 1.0 - uRegen * 0.25;
     diffuseColor.rgb = lin(kl);`,
     'roughnessFactor = mix(roughnessFactor, 0.12, akGlas) * (1.0 - uRegen * 0.4);',
-    'totalEmissiveRadiance += akLicht * lin(akLichtKleur) * 1.5;', 'gebouw');
+    `totalEmissiveRadiance += akLicht * lin(akLichtKleur) * 1.5;
+    #if defined(STANDARD) && !defined(USE_ENVMAP)
+    // glas en ramen weerspiegelen de lucht (sterker als je er schuin langs kijkt); op Mooi doet de omgevingskaart dat
+    if (akGlas > 0.0) { vec3 akV = normalize(vViewPosition), akR = inverseTransformDirection(reflect(-akV, normal), viewMatrix);
+      float akF = 0.06 + 0.94 * pow(1.0 - clamp(dot(normal, akV), 0.0, 1.0), 4.0);
+      vec3 akL = mix(uHorizon * 0.85, uZenit, pow(clamp(akR.y, 0.0, 1.0), 0.55)) * mix(0.55, 1.0, smoothstep(-0.15, 0.1, akR.y));
+      totalEmissiveRadiance += akGlas * akL * akF * (1.0 - uNacht * 0.9) * (soort > 1.5 && soort < 2.5 ? 0.7 : 0.3); }
+    #endif`, 'gebouw');
   const gebouwMat = maakGebouwMat(false), gebouwMatVer = maakGebouwMat(true);
   // de grond: één mesh per tegel; de laag (aL) schuift een tikje naar de camera (0,04% van de afstand per laag), zodat paden boven gras en straten boven paden liggen.
   // Vroeger een vast stukje van de diepte: dat was dichtbij te weinig en ver weg tientallen meters (dan schemerden straten door de onderkant van gebouwen)
@@ -3165,7 +3336,7 @@ const AK = (() => {
       float pu = mod(u, 27.0) - 13.5, pv = vv - h * 0.42 * sign(vv + 0.001); float put = 1.0 - smoothstep(0.30, 0.34, length(vec2(pu, pv)));
       kl = mix(kl, lin(vec3(0.22, 0.22, 0.23)) * (0.85 + 0.15 * step(0.5, fract((pu + pv) * 4.0))), put * zicht * step(9.5, code) * step(2.5, h));
       // de stoeprand en de goot
-      float rand = smoothstep(h - 0.28, h - 0.2, aw), goot = smoothstep(h - 0.7, h - 0.3, aw) * (1.0 - rand);
+      float zicht2 = 1.0 - smoothstep(0.12, 0.45, fw), rand = smoothstep(h - 0.28, h - 0.2, aw) * zicht2, goot = smoothstep(h - 0.7, h - 0.3, aw) * (1.0 - rand) * zicht2;
       vec3 lijn = vec3(0.0); float lw = 0.0;
       if (code > 9.5 && k < 5.5) {
         float opWeg = step(0.4, j), streep = 0.0, geel = 0.0, rood = 0.0;
@@ -3216,12 +3387,29 @@ const AK = (() => {
     }
     diffuseColor.rgb = kl;`;
   const maakGrondMat = lambert => maakMateriaal({ vertexColors: true, roughness: 0.92, lambert }, 'attribute float aL; varying vec3 vWp;' + (lambert ? '' : ' attribute vec4 aR; attribute vec2 aJ; varying vec4 vR; varying vec2 vJ;'),
-    'gl_Position = projectionMatrix * vec4(mvPosition.xyz * (1.0 - aL * 0.0004), 1.0); vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;' + (lambert ? '' : ' vR = aR; vJ = aJ;'),
+    'gl_Position = projectionMatrix * vec4(mvPosition.xyz * (1.0 - aL * 0.00005), 1.0); vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;' + (lambert ? '' : ' vR = aR; vJ = aJ;'),
     'varying vec3 vWp;' + (lambert ? '' : ' varying vec4 vR; varying vec2 vJ;'), `
     diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));
     vec2 p = vWp.xz / ${SCHAAL.toFixed(2)};
     float r = akRuis(p * 0.35) * 0.6 + akRuis(p * 1.7) * 0.4;
-    diffuseColor.rgb *= 0.9 + 0.2 * r;` + (lambert ? '' : STRAAT) + `
+    diffuseColor.rgb *= 0.9 + 0.2 * r;
+    // gras: geen egale groene vlakken, maar vlekken, droge plekken en (dichtbij) fijne sprietjes; iets minder fel
+    { float gras = smoothstep(0.03, 0.07, diffuseColor.g - max(diffuseColor.r, diffuseColor.b));
+      if (gras > 0.0) { vec3 gk = diffuseColor.rgb * (0.80 + 0.32 * akRuis(p * 0.11 + 3.0)) * (0.92 + 0.14 * akRuis(p * 2.7));
+        gk = mix(gk, gk * vec3(1.35, 1.12, 0.62), smoothstep(0.6, 0.86, akRuis(p * 0.045 + 7.0)) * 0.55);
+        gk *= 1.0 + 0.16 * (akHash(floor(p * 9.0)) - 0.5) * (1.0 - smoothstep(0.04, 0.2, fwidth(p.x)));
+        gk = mix(vec3(dot(gk, vec3(0.3, 0.59, 0.11))), gk, 0.82);
+        diffuseColor.rgb = mix(diffuseColor.rgb, gk, gras); } }` + (lambert ? '' : STRAAT) + `
+    // een steile helling (de oever van een kade, een talud): een bekleding van natuursteen, met het licht van de helling zelf
+    { vec3 gn = normalize(cross(dFdx(vWp), dFdy(vWp))); akHelling = 1.0 - smoothstep(0.80, 0.92, abs(gn.y));
+      if (akHelling > 0.0) {
+        vec2 gh = normalize(vec2(-gn.z, gn.x) + vec2(1e-5, 0.0)); float hm = vWp.y / ${SCHAAL.toFixed(2)}, sl = dot(p, gh);
+        float gfw = max(fwidth(hm), fwidth(sl)), gv = smoothstep(0.04, 0.16, gfw), rij = floor(hm / 0.45), kol = sl / 0.9 + mod(rij, 2.0) * 0.5;
+        vec3 st = uStad > 0.5 && uStad < 1.5 ? vec3(0.42, 0.24, 0.17) : uStad > 1.5 && uStad < 2.5 ? vec3(0.60, 0.59, 0.56) : vec3(0.62, 0.57, 0.48);
+        st *= 0.84 + 0.16 * mix(akHash(vec2(floor(kol), rij)), 0.5, gv); st *= 1.0 - 0.22 * (1.0 - step(0.08, fract(hm / 0.45)) * step(0.04, fract(kol))) * (1.0 - gv);
+        st *= 0.86 + 0.14 * smoothstep(0.2, 0.8, akRuis(vec2(sl * 0.35, hm * 0.08)));
+        diffuseColor.rgb = mix(diffuseColor.rgb, lin(st), akHelling);
+      } }
     if (uRegen > 0.0) diffuseColor.rgb *= 1.0 - uRegen * 0.3;`,
     'roughnessFactor = mix(roughnessFactor, 0.25, uRegen);', '', 'grond');
   const grondMat = maakGrondMat(false), grondMatVer = maakGrondMat(true);
@@ -3288,24 +3476,73 @@ const AK = (() => {
   const spoorMat = maakSpoorMat(false), spoorMatVer = maakSpoorMat(true);
   // kades en bruggen: natuursteen in lagen
   const kadeMat = maakMateriaal({ side: THREE.DoubleSide }, 'attribute vec2 aK; varying vec2 vK;', 'vK = aK;', 'varying vec2 vK;', `
-    float ijzer = step(500.0, vK.y); vec2 kk = vec2(vK.x, vK.y - ijzer * 1000.0);
-    float laag = fract(kk.y / 0.55), blok = fract(kk.x / 1.1 + step(0.5, fract(kk.y / 1.1)) * 0.5);
-    vec3 k = mix(vec3(0.78, 0.73, 0.62), vec3(0.70, 0.66, 0.58), akRuis(kk * 0.8)) * (0.9 + 0.1 * step(0.08, laag) * step(0.04, blok));
+    float dekTop = step(2500.0, vK.y), ijzer = step(500.0, vK.y) * (1.0 - dekTop); vec2 kk = vec2(vK.x, vK.y - ijzer * 1000.0);
+    float kfw = max(fwidth(kk.x), fwidth(kk.y)), vaag = smoothstep(0.03, 0.14, kfw);   // ver weg vervagen de voegen
+    // de steen per stad: Parijs kalksteen, Amsterdam baksteen, Londen graniet, New York grijze steen
+    vec3 sa = vec3(0.70, 0.64, 0.53), sb = vec3(0.56, 0.52, 0.44); float bh = 0.55, bl = 1.1;
+    if (uStad > 0.5 && uStad < 1.5) { sa = vec3(0.46, 0.25, 0.18); sb = vec3(0.34, 0.19, 0.14); bh = 0.075; bl = 0.22; }
+    else if (uStad > 1.5 && uStad < 2.5) { sa = vec3(0.66, 0.65, 0.62); sb = vec3(0.52, 0.52, 0.50); bh = 0.6; bl = 1.3; }
+    else if (uStad > 2.5) { sa = vec3(0.56, 0.54, 0.51); sb = vec3(0.44, 0.43, 0.41); }
+    float rijN = floor(kk.y / bh), laag = fract(kk.y / bh), kol = kk.x / bl + mod(rijN, 2.0) * 0.5, blok = fract(kol);
+    float bid = akHash(vec2(floor(kol), rijN + 17.0));
+    vec3 k = mix(sa, sb, mix(bid * 0.7 + akRuis(kk * 0.3) * 0.3, 0.45, vaag));
+    k *= 1.0 - 0.2 * (1.0 - step(0.035, blok)) * (1.0 - vaag);
+    k *= 1.0 - 0.17 * (1.0 - smoothstep(0.04, 0.12, laag)) * (1.0 - smoothstep(0.08, 0.35, kfw));   // de lagen zie je verder dan de stootvoegen
+    // verwering: donkere strepen van boven naar beneden, en een vochtige, groenige band vlak boven het water
+    k *= 0.91 + 0.09 * smoothstep(0.2, 0.8, akRuis(vec2(kk.x * 0.4, kk.y * 0.06) + 3.0));
+    k = mix(k, vec3(0.17, 0.19, 0.15), (1.0 - smoothstep(0.05, 1.2 + 0.6 * akRuis(vec2(kk.x * 0.25, 2.0)), kk.y)) * 0.8 * (1.0 - ijzer));
     // ijzeren bruggen: groengrijs geverfd metaal met naden en klinknagels
     vec3 m = vec3(0.24, 0.29, 0.28) * (0.9 + 0.1 * step(0.08, fract(kk.x / 2.4))) * (0.94 + 0.06 * step(0.5, fract(kk.y / 0.8)));
     k = mix(k, m, ijzer);
-    k *= mix(0.55, 1.0, smoothstep(0.0, 1.6, kk.y));
-    diffuseColor.rgb = lin(k);`, 'roughnessFactor = mix(roughnessFactor, 0.55, ijzer);', '', 'kade');
+    k *= mix(0.6, 1.0, smoothstep(-1.0, 0.6, kk.y));
+    if (dekTop > 0.5) {
+      // het brugdek: stoepen van stenen tegels langs de randen, een band, en daartussen asfalt (een smalle voetgangersbrug: tegels; van ijzer: planken)
+      float code = vK.y - 3000.0, ij = step(19000.0, code); code -= ij * 20000.0;
+      float bw = floor(code / 128.0), d = code - bw * 128.0, de = min(d, bw - d), smal = step(bw, 9.5), fw2 = max(fwidth(vK.x), fwidth(d)), vg = smoothstep(0.03, 0.12, fw2);
+      float sb = bw > 20.0 ? 4.0 : 2.8;
+      vec3 stoep = mix(vec3(0.64, 0.62, 0.58), vec3(0.58, 0.57, 0.54), akHash(vec2(floor(vK.x / 0.6), floor(d / 0.6)))) * (1.0 - 0.18 * (1.0 - step(0.06, fract(vK.x / 0.6)) * step(0.06, fract(d / 0.6))) * (1.0 - vg));
+      vec3 asf = vec3(0.23, 0.235, 0.24) * (0.88 + 0.12 * akRuis(vec2(vK.x, d) * 0.7)) * (0.94 + 0.06 * akRuis(vec2(vK.x * 0.05, d * 0.4)));
+      float lijn = (1.0 - smal) * step(abs(d - bw * 0.5), 0.08) * step(0.5, fract(vK.x / 6.0)) * (1.0 - vg * 0.7) * step(14.0, bw);
+      k = mix(asf, stoep, max(smal, step(de, sb)));
+      k = mix(k, vec3(0.50, 0.49, 0.47), (1.0 - smal) * step(abs(de - sb), 0.14));
+      k = mix(k, vec3(0.86, 0.86, 0.83), lijn);
+      if (ij > 0.5 && bw < 15.0) { float pl = floor(vK.x / 0.16); k = mix(vec3(0.42, 0.31, 0.21), vec3(0.34, 0.25, 0.17), akHash(vec2(pl, 3.0))) * (1.0 - 0.3 * step(0.86, fract(vK.x / 0.16)) * (1.0 - vg)); }
+    }
+    diffuseColor.rgb = lin(k);`, 'roughnessFactor = mix(roughnessFactor, 0.55, ijzer) * (1.0 - 0.45 * (1.0 - smoothstep(0.0, 0.8, kk.y)) * (1.0 - dekTop));', '', 'kade');
   // bomen: een kruin die zacht meewiegt in de wind
-  const boomMat = maakMateriaal({ vertexColors: true, roughness: 0.95 }, '', '', '', '', '', '', 'boom',
+  const boomMat = maakMateriaal({ vertexColors: true, roughness: 0.95 }, 'varying vec3 vBp; varying float vKr;', `#ifdef USE_INSTANCING
+ vBp = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz / ${SCHAAL.toFixed(2)};
+#endif
+ vKr = step(0.3, color.r);`, 'varying vec3 vBp; varying float vKr;', `
+    // de rand van de kruin rafelig maken (blaadjes): waar je langs de kruin kijkt, vallen er gaten in; ver weg niet (anders flikkert het)
+    if (vKr > 0.5) { float fac = abs(dot(normalize(vNormal), normalize(vViewPosition))), afst = fwidth(vBp.x) * 30.0;
+      float blad = akRuis(vBp.xz * 7.0 + vBp.y * 6.0) * 0.55 + akRuis(vBp.zx * 19.0 - vBp.y * 17.0) * 0.45;
+      if (afst < 1.0 && blad < ((1.0 - fac) * 1.05 - 0.28) * (1.0 - afst)) discard; }
+    float bl = akRuis(vBp.xz * 1.9 + vBp.y * 1.7) * 0.55 + akRuis(vBp.xz * 4.7 - vBp.y * 3.9 + 7.0) * 0.45;
+    diffuseColor.rgb *= 0.66 + 0.62 * bl; diffuseColor.rgb *= vec3(1.0 + 0.10 * (akRuis(vBp.xz * 0.3) - 0.5), 1.0, 1.0 - 0.08 * (akRuis(vBp.zx * 0.27) - 0.5));`, '', '', 'boom',
     'float akH = max(0.0, transformed.y - 1.0); vec4 akW = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0); transformed.x += sin(uTijd * 1.3 + akW.x * 0.07) * 0.05 * akH * uWind; transformed.z += cos(uTijd * 1.1 + akW.z * 0.07) * 0.04 * akH * uWind;');
+  // een vorm uit losse stukken met een kleur per hoekpunt (donkerder onder en binnenin, lichter boven)
+  const boomVorm = stukken => { const pos = [], nor = [], kl = [];
+    for (const [g0, soort, cx, cy, cz, R] of stukken) { const d = g0.index ? g0.toNonIndexed() : g0; d.computeVertexNormals(); const a = d.attributes.position, n = d.attributes.normal;
+      for (let i = 0; i < a.count; i++) { const x = a.getX(i), y = a.getY(i), z = a.getZ(i); pos.push(x, y, z);
+        // een kruin krijgt zachte normalen (vanuit het midden van de bol, iets naar boven): dan zie je geen facetten maar een bolle, zachte kruin
+        if (soort === 'stam') nor.push(n.getX(i), n.getY(i), n.getZ(i)); else { let nx = x - cx, ny = (y - cy) + R * 0.35, nz = z - cz; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l; nor.push(nx * 0.75 + n.getX(i) * 0.25, ny * 0.75 + n.getY(i) * 0.25, nz * 0.75 + n.getZ(i) * 0.25); }
+        if (soort === 'stam') kl.push(0.07, 0.05, 0.035); else { const hoog = Math.max(0, Math.min(1, (y - cy + R) / (2 * R))), f = 0.62 + 0.42 * hoog + 0.08 * Math.sin(x * 9.1 + z * 7.3 + y * 5.7); kl.push(f, f, f * 0.96); } } }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(kl, 3)); return geo; };
+  const bobbel = (r, x, y, z, detail, sy, zaad) => { const g = new THREE.IcosahedronGeometry(r, detail), p = g.attributes.position; for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), pz = p.getZ(i), f = 1 + 0.18 * Math.sin(px * 7.1 / r + zaad) * Math.cos(pz * 6.3 / r + py * 4.1 / r); p.setXYZ(i, px * f + x, py * f * (sy || 1) + y, pz * f + z); } return g; };
+  const takken = (h) => [[new THREE.CylinderGeometry(0.06, 0.11, h, 6, 1, true).translate(0, h / 2, 0), 'stam'], [new THREE.CylinderGeometry(0.025, 0.05, 0.7, 4, 1, true).rotateZ(0.9).translate(0.28, h * 0.82, 0), 'stam'], [new THREE.CylinderGeometry(0.025, 0.05, 0.65, 4, 1, true).rotateZ(-0.8).rotateY(2.1).translate(-0.14, h * 0.86, 0.22), 'stam']];
+  const BOOMVORM = [
+    boomVorm([...takken(1.05), [bobbel(0.78, 0, 1.75, 0, 1, 0.9, 1), 'kruin', 0, 1.75, 0, 0.8], [bobbel(0.55, 0.55, 1.45, 0.25, 1, 0.9, 2), 'kruin', 0.55, 1.45, 0.25, 0.55], [bobbel(0.52, -0.45, 1.5, -0.35, 1, 0.9, 3), 'kruin', -0.45, 1.5, -0.35, 0.5], [bobbel(0.48, -0.1, 2.25, 0.4, 0, 1, 4), 'kruin', -0.1, 2.25, 0.4, 0.5], [bobbel(0.42, 0.35, 2.1, -0.45, 0, 1, 5), 'kruin', 0.35, 2.1, -0.45, 0.45]]),
+    boomVorm([...takken(1.0), [bobbel(0.55, 0, 1.45, 0, 1, 1.25, 6), 'kruin', 0, 1.45, 0, 0.6], [bobbel(0.5, 0.12, 2.25, -0.05, 1, 1.3, 7), 'kruin', 0.1, 2.25, 0, 0.6], [bobbel(0.34, -0.1, 2.95, 0.08, 0, 1.3, 8), 'kruin', 0, 2.95, 0, 0.4]]),
+    boomVorm([[new THREE.CylinderGeometry(0.05, 0.09, 0.8, 5, 1, true).translate(0, 0.4, 0), 'stam'], [new THREE.ConeGeometry(0.85, 1.25, 9).translate(0, 1.15, 0), 'kruin', 0, 1.15, 0, 0.7], [new THREE.ConeGeometry(0.66, 1.05, 9).translate(0, 1.75, 0), 'kruin', 0, 1.75, 0, 0.6], [new THREE.ConeGeometry(0.44, 0.95, 8).translate(0, 2.35, 0), 'kruin', 0, 2.35, 0, 0.5]]),
+  ];
   const boomGeo = (geo => {
     const kruin = new THREE.IcosahedronGeometry(1, 0), stam = new THREE.CylinderGeometry(0.09, 0.13, 1, 4, 1, true);
     const p = kruin.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), r = 1 + 0.16 * Math.sin(x * 5.1 + z * 3.7) * Math.cos(y * 4.3); p.setXYZ(i, x * r, y * r * 0.88 + 1.55, z * r); }
     kruin.rotateY(0.6);
     kruin.computeVertexNormals(); stam.translate(0, 0.5, 0);
     const pos = [], nor = [], kl = [];
-    [kruin.toNonIndexed(), stam.toNonIndexed()].forEach((d, k) => { const a = d.attributes.position, n = d.attributes.normal; for (let i = 0; i < a.count; i++) { pos.push(a.getX(i), a.getY(i), a.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i)); if (k) kl.push(0.06, 0.045, 0.035); else { const y = a.getY(i); const f = 0.75 + 0.3 * (y - 0.6) / 2; kl.push(f, f, f); } } });
+    [kruin.toNonIndexed(), stam.toNonIndexed()].forEach((d, k) => { const a = d.attributes.position, n = d.attributes.normal; for (let i = 0; i < a.count; i++) { pos.push(a.getX(i), a.getY(i), a.getZ(i)); if (k) nor.push(n.getX(i), n.getY(i), n.getZ(i)); else { const nx = a.getX(i), ny = a.getY(i) - 1.2, nz = a.getZ(i), l = Math.hypot(nx, ny, nz) || 1; nor.push(nx / l * 0.8 + n.getX(i) * 0.2, ny / l * 0.8 + n.getY(i) * 0.2, nz / l * 0.8 + n.getZ(i) * 0.2); } if (k) kl.push(0.06, 0.045, 0.035); else { const y = a.getY(i); const f = 0.75 + 0.3 * (y - 0.6) / 2; kl.push(f, f, f); } } });
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(kl, 3)); return geo;
   })(new THREE.BufferGeometry());
   const puntTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'); const gr = g.createRadialGradient(16, 13, 2, 16, 16, 15); gr.addColorStop(0, '#fff'); gr.addColorStop(0.75, '#ccc'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(16, 16, 15, 0, 7); g.fill(); return new THREE.CanvasTexture(c); })();
@@ -3323,7 +3560,7 @@ const AK = (() => {
   const lampMat = new THREE.PointsMaterial({ size: 5 * SCHAAL, map: gloedTex, color: '#FFD9A0', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
   // water: donker, met rimpels, de lucht in de weerspiegeling en een glinstering van de zon
   const rimpelTex = (() => { const N = 256, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), img = g.createImageData(N, N), h = new Float32Array(N * N); for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const a = x / N * 6.283, b = y / N * 6.283; h[y * N + x] = Math.sin(a * 3 + Math.sin(b * 2) * 1.5) * 0.5 + Math.sin(b * 5 + a) * 0.3 + Math.sin((a + b) * 7) * 0.2 + Math.sin(a * 11 - b * 4) * 0.1 + Math.sin(a * 17 + b * 13) * 0.06; } for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, dx = h[y * N + ((x + 1) % N)] - h[i], dy = h[((y + 1) % N) * N + x] - h[i], k = i * 4; img.data[k] = 128 + dx * 160; img.data[k + 1] = 128 + dy * 160; img.data[k + 2] = 255; img.data[k + 3] = 255; } g.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
-  const WU = { uHorizon: { value: new THREE.Color('#C6DAEE') }, uZenit: { value: new THREE.Color('#3F7BC8') }, uZonDir: { value: new THREE.Vector3(0, 1, 0) }, uZonKleur: { value: new THREE.Color('#FFF2DC') }, uRimpel: { value: rimpelTex }, uTijd: U.uTijd, uNacht: U.uNacht, uSpiegel: { value: null }, uSpiegelAan: { value: 0 }, uSpiegelMat: { value: new THREE.Matrix4() } };
+  const WU = { uHorizon: U.uHorizon, uZenit: U.uZenit, uZonDir: { value: new THREE.Vector3(0, 1, 0) }, uZonKleur: { value: new THREE.Color('#FFF2DC') }, uRimpel: { value: rimpelTex }, uTijd: U.uTijd, uNacht: U.uNacht, uSpiegel: { value: null }, uSpiegelAan: { value: 0 }, uSpiegelMat: { value: new THREE.Matrix4() } };
   const waterMat = new THREE.ShaderMaterial({ fog: true, uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog]),
     vertexShader: 'varying vec3 vWp;\n#include <fog_pars_vertex>\nvoid main() { vec4 wp = modelMatrix * vec4(position, 1.0); vWp = wp.xyz; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;\n#include <fog_vertex>\n}',
     fragmentShader: `uniform vec3 uHorizon; uniform vec3 uZenit; uniform vec3 uZonDir; uniform vec3 uZonKleur; uniform sampler2D uRimpel; uniform float uTijd; uniform float uNacht; uniform sampler2D uSpiegel; uniform float uSpiegelAan; uniform mat4 uSpiegelMat; varying vec3 vWp;
@@ -3355,10 +3592,11 @@ const AK = (() => {
     const ix = new THREE.BufferAttribute(d.idx, 1); if (vrij) ix.onUpload(laatLos); g.setIndex(ix); g.computeBoundingBox(); g.computeBoundingSphere(); return g;
   }
   const M4 = new THREE.Matrix4(), QQ = new THREE.Quaternion(), SV = new THREE.Vector3(), PV = new THREE.Vector3(), YA = new THREE.Vector3(0, 1, 0), KC = new THREE.Color();
-  function bomenMesh(arr, schaduw) {
-    const n = arr.length / 8; if (!n) return null;
-    const m = new THREE.InstancedMesh(boomGeo, boomMat, n);
-    for (let i = 0; i < n; i++) { const o = i * 8; QQ.setFromAxisAngle(YA, arr[o + 4]); M4.compose(PV.set(arr[o], arr[o + 1], arr[o + 2]), QQ, SV.set(arr[o + 3], arr[o + 3], arr[o + 3])); m.setMatrixAt(i, M4); KC.setRGB(arr[o + 5], arr[o + 6], arr[o + 7]); m.setColorAt(i, KC); }
+  function bomenMesh(arr, schaduw, soort) {
+    const n = arr.length / 8; if (!n) return null; let c = 0;
+    for (let i = 0; i < n; i++) if (soort === undefined || Math.floor(arr[i * 8 + 4] / 10) === soort) c++; if (!c) return null;
+    const m = new THREE.InstancedMesh(soort === undefined ? boomGeo : BOOMVORM[soort], boomMat, c); let j = 0;
+    for (let i = 0; i < n; i++) { const o = i * 8, s = Math.floor(arr[o + 4] / 10); if (soort !== undefined && s !== soort) continue; QQ.setFromAxisAngle(YA, arr[o + 4] - 10 * s); const r = arr[o + 3]; M4.compose(PV.set(arr[o], arr[o + 1], arr[o + 2]), QQ, SV.set(r, r * (s === 1 ? 1.12 : 1), r)); m.setMatrixAt(j, M4); KC.setRGB(arr[o + 5], arr[o + 6], arr[o + 7]); m.setColorAt(j, KC); j++; }
     m.frustumCulled = false; m.castShadow = schaduw; m.receiveShadow = schaduw; return m;
   }
   function puntenMesh(arr) {
@@ -3368,7 +3606,7 @@ const AK = (() => {
   }
   // ---------------------------------------------------------------- de tegels
   const T = new Map(); // id -> { niveau, groep, bezig, box, data }
-  const R = { r0: 700, r1: 1500, r2: 3000, bomen: 380 }; // meters: dichtbij, midden, ver, en tot waar bomen echte bomen zijn
+  const R = { r0: 700, r1: 1500, r2: 3000, bomen: 380, bomenVol: 220 }; // meters: dichtbij, midden, ver, en tot waar bomen echte bomen zijn
   let scene = null, wereld = null, kop = null, klaarGlobaal = false, opNieuw = null;
   const stats = { gebouwd: 0, ms: 0 };
   function antwoord(a) {
@@ -3381,7 +3619,7 @@ const AK = (() => {
       if (d.grond) { const m = new THREE.Mesh(geo(d.grond, true), dicht ? grondMat : grondMatVer); m.receiveShadow = dicht; G.add(m); }
       if (d.gebouw) { const m = new THREE.Mesh(geo(d.gebouw, true), dicht ? gebouwMat : gebouwMatVer); m.castShadow = dicht; m.receiveShadow = dicht; G.add(m); }
       if (d.spoor) { const m = new THREE.Mesh(geo(d.spoor, true), dicht ? spoorMat : spoorMatVer); m.castShadow = dicht; m.receiveShadow = dicht; G.add(m); }
-      if (d.bomen && d.bomen.length) { if (dicht) { t.boomInst = bomenMesh(d.bomen, true); t.boomPunt = puntenMesh(d.bomen); G.add(t.boomInst, t.boomPunt); } else { t.boomInst = null; t.boomPunt = null; G.add(puntenMesh(d.bomen)); } }
+      if (d.bomen && d.bomen.length) { if (dicht) { t.boomInst = bomenMesh(d.bomen, false); t.boomPunt = puntenMesh(d.bomen); t.boomVol = [0, 1, 2].map(s => bomenMesh(d.bomen, true, s)).filter(Boolean); G.add(t.boomInst, t.boomPunt, ...t.boomVol); } else { t.boomVol = null; t.boomInst = null; t.boomPunt = null; G.add(puntenMesh(d.bomen)); } }
       if (d.lampen && d.lampen.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(d.lampen, 3)); const p = new THREE.Points(g, lampMat); p.frustumCulled = false; G.add(p, plassenMesh(d.lampen)); }
       // een doos voor 'in beeld?'
       const b = new THREE.Box3(); G.children.forEach(c => { if (c.geometry && !c.geometry.boundingBox) c.geometry.computeBoundingBox(); if (c.geometry) b.union(c.geometry.boundingBox); });
@@ -3390,7 +3628,7 @@ const AK = (() => {
     }
     if (a.soort === 'fout') console.error('kaartbouwer', a.tekst);
   }
-  function verwijder(G) { G.traverse(o => { if (o.geometry && o.geometry !== boomGeo) o.geometry.dispose(); }); }
+  function verwijder(G) { G.traverse(o => { if (o.geometry && o.geometry !== boomGeo && !BOOMVORM.includes(o.geometry)) o.geometry.dispose(); }); }
   // globaal: water, kades, bruggen
   const globaal = { water: null };
   function maakGlobaal(d) {
@@ -3424,7 +3662,7 @@ const AK = (() => {
   function zichtbaar(camera) {
     PM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); frustum.setFromProjectionMatrix(PM);
     const cx = camera.position.x / SCHAAL, cz = camera.position.z / SCHAAL;
-    const zien = []; for (const [id, t] of T) if (t.groep) { t.groep.visible = !t.box || frustum.intersectsBox(t.box); if (t.groep.visible) { const d = tegelAfstand(id, cx, cz); zien.push([d, t]); if (t.boomInst) { const echt = d < R.bomen; t.boomInst.visible = echt; t.boomPunt.visible = !echt; } } }
+    const zien = []; for (const [id, t] of T) if (t.groep) { t.groep.visible = !t.box || frustum.intersectsBox(t.box); if (t.groep.visible) { const d = tegelAfstand(id, cx, cz); zien.push([d, t]); if (t.boomInst) { const vol = d < R.bomenVol, echt = d < R.bomen; t.boomInst.visible = echt && !vol; t.boomPunt.visible = !echt; if (t.boomVol) for (const m of t.boomVol) m.visible = vol; } } }
     // tekenvolgorde: eerst alle gebouwen van dichtbij naar ver, dan de grond, dan de bomen. Wat achter een gebouw ligt, hoeft de kaart dan niet meer te kleuren.
     zien.sort((a, b) => a[0] - b[0]); zien.forEach(([, t], i) => { for (const c of t.groep.children) c.renderOrder = (c.material === gebouwMat || c.material === gebouwMatVer ? 1000 : c.material === spoorMat || c.material === spoorMatVer ? 1500 : c.material === grondMat || c.material === grondMatVer ? 2000 : c.material === boomMat ? 3000 : 4000) + i; });
     return zien.length;
@@ -3504,15 +3742,18 @@ const AK = (() => {
       const a = Math.random() * 6.283, r = r0 + Math.random() * (r1 - r0), px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r, P = tegelData(tegelVan(px, pz)); if (!P) continue;
       const lijst = P.plein.length && Math.random() < 0.7 ? P.plein : P.groen.filter(v => v.k === 1 || v.k === 5 || v.k === 6); if (!lijst.length) continue;
       const v = lijst[Math.floor(Math.random() * lijst.length)], ring = v.rings[0]; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < ring.length; i += 2) { x0 = Math.min(x0, ring[i]); x1 = Math.max(x1, ring[i]); z0 = Math.min(z0, ring[i + 1]); z1 = Math.max(z1, ring[i + 1]); }
-      for (let j = 0; j < 8; j++) { const qx = x0 + Math.random() * (x1 - x0), qz = z0 + Math.random() * (z1 - z0); if (KB.inRing(ring, qx, qz) && !KB.isWater(qx, qz) && !gebouwOp(qx, qz)) return [qx, qz]; }
+      for (let j = 0; j < 8; j++) { const qx = x0 + Math.random() * (x1 - x0), qz = z0 + Math.random() * (z1 - z0); if (KB.inRing(ring, qx, qz) && !KB.isWater(qx, qz) && !gebouwOp(qx, qz)) return [qx, qz, ring]; }
     }
     return null;
   }
+  function vlakOp(lijst, x, z) { for (const v of lijst) { if (!v.box) { const r = v.rings[0]; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < r.length; i += 2) { x0 = Math.min(x0, r[i]); x1 = Math.max(x1, r[i]); z0 = Math.min(z0, r[i + 1]); z1 = Math.max(z1, r[i + 1]); } v.box = [x0, z0, x1, z1]; } const b = v.box; if (x < b[0] || x > b[2] || z < b[1] || z > b[3]) continue; if (KB.inRing(v.rings[0], x, z)) return v; } return null; }
+  const groenOp = (x, z) => { const P = tegelData(tegelVan(x, z)); return P ? vlakOp(P.groen, x, z) : null; };
+  const pleinOp = (x, z) => { const P = tegelData(tegelVan(x, z)); return P ? vlakOp(P.plein, x, z) : null; };
   function tegelsGeladen(x, z, r) { for (let a = x - r; a <= x + r; a += 250) for (let b = z - r; b <= z + r; b += 250) { const t = T.get(tegelVan(a, b)); if (t && !t.data && !voortgang.klaar) return false; } return true; }
   return {
     SCHAAL, NUL, U, WU, R, T, stats, voortgang, laad, kijk, zichtbaar, globaal, gebouwMat, grondMat, kadeMat, waterMat, boomMat, lampMat, plasMat, puntMat, rimpelTex, maakMateriaal, GLSL,
-    hoogteM: (x, z) => KB.hoogteM(x, z), isWater: (x, z) => KB.isWater(x, z), waterPeil: (x, z) => { const v = KB.waterOp(x, z); return v ? v.peil : null; }, brugOp: (x, z) => KB.brugOp(x, z), yVan: m => (m - NUL) * SCHAAL, mVan: y => y / SCHAAL + NUL,
-    gebouwOp, botsGebouw, hoogsteBij, tegelsGeladen, tegelVoorKaart, plekVoorMensen, tegelData, tegelVan, W: KB.W, KB, get kop() { return kop; },
+    hoogteM: (x, z) => KB.hoogteM(x, z), isWater: (x, z) => KB.isWater(x, z), waterPeil: (x, z) => { const v = KB.waterOp(x, z); return v ? v.peil : null; }, brugOp: (x, z) => KB.brugOp(x, z), spoorBoven: (l, u) => KB.spoorBoven(l, u), yVan: m => (m - NUL) * SCHAAL, mVan: y => y / SCHAAL + NUL,
+    gebouwOp, botsGebouw, hoogsteBij, tegelsGeladen, tegelVoorKaart, plekVoorMensen, tegelData, tegelVan, groenOp, pleinOp, W: KB.W, KB, get kop() { return kop; },
     bezig: () => { let n = 0; for (const t of T.values()) if (t.bezig) n++; return n; },
     wacht: () => { let n = 0; for (const t of T.values()) if (t.bezig || (t.data && t.gewenst !== t.niveau)) n++; return n; },
   };
@@ -3618,25 +3859,45 @@ const AL = (() => {
     const KN = [[0, 62.5], [20, 52], [40, 43.5], [57.6, 37.5], [80, 30.5], [115.7, 21], [150, 15.5], [200, 10.5], [250, 7.6], [276, 6.6]];
     const w = y => { for (let i = 1; i < KN.length; i++) if (y <= KN[i][0]) { const [y0, a] = KN[i - 1], [y1, b] = KN[i], t = (y - y0) / (y1 - y0), s = t * t * (3 - 2 * t); return a + (b - a) * (t * 0.6 + s * 0.4); } return KN[KN.length - 1][1]; };
     const dik = y => (y < 57.6 ? 25 - y * 0.16 : y < 115.7 ? 15.8 - (y - 57.6) * 0.1 : w(y));
-    const tex = (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d'); g.strokeStyle = '#fff'; g.lineCap = 'square'; g.lineWidth = 9; g.strokeRect(0, 0, 128, 128); g.lineWidth = 5; g.beginPath(); g.moveTo(0, 0); g.lineTo(128, 128); g.moveTo(128, 0); g.lineTo(0, 128); g.stroke(); g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, 64); g.lineTo(128, 64); g.moveTo(64, 0); g.lineTo(64, 128); g.stroke(); g.lineWidth = 1.6; for (let k = 16; k < 128; k += 32) { g.beginPath(); g.moveTo(k, 0); g.lineTo(0, k); g.moveTo(128 - k, 128); g.lineTo(128, 128 - k); g.moveTo(128 - k, 0); g.lineTo(128, k); g.moveTo(k, 128); g.lineTo(0, 128 - k); g.stroke(); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; })();
-    const mk = alpha => { const m = new THREE.MeshStandardMaterial(Object.assign({ color: '#ffffff', roughness: 0.62, metalness: 0.35 }, alpha ? { alphaMap: tex, alphaTest: 0.5, side: THREE.DoubleSide } : {})); m.onBeforeCompile = sh => { sh.uniforms.uNacht = AK.U.uNacht; sh.vertexShader = 'varying float vH;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vH = position.y;'); sh.fragmentShader = 'uniform float uNacht; varying float vH;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n float hh = clamp(vH / 300.0, 0.0, 1.0); diffuseColor.rgb = pow(mix(vec3(0.36, 0.27, 0.20), vec3(0.56, 0.45, 0.34), hh), vec3(2.2));').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += uNacht * pow(vec3(1.0, 0.7, 0.32), vec3(2.2)) * (0.5 - hh * 0.18);'); }; m.customProgramCacheKey = () => 'eiffel' + (alpha ? 'a' : 'b'); return m; };
+    // het fijne vakwerk tussen de liggers (de grote kruisen zijn echte balkjes, zie vlak): een ruitjesnet van dunne latten en een rand.
+    // Weinig ijzer (zo'n 18%): ver weg valt het weg en zie je alleen de liggers, zoals bij de echte toren.
+    const tex = (() => { const N = 512, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.strokeStyle = '#fff'; g.lineCap = 'butt';
+      g.lineWidth = 3.2; g.beginPath(); for (let k = -N; k < N * 2; k += 64) { g.moveTo(k, 0); g.lineTo(k + N, N); g.moveTo(k, N); g.lineTo(k + N, 0); } g.stroke();
+      g.lineWidth = 2.4; g.beginPath(); g.moveTo(0, N / 2); g.lineTo(N, N / 2); g.stroke();
+      g.lineWidth = 12; g.strokeRect(0, 0, N, N);
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; })();
+    const mk = alpha => { const m = new THREE.MeshStandardMaterial(Object.assign({ color: '#ffffff', roughness: 0.6, metalness: 0.12 }, alpha ? { alphaMap: tex, alphaTest: 0.5, side: THREE.DoubleSide } : {})); m.extensions = { derivatives: true }; m.onBeforeCompile = sh => { sh.uniforms.uNacht = AK.U.uNacht; sh.vertexShader = 'varying float vH;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vH = position.y;'); sh.fragmentShader = 'uniform float uNacht; varying float vH;\n' + sh.fragmentShader.replace('#include <alphatest_fragment>', alpha ? '{ float tx = max(max(fwidth(vUv.x), fwidth(vUv.y)) * 512.0, 1.0); if (diffuseColor.a < clamp(0.5 - 0.03 * log2(tx), 0.42, 0.5)) discard; }' : '').replace('#include <color_fragment>', '#include <color_fragment>\n float hh = clamp(vH / 300.0, 0.0, 1.0); diffuseColor.rgb = pow(mix(vec3(0.29, 0.20, 0.145), vec3(0.47, 0.36, 0.27), hh) * (0.93 + 0.07 * sin(vH * 0.7)), vec3(2.2));').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += uNacht * pow(vec3(1.0, 0.7, 0.32), vec3(2.2)) * (0.5 - hh * 0.18);'); }; m.customProgramCacheKey = () => 'eiffel' + (alpha ? 'a' : 'b'); return m; };
     M.eiffelIjzer = M.eiffelIjzer || mk(false); M.eiffelVak = M.eiffelVak || mk(true);
     const B = Mod(), STAP = 6;
-    const vlak = (a, b, c, d, hu) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, d.x, d.y, d.z], 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, hu, 0, hu, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); B.geo('eiffelVak', g); };
+    const vlak1 = (a, b, c, d, hu, u0) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, d.x, d.y, d.z], 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute([u0, 0, u0 + hu, 0, u0 + hu, 1, u0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); B.geo('eiffelVak', g); };
+    const naarBinnen = (p, c, d) => { const v = V(c.x - p.x, 0, c.z - p.z); const l = v.length(); return l < d * 1.5 ? p.clone() : p.clone().add(v.multiplyScalar(d / l)); };
+    const kruis = (a, b, c, d, hu) => { const n = Math.max(1, Math.round(hu)); for (let i = 0; i < n; i++) { const f0 = i / n, f1 = (i + 1) / n, p0 = a.clone().lerp(b, f0), p1 = a.clone().lerp(b, f1), q0 = d.clone().lerp(c, f0), q1 = d.clone().lerp(c, f1); B.balk('eiffelIjzer', p0, q1, 0.42); B.balk('eiffelIjzer', p1, q0, 0.42); } };
+    const vlak = (a, b, c, d, hu, mid) => { vlak1(a, b, c, d, hu, 0); kruis(a, b, c, d, hu); const m = mid || V(0, 0, 0), e = 0.9; const mA = V(m.x, a.y, m.z), mC = V(m.x, c.y, m.z); vlak1(naarBinnen(a, mA, e), naarBinnen(b, mA, e), naarBinnen(c, mC, e), naarBinnen(d, mC, e), hu, 0.5); };
     for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
       const hoeken = y => { const o = w(y), i = Math.max(o - dik(y), 1.5); return [[o, o], [o, i], [i, i], [i, o]].map(([a, b]) => V(sx * a, y, sz * b)); };
-      for (let y = 0; y < 115.7; y += STAP) { const y2 = Math.min(115.7, y + STAP), a = hoeken(y), b = hoeken(y2); for (let k = 0; k < 4; k++) B.balk('eiffelIjzer', a[k], b[k], k === 0 ? 1.6 : 1.1); for (let k = 0; k < 4; k++) { const k2 = (k + 1) % 4; vlak(a[k], a[k2], b[k2], b[k], Math.max(1, Math.round(a[k].distanceTo(a[k2]) / 7))); } if (y % 18 === 0) for (let k = 0; k < 4; k++) B.balk('eiffelIjzer', a[k], a[(k + 1) % 4], 0.8); }
+      for (let y = 0; y < 115.7; y += STAP) { const y2 = Math.min(115.7, y + STAP), a = hoeken(y), b = hoeken(y2); for (let k = 0; k < 4; k++) B.balk('eiffelIjzer', a[k], b[k], k === 0 ? 1.6 : 1.1); const mid = a.reduce((s, q) => s.add(q), V(0, 0, 0)).multiplyScalar(0.25); for (let k = 0; k < 4; k++) { const k2 = (k + 1) % 4; vlak(a[k], a[k2], b[k2], b[k], Math.max(1, Math.round(a[k].distanceTo(a[k2]) / 7)), mid); } if (y % 18 === 0) for (let k = 0; k < 4; k++) B.balk('eiffelIjzer', a[k], a[(k + 1) % 4], 0.8); }
     }
     const ring = y => [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([a, b]) => V(a * w(y), y, b * w(y)));
     for (let y = 115.7; y < 276; y += STAP) { const y2 = Math.min(276, y + STAP), a = ring(y), b = ring(y2); for (let k = 0; k < 4; k++) { B.balk('eiffelIjzer', a[k], b[k], 1.4); const k2 = (k + 1) % 4; vlak(a[k], a[k2], b[k2], b[k], Math.max(1, Math.round(w(y) * 2 / 6))); } if (Math.round(y - 115.7) % 24 < STAP) for (let k = 0; k < 4; k++) B.balk('eiffelIjzer', a[k], a[(k + 1) % 4], 0.8); }
     for (let kant = 0; kant < 4; kant++) { const rot = kant * Math.PI / 2, pts = []; for (let i = 0; i <= 20; i++) { const x = -1 + 2 * i / 20, h = 8 + 31 * Math.sqrt(Math.max(0, 1 - x * x)); pts.push(V(x * (w(h) - dik(h) + 0.5), h, w(h) - 0.8).applyAxisAngle(V(0, 1, 0), rot)); } for (let i = 0; i < pts.length - 1; i++) { B.balk('eiffelIjzer', pts[i], pts[i + 1], 1.5); B.balk('eiffelIjzer', pts[i].clone().setY(pts[i].y + 2.5), pts[i + 1].clone().setY(pts[i + 1].y + 2.5), 0.7); } }
     const doos = (bw, h, y) => B.doos('eiffelIjzer', bw * 2, h, bw * 2, 0, y, 0);
-    doos(w(57.6) + 3, 1.5, 56.2); doos(w(57.6) + 3.4, 0.8, 63.6);
+    // de eerste verdieping: een vloer, en eronder een rand van vakwerk (geen dichte plaat), met de galerij erboven
+    doos(w(57.6) + 3, 0.6, 57.1); doos(w(57.6) + 3.4, 0.8, 63.6);
+    { const b = w(57.6) + 3, r = [V(b, 53.4, b), V(b, 53.4, -b), V(-b, 53.4, -b), V(-b, 53.4, b)]; for (let k = 0; k < 4; k++) { const a = r[k], c = r[(k + 1) % 4]; vlak(a, c, c.clone().setY(57.1), a.clone().setY(57.1), Math.round(b * 2 / 4.5)); B.balk('eiffelIjzer', a, c, 0.7); } }
+    // de voeten: elke poot staat op een sokkel van natuursteen
+    for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) B.doos('oud', 29, 1.6, 29, sx * 50, -0.6, sz * 50);
     for (let kant = 0; kant < 4; kant++) for (let i = -9; i <= 9; i++) { const b = w(57.6) + 3, g = new THREE.BoxGeometry(0.5, 6, 0.5); g.translate(i / 9 * b, 60.6, b); g.rotateY(kant * Math.PI / 2); B.geo('eiffelIjzer', g); }
     doos(w(115.7) + 2.5, 1.4, 114.5); doos(w(115.7) + 2.7, 0.6, 120.8);
     for (let kant = 0; kant < 4; kant++) for (let i = -5; i <= 5; i++) { const b = w(115.7) + 2.5, g = new THREE.BoxGeometry(0.4, 5.6, 0.4); g.translate(i / 5 * b, 118.6, b); g.rotateY(kant * Math.PI / 2); B.geo('eiffelIjzer', g); }
     doos(9.5, 7, 276); doos(10.2, 0.8, 275.2); doos(7, 6, 283); doos(4.5, 5, 289);
-    B.cil('eiffelIjzer', 4.5, 3.2, 7, 0, 293.5, 0, 12); B.cil('eiffelIjzer', 1.6, 0.6, 30, 0, 300, 0, 8);
+    B.cil('eiffelIjzer', 4.5, 3.2, 7, 0, 293.5, 0, 12); B.cil('eiffelIjzer', 1.6, 0.9, 8, 0, 300, 0, 8);
+    // de antennes bovenop: een wit-rode mast met een paar kleine antennes eromheen
+    M.eiffelMast = M.eiffelMast || mat('#E4E2DC', { roughness: 0.5, metalness: 0.2 }, 'staal'); M.eiffelRood = M.eiffelRood || mat('#B5302C', { roughness: 0.5 }, 'rood');
+    for (let i = 0; i < 6; i++) B.cil(i % 2 ? 'eiffelRood' : 'eiffelMast', 0.85 - i * 0.08, 0.8 - i * 0.08, 3.6, 0, 308 + i * 3.6, 0, 8);
+    for (const [x, z, h] of [[1.6, 0, 9], [-1.4, 0.8, 7], [0.2, -1.6, 8]]) B.cil('eiffelMast', 0.14, 0.1, h, x, 302, z, 5);
+    // de glazen paviljoens op de eerste verdieping, en de kern op de tweede
+    for (let kant = 0; kant < 4; kant++) { const b = w(57.6) - 4, g = new THREE.BoxGeometry(b * 1.2, 5.2, 4.5); g.translate(0, 57.7 + 2.6, b - 2.4); g.rotateY(kant * Math.PI / 2); B.geo('zwartglas', g); }
+    B.doos('zwartglas', 16, 6, 16, 0, 115.7, 0);
     const bots = [];
     for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { bots.push(['doos', sx * 50, sz * 50, 12, 12, 0, 28]); bots.push(['doos', sx * 38, sz * 38, 10, 10, 28, 57]); }
     bots.push(['doos', 0, 0, w(57.6) + 3, w(57.6) + 3, 56, 65], ['doos', 0, 0, 25, 25, 65, 114], ['doos', 0, 0, w(115.7) + 2.5, w(115.7) + 2.5, 114, 122], ['doos', 0, 0, 15, 15, 122, 190], ['doos', 0, 0, 10, 10, 190, 276], ['doos', 0, 0, 9.5, 9.5, 276, 295], ['cil', 0, 0, 2, 0, 295, 330]);
@@ -5039,12 +5300,12 @@ const AL = (() => {
   if (!window.THREE) { $('ar-laden').textContent = 'De 3D-wereld kon niet laden. Controleer je internet en vernieuw de pagina.'; return; }
   // ---------------------------------------------------------------- kwaliteit: Zuinig, Normaal, Mooi
   const KWAL = {
-    zuinig: { naam: 'Zuinig', dpr: mobiel ? 1.25 : 1, fps: 30, r: [450, 1000, 1900, 220], schaduw: 0, env: false, leven: 0.5, regen: 500 },
-    normaal: { naam: 'Normaal', dpr: mobiel ? 1.5 : 1.5, fps: 60, r: [700, 1500, 2800, 380], schaduw: 2048, env: false, leven: 1, regen: 1200 },
-    mooi: { naam: 'Mooi', dpr: 2, fps: 60, r: [1000, 2200, 4200, 650], schaduw: 4096, env: true, leven: 1.3, regen: 2000 },
+    zuinig: { naam: 'Zuinig', dpr: mobiel ? 1.25 : 1, fps: 30, r: [450, 1000, 1900, 300, 110], schaduw: 0, env: false, leven: 0.5, regen: 500 },
+    normaal: { naam: 'Normaal', dpr: mobiel ? 1.5 : 1.5, fps: 60, r: [800, 1700, 3000, 650, 260], schaduw: 2048, env: false, leven: 1, regen: 1200 },
+    mooi: { naam: 'Mooi', dpr: 2, fps: 60, r: [1100, 2400, 4400, 1000, 420], schaduw: 4096, env: true, leven: 1.3, regen: 2000 },
   };
   const kernen = navigator.hardwareConcurrency || 4, geheugen = navigator.deviceMemory || 8;
-  const automatisch = () => (mobiel ? (kernen < 8 || geheugen < 6 ? 'zuinig' : 'normaal') : kernen <= 2 ? 'zuinig' : 'normaal');
+  const automatisch = () => (mobiel ? (kernen < 8 || geheugen < 6 ? 'zuinig' : 'normaal') : kernen <= 2 ? 'zuinig' : kernen >= 8 ? 'mooi' : 'normaal');
   let kwal = KWAL[app.k] ? app.k : automatisch(), K = KWAL[kwal];
   // ---------------------------------------------------------------- renderer en scene
   const renderer = new THREE.WebGLRenderer({ antialias: !mobiel, powerPreference: 'high-performance', preserveDrawingBuffer: false });
@@ -5118,7 +5379,7 @@ const AL = (() => {
     { el: -5, boven: KL('#1A2550'), rand: KL('#B06A5A'), zon: KL('#FF8050'), zonI: 0.35, hemi: [KL('#5A5A8A'), KL('#201C24'), 0.32], mist: KL('#5A4A60'), bel: 1.15, wolk: KL('#B87A80'), wolkS: KL('#3A3050') },
     { el: 2, boven: KL('#3E5A9A'), rand: KL('#F2A070'), zon: KL('#FF9A58'), zonI: 1.6, hemi: [KL('#FFC8A0'), KL('#4A3A40'), 0.45], mist: KL('#E0A888'), bel: 1.05, wolk: KL('#FFC090'), wolkS: KL('#7A6070') },
     { el: 12, boven: KL('#4A7BC0'), rand: KL('#E8C6A4'), zon: KL('#FFC890'), zonI: 2.15, hemi: [KL('#D2D2E4'), KL('#6A5A48'), 0.5], mist: KL('#D8C6B4'), bel: 1.0, wolk: KL('#FFF0DC'), wolkS: KL('#9A9AA8') },
-    { el: 35, boven: KL('#2C6CBC'), rand: KL('#A8C8E8'), zon: KL('#FFF2DC'), zonI: 2.35, hemi: [KL('#C4DAF8'), KL('#7A6A54'), 0.55], mist: KL('#AFC8DE'), bel: 1.0, wolk: KL('#FFFFFF'), wolkS: KL('#A8B2C2') },
+    { el: 35, boven: KL('#2C6CBC'), rand: KL('#A8C8E8'), zon: KL('#FFECD2'), zonI: 2.25, hemi: [KL('#C0D2EC'), KL('#86735A'), 0.55], mist: KL('#AFC8DE'), bel: 1.0, wolk: KL('#FFFFFF'), wolkS: KL('#A8B2C2') },
   ];
   const WEER = { helder: { wolk: 0.18, mist: 1, licht: 1, regen: 0 }, bewolkt: { wolk: 0.72, mist: 1.25, licht: 0.62, regen: 0 }, mist: { wolk: 0.45, mist: 3.2, licht: 0.78, regen: 0 }, regen: { wolk: 0.95, mist: 1.8, licht: 0.45, regen: 1 } };
   const W = { uur: opslag.uur, weer: 'helder', weerNu: { wolk: 0.18, mist: 1, licht: 1, regen: 0 }, zonDir: new THREE.Vector3(), nacht: 0, el: 0 };
@@ -5710,7 +5971,7 @@ const AL = (() => {
   const lijnLengtes = pts => { const n = pts.length / 2, l = new Float32Array(n); for (let i = 1; i < n; i++) l[i] = l[i - 1] + Math.hypot(pts[i * 2] - pts[i * 2 - 2], pts[i * 2 + 1] - pts[i * 2 - 1]); return l; };
   const opLijn = (pts, len, s) => { const n = pts.length / 2; s = Math.max(0, Math.min(len[n - 1] - 0.01, s)); let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (len[m] <= s) lo = m; else hi = m; } const f = (s - len[lo]) / Math.max(0.001, len[hi] - len[lo]), ax = pts[lo * 2], az = pts[lo * 2 + 1], bx = pts[hi * 2], bz = pts[hi * 2 + 1]; return [ax + (bx - ax) * f, az + (bz - az) * f, Math.atan2(bz - az, bx - ax)]; };
   const M4 = new THREE.Matrix4(), Q4 = new THREE.Quaternion(), V4 = new THREE.Vector3(), SC = new THREE.Vector3(), YAS = new THREE.Vector3(0, 1, 0), KLR = new THREE.Color();
-  const LEVEN = { boten: null, grachtboten: null, trams: null, autos: null, treinen: null, duiven: null, mensen: null, fonteinen: [], vlaggen: [], meeuwen: null, regen: null };
+  const LEVEN = { vlagOpDak: [], vlagT: 0, boten: null, grachtboten: null, trams: null, autos: null, treinen: null, duiven: null, mensen: null, fonteinen: [], vlaggen: [], meeuwen: null, regen: null };
   // --- rondvaartboten op de Seine, met een golfje erachter
   function maakBoten() {
     const seine = AK.W.seine; if (!seine || seine.length < 8 || STAD.id === 'amsterdam') return;   // in Amsterdam varen de rondvaartboten op alle grachten (maakGrachtboten)
@@ -5747,9 +6008,10 @@ const AL = (() => {
   // geparkeerde auto's langs de stoep, voetgangers op de stoep, en 's avonds koplampen en achterlichten. In Londen rijdt alles links.
   // Per stad eigen voertuigen, als eigen tekeningen zonder logo's. Een vorm is in meters met de neus naar +z; alleen wat wit is, krijgt de kleur van het voertuig.
   const tintMat = opties => { const m = new THREE.MeshStandardMaterial(Object.assign({ vertexColors: true, roughness: 0.45, metalness: 0.3 }, opties)); m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace('#include <color_vertex>', 'vColor = vec3(1.0);\n#ifdef USE_COLOR\nvColor *= color;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.xyz *= mix(vec3(1.0), instanceColor.xyz, step(2.95, color.r + color.g + color.b));\n#endif'); }; m.customProgramCacheKey = () => 'ak-tint'; return m; };
-  const ROND = (r, w, n = 10) => new THREE.CylinderGeometry(r, r, w, n).rotateZ(Math.PI / 2);
+  const ROND = (r, w, n = 8) => new THREE.CylinderGeometry(r, r, w, n).rotateZ(Math.PI / 2);
   const GLAS = '#1B232C', ZW = '#18191B', LAMP = '#FFF3D2', ACHTER = '#A3201B', BAND = '#2A2D31', HUID = '#D9A784', WIT = '#FFFFFF';
-  const wielen = (x, zs, r = 0.33, w = 0.24) => zs.flatMap(z => [[ROND(r, w).translate(x, r, z), ZW], [ROND(r, w).translate(-x, r, z), ZW], [ROND(r * 0.55, w + 0.02).translate(x, r, z), '#8E9297'], [ROND(r * 0.55, w + 0.02).translate(-x, r, z), '#8E9297']]);
+  // (de wielen met 8 kanten en een kleine velg van 6: van boven zie je het verschil niet, en het scheelt per auto zo'n 40% driehoeken)
+  const wielen = (x, zs, r = 0.33, w = 0.24) => zs.flatMap(z => [[ROND(r, w).translate(x, r, z), ZW], [ROND(r, w).translate(-x, r, z), ZW], [ROND(r * 0.55, w + 0.02, 6).translate(x, r, z), '#8E9297'], [ROND(r * 0.55, w + 0.02, 6).translate(-x, r, z), '#8E9297']]);
   const lichtjes = (b, y, L) => [[doosG(0.34, 0.12, 0.05, b, y, L / 2 + 0.01), LAMP], [doosG(0.34, 0.12, 0.05, -b, y, L / 2 + 0.01), LAMP], [doosG(0.34, 0.13, 0.05, b, y + 0.02, -L / 2 - 0.01), ACHTER], [doosG(0.34, 0.13, 0.05, -b, y + 0.02, -L / 2 - 0.01), ACHTER]];
   // een personenauto: een onderkant, een glazen kap met een dak, bumpers, wielen en lampen (L lengte, B breedte, H hoogte van de carrosserie, kap: lengte, plek en hoogte)
   const auto = (L, B, H, kL, kZ, kH, wr = 0.33, extra = []) => [
@@ -5791,7 +6053,7 @@ const AL = (() => {
   };
   const AUTOKLEUR = ['#ECECE8', '#ECECE8', '#1D1F23', '#1D1F23', '#8E949B', '#8E949B', '#5D646C', '#2F3F66', '#7C1D21', '#3B4A3A', '#C8C1B2', '#4A4E55', '#B9C0C6', '#203A5C'];
   const SHIRT = ['#C8323C', '#2F4C8F', '#E9B949', '#EDEBE4', '#2E8B62', '#22262F', '#C87A3C', '#8A5AA8', '#5A7A9A', '#D8D2C4', '#3E6E8E', '#9A2F4F'];
-  const DICHT = [0, 1 / 18, 1 / 22, 1 / 34, 1 / 62, 1 / 50];   // voertuigen per meter per richting, per soort weg (1 hoofdweg ... 4 straat, 5 voetgangers: alleen fietsers)
+  const DICHT = [0, 1 / 18, 1 / 22, 1 / 34, 1 / 62, 1 / 50, 0, 0, 0];   // voertuigen per meter per richting, per soort weg (1 hoofdweg ... 4 straat, 5 voetgangers: alleen fietsers)
   const MAG = (s, k) => s === 'fiets' ? k >= 2 && k <= 5 : k <= 4 && (s !== 'bus' && s !== 'dubbel' || k <= 3);
   const kies = (gew, f) => { let t = 0; for (const k in gew) if (!f || f(k)) t += gew[k]; let r = Math.random() * t; for (const k in gew) { if (f && !f(k)) continue; r -= gew[k]; if (r <= 0) return k; } return null; };
   function maakAutos() {
@@ -5802,14 +6064,15 @@ const AL = (() => {
       const m = new THREE.InstancedMesh(geo, mat, cap); m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3).fill(1), 3); m.count = 0; m.frustumCulled = false; scene.add(m); M[s] = { m, cap, park: null, parkKl: null, np: 0 };
     }
     // voetgangers: benen, een lijf in de kleur van hun kleren, armen, een hoofd en haar
-    const pgeo = kleurVorm([[doosG(0.14, 0.82, 0.16, 0.09, 0, 0), '#2B3142'], [doosG(0.14, 0.82, 0.16, -0.09, 0, 0), '#2B3142'], [doosG(0.42, 0.62, 0.24, 0, 0.82, 0), WIT], [doosG(0.1, 0.6, 0.11, 0.26, 0.86, 0), WIT], [doosG(0.1, 0.6, 0.11, -0.26, 0.86, 0), WIT],
-      [doosG(0.16, 0.1, 0.24, 0.09, 0, 0.03), '#1A1A1C'], [doosG(0.16, 0.1, 0.24, -0.09, 0, 0.03), '#1A1A1C'], [new THREE.SphereGeometry(0.13, 8, 6).translate(0, 1.6, 0), HUID], [new THREE.SphereGeometry(0.137, 8, 5, 0, 6.3, 0, 1.3).translate(0, 1.63, -0.01), '#3A2A1E']]); pgeo.scale(S, S, S);
+    const pgeo = persoonGeo();
     const loop = new THREE.InstancedMesh(pgeo, tintMat({ roughness: 0.85, metalness: 0 }), NV); loop.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(NV * 3).fill(1), 3); loop.count = 0; loop.frustumCulled = false; scene.add(loop);
     const lpos = new Float32Array(NR * 2 * 3), lkl = new Float32Array(NR * 2 * 3); for (let i = 0; i < NR; i++) { lkl.set([1, 0.92, 0.75], i * 6); lkl.set([0.9, 0.05, 0.03], i * 6 + 3); }
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(lpos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(lkl, 3));
     const lichten = new THREE.Points(lg, new THREE.PointsMaterial({ size: 1.4, vertexColors: true, map: AK.lampMat.map, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); lichten.frustumCulled = false; scene.add(lichten);
     LEVEN.autos = { M, mix, NR, NP, NV, rij: [], lopers: [], loop, lichten, net: null, netT: 0, sleutel: '', gelezen: new Set(), kant: mix.links ? -1 : 1 };
   }
+  const persoonGeo = () => { const g = kleurVorm([[doosG(0.14, 0.82, 0.16, 0.09, 0, 0), '#2B3142'], [doosG(0.14, 0.82, 0.16, -0.09, 0, 0), '#2B3142'], [doosG(0.42, 0.62, 0.24, 0, 0.82, 0), WIT], [doosG(0.1, 0.6, 0.11, 0.26, 0.86, 0), WIT], [doosG(0.1, 0.6, 0.11, -0.26, 0.86, 0), WIT],
+      [doosG(0.16, 0.1, 0.24, 0.09, 0, 0.03), '#1A1A1C'], [doosG(0.16, 0.1, 0.24, -0.09, 0, 0.03), '#1A1A1C'], [new THREE.SphereGeometry(0.13, 7, 5).translate(0, 1.6, 0), HUID], [new THREE.SphereGeometry(0.137, 7, 3, 0, 6.3, 0, 1.3).translate(0, 1.63, -0.01), '#3A2A1E']]); g.scale(S, S, S); return g; };
   const knoopSl = (x, z) => Math.round(x * 2) * 100003 + Math.round(z * 2);
   // het wegennet rond de camera: alle straten uit de tegels (een paar nieuwe tegels per keer), met hun knopen (gedeelde punten)
   function verkeerNet(V, cx, cz) {
@@ -5822,7 +6085,7 @@ const AL = (() => {
       if (!t.parsed && !V.gelezen.has(id) && nieuw >= 2) { heel = false; continue; }
       const P = AK.tegelData(id); if (!P) { heel = false; continue; } if (!V.gelezen.has(id)) { V.gelezen.add(id); nieuw++; }
       P.wegen.forEach((w, i) => {
-        if (w.k > 5 || w.pts.length < 4) return; const len = lijnLengtes(w.pts), tot = len[len.length - 1]; if (tot < 4) return;
+        if ((w.k > 5 && w.k !== 8) || w.pts.length < 4) return; const len = lijnLengtes(w.pts), tot = len[len.length - 1]; if (tot < 4) return;
         const o = { id: id * 8192 + i, k: w.k, h: w.breed / 2, pts: w.pts, len, tot, brug: w.brug, kn: [] }; wegen.set(o.id, o); lijst.push(o);
         for (let m = 0; m < w.pts.length / 2; m++) { const sl = knoopSl(w.pts[m * 2], w.pts[m * 2 + 1]); let e = knoop.get(sl); if (!e) knoop.set(sl, e = []); e.push([o, m]); }
       });
@@ -5872,7 +6135,7 @@ const AL = (() => {
   }
   // aan het eind van een stuk weg: verder op een weg die daar ook komt (bij voorkeur dezelfde soort), anders keren
   function volgendeWeg(V, r, eind) {
-    const w = r.w, m = eind ? w.pts.length / 2 - 1 : 0, opties = (V.net.knoop.get(knoopSl(w.pts[m * 2], w.pts[m * 2 + 1])) || []).filter(([o]) => o !== w && (r.loper ? o.k >= 3 : MAG(r.soort, o.k)));
+    const w = r.w, m = eind ? w.pts.length / 2 - 1 : 0, opties = (V.net.knoop.get(knoopSl(w.pts[m * 2], w.pts[m * 2 + 1])) || []).filter(([o]) => o !== w && (r.loper ? o.k >= 3 && o.k !== 6 && !o.brug : MAG(r.soort, o.k)));
     if (!opties.length) { r.dir = -r.dir; r.s = eind ? w.tot - 0.01 : 0.01; return; }
     const zelfde = opties.filter(([o]) => o.k === w.k), pool = zelfde.length && Math.random() < 0.7 ? zelfde : opties, [o, mm] = pool[Math.floor(Math.random() * pool.length)];
     const laatste = o.pts.length / 2 - 1; r.w = o; r.dir = mm === 0 ? 1 : mm === laatste ? -1 : (Math.random() < 0.5 ? 1 : -1); r.s = o.len[mm] + r.dir * 0.05;
@@ -5913,24 +6176,31 @@ const AL = (() => {
     V.lichten.geometry.setDrawRange(0, nl * 2); V.lichten.geometry.attributes.position.needsUpdate = true; V.lichten.material.opacity = Math.min(1, W.nacht * 1.2 + W.weerNu.regen * 0.4);
     updateLopers(V, dt, cx, cz);
   }
+  // is hier een stoep? Niet in een gebouw, het water of op gras, en met een gebouw binnen zo'n 12 m verder van de straat af (anders is het een kale kade, een veld of een parkeerplaats)
+  function stoepHier(w, s, kant, extra) {
+    const [hx, hz, hh] = opLijn(w.pts, w.len, s), nx = -Math.sin(hh) * kant, nz = Math.cos(hh) * kant, qx = hx + nx * extra, qz = hz + nz * extra;
+    if (AK.gebouwOp(qx, qz) || AK.isWater(qx, qz) || AK.groenOp(qx, qz)) return false;
+    return !!(AK.pleinOp(qx, qz) || AK.gebouwOp(hx + nx * (w.h + 4.5), hz + nz * (w.h + 4.5)) || AK.gebouwOp(hx + nx * (w.h + 9), hz + nz * (w.h + 9)) || AK.gebouwOp(hx + nx * (w.h + 13), hz + nz * (w.h + 13)));
+  }
   // voetgangers op de stoep langs de straten (en midden op voetgangersstraten); ze lopen om, keren voor een gebouw en slaan af op een hoek
   function updateLopers(V, dt, cx, cz) {
     const RL = 170 + 110 * K.leven, doel = Math.round(V.NV * (W.nacht > 0.7 ? 0.3 : 1) * (1 - W.weerNu.regen * 0.5)), N = V.net;
-    if (N && N.lijst.length && (!N.loopT || N.loopT.c !== N)) N.loopT = { c: N, l: N.lijst.filter(w => w.k >= 3 && !w.brug && Math.hypot(w.pts[0] - cx, w.pts[1] - cz) < RL + 250) };
+    if (N && N.lijst.length && (!N.loopT || N.loopT.c !== N)) N.loopT = { c: N, l: N.lijst.filter(w => w.k >= 3 && w.k !== 6 && !w.brug && Math.hypot(w.pts[0] - cx, w.pts[1] - cz) < RL + 250) };
     const LW = N && N.loopT ? N.loopT.l : [];
     if (LW.length) for (let k = 0; k < (V.lopers.length < doel * 0.5 ? 24 : 6) && V.lopers.length < doel; k++) {
       const w = LW[Math.floor(Math.random() * LW.length)]; const s = Math.random() * w.tot, [x, z] = opLijn(w.pts, w.len, s); if (Math.hypot(x - cx, z - cz) > RL) continue;
       const p = { loper: true, w, s, dir: Math.random() < 0.5 ? 1 : -1, v: 1.05 + Math.random() * 0.55, hoek: null, kant: Math.random() < 0.5 ? 1 : -1, extra: w.k === 5 ? Math.random() * Math.max(0.2, w.h - 0.6) : w.h + 0.8 + Math.random() * 1.6, kl: SHIRT[Math.floor(Math.random() * SHIRT.length)], f: Math.random() * 6, kijk: 0 };
-      if (w.k !== 5) { const [hx, hz, hh] = opLijn(w.pts, w.len, s), qx = hx - Math.sin(hh) * p.extra * p.kant, qz = hz + Math.cos(hh) * p.extra * p.kant; if (AK.gebouwOp(qx, qz) || AK.isWater(qx, qz)) continue; }
+      if (w.k === 8) p.extra = (Math.random() - 0.5) * Math.min(1, w.h);   // een parkpad: midden op het pad
+      else if (w.k !== 5) { if (!stoepHier(w, s, p.kant, p.extra)) continue; }
       V.lopers.push(p);
     }
     let n = 0;
     V.lopers = V.lopers.filter(p => {
       p.dt = dt; p.s += p.v * p.dir * dt; p.f += dt * p.v * 5.5;
       if (p.s > p.w.tot) volgendeWeg(V, p, true); else if (p.s < 0) volgendeWeg(V, p, false);
-      if (p.w.k === 5) p.extra = Math.min(p.extra, Math.max(0.2, p.w.h - 0.4)); else p.extra = Math.max(p.extra, p.w.h + 0.6);
+      if (p.w.k === 5) p.extra = Math.min(p.extra, Math.max(0.2, p.w.h - 0.4)); else if (p.w.k === 8) p.extra = Math.max(-0.5, Math.min(0.5, p.extra)); else p.extra = Math.max(p.extra, p.w.h + 0.6);
       const [px, pz, y] = plaats(p, p.extra * p.kant, cx, cz); if (Math.hypot(px - cx, pz - cz) > RL + 40) return false;
-      p.kijk -= dt; if (p.kijk < 0) { p.kijk = 0.6 + Math.random() * 0.4; p.nat = (p.nat || 0) + 1; if (AK.gebouwOp(px, pz) || (p.nat % 3 === 0 && AK.isWater(px, pz))) { p.dir = -p.dir; if (p.w.k !== 5) p.extra = p.w.h + 0.6; } }
+      p.kijk -= dt; if (p.kijk < 0) { p.kijk = 0.7 + Math.random() * 0.5; const goed = p.w.k === 5 || p.w.k === 8 ? !AK.gebouwOp(px, pz) && !AK.isWater(px, pz) : stoepHier(p.w, p.s, p.kant, p.extra); if (!goed) { p.fout = (p.fout || 0) + 1; p.dir = -p.dir; if (p.fout > 3) return false; } else p.fout = 0; }
       if (n >= V.NV) return true;
       Q4.setFromAxisAngle(YAS, -p.hoek + Math.PI / 2); M4.compose(V4.set(px * S, y + Math.abs(Math.sin(p.f)) * 0.03, pz * S), Q4, SC.set(1, 1, 1)); V.loop.setMatrixAt(n, M4); if (!p.c) p.c = KLR.set(p.kl).convertSRGBToLinear().toArray(); V.loop.instanceColor.array.set(p.c, n * 3); n++;
       return true;
@@ -6100,12 +6370,14 @@ const AL = (() => {
       for (const kop of [true, false]) { const f = treinVorm(T, kop), m = new THREE.InstancedMesh(f.romp, mat, kop ? 20 : max), gl = new THREE.InstancedMesh(f.gloed, gmat, kop ? 20 : max); m.castShadow = true; m.frustumCulled = false; gl.frustumCulled = false; m.count = 0; gl.count = 0; scene.add(m, gl); v[kop ? 'kop' : 'mid'] = { m, gl, n: 0, cap: kop ? 20 : max }; }
       vormen.set(T, v);
     }
-    LEVEN.treinen = { vormen, typen, max, gmat, lijst: [], routes: R_.map(r => ({ p: r.pts, len: lijnLengtes(r.pts), b: r.boven, s: r.s, box: (() => { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = 0; k < r.pts.length; k += 2) { x0 = Math.min(x0, r.pts[k]); x1 = Math.max(x1, r.pts[k]); z0 = Math.min(z0, r.pts[k + 1]); z1 = Math.max(z1, r.pts[k + 1]); } return [x0, z0, x1, z1]; })() })), zoekT: 0 };
+    LEVEN.treinen = { vormen, typen, max, gmat, lijst: [], routes: R_.map(r => ({ p: r.pts, len: lijnLengtes(r.pts), b: r.boven, s: r.s, bron: r, box: (() => { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = 0; k < r.pts.length; k += 2) { x0 = Math.min(x0, r.pts[k]); x1 = Math.max(x1, r.pts[k]); z0 = Math.min(z0, r.pts[k + 1]); z1 = Math.max(z1, r.pts[k + 1]); } return [x0, z0, x1, z1]; })() })), zoekT: 0 };
   }
   // een punt op een route: x, z en de hoogte (m) van de bovenkant van de rails
   function opRoute(r, s) {
     const n = r.p.length / 2; s = Math.max(0, Math.min(r.len[n - 1] - 0.01, s)); let lo = 0, hi = n - 1; while (hi - lo > 1) { const mm = (lo + hi) >> 1; if (r.len[mm] <= s) lo = mm; else hi = mm; }
     const f = (s - r.len[lo]) / Math.max(0.001, r.len[hi] - r.len[lo]), x = r.p[lo * 2] + (r.p[hi * 2] - r.p[lo * 2]) * f, z = r.p[lo * 2 + 1] + (r.p[hi * 2 + 1] - r.p[lo * 2 + 1]) * f, b = r.b[lo] + (r.b[hi] - r.b[lo]) * f;
+    const o = b > 1 && r.bron.over ? AK.spoorBoven(r.bron, s) : null; if (o && o.y !== undefined) return [x, z, o.y + 0.41];   // boven een wegbrug (Bir-Hakeim)
+    if (o) return [x, z, AK.hoogteM(x, z) + b + o.d + 0.41];
     const br = b > 1 ? AK.brugOp(x, z) : null;
     return [x, z, br ? br.dekOp(x, z) + 0.46 : AK.hoogteM(x, z) + b + 0.41];
   }
@@ -6217,29 +6489,40 @@ const AL = (() => {
   }
   // --- mensjes op de pleinen en in de parken (alleen dichtbij)
   function maakMensen() {
-    const N = Math.round(260 * K.leven);
-    const geo = kleurVorm([[new THREE.CylinderGeometry(0.22, 0.26, 1.0, 6).translate(0, 0.95, 0), '#FFFFFF'], [new THREE.CylinderGeometry(0.1, 0.12, 0.5, 5).translate(0, 0.25, 0), '#2A2A30'], [new THREE.SphereGeometry(0.17, 8, 6).translate(0, 1.62, 0), '#E2B896']]); geo.scale(S * 1.5, S * 1.5, S * 1.5);
-    const m = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }), N); m.frustumCulled = false;
-    const kl = ['#C8323C', '#2F4C8F', '#E9B949', '#F2F0EA', '#2E8B62', '#1F2333', '#C87A3C', '#8A5AA8', '#5A7A9A', '#D8D2C4']; for (let i = 0; i < N; i++) { KLR.set(kl[i % kl.length]).convertSRGBToLinear(); m.setColorAt(i, KLR); } m.count = 0;
+    const N = Math.round(200 * K.leven);
+    const m = new THREE.InstancedMesh(persoonGeo(), tintMat({ roughness: 0.85, metalness: 0 }), N); m.frustumCulled = false; m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(N * 3).fill(1), 3); m.count = 0;
     scene.add(m); LEVEN.mensen = { m, N, lijst: [], zoekT: 0 };
   }
   function updateMensen(dt, t) {
     const Me = LEVEN.mensen; if (!Me) return; const cxm = A.x / S, czm = A.z / S;
+    const binnen = (p, x, z) => AK.KB.inRing(p.ring, x, z) && !AK.gebouwOp(x, z) && !AK.isWater(x, z);
+    const nieuwDoel = p => { const r = p.ring; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < r.length; i += 2) { x0 = Math.min(x0, r[i]); x1 = Math.max(x1, r[i]); z0 = Math.min(z0, r[i + 1]); z1 = Math.max(z1, r[i + 1]); }
+      for (let k = 0; k < 8; k++) { const qx = Math.max(x0, Math.min(x1, p.x + (Math.random() - 0.5) * 60)), qz = Math.max(z0, Math.min(z1, p.z + (Math.random() - 0.5) * 60)); if (binnen(p, qx, qz) && binnen(p, (qx + p.x) / 2, (qz + p.z) / 2)) { p.dx = qx; p.dz = qz; return; } }
+      p.dx = null; p.wacht = 4 + Math.random() * 6; };
     Me.zoekT -= dt;
     if (Me.zoekT < 0) {
       Me.zoekT = 0.7; Me.lijst = Me.lijst.filter(p => Math.hypot(p.x - cxm, p.z - czm) < 520);
       const doel = Math.round(Me.N * (W.nacht > 0.7 ? 0.25 : W.weerNu.regen > 0.5 ? 0.35 : 1));
-      for (let k = 0; k < 30 && Me.lijst.length < doel; k++) { const pl = AK.plekVoorMensen(cxm, czm, 80, 480); if (!pl) break; for (let j = 0; j < 3 + Math.floor(Math.random() * 4) && Me.lijst.length < doel; j++) Me.lijst.push({ x: pl[0] + (Math.random() - 0.5) * 8, z: pl[1] + (Math.random() - 0.5) * 8, hx: pl[0], hz: pl[1], hoek: Math.random() * 6.28, v: 0.8 + Math.random() * 0.7, f: Math.random() * 6 }); }
+      for (let k = 0; k < 20 && Me.lijst.length < doel; k++) {
+        const pl = AK.plekVoorMensen(cxm, czm, 80, 480); if (!pl || !pl[2]) break; const n = 2 + Math.floor(Math.random() * 4), loopt = Math.random() < 0.45;
+        for (let j = 0; j < n && Me.lijst.length < doel; j++) { const a = j / n * 6.283, x = pl[0] + Math.cos(a) * 0.9, z = pl[1] + Math.sin(a) * 0.9, p = { x, z, ring: pl[2], hoek: a + Math.PI, v: 0.9 + Math.random() * 0.5, f: Math.random() * 6, wacht: loopt ? 0 : 6 + Math.random() * 20, dx: null, kl: SHIRT[Math.floor(Math.random() * SHIRT.length)] };
+          if (!binnen(p, x, z)) continue; Me.lijst.push(p); }
+      }
     }
-    let n = 0;
+    let n = 0; const kl = Me.m.instanceColor.array;
     for (const p of Me.lijst) {
-      p.f += dt * p.v * 3; if (Math.random() < dt * 0.3) p.hoek += (Math.random() - 0.5) * 2;
-      const dx = p.x - p.hx, dz = p.z - p.hz; if (dx * dx + dz * dz > 400) p.hoek = Math.atan2(-dz, -dx);
-      p.x += Math.cos(p.hoek) * p.v * dt; p.z += Math.sin(p.hoek) * p.v * dt;
-      Q4.setFromAxisAngle(YAS, -p.hoek); M4.compose(V4.set(p.x * S, AK.yVan(AK.hoogteM(p.x, p.z)) + Math.abs(Math.sin(p.f)) * 0.04, p.z * S), Q4, SC.set(1, 1, 1)); Me.m.setMatrixAt(n++, M4); if (n >= Me.N) break;
+      if (p.wacht > 0) { p.wacht -= dt; if (p.wacht <= 0) nieuwDoel(p); }
+      else if (p.dx !== null) {
+        const dx = p.dx - p.x, dz = p.dz - p.z, d = Math.hypot(dx, dz);
+        if (d < 0.6) { p.dx = null; p.wacht = 3 + Math.random() * 10; }
+        else { const doelH = Math.atan2(dz, dx); let dh = doelH - p.hoek; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); p.hoek += dh * Math.min(1, dt * 4); const nx = p.x + Math.cos(p.hoek) * p.v * dt, nz = p.z + Math.sin(p.hoek) * p.v * dt; if (binnen(p, nx, nz)) { p.x = nx; p.z = nz; p.f += dt * p.v * 5.5; } else nieuwDoel(p); }
+      } else nieuwDoel(p);
+      Q4.setFromAxisAngle(YAS, -p.hoek + Math.PI / 2); M4.compose(V4.set(p.x * S, AK.yVan(AK.hoogteM(p.x, p.z)) + (p.wacht > 0 ? 0 : Math.abs(Math.sin(p.f)) * 0.03), p.z * S), Q4, SC.set(1, 1, 1)); Me.m.setMatrixAt(n, M4);
+      if (!p.c) p.c = KLR.set(p.kl).convertSRGBToLinear().toArray(); kl.set(p.c, n * 3); n++; if (n >= Me.N) break;
     }
-    Me.m.count = n; Me.m.instanceMatrix.needsUpdate = true;
+    Me.m.count = n; Me.m.instanceMatrix.needsUpdate = true; Me.m.instanceColor.needsUpdate = true;
   }
+
   // --- fonteinen: deeltjes die de grafische kaart zelf laat vallen (geen werk voor de processor)
   function maakFonteinen() {
     const druppel = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(1, 'rgba(220,235,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })();
@@ -6281,7 +6564,7 @@ const AL = (() => {
       m.onBeforeCompile = sh => { sh.uniforms.uTijd = AK.U.uTijd; sh.uniforms.uWind = AK.U.uWind; sh.vertexShader = 'uniform float uTijd; uniform float uWind;\n' + sh.vertexShader.replace('#include <begin_vertex>', groot ? '#include <begin_vertex>\n float k = 1.0 - uv.y; transformed.z += sin(uTijd * 1.6 + transformed.x * 0.4) * k * 0.9 * uWind; transformed.x += sin(uTijd * 1.1) * k * 0.6;' : '#include <begin_vertex>\n float k = uv.x; transformed.z += sin(uTijd * 6.0 - transformed.x * 2.2) * k * 0.28 * uWind; transformed.y += sin(uTijd * 4.0 - transformed.x * 1.5) * k * 0.08;'); };
       m.customProgramCacheKey = () => 'vlag' + (groot ? 'g' : 'k');
       const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); v.ouder.add(mesh); LEVEN.vlaggen.push(mesh);
-      if (!groot) { const paal = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, h + 2.4, 5), AL.M.donker); paal.position.set(x, y + (h + 2.4) / 2 - 2.4, z); v.ouder.add(paal); }
+      if (!groot) { const paal = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, h + 2.4, 5), AL.M.donker); paal.position.set(x, y + (h + 2.4) / 2 - 2.4, z); v.ouder.add(paal); LEVEN.vlagOpDak.push({ mesh, paal, h, klaar: false }); }
     }
   }
   // --- regen: strepen in een doos rond de camera
@@ -6359,7 +6642,20 @@ const AL = (() => {
     }
     T.lijst = T.lijst.filter(t => !t.weg); T.m.count = n; T.m.instanceMatrix.needsUpdate = true;
   }
+  const VV = new THREE.Vector3(), VW = new THREE.Vector3();
+  function zetVlaggenOpDak(dt) {
+    LEVEN.vlagT -= dt; if (LEVEN.vlagT > 0) return; LEVEN.vlagT = 1.5;
+    for (const v of LEVEN.vlagOpDak) {
+      if (v.klaar) continue; v.paal.updateWorldMatrix(true, false); v.paal.getWorldPosition(VV); const xm = VV.x / S, zm = VV.z / S, t = AK.T.get(AK.tegelVan(xm, zm));
+      if (t && !t.data && !AK.voortgang.klaar) continue; v.klaar = true;
+      const dak = AK.gebouwOp(xm, zm); if (!dak) continue;
+      const voet = VV.y - (v.h + 2.4) / 2 * S, doel = AK.yVan(dak.hoogste); if (Math.abs(voet - doel) < 0.6 * S) continue;
+      // van de wereld naar het model: de voet van de mast op het dak
+      VW.set(VV.x, doel + (v.h + 2.4) / 2 * S, VV.z); v.paal.parent.worldToLocal(VW); const dy = VW.y - v.paal.position.y; v.paal.position.y += dy; v.mesh.position.y += dy;
+    }
+  }
   function updateLeven(dt, t) {
+    zetVlaggenOpDak(dt);
     updateBoten(dt); updateGrachtboten(dt); updateTrams(dt); updateAutos(dt); updateTreinen(dt); updateDuiven(dt); updateMeeuwen(t); updateMensen(dt, t); updateRegen(dt);
     const cx = camera.position.x, cz = camera.position.z; for (const f of LEVEN.fonteinen) f.pts.visible = Math.hypot(f.pts.position.x - cx, f.pts.position.z - cz) < 700;
   }
@@ -6952,7 +7248,7 @@ const AL = (() => {
   }
   function zetKwaliteit(k) {
     if (k === 'auto') { delete app.k; kwal = automatisch(); } else { app.k = k; kwal = k; } bewaarApp(); K = KWAL[kwal];
-    AK.R.r0 = K.r[0]; AK.R.r1 = K.r[1]; AK.R.r2 = K.r[2]; AK.R.bomen = K.r[3]; dpr = Math.min(window.devicePixelRatio || 1, K.dpr); renderer.setPixelRatio(dpr); maat(); zetSchaduw(); envOpnieuw(); G.vuil = true;
+    AK.R.r0 = K.r[0]; AK.R.r1 = K.r[1]; AK.R.r2 = K.r[2]; AK.R.bomen = K.r[3]; AK.R.bomenVol = K.r[4] || 220; dpr = Math.min(window.devicePixelRatio || 1, K.dpr); renderer.setPixelRatio(dpr); maat(); zetSchaduw(); envOpnieuw(); G.vuil = true;
   }
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-actie]'), r = e.target.closest('[data-race]'), w = e.target.closest('[data-weer]'), q = e.target.closest('[data-kwal]'), f = e.target.closest('[data-filter]');
@@ -7075,7 +7371,7 @@ const AL = (() => {
     if (G.scherm === 'spel' && !window.__arVasteScherpte) { const doel = 1000 / K.fps, frame = dt * 1000; if (frame > doel * 1.45) traag += dt; else traag = Math.max(0, traag - dt * 0.5); if (frame < doel * 1.05) snelT += dt; else snelT = 0; const min = mobiel ? 0.8 : 1; if (traag > 2.5 && dpr > min) { dpr = Math.max(min, dpr - 0.25); renderer.setPixelRatio(dpr); maat(); traag = 0; } if (snelT > 8 && dpr < Math.min(window.devicePixelRatio || 1, K.dpr)) { dpr = Math.min(K.dpr, dpr + 0.25); renderer.setPixelRatio(dpr); maat(); snelT = 0; } }
   }
   // ---------------------------------------------------------------- opstarten: de kaart laden, de bezienswaardigheden neerzetten, en dan vliegen
-  AK.R.r0 = K.r[0]; AK.R.r1 = K.r[1]; AK.R.r2 = K.r[2]; AK.R.bomen = K.r[3];
+  AK.R.r0 = K.r[0]; AK.R.r1 = K.r[1]; AK.R.r2 = K.r[2]; AK.R.bomen = K.r[3]; AK.R.bomenVol = K.r[4] || 220;
   document.body.classList.toggle('ar-mobiel', mobiel);
   $('ar-uitleg').textContent = mobiel ? 'Sleep met je vinger links op het scherm om te sturen. Tik op Klap om hoger te komen, houd Duik ingedrukt om snel te gaan, en tik op Land om op een dak of toren te gaan zitten.' : 'Pijltjes of WASD om te sturen, spatie om met je vleugels te klappen, shift om te duiken, E om te landen. M voor de kaart, F voor de fotostand, C voor een andere camera. Je kunt ook met de muis slepen.';
   maat(); zetLicht(1); arend.position.set(A.x, A.y, A.z); camVolg(0, true);

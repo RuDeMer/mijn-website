@@ -121,7 +121,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   // ontbreekt een icoon, of heeft een oude kaart een verkeerde naam? Raad het aan de pagina
   const RADEN = { rommelgroepjes: 'groepjes', reclame: 'reclame', huisopstelten: 'huis', rubendeduiker: 'duiker', rommelland: 'pretpark', rommelblok: 'blok', vouwvlieger: 'vlieger', rommelritme: 'ritme', rommelkroon: 'rommelkroon', rommelarend: 'arend', rob: 'rob', rommelbel: 'bel', rommelsteek: 'steek', productiefiets: 'fiets', steigerstress: 'steiger', rommelwheels: 'wheels', mengelmoes: 'mengelmoes', opgevoel: 'opgevoel', rommelrecht: 'recht', rommelbeesten: 'pakje', rommelhotel: 'hotel', vlaaienbakker: 'vlaai', rommelpoker: 'kaarten', rommelwoord: 'woord', scorebord: 'beker', ideeenbox: 'idee' };
   document.querySelectorAll('.label-kaart[href]').forEach(a => { const g = RADEN[pagina(a)]; if (g && (typeof SPELICONEN === 'undefined' || !SPELICONEN[a.dataset.icoon] || a.dataset.icoon === 'doos')) a.dataset.icoon = g; });
-  plek.querySelectorAll('[data-icoon]').forEach(s => { const a = labels.map(l => l.querySelector('.label-kaart')).find(x => x && x.getAttribute('href') === (s.closest('a') || {}).getAttribute?.('href')); if (a) s.dataset.icoon = a.dataset.icoon; });
+  plek.querySelectorAll('[data-icoon]').forEach(s => { const a = labels.map(l => l.querySelector('.label-kaart')).find(x => x && x.getAttribute('href') === (s.closest('a') ? s.closest('a').getAttribute('href') : undefined)); if (a) s.dataset.icoon = a.dataset.icoon; });
   const vulIconen = () => {
     if (typeof SPELICONEN === 'undefined') return;
     document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => { let s = a.querySelector('.label-icoon'); if (!s) return; const n = SPELICONEN[a.dataset.icoon] ? a.dataset.icoon : 'doos'; s.innerHTML = '<svg viewBox="0 0 64 64" focusable="false">' + SPELICONEN[n] + '</svg>'; });
@@ -2466,6 +2466,12 @@ body.v6-body { color: var(--tg-tekst); transition: background-color .3s ease; }
 .tg-v1::before { right: -20%; top: -20%; width: 72%; border-radius: 50%; } .tg-v2::before { left: -16%; bottom: -24%; width: 80%; border-radius: 50%; }
 .tg-v3::before { right: -26%; bottom: -26%; width: 76%; border-radius: 34%; transform: rotate(18deg); } .tg-v4::before { left: -22%; top: -22%; width: 66%; border-radius: 50%; }
 .tg-vlak svg { position: relative; width: 58%; height: auto; }
+/* oudere Safari (iPadOS 14 en ouder) kent aspect-ratio niet: dan houdt een leeg vlakje met padding de tegel en de rondjes vierkant */
+@supports not (aspect-ratio: 1 / 1) {
+  .tg-vlak::after { content: ''; padding-top: 100%; grid-area: 1 / 1; }
+  .tg-vlak > svg { grid-area: 1 / 1; }
+  .tg-v1::before { height: 72%; } .tg-v2::before { height: 80%; } .tg-v3::before { height: 76%; } .tg-v4::before { height: 66%; }
+}
 .tg-tegel:hover .tg-vlak, .tg-tegel:focus-visible .tg-vlak { transform: translateY(-6px) rotate(-1.5deg); box-shadow: var(--tg-zweef); }
 .tg-tegel:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 6px; border-radius: 1.5rem; }
 .tg-nieuw { position: absolute; top: 10px; right: 10px; background: #C8323C; color: #FFFFFF; font-weight: 800; font-size: .75rem; padding: 4px 9px; border-radius: 999px; transform: rotate(6deg); }

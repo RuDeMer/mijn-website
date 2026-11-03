@@ -1361,3 +1361,19 @@ print('kopie in de werkplaats:', 'gelijk' if json.loads(m.group(1)) == h else 'V
   - **`aspect-ratio`** (de vierkante tegels in home_v6): Safari ouder dan 15 (iPadOS 14 of ouder) kent het niet. Dan worden de tegels platte strookjes, en lopen de iconen over de rand en over het stickertje Nieuw. Nu is er een reserve in `@supports not (aspect-ratio: 1 / 1)`: een leeg `::after` met `padding-top: 100%` houdt de tegel vierkant, en de rondjes krijgen een hoogte in procenten. Nieuwe browsers merken daar niets van.
 - **Regel**: houd `homepage-onderdelen.js` leesbaar als ES2018 (Safari 12): geen `?.`, `??`, `??=`, `||=` of klasse-velden. Controle: `NODE_PATH=/opt/node-tools/node_modules node -e "require('acorn').parse(require('fs').readFileSync('homepage-onderdelen.js','utf8'),{ecmaVersion:2018})"`. Nieuwere CSS mag, met een reserve als de opmaak ervan afhangt.
 - **Testen in de tekenmotor van Safari** in een cloudsessie: de WebKit-build die bij Playwright hoort (`webkit-ubuntu-24.04.zip` van cdn.playwright.dev) in de kladmap, met de ontbrekende bibliotheken via `apt-get download` en `dpkg -x` (ook Mesa voor EGL), gestart met `webkit.launch({ executablePath: '<map>/pw_run.sh', env: { EGL_PLATFORM: 'surfaceless', LIBGL_ALWAYS_SOFTWARE: '1', ... } })`. Een oudere Safari nabootsen: de CSS die hij niet kent uit `homepage-onderdelen.js` halen (via `route`) en kijken wat er overblijft.
+
+## Rommeltjes met echte natuurkunde: de proef (3 november 2026, Claude Code)
+
+- **`rommeltjes-test.html`** is een proefpagina, om kantelen en schudden te testen op een echte telefoon. De naam bevat "test", dus de werkplaats zet hem nooit op de homepage (`NOOIT_OP_HOME`). Er staat `noindex` in, en er zitten geen gedeelde blokken in. Hij gaat weg zodra de rommeltjes op de homepage staan.
+- **Wat erin zit**: een eigen kleine 2D-natuurkundemotor `Fysica`, zonder bibliotheek, tussen `// ==== FYSICA begin` en `// ==== FYSICA eind`. Die kun je in Node testen. Verder drie rommeltjes: de knikker, de dobbelsteen en het potlood.
+- **De motor kan**:
+  - cirkels, bolle veelhoeken, vaste dozen en potloodstrepen;
+  - botsen met wrijving en stuiteren;
+  - vooruitkijkende contacten, zodat niets door een dunne streep schiet;
+  - een vaste stap van 1/120 s;
+  - slapen in rust: dan vraagt de pagina geen beelden meer aan;
+  - een veer om iets op te pakken (`pak`/`laatLos`);
+  - `vrijMaken`: wat je loslaat in een tegel, schuift er liefst omhoog uit.
+- **De pagina is de wereld**: tegels, het briefje, plankjes in de kantlijn, de vloer en de randen van het scherm. Bij een verspringing (een lettertype dat laadt, of een ander formaat) schuift een rommeltje mee met het ding waarop het ligt (`draagVlak`).
+- **Kantelen**: `deviceorientation` geeft de zwaartekracht, gedraaid naar de stand van het scherm (`screen.orientation.angle`). Een iPhone en iPad vragen toestemming, alleen na een tik op "Kantel je telefoon". Schudden gaat via `devicemotion`. Onder de knoppen staat een meter, met voorover, opzij, scherm en vallen. Getest met een nagebootste sensor: staand, liggend, plat en schudden.
+- **De pagina is de bron.** De motor staat tussen de markeringen en is er zo uit te knippen. Bij het uitbouwen gaat hij naar `homepage-onderdelen.js`.

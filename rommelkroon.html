@@ -166,6 +166,49 @@ textarea.deel { width: 100%; min-height: 8rem; font: inherit; font-size: .9rem; 
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
 .confetti i { position: absolute; top: -20px; width: 9px; height: 14px; border-radius: 2px; }
 #sb-kroon { margin-top: .8rem; }
+/* fase 2: de kroon van de week, uitdagingen, vormen en zoomen */
+:root { --wk1: #D8ECFF; --wk2: #A9C9F2; }
+html[data-thema="donker"] { --wk1: #1E2F4A; --wk2: #2A2140; }
+.dag.week { background: linear-gradient(135deg, var(--wk1), var(--wk2)); }
+.reeks-kop { margin: 1.4rem 0 .2rem; padding-top: 1rem; border-top: 2.5px dashed var(--balk); font-size: 1.2rem; }
+.reeks-kop + .klein { margin-bottom: .4rem; }
+.uitdaging { border: 2px solid var(--kaart-rand); border-radius: 14px; background: var(--lvl); padding: .75rem .85rem .85rem; margin: .8rem 0; }
+.uitdaging p { margin: .45rem 0; }
+.ud-kop { display: flex; gap: .7rem; align-items: center; }
+.ud-kop h3 { margin: 0 0 .1rem; font-size: 1.12rem; }
+.ud-icoon { flex: none; width: 2.8rem; height: 2.8rem; border-radius: 12px; background: #FBF6E9; border: 2px solid var(--inkt); display: grid; place-items: center; }
+.ud-icoon svg { width: 80%; height: 80%; }
+.uitdaging .balk { justify-content: flex-start; margin-top: .4rem; }
+.kiezer { display: flex; flex-wrap: wrap; gap: .35rem; margin: .5rem 0 0; }
+.kies { font: inherit; font-weight: 800; font-size: .86rem; min-height: 40px; padding: .3rem .7rem; border-radius: 999px; border: 2px solid var(--knop-rand); background: var(--knop); color: var(--knop-tekst); cursor: pointer; }
+.kies.aan { background: var(--actief); color: var(--actief-tekst); }
+.weken { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: .5rem; margin: .4rem 0 1rem; }
+.wk { display: flex; align-items: center; justify-content: space-between; gap: .6rem; text-align: left; font: inherit; font-weight: 800; border: 2px solid var(--kaart-rand); border-radius: 12px; background: var(--lvl); color: var(--tekst); padding: .5rem .7rem; cursor: pointer; min-height: 3.2rem; }
+.wk small { display: block; font-weight: 700; color: var(--zacht); font-size: .76rem; }
+.wk.klaar { background: var(--lvl-klaar); } .wk.bezig { background: var(--lvl-bezig); }
+.wk .wk-tijd { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wacht { text-align: center; }
+.wacht .draai { display: inline-block; width: 3.2rem; height: 3.2rem; margin: .3rem auto 0; }
+.wacht .draai svg { width: 100%; height: 100%; }
+.tijd.bijna { background: var(--rood); }
+#spel.zen .tijd { visibility: hidden; }
+/* het bord in een raam, om in te zoomen */
+.bord-raam { width: min(100%, 34rem); margin: 0 auto; position: relative; border-radius: 8px; }
+.bord-raam > .bord { width: 100%; transform-origin: 0 0; }
+.bord-raam.ingezoomd { overflow: hidden; box-shadow: 0 0 0 2px var(--kaart-rand); }
+.zoom { display: flex; justify-content: flex-end; gap: .35rem; max-width: 34rem; margin: .45rem auto 0; }
+.zoom button { font: inherit; font-weight: 800; font-size: 1.1rem; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid var(--knop-rand); background: var(--knop); color: var(--knop-tekst); cursor: pointer; }
+.zoom button:disabled { opacity: .4; cursor: default; }
+.zoom .klein { margin-right: auto; align-self: center; }
+/* vormen: waar geen vakje is */
+.bord.vorm { border-color: transparent !important; background: transparent !important; box-shadow: none !important; }
+.cel.gat { background: transparent !important; box-shadow: none !important; cursor: default; border-color: transparent; }
+.cel.gat::before, .cel.gat::after { display: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+  .wacht .draai { animation: draai 1.6s ease-in-out infinite; }
+  @keyframes draai { 0% { transform: rotate(-12deg); } 50% { transform: rotate(12deg) translateY(-4px); } 100% { transform: rotate(-12deg); } }
+  .bord.zoemt { transition: transform .18s ease-out; }
+}
 /* de kast */
 .tab-nieuw { display: inline-grid; place-items: center; min-width: 1.35rem; height: 1.35rem; margin-left: .35rem; padding: 0 .3rem; border-radius: 99px; background: var(--rood); color: #fff; font-size: .72rem; line-height: 1; vertical-align: .1em; }
 .tabs button[aria-selected="true"] .tab-nieuw { background: var(--rood); color: #fff; }
@@ -280,7 +323,7 @@ html[data-thema="donker"] .kd-vink { color: #231A26; }
   .dag { grid-template-columns: 1fr; } .dag .mini-plek { display: none; }
   .hst { grid-template-columns: 4rem 1fr; } .hst .mini-plek { width: 4rem; height: 4rem; }
   .levels { grid-template-columns: repeat(auto-fill, minmax(2.9rem, 1fr)); gap: .38rem; }
-  .tabs { flex-wrap: nowrap; gap: .35rem; overflow-x: auto; scrollbar-width: none; padding: 2px; margin-left: -2px; margin-right: -2px; }
+  .tabs { flex-wrap: wrap; gap: .35rem; padding: 2px; margin-left: -2px; margin-right: -2px; }
   .tabs::-webkit-scrollbar { display: none; }
   .tabs button { flex: 1 0 auto; padding: .4rem .5rem; font-size: .84rem; min-height: 42px; }
   .kop { padding-left: .7rem; padding-right: .7rem; gap: .5rem; flex-wrap: nowrap; } .kop .terug-lang { display: none; } .kop a { font-size: .85rem; white-space: nowrap; }
@@ -323,11 +366,13 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
 <main>
   <section id="overzicht">
     <div class="paneel dag" id="dag"></div>
+    <div class="paneel dag week" id="week"></div>
     <div class="paneel verder" id="verder" hidden></div>
     <div class="paneel seizoen" id="seizoen" hidden></div>
     <div class="tabs" role="tablist" aria-label="Onderdelen">
       <button type="button" role="tab" id="tab-puzzels" data-tab="puzzels" aria-controls="paneel-tab">Puzzels</button>
       <button type="button" role="tab" id="tab-hoofdstukken" data-tab="hoofdstukken" aria-controls="paneel-tab">Hoofdstukken</button>
+      <button type="button" role="tab" id="tab-uitdagingen" data-tab="uitdagingen" aria-controls="paneel-tab">Uitdagingen</button>
       <button type="button" role="tab" id="tab-archief" data-tab="archief" aria-controls="paneel-tab">Archief</button>
       <button type="button" role="tab" id="tab-kast" data-tab="kast" aria-controls="paneel-tab">Kast</button>
     </div>
@@ -338,7 +383,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     <div class="paneel">
       <div class="spelkop"><button class="knop" id="b-terug" type="button" aria-label="Terug naar de puzzels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lang">Puzzels</span></button><h2 id="spel-titel">Puzzel 1</h2><span class="tijd" id="tijd" role="timer" aria-label="Tijd">0:00</span></div>
       <div class="regelband" id="regelband" hidden></div>
-      <div class="bord" id="bord" role="grid" aria-label="Puzzelbord"></div>
+      <div class="bord-raam" id="bord-raam"><div class="bord" id="bord" role="grid" aria-label="Puzzelbord"></div></div>
+      <div class="zoom" id="zoom" hidden><span class="klein">Knijp met twee vingers om in te zoomen</span><button type="button" id="z-min" aria-label="Uitzoomen">−</button><button type="button" id="z-plus" aria-label="Inzoomen">+</button><button type="button" id="z-vol" aria-label="Het hele bord">⤢</button></div>
       <div class="hintvak" id="hintvak" hidden aria-live="polite"><p id="hint-tekst"></p><div class="balk"><button class="knop" id="hint-doe" type="button">Zet het voor me</button><button class="knop" id="hint-dicht" type="button">Begrepen</button></div></div>
       <div class="balk gereedschap">
         <button class="knop" id="b-ongedaan" type="button" aria-keyshortcuts="Z"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4V2M4.5 7A8.5 8.5 0 1 1 6 17.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lang">Ongedaan maken</span><span class="kort">Ongedaan</span></button>
@@ -406,7 +452,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     return x > 0 ? Math.log10(x) : -Infinity;
   };
   // spellen die hun score als 10-log sturen, en borden die een oude scoreserver nog niet kent (dan zeggen we niets)
-  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1 };
+  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1, kroonklok: 1 };
   const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
   const BRONNEN = {
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
@@ -423,7 +469,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     bel: () => { const s = lees('rommelbel-v1'); return s && s.eindeloos ? [s.eindeloos, Object.values(s.sterren || {}).reduce((a, b) => a + b, 0)] : null; },
     rob: () => { const s = lees('rommelrob-v1'); return s && s.best ? [s.best, s.totaal || 0] : null; },
     arend: () => { const s = lees('rommelarend-v1'); if (!s) return null; const p = (s.ontdekt || []).length * 100 + (s.veren || []).length * 25 + Object.values(s.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0); return p ? [p, (s.ontdekt || []).length] : null; },
-    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [Math.min(1000, o.length), o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    kroonklok: () => { const s = lees('rommelkroon-v1'), k = s && s.klok; return k && k.b > 0 ? [Math.min(200, k.b), k.n || 0] : null; },
     ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
     vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
@@ -481,7 +528,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         const r = await metTijd(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify(lijf) });
         const j = await r.json().catch(() => ({}));
         if (r.ok) onthoud(spel, score, extra || 0);
-        if (!r.ok && j.fout && !NIEUW_BORD[spel]) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        if (!r.ok && j.fout && !NIEUW_BORD[spel] && !/^kw\d/.test(spel)) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
         return r.ok ? j : null;
       } catch (e) { return null; }
     },
@@ -601,6 +648,10 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       return x > 0 ? Math.max(0, Math.log10(x)) : 0;
     };
     const rbHeb = x => (Array.isArray(x) ? getal(x[0]) + getal(x[1]) : 0);
+    // Rommelkroon: per puzzel de beste keer (minder hints, dan sneller); per dag (en per week) liefst de keer die op de dag (of in de week)
+    // zelf was, dan de snelste. 'Op de dag zelf' blijft aan als het één keer aan stond.
+    const kroonBest = (b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; };
+    const kroonDag = (b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; };
     // ---------- de maat: hoe verder, hoe hoger (dezelfde maat als 'Verder spelen' op de homepage); bij gelijke stand telt het volgende getal
     const MAAT = {
       'vlaaienbakker-v1': s => { const o = isObj(s.oer) ? s.oer : {}; return [getal(s.opnieuw), vlog(s, 'oer.ooit'), getal(o.n), Math.max(vlog(s, 'alles'), vlog(s, 'ooit'), vlog(s, 'totaal')), vlog(s, 'totaal')]; },
@@ -648,13 +699,20 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         tel: { h: elk(teller), standGewonnen: max, maxSteen: max, maxIjzer: max, verst: max, beste: max, '*': teller } } },
       'rommelkroon-v1': {
         velden: {
-          // per puzzel: de beste keer (minder hints, dan sneller), zoals de scoreserver het al deed
-          opgelost: elk((b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; }),
-          // per dag: liefst de keer die op de dag zelf was, dan de snelste; 'op de dag zelf' blijft aan als het één keer aan stond
-          dag: elk((b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; }),
+          // per puzzel de beste keer, zoals de scoreserver het al deed; per dag liefst de keer op de dag zelf
+          opgelost: elk(kroonBest), dag: elk(kroonDag),
+          // (2026-11-03) de kroon van de week net als dag; Eindeloos (per maat en moeilijkheid) en Zen tellen op; Tegen de klok: het record en hoe vaak
+          week: elk(kroonDag), eind: elk(teller), eindTijd: elk(snelste), klok: { b: max, n: teller }, zen: teller,
+          // (voor later) per trucje de opgeloste oefeningen, je eigen puzzels (hooguit 30), gedeelde puzzels die je speelde (de beste keer),
+          // en je vrienden: { code: tijdstip }, een negatief tijdstip is weggehaald; de nieuwste verandering wint, dus weghalen gaat ook mee
+          school: elk(samenLijst), gemaakt: samenLijst, vreemd: elk(kroonBest), vrienden: elk((b, s, i) => (!num(s) ? i : !num(i) ? s : Math.abs(i) >= Math.abs(s) ? i : s)),
           bezig: elk(lopend), auto: keuze, inst: keuze, laatste: keuze, uitleg: of, voortgangTotaal: max,
         },
-        na: r => { if (isObj(r.bezig)) for (const k of Object.keys(r.bezig)) if ((isObj(r.opgelost) && r.opgelost[k]) || (k[0] === 'd' && isObj(r.dag) && r.dag[k.slice(1)])) delete r.bezig[k]; return r; },
+        na: r => {
+          if (isObj(r.bezig)) for (const k of Object.keys(r.bezig)) if ((isObj(r.opgelost) && r.opgelost[k]) || (k[0] === 'd' && isObj(r.dag) && r.dag[k.slice(1)]) || (k[0] === 'w' && isObj(r.week) && r.week[k.slice(1)])) delete r.bezig[k];
+          if (Array.isArray(r.gemaakt)) r.gemaakt = r.gemaakt.slice(-30);
+          return r;
+        },
       },
       'rommelrecht-v1': { velden: { v: max, gehaald: elk(of), manieren: elk(samenLijst), dag: elk(samenLijst), voortgangTotaal: max } },
       'rommelgroepjes-v1': { velden: { v: max, uitleg: of, laatst: max, voortgangTotaal: max,
@@ -910,7 +968,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 6;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 7;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
@@ -1667,6 +1725,9 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
 const PUZZELS = [{"n":5,"v":"aaaaaaabaaddddcddddddeeee","o":"02413"},{"n":5,"v":"aaaaaabbaaaabcceadccecccc","o":"31420"},{"n":5,"v":"abbbbccbbbccbbbeeebdeeeee","o":"03142"},{"n":5,"v":"bbbaabbbaabbbcadddcaddeea","o":"41302"},{"n":5,"v":"aaabbaaabbacabbacaddaaeed","o":"03142"},{"n":5,"v":"aaaabaaaabccabbeddddedddd","o":"24130"},{"n":5,"v":"bbaaabbaaaddacadaaaadeeea","o":"41302"},{"n":5,"v":"aaabbaaabbacebbccedbeeeeb","o":"24130"},{"n":5,"v":"caeeecaabeccceeccddeeeeee","o":"13024"},{"n":5,"v":"eaaabebbbbecbbbeeedeeeeee","o":"24130"},{"n":5,"v":"baaaabbaaabbacceeddceeecc","o":"31420"},{"n":5,"v":"aabbbaabbdacbbdaeebdaaeee","o":"03142"},{"n":5,"v":"ccaaaccbbbccbbbeccddeccdd","o":"24130"},{"n":5,"v":"abbbbecbbdecdddeeeedeeeed","o":"03142"},{"n":5,"v":"cccaabbcaaebccceddcceeeec","o":"31420"},{"n":5,"v":"bbcaabbccabeccaeeccdeeecc","o":"30241"},{"n":5,"v":"baaadbbcddcccddccccdceccd","o":"30241"},{"n":5,"v":"bbaaacbbaaccdddeddddeeddd","o":"42031"},{"n":5,"v":"bbaacbbddceddcceddddeeedd","o":"31420"},{"n":5,"v":"bbbaabbbaaeedcceeddeeeeee","o":"31420"},{"n":6,"v":"bbbabbbbbbbbbbbccbdbccccbbcceeffffee","o":"314052"},{"n":6,"v":"bbabbbbbbbbbbbcccdeecdddeecfffcccfff","o":"203514"},{"n":6,"v":"acccccacbcccbbbcccdddcfcdffeffdfffff","o":"024135"},{"n":6,"v":"bbbaaabbbbaabbbaacbbddcceeeccceefccc","o":"415302"},{"n":6,"v":"cabbbbccbbbbcccbbbccdddecccceecccfee","o":"140253"},{"n":6,"v":"caaabbccccbcdcccccddccccdddeccdddccf","o":"142035"},{"n":6,"v":"ccaaccbcccccbfccccffdcceffdccefffeee","o":"304251"},{"n":6,"v":"bbbbaabbbbbbccddbdceddddceddddceddfd","o":"520314"},{"n":6,"v":"aaacccaaccdbaaccdbaaccddaeeeddeeefff","o":"052413"},{"n":6,"v":"aabbbbcaabbbcabbdbaaeddbaaeaddaaaadf","o":"130425"},{"n":6,"v":"ccaaaacccbaacccbdacfcddaefffdafffaaa","o":"531402"},{"n":6,"v":"aaeeeeaaabbeccaaeeccdeeeffffeefffffe","o":"140253"},{"n":6,"v":"aaabbbddabbcddddbcddddddddeffddddffd","o":"135024"},{"n":6,"v":"caaaaacbbfaacffffacfffdaeeffdaeeffff","o":"520413"},{"n":6,"v":"baaaaabcaaaacccccccddcceffdcceffdcce","o":"304251"},{"n":6,"v":"bbaaacbbcaacbbccccbbccdfbeefffbeeeff","o":"302415"},{"n":6,"v":"bbbddabbbdddcebdddeeddffeeefffeeefff","o":"520314"},{"n":6,"v":"ccaaaacccabbcccebbecceddeeeeeeeefeee","o":"351402"},{"n":6,"v":"daabbbddabbbdddcbbfdddeefffeeeffffff","o":"253140"},{"n":6,"v":"ffabbbfdaabbfddcbbfddddbfffeebfffffb","o":"253140"},{"n":6,"v":"bfaaaabfaeeaffaeecffdeecffeeeeffffff","o":"305241"},{"n":6,"v":"feeaaafcebddfcedddffedddffedddfffddd","o":"531420"},{"n":7,"v":"abbbbbbbbbbbbbbbbbccbddcccccdcccfecdgcffegggggggg","o":"0241536"},{"n":7,"v":"cccbbbaccccbbbcccccbbcccddbfceeeddfeeeedffggggfff","o":"6403152"},{"n":7,"v":"bbbbbaabbbbbaaddbbbcaddbbbbaddeeefadgeefffggeeeff","o":"6350241"},{"n":7,"v":"aaaaaaabaaaaaaeeccaaaeeecafdeeecafdeeggfffeeegggf","o":"4026153"},{"n":7,"v":"aaaccccabbbbccaacccccaddccccdddceecfccceecfffeegc","o":"1362405"},{"n":7,"v":"aabbbbbccbbbbbccccbbbeeccfdbgeccfffgefffffgggffff","o":"0635142"},{"n":7,"v":"bbbbaacbdbccccbddccccdddddccedddfccggdgfccggggfcc","o":"5263041"},{"n":7,"v":"acccbeecccbbbecceeeeecceeeedeeegeedeeeggfdggggggd","o":"0416253"},{"n":7,"v":"bbaccccbbbccccdddccccddddeecfdfdeecfffdgeefffggee","o":"2063514"},{"n":7,"v":"aaaaaccaaabbccdaddccedddddcedddddeedfdddeeffgggee","o":"0352614"},{"n":7,"v":"aaabbbbcccbbbbccbbbdbfcebddbfceeeddfeegggdfegggdd","o":"2615304"},{"n":7,"v":"caaaaabcaaabbbcccadbbeddaddbeddddbbdddddbfddgdfff","o":"3514062"},{"n":7,"v":"caaaaaacaaaadbceeddddceeddddeeeddddeefffddeefffgg","o":"2604135"},{"n":7,"v":"acbbdddaccbbbdaccbdddaedddddeefggddefffgddffffggd","o":"0426135"},{"n":7,"v":"ddaaacbdaacccbdaacbbbddccceeddcceeefffceeegfffeee","o":"4631520"},{"n":7,"v":"bbaaaaabbgaacabbgaacfdggaaffdgeefffdggffffdggffff","o":"4150362"},{"n":7,"v":"aaabbddaaabbddcaaeeddgggedddgeeefgdgeggfggggggggg","o":"1305246"},{"n":7,"v":"afbdddcffbddccffbddcefffdeeefffeeeefffggggggggggg","o":"0253614"},{"n":7,"v":"aaaaaaagbggadcgggdddcffgddegffggeegffgggggggggggg","o":"4163502"},{"n":7,"v":"aaaaaaaaaabbcaaaabccadddcccaeedfccceggfffcgggffff","o":"6352041"},{"n":7,"v":"aaaaaabcacabbbcacccbbccccddbegccddbgggccfbggcccff","o":"3624051"},{"n":7,"v":"ccaaabbccaeeebcceeeeedddeeeefffeeeefffeeggffeeegg","o":"3602415"},{"n":7,"v":"aaaaabeaaccbbeddcfeeedddfffedddfeeeddffeeedddffeg","o":"1420536"},{"n":7,"v":"bbbbaacbbbbbacbbbbbccbddddddddeeeefdgggeefdgggfff","o":"4051362"},{"n":8,"v":"bbbbbbbabbbbbbbbbbbbcfddbbbeefddbeeeefddbeeeefddhhgeeffdhheeeffd","o":"71463520"},{"n":8,"v":"bbbbbaaabdbbbbaabdbaaaacddbaccccdddcccechfgggceehhhgggeehhhhhgge","o":"53706142"},{"n":8,"v":"eabbbbbbeebbbbbbeeeebdcceeeebddheeeeehhhheefhhghhhhhhhghhhhhhhhh","o":"14750362"},{"n":8,"v":"eaaaaaaaeebaaaaaeeedadaceeedddcceeedddcceegfccccgegfccccgggfchcc","o":"62741305"},{"n":8,"v":"dbbbbaaadddbbcccddddbbccddddbccceddddcccggddhccfggddhccfddddhhcc","o":"53620714"},{"n":8,"v":"aaaaadddbaaacdddeeeacdddeeeaaaddheeaaaddheeeefgdheeeffgghheeffff","o":"30462571"},{"n":8,"v":"aaaaaaabaaaaaabbcagaaabbccggadbbcgggffeecgggfffegggghhhhhhhhhhhh","o":"26057413"},{"n":8,"v":"aaaaaaffbaaaccffeaaacddfeeaaaddfeeaaaaffeeeaaaffeeehhgffeeehhfff","o":"20461753"},{"n":8,"v":"ddbbaaccdbbaaaccddbbccccddebccccddeeccccddeeefccddghhhhcdgghhhhc","o":"41703526"},{"n":8,"v":"aaabbbbbaabbbcccabbbdcccddbddccceddddcffddddcccfhhhdcgcchhcccccc","o":"24630751"},{"n":8,"v":"cbbbbaabccbbbbbbcccdbbbbfccdddeefccdeeeefffffeeeffffggeefffhheee","o":"62047153"},{"n":8,"v":"aabbccccabbbccccbbbccccceeeeecddeeeeeeddhgeeeefdhggeeeddhheeeedd","o":"13574620"},{"n":8,"v":"aaaacbbbaaaacbbbfdcccbbbfddcccbbfcccccebfccgcgebhccggggbhhgggggg","o":"37426051"},{"n":8,"v":"aaabbbbcabbbbbccfbbbbbcdfffbdbddeffdddddfffggdggffffggggfffffggh","o":"13640257"},{"n":8,"v":"cccccaaacbbccaaaccdgccffccdgccffeeggffffgeggggffgggggghhgggggggh","o":"51420637"},{"n":8,"v":"ccccaaadbcgcedddbcgcedddgggeededggeeeeedgeeegefdgggeggffggggghhf","o":"40372615"},{"n":8,"v":"eebaaaaaebbdaacceeddaaaceedffccceeefgccceeefggggeeeffgggefffhggg","o":"51720364"},{"n":8,"v":"bbbbbaaabbccbbbgbbcccccgdfceeeegffcceeggffffeeggffefegggeeeeehgg","o":"61304275"},{"n":8,"v":"ccccbbbaccccdbbbgcceddddgeeeddddgeeffdddgggffdddggggfffdgggghhdd","o":"75261304"},{"n":8,"v":"cccaaaaacccadbbaffcdddddfffdddddffhhddgefhhhhdgeffhhhdgghhhhhhhg","o":"35247061"},{"n":8,"v":"aaaaaaaaaddbffccdddffffcgdgfeeeegggffeefgggfffffgggggghhgggghhhh","o":"03716425"},{"n":8,"v":"bbbbaaaabbbbcccabbbbcccaeeedddcceeeggccceffggcccffffggcchhfggggc","o":"73640251"},{"n":8,"v":"bbaaaaaabbbaaaacbbbaaaccbdbaacccddbbfcecddfffeecdhffgggchhfffggc","o":"42716350"},{"n":8,"v":"ccaaabbbcffaddbdcffeedddhfeeggddhffegggghffggggghfhggggghhhggggg","o":"46073152"},{"n":9,"v":"aaaaaaaaaaaaaaabaaaaccaabbaaafbbbbdafffffedddfffffhhhdffgffhhhhfiiffhhhhiifffhhhh","o":"463750281"},{"n":9,"v":"bbbaaacccbbbbbacccbbbbbbcccdbbbbbcccbbbbbccceigggfceeeigggeeeeeiiggeeeheiiggeeeee","o":"536084271"},{"n":9,"v":"aaaaaaaaaaaaabbbbbaaacbbbbbeeecbbddbeeeccccibeeffcccibeeffcggiieeeehhiiieeeeeeeii","o":"153702648"},{"n":9,"v":"bbbbbbccabbbbcccccbbbccccccefdcgccccefffgccgcefffgggggeefigggghiffiggghhiiiiiiiii","o":"816203574"},{"n":9,"v":"aaaaaabbbaaaaabbbbaeccbbbbbaeeceebedaeeeeeeeeeeeegefheeeeggihhhegggiihhhggggiiiii","o":"052816374"},{"n":9,"v":"bbbbbbccabbbbbbcccbebbbdcdceeedddcddeffddddddeeffddggdegggggggigghgggggihhhhhgiii","o":"816403527"},{"n":9,"v":"aaaaabbbbaaaaddbbbacaadbbdbfccaddddbfeeeddddbfeegddgbbiieggdggbiiiigggghiiigggggg","o":"471530682"},{"n":9,"v":"aabbbbbccbabbbbcccbbbbbbcccbbbddgcccfffgggeecfffggggecfffhgggccfffhgccccfifhgggcc","o":"058472631"},{"n":9,"v":"aacccccbbacccfbbbdacccffdddccccfddddeeecffdddeefffddddgffffffddgfffffhhdgfiiiiihh","o":"163824075"},{"n":9,"v":"ddaabbbbbdddabbcccdddaaccffdddcccfffdddecccfiddddiiffidgdhiiiiidgghhhiiiddghiiiii","o":"246037158"},{"n":9,"v":"bbbbbaaaagbbbbbbaaggcbbaaadgaaaaaaddgaaeaaaddgagfffahhggggfhhhhgiiiiiiihgiiiiiihh","o":"642735081"},{"n":9,"v":"fffffabbbfcccfebbbfcccceedbffccceedbffffeedddfffffeeddggfffeehdiifeeehhdiieeeeedd","o":"583742061"},{"n":9,"v":"caaeeebbdcaaeebbbdcceeeedddceeeeddddheeedddddhhheidffdhhhiiggffhiiiiiiiihiiiiiiii","o":"261837504"},{"n":9,"v":"aaaaaaaaabaaaaaccadaddaaccedddffffcedggfffffegggffffffhgggfffffhhhgfffiihffffffii","o":"406285317"},{"n":9,"v":"dddaaccccddddacccbddddacfccddfdffffiefffffgiiffffffgiifhhfffgiifhffgggiihhhhhiiii","o":"485302617"},{"n":9,"v":"bbbccceadbbbccceedbbccceeediieeeedddiiieeegfdiiieeggffiiigggggfiiigihhffiiiiiiiii","o":"702648351"},{"n":9,"v":"bbbdaafffbbdddffccbbdefffcfhddeeffffhheefffffheefffgfghhefggggghhhfffiighhiiiiigg","o":"407135826"},{"n":9,"v":"aaaddbbbbaadddccbbaaddhceeeidddheeeeiighhfffeigghhffffighhhfhhfihhhhhhhfihhhhhhhf","o":"275386140"},{"n":10,"v":"babbbbbbbbbbbbdddddbcdddddddddccddddddddcccdddedddhhcdfeeeedhhddggggddhhhdiiigggjjjdjiggggjjjjjggggg","o":"1908647253"},{"n":10,"v":"bbbbbbbaabcccbbbbbbbcccbbbbbbbcccbdbdbbbccccdddeeefccccddieefiiigiiiheiiiiiiiihiiiiiiiiiiiiiijjiiiii","o":"7526904813"},{"n":10,"v":"ddddbbaaaadddddbbbaaccdddbbaaagddddaaaaaggdgddaeffggdgddafffgggggdaaafiiijhjjaffijjjjjjaaajjjjjjaaaa","o":"8613792405"},{"n":10,"v":"cccccaaabbcccccabbbbccccccdddbcccceeddddceeeeeeeddhffeeeedddhheeegeeedhheeggeeedhhhhggeeeijhhhgeeiii","o":"6837425190"},{"n":10,"v":"bbbbbaaaaabbbbbbeaaabbbbbbeaacbbbgbeedccbbfgeeddecbffggeeeeeffgggeeeeifffgeehieifffjeihiiifjjjjiiiii","o":"5097413682"},{"n":10,"v":"bbbbbbbaacbbbbbbbbacibbbibdaaciiiiibddaaifgiidddeaffgiiiidaajigiiiaaaajiiiihhhaajiiihhhhhajjiiihhhha","o":"7496802531"},{"n":10,"v":"bbbbbbcccabbbbbcccccebbbfcccffeeedfffcffeeefffffffeeefffiiifhgggffffiihhhffjjjjihjjjjjjjiijjjjjjjjji","o":"9473152086"},{"n":10,"v":"bbccccccaabbbccdeccadbbcddeccadddddeeecafddddeeecaffddeegaaaffdfgggaaafffffgggghjjiiggggghjiiggggggg","o":"8274615930"},{"n":10,"v":"ccccccaaabcccaaaabbbcccceaaaabeeceeddddbecceeehhhheeeeeehfffhhhhhhhgffhihiijjjjfhiiiiijjjfhiijjjjjjf","o":"6815397024"},{"n":10,"v":"cbbbbaddddcbbbbbddeeccbdbbddeecbbdddddeeffffddgeegffffdfggggffffffhghgiiiifihhhgiiiiiihgggjiiiiihhgg","o":"5316829740"},{"n":10,"v":"aaabbbccccajjebbbcccajjebebdccajjeeebddfajjjefffdfajjjefffffgjjjjfffffjjjjiiffhfjjiiiiiiiijjjjiiiiii","o":"2597460831"},{"n":10,"v":"ddbbbbbbaadddddbfaaaddbbbbffcadgggbeefaadgggeeefafjgggefffffjgggihhhhhjgigihihhhjjiiiiihhhjjjjjhhhhh","o":"9580462731"},{"n":5,"v":"aaaaaabaaadcccadcecadceaa","o":"41302"},{"n":5,"v":"aaaaaaabbacaabaceabdeeeee","o":"13042"},{"n":5,"v":"aaaaaaabacaaeecddeeeddeee","o":"02413"},{"n":5,"v":"accccccbbdccbddcceddeeedd","o":"03142"},{"n":5,"v":"bbaaabbaaabbcaabecadbeaad","o":"30241"},{"n":5,"v":"bbaaabbbaabbbcaddbaaeeeea","o":"41302"},{"n":5,"v":"aaaaabbbbabbccaddecaddeca","o":"41302"},{"n":5,"v":"dabbbddbbbcddddeddddeeedd","o":"13042"},{"n":5,"v":"bbbaabbaaabbccaddccadeeaa","o":"41302"},{"n":5,"v":"bbaacbbbccbbbbcdddbcdeebb","o":"31402"},{"n":5,"v":"bccaabccaabbcaabbccdbecdd","o":"30241"},{"n":5,"v":"aaaaabcaadcccadcceddceedd","o":"30241"},{"n":5,"v":"bbbaabbdacbbddcbddeeeeeee","o":"31420"},{"n":5,"v":"aaaaacacbbcccbbccdbbcceee","o":"13024"},{"n":5,"v":"caaabcabbbcdbbbddddbeeedd","o":"24031"},{"n":5,"v":"aaebbaaeebdecebdeeeedeeee","o":"14203"},{"n":5,"v":"caaaacbbbacceedeeeedeeeee","o":"13042"},{"n":5,"v":"aaaabdaaebddcebddceeddeee","o":"14203"},{"n":5,"v":"caabbceebbcceedceeedeeeee","o":"13042"},{"n":5,"v":"bbaaabbaaabccddbddddeeddd","o":"30241"},{"n":6,"v":"bbbbbabbbbbbbbbcbbbddceebdfceebbfeee","o":"503142"},{"n":6,"v":"aaaaaaaaabccaaabccaadbccbbbbecbffeee","o":"035241"},{"n":6,"v":"aaaaaaaaaabbaccabbdccaaadceeaadcffff","o":"142035"},{"n":6,"v":"aaccccaaabccaaaaccadaeecafaaecafffec","o":"035142"},{"n":6,"v":"bbbbbabbbcccbbccccbccdddbecdddeeffdd","o":"502413"},{"n":6,"v":"cccccaccbbccfccbccfdccccfddeccffffcc","o":"524130"},{"n":6,"v":"aaaaaaaabdccaaddccaaddcceeeddfeeddff","o":"025314"},{"n":6,"v":"bcccacbbccacbbccccdddcccdeecfcdeeeff","o":"413025"},{"n":6,"v":"aaccccaabbccbbbcccbdccccddccecddffcc","o":"035142"},{"n":6,"v":"aaaaaaaabbacabbaacfdbeacfffeacfffeec","o":"425130"},{"n":6,"v":"aabbbbccccbbccccccccccdfceefffceffff","o":"052413"},{"n":6,"v":"bbbbacbbbcccbbccccffffddfefffdfffffd","o":"402513"},{"n":6,"v":"bbbbcabbbcccdcccccdcfcccddfeccdffffc","o":"524031"},{"n":6,"v":"aaabbbcaabbbcbbbbbcddddbdddddeddfeee","o":"140352"},{"n":6,"v":"aaaaccaaabbcdaacccdddcccefffffffffff","o":"135204"},{"n":6,"v":"dddabbddcabbddcabbdddbbeddddeedffffe","o":"352041"},{"n":6,"v":"fffffabbbfffbccddfeefddfeeffffeeffff","o":"502413"},{"n":6,"v":"aaaaaabbcdaacccddaccfddaeeffdaffffdd","o":"502413"},{"n":6,"v":"cacdbbcccdbecccdeecccdeecccdeeccfffe","o":"140352"},{"n":6,"v":"aaaabbaaabbbadabccaddeccaddeecafdeec","o":"035241"},{"n":6,"v":"bbbaaaccbcaadccccaddcccadcceccdfeeec","o":"524031"},{"n":6,"v":"cabbbbcccbbbceeeebeeeedfeeeeefeeffff","o":"130425"},{"n":6,"v":"cccccadbcccfdbbcffddeccfddecffdfffff","o":"513024"},{"n":6,"v":"ccaaaaccabbfcccccfedddffedffffffffff","o":"241305"},{"n":6,"v":"aaddbbeeddbdeecdddeecdddfeefffffffff","o":"042513"},{"n":6,"v":"cabbddccbbddceedddeeedddeeedddeeeeef","o":"130425"},{"n":6,"v":"ccccaabccccaeeccddeeccdffeefffffffff","o":"502413"},{"n":6,"v":"baaaaabdaaaadddcccdfddccdffffeffffff","o":"304251"},{"n":6,"v":"aabbbcbbbbccbbbddceeedfcfeefffffffff","o":"025314"},{"n":6,"v":"fffbaaffbbaafeeeacfdeeeeffeeeeffeeee","o":"425130"},{"n":6,"v":"aabbeecddbbecdddeefdddeefddddefffdde","o":"140352"},{"n":6,"v":"aaffffaebbffcebbdfeeeddfeeefffeeefff","o":"130425"},{"n":6,"v":"ccaaaacbbbaaccbbaecffdeeffffeeffffff","o":"420351"},{"n":6,"v":"bbfaaabbfaaabbfccdfffeedffeeffffffff","o":"413520"},{"n":6,"v":"baaaaabbbbaabbbccabbecddeeeffdeeefff","o":"203514"},{"n":7,"v":"bbabbbbbbbbbbbbddbbcbddddccbddddeccdddeeefddgggff","o":"2051463"},{"n":7,"v":"bbbbbaabbbbbaabbbbaacbbddaacbeddfffbbddfffgbddfff","o":"5263140"},{"n":7,"v":"ddbbbbaddbdddddddddccdddccccfddeccefdeeeeeffeeggg","o":"6251304"},{"n":7,"v":"aaaaaabaaaabbbccaaabaccdaaaaccdfaeecgdfaaegggggaa","o":"4602531"},{"n":7,"v":"aaaaaabdaaabbbddaabbcddddbbbdddebbgdffebbgffggggg","o":"2460315"},{"n":7,"v":"bbaabbbbbbbbbbdeeeccbdeeeeebdeeeeebffeeeegffeeggg","o":"2640315"},{"n":7,"v":"aadccccaadbcccaadcccceeddccceeedccceeedfggeeegggg","o":"1352046"},{"n":7,"v":"cccbaadcccbdddcccddddccdddddeeeddddeeffffdeffffgg","o":"5314026"},{"n":7,"v":"abbbbbcbbbbbbcbbbbbecfbddbegffffeegffffgggfffffgg","o":"0362415"},{"n":7,"v":"bbbbffabbbbfffbbccfffbbbddffeeddfffeegdfffeeggfff","o":"6024153"},{"n":7,"v":"bbbbccabbbbcccddcccccddcccccddcceeeddffeeedgfffee","o":"6240531"},{"n":7,"v":"aaaaaaabbaaaccbbcccccbcdccccbcccceefceeeeefcceege","o":"3142605"},{"n":7,"v":"bbbcaaabbccccabccccccbeccccdbeeeeeefeeeeeeeeeeege","o":"4136205"},{"n":7,"v":"aaabbbbadddbdbacdddddacdddddaaeedddeeeeddfeeegggf","o":"0415263"},{"n":7,"v":"aaabbbbaacccbbadcccccadcccccdddecccfdeegggdddeegg","o":"2641305"},{"n":7,"v":"ecaabbbecbbbbbeccbbbbeeeedbbeeeeebfeeeffbfegeffff","o":"3524061"},{"n":7,"v":"aaaaabdaacabbdaccaaddaeeadddaeeaaddeeefagdeeeaagd","o":"0426135"},{"n":7,"v":"eeaaaabeecaaabeecedabeeeedaaeeeedaaeggegffegggggf","o":"3624051"},{"n":7,"v":"bbdddaadbbdaaadbddacadddddcceedddfceeeefffgeeeeff","o":"6253140"},{"n":7,"v":"baaaaaabbaacaabbaacccfffcccdffecccgffffccgffffggg","o":"3146205"},{"n":7,"v":"aaaabbbaaabbccaaaabcfaddbbbfddddeefdggggffddggggg","o":"0351462"},{"n":7,"v":"aaaacccaaabccceedbccceeddccceeedddceeefffgeeegggg","o":"1352046"},{"n":7,"v":"dddcaaaddbccaadddccaafddcccafdeeeeafeeegeafffegga","o":"6241305"},{"n":7,"v":"aaaaaaacccbdaaccddddacedddfageddffagggdffagggdffa","o":"6304152"},{"n":7,"v":"aaaaabeaaaaabefcaaabefffadbeffffeeeffffgggfffgggg","o":"2514603"},{"n":7,"v":"aaaaaabaaeaaabcaeaaabceeddddceeegggffeegggeeeeggg","o":"2605314"},{"n":7,"v":"cccaaaecccabbecccdeeecdddeeecggfeeeccgffeegggffee","o":"3502641"},{"n":7,"v":"bbbbbgabcbbbggccbbbggfbbdddgfeffddgffffddgffffdgg","o":"6204135"},{"n":7,"v":"eeeaaabeeccaabeeccaddeeecaddeeeeafdeeeeffdgefffdd","o":"3625140"},{"n":7,"v":"aaaccccaabbceeaabcceeadfcceeaffceeegfffggegggggge","o":"0241635"},{"n":7,"v":"bbaaaccfbaccccffdccecffdcceeffffffeffffgeeffffggg","o":"3142605"},{"n":7,"v":"daabbbcddadbccddadcccddddcffdddefffddgefffddgefff","o":"1460352"},{"n":7,"v":"eeaabbcdeeebbcdeeeebcdeeeeegdeeegggffeegggfeegggg","o":"2460315"},{"n":7,"v":"bbcccaafbbcccaffcccaaffcccedfeeeeeefefeegeffffggg","o":"5136204"},{"n":7,"v":"bbbbaaabcbbbddbcceeddeeeeedgeeeegggeeeffggeeegggg","o":"4025136"},{"n":7,"v":"ddbeeaaddbeeccddbeeecdggeeeedfggeeeffgggggggggggg","o":"5260413"},{"n":7,"v":"aabbbbbabbbbbcadddddcggddfdfegggfffggfffffgggffff","o":"1463052"},{"n":7,"v":"aabbbbbaaaffbbaccdfeeffddfeeffffffefffffggfffgggg","o":"0513624"},{"n":7,"v":"eeeeeaadbbbeacdfbbeacdfbeeggffeegggffeeeggfffgggg","o":"5260314"},{"n":7,"v":"bbbbccabbbbcccbbbbcccddddfccddeffffddefgfgdgggggg","o":"6140253"},{"n":7,"v":"aabbbbbaccbbbbeeccbdbeeeccdbeeeccddffeecddfffegdd","o":"1635204"},{"n":7,"v":"caabbddcaaabbdcccbbbdecceeedeeeeeffeeeeeffeegeeff","o":"1406352"},{"n":7,"v":"ddaceebddaccebdddccebdddfeegdfffeggdfffeggffffggg","o":"2630415"},{"n":7,"v":"ccccaadbccccddccccdddcceeedgccceeegcffeeggccceggg","o":"4025316"},{"n":7,"v":"caeeebbcaeebbdccebbddccebgddeeeggffggggggfgggggff","o":"1405263"},{"n":8,"v":"aaaaaaaaaaaaaaabdaaacabbdaaacebbdaaccebbfffcceebfffgchehfffgchhh","o":"27405136"},{"n":8,"v":"dddaaaaadaabbaaaddaaaaacdddddaaadddddaeaddfffeeefffgggeefhhhhgee","o":"53706241"},{"n":8,"v":"aaaaaaaaabbaaaccabccacccccccccddccceccfdccheeefdghhhhfffhhhhhfff","o":"41573602"},{"n":8,"v":"aaaaccccbaaaaccccccccccccceffdccceeeffffeeefffhhgegghffhggghhhhh","o":"30751426"},{"n":8,"v":"baaaaaaabddaaaaabbdaacaafbdddcaafddddcegffdcccggfddddgggfhhdgggg","o":"40536172"},{"n":8,"v":"ddddddadcccbddadeccdddddeeeeddddeffeeeddfffgeeedfhfggeedfhhhgddd","o":"63175042"},{"n":8,"v":"bbbbbaaabbbbbacabbbbbbcadggbbfcagggeffccggghfffcgghhhffhggghhhhh","o":"72603514"},{"n":8,"v":"caaccccccccccccbcccccccbeeeccdcceeccfffheeecfhhhgeeefhhheeeeehhh","o":"27351406"},{"n":8,"v":"baaaddddbccccdddccccccddcccfddddeeffddddefffddddeffffhdgfffffhhh","o":"20461375"},{"n":8,"v":"bbbbbaaabbbbbeeebbbbbeecbbbfdfeebbhfffeegbhffffeghhffffegghhffff","o":"51746302"},{"n":8,"v":"dddddccadbbdccccdbbdcdcceebdddcceebdddcdeffdfdddgffffffhgggffhhh","o":"72631405"},{"n":8,"v":"adddbgggddddbbggddddbbcgddddegggdddeegggdddeffggdddgggggddhggggg","o":"04613572"},{"n":8,"v":"ccccaaaaccccbbaecccccdeeccedddeeceedeeeecfeeeeeehfffeeeghhhheegg","o":"64035172"},{"n":8,"v":"aaaaaaaabaaacaccbddacaccbbddccccbegdhccceegdhccfegghhccfgghhhccc","o":"50631724"},{"n":8,"v":"ccccccacbbbcccccbbbbbeccbdddeeccdddeeecgffdddeegdddggggghddggggg","o":"62735140"},{"n":8,"v":"aaccccccacccbcccacccbdddaccdddddaaffddeeaaffhhheafffgghhffffghhh","o":"04136257"},{"n":8,"v":"baaaaaaabbbaccaadbddcccadbddcccaddddddcedddddfceddgdddheddggdhhh","o":"31407526"},{"n":8,"v":"cccaaaaaccaaaabaccccddffeeccdfffecccffffeecfffffeeccffggeehhffgg","o":"36140572"},{"n":8,"v":"ccddaaaacdddabaacddddddddddffdddggdffdehgfffffehgggghhehgggghhhh","o":"75026314"},{"n":8,"v":"aaaaabbbaaaabbbcaaabbbccaadhbbceafhhheeeafhhhheeafhhhhhghhhhhhhh","o":"04625173"},{"n":8,"v":"ccbaaaaaccbbbaaaccccaaafccccdaafecccddafeeccddffeegcdcfhgggcccfh","o":"53140627"},{"n":8,"v":"ddbaaaccddbbacccddddacccdddddcccdddhheecgdfhhhccggghccccghhhhccc","o":"53716204"},{"n":8,"v":"caaaabbbccacccbfcccccfffcccedfffcceedfffcceegfffceeggfffggggghff","o":"16042735"},{"n":8,"v":"aaaaccccaffdbcccaffdgcccffddgcccfggggccefgffgcccfffggghcfffgghhc","o":"14627035"},{"n":8,"v":"cccaabbbccaabbbbfcccbbbbffccdddbffcddddeffddddddfffdgdddhggggddd","o":"36257140"},{"n":8,"v":"bbbaddddfbbfddecffbffdecfbbfddeefbffeeeefffffffeggfgfffeggggfhfe","o":"31746205"},{"n":8,"v":"dccccaaadccccaabddceccaafddeeeaeffeeeeeeffgggeeeffgggeeeffgggghe","o":"57413026"},{"n":8,"v":"dbbaaeeedbbcceeedbcccceeddffeeeeffffeeeeffffeeegfffeeeegfffehegg","o":"31506274"},{"n":8,"v":"ccccaaabdcccccebdeeeeceedfeeeeeefffeeggefffeegggfffeegggffhhhggg","o":"47503162"},{"n":8,"v":"bbbcccafbccccccfdccceccfddeeeccfdeeehfffgggehfffggghhhhfhhhhhhhf","o":"60513724"},{"n":8,"v":"bbbcacccbbbcccccddccccggdffcfcegdffffeegdfffggggdfffggggdfhffggg","o":"41506372"},{"n":8,"v":"hdaaaaaahddbbaaahddbccaehhddddeehddddddehfffddeehhffgdfehhhfffff","o":"63527140"},{"n":8,"v":"bbbbffaahbbfffffhhhffccchhhdfeechhffffechhfffgeehhfggghhhhhhhhhh","o":"71536240"},{"n":8,"v":"ccaaaaaacccabbbacccddbbaccfddeeaccfdffehcfffffehfffghhhhfffhhhhh","o":"25046137"},{"n":8,"v":"aaaaaaeeaaaabbeeaccbbeeecccdeeeefffheeegffhhggggffhhggggffhhhggg","o":"25136074"},{"n":8,"v":"aaaabbccadbbbcceadbgbcceaddgbbeeaadggbbeaadgffbbaaggggggaggggghg","o":"03517426"},{"n":8,"v":"aaabbbbbaaccccdbeecccdddefffddddeefdddddeefffdddhefffgddhfffffdd","o":"27461350"},{"n":8,"v":"cccaaaaaddccebaadccceaaeddgceeeehhggeeeehhhgffffhhhgffffhhhhhhhf","o":"75204631"},{"n":8,"v":"ccaaaabbcccaabbbcccabbhhcccdddhhceefddhhhefffhhhhhhffghhhhhhhhhh","o":"26041357"},{"n":8,"v":"bbaaaaaabaaaaaaabaaaaadcbbaaadddeeeeddddeeeeffddgghfffdfgghhffff","o":"60752413"},{"n":8,"v":"dbbbbaaadbdbbcccdddbbdccddddddccddgegccfdggggggfgggghggggghhhhhg","o":"51603724"},{"n":8,"v":"aaaabbddacbbbbddacbbbdddccbbbdddffffbddeffffbfdefhffffgehhffffgg","o":"24157360"},{"n":8,"v":"hhhbbaaahhbbbcachhbbbccchffggggdhffgeegdhffggggghfgggggghhgggggg","o":"62574130"},{"n":8,"v":"hhbbaaaahhbbddccfhhddcccffhhdccgffhddeeghfhggggghhhggghghhhhhhhg","o":"52746130"},{"n":8,"v":"aaffffffabbbffffddhhfccfgddhccffgddheeffgdhhhhfhghhhhhfhgghhhhhh","o":"13524607"},{"n":8,"v":"dddbbccadddbbcccdddbccecdhdddceehhfffeeehfffgegehggggggghggggggg","o":"73526140"},{"n":8,"v":"bbbbbaaabbbbddaabbbbdddcbbdbdcccdddddgeedfdddgeehffhgggehhhhhggg","o":"53726140"},{"n":8,"v":"aaaaabeeaccbbbeeccffbdeefffggddeffhggeeefhhggggghhhghggghhhhhggg","o":"24157063"},{"n":8,"v":"aaaacbbbaaaacbebdcccceebddceeebbfffeeeebfffeeeeghhfeeegghffeeeeg","o":"37415260"},{"n":8,"v":"ffaaaaaaffbaaaaafbbaaacaffbdaeccfdddaeccffhhhgggfhhhhgggfhhhhhgg","o":"42635071"},{"n":9,"v":"bbbbbbaaabbbbbbbbacbbbbbbaacccddebaacccddebeaccccfeeeehffffieeghhfffiiighffffiiii","o":"620374815"},{"n":9,"v":"bbbbbbaaabbbbbbccabbbbcbcaabbbccccadbggcfceddggfffheddgihhhhhddiihhhhhddiihhhhhhh","o":"724863051"},{"n":9,"v":"aaaaaaaaaacaaaaebbccaaaaeeegccaeaedeggcaeeeeegfgageeeegfggghehhgggiihhhhggggiihhh","o":"280751364"},{"n":9,"v":"aaaaaaaadaaaaabaadcaaaabdddaaafabdddeeeffddddffffffgddffffggggdiffffhgghiifffhhhh","o":"350724681"},{"n":9,"v":"bbbbbcccabbbbbbccebbbccbcceffddccceefffdccceeffffccceefffgcccceifffhhheeifffffeee","o":"846271350"},{"n":9,"v":"aaadddbbdaaaddbbddacaddddddggfddddddgfffddddegfffdddgggggggggggggghgggggggggggigg","o":"051482736"},{"n":9,"v":"bbbbbbdaabcccbddddfccddddddfccddddddffeffddddffffiddddffffiigggffffiggghffiiihhhh","o":"741520683"},{"n":9,"v":"bbbaaaaaabcbbaaaaaccbaaaaaacccaaaaddgcgffeeddgggfffdddgggggidddhhgiiiiddgggiiiidd","o":"731864205"},{"n":9,"v":"abbbbbbbbbbbbbbbebbbbbcceedbffffeeddbbfffegggbfffeegggbfffiggghffifiiighffiiiiigg","o":"024751683"},{"n":9,"v":"dddddaddddbdddadccdddddddfceddddffffeeeedfiiieeeedffiieeeggggiieehhggggieegggiiii","o":"518306427"},{"n":9,"v":"aaaaaaabbaaccabbbbacccaddbbccecedbbbcceeeddbbcceeeedffccgeeddffccgggggfhciiiighhh","o":"061537284"},{"n":9,"v":"ddddaaaaadddbbbbaaddddddccadddddeecaffddeeeeefdddeeeeeideeegeeeiieeeggheiieeeeggg","o":"836240571"},{"n":9,"v":"dddddaaaabddaaaaaadddddaccadedeeaeffdeeeeeefhddeggeefhdeegggghhdegggghhhiigghhhhh","o":"506247381"},{"n":9,"v":"aaacccccbacaaccccbaccccccebcccdcceegcccddieggddddfiigiddhhhiigiddhdhiiiiddddiiiii","o":"081364725"},{"n":9,"v":"bbccccaddbbbcccaddbbbccccddbbcceccddbbeeeddddfheeeggdghheeeggdghhhheggggiiigggggg","o":"625740831"},{"n":9,"v":"fffddaaaafffdbbaacfffddaaacffdddaaccffdffeeecffffffhehfffggghhhffffggghhfiiggghhh","o":"648250371"},{"n":9,"v":"bbbbbaaahbbbbbcchhbbbbccchhdbbbbbchhbbeggffhhbbgghfhhhbbgghhhhhbbiiihhhhbbbiihhhh","o":"716025384"},{"n":9,"v":"bbbaaaaaabbbaccdaabbbacddddbebbbbdddeeebbbddfgeebeeeffgeeeeehhfgggeehhhigggggghhi","o":"314627058"},{"n":9,"v":"aabbeeeeebbbeeeeeebccccedddbfffeedddfffeeeeedffffhffddfffhhfgiiffhhffiiiffffffffi","o":"024751638"},{"n":9,"v":"cbaaaaaaacbbaaaaaacaaaccaaaccccccdaaecccccdfaeecccccffggcccccifgghhhiiifgggghhiif","o":"524608137"},{"n":9,"v":"eaaaabbbbecddbbbbdeccdddbddeeefdddddeeffdddddeggfffdddeggggfdddigggghhddiggggggdd","o":"472815360"},{"n":9,"v":"bbcccaaddbbbbccaddbfbeccdddbffeccdddfffeeedddfffffedddfffffegdghffffeggghfffffigg","o":"524731806"},{"n":9,"v":"bbbbbbbacddddbbbccddddbbcchdddeeeeehddfdeehhhddfdeehhhgdddieehhddddihhhhdddiihhhh","o":"746152083"},{"n":9,"v":"cdadbbbbdcdddbddddcccddddddcddddffedccdfdffedccfffffffgcfffiihfgffffihhhgffiiiihh","o":"241375086"},{"n":9,"v":"aaaaaaccdbaaacccddaaaacedddaaaeeedeeaaeeeeeeeffeeeeegeffffieegeffhiigggghhhiiiiig","o":"304681725"},{"n":9,"v":"bbbbddddacbbbbdaaaccbbbddaaccebddddfceebdddffcegbddfffcgggdffffgggddffhhiggddffhh","o":"841526370"},{"n":9,"v":"aaaacccccaaaccccbcecccccccceccgggcddeeefggcddffffggiddhfggggiiihgggigiiigggiiiiii","o":"274813506"},{"n":9,"v":"aaaaaaaaaaaaaaabbbffgggaccbfgggddecbfhggggeeefhggggggehhgggggiehhhggigiihgggiiiii","o":"286470315"},{"n":9,"v":"bbbaaaaadbbbacaaadbbbbccaadbbbbbbaadbebhhgggdheehhfggdhehhhgggdhehhhigiihhhhiiiii","o":"304815726"},{"n":9,"v":"ffeeaaaacffbeeeeecfffeeecccfffdeeecchffeeeggghfffeeggghfffehghhhhhhhhhhhhhhiihhhh","o":"728351604"},{"n":9,"v":"ccccaabbbcccccadbdcccccadbdgcccaadddgcfcaehhdgifchhhhhgiiihhhhhgiihhhhhhiiihhhhhh","o":"473852061"},{"n":9,"v":"ccccacbbbdcccaccbedccccceeeddfcfeeeefffffeeeeffffffeeeffgffeeehffgiieehhffiiieehh","o":"475160283"},{"n":9,"v":"caaaaahhhcccaahhdbcceehhddheeeehhdhheefhhhhhhfffgghhhhggggghgghgggiggghhggiiigghh","o":"581602473"},{"n":9,"v":"bbbbbbaacbbbbdcaccbbbddccccddbddfeccddddffeeeddddffffhgddiiffhhddddiifhfdddiiifff","o":"625184073"},{"n":9,"v":"aaaaaaaaaaaaaccbbaaaaacccbbdcccccccedcccccceeddcfceeeedddffeeeghhdfigggghhhfiiigg","o":"264073815"},{"n":9,"v":"ccaaaabbbccccabbbbccccabbdbccccabbdbccecaaaddeeeffaiddgeeefaiidgeeeehiiigeeeeiiii","o":"361724058"},{"n":9,"v":"ccaaabbbbcceeebbbbceeeeebddcceeeedddcceehehddffeehhhhgeeehhhhggeehhhhhigeeeehhhig","o":"250631847"},{"n":9,"v":"bbbbbbaaabbbbbbddacbbbbddaacccddddaacfeedddeefffeeeeeghhfieeeegfhfieeeggfffieeegg","o":"640572813"},{"n":9,"v":"aaabbbdddcccbbddddcchbbbdddhhhhdddeefhhhhgggefhhhhgggghhhhhgggghihhhhhggiiiihhhgg","o":"241680753"},{"n":9,"v":"dddafffbbdaaaffbbcdddddffccddeeeefffeeegiifffeeggiiiffehhggiiffhhiiiiiiihhiiiiiii","o":"368027415"},{"n":9,"v":"dddddaaaaddbdddaaaddddddaccdddfdiaaeddfffieeedfffgiiiiffgggiiiifgggiiihiggggiihhi","o":"528061374"},{"n":9,"v":"bbbaaccccbffffccccffffffcggdddeffgggdeeefffggeeehfffggehhhfiffghhhffiigghhiiiiiii","o":"406135827"},{"n":9,"v":"aaaaccciibeaaacciieeccccdiieeccdddiieeccddggiehffffggiehffggggihhhfiiiiiiiiiiiiii","o":"304615728"},{"n":9,"v":"ddddaaaaaddcccaabbddeecfaffddeegffffheeeggfffhhgggffffhhiiggfifhiiiiiiiiiiiiiiiii","o":"684137502"},{"n":9,"v":"cccbbbdaaccfbbbdddcffeeeeddfffeeeeedfffheggeiffhhhgggifhhhggiiihhhhhiiiihhhhhiiii","o":"730841526"},{"n":10,"v":"abbbbbbbbeabbbbbbbbeccbbbbbbbecccbdbbbeecccbbeeeeecccbbbfeegcccbbbfjegcccbbhjjegccibbhjjeecccbbbjjjj","o":"0314869527"},{"n":10,"v":"aaaaaaaaaaaabbabaaaadaebbbabcaddebbbbbccfeeebbbbccfeeeeebbccfggeijjbhjggiiijjhhjgiiiijjjjjiiiiiijjjj","o":"9581302746"},{"n":10,"v":"cbbbbbbaaacbbbbbbbaaccbdbbbaaaccddbbbaaaedddbbbaaaehdddfbfaahhhdffffgghhhhjjffgghhhhjjjjighhjjjjjjjj","o":"7413059286"},{"n":10,"v":"dddaacccccddbbbcccccdddbbbccccddbbbbbcccdddebbbcccdddebbccfhdgdebbbihhggddibiihhgdddiiihhhdddddiijjh","o":"4260381957"},{"n":10,"v":"ccbbbaaaaacccbbbaaaacccbbbbaaaceccbbdaaaceccbbdffagcccbfffaaggbbbbbaaabbbbhbbbaabjjbhhhiiabbjjjhiiii","o":"9526170483"},{"n":10,"v":"bbbbcaaeeebbbbcccceebbbccccceebdbccceeeebddccceeeebbfcccheeebccccchegibbcccchggibbbcciiiiibjjjciiiii","o":"5041728693"},{"n":10,"v":"aaaaaaaaaaabbaaaaddaaabbaacdaaaggccccdddffgggggeddffgggggdddgggggghdddgggghhhhddigggghhhddgggjjhhhdd","o":"8269713504"},{"n":10,"v":"bbbccaaaaabbbcccacaabbbbccacccbdecccccccbeeeeccccceeeeeeggfiehhheigiiiehhhhiiiiieehhhhiiiieehhhhiiij","o":"5041386279"},{"n":10,"v":"bbbbabbccgbbbbbbbccgbdbbbbbcggbdddebbccgbddeeefgggbbddeefgggbddhehggggbddhhhhgggiddhhhhgggiiiiiihggj","o":"4271368509"},{"n":10,"v":"daaaaceeebdaaaccceebdaaacaceeedddaaaeeeeddaaaaeeeeddaaffeeeejgghfffeeejjhhffeeeejjhfffiieejjffffieee","o":"4962851370"},{"n":10,"v":"aaaaaaaaacabbaaaaaacbbbbadaaccbbbbbddddfbbebbbfddfeeeeeeffffgggeffffffgiiiiifiihgiggiifiiiggggjiiiii","o":"3185260974"},{"n":10,"v":"ddddccaaaadddbbcaaaadddbbccacaddddddccccddeeeddcccddggedddffdggggggdhhdggggggddhdgggiggghhdddiiggjjh","o":"6350281947"},{"n":10,"v":"abbbbbbbbbiibbbbbbbcidddbbbbcciidffbbbeciifffbeeeciiiffeeeeeiiiffeeeegiiiihieeegiiiiiieeejiiiiiiijjj","o":"0582639417"},{"n":10,"v":"dfffffbaaadffffcbbaadfffecccaadddfecfffafdffeeffffffffffffiiggfffffiiiggffffhiiiggiifiiiijgggiiijjjj","o":"9751420638"},{"n":10,"v":"aaaaaaacccaabaaaacccaaaaaadddcaaaaaddddceeiidddccceeiiddfffgeeiiiiiggghiiiiiggggiiiiiiigjjiiiiiiijjj","o":"4295168037"},{"n":10,"v":"ccccccaaabccccccdbbbccccccdddbccccddddbbehccdddfffhhcccccfffhcccffffgghchcjfiiighhhcjiiigghhjjjiiiig","o":"6814079253"},{"n":10,"v":"aaaaaaaaaaadfffbaaaaddffcaaacadddfcccccaeeffcccaaageffffcaajggjfffhhhjjjjifjjhjjjjjijjjjjjjjjjjjjjjj","o":"9582041736"},{"n":10,"v":"bbbbbbaaaabbbbbbbaaabbbcaaaaaadbbcccaggadffffhheggdffhhhhhggddfhhhjjgjdjhhhjjjjjdjjjjjjjjijjjjjjjjjj","o":"6130728495"},{"n":10,"v":"aaaccccccceaaddccccbeeedcccccceeddddfggceedffffgggefffggffggeeffgggggghfffiiggggjfjiiiiiggjjjjiiiggg","o":"2974168053"},{"n":10,"v":"aaaaaaabbbdaaaaabbbbdadafbbccedddffbbceedfdfffbceefffffbbbbbffgfffbibbhhgjjjbiiijjjjjjjijijjjjjjjjji","o":"3681942075"},{"n":10,"v":"aaabbbbbbcaadbbbbbcceddbbbbbccedddbfffcfeddbbfffffdddfffffffhdggfgffffhhggggifffhhhgggijjfggggggjjjf","o":"2493075168"},{"n":10,"v":"cccccceabbccdceeebbbdddccceeebdddceeeebbdfddeeeeebffdddddgebffffffggebfhfffjjgggfhiijjjjjgiiijjjjjgg","o":"7942806135"},{"n":10,"v":"aaaabbbbbbaaaabbbbbbaaacbbbbbbdaccffbbbbddiiffeeebdgiiffffebggiiiieeeegjjiihhhhejjjjiiihhhjjjjjiiiih","o":"2930751864"},{"n":10,"v":"fffdadddggfffdadbbbgcffdddbeegffffdddeegfffffgeeggfhfhfggggifhfhggggiifhhhggggiiffhhjgiiiiffjjjjiiii","o":"4805726193"},{"n":10,"v":"bbbbaaadddbbbbbaaaddbbbffdcdddbbeefdddddebeefffffdebeffffgggebeeffhhhgeeeffhhhhgeeiihhhjhgeeeiihhjjg","o":"4168039527"},{"n":10,"v":"ddddbbbbcaddddbebcccdddddebeccdddddeeeecfddddgeeecffddgggeechhhdgggccchggggiggjchhhiiiijjchhhhiiijjj","o":"9482615037"},{"n":10,"v":"accbbbbbffaacbbbbbffcccccbbbffccccdbdfffcccedddfffgggghfffffgjgghhhfjfjjjgghhhjjjjjjjjhijjjjjjjjjjjj","o":"0416382579"},{"n":10,"v":"aaaaaabbbbcaaaabbdbbccccgbbddbecgggbbddbeeegbbddbbeeeggffdddeeeegggdddjjjgggghddijjgggghhdjjjgggggdd","o":"5938164702"},{"n":10,"v":"ccbbbaaaaaccbbcaaaiaccccccadiiecccccddiieccccccdiieefcccggiieeehhiigiijeejhiiiiijjjjhjjjjijjjjjjiiii","o":"8316027495"},{"n":10,"v":"ccccceeeaacccceebbaaciiieeebdaiiiiieeedeiiiijheeeeiiifjhehjjigifjhehjjiiifjhhhjjiiijjjjjjjiijjjjjjjj","o":"9708631524"},{"n":10,"v":"ccccaaaaaedddcaabbeeddccabbbeedddaabeeeeiidaabeeeeiiiffgeeeeiiggggeeeeiggggghheeiiiighheeeiiijjhhhhe","o":"8620935714"},{"n":10,"v":"aaacbbbbbbaaccbbeeebacccbbbeeeddhcggbeeeddhcggbbeefdhhggbeeefdhhhgggeefhhhhhiiiefhhhhiiieefhhhjjiiii","o":"2931806475"},{"n":10,"v":"dddaaaaccbddaaaaccbbddddffccgeddddfffggedidddfgggedidddfffggiiffffggggihhhffjjggiiihhfjjggiihhjjjjjg","o":"3861957204"},{"n":10,"v":"aaaaddgbbbddddddgggbcddddeeggbddddeeggjjdeeeeeigjjddhfeiiggjdhhhhiiggjdhhhhiiigjdhhhiiiigjiiiiiiiijj","o":"1902537468"},{"n":10,"v":"bbbbaaaaeebdbbfaaaaebdbfffceeebdddffeeeebjjdfgggeebjjjfgggegbjjjffggggbjjjjgghggbijjjghhgjjjjjjjjjjj","o":"5062849713"},{"n":11,"v":"bbbbbbaabbbbbbbbbbbbbbbbccbbbbbbbbbbcbbbbbbdbbbeeebedddfffeeeeegggffeeeeeehggfeeeeehhhggieeejeheeggikejjeeegggikjjjjjeegg","o":"683a5297041"},{"n":11,"v":"ddccbbbccacddccbbbccccdccccccccccddcccccccecdddccccceecfffcffcgeeeihfffgggeeeihfhhkggeeeihhhhkkkkeeihhhjkkkkeehhhkkkkeeee","o":"95a18273046"},{"n":11,"v":"aaacccccccbaaaaaccccbbddaaddccccbdddddcccccbdedddcccbcbeedddcfbbbbeeedggfbbhbeejjbbbbihheejjjbbbiiieekkjjbbbbbeekjjbbbbbb","o":"0973164a852"},{"n":11,"v":"eeddddddacceebdddddaaceeeeddddddceeeddddddddeeeedddddddeeeeedfddddegghedffffiggjhhdfiffigjjhhffiiiijjjkhfffiiijjkkkkfffii","o":"82a73614905"},{"n":11,"v":"ccgdddddddacgggfbddddacgggffdddgggggffffdddggggefffddggggggffffggggggggggfggghhkkkggggggkkkkgggggigkkkkjjiiiiikkkkkjiiiii","o":"a5073681942"},{"n":11,"v":"aaaaaaaaaaaaaaaaabbaaafaaaaaccccaffgggddddcaffgggedddccffgggddgddcfgggggggddcgggggggghdcigggggghhhhijjjgkghhhhiiikkkkkkkh","o":"a6975138024"},{"n":11,"v":"ffffaaaaaabffffaaaaabbddffcaabbbbdgffffababbggfffaaaabegggfffgggbeiggggffggghiigggggghhhiiiggggggghiiiiiiijjhhikiiiijjjhh","o":"6940a538271"},{"n":11,"v":"ffcccaabbbbfccccdbbdbdfccdcddddddfceddddddddfceeeedddddffffeddddddffeeeeegdhdfffeeiighhhkkfeiiighhhkkfeiejjhhhkeeeeehhhhh","o":"5928317a460"},{"n":11,"v":"aaaaaaaaabbaaaaaaaabbbdaaaaacabbbddaddecccgbdddddeegggbdddfffeegbbddddffigggbddffffigghbddffiiihhhhddffiijjhhjkfffiiijjjj","o":"286153794a0"},{"n":11,"v":"aaaaaaaaaaaaabbadaaaacaaaaaddaaacaaahhdddaagaehhddfdaggeeehhhfffgiehhhhhffggihhhhhhhffiihhhhhhhffiihhhhhhjjjiihhkhhhjjjii","o":"03a51684972"},{"n":11,"v":"gggaaddddccggaaaddddcbggggddddcccgggeddddddcgeeededdcccggeeeehdfffggeeeehdhhhgeeieehhhhhieeiihhhhhhiiiiihjhjjhiiiikjjjjjh","o":"3a852917064"},{"n":11,"v":"bbbdaaaaaccbbbddacccccbbbddacccccbbddeacccccbbddeecccccddddeeefffcdhddghhjcccihhhhhhjccciihhhihjccciihiiijjccckiiiiiiiiii","o":"82a35946170"},{"n":11,"v":"aaaaabbbbbbaaaaaaaabbbaccaaabbbbbddcchabbibbddhhhaaiieedddhhhiiffeggdhhhhiiiigdddhhiiiiigdddjkkiikkgdddjkkkikkdddkkkkkkkk","o":"3920a815746"},{"n":11,"v":"aaabbbbbcccaeebbbbbcchaeeebbbdccheeeebbddccheeeeeeeeecheeeegeeeefheeeeggeehhheeggggihhhheeggjiihhhhegggjiijjhhkgjjjjjjhhh","o":"1386294a570"},{"n":11,"v":"fdddddddaaafffddddddabfffdcdddddbfffeededdeefffheeeeeegfffheeeggggkffhheggggikhfhheggggikhhhheggiiikkkjjjjjjiikkkkkkkkkki","o":"8a475261930"},{"n":11,"v":"bbbbaaggggdbbbccaggggdbbcccggggddbccgggggggdfccccggeggdfcjkccggggdfcjkkhggggdjjjkkhggggdjjjkkkgkkikjjjkkkkkkkkjjkkkkkkkkk","o":"413a7085926"},{"n":11,"v":"ddbbbabbbbbdddfbbbccbbdddffbcccccdddffbccceeddddfccceeeffffffchieefggffcchiiefggghhhhijefggggiihijifggggihhijifkkgiiiiiii","o":"5a708314692"},{"n":11,"v":"fffffaabbbbffffccbbggbffffccdgggefffcccdgeeefffficcgggefffiiccggggffiiicggggghfiiicjjjjgkiijjjjjgggkkiiiikjjgjkkkkkkkjjjj","o":"5746a190283"},{"n":11,"v":"acbccccccccdcbcccceccfdccccceefffdddcccgefffdhdggggeeffdhhgggggfffdhhggggffgghhhhiiggggjhhhhiiggjgjhiiiikggjjjhhhiikkkjjj","o":"02418a63597"},{"n":11,"v":"edddaaaaaaaedddbccaaaaeeedfccaacaeefdffccccceeffffffiiieeffffffiiieefffhffgiieefffhhhhiijeeeeeehiiijjeeeeeiiiijjjeeeiiiik","o":"7463028591a"}];
 // hoofdstukken (puzzel 371 tot en met 500): 1 rommel op het bord, 2 prijskaartjes, 3 reuzenborden, 4 dubbele kronen, 5 rommelmeester
 PUZZELS.push(...[{"n":6,"v":"aaaaaaaaaabaCcCcbaccccddeccfdfEeffff","o":"241503"},{"n":6,"v":"abbbccAacccCacccccadeeeeadDefffffFff","o":"240315"},{"n":6,"v":"abbccdabbcddAccccdAaadddEeedddffffff","o":"203514"},{"n":6,"v":"abbcccabbbdcabbddcAdDdDeaFffeeffeeee","o":"420351"},{"n":7,"v":"aabbbbCaabbdccaeeedfgaeffffgaafFfggAaFffggaafffgg","o":"2641530"},{"n":7,"v":"aaBbcCcaabbcccaaddeffaddeeffddddggfddgggggDggggGg","o":"3514602"},{"n":7,"v":"aabbCccadDbCccadDbBceffdbbbeffdbbbeffbbbggggggGgg","o":"5062413"},{"n":7,"v":"aaAabBBaaaaccbDaDaccCdddecccdddefffdgeeeffddeEeff","o":"4250316"},{"n":7,"v":"aabbbBbAabbbbbabbbcbdabbbbddeeefffdgggfffdggGffdd","o":"3146250"},{"n":7,"v":"abccccCabbcbbcaabbBcCdDeEbbcdddebffddddfffdddggff","o":"3502614"},{"n":8,"v":"abbbBbbCaaabbbbcaaabbbbcdaeebffcdeeebffgeehhbgggeeehhgggeEEhHggg","o":"37205146"},{"n":8,"v":"aaaabBccaaDdbbbcaadbbbbeaaaffEeeaaafFeEeagghfeeeagghhHheaagggggg","o":"75263140"},{"n":8,"v":"aaabBcccdaadbbccddddbccCedddcccfeddDdfffeedddfffggggghgggGGGgggG","o":"24637150"},{"n":8,"v":"aaaaabbbcCaAabbbccaadbbbcceadbbbFeeadbbgfeeddbbgFeEddgggfeedhhgg","o":"36142075"},{"n":8,"v":"aaaabbbcddAabbecddbbbbecddddfbEcgdhhfFccGHhhhHcCghhhhcccghhccccC","o":"53614270"},{"n":8,"v":"aaaaabbbaaaccccbdaacccebdffggeebfffggehhfFFgeeHhfgfgeeHHfgggEEEH","o":"61402753"},{"n":8,"v":"aBbbccccaaadCcccaaaddeccfffddefffffddffghhffffgGhhfffffghHffFfff","o":"27153640"},{"n":8,"v":"AaAaaaabaaaaacabDdDeaCbbeedeacbbeeeefgggeeeffgGgEhhffffgEhHhhfff","o":"35726041"},{"n":9,"v":"aaaaaaaaaaaaabbbcCbbbBbbdddEbbbbbbddeEbbbbdddefbbbghddfffgggggggffggigggggGGggggg","o":"374806251"},{"n":9,"v":"AAbccdeedaabccdeddAbbcFddddbbbcfcdddbgcccccddbgcccCcddgggCcCccdhgcccHccihhhhhhcci","o":"602473185"},{"n":9,"v":"aAbbbBbBbaabbbbbbbcabbbbdEeccdddddefcccgddddfhccggGdffhcgGgGfffhiiiiIfffiiiIiffff","o":"618524037"},{"n":9,"v":"aaabCCccdaaEbBCCddaaEebbdddaaeebbfffaaaabbbffaaaaaafFFagaahiiifagghhhhiiaGhhHhhii","o":"684270513"},{"n":9,"v":"aaaabbbbcddeaababceeeaaaaacfeEaAaAgCffehhhhgcffhhhhHgcfffffffGgfifffffggiifffffff","o":"602538471"},{"n":9,"v":"aaaaaaabBcccaaaabbCaAaaaabbdeefaghhbdeeFfgHgbddegggggbeeegggiggeeggeeiigEeEEeEeIi","o":"528640371"},{"n":10,"v":"aaabbccdddaaaaccddDeaaaaacaaaeaaaaaCaeeefFaaaaaeeEffaaaaaeeeffggaaaeeefffgahHeiijffaahhhiijJfffffiii","o":"4752813960"},{"n":10,"v":"aAaaaaBbbCaaaabBbbbcaaaaaabbccaadaaaEeEcaadaaaafEgahggfFFfgghhgggggggghhgggggggghhgggiiiJjhhgggijjjj","o":"0697241358"},{"n":10,"v":"aaabbCccddaaabbbCcddaaaabeCffDaaaaeeffffaaaaeeffffaaaaeEeegghiaajjeegghhjjjjjGgGhhjjjjjggghhhhjjjggg","o":"6947531820"},{"n":10,"v":"aAaaaaaaabbaaaacbbbbbaaaaabbDdbbbbbbbeedbBbbbfbeeebbbbfffggebbbffffhggiIbJfhHhggiibjhhhgggiibjjjHhhg","o":"2591748063"},{"n":10,"v":"aabccCddeeaabdddddeeaabbdddeeeafbbBgdeeeffffggdeeeffFgggdhhhigggddddhhIdddddJdddidddjdjdddiiddjjjddd","o":"4138259706"},{"n":10,"v":"aaBBbbbccdaaabbbbbcdaaabbbbbCdEaabFbbbcdEeabffbbcdEaafffbgGdeeafahbbgdeaaaahhbbbeiIihhhbjbeiihhhjjjb","o":"8392470516"},{"n":6,"v":"aaabbbaaacbbdaccbbddceeeddcceeddfcce","o":"403152","t":[[7,1],[27,1]]},{"n":6,"v":"aaaabbcaaabbccaaddccceddcceeeefceeee","o":"524130","t":[[4,1],[29,0]]},{"n":6,"v":"aabbbbaabbccdaaaecdfaaecffffecffffee","o":"253041","t":[[22,2],[27,1],[29,1]]},{"n":6,"v":"aaabccaaabccddbbecddbbeedddfeedddfff","o":"502413","t":[[11,1],[27,2],[34,1]]},{"n":7,"v":"aabbcccaabccccbabdddcbbbedddbbfgdddbffggggbffgggg","o":"6153042","t":[[7,1],[33,1],[41,0]]},{"n":7,"v":"aabbbbcaaabbbcadecbbcaeeccccaeecccfeeeecgfeeggggg","o":"0514263","t":[[20,1],[31,2],[48,1]]},{"n":7,"v":"aabccccaabddccaaaadccaaeeeccaffeeecffffffgffffggg","o":"5241306","t":[[11,2],[21,1],[28,2]]},{"n":7,"v":"aaaaabbcaaddbbcddddefccdggefccdgeefcceeeefeeeeeee","o":"1520364","t":[[3,0],[10,1],[14,1],[22,2]]},{"n":7,"v":"abbccccabbccddaaeecddaaeeefdgaaefffggaffffggaafff","o":"5263140","t":[[4,1],[11,1],[38,1],[48,0]]},{"n":7,"v":"aaaabbcaaddbbcaedddbcaeefbbcaeeffccgggffffggggfff","o":"0531642","t":[[19,1],[32,1],[41,1],[45,2]]},{"n":8,"v":"abbcccccabbbcccdaabbcecdfaaeeegdfaaheegdaaaheggdaaaaaaggaaaaaagg","o":"52740316","t":[[2,1],[35,2],[54,1]]},{"n":8,"v":"aaabccddabbbccccaabbbcccabbbecccaaeeecccfafeggggfffhhhhhfffhhhhh","o":"72063514","t":[[0,0],[5,0],[34,1],[38,2],[52,2]]},{"n":8,"v":"aaaabbbbacacbbbbdcccccbbddccccbeddcceeeedffggeeegffggeehggggghhh","o":"17305246","t":[[10,2],[13,0],[16,1],[31,0],[32,1]]},{"n":8,"v":"aaaaabbcaaabbbbcaddeeebbadddeebbafffeeebgffffffbgfffhfbbgggfhbbb","o":"71625304","t":[[32,0],[40,1],[44,2]]},{"n":8,"v":"aaabbbccaabbbcccaaadbceeaaddffeeadddeeeeaaddgeeeaaggghhhaggghhhh","o":"73041625","t":[[3,1],[5,0],[39,1],[42,2],[51,1]]},{"n":8,"v":"aaabccccaabbccccaaabddccaaaaddeeffffgdeehhfggeeehhfgggeehhgggggg","o":"63502714","t":[[13,2],[25,2],[42,2],[62,0]]},{"n":8,"v":"abbbbbbbabbbbbbcaabdbeccaabdeeccafdddcccaffddgggaaagggggaagggghh","o":"02537146","t":[[16,0],[43,1],[45,1]]},{"n":8,"v":"aaaabbccaaabbcccaddbbbccdddbeeeefdffeegefffheeggfffhhgggfffhgggg","o":"26315047","t":[[18,2],[21,1],[23,1],[28,2],[33,2],[34,1],[45,2]]},{"n":9,"v":"abbbbcdddaabbcccddaabccddddaaccccdddeeefcddgdeefffffggeeffffgggfffhiiigifffiiiiii","o":"208415736","t":[[18,1],[35,1],[36,1],[38,1],[43,0],[60,2]]},{"n":9,"v":"aaaaaabbbaaacaabbbdeccaabbbdeeeebbbbdeeeebfbbeeeeegfbbeeeeggghbeiegggghbeiggggghb","o":"582063741","t":[[23,0],[55,0],[65,1],[78,0]]},{"n":9,"v":"aabbbbcccaabbbccccdaaebccccdddeeecccdddefeeecgffffffhhggfffffhhggiifffhhhhhhhhhhh","o":"418520637","t":[[6,0],[23,1],[28,1],[47,1],[65,1],[69,2]]},{"n":9,"v":"aaaabbbbbaaaaabbbbaaaaacccbaddaaeeeeddfggeeeefffggggeefffggghhhiiffghhhhifffghhhh","o":"536814207","t":[[34,2],[36,1],[46,2],[54,1],[77,0]]},{"n":9,"v":"aaaabbbbbaacccbbbbadccccceedddccffeeddddddfeeddddddffeddgggddfhddggddddhdddddiihh","o":"402716385","t":[[27,1],[48,1],[56,1]]},{"n":9,"v":"aaabbbcddaabbbccddabbbbeccdbbbbbecccbbffeecgghhhfeeegehhhffeeeehhhifeeeehhiiieeee","o":"172685304","t":[[12,1],[30,1],[56,1],[65,1],[69,0]]},{"n":10,"v":"aaaaaaabccadddaabbbcaeeaabbcbcaeeeaabcccaeeeeffcccaeeeffccccggeeffcchcgggffiijhcgggggjjjjjggggjjjjjj","o":"3152948607","t":[[6,0],[24,1],[51,0],[74,0],[96,1]]},{"n":10,"v":"aaaaaabbbbaaacccdbbbaaaacddddbeeafggddddeeefggddddeeefggddddhehggggdiihhhhgggiiihhhhgjjiiihhhhhjjiii","o":"0849315726","t":[[20,0],[38,1],[53,1],[62,1],[75,1],[76,2],[78,1],[90,0],[98,0]]},{"n":10,"v":"aabbbbccccaadbbbccccddddeffcccdddfefgggcdddfffggggdddfffhgggddifffhhggiiijjfhjggiiijjjhjjjiiiijjjjjj","o":"3049158627","t":[[34,1],[52,1],[66,2],[75,1],[83,1],[96,1],[98,1]]},{"n":10,"v":"aaaaabbbbbaaacaaabbbaaaccaabbdaaaccaabbdeeeefffffdeeggggfffdheeggggggghhhhggggggiiiijjjjggiiiiiijjjg","o":"8639175042","t":[[3,0],[24,1],[48,2],[62,0],[85,1],[91,1]]},{"n":10,"v":"aaaabbbcccaaaabbbccdaaaebbccddaaaebddcdfgggddddddfgggdhhhdddgggdhhhdddiiiijjddddiiiijjjdddiiijjjdddd","o":"0537961824","t":[[26,2],[47,2],[62,1],[72,2],[99,0]]},{"n":10,"v":"aabbbbbbccaabbbcccccbabdbbccccbbbddccceebbbddcfffeggggdffffegghhhffffegghhhhffffggiihijjffgiiiiijjff","o":"5184970263","t":[[7,0],[58,2],[69,0],[71,2],[82,2]]},{"n":12,"v":"aaabcccccccdaaabbbcccccdeaaacccccccdeeecccccccddfgggccggccccfffgggggggccfhhhgggggiijfhhhggghhhiifhhhhhhhhiiiffhkhhhihiiifffkkkhiiiiiffflkkhiiiii","o":"240a86b79153"},{"n":12,"v":"aaabbbbbbbbcaaabbdbbbbbbaaaaaddbebbbaaaaaaeeebbbaaaaaeeeeeffghhageeeefffghiggeefefffghiggjffffffggggjjffffffgggggjjfffffggggggjjfkffgggggljjjkff","o":"b86371a24095"},{"n":12,"v":"aaaabbbbbbbbcaaddbbbbbebcaddddbbffffcccdddbbffffggddddbffhffgggggdbbfhffggggddibhhhhgjjhhdhhhhhhjjjhhhhhhhhhjhhhhhhhhhhhjjjjhkkkhhhhjjjjkklllhhh","o":"3a714b602958"},{"n":12,"v":"abbbbbcccdddaaabeeeeccddaaabeeeeccddaabbffeeccddaaafffgggcddhaaffggggggihhhfggggggjjhhhfggggggjjkhkkggggggljkkkkggggllljkkkkkggggljjkkkkgggllllj","o":"95820b3a1647"},{"n":12,"v":"aaaaaaaaaaaaaaaaaaaaaaabcdddaeeaeabbccddeeeeefffccddeggehhhfcdddgggiiiifjddgggiiiiifjjdgkkkiiiiijjkkkkkkiiiijkkkkkiiikikjjkkkkkikkkkjjkklkkkkkkk","o":"7b6a80529314"},{"n":12,"v":"aabbccccccddaaabccccccddaaaaaeccffddggaheecccfddghhhhgccccdiggghggcccciiggggggcccciiggggcccccciijgjggccciiiijgjggkkkiikkjjjjgglkkkkkjjjjgkkkkkkk","o":"2084a3579b61"},{"n":12,"v":"aaaaaaabbbbcaaaddebbbcccaaadaeebbfffaaaaaaebffffaaaaaeeeefffaaaaggeeefhijaaageeeffhijajjggggkfhijjjjjjgkkhhijjjljjgkkhhijjjlljgkkhiijjlliiiiiiii","o":"b638514097a2"},{"n":12,"v":"abbbbbbbbbbbaaacdbbbbbbbeecccbbbbbbbeecccbbbbfffeeeccccbbggfeecccccbbbbfeeececccbbffeeeeecccbhhheeeeecicbbhheeeejjickkhhlljjjiikkkkhljjjjiikkkkh","o":"047b952a6813"},{"n":12,"v":"aaaabbbccccdaaaebbcccccdaafebbbccccdggffbccccccdgggfbhhhciidgggbbhhhhiddgjggghhhhikdgjjjjhhiiiklgjjjjhhhikkkgggjjjhhikkkggjjjhhhkkkkhhhhhhhhhhkk","o":"13724a0b8596"},{"n":12,"v":"aaaaaaaabbbbaaacbbbbbbbbdaacbbbbbbbbaabbbbbbbebbaaaffbbeeebbaaafggeeebbhaaafgggeiihhaaafjjgiihhhjjjjjjjjiihhjjjjjjjjiikjjjljjjjjjijjjlljjjjjjjjj","o":"1306475b8a29"},{"n":12,"v":"aaaabbbbbbbbaaaaabbccbdbeeebbbbcddddebbbbbffffgdeebbfffffgggeeeffffffgggefffffffffggeeehfhffggggeihhhhhjgjggiiiihjhjjjjjkkiiijjjjjjlkiiijjjjjjjj","o":"379462a518b0"},{"n":12,"v":"aaaaaaabbbbbaaaaaaccbbbbaaaaaacbbbbbdeaaaffbbbbgdeeeaffbbbbgdeefafhgbbggdeefffhgggggdeeffihhhhhhffffhhhhhhhhffjjhhhhhhhkfffjjhhhhhhkjjjjhhlhhhkk","o":"17902a358b46"},{"n":12,"v":"aaaaaaaaabbcaaadaabbbbccaaadaaaefbccgaadaaeeffchaaadddeeffhhaadddeeehffhaidhhhhhhhhhiihhhhhhhhhjihhhhhkhhhhjiiihhhkhhjjjiiihhkkhhjjjiiiiiikhhjlj","o":"37b08524691a"},{"n":12,"v":"aaaaabbbbbccdddaaabbbecfdddaaaaabeffdddeaaeeeeefeedeeggeeeefeeeeeeeeefffeeehheeeffifehehhefffiiihhhhffffjkkjhhhhfflfjjjjhhhffflljjjjhhhhhfllljjj","o":"b73052a19486"},{"n":12,"v":"aaabbbcdeeeeaabbcccdddeefaaccccddeeefaaccccdddddfaacccggddhdfffccccgdghgffcccccgggggfffcciigggggfffcciiiggggfffciiijggggfffciijjkggkflfffiiikkkk","o":"93826a4057b1"},{"n":12,"v":"aaaaaaabbbbbaaaaaaacbbbbdadaaacccbbbdddaccceebebdddaacceeeefdgggaahieeffdgggghhiejkkddggghiiejjkdggiiiijjjkkddggjjjjjjjjddjljjjjjjjjddjjjjjjjjjj","o":"9718b6a24035"},{"n":12,"v":"aaaaaabbbbccaaddaeeebcccafddggggbcccaffdggggggcchffffgcgcgichhhfffccccichjhfffcccccckjjffffccccckkjjflflccllkkjlllllclllkkjjllllllllkkkjllllllll","o":"46837a0592b1"},{"n":12,"v":"aaaaaaabbbbbaacaaabbbbbbadccaaabebbbaddaaaaeeeebaaddfaafgebbafffffffgehhaffffiiggehgaafffiigggggaafffiiiiiigajjjjiiiigggjjjkjiiliiggjjjkiiillllg","o":"02b195a86473"},{"n":12,"v":"aaaaaaabbcccaaadababbcccaaaddbbbefccggdddbbbefffgddddbbeeeehgiiibbbbeeehiiiiibbbbeeeiiibbbbbeeeeiibbibbbbeeejiiiibkleelejiiilbklellljjllllllllll","o":"a2913b584607"},{"n":12,"v":"abbbbbbbbbccaabbbbbbcccdaaabbbbbbbcdeaabbabbfbbdeeaaaabgfbbbeeeeeaagffbheeeeaaaghfbhieeeeegghfhhiiieejjjhhhhiiiiejijiihhkiliiiiiiihhkkkiiiiiiiii","o":"69b8473a1520"},{"n":8,"v":"abbbaaaaaaaaaaacdeeeaaacddeeaaccddffaggcddffhggcdfffhgggdfffhggg","o":"1357135702460246","k":2},{"n":8,"v":"aaaaabbcaaaaabbcddddabccaaaaabbceafaabgheffggggheffggggheefghhhh","o":"1357135702460246","k":2},{"n":8,"v":"aaabbcccaaabbdccaabbddcceeeeddcceeeffggchheffggghhhhfggghhfffggg","o":"1357135702460246","k":2},{"n":8,"v":"aaabbbbbaaaaabbbaaaaccccdddcceeeffgceeeeffggeeeeffggghhhffggghhh","o":"4602460257135713","k":2},{"n":8,"v":"aabbbccdaabbbcddaabbccddeebbccddeeebccddefeggggdfffghhhdfffghhhd","o":"1357135702460246","k":2},{"n":8,"v":"aabbbbbbaaccbbbbaaccddddaeeccfdfaecccfffeeeccfffegecchhheggggghh","o":"4602460257135713","k":2},{"n":8,"v":"aabbbcccaaabbcccaaabaaddeaaaadddefffgddheffgghhhefffghhheeffghhh","o":"1357135702460246","k":2},{"n":8,"v":"aaabbcccaaabbcccdadbbbccdddeeeccddddeeeedfffegeeffhheggghhhhhhgg","o":"4602460257135713","k":2},{"n":9,"v":"aaaabbbbbcaadbbbeecaedbbeeeccedbeefecceeeeefeccghhheficgghhiiiichghhiiiichhhhhhii","o":"163815370527042648","k":2},{"n":9,"v":"aaabbbbccdaabbbcccddabbeeecddabbccccdfabbcgggffhhhcgggfffhhciigffhhcciiifffhcccci","o":"470257024618361835","k":2},{"n":9,"v":"aaabbccccaaabbbccdaaabbedcdaaabbedddaafbbedddffffbgdddfhgggggdihhhgggiiihhhhiiiii","o":"681358135702460247","k":2},{"n":9,"v":"aabbbbcccaaaabbcccaaaaaacccdeeaffffcdeefffffgdeeeffffgeeeeeeggghhhhhhigghhhhhiiig","o":"351846024702681357","k":2},{"n":9,"v":"aabbbccccaaabbbddddddbbbbdddddddddddeeeeffdggeeeeffggghhhhffggghhhhffggghiiiigggg","o":"680246183517350724","k":2},{"n":9,"v":"aaaaaaabbcaaaabbbbcaaabbbddcaeeeeeddcceedddddcffffgdddhhhffgiidhhhffgiidhhhffgiii","o":"240648260835173517","k":2},{"n":9,"v":"aaabcccddaaebbbcddaaeecccddaaeecffffaaeccfgggaaeccfgggffffffggghiiiiihgghhhhhhhhh","o":"370528460246183517","k":2},{"n":9,"v":"abbbbccccaaabbdcccaaabdddceaabbddffeaggbbfffeggghhfffeigiihfffeiiihheeeeiiiieeeee","o":"381537052704264816","k":2},{"n":9,"v":"aabbbbbbbaaaaabcccaaaddbcccddadbbecedddddbeeefgggghiieffgghhhiiffffhhiiiffffhiiii","o":"351846026813570247","k":2},{"n":9,"v":"aabbcccccaaabcccccaaabdddceaaabdddeeafabbbbeefffffbbbeggggfbbhegiigghhheiiiiihhhh","o":"370528461846025713","k":2},{"n":10,"v":"aabcccccccadbbccccccadbeeeccccddeeeefffgdddeeefhggddeeehhhggddddehhhhgddiiiihhhgddjiihhhggddjjjjjhgg","o":"02680248164917357935","k":2},{"n":10,"v":"abbbbcccdeaffbbbccdeaffbfbfcdeaffffffcceafffcccceeffffccggeehhiijjjgeeihiiijggggihijjjggggiiiiijgggg","o":"28460826094719351735","k":2},{"n":10,"v":"aaaabcccccaaabbbccccaaabbbbbcbaaaadddbbbeefaddddddeefagdddhheifgggddhheiigigjjhhiiiiiiijjhiiiiiijjjh","o":"18361946024802573957","k":2},{"n":10,"v":"aaabbcddeeabbbbcddeeaabbfcddecaabbfcccccaabbfcccccghhhficccjghhiiicccjghhiiijccjgggggijccjggggiijjjj","o":"68036824072479153915","k":2},{"n":10,"v":"aabcccccccabbcccccddabbeccddddaabeeeffddggeeeeffddgggeeeffdhgggeeeehhhgggeeiehhjggeeiiiijjgggggijjjj","o":"24082406381639571957","k":2},{"n":10,"v":"aaaaaabbbbacadabbbbbacddaaaebbccfdddaeggfcffddaeegfffhhhaaggifffffjaagifffffjaagiiiifjjaajiiiiijjjjj","o":"08351749173509264826","k":2},{"n":10,"v":"aabbbccccdaabbbcccddaaabbecccdaaabbeccccfafgbeecccfffgbeecccfffgggeehhfgggiijhhhfggiiijhhhfgggijjjjj","o":"29073915370528461846","k":2},{"n":10,"v":"aaabbbbbccaaaaaabcccaaddaaccccdddecccecfdgdeecceefggeeeeeeefgghhieeeefhghhiejjjfhhhhiejjjfhhhhjjjjjj","o":"36183579250749164802","k":2},{"n":10,"v":"aabccccdddaabbcccccdaebbccddddeebbbddffdgedddddhffgeddhhhhffgeeddhhdfigggdddddiigggjjdiiiiggjjjjjiii","o":"15390537194702682468","k":2},{"n":10,"v":"aabbbbcdddaaabbbccddabbbbeeccdaabffeeccdagbffecccdaggfhhcccdaggfhhddddagiiihhhjdaaiiihhjjdaaaaajjjjd","o":"02490638153715792468","k":2},{"n":10,"v":"aaaaaaaabbaacaaaabbbdccccebbbbdccceeeeeedcfcfeeggedfffffegggffffhhegggfhhfhheiggfhhhhjiiigfhjjjjjjjj","o":"15790428063957136824","k":2},{"n":10,"v":"aaabbbbbbbaaaabbccbbadddbcccbeaddccccceeadccffffeeaagffffhhhaagifihhhhaigiiijjhhaiiiijjjhhaiiiiiijhh","o":"48063915792468025713","k":2},{"n":10,"v":"aaaaaaaabbaaaaaaaaccddaaaaacceddfffggceehhfffggccehhiiiggceehhhiiggccehhhhiggcgghhjiigGgggjjjjgggggg","o":"8513970426","t":[[12,1],[28,0],[37,0],[41,0],[45,0],[81,1],[97,1]]},{"n":10,"v":"aaabBcddddaaabbcceedaaccbcceedacccccfedDacccggfhddaccgggghddiicgghhhddgiggghhhddggggghhjjdggghhhhhhh","o":"3072691485","t":[[17,1],[24,0],[49,1],[62,1],[81,0],[86,1]]},{"n":10,"v":"aAaaabbbbbaaaaacbbbbaaddacbbeeffdddcccceffdcccceeeffdggcceeeffgggghieegggggiiieejjgggiiieejjjiiiiiee","o":"9130586472","t":[[2,1],[47,1],[50,0],[93,1]]},{"n":10,"v":"aabbbcccccaaBbbbbcccabbbbbbcccdbbeeebffcdbbeeeefffdddgehhffiddggghhjiiddggghjjiidggggjjjiidggjjjjjii","o":"7024815369","t":[[28,0],[49,1],[76,2],[81,0],[85,1],[95,1]]},{"n":10,"v":"aabbbcccddeaaabccccdeaaaaaaCcdeeaaaafffdeggaafffddggaaaffffdggaaaffffdhhhaaaffidhhhajjjfiihhhhhjjiii","o":"3790416852","t":[[4,1],[23,0],[48,0],[61,1],[62,1],[70,0],[74,1],[75,2],[87,1]]},{"n":10,"v":"abbbbcddddaabccccddebbbfcccfdebbbfffffdebbbbggffdebbbggggggEhgggggiigehhhgjiiigghhhgjjjjgghhhhjjjjgg","o":"0857913642","t":[[27,2],[42,1],[45,0],[82,1]]},{"n":11,"v":"AaaaaabbbbcaaaadaabbccaaddddaacccddddddeecccdddddffeeeeddggggfeeeedddhhffiEeeddhhhjiiiiidkHhjJjiiiikkhhjjjiiiikkjjjjjjjii","o":"7192846a350","t":[[1,1],[11,1],[32,1],[64,1],[65,0],[68,0],[99,1]]},{"n":11,"v":"aabbcccccccaabbaccccddaaaaacccccdeeeeccccccdeeeeeceeccdeeeeeeeffgdehheeiiffggehhhhiiffggeeHhhiijfggeehehijjgggkeeehhjjggg","o":"2a164859370","t":[[8,0],[26,0],[53,1],[60,2],[72,1],[98,1],[107,1],[118,1]]},{"n":11,"v":"aaaabbbbcccaaabbbbccccaaaaDbbccccaddddbDccceafdddddcceeafggddddheeafigdddhhheaiijjjhhhhhaaijjjhhhhhiiiijjhhkkkjjjjjjjkkkk","o":"805a1637429","t":[[18,1],[22,1],[38,1],[68,1],[81,2],[96,1],[106,0]]},{"n":11,"v":"abbbbbcddddaaabbccddddaaaabcccdddaaaabbcddeefaaabbbbeegffahhhhgeegffiihhggeegjjjigggggggjjjikkkkgggijjikkkKgggiiiiikkkggg","o":"694205813a7","t":[[25,2],[30,1],[32,1],[41,0],[49,1],[70,1],[86,1],[116,1],[119,1]]},{"n":11,"v":"aaabcccddddaaabccccdddaeabbcccdddeeebffccddgeeebfffhgggeebbifhhgghbbbiiihhhhhbjjjihhHhhhjjjjiihhhhhjjjiiiiikkhjjjiiiiiikh","o":"2695a170384","t":[[3,1],[19,1],[27,2],[36,0],[82,0],[87,0],[117,1]]},{"n":11,"v":"aaabbbccdddaaabbcccdDdeeaaccccdddeeafcfccdddeeafffcddddeegfffddddheeggddddihheeggdjjiihheeggddjjihhekkgjjjjjhhkkkggjjjjhh","o":"57394a82061","t":[[58,1],[64,2],[71,0],[80,1],[90,1],[101,1]]},{"n":10,"v":"aaabbbccddaabbbbcdddaaebbccdddeeebbccddfeeeeddddffeeeddggggfeeddddhfffedddhhhhffiiiijjjjjjiiiijjjjjj","o":"04681369135729470258","k":2,"t":[[2,0],[34,2],[66,3]]},{"n":10,"v":"aabbcccdddaabbbbcdddaebbbccdffaecccccdffeeggghhddfegggghhhdfeeeeeehhddeiijeehhddiiijjjjhddiiiijjhhdd","o":"69042806247935173518","k":2,"t":[[21,3],[29,1],[31,3],[46,2],[74,4],[99,1]]},{"n":10,"v":"abbbcccccdabbbbccccdaabccccccdaacccefccdggeeeefffdgggffffffdggghiiijjjgghhiiijjjggghhiiijjggghhiiiij","o":"27047905294618361835","k":2,"t":[[12,1],[39,2],[47,1],[94,2]]},{"n":10,"v":"aaaabccccdaaaabccccdabbbbbbbbdeeebbbbbddeeebbffdddggehbfddddggghiffiddgghhiiiiiiggghijiiiiggggjjjjii","o":"68024802593715371946","k":2,"t":[[20,2],[22,2],[67,2],[71,2],[82,2]]},{"n":10,"v":"aaaaabbbbbaaaaabbbbbcadddbbeebcccddddeebffcddddebbffccggggggfffgghhhiiffggjhhhiijjggjjhiiijjjjjjjiii","o":"07250835173916492648","k":2,"t":[[27,1],[55,1],[57,2],[64,2],[89,2],[97,2]]},{"n":10,"v":"aaabbbbbbbaacddbbbeeaacddbbbeecccddeeeeecccffeggggffcffehggiffffeehhiiffffehhhiifjjjeeehiifjjeeeiiii","o":"07390624682479153815","k":2,"t":[[8,2],[62,2],[87,1]]},{"n":10,"v":"aaaaabbcccaaaddebcccddddeebcccddddeebbbcddffeeeebcffffeeeggchffieegggghhiiiejggghhiiijjjjghhhhhhgggg","o":"36092705381579246814","k":2,"t":[[2,1],[14,1],[40,2],[46,2],[56,2],[97,2],[99,1]]},{"n":10,"v":"aaaaabbbbcaaaddbbbbceaddddbbcceeedddbbcceeefgghhcceeefgghhhiejfffgghhiejffffggiijjgggggiiijjggggiiii","o":"27093759024618351846","k":2,"t":[[21,1],[22,1],[45,3],[46,2],[52,2],[70,2],[74,2],[83,2]]}]);
+// fase 2 (3 november 2026): 60 puzzels met dubbele kronen (500 tot en met 559) en 60 vormen (560 tot en met 619; g: 1 = de dozen zijn gaten).
+// Nieuwe puzzels altijd achteraan: de opslag gebruikt de puzzelnummers.
+PUZZELS.push(...[{"n":8,"v":"aaabccddaaabceddfaabceddffacceddffggchddffggchhhffgcchhhffgcchhh","o":"1357135702460246","k":2},{"n":8,"v":"aabbbbbcaabbbdbcaaabdddcaeabbdccfeeebbbbfeeegbhhfeeggghheeeggghh","o":"1357135702460246","k":2},{"n":8,"v":"aaaaaabbaaaaabbbcdddeeffcceeefffccgeeeefccggheefccghheeecchhheee","o":"1357135702460246","k":2},{"n":8,"v":"aaabbbccaaabbbccddaabbccdddbbbcefgggbhcefggggheefffgfhfeffffffff","o":"4602460257135713","k":2},{"n":8,"v":"aaabbccdaaabbccdaebbbccdeeebbfcdgehhbfddgghhffddggghffddgghhfffd","o":"4602460257135713","k":2},{"n":8,"v":"aabbbbbbaaabbbbbccdddddecccffdeecccffeeecgghffeeggghffffggghffff","o":"4602460257135713","k":2},{"n":8,"v":"abbbccccabbbddddaabddddeabbbbddeaabfeeeegggfhhheggffhhhhgggfhhhh","o":"4602460257135713","k":2},{"n":8,"v":"aabbbbccaabbccccaabbccccddbbbeeedddbbbeeffgggghhffffghhhffggghhh","o":"1357135702460246","k":2},{"n":8,"v":"aabbcccbaaabccbbddabbbbbdddeeebeffffeeeefffffgggffhffggghhhhgggg","o":"4602460257135713","k":2},{"n":8,"v":"aaaabbccaaddbcccaadbbcccaadeecccaadeffcgahdeffcghheefffghhhegggg","o":"4602460257135713","k":2},{"n":8,"v":"abbbccccabbbddddaabbddddaabeeeeeaaeeefeeaghhefeegggheffeggghfffe","o":"4602460257135713","k":2},{"n":8,"v":"aaabcccdaaabcccdeabbcccdeeffcccdeeffcccdeefggggdeeffgggdeehhhhhh","o":"1357135702460246","k":2},{"n":8,"v":"aaaaaabbaaaaccbbddddcccbeeeccccbeefcgchbefffgghhefffgghheeegghhh","o":"1357135702460246","k":2},{"n":8,"v":"aabbbcddaabbbcddaaabcccdaaeeeccdeeeeedddfffeggggfffeghgheeeehhhh","o":"1357135702460246","k":2},{"n":8,"v":"aaabbcccdaaabbccdaaabcccdaaabeccdaaaeeeedfgghhehdffghhhhfffghhhh","o":"4602460257135713","k":2},{"n":9,"v":"aaabbbbccaabbbbcccaabbbbdccaabbeddccaffeeddccgffeeccccghffhccicghhhhhhicghhhhhhic","o":"153816482604270537","k":2},{"n":9,"v":"aaaaabcccaddbbbceeaadddbcceaddfbbcceffffbbceefffghhhiefffghhhiifffghhhiiffffhhhii","o":"062408246813571357","k":2},{"n":9,"v":"abbbbbbccaaaaddddcaaaaaaccceaaaaeccceeeeeecccfffegcchhfffgggghhfffgiiihhfffgiiihh","o":"135702682407351846","k":2},{"n":9,"v":"aaabbbbbcaaaaabbbcaaaddbbbceeeddddccffgggddccfgghhhcccffhhhhiccfffiiiiiiffffiiiii","o":"680247024618351735","k":2},{"n":9,"v":"abbbccdddabaaacdddaaaaacdedaaaaacdeeaafadddeghffaidgeghffiidggghhhiidggghhhhiddgg","o":"381537052704264816","k":2},{"n":9,"v":"aaabbbcccaaabbbdddbbbbeddddbbbfegdddbbbfegdddbbffegghhibbfegghhiiieeeghhiiieeeggg","o":"680246183517350724","k":2},{"n":9,"v":"aaabccccdaaabccecdaabbbeeedbbbfbbbddbbfffgbddhbhffgbbdhhhffggbdhbbbbbbbdbbiiiiidd","o":"470257135802461836","k":2},{"n":9,"v":"abccccdddabbccddeeabcceddefabcceeeefaaaccccffagaaaaaffgghhhhaafgghhhhaaaggiiiaaaa","o":"062846183517350724","k":2},{"n":9,"v":"aabbbccccabbbbccccaaaaadddedaaaadddedddddddeefdddggggefffffheeeiiiiihhheiiiiiiiie","o":"571368240846025713","k":2},{"n":9,"v":"aaaaaaabbccaabbbbbccaadddbbcceeeedfbcceeeedffcghhehdffcgchhhdddcgcihidddccciiiiii","o":"280624073517351846","k":2},{"n":9,"v":"aaaabbbbbaabbbbbbcaaddebcccedddefffeeeeeefffeeegeeeeeeegghhhheeeggihhheeiiiiiiiie","o":"270468135702461835","k":2},{"n":9,"v":"aaabccdddabbbbcccdabbbecdddabbbeddddabbbeddffggghffdffgghhfffffgghhiiiifgghhiiiif","o":"052704264816381537","k":2},{"n":9,"v":"aaaaaaabbccccccbbbcdddbbbbbcddddbbeecdfffbbeecccggbeeeccgghiieecgghhiiiigghhhhhhh","o":"025713682407351846","k":2},{"n":9,"v":"abbbbbbccaabbbdbccaaabbdbbcaaebbdbffeeeeggfffeeeegfffheeiegfffheeieghhhheiiighhhh","o":"371538052704264816","k":2},{"n":9,"v":"aaabbbbccdaabbccccdddbbccccdddddceeeffddcceeefffccggggfffccchhhiiiciihhhiiiiiihhh","o":"052704681357136824","k":2},{"n":10,"v":"aabbbbbbbcaaabbbddccaaaaebdddcaaaeebbdddfageebbbbbfhgeeiiiibfhggfffffbfhhffjjfbbffhfjjjffbffffjjjfff","o":"39164907246813580257","k":2},{"n":10,"v":"aaabbbbbbcaaabbbbdccaeeeeeddcceefeeeddgchefeedddgghhfeeeedgghhhhddddgghihhhhhjjghihhhhhjjghihhhhhjjg","o":"09350826482649173517","k":2},{"n":10,"v":"aaaaabbbbbaaaaccbbbbdaaaccbbebddacccfgeedddcccfgehdidjccfghhdiijcjggghiijjjjggghiiijgggghhijjjjjjjhh","o":"57024806284619371539","k":2},{"n":10,"v":"aabbcdddddaaabcdddddabbbcdedeefggccceddefggccceeeefggghceieefgghhheiiiffhhhhhhiiffhhhjjhhihhhhjjjjjj","o":"13680359270528461947","k":2},{"n":10,"v":"abbbccaaddabccccadddaaccccadddaaaaaaaaddaeaaafffddeeeeeffdddeggggghhhdeigggghhjdiiiggghjjdiiiggggjjd","o":"37193509570246184628","k":2},{"n":10,"v":"aaaaaaaabcaaaadbbbbcaaeeddddccaaaedfffgcaaeedgggggaahddgiigghhhhddigggjhhjjdigggjjhjdddgggjjjjjddddd","o":"19573957136804264802","k":2},{"n":10,"v":"aabbbbbcccdaabbbecffdabbgbeccfdaabgbecffdabbgeeccfddbbbhhhffdddbbhhiffddjbbhiiifdjjbbhhiifdjbbhhhhii","o":"38164802460957295713","k":2},{"n":10,"v":"aabbbcdddebabbbccdeebabbccddeebbbbbceeeebfbbbceegeffbbbggggeffgggghheeggghhhhheeiighhhjjjeiiiiihhhee","o":"07591739153806246824","k":2},{"n":10,"v":"abbbbbbbccaabbbcccccaaabbbccccaadeeeecccdddddfeggcddddfffgggdhdddiigggdhddddiiiihhhddiiijihhhddiijjj","o":"13580246284619370579","k":2},{"n":10,"v":"aaaaaabcccaaadbabbccaaadbbbbbbaaadbbbebbaaaddbfegghaiidffegghhiidffegfhhhijffeefhiiijfffefhhhijfffff","o":"17391537590268042846","k":2},{"n":10,"v":"abbaaaacccaabaacccccaabaacccccaaaadecccfaggddeecffgggdgeeccfgggdgghhhfgggggghhhigjjjjgihiiggjjiiiiii","o":"27042759135903681468","k":2},{"n":10,"v":"abbbbbccccaabbbbcccdaabebffdddgggeffffddgggefffdddgggeffffddhhgeeiiiidhhheejjjddhhhjjjjdddhhhjjjjjdd","o":"04680427591368135927","k":2},{"n":10,"v":"aaaaaaaaaabccacaaaddbbccceddddbbbcceefddgggceeefhdggcceeffhhgggciefhhfggjiieffffggjjieeeeejjjjjjeeee","o":"57093715381648260429","k":2},{"n":10,"v":"aaabccccccaabbcdccccaabbcddddeaabddddeeeaaaddddeeeffaagggghefffagiiihhfffiiiihhhfffjjjiihhfffjjiiihh","o":"58026924084619371537","k":2},{"n":10,"v":"abbbccccccaaabbbccccabbbcccddceeeecccddfeeeecccddfeeeeggghffeiieeehhffiiiejhhhhfiiijjhhhhfiiijjhhhhf","o":"02590735184628461937","k":2},{"n":11,"v":"abbbcccccddababbccccddaaabdddddddaaabbeeddddfaabggeddddffbbggeehhdfbbbbgeihhhjjjbbbeiihijjjjbkeiiiijbbbbkkiiiibbbkkkkkkki","o":"68248a2604790579135a13","k":2},{"n":11,"v":"aaaaaabccccaaaabbbbcddaaaaebbbcddaaaaeeeefddaagaeeeefddhggaeeefffdhagaaeefffdhaaaaeeeeidhjjjakkkkiijjjaakkkkiijjaaaakkkii","o":"174a684a28052709351936","k":2},{"n":11,"v":"aaabbbccdddaeaabbcccddeeeffbfcddgeeeefffdddgeeefffffddghheefffiidgjhheffkiddgjeeekkkiidgjjejjjkiddgjjejjjkdddgjjjjjjjdddg","o":"5703571936082a482a4619","k":2},{"n":11,"v":"aabccdddddaabbccccdedaabbfcgceeeaaaaffggeeeaaafffgggeaaaaafgggaaaahaffffgaaaahaaaaaaaaiihjajjjaaiiihjjjkkkkiiihhhjjjkkkki","o":"24791479351a360a580268","k":2},{"n":11,"v":"aaaaaaaaaaaaaaabbaaaacaadbbbbaaacdddbbbbbaacdedebfbggcceeeeefgggcgehhhhffggggihhihjjjjjjiiiiijjjjjjiiiiiiiijjjiiiiiikkkkk","o":"024a260a58136814793579","k":2},{"n":11,"v":"aaaabbbccccdaabbebccccddaaeebceecddfgeeeeeeedffggeeeeeeddfgggehheeddgggeeehhhddggiiehhhhdggjiiehhhhddjjiikhkhkdjjjiikkkkk","o":"36186a0247290479358a15","k":2},{"n":11,"v":"aaaabbbbaacaadbbbbaaacaadbbbaaaacadddaaaaaacaaaaaaeeeefafgggfffffffffffffffffffffhfffififjfhhfkiiiijjhhhhkkkiijjjjhhkkiii","o":"5a285a0379240648163917","k":2},{"n":11,"v":"aaabccccdddaaabbccceddaaabccfeeddaaacccffeddaacccffeegdaaacffffeggahhffffiegeahhfjjjieeeahhkjjkiiieakkkjjkiiiiaakkkkkkkii","o":"380a3705294619571a4826","k":2},{"n":11,"v":"aaabbbcccccdaabbbbbcccdeeebbbbcccdeeebfffcccdeeebgfffccddeebgggggcbbbbbhhggicbbjjjhhhiicbbbjjhkhiccbbbjhhkhhhcjjjjjkkhhhc","o":"027a035a38157924681469","k":2},{"n":11,"v":"abcccccccddabbbeeeccddabfbfeggcddabffffggdddaaffffggdddaaafffggggdahhhhfgggddaahhhffgiiiaajjjjfiiiiajjjkjffffijjjkkkfffii","o":"18468a1639072409257a35","k":2},{"n":11,"v":"aaaabbbbbbbcaaaadbbbbbccaaddbbbbbcceffddggbhecefffdgghheeeiifggghgjjeiifgggggjjjiifffffgjjjjffkfgggjjjkkkkkgggjjkkkkkkggg","o":"3805380a26492649175a17","k":2},{"n":11,"v":"aaabbbbcdddaaabcbccddeaacccccdddeaffccccdddeafffgcdddddffgggggggggffghhiiigggfffhffiiiigfffhfffjiggfkffffjjiggfkkkffjgggg","o":"462a580a58024719371936","k":2},{"n":11,"v":"aaaaaabccddaaabbbbccddeaaacbcccadeeaaccccaadfeaaaaaaagdfaaaahhiggiffjaaahiigiffjahhhiiiiffjfhiiikkifffffifikkkffffffffkkk","o":"1a360a5719472946280538","k":2},{"n":11,"v":"aaaaaaaaabbaacddaaaabbaccddeefffbcccddeefffbgcdddeeddfbgddhdeddbbbgdhhddddbbbiiihhhddjbbiiihhkddjbbiiihkkkjjbbiiiiiiijjbb","o":"5a2749260935073a184618","k":2},{"n":11,"v":"aabccccddddaabbbcccdddabbbbddddddbbbebdfgdddhieeeffgggdhieeefffggdhieeeejgggdhhhjejjjggdhhhjjjjjkkdhhhhjjjjkddhhhjjjkkkdd","o":"05370a4619371946285a28","k":2},{"n":7,"v":"aaaaaaaaaaaaabccaaaabcccCdeecfffeeecfggggecccggee","o":"2604135","g":1},{"n":8,"v":"abbbbbccaadbbbbcaaddbbbceddDBbbcefdDBbbceffffgbbefffhgbbffffhhbb","o":"71360524","g":1},{"n":8,"v":"abbbbbccabbbbcccabbbbdcdaaaADdddaaaAEeddfaaageeeffgggeegffhhgggg","o":"63715042","g":1},{"n":9,"v":"aaaabbbccaaaaabcccaaaaaadceafaAADdccafaAAGgccfffFGGgccffhhgggccffhiiggccffhiigggg","o":"408617253","g":1},{"n":9,"v":"aabbbccccadbbbbcceddbbbeecedbbBBEeeedbbBBEeeeddbBFEegehhhfffggeihiiifeeeiiiiffeee","o":"164807253","g":1},{"n":10,"v":"abbccccccdabbbccceddaaabbcceddffgGBCEeedfggGGEEeeefggGGEEeeegggGGGEehhigggggeehhiiijjjjhhhiijjjhhhhh","o":"6319708524","g":1},{"n":10,"v":"aabbcccccdabbbccceddbbbcccceddfbgGCCEeedfbgGGHHhddfbgGGHHhhdffgGGIHhhifggggiiiiigggjggiiiiggggggiiii","o":"1427908635","g":1},{"n":11,"v":"aabbbbccdddaaabcccccddeeaeeeecdddeeeeeeeccddeeefFECcdddeeffFFCcggdffffFHHhdddfffhhhhhhddffffhhhhhdijfjhhhhhhhijjjhhhhkkkk","o":"46291835a07","g":1},{"n":11,"v":"aaabbbbbcddaaabbbbcccdeebbcccccccebbbccccccceffbBCCcccceeegGGCcccchehgGGIicichhhggggiiichhhhgggiiijhhhhhhhkjjjhhhhhkkkjjj","o":"91382075a46","g":1},{"n":12,"v":"abbcccbbddddaabbbbbbbbdeafbbbbbebbeeafbbbbbeeeeeaaabBBBGgeeeaaabBBGGgeeehhhbBBGGgggehhhhHHIGggeehhhhhhiiiggehhhhjjjjiigehkhhhlljjggehkkhllljjjge","o":"5a81b0937462","g":1},{"n":7,"v":"AaabbbBcaaaabdcaeedddcccedddceeeeffceefffgGeeeffF","o":"3150264","g":1},{"n":8,"v":"AAaabbBBAAaccdDAaaaecdddaffeegddaafegggdfffeeeggGFfheeEGHHhhhhHH","o":"53706142","g":1},{"n":8,"v":"AAaaaaAABCcaaaABbbcaaaddebbaaaadebbbaffdeeggfffdDGgghhHDGGghhhHH","o":"42716035","g":1},{"n":9,"v":"AAaabbbBBCAaaabbBCcaaabbbddcaabbbeedccabfbeddccaafggghciiffhhhhHFffffhHHFFfffhhHH","o":"428607135","g":1},{"n":9,"v":"AAaaabbBBAAaaaabBAaaaaaacccaaadaacceffaddgccehfadggccehfagggcceEGgggggGEIIiigggGG","o":"647318052","g":1},{"n":10,"v":"AAaaaaabBBCDdddaabBCccddbbbbeeccffbbbeegcchbbbeeegchhhhbeeegchhhiieegghhiiijjgggGIijjjggGGJJjjjjggGG","o":"6473081925","g":1},{"n":10,"v":"AAaaabbbBBAAaabbccCAaaaaabbdeeafffaaaddeaggggadddeaggeeeeeeeahgieeeeeeahiieeeeeeEIiiiiiiIEJJjjjjiiII","o":"5703829164","g":1},{"n":11,"v":"AAabcccccCCBBbbcccddDBbbbbcddddeebbbbffdggeebhffffdgggebfffffggggeffffffiigggffffjiiiiiiffffjjjiiiiIFfjjkkiiIIFFfjkkkiiII","o":"25731a80946","g":1},{"n":11,"v":"AAaaabbbbBBCAaabbbbbBCcccaaaabbddcccceaaffddcggceaaffddgggceefffddgggceeeeffdhhhcieeffffhjjjiiiifffFJjiiikifFFJJjjkkkifFF","o":"48a31590726","g":1},{"n":12,"v":"AAAaabbbcCCCAAAadddccCCCAAAadccceECAaaaafcccecccaaaaffccccccaafaffggghccfffffgggghchiffjjjjjghhhiiiijjjjgghhHIKkkjjjjJHHILLlklljjJJHLLLllllljJJJ","o":"6481a2b09375","g":1},{"n":7,"v":"aabbcCAaaccccCaaaacccaaaadddaaeeffdDgeeeffFEeeeee","o":"2506413","g":1},{"n":8,"v":"aaabbBBCcaabbbBCccabbbbBdcdbbbeedddbbeefFdbbbeggGHhhgeggGGGggggg","o":"14027536","g":1},{"n":8,"v":"aaabbBBAaaacbdDAaaccdddDaaaaaeeeaffaaeeeEffaeeeeEGgggeeeEEGghhhe","o":"35207146","g":1},{"n":9,"v":"aaabccCCAaaabccdDAaaabdddeEfaabdeeeeaaaaddeeeaaaddddeeEaggdddeeEGgghhiieEEGgghhhe","o":"413086275","g":1},{"n":9,"v":"aabbbbBBAaccccbbBAaaaaccccCdaccccccefffccccceffffccgggGffffhgggGFffiggggGGIiiiggg","o":"164082573","g":1},{"n":10,"v":"aaaaabBBAAaaaabbbBBAacdebbbbBAacdeebbbfFcceeebbfffccceefffffFggeeeffffFGgeefffhfFFEeiifhhhHHIIiifhhj","o":"3624071859","g":1},{"n":10,"v":"aaaaabBBAAababbbcCCDdbbbbbceEDddbbeeeeeEfdbbeeeeeefbbbeeeeggGbbbbbhgggGBbbbhhhiiIIBbijiiiiIIIIiiiiii","o":"2631409758","g":1},{"n":11,"v":"aabbcddDDAAaaabcdddDDAaaabcedddDAaaacceedddDaaaafeeggdfaaaafffffffaaahiifffffFjjhiifffffFHhhhfffkkfFFHhhfffkkfFFFFfffffkk","o":"27468051a39","g":1},{"n":11,"v":"aaaaabbBBAAaccaabddDDAaccaadddeECccaaffddeeEcaaagfdeeeecgggggeeeeecggggheeeeeEggggheeeeeEIiiihhejjeEEIiijjjjkkKKJJjjjjjjj","o":"637409152a8","g":1},{"n":12,"v":"aaaaaabBBBAAaaaaacbbBBAAaaaadccbbBBAaaddddcbbeEAaaddddfeeeeEaadffffeeggghhhiiffjjjggGhhfffjjjgggGHhhhjjjggggGGKkkjjgglglLLKKkkllllllLLLLLlllllll","o":"058296317a4b","g":1},{"n":7,"v":"AaaAbbBaacccbbdaaaceedaaffeeEgfffeEGgffeeEEFfffFF","o":"2640513","g":1},{"n":8,"v":"AaaABbcCddaabbccedeabcccedeabccceeeabfffFeegbffFEeegfffFFGgghfFF","o":"25170364","g":1},{"n":8,"v":"AaaABbbBaaaccbbbaaddcebbfffdeeebfffeeeeeEfgghheEFffgheeEEFfghhHH","o":"14270635","g":1},{"n":9,"v":"AaaaAbbbBCcdcbbbbBccdcbbbbeccccfbbbeggghffeeeEghhhffeEGgghhhhhHHIiiihhHHHIIiihHHH","o":"372085164","g":1},{"n":9,"v":"AaaaAbbbBAacccbbbBaaaabbdddaaaebbdddaafggddddDffggghhHFfggggghHHGgggiiIIIIIiiiIII","o":"640381725","g":1},{"n":10,"v":"AAaaABbbBBCcdaaeebbBccdaaefbbbccccaaffbgccccaaffgghhchffffggGhhhffifiIHhhjjfiiiIIHhhjfffFFFHHhfffFFF","o":"3528091746","g":1},{"n":10,"v":"AAaaABbcCCAaaaaccccCddaeaaacccdddeaaaaccfddegaahhcfffeghhhhhHffigghhhHFfiigihhhHHIiiiihhHHHIIijjjJJJ","o":"6807391425","g":1},{"n":11,"v":"AAaaABBbbBBCcaaabbbbdDcccaabbbeddcffaaaaaeddgggaaagaeedgggggggghedDggigiihhhHGggiiiihjhHHGgkihhhjJJGGgkjjjjjJJJKKkkkkkKKK","o":"36028a19475","g":1},{"n":11,"v":"AAaaAABbbBBAaaaaaabbbBaaaaccdbbbbeeeeecddbbbfefeeeddddbffffgeeddhhHfffgeidhhHFffffiiihhHHFffiijkhHHFFffiijkkKKKIIiiikkKKK","o":"29507a41683","g":1},{"n":12,"v":"AAaaaABbbcCCAaadaaaccccCeddddaaacccfeeddaaaaaccfeedaagaahchheeddaggahhhhHijaaaghhhhHIiikkkgghhhHIiikkgghhllLLKkkkkghglLLLKKkkggggGGGGGGGggggGGGG","o":"7a4b60281935","g":1},{"n":7,"v":"AaaabaAccaaaadccaaaadeeeadddfeeeedgfegegggGeggggG","o":"4136205","g":1},{"n":8,"v":"AAabbbBBAaabcccCdabbbcccdabbeeecdffbeeeedggggheeEggghheEEGggggGG","o":"41602753","g":1},{"n":8,"v":"AAaabaAAAaaaaaaAcccadaddeeeeddddeeeefffdeegefhfdDeggghfFFHhhhhHH","o":"42071635","g":1},{"n":9,"v":"AAabbbbBBAaabccccCbbbbbcdccbbebbddcfeeebbddcfeegbbdccfehgbdddifFgggdddiIIGggdddDD","o":"264805173","g":1},{"n":9,"v":"AAaaabbBBAaaaccbbBddaaccebfggacccebfgghhhceefgghhhccffghhhhciiiIhhhhciiIIHhhhhiII","o":"531468072","g":1},{"n":10,"v":"AAaaabbbBBCccaaabddDecccaaadddecaaaaadffeeggahddffeeehhhiiffeeeeiiiiffeeeeiiiiffFeeeiiiiiIIEeiiijiII","o":"5317249086","g":1},{"n":10,"v":"AAaaaaabBBAaaaaaaaaAcadaaaaaaaccdeaeaafadddeeeeffadddeegggffdddddghghfddidgghhhfFiiddgghhHHIiidjghHH","o":"7403169285","g":1},{"n":11,"v":"AAaaaaaaaAAAaabbaacccCaaaaaacccddeaaadcccddfeeedddddddfeeeeeddgggfehhheeeggifeeehegggiiieeeheggggjjJeegegkkjjJJGgggggkkKK","o":"24603a18597","g":1},{"n":11,"v":"AAaaaabbcCCDddabbbbccCeedbbbbffcceeddbbffffceegggbbfffceehggbbffffeeiiibbbfffeeiiiiiifffjjjiiifffffFjjjjiiikfFFJjjjkkkkKK","o":"516a4207938","g":1},{"n":12,"v":"AAAaaaaaaAAABBbbccccaaAADdbbbcccaaaAddbbbbcceeaafdbbbccccaaafdbgbchccaaaffbgghhcciiifffhhhhjkkikffffllljkkkkKlllljjjkkkKKLlljjjkkkKKKLLllljkkKKK","o":"827913b50a64","g":1},{"n":7,"v":"abbccbdaabbbbdebbbdDdeddddddedeEfFdeeeffggegggggg","o":"3026415","g":1},{"n":8,"v":"aaaabcccaaaabddcaAeabedcafeeeeddaaeeeeedaaaagGegaaAhgggghhhhgggg","o":"74613052","g":1},{"n":8,"v":"abbbbbbcaabbbbccaaaadDceffaAcccefffffgcefffffgGgffggggggfhhggggg","o":"36427051","g":1},{"n":9,"v":"aaaabbbbcdaaabebccdddDbeeecdddfbeEccedeeeegggeEeeeegggeeeeeeeEgehheeeeeeeeheeieee","o":"068317425","g":1},{"n":9,"v":"aaaaaaaaaaaaaaabccaAadeebccffddeeeccffdeeccccggddccccchgdDcccCchhhhcCccihhhhcccci","o":"463507182","g":1},{"n":10,"v":"aaabbbbcccdddeebBcccddDebbbfffedeebfbfggeeeeefffgghehehfffffhhhHhhffffhhhhhhhfffhihhhHfffjhiiihhhfjj","o":"0751836492","g":1},{"n":10,"v":"abbccccccdaccccceeedacfceeeeEdaAfeeeegddaaffhhhgddifffhhHjJdiiffhhhjjdihhfhhhjjdihhhhhjjddhhhhhhhddd","o":"2460731859","g":1},{"n":11,"v":"aaaaabcccddeaaaAbBccCdaaaffcccccdaaafffcccddaagfhhchcccagghhhhhcccahhhihhhhccaiiiiijjhccaiiijjjJjccaikijjjjjjjakkkkkkjjjj","o":"50293174a86","g":1},{"n":11,"v":"aaaabbbccccaAbbbbcccddaaeeeeecdddaaaaeeecdfdaaaaAeegdffaahageggiffahhgggggiffaaaagggiiffjaaaAaaaikkjajaaaaAakajjjaaaaaaaa","o":"4638a257190","g":1},{"n":12,"v":"aabbccddddddaabbcccdDddeaabbbbfddddegabffFfffhddgagGffffhhhdgggffffhhhhdgggggfhhihiiggggjhhhiiiigggggGhhhiiiggghhhhkhiiilgghhkKkiiiillhhhkkkkiii","o":"5b3a16247908","g":1}]);
 // ==== MOTOR begin (rekenwerk zonder pagina: oplossen met uitleg, oplossingen tellen en puzzels maken)
 const KM = (function () {
   const LETTERS = 'abcdefghijkl';
@@ -2076,6 +2137,176 @@ const KM = (function () {
   return { dagPuzzel, dagMaat, lees, begin, stap, losOp, telOplossingen, zoekOplossingen, tegenspraak, klaar, gevolgen, alleGevolgen, maak, rng, naam, vakNaam, vlakNaam, KLEURNAAM, hernoem };
 })();
 // ==== MOTOR eind
+// ==== MAKER2 begin
+// De tweede maker (fase 2): borden met gaten of een vorm, dubbele kronen, en een moeilijkheid. De eerste maker (KM.maak) blijft precies
+// zoals hij was (de puzzel van de dag hangt ervan af); deze maker gebruikt van KM alleen lees, losOp, zoekOplossingen, rng en hernoem.
+// Hij is een generator: na elk zwaar stukje rekenwerk geeft hij de beurt terug (yield), zodat KM2.later de pagina niet laat haperen.
+// Zelfde maat, zaadje en opties = dezelfde puzzel. Een gat is een vakje dat er niet is: voor de rekenmotor een doos (hoofdletter in v),
+// en g: 1 in de puzzel zegt dat alle dozen gaten zijn. Verander je deze maker, dan veranderen ook de puzzels van Eindeloos en (na de
+// vaste lijst) de kronen van de week.
+const KM2 = (() => {
+  const L = 'abcdefghijkl';
+  const schud = (R, xs) => { for (let i = xs.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [xs[i], xs[j]] = [xs[j], xs[i]]; } return xs; };
+  const buur4 = (n, i) => { const r = (i / n) | 0, c = i % n, b = []; if (r) b.push(i - n); if (r < n - 1) b.push(i + n); if (c) b.push(i - 1); if (c < n - 1) b.push(i + 1); return b; };
+  // ---------- de vormen: 1 = er is een vakje, 0 = een gat
+  const vol = n => new Uint8Array(n * n).fill(1);
+  const VORMEN = {
+    vol,
+    ring: n => { const m = vol(n), h = n % 2 ? (n >= 9 ? 3 : 1) : (n >= 10 ? 4 : 2), a = (n - h) / 2; for (let r = a; r < a + h; r++) for (let c = a; c < a + h; c++) m[r * n + c] = 0; return m; },
+    kruis: n => { const m = vol(n), c0 = Math.max(1, Math.floor(n / 4)); for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if ((r < c0 || r >= n - c0) && (c < c0 || c >= n - c0)) m[r * n + c] = 0; return m; },
+    trap: n => { const m = vol(n), t = Math.max(2, Math.floor(n / 2) - 1); for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (c - r >= n - t || r - c >= n - t) m[r * n + c] = 0; return m; },
+    hart: n => { const m = new Uint8Array(n * n); for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const x = ((c + 0.5) / n) * 2.36 - 1.18, y = 1.27 - ((r + 0.5) / n) * 2, q = x * x + y * y - 1; m[r * n + c] = q * q * q - x * x * y * y * y <= 0 ? 1 : 0; } return m; },
+    achthoek: n => { const m = vol(n), t = Math.max(2, Math.round(n / 3.2)); for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const a = Math.min(r, n - 1 - r), b = Math.min(c, n - 1 - c); if (a + b < t - 1) m[r * n + c] = 0; } return m; },
+    gaten: (n, R) => { const m = vol(n), x = Math.max(2, Math.round(n * 0.4)); for (let t = 0, k = 0; k < x && t < 200; t++) { const r = 1 + Math.floor(R() * (n - 2)), c = 1 + Math.floor(R() * (n - 2)), i = r * n + c; if (!m[i] || buur4(n, i).some(j => !m[j]) || [i - n - 1, i - n + 1, i + n - 1, i + n + 1].some(j => !m[j])) continue; m[i] = 0; k++; } return m; },
+  };
+  // een vorm is bruikbaar als alle vakjes aan elkaar vastzitten en elke rij en kolom genoeg vakjes heeft
+  function bruikbaar(n, k, m) {
+    for (let x = 0; x < n; x++) { let a = 0, b = 0; for (let y = 0; y < n; y++) { a += m[x * n + y]; b += m[y * n + x]; } if (a < k * 2 - 1 || b < k * 2 - 1) return false; }
+    const vak = []; for (let i = 0; i < n * n; i++) if (m[i]) vak.push(i);
+    const gezien = new Set([vak[0]]), rij = [vak[0]];
+    while (rij.length) { const i = rij.pop(); for (const j of buur4(n, i)) if (m[j] && !gezien.has(j)) { gezien.add(j); rij.push(j); } }
+    return gezien.size === vak.length;
+  }
+  // ---------- kronen neerzetten: k per rij en kolom, alleen op vakjes die er zijn, en ze raken elkaar niet
+  function kronen(n, k, m, R) {
+    const kol = new Int8Array(n), plek = new Int16Array(n), rijen = []; let pogingen = 0;
+    for (let c = 0; c < n; c++) for (let r = 0; r < n; r++) plek[c] += m[r * n + c];
+    function rij(r, vorige) {
+      if (++pogingen > 30000) return false;
+      if (r === n) return true;
+      const opties = [];
+      if (k === 1) { for (let c = 0; c < n; c++) if (m[r * n + c]) opties.push([c]); }
+      else for (let a = 0; a < n; a++) for (let b = a + 2; b < n; b++) if (m[r * n + a] && m[r * n + b]) opties.push([a, b]);
+      schud(R, opties);
+      for (const o of opties) {
+        if (o.some(c => kol[c] >= k || vorige.some(v => Math.abs(v - c) <= 1))) continue;
+        o.forEach(c => kol[c]++);
+        // genoeg plek over in elke kolom voor de rijen die nog komen
+        let goed = true, rest = 0;
+        for (let c = 0; c < n && goed; c++) { let vrij = 0; for (let rr = r + 1; rr < n; rr++) vrij += m[rr * n + c]; if (vrij < k - kol[c]) goed = false; rest += k - kol[c]; }
+        if (goed && rest === (n - r - 1) * k && rij(r + 1, o)) { rijen[r] = o; return true; }
+        o.forEach(c => kol[c]--);
+      }
+      return false;
+    }
+    return rij(0, []) ? rijen : null;
+  }
+  // ---------- vlakken laten groeien rond de kronen (alleen over vakjes die er zijn)
+  function groei(n, k, m, rijen, R) {
+    const nn = n * n, reg = new Int8Array(nn).fill(-1), kr = [];
+    rijen.forEach((o, r) => o.forEach(c => kr.push(r * n + c)));
+    if (k === 1) kr.forEach((i, g) => { reg[i] = g; });
+    else {
+      const vrij = new Set(kr); let g = 0;
+      const afst = (a, b) => Math.abs(((a / n) | 0) - ((b / n) | 0)) + Math.abs(a % n - b % n);
+      for (const a of schud(R, kr.slice())) {
+        if (!vrij.has(a)) continue; vrij.delete(a);
+        let best = null, bd = 99;
+        for (const b of vrij) { const d = afst(a, b) + R() * 1.5; if (d < bd) { bd = d; best = b; } }
+        vrij.delete(best);
+        const van = new Map([[a, -1]]), q = [a];
+        while (q.length) { const x = q.shift(); if (x === best) break; for (const y of schud(R, buur4(n, x))) if (m[y] && !van.has(y) && reg[y] === -1 && (y === best || !kr.includes(y))) { van.set(y, x); q.push(y); } }
+        if (!van.has(best)) return null;
+        for (let x = best; x !== -1; x = van.get(x)) reg[x] = g;
+        g++;
+      }
+    }
+    const groot = Array.from({ length: n }, () => 0.35 + R() * R() * 3);
+    let over = 0; for (let i = 0; i < nn; i++) if (m[i] && reg[i] === -1) over++;
+    for (let veilig = 0; over && veilig < nn * 50; veilig++) {
+      let tot = 0; for (const w of groot) tot += w;
+      let x = R() * tot, g = 0; while (x > groot[g] && g < n - 1) { x -= groot[g]; g++; }
+      const rand = [];
+      for (let i = 0; i < nn; i++) if (reg[i] === g) for (const j of buur4(n, i)) if (m[j] && reg[j] === -1) rand.push(j);
+      if (!rand.length) { groot[g] = 0.0001; if (groot.every(w => w < 0.001)) break; continue; }
+      reg[rand[Math.floor(R() * rand.length)]] = g; over--;
+    }
+    for (let ronde = 0; ronde < nn && over; ronde++) for (let i = 0; i < nn; i++) if (m[i] && reg[i] === -1) { const b = buur4(n, i).filter(j => reg[j] >= 0); if (b.length) { reg[i] = reg[b[Math.floor(R() * b.length)]]; over--; } }
+    return over ? null : reg;
+  }
+  // een vlak blijft één geheel als vakje x eruit gaat?
+  function heelZonder(n, reg, x) {
+    const g = reg[x], cellen = []; for (let i = 0; i < n * n; i++) if (reg[i] === g && i !== x) cellen.push(i);
+    if (!cellen.length) return false;
+    const gezien = new Set([cellen[0]]), q = [cellen[0]];
+    while (q.length) { const i = q.pop(); for (const j of buur4(n, i)) if (j !== x && reg[j] === g && !gezien.has(j)) { gezien.add(j); q.push(j); } }
+    return gezien.size === cellen.length;
+  }
+  // de puzzel als tekst: gaten worden dozen (een hoofdletter van een buurvlak)
+  function puzzel(n, k, m, reg, rijen) {
+    let v = '';
+    for (let i = 0; i < n * n; i++) {
+      if (m[i]) { v += L[reg[i]]; continue; }
+      let g = -1; for (let d = 1; g < 0 && d < n; d++) for (const j of [i - d, i + d, i - d * n, i + d * n]) if (g < 0 && j >= 0 && j < n * n && reg[j] >= 0) g = reg[j];
+      v += L[Math.max(0, g)].toUpperCase();
+    }
+    const P = { n, v, o: rijen.map(o => o.map(c => c.toString(16)).join('')).join('') };
+    if (k > 1) P.k = k;
+    if (m.some(x => !x)) P.g = 1;
+    return P;
+  }
+  // ---------- één puzzel maken. opties: { k, vorm (naam uit VORMEN, of een masker), niveau (hoogste regel), minNiveau, min en max (zwaar), pogingen }
+  function* maker(n, zaad, opties = {}) {
+    const R = KM.rng(zaad), k = opties.k || 1, niveau = opties.niveau || 3;
+    let m = opties.masker || (VORMEN[opties.vorm || 'vol'] || vol)(n, R);
+    if (!bruikbaar(n, k, m)) return null;
+    for (let poging = 0; poging < (opties.pogingen || 300); poging++) {
+      if (opties.vorm === 'gaten' && poging && poging % 25 === 0) { m = VORMEN.gaten(n, R); if (!bruikbaar(n, k, m)) continue; }
+      const rijen = kronen(n, k, m, R); if (!rijen) { yield 0; continue; }
+      const reg = groei(n, k, m, rijen, R); if (!reg) continue;
+      const opl = []; rijen.forEach((o, r) => o.forEach(c => opl.push(r * n + c)));
+      const isKroon = new Uint8Array(n * n); for (const i of opl) isKroon[i] = 1;
+      // vakjes naar een buurvlak schuiven tot alleen de bedoelde oplossing overblijft
+      let goed = false;
+      for (let ronde = 0; ronde < (opties.herstel || n * 8); ronde++) {
+        const sols = KM.zoekOplossingen(KM.lees(puzzel(n, k, m, reg, rijen)), 2); yield 1;
+        if (sols.length === 1) { goed = true; break; }
+        const alt = sols.find(o => o.some(i => !isKroon[i])); if (!alt) break;
+        let gelukt = false;
+        for (const x of schud(R, alt.filter(i => !isKroon[i]))) {
+          const opt = []; for (const j of buur4(n, x)) if (reg[j] >= 0 && reg[j] !== reg[x] && !opt.includes(reg[j])) opt.push(reg[j]);
+          if (!opt.length || !heelZonder(n, reg, x)) continue;
+          reg[x] = opt[Math.floor(R() * opt.length)]; gelukt = true; break;
+        }
+        if (!gelukt) break;
+      }
+      if (!goed) continue;
+      const P = puzzel(n, k, m, reg, rijen), res = KM.losOp(KM.lees(P), niveau); yield 1;
+      if (!res.gelukt) continue;
+      if (opties.min !== undefined && res.zwaar < opties.min) continue;
+      if (opties.max !== undefined && res.zwaar > opties.max) continue;
+      if (opties.minNiveau && res.max < opties.minNiveau) continue;
+      const H = KM.hernoem(P); H._zwaar = res.zwaar; H._max = res.max; H._poging = poging;
+      return H;
+    }
+    return null;
+  }
+  const maak = (n, zaad, opties) => { const g = maker(n, zaad, opties); let x; do x = g.next(); while (!x.done); return x.value; };
+  // op de achtergrond maken, in stukjes van hooguit ~10 ms; klaar(P) als hij er is (P is null als het niet lukte). Geeft { stop }.
+  function later(n, zaad, opties, klaar) {
+    const g = typeof n === 'object' ? n : maker(n, zaad, opties); if (typeof n === 'object') klaar = zaad; let weg = false;
+    const kanaal = typeof MessageChannel !== 'undefined' ? new MessageChannel() : null;
+    const verder = () => { if (weg) return; const t0 = Date.now(); let x; do x = g.next(); while (!x.done && Date.now() - t0 < 10); if (x.done) { weg = true; klaar(x.value); } else if (kanaal) kanaal.port2.postMessage(0); else setTimeout(verder, 0); };
+    if (kanaal) kanaal.port1.onmessage = verder;
+    setTimeout(verder, 0);
+    return { stop() { weg = true; if (kanaal) kanaal.port1.close(); } };
+  }
+  // de moeilijkheden van Eindeloos (en Tegen de klok en Zen): welke regels nodig zijn, en hoe zwaar het minstens (en hooguit) is.
+  // Bij dubbele kronen is altijd regel 3 nodig, daarom gaat het daar op hoe zwaar.
+  const MOEILIJK = [
+    { naam: 'Makkelijk', opties: (n, k) => (k > 1 ? { k, niveau: 3, max: n * 10 } : { niveau: 2 }) },
+    { naam: 'Gemiddeld', opties: (n, k) => (k > 1 ? { k, niveau: 3, min: n * 10, max: n * 15 } : { niveau: 3, minNiveau: 2, min: Math.round(n * 1.5) }) },
+    { naam: 'Lastig', opties: (n, k) => (k > 1 ? { k, niveau: 3, min: n * 15 } : { niveau: 3, minNiveau: 3, min: n * 3 }) },
+    { naam: 'Meester', opties: (n, k) => (k > 1 ? { k, niveau: 4, minNiveau: 4 } : { niveau: 4, minNiveau: 4 }) },
+  ];
+  // de kroon van de week (de week begint op maandag: W = Math.floor((dagnummer + 3) / 7)): om de week een 12×12 die lastig is, en een
+  // 10×10 met dubbele kronen waarbij je moet doordenken. Voor iedereen dezelfde. Lukt het met een zaadje niet, dan het volgende.
+  const weekSoort = W => (W % 2 === 0 ? { n: 12, k: 1, opties: { niveau: 3, minNiveau: 3, min: 72 } } : { n: 10, k: 2, opties: { k: 2, niveau: 4, minNiveau: 4 } });
+  function* weekMaker(W) { const s = weekSoort(W); for (let x = 0; x < 8; x++) { const P = yield* maker(s.n, (Math.imul(W + x * 7919, 2246822519) ^ 0x6b77656b) >>> 0, s.opties); if (P) return P; } return null; }
+  const draai = g => { let x; do x = g.next(); while (!x.done); return x.value; };
+  return { maker, maak, later, VORMEN, bruikbaar, MOEILIJK, weekSoort, weekMaker, week: W => draai(weekMaker(W)), draai };
+})();
+// ==== MAKER2 eind
 (function () {
   const $ = id => document.getElementById(id);
   const KEY = 'rommelkroon-v1', N = PUZZELS.length, KLASSIEK = 370;
@@ -2091,6 +2322,7 @@ const KM = (function () {
   if (!isObj(opslag.bezig)) opslag.bezig = {};
   if (!isObj(opslag.dag)) opslag.dag = {};     // puzzels van de dag: { dagnummer: [tijd, hints, op de dag zelf 1/0, spoor] }
   if (!isObj(opslag.inst)) opslag.inst = {};   // { geluid, patroon }
+  for (const k of ['week', 'eind', 'eindTijd', 'klok']) if (!isObj(opslag[k])) opslag[k] = {};   // fase 2 (zie de kroon van de week en Uitdagingen)
   // het totaal gaat mee in de opslag, voor de voortgang op de homepage (Verder spelen)
   const bewaar = () => { try { opslag.voortgangTotaal = PUZZELS.length; } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
   const STANDAARD = { geluid: true, patroon: false };
@@ -2099,7 +2331,7 @@ const KM = (function () {
   const inst = k => (k === 'patroon' && KASTNU.kleur === 'duidelijk') || (opslag.inst[k] === undefined ? STANDAARD[k] : !!opslag.inst[k]);
   const zachtBewegen = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   // koppelen 2.0: wat je op een ander apparaat oploste, staat meteen ook hier (niet midden in een puzzel)
-  try { if (window.Scorebord && Scorebord.live) Scorebord.live(KEY, () => { const sp = $('spel'); if (!sp || !sp.hidden) return false; setTimeout(() => { let o = { opgelost: {}, bezig: {}, auto: false }; try { o = Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {} for (const k of ['opgelost', 'bezig', 'dag', 'inst']) if (!isObj(o[k])) o[k] = {}; opslag = o; if ($('spel').hidden) tekenOverzicht(); }, 0); return true; }); } catch (e) {}
+  try { if (window.Scorebord && Scorebord.live) Scorebord.live(KEY, () => { const sp = $('spel'); if (!sp || !sp.hidden) return false; setTimeout(() => { let o = { opgelost: {}, bezig: {}, auto: false }; try { o = Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {} for (const k of ['opgelost', 'bezig', 'dag', 'inst', 'week', 'eind', 'eindTijd', 'klok']) if (!isObj(o[k])) o[k] = {}; opslag = o; if ($('spel').hidden) tekenOverzicht(); }, 0); return true; }); } catch (e) {}
 
   // ---------------- tekeningen
   const LETTER = 'ABCDEFGHIJKL';
@@ -2120,18 +2352,29 @@ const KM = (function () {
   function plaatje(P, opt = {}) {
     const B = KM.lees(P), n = P.n, w = 100 / n, kronen = opt.kronen === true ? B.opl : opt.kronen || [], kl = kleurenVan(P, KASTNU.kleur, 'papier');
     let s = '<svg viewBox="-1.5 -1.5 103 103" aria-hidden="true">';
-    for (let i = 0; i < n * n; i++) { const r = (i / n) | 0, c = i % n; s += `<rect x="${(c * w).toFixed(2)}" y="${(r * w).toFixed(2)}" width="${(w + .2).toFixed(2)}" height="${(w + .2).toFixed(2)}" fill="${kl[B.reg[i]].k}"/>`; }
-    let lijn = '';
+    const gat = i => !!P.g && B.vast[i] === 1, er = (r, c) => r >= 0 && r < n && c >= 0 && c < n && !gat(r * n + c);
+    for (let i = 0; i < n * n; i++) { if (gat(i)) continue; const r = (i / n) | 0, c = i % n; s += `<rect x="${(c * w).toFixed(2)}" y="${(r * w).toFixed(2)}" width="${(w + .2).toFixed(2)}" height="${(w + .2).toFixed(2)}" fill="${kl[B.reg[i]].k}"/>`; }
+    let lijn = '', rand = '';
     for (let i = 0; i < n * n; i++) {
       const r = (i / n) | 0, c = i % n;
+      if (P.g) {
+        if (gat(i)) continue;
+        if (!er(r - 1, c)) rand += `M${(c * w).toFixed(2)} ${(r * w).toFixed(2)}h${w.toFixed(2)}`;
+        if (!er(r + 1, c)) rand += `M${(c * w).toFixed(2)} ${((r + 1) * w).toFixed(2)}h${w.toFixed(2)}`;
+        if (!er(r, c - 1)) rand += `M${(c * w).toFixed(2)} ${(r * w).toFixed(2)}v${w.toFixed(2)}`;
+        if (!er(r, c + 1)) rand += `M${((c + 1) * w).toFixed(2)} ${(r * w).toFixed(2)}v${w.toFixed(2)}`;
+        if (er(r, c + 1) && B.reg[i] !== B.reg[i + 1]) lijn += `M${((c + 1) * w).toFixed(2)} ${(r * w).toFixed(2)}v${w.toFixed(2)}`;
+        if (er(r + 1, c) && B.reg[i] !== B.reg[i + n]) lijn += `M${(c * w).toFixed(2)} ${((r + 1) * w).toFixed(2)}h${w.toFixed(2)}`;
+        continue;
+      }
       if (c < n - 1 && B.reg[i] !== B.reg[i + 1]) lijn += `M${((c + 1) * w).toFixed(2)} ${(r * w).toFixed(2)}v${w.toFixed(2)}`;
       if (r < n - 1 && B.reg[i] !== B.reg[i + n]) lijn += `M${(c * w).toFixed(2)} ${((r + 1) * w).toFixed(2)}h${w.toFixed(2)}`;
     }
-    let dun = ''; for (let x = 1; x < n; x++) dun += `M${(x * w).toFixed(2)} 0v100M0 ${(x * w).toFixed(2)}h100`;
-    s += `<path d="${dun}" stroke="#231A26" stroke-width=".35" opacity=".5"/><path d="${lijn}" stroke="#231A26" stroke-width="${n > 9 ? 1.6 : 2.2}" stroke-linecap="square"/><rect x="0" y="0" width="100" height="100" fill="none" stroke="#231A26" stroke-width="3"/>`;
+    let dun = ''; if (!P.g) for (let x = 1; x < n; x++) dun += `M${(x * w).toFixed(2)} 0v100M0 ${(x * w).toFixed(2)}h100`;
+    s += (dun ? `<path d="${dun}" stroke="#231A26" stroke-width=".35" opacity=".5"/>` : '') + `<path d="${lijn}" stroke="#231A26" stroke-width="${n > 9 ? 1.6 : 2.2}" stroke-linecap="square"/>` + (P.g ? `<path d="${rand}" stroke="#231A26" stroke-width="2.6" stroke-linecap="square"/>` : `<rect x="0" y="0" width="100" height="100" fill="none" stroke="#231A26" stroke-width="3"/>`);
     const teken = (i, inhoud, schaal = 1) => { const r = (i / n) | 0, c = i % n, z = w * schaal; return `<g transform="translate(${(c * w + (w - z) / 2).toFixed(2)} ${(r * w + (w - z) / 2).toFixed(2)}) scale(${(z / 40).toFixed(3)})">${inhoud}</g>`; };
     for (let i = 0; i < n * n; i++) {
-      if (B.vast[i] === 1) s += teken(i, DOOS.replace(/^<svg[^>]*>|<\/svg>$/g, ''), .95);
+      if (B.vast[i] === 1 && !P.g) s += teken(i, DOOS.replace(/^<svg[^>]*>|<\/svg>$/g, ''), .95);
       if (B.vast[i] === 2) s += teken(i, KAARTJE(B.tel[i]).replace(/^<svg[^>]*>|<\/svg>$/g, ''), .95);
     }
     for (const i of opt.kruisjes || []) s += teken(i, '<g transform="translate(10 10)">' + (KRUISJES[KASTNU.kruis] || KRUIS_PAD) + '</g>');
@@ -2149,6 +2392,20 @@ const KM = (function () {
     { nr: 5, naam: 'Rommelmeester', van: 480, tot: 500, regel: 'Alles door elkaar: dozen, kaartjes en dubbele kronen. Voor echte meesters.', kort: '', mijl: 'Rommelmeester' },
   ];
   const hoofdstukVan = i => (typeof i === 'number' ? HOOFDSTUKKEN.find(h => i >= h.van && i < h.tot) : null);
+  // fase 2: twee vaste reeksen achter de hoofdstukken. open: hoeveel klassieke puzzels je eerst moet oplossen. Per groep steeds 3 verder dan opgelost.
+  const REEKSEN = [
+    { id: 'dubbel', naam: 'Dubbel', van: 500, tot: 560, open: 15, uitleg: 'Twee kronen in elke rij, kolom en vlak. Ze raken elkaar nog steeds niet, ook niet schuin.', groepen: [8, 9, 10, 11].map((m, k) => [`${m}×${m}`, 500 + k * 15, 515 + k * 15]) },
+    { id: 'vormen', naam: 'Vormen', van: 560, tot: 620, open: 5, uitleg: 'Borden met gaten of een andere vorm. Waar geen vakje is, kan geen kroon. De rest blijft hetzelfde.', groepen: ['Ringen', 'Kruisen', 'Trappen', 'Harten', 'Achthoeken', 'Gatenkaas'].map((v, k) => [v, 560 + k * 10, 570 + k * 10]) },
+  ];
+  const reeksVan = i => (typeof i === 'number' ? REEKSEN.find(r => i >= r.van && i < r.tot) : null);
+  function reeksOpen(rs) { for (let j = rs.van; j < rs.tot; j++) if (opslag.opgelost[j] || opslag.bezig[j]) return true; let x = 0; for (let j = 0; j < KLASSIEK; j++) if (opslag.opgelost[j]) x++; return x >= rs.open; }
+  // de kroon van de week: de week begint op maandag (W = Math.floor((dagnummer + 3) / 7)); de eerste is die van maandag 2 november 2026
+  const WEEK_VANAF = 2966;
+  const weekNr = (d = dagNr()) => Math.floor((d + 3) / 7);
+  const weekCache = {};
+  // puzzels die het spel ter plekke maakt (Tegen de klok, Zen, Eindeloos): niet bewaard, id 'x' + nummer
+  const TIJDELIJK = new Map(); let tijdVolg = 0, modus = null;
+  function tijdelijk(PP, info) { const tid = 'x' + (++tijdVolg); TIJDELIJK.set(tid, Object.assign({ P: PP }, info)); if (TIJDELIJK.size > 6) TIJDELIJK.delete(TIJDELIJK.keys().next().value); return tid; }
   const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
   const fmtLang = s => s >= 3600 ? Math.floor(s / 3600) + ' u ' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ' min' : Math.floor(s / 60) + ' min';
   const normId = x => (typeof x === 'string' && /^\d+$/.test(x) ? +x : x);
@@ -2164,8 +2421,10 @@ const KM = (function () {
   function isOpen(i) {
     if (opslag.opgelost[i] || opslag.bezig[i]) return true;
     if (i < KLASSIEK) { if (i < aantalKlaar() + 3) return true; const lijst = PER_MAAT[PUZZELS[i].n], hier = lijst.filter(j => opslag.opgelost[j]).length; return lijst.indexOf(i) < hier + 3; }
+    const rs = reeksVan(i);
+    if (rs) { const g = rs.groepen.find(([, a, b]) => i >= a && i < b); return reeksOpen(rs) && i - g[1] < klaarIn({ van: g[1], tot: g[2] }) + 3; }
     const h = hoofdstukVan(i);
-    return hoofdstukOpen(h) && i - h.van < klaarIn(h) + 3;
+    return !!h && hoofdstukOpen(h) && i - h.van < klaarIn(h) + 3;
   }
   // de puzzel van de dag
   const dagNr = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
@@ -2181,16 +2440,26 @@ const KM = (function () {
   }
   const datum = (d, opt) => new Date(d * 86400000).toLocaleDateString('nl-NL', Object.assign({ timeZone: 'UTC' }, opt || { weekday: 'long', day: 'numeric', month: 'long' }));
   const LES = { n: 5, v: 'abbbbacbbbccbbdcddddcdedd', o: '03142' };
-  function puzzelVan(id) { if (id === 'les') return LES; if (typeof id === 'string' && id[0] === 'd') return dagPuzzel(+id.slice(1)); return PUZZELS[id]; }
+  function puzzelVan(id) {
+    if (id === 'les') return LES;
+    if (typeof id === 'string' && id[0] === 'd') return dagPuzzel(+id.slice(1));
+    if (typeof id === 'string' && id[0] === 'w') return weekCache[+id.slice(1)];
+    if (typeof id === 'string' && id[0] === 'x') { const t = TIJDELIJK.get(id); return t && t.P; }
+    return PUZZELS[id];
+  }
   function titelVan(id) {
     if (id === 'les') return ['Oefenpuzzel', ''];
+    if (typeof id === 'string' && id[0] === 'w') return ['Kroon van de week', weekTekst(+id.slice(1))];
+    if (typeof id === 'string' && id[0] === 'x') { const t = TIJDELIJK.get(id); return t ? [t.titel, t.sub || ''] : ['Puzzel', '']; }
     if (typeof id === 'string') return ['Puzzel van de dag', datum(+id.slice(1))];
+    const rs = reeksVan(id);
+    if (rs) { const g = rs.groepen.find(([, a, b]) => id >= a && id < b); return [`${rs.naam} · puzzel ${id - rs.van + 1}`, rs.id === 'dubbel' ? 'twee kronen per rij, kolom en vlak' : g ? g[0] : '']; }
     const h = hoofdstukVan(id);
     if (h) return [`Hoofdstuk ${h.nr} · puzzel ${id - h.van + 1}`, h.naam];
     const g = GROEPEN.find(x => x[0] === PUZZELS[id].n);
     return ['Puzzel ' + (id + 1), g ? g[1] : ''];
   }
-  const regelVan = P => [P.k > 1 ? 'Twee kronen per rij, kolom en vlak.' : '', /[A-Z]/.test(P.v) ? 'Op een doos kan geen kroon.' : '', P.t && P.t.length ? 'Het getal op een kaartje is het aantal kronen eromheen.' : ''].filter(Boolean).join(' ');
+  const regelVan = P => [P.k > 1 ? 'Twee kronen per rij, kolom en vlak.' : '', /[A-Z]/.test(P.v) ? (P.g ? 'Waar geen vakje is, kan geen kroon.' : 'Op een doos kan geen kroon.') : '', P.t && P.t.length ? 'Het getal op een kaartje is het aantal kronen eromheen.' : ''].filter(Boolean).join(' ');
 
   // ---------------- statistieken, reeks en mijlpalen
   function reeksen() {
@@ -2203,12 +2472,15 @@ const KM = (function () {
     return { nu, beste, aantal, archief, vandaag: op.has(vandaag) };
   }
   function stand() {
-    const st = { opgelost: 0, zonder: 0, tijd: 0, perMaat: {}, perH: {}, snel: {}, ...reeksen() };
+    const st = { opgelost: 0, zonder: 0, tijd: 0, perMaat: {}, perH: {}, perR: {}, snel: {}, ...reeksen() };
+    st.weken = Object.values(opslag.week || {}).filter(e => Array.isArray(e) && e[2]).length;
+    st.klok = +((opslag.klok || {}).b) || 0;
+    st.eind = Object.values(opslag.eind || {}).reduce((a, x) => a + (+x || 0), 0);
     for (const [k, o] of Object.entries(opslag.opgelost)) {
       const i = +k; if (!(i >= 0 && i < N) || !o) continue;
       st.opgelost++; st.tijd += +o.tijd || 0; if (!o.hints) st.zonder++;
       if (i < KLASSIEK) { const n = PUZZELS[i].n; (st.perMaat[n] = st.perMaat[n] || []).push(o); if (!o.hints) st.snel[n] = Math.min(st.snel[n] || 1e9, o.tijd); }
-      else { const h = hoofdstukVan(i); st.perH[h.nr] = (st.perH[h.nr] || 0) + 1; }
+      else { const h = hoofdstukVan(i), rs = reeksVan(i); if (h) st.perH[h.nr] = (st.perH[h.nr] || 0) + 1; else if (rs) st.perR[rs.id] = (st.perR[rs.id] || 0) + 1; }
     }
     return st;
   }
@@ -2233,6 +2505,13 @@ const KM = (function () {
     ['archief', 'Terug in de tijd', 'Los 5 puzzels uit het archief op.', st => st.archief, 5],
     ...HOOFDSTUKKEN.map(h => ['h' + h.nr, h.mijl, `Maak hoofdstuk ${h.nr} af: ${h.naam}.`, st => st.perH[h.nr] || 0, h.tot - h.van]),
     ['uren', 'Doorzetter', 'Puzzel in totaal vijf uur.', st => Math.floor(st.tijd / 60), 300],
+    // fase 2 (nieuwe mijlpalen altijd achteraan)
+    ['dubbel', 'Dubbel en dwars', 'Los alle 60 puzzels van Dubbel op.', st => st.perR.dubbel || 0, 60],
+    ['vormen', 'Vormvast', 'Los alle 60 Vormen op.', st => st.perR.vormen || 0, 60],
+    ['week1', 'Weekkroon', 'Los een kroon van de week op in die week zelf.', st => st.weken, 1],
+    ['week4', 'Vier weken', 'Los vier keer de kroon van de week op in die week zelf.', st => st.weken, 4],
+    ['klok10', 'Tegen de klok', 'Los 10 puzzels op in één keer Tegen de klok.', st => st.klok, 10],
+    ['eind50', 'Eindeloos', 'Los 50 puzzels op in Eindeloos.', st => st.eind, 50],
   ];
   const behaald = st => new Set(MIJLPALEN.filter(m => m[3](st) >= m[4]).map(m => m[0]));
   const MEDAILLE = (kleur = '#E9B949') => `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 2h8l4 12h-8zM34 2h-8l-4 12h8z" fill="#C8323C" stroke="#231A26" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="30" r="15" fill="${kleur}" stroke="#231A26" stroke-width="2.5"/><circle cx="24" cy="30" r="10.5" fill="none" stroke="#231A26" stroke-width="1.4" opacity=".45"/><path d="M16.5 35l-1-10 4.5 3.6 4-7 4 7 4.5-3.6-1 10z" fill="#FBF6E9" stroke="#231A26" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
@@ -2277,7 +2556,8 @@ const KM = (function () {
   // welke kleur elk vlak krijgt: vlakken die aan elkaar grenzen zo verschillend mogelijk (eerst het kleinste verschil, dan het totaal)
   function verdeelKleuren(Pz, D) {
     const n = Pz.n, reg = Array.from(Pz.v, c => LETTER.indexOf(c.toUpperCase())), K = D.length, aantal = Math.max(0, ...reg) + 1, rand = new Map();
-    for (let i = 0; i < n * n; i++) { const c = i % n; for (const j of [c < n - 1 ? i + 1 : -1, i + n < n * n ? i + n : -1]) if (j >= 0 && reg[i] !== reg[j]) { const k = Math.min(reg[i], reg[j]) * 16 + Math.max(reg[i], reg[j]); rand.set(k, (rand.get(k) || 0) + 1); } }
+    const gat = i => !!Pz.g && Pz.v[i] !== Pz.v[i].toLowerCase();
+    for (let i = 0; i < n * n; i++) { const c = i % n; if (gat(i)) continue; for (const j of [c < n - 1 ? i + 1 : -1, i + n < n * n ? i + n : -1]) if (j >= 0 && !gat(j) && reg[i] !== reg[j]) { const k = Math.min(reg[i], reg[j]) * 16 + Math.max(reg[i], reg[j]); rand.set(k, (rand.get(k) || 0) + 1); } }
     const randen = [...rand].map(([k, w]) => [k >> 4, k & 15, w]);
     const score = p => { let min = 1e9, som = 0; for (const [a, b, w] of randen) { const d = D[p[a]][p[b]]; if (d < min) min = d; som += w * Math.min(d, 45); } return min * 1e6 + som; };
     let beste = null, bs = -1;
@@ -2567,7 +2847,7 @@ const KM = (function () {
   if (tab === 'mijlpalen') tab = 'kast';
   function tekenOverzicht() {
     const b = bezit(); pasKastToe(b);
-    tekenDag(); tekenVerder(); tekenSeizoen(); tekenTab(); tekenKastTab(b);
+    tekenDag(); tekenWeek(); tekenVerder(); tekenSeizoen(); tekenTab(); tekenKastTab(b);
     $('stand').textContent = `${aantalKlaar()} van ${N} puzzels opgelost.` + (aantalKlaar() >= N ? ' Je bent een echte Rommelkroon-meester!' : '');
   }
   function tekenDag() {
@@ -2590,10 +2870,11 @@ const KM = (function () {
     let l = normId(opslag.laatste);
     // oude opslag weet niet wat het laatst gespeeld is: dan een puzzel die nog bezig is
     if (l === undefined || l === null || !opslag.bezig[l]) l = normId(Object.keys(opslag.bezig).find(k => normId(k) !== dagId(dagNr()) && puzzelVan(normId(k))));
-    if (l === undefined || l === null || !opslag.bezig[l] || l === dagId(dagNr()) || !puzzelVan(l)) { v.hidden = true; return; }
-    const [t1, t2] = titelVan(l), P = puzzelVan(l);
+    const isWeek = x => typeof x === 'string' && x[0] === 'w';
+    if (l === undefined || l === null || !opslag.bezig[l] || l === dagId(dagNr()) || l === 'w' + weekNr() || !(puzzelVan(l) || isWeek(l))) { v.hidden = true; return; }
+    const [t1, t2] = titelVan(l), m = isWeek(l) ? KM2.weekSoort(+l.slice(1)).n : puzzelVan(l).n;
     v.hidden = false;
-    v.innerHTML = `<div><b>Verder waar je was</b><p class="klein">${t1}${t2 ? ' · ' + t2 : ''} · ${P.n}×${P.n} · ${fmt(opslag.bezig[l].tijd || 0)}</p></div><button class="knop hoofd" type="button" data-start="${l}">Verder spelen</button>`;
+    v.innerHTML = `<div><b>Verder waar je was</b><p class="klein">${t1}${t2 ? ' · ' + t2 : ''} · ${m}×${m} · ${fmt(opslag.bezig[l].tijd || 0)}</p></div><button class="knop hoofd" type="button" data-start="${l}">Verder spelen</button>`;
   }
   function mijlHtml(st) {
     const have = behaald(st);
@@ -2614,7 +2895,15 @@ const KM = (function () {
       P.innerHTML = '<h2>Klassieke puzzels</h2><p class="klein">Eén kroon per rij, kolom en vlak. Los een puzzel op en er gaat een nieuwe open.</p>' + GROEPEN.map(([n, naam]) => {
         const idx = PER_MAAT[n], klaar = idx.filter(i => opslag.opgelost[i]).length;
         return `<details class="groep"${eerste && eerste[0] === n ? ' open' : ''}><summary><b>${naam} · ${n}×${n}</b><small>${klaar} van ${idx.length}</small><div class="voortgang" aria-hidden="true"><i style="width:${(100 * klaar / idx.length).toFixed(1)}%"></i></div></summary><div class="levels">${idx.map(i => knopLvl(i, 'Puzzel ' + (i + 1))).join('')}</div></details>`;
+      }).join('') + REEKSEN.map(rs => {
+        const open = reeksOpen(rs);
+        return `<h2 class="reeks-kop">${rs.naam}</h2><p class="klein">${rs.uitleg}${open ? '' : ` <span class="slot">${SLOT}Los eerst ${rs.open} klassieke puzzels op.</span>`}</p>` + (open ? rs.groepen.map(([naam, a, b]) => {
+          let klaarHier = 0; for (let j = a; j < b; j++) if (opslag.opgelost[j]) klaarHier++;
+          return `<details class="groep"><summary><b>${naam}</b><small>${klaarHier} van ${b - a}</small><div class="voortgang" aria-hidden="true"><i style="width:${(100 * klaarHier / (b - a)).toFixed(1)}%"></i></div></summary><div class="levels">${Array.from({ length: b - a }, (x, k) => knopLvl(a + k, `${rs.naam} ${naam}, puzzel ${a + k - rs.van + 1}`)).join('')}</div></details>`;
+        }).join('') : '');
       }).join('');
+    } else if (tab === 'uitdagingen') {
+      tekenUitdagingen(P);
     } else if (tab === 'hoofdstukken') {
       P.innerHTML = '<h2>Hoofdstukken</h2><p class="klein">Elk hoofdstuk brengt iets nieuws op het bord. Los 5 puzzels op in een hoofdstuk en het volgende gaat open.</p>' + HOOFDSTUKKEN.map(h => {
         const open = hoofdstukOpen(h), klaar = klaarIn(h), tot = h.tot - h.van;
@@ -2638,7 +2927,10 @@ const KM = (function () {
         }
         h += k + '</div></div>';
       }
-      P.innerHTML = h;
+      // de kronen van de week (de nieuwste eerst)
+      const nu = weekNr(); let wk = '';
+      for (let W = nu; W >= WEEK_VANAF; W--) { const e = opslag.week[W], b = opslag.bezig['w' + W]; wk += `<button type="button" class="wk${e ? ' klaar' : b ? ' bezig' : ''}" data-week="${W}"><span>${weekTekst(W)}<small>${weekSoortTekst(W)}${W === nu ? ' · deze week' : ''}</small></span><span class="wk-tijd">${e ? fmt(e[0]) + (e[2] ? ' 👑' : '') : b ? 'bezig' : ''}</span></button>`; }
+      P.innerHTML = h + `<h2 id="weken" class="reeks-kop">Kronen van de week</h2><p class="klein">Elke week één grote puzzel. Op het weekbord telt alleen je tijd in die week zelf (die krijgen een kroontje).</p><div class="weken">${wk}</div>`;
     } else tekenKast(P, stand());
   }
   $('paneel-tab').addEventListener('click', e => {
@@ -2658,47 +2950,55 @@ const KM = (function () {
     if (!naar) return; e.preventDefault(); const b = lijst[(i + naar + lijst.length) % lijst.length]; b.click(); b.focus();
   });
   document.addEventListener('click', e => {
-    const b = e.target.closest('[data-start],[data-dag],[data-naartab],[data-deel]');
+    const b = e.target.closest('[data-start],[data-dag],[data-naartab],[data-deel],[data-week]');
     if (!b || b.disabled || b.closest('dialog')) return;
-    if (b.dataset.start !== undefined) start(normId(b.dataset.start));
+    if (b.dataset.start !== undefined) speel(normId(b.dataset.start));
+    else if (b.dataset.week !== undefined) speelWeek(+b.dataset.week);
     else if (b.dataset.dag !== undefined) { const d = +b.dataset.dag; start(dagId(d), { dag: d }); }
     else if (b.dataset.deel !== undefined) deel(+b.dataset.deel);
-    else { tab = b.dataset.naartab; tekenTab(); $('tab-' + tab).scrollIntoView({ behavior: zachtBewegen() ? 'auto' : 'smooth', block: 'start' }); }
+    else { tab = b.dataset.naartab; try { sessionStorage.setItem('kroon-tab', tab); } catch (x) {} tekenTab(); ($(b.dataset.naar || '') || $('tab-' + tab)).scrollIntoView({ behavior: zachtBewegen() ? 'auto' : 'smooth', block: 'start' }); }
   });
 
   // ---------------- het spel
-  let P = null, B = null, id = 0, dagCtx = null, n = 0, cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set(), spoor = [], hintStap = null, focusCel = 0, elems = [], les = false;
+  let P = null, B = null, id = 0, dagCtx = null, weekCtx = null, n = 0, cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set(), spoor = [], hintStap = null, focusCel = 0, elems = [], les = false;
   function start(nieuwId, ctx = {}) {
     const PP = puzzelVan(nieuwId); if (!PP) return;
     if (P && !klaar && !$('spel').hidden) bewaarBezig();
+    if (!ctx.modus) modusUit();
     id = nieuwId; P = PP; B = KM.lees(P); n = P.n; les = id === 'les';
     dagCtx = ctx.dag !== undefined ? ctx.dag : (id === dagId(dagNr()) ? dagNr() : null);
+    weekCtx = typeof id === 'string' && id[0] === 'w' ? +id.slice(1) : null;
     const b = !les && opslag.bezig[id];
     cel = b && Array.isArray(b.cel) && b.cel.length === n * n ? b.cel.map(x => (x === 1 || x === 2 ? x : 0)) : Array(n * n).fill(0);
     tijd = b ? +b.tijd || 0 : 0; hints = b ? +b.hints || 0 : 0; autoX = new Set(b && Array.isArray(b.auto) ? b.auto : []); spoor = b && Array.isArray(b.spoor) ? b.spoor.slice() : [];
     for (let i = 0; i < n * n; i++) if (B.vast[i]) { cel[i] = 0; autoX.delete(i); }
     gesch = []; klaar = false; hintStap = null; focusCel = 0;
-    if (!les) { opslag.laatste = id; bewaar(); }
+    if (!les && !(typeof id === 'string' && id[0] === 'x')) { opslag.laatste = id; bewaar(); }
+    $('spel').classList.toggle('zen', !!(modus && modus.soort === 'zen'));
     const [t1, t2] = dagCtx !== null && typeof id === 'number' ? ['Puzzel van de dag', datum(dagCtx) + ' · puzzel ' + (id + 1)] : titelVan(id);
     $('spel-titel').innerHTML = `${t1} · ${n}×${n}${t2 ? `<span class="sub">${t2}</span>` : ''}`;
     const rb = regelVan(P);
-    $('regelband').hidden = !rb; $('regelband').innerHTML = rb ? (P.t && P.t.length ? KAARTJE(1) : /[A-Z]/.test(P.v) ? DOOS : KROON) + '<span>' + rb + '</span>' : '';
+    $('regelband').hidden = !rb; $('regelband').innerHTML = rb ? (P.t && P.t.length ? KAARTJE(1) : /[A-Z]/.test(P.v) && !P.g ? DOOS : KROON) + '<span>' + rb + '</span>' : '';
     $('overzicht').hidden = true; $('spel').hidden = false; $('hintvak').hidden = true; $('bord').classList.remove('gewonnen');
     bouwBord(); teken(); startKlok(); window.scrollTo(0, 0);
+    zetZoom(1, 0, 0); $('zoom').hidden = !(n >= 9 && window.matchMedia && matchMedia('(pointer: coarse)').matches);
     if (les) toonLesTip();
     // eerste keer in een hoofdstuk: de nieuwe regel uitleggen
+    const rs = reeksVan(id);
+    if (rs && !b && !klaarIn(rs) && rs.groepen.some(g => g[1] === id)) setTimeout(() => dialoog(`<span class="tape">${rs.naam}</span><h2 id="dlg-titel">${titelVan(id)[1]}</h2><div class="uitleg-plaat">${plaatje(P, {})}</div><p>${rs.uitleg}</p><div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Aan de slag</button></div>`), 200);
     const h = hoofdstukVan(id);
     if (h && !b && !klaarIn(h) && id === h.van) setTimeout(() => dialoog(`<span class="tape">Hoofdstuk ${h.nr}</span><h2 id="dlg-titel">${h.naam}</h2><div class="uitleg-plaat">${plaatje(P, {})}</div><p>${h.regel}</p><p>De gewone regels blijven: ${P.k > 1 ? 'twee' : 'één'} kroon${P.k > 1 ? 'en' : ''} per rij, kolom en vlak, en kronen raken elkaar niet.</p><div class="balk"><button class="knop hoofd" data-k="dicht" type="button">Aan de slag</button></div>`), 200);
   }
   function bouwBord() {
-    const Bd = $('bord'); Bd.style.setProperty('--n', n); Bd.innerHTML = ''; Bd.className = 'bord st-' + KASTNU.bord + (inst('patroon') ? ' patroon' : '') + (n >= 11 ? ' groot' : '');
+    const Bd = $('bord'); Bd.style.setProperty('--n', n); Bd.innerHTML = ''; Bd.className = 'bord st-' + KASTNU.bord + (inst('patroon') ? ' patroon' : '') + (n >= 11 ? ' groot' : '') + (P.g ? ' vorm' : '');
+    const gat = i => !!P.g && B.vast[i] === 1, anders = (j, g) => gat(j) || B.reg[j] !== g;
     const kl = kleurenVan(P);
     elems = [];
     for (let r = 0; r < n; r++) {
       const rij = document.createElement('div'); rij.className = 'rij'; rij.setAttribute('role', 'row');
       for (let c = 0; c < n; c++) {
         const i = r * n + c, g = B.reg[i], d = document.createElement('button');
-        d.type = 'button'; d.className = 'cel' + (r === 0 || B.reg[i - n] !== g ? ' t' : '') + (c === 0 || B.reg[i - 1] !== g ? ' l' : '') + (c === n - 1 || B.reg[i + 1] !== g ? ' r' : '') + (r === n - 1 || B.reg[i + n] !== g ? ' b' : '') + (B.vast[i] === 1 ? ' doos' : B.vast[i] === 2 ? ' kaart' : '');
+        d.type = 'button'; d.className = 'cel' + (gat(i) ? ' gat' : (r === 0 || anders(i - n, g) ? ' t' : '') + (c === 0 || anders(i - 1, g) ? ' l' : '') + (c === n - 1 || anders(i + 1, g) ? ' r' : '') + (r === n - 1 || anders(i + n, g) ? ' b' : '') + (B.vast[i] === 1 ? ' doos' : B.vast[i] === 2 ? ' kaart' : ''));
         d.style.backgroundColor = kl[g].k; d.dataset.i = i; d.dataset.p = g; d.setAttribute('role', 'gridcell'); d.tabIndex = i === focusCel ? 0 : -1;
         rij.appendChild(d); elems.push(d);
       }
@@ -2715,7 +3015,7 @@ const KM = (function () {
     for (let i = 0; i < n * n; i++) if (s[i] === 2) for (const j of B.buren[i]) if (s[j] === 2) { fout.add(i); fout.add(j); }
     return fout;
   }
-  const eersteVanVlak = () => { const z = new Set(), uit = new Set(); for (let i = 0; i < n * n; i++) if (!z.has(B.reg[i])) { z.add(B.reg[i]); uit.add(i); } return uit; };
+  const eersteVanVlak = () => { const z = new Set(), uit = new Set(); for (let i = 0; i < n * n; i++) if (!(P.g && B.vast[i] === 1) && !z.has(B.reg[i])) { z.add(B.reg[i]); uit.add(i); } return uit; };
   function teken(pop, kruisPop) {
     const fout = conflicten(), letters = inst('patroon') ? eersteVanVlak() : null;
     const hl = new Set(), doel = new Map();
@@ -2723,6 +3023,7 @@ const KM = (function () {
     for (let i = 0; i < n * n; i++) {
       const d = elems[i], r = Math.floor(i / n) + 1, c = (i % n) + 1, vlak = vlakKleur(B.reg[i]) + ' vlak' + (inst('patroon') ? ' ' + LETTER[B.reg[i]] : '');
       let html = '', wat;
+      if (B.vast[i] === 1 && P.g) { if (d._html !== '') { d.innerHTML = ''; d._html = ''; } d.setAttribute('aria-label', `Rij ${r}, kolom ${c}, geen vakje`); continue; }
       if (B.vast[i] === 1) { html = DOOS; wat = 'doos, hier kan geen kroon'; }
       else if (B.vast[i] === 2) { html = KAARTJE(B.tel[i]); wat = `kaartje: ${B.tel[i]} kroon${B.tel[i] === 1 ? '' : 'en'} eromheen`; }
       else if (cel[i] === 2) { html = kroonSvg(); wat = 'kroon'; }
@@ -2738,8 +3039,13 @@ const KM = (function () {
     $('b-hint').disabled = klaar; $('b-opnieuw').disabled = klaar;
     $('b-auto').setAttribute('aria-pressed', String(!!opslag.auto));
   }
-  function bewaarBezig() { if (klaar || les || !P) return; opslag.bezig[id] = { cel: cel.slice(), tijd: Math.floor(tijd), hints, auto: [...autoX], spoor: spoor.slice(-60) }; bewaar(); }
-  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden) tijd += (nu - vorige) / 1000; vorige = nu; $('tijd').textContent = fmt(tijd); }, 250); $('tijd').textContent = fmt(tijd); }
+  function bewaarBezig() { if (klaar || les || !P || (typeof id === 'string' && id[0] === 'x')) return; opslag.bezig[id] = { cel: cel.slice(), tijd: Math.floor(tijd), hints, auto: [...autoX], spoor: spoor.slice(-60) }; bewaar(); }
+  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden) tijd += (nu - vorige) / 1000; vorige = nu; toonTijd(); }, 250); toonTijd(); }
+  // Tegen de klok: de tijd die nog over is (rood in de laatste 30 seconden); anders de tijd tot nu toe
+  function toonTijd() {
+    if (modus && modus.soort === 'klok' && !modus.klaar) { const over = klokOver(); $('tijd').textContent = fmt(Math.ceil(over)); $('tijd').classList.toggle('bijna', over < 30); if (over <= 0 && !klaar) klokEinde(); }
+    else { $('tijd').textContent = fmt(tijd); $('tijd').classList.remove('bijna'); }
+  }
   const snap = () => ({ cel: cel.slice(), auto: [...autoX] });
   function autoKruis(i) { for (const j of KM.gevolgen(B, toestand(), i, new Set())) if (cel[j] === 0 && !B.vast[j]) { cel[j] = 1; autoX.add(j); } }
   function herberekenAuto() { for (const j of autoX) if (cel[j] === 1) cel[j] = 0; autoX = new Set(); for (let k = 0; k < n * n; k++) if (cel[k] === 2) autoKruis(k); }
@@ -2762,6 +3068,7 @@ const KM = (function () {
     if (!KM.klaar(B, toestand())) return;
     klaar = true; clearInterval(klok); hintStap = null; $('hintvak').hidden = true;
     const t = Math.max(1, Math.round(tijd));
+    if (modus && typeof id === 'string' && id[0] === 'x') { modusKlaar(t); return; }
     if (les) { opslag.uitleg = 1; bewaar(); vier(); setTimeout(() => dialoog(`<div class="klaar-kaart"><span class="tape">Goed gedaan</span><h2 id="dlg-titel">Je eerste kroontjes!</h2><p>Zo werkt het: steeds de plek zoeken waar een kroon wel móét staan, of juist niet kán. Kom je vast te zitten, dan legt de hint uit wat je kunt doen.</p><div class="balk"><button class="knop hoofd" data-k="start0" type="button">Speel puzzel 1</button><button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`), n * 90 + 500); teken(); return; }
     const voor = behaald(stand()), kastVoor = bezit();
     let oud = null, record = false;
@@ -2775,6 +3082,15 @@ const KM = (function () {
       const r = reeksen();
       dagTekst = opTijd && r.nu ? `<p><span class="reeks">${VLAM}${r.nu} dag${r.nu > 1 ? 'en' : ''} op rij!</span></p>` : '';
     }
+    // de kroon van de week: liefst de keer in die week zelf, dan de snelste. Op het weekbord telt alleen een tijd in die week zelf.
+    if (weekCtx !== null) {
+      const W = weekCtx, e = opslag.week[W], inWeek = W === weekNr() ? 1 : 0;
+      oud = e ? { tijd: e[0] } : null; record = !e || t < e[0];
+      if (!e || t < e[0]) opslag.week[W] = [t, hints, e && e[2] ? 1 : inWeek, spoorTekst()];
+      else if (inWeek && !e[2]) e[2] = 1;
+      if (inWeek && serverNieuw && window.Scorebord) Scorebord.stuur('kw' + W, Math.max(0, 36000 - t), 0);
+      dagTekst = inWeek ? '<p class="klein">Je tijd staat op het weekbord van het scorebord (als je meedoet).</p>' : '';
+    }
     delete opslag.bezig[id]; bewaar(); stuurScore();
     teken(); vier();
     const nieuw = [...behaald(stand())].filter(x => !voor.has(x)), kastNa = bezit(), nieuwKast = KAST.filter(x => kastNa.has(x.id) && !kastVoor.has(x.id));
@@ -2783,13 +3099,14 @@ const KM = (function () {
     const volgende = volgendeVan(id);
     setTimeout(() => {
       const t1 = dagCtx !== null ? 'Puzzel van de dag' : titelVan(id)[0];
-      dialoog(`<div class="klaar-kaart"><span class="tape">Opgelost!</span><h2 id="dlg-titel">${t1}</h2><p class="groot">${fmt(t)}</p><p>${record && oud ? 'Een nieuw record!' : oud ? 'Je record is ' + fmt(oud.tijd) + '.' : 'Weer een puzzel op je naam.'}${hints ? ' Met ' + hints + ' hint' + (hints > 1 ? 's' : '') + '.' : ' Zonder hint!'}</p>${dagCtx !== null ? `<p class="spoor" aria-label="Je kronen op volgorde">${(opslag.dag[dagCtx] || [])[3] || ''}</p>${dagTekst}` : ''}${kastTekst}<div class="balk">${dagCtx !== null ? `<button class="knop hoofd" data-k="deel" type="button">Deel je tijd</button><button class="knop" data-k="archief" type="button">Archief</button>` : volgende !== null ? '<button class="knop hoofd" data-k="volgende" type="button">Volgende puzzel</button>' : ''}${nieuwKast.length ? '<button class="knop" data-k="kast" type="button">Naar je kast</button>' : ''}<button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`);
+      dialoog(`<div class="klaar-kaart"><span class="tape">Opgelost!</span><h2 id="dlg-titel">${t1}</h2><p class="groot">${fmt(t)}</p><p>${record && oud ? 'Een nieuw record!' : oud ? 'Je record is ' + fmt(oud.tijd) + '.' : 'Weer een puzzel op je naam.'}${hints ? ' Met ' + hints + ' hint' + (hints > 1 ? 's' : '') + '.' : ' Zonder hint!'}</p>${dagCtx !== null ? `<p class="spoor" aria-label="Je kronen op volgorde">${(opslag.dag[dagCtx] || [])[3] || ''}</p>${dagTekst}` : ''}${kastTekst}<div class="balk">${dagCtx !== null ? `<button class="knop hoofd" data-k="deel" type="button">Deel je tijd</button><button class="knop" data-k="archief" type="button">Archief</button>` : weekCtx !== null ? `<button class="knop hoofd" data-k="weken" type="button">Vorige weken</button>` : volgende !== null ? '<button class="knop hoofd" data-k="volgende" type="button">Volgende puzzel</button>' : ''}${nieuwKast.length ? '<button class="knop" data-k="kast" type="button">Naar je kast</button>' : ''}<button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`);
       nieuwKast.slice(0, 3).forEach((x, k) => setTimeout(() => { melding(`${voorbeeldKlein(x)}<span>Nieuw in je kast: ${dingNaam(x)}</span>`); GELUID.mijl(); }, 600 + (nieuw.length + k) * 900));
       nieuw.forEach((x, k) => setTimeout(() => { const m = MIJLPALEN.find(y => y[0] === x); melding(`${MEDAILLE()}<span>Mijlpaal: ${m[1]}</span>`); GELUID.mijl(); }, 600 + k * 900));
     }, n * 90 + 450);
   }
   function volgendeVan(i) {
     if (typeof i !== 'number') return null;
+    const rs = reeksVan(i); if (rs) return i + 1 < rs.tot ? i + 1 : null;
     const h = hoofdstukVan(i);
     if (h) return i + 1 < h.tot ? i + 1 : (h.nr < HOOFDSTUKKEN.length && hoofdstukOpen(HOOFDSTUKKEN[h.nr]) ? HOOFDSTUKKEN[h.nr].van : null);
     return i + 1 < KLASSIEK ? i + 1 : null;
@@ -2800,13 +3117,13 @@ const KM = (function () {
     const tekens = spoor.map(([i, h], k) => (h ? '💡' : cel[i] === 2 && laatst.get(i) === k ? '👑' : '❌'));
     return tekens.length > 24 ? tekens.slice(0, 24).join('') + '…' : tekens.join('');
   }
-  function vier() {
-    GELUID.klaar();
+  function vier(kort) {
+    if (!kort) GELUID.klaar();
     const Bd = $('bord'); Bd.classList.remove('gewonnen'); void Bd.offsetWidth; Bd.classList.add('gewonnen');
     const kronen = []; for (let i = 0; i < n * n; i++) if (cel[i] === 2) kronen.push(i);
     const mijn = elems;
     kronen.forEach((i, k) => setTimeout(() => { const d = mijn[i]; if (!d || !d.isConnected) return; d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop'); }, k * 90));
-    feest();
+    if (!kort) feest();
   }
   const volgendeStand = w => (w + 1) % 3;
   // ---------------- tikken, slepen, rechts klikken
@@ -2814,6 +3131,7 @@ const KM = (function () {
   const celVan = e => { const el = document.elementFromPoint(e.clientX, e.clientY), d = el && el.closest && el.closest('.cel'); return d && d.parentNode && d.parentNode.parentNode === $('bord') ? +d.dataset.i : null; };
   $('bord').addEventListener('contextmenu', e => e.preventDefault());
   $('bord').addEventListener('pointerdown', e => {
+    if (knijpBegin(e)) { e.preventDefault(); try { $('bord').setPointerCapture(e.pointerId); } catch (x) {} return; }
     const d = e.target.closest('.cel'); if (!d || klaar) return;
     e.preventDefault(); audio();
     const i = +d.dataset.i; focusOp(i, false);
@@ -2822,6 +3140,7 @@ const KM = (function () {
     try { $('bord').setPointerCapture(e.pointerId); } catch (x) {}
   });
   $('bord').addEventListener('pointermove', e => {
+    if (knijpBeweeg(e)) return;
     if (!sleep || klaar) return; const i = celVan(e); if (i === null || i === sleep.laatst) return;
     if (!sleep.bewogen) { sleep.bewogen = true; gesch.push(snap()); verf(sleep.start); }
     // ook de vakjes ertussen (bij snel slepen)
@@ -2831,10 +3150,11 @@ const KM = (function () {
   });
   function verf(i) { if (B.vast[i]) return; if (sleep.modus === 'zet' && cel[i] === 0) { cel[i] = 1; GELUID.kruis(); } else if (sleep.modus === 'wis' && cel[i] === 1) { cel[i] = 0; autoX.delete(i); } }
   const loslaten = () => { if (!sleep) return; const s = sleep; sleep = null; if (s.bewogen) { naZet(); return; } zet(s.start, volgendeStand(cel[s.start])); };
-  $('bord').addEventListener('pointerup', loslaten);
-  $('bord').addEventListener('pointercancel', () => { if (sleep && sleep.bewogen) naZet(); sleep = null; });
+  $('bord').addEventListener('pointerup', e => { knijpEind(e); if (knijptNet()) { sleep = null; return; } loslaten(); });
+  $('bord').addEventListener('pointercancel', e => { knijpEind(e); if (sleep && sleep.bewogen) naZet(); sleep = null; });
+  window.addEventListener('resize', () => { if (ZOOM.s > 1) zetZoom(ZOOM.s, ZOOM.x, ZOOM.y); });
   // toetsenbord
-  function focusOp(i, echt = true) { if (elems[focusCel]) elems[focusCel].tabIndex = -1; focusCel = i; if (elems[i]) { elems[i].tabIndex = 0; if (echt) elems[i].focus(); } }
+  function focusOp(i, echt = true) { if (elems[focusCel]) elems[focusCel].tabIndex = -1; focusCel = i; if (elems[i]) { elems[i].tabIndex = 0; if (echt) { elems[i].focus({ preventScroll: ZOOM.s > 1 }); zoomNaar(i); } } }
   $('bord').addEventListener('keydown', e => {
     const d = e.target.closest('.cel'); if (!d) return; const i = +d.dataset.i, r = Math.floor(i / n), c = i % n;
     const naar = { ArrowRight: c < n - 1 ? i + 1 : i, ArrowLeft: c > 0 ? i - 1 : i, ArrowDown: r < n - 1 ? i + n : i, ArrowUp: r > 0 ? i - n : i, Home: r * n, End: r * n + n - 1 }[e.key];
@@ -2898,7 +3218,7 @@ const KM = (function () {
   $('hint-doe').addEventListener('click', doeHint);
   $('hint-dicht').addEventListener('click', () => { hintStap = null; $('hintvak').hidden = true; teken(); });
   function naarOverzicht() { bewaarBezig(); clearInterval(klok); hintStap = null; $('spel').hidden = true; $('overzicht').hidden = false; tekenOverzicht(); window.scrollTo(0, 0); }
-  $('b-terug').addEventListener('click', naarOverzicht);
+  $('b-terug').addEventListener('click', () => { if (modus && modus.soort === 'klok' && !klaar) { klokEinde(true); return; } modusUit(); naarOverzicht(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) bewaarBezig(); });
   window.addEventListener('pagehide', bewaarBezig);
 
@@ -2927,10 +3247,14 @@ const KM = (function () {
     if (wat === 'les-verder') { uitlegStap(+k.dataset.stap); return; }
     sluit();
     if (wat === 'volgende') { const v = volgendeVan(id); if (v !== null) start(v); }
-    else if (wat === 'overzicht') naarOverzicht();
+    else if (wat === 'overzicht') { modusUit(); naarOverzicht(); }
     else if (wat === 'archief') { tab = 'archief'; naarOverzicht(); }
     else if (wat === 'kast') { tab = 'kast'; try { sessionStorage.setItem('kroon-tab', tab); } catch (e) {} naarOverzicht(); setTimeout(() => $('tab-kast').scrollIntoView({ behavior: zachtBewegen() ? 'auto' : 'smooth', block: 'start' }), 50); }
     else if (wat === 'deel') { deel(dagCtx); }
+    else if (wat === 'weken') { modusUit(); tab = 'archief'; try { sessionStorage.setItem('kroon-tab', tab); } catch (e) {} naarOverzicht(); setTimeout(() => { const w = $('weken'); if (w) w.scrollIntoView({ behavior: zachtBewegen() ? 'auto' : 'smooth', block: 'start' }); }, 50); }
+    else if (wat === 'uitdagingen') { modusUit(); tab = 'uitdagingen'; try { sessionStorage.setItem('kroon-tab', tab); } catch (e) {} naarOverzicht(); }
+    else if (wat === 'klok-nog') klokStart();
+    else if (wat === 'modus-nog') { if (modus) modusVolgende(modus); }
     else if (wat === 'les') start('les');
     else if (wat === 'start0') start(0);
   });
@@ -2964,12 +3288,197 @@ const KM = (function () {
   }
   $('b-uitleg').addEventListener('click', () => uitlegStap(0));
 
+
+  // ================================================================ FASE 2: de kroon van de week, Tegen de klok, Zen en Eindeloos
+  // Opslag (allemaal in rommelkroon-v1, met een regel in de REGELS): week { W: [tijd, hints, in die week zelf 1/0, spoor] } (zoals dag),
+  // klok { b: beste, n: gespeeld }, zen (aantal), eind { 'n:m' of 'nd:m' (dubbel): aantal } en eindTijd { zelfde sleutel: snelste tijd }.
+  // m is de moeilijkheid (0 makkelijk tot 3 meester, KM2.MOEILIJK). Puzzels van Tegen de klok, Zen en Eindeloos worden niet bewaard (id 'x…').
+  const weekTekst = W => { const d0 = W * 7 - 3; return datum(d0, { day: 'numeric', month: 'long' }) + ' tot en met ' + datum(d0 + 6, { day: 'numeric', month: 'long' }); };
+  const weekSoortTekst = W => { const s = KM2.weekSoort(W); return s.k > 1 ? `${s.n}×${s.n}, dubbele kronen` : `${s.n}×${s.n}, lastig`; };
+  // een puzzel op de achtergrond maken (KM2.later), met een venster 'even geduld' als je erop moet wachten
+  let wachtStop = null;
+  function wacht(tekst, gen, klaarF) {
+    let klaarAl = false;
+    const taak = KM2.later(gen, P => { klaarAl = true; const w = wachtStop; wachtStop = null; if (w) sluit(); klaarF(P); });
+    if (klaarAl) return;
+    wachtStop = () => { taak.stop(); wachtStop = null; };
+    dialoog(`<div class="wacht"><span class="draai" aria-hidden="true">${KROON}</span><h2 id="dlg-titel">${tekst}</h2><p class="klein">De puzzel wordt nu gemaakt en nagekeken: precies één oplossing, die je zonder gokken vindt.</p><div class="balk"><button class="knop" data-k="dicht" type="button">Stoppen</button></div></div>`);
+  }
+  $('dlg').addEventListener('close', () => { if (wachtStop) wachtStop(); });
+  function weekKlaar(W, klaarF, stil) {
+    if (weekCache[W]) { klaarF(weekCache[W]); return; }
+    const gen = KM2.weekMaker(W);
+    if (stil) { KM2.later(gen, P => { if (P) weekCache[W] = P; klaarF(P); }); return; }
+    wacht('De kroon van de week wordt gemaakt…', gen, P => { if (P) { weekCache[W] = P; klaarF(P); } else melding('Dat lukte even niet. Probeer het nog eens.'); });
+  }
+  const speelWeek = W => weekKlaar(W, () => start('w' + W, { week: W }));
+  // een puzzel starten, ook als hij nog gemaakt moet worden (de kroon van de week)
+  function speel(id) { if (typeof id === 'string' && id[0] === 'w') speelWeek(+id.slice(1)); else start(id); }
+  // ---- de kaart van de kroon van de week (onder de puzzel van de dag)
+  function tekenWeek() {
+    const el = $('week'), W = weekNr(); if (!el) return;
+    const e = opslag.week[W], b = opslag.bezig['w' + W], P = weekCache[W], s = KM2.weekSoort(W);
+    let status = 'Nog niet gespeeld.', knop = 'Spelen';
+    if (e) { status = `Opgelost in ${fmt(e[0])}` + (e[1] ? ` met ${e[1]} hint${e[1] > 1 ? 's' : ''}.` : ', zonder hint!'); knop = 'Nog eens'; }
+    else if (b) { status = `Bezig · ${fmt(b.tijd || 0)}`; knop = 'Verder spelen'; }
+    const dagen = 6 - ((dagNr() + 3) % 7), nog = dagen ? `nog ${dagen + 1} dagen` : 'alleen vandaag nog';
+    el.innerHTML = `<div class="mini-plek">${P && e ? plaatje(P, { kronen: true }) : `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FBF6E9"/>${Array.from({ length: s.n - 1 }, (x, k) => `<path d="M${(k + 1) * 100 / s.n} 0v100M0 ${(k + 1) * 100 / s.n}h100" stroke="#231A26" stroke-width=".8" opacity=".35"/>`).join('')}</svg><span class="dicht">${s.n}×${s.n}</span>`}</div>
+      <div><span class="tape">Kroon van de week</span><h2>${weekTekst(W)}</h2></div>
+      <p class="status">${weekSoortTekst(W)} · ${status}</p>
+      <p class="klein">Elke week één grote puzzel, voor iedereen dezelfde (${nog}). Je tijd in deze week telt op het weekbord van het scorebord.</p>
+      <div class="balk"><button class="knop hoofd" type="button" data-week="${W}">${knop}</button>${W > WEEK_VANAF ? '<button class="knop" type="button" data-naartab="archief" data-naar="weken">Vorige weken</button>' : ''}</div>`;
+    if (e && !P) weekKlaar(W, () => tekenWeek(), true);
+  }
+  // ---- het tabblad Uitdagingen: Tegen de klok, Eindeloos en Zen
+  let kiesMaat = 7, kiesDubbel = false, kiesMoeilijk = 1, kiesZen = 6;
+  try { const k = JSON.parse(sessionStorage.getItem('kroon-eind') || 'null'); if (k) { kiesMaat = k.n; kiesDubbel = !!k.d; kiesMoeilijk = k.m; kiesZen = k.z || 6; } } catch (e) {}
+  const eindSleutel = (n, k, m) => n + (k > 1 ? 'd' : '') + ':' + m;
+  function tekenUitdagingen(Pnl) {
+    const k = opslag.klok, sl = eindSleutel(kiesMaat, kiesDubbel ? 2 : 1, kiesMoeilijk), aantal = getalVan(opslag.eind[sl]), snel = opslag.eindTijd[sl];
+    const totEind = Object.values(opslag.eind).reduce((a, x) => a + getalVan(x), 0);
+    const maten = (kiesDubbel ? [8, 9, 10] : [5, 6, 7, 8, 9, 10, 11, 12]).map(m => `<button type="button" class="kies${m === kiesMaat ? ' aan' : ''}" data-kies-maat="${m}" aria-pressed="${m === kiesMaat}">${m}×${m}</button>`).join('');
+    const moeilijk = KM2.MOEILIJK.map((x, i) => `<button type="button" class="kies${i === kiesMoeilijk ? ' aan' : ''}" data-kies-moeilijk="${i}" aria-pressed="${i === kiesMoeilijk}">${x.naam}</button>`).join('');
+    Pnl.innerHTML = `<h2>Uitdagingen</h2><p class="klein">Nieuwe puzzels die het spel ter plekke voor je maakt. Elke puzzel heeft precies één oplossing, en die vind je zonder te gokken.</p>
+      <div class="uitdaging"><div class="ud-kop"><span class="ud-icoon" aria-hidden="true">${KLOKJE}</span><div><h3>Tegen de klok</h3><p class="klein">Los zoveel mogelijk puzzels op in 5 minuten. Ze worden steeds groter. Een hint kost 15 seconden.</p></div></div>
+        <p>${k.b ? `Je record: <b>${k.b}</b> puzzel${k.b === 1 ? '' : 's'} · ${k.n || 0} keer gespeeld` : 'Nog niet gespeeld.'}</p><div class="balk"><button class="knop hoofd" type="button" data-uit="klok">Start de klok</button></div></div>
+      <div class="uitdaging"><div class="ud-kop"><span class="ud-icoon" aria-hidden="true">${ONEINDIG}</span><div><h3>Eindeloos</h3><p class="klein">Kies een maat en hoe moeilijk. Na elke puzzel staat de volgende al klaar.</p></div></div>
+        <div class="kiezer" role="group" aria-label="Soort"><button type="button" class="kies${kiesDubbel ? '' : ' aan'}" data-kies-dubbel="0" aria-pressed="${!kiesDubbel}">Eén kroon</button><button type="button" class="kies${kiesDubbel ? ' aan' : ''}" data-kies-dubbel="1" aria-pressed="${kiesDubbel}">Dubbele kronen</button></div>
+        <div class="kiezer" role="group" aria-label="Maat">${maten}</div>
+        <div class="kiezer" role="group" aria-label="Moeilijkheid">${moeilijk}</div>
+        <p>${aantal ? `${aantal} opgelost${snel ? ' · snelste ' + fmt(snel) : ''}` : 'Deze nog niet gespeeld.'}${totEind ? ` <span class="klein">(${totEind} in Eindeloos samen)</span>` : ''}</p><div class="balk"><button class="knop hoofd" type="button" data-uit="eind">Speel</button></div></div>
+      <div class="uitdaging"><div class="ud-kop"><span class="ud-icoon" aria-hidden="true">${BLAADJE}</span><div><h3>Zen</h3><p class="klein">Rustig puzzelen, zonder klok en zonder score.</p></div></div>
+        <div class="kiezer" role="group" aria-label="Maat">${[5, 6, 7, 8].map(m => `<button type="button" class="kies${m === kiesZen ? ' aan' : ''}" data-kies-zen="${m}" aria-pressed="${m === kiesZen}">${m}×${m}</button>`).join('')}</div>
+        <p>${opslag.zen ? `${opslag.zen} puzzel${opslag.zen === 1 ? '' : 's'} in alle rust opgelost.` : 'Nog niet gespeeld.'}</p><div class="balk"><button class="knop hoofd" type="button" data-uit="zen">Begin</button></div></div>`;
+  }
+  const getalVan = x => (typeof x === 'number' && isFinite(x) ? x : 0);
+  const KLOKJE = '<svg viewBox="0 0 40 40"><circle cx="20" cy="22" r="14" fill="#FBF6E9" stroke="#231A26" stroke-width="2.6"/><path d="M20 22V13M20 22l6 4" stroke="#C8323C" stroke-width="2.6" stroke-linecap="round"/><path d="M16 5h8M20 5v3" stroke="#231A26" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  const ONEINDIG = '<svg viewBox="0 0 40 40"><path d="M20 20c-4-6-12-6-12 0s8 6 12 0 12-6 12 0-8 6-12 0z" fill="none" stroke="#2F6FB5" stroke-width="3.2" stroke-linecap="round"/><g transform="translate(13 5) scale(.35)">' + KROON_PAD + '</g></svg>';
+  const BLAADJE = '<svg viewBox="0 0 40 40"><path d="M8 32C8 16 18 8 33 7c0 15-8 25-25 25z" fill="#B8E0A0" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M8 32c6-8 12-13 20-18" fill="none" stroke="#3F8F4E" stroke-width="2" stroke-linecap="round"/></svg>';
+  $('paneel-tab').addEventListener('click', e => {
+    const b = e.target.closest('[data-kies-maat],[data-kies-dubbel],[data-kies-moeilijk],[data-kies-zen],[data-uit]'); if (!b) return;
+    if (b.dataset.kiesMaat) kiesMaat = +b.dataset.kiesMaat;
+    else if (b.dataset.kiesDubbel !== undefined) { kiesDubbel = b.dataset.kiesDubbel === '1'; if (kiesDubbel) kiesMaat = Math.min(10, Math.max(8, kiesMaat)); }
+    else if (b.dataset.kiesMoeilijk !== undefined) kiesMoeilijk = +b.dataset.kiesMoeilijk;
+    else if (b.dataset.kiesZen) kiesZen = +b.dataset.kiesZen;
+    else { const u = b.dataset.uit; if (u === 'klok') klokStart(); else if (u === 'zen') modusStart({ soort: 'zen', n: kiesZen, k: 1, m: kiesZen <= 6 ? 0 : 1 }); else modusStart({ soort: 'eind', n: kiesMaat, k: kiesDubbel ? 2 : 1, m: kiesMoeilijk }); return; }
+    try { sessionStorage.setItem('kroon-eind', JSON.stringify({ n: kiesMaat, d: kiesDubbel ? 1 : 0, m: kiesMoeilijk, z: kiesZen })); } catch (x) {}
+    const sel = b.dataset.kiesMaat ? `[data-kies-maat="${kiesMaat}"]` : b.dataset.kiesDubbel !== undefined ? `[data-kies-dubbel="${kiesDubbel ? 1 : 0}"]` : b.dataset.kiesMoeilijk !== undefined ? `[data-kies-moeilijk="${kiesMoeilijk}"]` : `[data-kies-zen="${kiesZen}"]`;
+    tekenTab(); const t = $('paneel-tab').querySelector(sel); if (t) t.focus({ preventScroll: true });
+  });
+  // ---- de puzzels die het spel ter plekke maakt (Tegen de klok, Zen, Eindeloos): een willekeurig zaadje, en de volgende alvast klaar
+  const nieuwZaad = () => (Math.random() * 4294967296) >>> 0;
+  const specGen = s => KM2.maker(s.n, s.zaad, Object.assign({ k: s.k }, KM2.MOEILIJK[s.m].opties(s.n, s.k)));
+  function maakAlvast(s) { if (s.P || s.taak) return; s.taak = KM2.later(specGen(s), P => { s.taak = null; s.P = P || null; s.mis = !P; if (s.wacht) { const f = s.wacht; s.wacht = null; f(); } }); }
+  const MODUS_TITEL = { klok: 'Tegen de klok', zen: 'Zen', eind: 'Eindeloos' };
+  function modusSpec(M) { const n = M.soort === 'klok' ? KLOK_MATEN[Math.min(M.nr, KLOK_MATEN.length - 1)] : M.n; return { n, k: M.k || 1, m: M.soort === 'klok' ? 1 : M.m, zaad: nieuwZaad() }; }
+  // de volgende puzzel van een modus starten (of erop wachten); de klok van Tegen de klok staat stil zolang je wacht
+  function modusVolgende(M) {
+    if (modus !== M) return;
+    const s = M.rij.shift() || modusSpec(M);
+    if (!M.rij.length) M.rij.push(modusSpec(Object.assign({}, M, { nr: M.nr + 1 })));
+    const begin = () => {
+      if (modus !== M) return;
+      if (!s.P) { melding('Dat lukte even niet. We proberen een andere.'); M.rij.unshift(modusSpec(M)); modusVolgende(M); return; }
+      const titel = MODUS_TITEL[M.soort], sub = M.soort === 'klok' ? `puzzel ${M.nr + 1}` : M.soort === 'eind' ? KM2.MOEILIJK[M.m].naam + (M.k > 1 ? ' · dubbele kronen' : '') : 'zonder klok';
+      start(tijdelijk(s.P, { titel, sub }), { modus: M });
+      maakAlvast(M.rij[0]);
+    };
+    if (s.P || s.mis) { begin(); return; }
+    if (wachtStop) wachtStop();
+    if (!s.taak) maakAlvast(s);
+    if (s.P) { begin(); return; }
+    // niet meteen een venster: meestal is hij er binnen een tel
+    s.wacht = () => { clearTimeout(t); if (wachtStop) { wachtStop = null; sluit(); } begin(); };
+    const t = setTimeout(() => { if (s.wacht && modus === M) { dialoog(`<div class="wacht"><span class="draai" aria-hidden="true">${KROON}</span><h2 id="dlg-titel">De volgende puzzel wordt gemaakt…</h2><p class="klein">Precies één oplossing, die je zonder gokken vindt.</p><div class="balk"><button class="knop" data-k="overzicht" type="button">Stoppen</button></div></div>`); wachtStop = () => { wachtStop = null; s.wacht = null; if (s.taak) s.taak.stop(); s.taak = null; if (modus === M) modusUit(); }; } }, 350);
+  }
+  function modusStart(M) { modusUit(); M.nr = 0; M.opgelost = 0; M.verstreken = 0; M.rij = [modusSpec(M)]; modus = M; maakAlvast(M.rij[0]); modusVolgende(M); }
+  function modusUit() { if (!modus) return; for (const s of modus.rij || []) if (s.taak) s.taak.stop(); modus = null; }
+  const KLOK_DUUR = 300, KLOK_MATEN = [5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12];
+  function klokStart() { modusStart({ soort: 'klok', k: 1 }); }
+  const klokOver = () => Math.max(0, KLOK_DUUR - modus.verstreken - tijd);
+  // de tijd is op (of je stopt): de uitslag
+  function klokEinde(gestopt) {
+    const M = modus; if (!M || M.soort !== 'klok' || M.klaar) return;
+    M.klaar = true; klaar = true; clearInterval(klok); hintStap = null; $('hintvak').hidden = true;
+    const kl = opslag.klok, oud = getalVan(kl.b), voor = behaald(stand()), kastVoor = bezit();
+    kl.b = Math.max(oud, M.opgelost); kl.n = getalVan(kl.n) + 1; bewaar(); stuurScore();
+    modusUit(); teken();
+    const record = M.opgelost > oud;
+    if (record) feest();
+    setTimeout(() => {
+      dialoog(`<div class="klaar-kaart"><span class="tape">${gestopt ? 'Gestopt' : 'De tijd is op!'}</span><h2 id="dlg-titel">Tegen de klok</h2><p class="groot">${M.opgelost}</p><p>${M.opgelost === 1 ? 'puzzel' : 'puzzels'} opgelost in 5 minuten. ${record && oud ? 'Een nieuw record!' : oud ? 'Je record is ' + oud + '.' : ''}</p>${naOplossen(voor, kastVoor)}<div class="balk"><button class="knop hoofd" data-k="klok-nog" type="button">Nog eens</button><button class="knop" data-k="uitdagingen" type="button">Uitdagingen</button></div></div>`);
+    }, 400);
+  }
+  // na het oplossen in een modus
+  function modusKlaar(t) {
+    const M = modus, voor = behaald(stand()), kastVoor = bezit();
+    M.opgelost++;
+    if (M.soort === 'klok') { M.verstreken += t; M.nr++; GELUID.klaar(); vier(true); setTimeout(() => modusVolgende(M), zachtBewegen() ? 300 : 900); return; }
+    let tekst = '';
+    if (M.soort === 'zen') { opslag.zen = getalVan(opslag.zen) + 1; tekst = `<p>Mooi zo. Je hebt nu ${opslag.zen} puzzel${opslag.zen === 1 ? '' : 's'} in alle rust opgelost.</p>`; }
+    else { const sl = eindSleutel(M.n, M.k, M.m), oud = opslag.eindTijd[sl]; opslag.eind[sl] = getalVan(opslag.eind[sl]) + 1; if (!oud || t < oud) opslag.eindTijd[sl] = t; tekst = `<p class="groot">${fmt(t)}</p><p>${!oud ? 'Je eerste van deze soort.' : t < oud ? 'Een nieuw record voor deze soort!' : 'Je record is ' + fmt(oud) + '.'}${hints ? ' Met ' + hints + ' hint' + (hints > 1 ? 's' : '') + '.' : ' Zonder hint!'}</p>`; }
+    bewaar(); teken(); vier();
+    setTimeout(() => { if (modus !== M) return; dialoog(`<div class="klaar-kaart"><span class="tape">Opgelost!</span><h2 id="dlg-titel">${MODUS_TITEL[M.soort]}</h2>${tekst}${naOplossen(voor, kastVoor)}<div class="balk"><button class="knop hoofd" data-k="modus-nog" type="button">Volgende puzzel</button><button class="knop" data-k="uitdagingen" type="button">Uitdagingen</button></div></div>`); }, n * 60 + 400);
+  }
+  // nieuwe mijlpalen en dingen in de kast: meldingen, en een regel voor in het venster
+  function naOplossen(voor, kastVoor) {
+    const nieuw = [...behaald(stand())].filter(x => !voor.has(x)), kastNa = bezit(), nieuwKast = KAST.filter(x => kastNa.has(x.id) && !kastVoor.has(x.id));
+    pasKastToe(kastNa);
+    setTimeout(() => {
+      nieuwKast.slice(0, 3).forEach((x, k) => setTimeout(() => { melding(`${voorbeeldKlein(x)}<span>Nieuw in je kast: ${dingNaam(x)}</span>`); GELUID.mijl(); }, 600 + (nieuw.length + k) * 900));
+      nieuw.forEach((x, k) => setTimeout(() => { const m = MIJLPALEN.find(y => y[0] === x); melding(`${MEDAILLE()}<span>Mijlpaal: ${m[1]}</span>`); GELUID.mijl(); }, 600 + k * 900));
+    }, 0);
+    return nieuwKast.length ? `<p class="kast-nieuw">${voorbeeldKlein(nieuwKast[0])}<span>Nieuw in je kast: ${opsomming(nieuwKast.map(x => dingNaam(x).replace(x.naam, '<b>' + x.naam + '</b>')))}</span></p>` : '';
+  }
+  // ---- grote borden op een telefoon: knijpen met twee vingers, of de knoppen + en −. Eén vinger tikt en sleept gewoon.
+  const ZOOM = { s: 1, x: 0, y: 0, vingers: new Map(), knijp: null, tot: 0 };
+  function zetZoom(s, x, y) {
+    const raam = $('bord-raam'), W = raam.clientWidth, H = raam.clientHeight;
+    s = Math.max(1, Math.min(3.2, s)); x = Math.min(0, Math.max(W - W * s, x)); y = Math.min(0, Math.max(H - H * s, y));
+    if (s < 1.02) { s = 1; x = 0; y = 0; }
+    ZOOM.s = s; ZOOM.x = x; ZOOM.y = y;
+    $('bord').style.transform = s > 1 ? `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(3)})` : '';
+    raam.classList.toggle('ingezoomd', s > 1);
+    $('z-min').disabled = s <= 1; $('z-plus').disabled = s >= 3.2; $('z-vol').disabled = s <= 1;
+  }
+  const zoomOm = (f, cx, cy) => { const raam = $('bord-raam'), W = raam.clientWidth, H = raam.clientHeight; if (cx === undefined) { cx = W / 2; cy = H / 2; } const s = Math.max(1, Math.min(3.2, ZOOM.s * f)), px = (cx - ZOOM.x) / ZOOM.s, py = (cy - ZOOM.y) / ZOOM.s; zetZoom(s, cx - px * s, cy - py * s); };
+  $('z-plus').addEventListener('click', () => zoomOm(1.5)); $('z-min').addEventListener('click', () => zoomOm(1 / 1.5)); $('z-vol').addEventListener('click', () => zetZoom(1, 0, 0));
+  // een vakje dat de focus krijgt, blijft in beeld
+  function zoomNaar(i) { if (ZOOM.s <= 1 || !elems[i]) return; const raam = $('bord-raam'), W = raam.clientWidth, H = raam.clientHeight, w = W / n, r = (i / n) | 0, c = i % n, x0 = c * w * ZOOM.s + ZOOM.x, y0 = r * w * ZOOM.s + ZOOM.y, z = w * ZOOM.s; let x = ZOOM.x, y = ZOOM.y; if (x0 < 0) x -= x0; else if (x0 + z > W) x -= x0 + z - W; if (y0 < 0) y -= y0; else if (y0 + z > H) y -= y0 + z - H; zetZoom(ZOOM.s, x, y); }
+  // geeft true als het knijpen dit vingertje overneemt (dan geen tik of slepen)
+  function knijpBegin(e) {
+    if (e.pointerType !== 'touch') return false;
+    ZOOM.vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ZOOM.vingers.size < 2) return false;
+    if (sleep && sleep.bewogen) naZet(); sleep = null;
+    const [a, b] = [...ZOOM.vingers.values()], rc = $('bord-raam').getBoundingClientRect();
+    ZOOM.knijp = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: ZOOM.s, mx: (a.x + b.x) / 2 - rc.left, my: (a.y + b.y) / 2 - rc.top, x: ZOOM.x, y: ZOOM.y };
+    return true;
+  }
+  function knijpBeweeg(e) {
+    if (!ZOOM.vingers.has(e.pointerId)) return false;
+    ZOOM.vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (!ZOOM.knijp || ZOOM.vingers.size < 2) return !!ZOOM.knijp;
+    const [a, b] = [...ZOOM.vingers.values()], k = ZOOM.knijp, rc = $('bord-raam').getBoundingClientRect();
+    const s = Math.max(1, Math.min(3.2, k.s * Math.hypot(a.x - b.x, a.y - b.y) / k.d)), mx = (a.x + b.x) / 2 - rc.left, my = (a.y + b.y) / 2 - rc.top;
+    const px = (k.mx - k.x) / k.s, py = (k.my - k.y) / k.s;
+    zetZoom(s, mx - px * s, my - py * s);
+    return true;
+  }
+  function knijpEind(e) { ZOOM.vingers.delete(e.pointerId); if (ZOOM.knijp && ZOOM.vingers.size < 2) { ZOOM.knijp = null; ZOOM.tot = performance.now() + 250; } }
+  const knijptNet = () => !!ZOOM.knijp || performance.now() < ZOOM.tot;
   // ---------------- scorebord (score = aantal opgeloste puzzels, net als altijd; nooit meer dan 500)
-  function stuurScore() { if (window.Scorebord) Scorebord.stuur('kroon', Math.min(500, aantalKlaar()), Object.values(opslag.opgelost).reduce((a, o) => a + ((o && +o.tijd) || 0), 0)); }
+  let serverNieuw = false;
+  if (window.Scorebord && Scorebord.klaar) Scorebord.klaar.then(inst => { const u = String((inst && inst.scoreUrl) || '').replace(/\/+$/, ''); if (!u) return; return fetch(u + '/status', { cache: 'no-store' }).then(r => r.json()).then(j => { if (j && j.versie && String(j.versie) >= '2026-11-03') { serverNieuw = true; stuurScore(); } }); }).catch(() => {});
+  function stuurScore() {
+    if (!window.Scorebord) return;
+    Scorebord.stuur('kroon', Math.min(serverNieuw ? 1000 : 500, aantalKlaar()), Object.values(opslag.opgelost).reduce((a, o) => a + ((o && +o.tijd) || 0), 0));
+    if (serverNieuw && opslag.klok.b) Scorebord.stuur('kroonklok', Math.min(200, opslag.klok.b), opslag.klok.n || 0);
+  }
   tekenOverzicht();
   if (nieuweSpeler) setTimeout(() => uitlegStap(0), 400);
   if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-kroon'), 'opgeloste puzzels'); }
-  window.__kroon = { KAST, KASTNU, PALET, bezit, kleurenVan, feest, pasKastToe, de2000, labVan, tekenOverzicht, start, zet, get cel() { return cel; }, get id() { return id; }, PUZZELS, opslag, KM, zoekHint, vraagHint, doeHint, dagPuzzel, dagId, dagNr, stand, reeksen, HOOFDSTUKKEN, deelTekst, isOpen };
+  window.__kroon = { puzzelVan, get klaar() { return klaar; }, KM2, REEKSEN, weekNr, weekCache, speelWeek, klokStart, modusStart, modusUit, get modus() { return modus; }, ZOOM, zetZoom, get serverNieuw() { return serverNieuw; }, KAST, KASTNU, PALET, bezit, kleurenVan, feest, pasKastToe, de2000, labVan, tekenOverzicht, start, zet, get cel() { return cel; }, get id() { return id; }, PUZZELS, opslag, KM, zoekHint, vraagHint, doeHint, dagPuzzel, dagId, dagNr, stand, reeksen, HOOFDSTUKKEN, deelTekst, isOpen };
 })();
 </script>
 <script>

@@ -332,7 +332,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     return x > 0 ? Math.log10(x) : -Infinity;
   };
   // spellen die hun score als 10-log sturen, en borden die een oude scoreserver nog niet kent (dan zeggen we niets)
-  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1 };
+  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1, kroonklok: 1 };
   const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
   const BRONNEN = {
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
@@ -349,7 +349,8 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     bel: () => { const s = lees('rommelbel-v1'); return s && s.eindeloos ? [s.eindeloos, Object.values(s.sterren || {}).reduce((a, b) => a + b, 0)] : null; },
     rob: () => { const s = lees('rommelrob-v1'); return s && s.best ? [s.best, s.totaal || 0] : null; },
     arend: () => { const s = lees('rommelarend-v1'); if (!s) return null; const p = (s.ontdekt || []).length * 100 + (s.veren || []).length * 25 + Object.values(s.races || {}).reduce((a, r) => a + ({ goud: 300, zilver: 200, brons: 100 }[r.medaille] || 0), 0); return p ? [p, (s.ontdekt || []).length] : null; },
-    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [o.length, o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    kroon: () => { const s = lees('rommelkroon-v1'); if (!s || !s.opgelost) return null; const o = Object.values(s.opgelost); return o.length ? [Math.min(1000, o.length), o.reduce((a, x) => a + x.tijd, 0)] : null; },
+    kroonklok: () => { const s = lees('rommelkroon-v1'), k = s && s.klok; return k && k.b > 0 ? [Math.min(200, k.b), k.n || 0] : null; },
     ritme: () => { const s = lees('rommelritme-v1'); if (!s || !s.best) return null; const som = Object.values(s.best).reduce((a, b) => a + b, 0); return som > 0 ? [som, Object.values(s.pogingen || {}).reduce((a, b) => a + b, 0)] : null; },
     vlieger: () => { const s = lees('vouwvlieger-v1'); return s && s.best > 0 ? [s.best, s.sterren || 0] : null; },
     beest: () => { const s = lees('rommelbeesten-v1'); if (!s || !s.bezit) return null; let u = 0, t = 0; for (const [id, b] of Object.entries(s.bezit)) { const n = (b[0] || 0) + (b[1] || 0); t += n; if (n > 0 && /^zs/.test(id)) u++; } return u ? [u, t] : null; },
@@ -407,7 +408,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
         const r = await metTijd(adres(inst) + '/score', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, keepalive: true, body: JSON.stringify(lijf) });
         const j = await r.json().catch(() => ({}));
         if (r.ok) onthoud(spel, score, extra || 0);
-        if (!r.ok && j.fout && !NIEUW_BORD[spel]) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
+        if (!r.ok && j.fout && !NIEUW_BORD[spel] && !/^kw\d/.test(spel)) document.dispatchEvent(new CustomEvent('scorebord-fout', { detail: j.fout }));
         return r.ok ? j : null;
       } catch (e) { return null; }
     },
@@ -527,6 +528,10 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
       return x > 0 ? Math.max(0, Math.log10(x)) : 0;
     };
     const rbHeb = x => (Array.isArray(x) ? getal(x[0]) + getal(x[1]) : 0);
+    // Rommelkroon: per puzzel de beste keer (minder hints, dan sneller); per dag (en per week) liefst de keer die op de dag (of in de week)
+    // zelf was, dan de snelste. 'Op de dag zelf' blijft aan als het één keer aan stond.
+    const kroonBest = (b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; };
+    const kroonDag = (b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; };
     // ---------- de maat: hoe verder, hoe hoger (dezelfde maat als 'Verder spelen' op de homepage); bij gelijke stand telt het volgende getal
     const MAAT = {
       'vlaaienbakker-v1': s => { const o = isObj(s.oer) ? s.oer : {}; return [getal(s.opnieuw), vlog(s, 'oer.ooit'), getal(o.n), Math.max(vlog(s, 'alles'), vlog(s, 'ooit'), vlog(s, 'totaal')), vlog(s, 'totaal')]; },
@@ -574,13 +579,20 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
         tel: { h: elk(teller), standGewonnen: max, maxSteen: max, maxIjzer: max, verst: max, beste: max, '*': teller } } },
       'rommelkroon-v1': {
         velden: {
-          // per puzzel: de beste keer (minder hints, dan sneller), zoals de scoreserver het al deed
-          opgelost: elk((b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; }),
-          // per dag: liefst de keer die op de dag zelf was, dan de snelste; 'op de dag zelf' blijft aan als het één keer aan stond
-          dag: elk((b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; }),
+          // per puzzel de beste keer, zoals de scoreserver het al deed; per dag liefst de keer op de dag zelf
+          opgelost: elk(kroonBest), dag: elk(kroonDag),
+          // (2026-11-03) de kroon van de week net als dag; Eindeloos (per maat en moeilijkheid) en Zen tellen op; Tegen de klok: het record en hoe vaak
+          week: elk(kroonDag), eind: elk(teller), eindTijd: elk(snelste), klok: { b: max, n: teller }, zen: teller,
+          // (voor later) per trucje de opgeloste oefeningen, je eigen puzzels (hooguit 30), gedeelde puzzels die je speelde (de beste keer),
+          // en je vrienden: { code: tijdstip }, een negatief tijdstip is weggehaald; de nieuwste verandering wint, dus weghalen gaat ook mee
+          school: elk(samenLijst), gemaakt: samenLijst, vreemd: elk(kroonBest), vrienden: elk((b, s, i) => (!num(s) ? i : !num(i) ? s : Math.abs(i) >= Math.abs(s) ? i : s)),
           bezig: elk(lopend), auto: keuze, inst: keuze, laatste: keuze, uitleg: of, voortgangTotaal: max,
         },
-        na: r => { if (isObj(r.bezig)) for (const k of Object.keys(r.bezig)) if ((isObj(r.opgelost) && r.opgelost[k]) || (k[0] === 'd' && isObj(r.dag) && r.dag[k.slice(1)])) delete r.bezig[k]; return r; },
+        na: r => {
+          if (isObj(r.bezig)) for (const k of Object.keys(r.bezig)) if ((isObj(r.opgelost) && r.opgelost[k]) || (k[0] === 'd' && isObj(r.dag) && r.dag[k.slice(1)]) || (k[0] === 'w' && isObj(r.week) && r.week[k.slice(1)])) delete r.bezig[k];
+          if (Array.isArray(r.gemaakt)) r.gemaakt = r.gemaakt.slice(-30);
+          return r;
+        },
       },
       'rommelrecht-v1': { velden: { v: max, gehaald: elk(of), manieren: elk(samenLijst), dag: elk(samenLijst), voortgangTotaal: max } },
       'rommelgroepjes-v1': { velden: { v: max, uitleg: of, laatst: max, voortgangTotaal: max,
@@ -836,7 +848,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 6;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 7;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));

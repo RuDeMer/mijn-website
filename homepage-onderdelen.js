@@ -2333,7 +2333,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       if (!reduce && st.animate) st.animate([{ transform: 'rotate(var(--r)) scale(1)' }, { transform: 'rotate(360deg) scale(1.4)', offset: .5 }, { transform: 'rotate(720deg) scale(1)' }], { duration: 1200, easing: 'ease-in-out' });
       const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oké, oké! Je mag me hebben.'; const r = st.getBoundingClientRect(); b.style.left = (r.left + scrollX - 40) + 'px'; b.style.top = (r.bottom + scrollY + 6) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 2800);
     }
-    const ham = e.target.closest && e.target.closest('.gs-hamer, .tg-rommel[aria-label="Geef de dobbelsteen een zetje"]'); // vroeger de hamer, nu het rommeltje dobbelsteen
+    const ham = e.target.closest && e.target.closest('.gs-hamer, .tg-rommel[data-rommel="dobbelsteen"], .tg-rommel[aria-label="Geef de dobbelsteen een zetje"]'); // vroeger de hamer, nu het rommeltje dobbelsteen
     if (ham && tel('hamer', 6, 3500)) {
       vind('duim'); toon(110, 0, 0.3, 'square', 0.06); toon(90, 0.08, 0.3, 'square', 0.05);
       if (!reduce) document.body.style.animation = 'gr-schud .5s'; setTimeout(() => { document.body.style.animation = ''; }, 520);
@@ -2420,19 +2420,6 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   const KLEUREN = ['#FFD9C7', '#CDE7D8', '#D5E3F7', '#FBE3A1', '#E9D7F2', '#FFD3DF', '#CFEDEE', '#F4DCC2', '#DDE8C4', '#F8CFC4', '#E2DDF7'];
   const VORMEN = ['tg-v1', 'tg-v2', 'tg-v3', 'tg-v4'];
 
-  // ================= de rommeltjes (in plaats van het gereedschap)
-  const ROMMEL = {
-    dobbelsteen: ['de dobbelsteen', '<rect x="10" y="10" width="44" height="44" rx="9" fill="#FFFFFF" stroke="#231A26" stroke-width="3.5"/><circle cx="22" cy="22" r="4.2" fill="#231A26"/><circle cx="42" cy="42" r="4.2" fill="#231A26"/><circle cx="32" cy="32" r="4.2" fill="#C8323C"/><circle cx="42" cy="22" r="4.2" fill="#231A26"/><circle cx="22" cy="42" r="4.2" fill="#231A26"/>'],
-    knoop: ['de knoop', '<circle cx="32" cy="32" r="22" fill="#2F6FB5" stroke="#231A26" stroke-width="3.5"/><circle cx="32" cy="32" r="15" fill="none" stroke="#1F4F85" stroke-width="2.5"/><circle cx="26" cy="26" r="3.2" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><circle cx="38" cy="26" r="3.2" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><circle cx="26" cy="38" r="3.2" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><circle cx="38" cy="38" r="3.2" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/>'],
-    potlood: ['het potlood', '<g transform="rotate(-40 32 32)"><rect x="12" y="25" width="34" height="14" fill="#F2C94C" stroke="#231A26" stroke-width="3"/><path d="M46 25l12 7-12 7z" fill="#F4DCC2" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><path d="M54 29.7l4 2.3-4 2.3z" fill="#231A26"/><rect x="6" y="25" width="7" height="14" rx="2" fill="#E8577A" stroke="#231A26" stroke-width="3"/></g>'],
-    paperclip: ['de paperclip', '<path d="M24 50V18a8 8 0 0 1 16 0v30a12 12 0 0 1-24 0V22" fill="none" stroke="#231A26" stroke-width="7" stroke-linecap="round"/><path d="M24 50V18a8 8 0 0 1 16 0v30a12 12 0 0 1-24 0V22" fill="none" stroke="#B8C0C8" stroke-width="3.4" stroke-linecap="round"/>'],
-    kroonkurk: ['de kroonkurk', '<path d="M32 9l5 4 6-2 3 5 6 1 0 6 5 4-3 5 3 5-5 4 0 6-6 1-3 5-6-2-5 4-5-4-6 2-3-5-6-1 0-6-5-4 3-5-3-5 5-4 0-6 6-1 3-5 6 2z" fill="#C8323C" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="32" r="13" fill="#E8414E" stroke="#231A26" stroke-width="2.5"/><path d="M26 30c2-3 8-3 12 0" fill="none" stroke="#FBF6E9" stroke-width="2.5" stroke-linecap="round"/>'],
-    sterretje: ['het sterretje', '<path d="M32 7l7.4 15 16.6 2.4-12 11.7 2.8 16.5L32 44.8 17.2 52.6 20 36.1 8 24.4l16.6-2.4z" fill="#FFE76A" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/>'],
-    tol: ['de tol', '<path d="M32 8v8" stroke="#231A26" stroke-width="4" stroke-linecap="round"/><path d="M12 30c0-9 9-14 20-14s20 5 20 14c0 4-2 7-6 10L32 56 18 40c-4-3-6-6-6-10z" fill="#2E8B62" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/><path d="M13 30h38" stroke="#FFE76A" stroke-width="4"/>'],
-    knikker: ['de knikker', '<circle cx="32" cy="32" r="20" fill="#7FB3E6" stroke="#231A26" stroke-width="3.5"/><path d="M18 36c6-10 18-12 28-4" fill="none" stroke="#C8323C" stroke-width="4" stroke-linecap="round"/><circle cx="25" cy="24" r="4.5" fill="#FFFFFF" opacity=".85"/>'],
-  };
-  const ZIJKANT = ['dobbelsteen', 'sterretje', 'potlood', 'paperclip', 'knoop', 'tol', 'kroonkurk', 'knikker'];
-  const BIJ_HET_BRIEFJE = ['knikker', 'dobbelsteen', 'potlood'];
 
   // ================= de stijl
   const CSS = `
@@ -2479,13 +2466,6 @@ body.v6-body { color: var(--tg-tekst); transition: background-color .3s ease; }
 .tg-zin { font-size: .875rem; line-height: 1.35; color: var(--tg-zacht); margin-top: -.25rem; }
 .tg-voortgang { display: flex; flex-direction: column; gap: .25rem; font-size: .78rem; font-weight: 700; color: var(--tg-zacht); }
 .tg-voortgang i { display: block; height: .35rem; border-radius: 999px; background: rgba(127,115,100,.25); overflow: hidden; } .tg-voortgang em { display: block; height: 100%; background: #C8323C; border-radius: 999px; }
-.tg-rommel { position: absolute; z-index: 5; width: 66px; height: 66px; padding: 7px; border: 0; background: none; cursor: grab; touch-action: none; }
-.tg-rommel svg { width: 100%; height: 100%; display: block; transform-origin: 50% 60%; pointer-events: none; }
-html[data-thema="donker"] .tg-rommel svg { filter: drop-shadow(0 2px 0 rgba(0,0,0,.5)); }
-.tg-rommel.sleept { cursor: grabbing; z-index: 30; } .tg-rommel.sleept svg { transform: scale(1.12) rotate(-8deg); }
-.tg-rommel:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 2px; border-radius: 12px; }
-.tg-rommel.hup svg { animation: tg-hup .7s cubic-bezier(.3,1.6,.5,1); }
-@keyframes tg-hup { 0% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-22px) rotate(-160deg); } 70% { transform: translateY(0) rotate(-340deg) scale(1.08,.9); } 100% { transform: translateY(0) rotate(-360deg); } }
 .tg-dag { margin: .4rem 0 2.8rem; }
 .tg-dag-kop { display: flex; align-items: center; flex-wrap: wrap; gap: .9rem 1.2rem; margin: 0 0 1.3rem; }
 .tg-blad { position: relative; flex: none; width: 4.3rem; border: 3px solid var(--tg-rand); border-radius: .9rem; background: #FFFFFF; color: #231A26; text-align: center; box-shadow: 0 4px 0 rgba(35,26,38,.18); transform: rotate(-3deg); }
@@ -2533,12 +2513,54 @@ html[data-thema="donker"] .tg-dk-stempel { color: #7FD3A8; }
   .tg-dag-rij { gap: .75rem; } .tg-dk { padding: .85rem .8rem .9rem; border-radius: 1.1rem; gap: .45rem; } .tg-dk-ico { width: 2.8rem; height: 2.8rem; }
   .tg-dk-naam { font-size: .98rem; } .tg-dk-stempel { top: .7rem; right: .55rem; font-size: .62rem; } .tg-dk-pil { padding: .28rem .6rem; font-size: .76rem; border-radius: .9rem; }
 }
+:root { --rm-potlood: rgba(52,48,60,.86); --rm-sch: rgba(35,26,38,.2); --rm-hout: #B9834F; --rm-hout-donker: #7A4E2D; }
+html[data-thema="donker"] { --rm-potlood: rgba(240,234,222,.86); --rm-sch: rgba(255,240,200,.13); --rm-hout: #8E5E36; --rm-hout-donker: #4E321C; }
+#rm-lijnen { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 4; overflow: hidden; }
+#rm-lijnen path { fill: none; stroke: var(--rm-potlood); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+#rm-lijnen path.vervaag { opacity: 0; transition: opacity 6s linear 3s; }
+#rm-laag { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 5; overflow: hidden; overflow: clip; pointer-events: none; }
+.tg-rommel { position: absolute; left: -33px; top: -33px; width: 66px; height: 66px; padding: 0; margin: 0; border: 0; background: none; color: inherit; pointer-events: none; touch-action: none; -webkit-tap-highlight-color: transparent; will-change: transform; border-radius: 50%; }
+.tg-rommel:focus { outline: none; }
+.tg-rommel:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 0; }
+.tg-rommel > span { position: absolute; left: 0; top: 0; width: 66px; height: 66px; will-change: transform; pointer-events: none; }
+.tg-rommel svg { position: absolute; left: 7px; top: 7px; width: 52px; height: 52px; overflow: visible; }
+.rm-sch svg * { fill: var(--rm-sch); stroke: none; }
+.rm-sch svg [fill="none"] { fill: none; stroke: var(--rm-sch); }
+.rm-draai .hit { fill: transparent; stroke: none; pointer-events: all; cursor: grab; }
+.rm-draai .hit.grof { pointer-events: none; }
+@media (pointer: coarse) { .rm-draai .hit.fijn { pointer-events: none; } .rm-draai .hit.grof { pointer-events: all; } }
+.tg-rommel.vast .hit { cursor: grabbing; }
+.rm-draai .tek, .rm-glans svg { pointer-events: none; }
+.rm-plank { position: absolute; left: 0; top: 0; box-sizing: border-box; height: 12px; background: var(--rm-hout); border: 2.5px solid var(--tg-rand); border-radius: 3px; box-shadow: 0 4px 0 var(--rm-hout-donker); pointer-events: none; }
+.rm-plank::before, .rm-plank::after { content: ''; position: absolute; top: 9px; width: 8px; height: 14px; box-sizing: border-box; background: var(--rm-hout-donker); border: 2px solid var(--tg-rand); border-radius: 0 0 3px 3px; }
+.rm-plank::before { left: 10px; } .rm-plank::after { right: 10px; }
+.rm-plank i { position: absolute; top: -12.5px; width: 7px; height: 12px; box-sizing: border-box; background: var(--rm-hout); border: 2.5px solid var(--tg-rand); border-bottom: 0; border-radius: 3px 3px 0 0; }
+.rm-plank i.l { left: -5px; } .rm-plank i.r { right: -5px; }
+.rm-bel { position: absolute; left: 0; top: 0; z-index: 6; pointer-events: none; background: #23252B; color: #FBF6E9; font-weight: 800; font-size: .95rem; padding: 3px 10px 4px; border-radius: 999px; white-space: nowrap; }
+.rm-fonkel { position: absolute; left: 0; top: 0; width: 16px; height: 16px; pointer-events: none; }
+.rm-fonkel svg { display: block; width: 100%; height: 100%; fill: #FFE76A; stroke: #231A26; stroke-width: 1.4; }
+.rm-toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 180%); background: #23252B; color: #FBF6E9; font-weight: 700; padding: 10px 18px; border-radius: 999px; z-index: 60; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; transition: transform .25s ease; pointer-events: none; }
+.rm-toast.zichtbaar { transform: translate(-50%, 0); }
+html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { background: #FBF6E9; color: #231A26; }
+.rm-weg { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.rm-debug { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 59; }
+.rm-debuglabel { position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 59; pointer-events: none; font: 700 12px/1.3 ui-monospace, Menlo, monospace; background: rgba(35,26,38,.88); color: #FBF6E9; padding: 4px 8px; border-radius: 6px; }
+.tg-rommelplek { align-self: end; justify-self: start; display: flex; min-width: 0; }
+.tg-rommelknop { flex: none; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--tg-knop); border: 2.5px solid var(--tg-knop-rand); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+.tg-rommelknop button { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; min-width: 44px; padding: 0 12px; border-radius: 999px; border: 0; background: transparent; color: var(--tg-knop-tekst); font: inherit; font-weight: 800; font-size: .88rem; cursor: pointer; }
+.tg-rommelknop .tg-rk-geluid, .tg-rommelknop .tg-rk-terug { padding: 0; }
+.tg-rommelknop .tg-rk-kantel[aria-pressed="true"] { background: var(--tg-actief); color: var(--tg-actief-tekst); }
+.tg-rommelknop svg { width: 18px; height: 18px; flex: none; }
+.tg-rk-geluid[aria-pressed="true"] .rk-stil, .tg-rk-geluid[aria-pressed="false"] .rk-golf { display: none; }
+.tg-rommelknop button:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .rm-toast { transition: none; } #rm-lijnen path.vervaag { transition: opacity 3s linear 4s; } .tg-rommel.hup .rm-draai { animation: rm-tik .3s ease; } }
+@keyframes rm-tik { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 @media (max-width: 700px) {
-  .tg-balk { flex-direction: column; gap: .8rem; } .tg-weergave { order: -1; align-self: flex-end; } .tg-weergave button { padding: 0 12px; } .tg-weergave .tg-woord { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tg-balk { flex-direction: column; gap: .8rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; } .tg-rommelknop { grid-row: 1; grid-column: 1; justify-self: start; } .tg-balk .tg-weergave { grid-row: 1; grid-column: 2; } .tg-balk .tg-filters { grid-row: 2; grid-column: 1 / -1; min-width: 0; } .tg-weergave { order: -1; align-self: flex-end; } .tg-weergave button { padding: 0 12px; } .tg-weergave .tg-woord { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .tg-filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .3rem; scrollbar-width: none; } .tg-filters::-webkit-scrollbar { display: none; }
   .tg-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1rem; } .tg-vlak { border-radius: 1.25rem; } .tg-naam { font-size: 1rem; }
 }
-@media (prefers-reduced-motion: reduce) { .tg-vlak, body.v6-body { transition: none; } .tg-rommel.hup svg { animation: none; } .tg-tegel:hover .tg-vlak { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tg-vlak, body.v6-body { transition: none; } .tg-tegel:hover .tg-vlak { transform: none; } }
 `;
 
   // ================= de puzzels van vandaag: elke dag nieuw, met je reeks
@@ -2692,55 +2714,1348 @@ html[data-thema="donker"] .tg-dk-stempel { color: #7FD3A8; }
     zetRommeltjes();
   }
 
-  // ================= de rommeltjes neerleggen, laten springen en verslepen
-  const rommeltjes = [];
-  function maakRommeltje(soort, i) {
-    const [naam, svg] = ROMMEL[soort];
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'tg-rommel'; b.setAttribute('aria-label', 'Geef ' + naam + ' een zetje');
-    b.innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true">' + svg + '</svg>';
-    const r = { el: b, versleept: false, draai: ((i * 37) % 40) - 20 }; b.style.transform = 'rotate(' + r.draai + 'deg)';
-    const hup = () => { if (minder) return; b.classList.remove('hup'); void b.offsetWidth; b.classList.add('hup'); };
-    b.addEventListener('animationend', () => b.classList.remove('hup'));
-    let start = null;
-    b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !start) hup(); });
-    b.addEventListener('pointerdown', e => { start = { x: e.clientX, y: e.clientY, l: parseFloat(b.style.left), t: parseFloat(b.style.top), weg: false, id: e.pointerId }; try { b.setPointerCapture(e.pointerId); } catch (x) {} });
-    b.addEventListener('pointermove', e => {
-      if (!start || e.pointerId !== start.id) return; const dx = e.clientX - start.x, dy = e.clientY - start.y;
-      if (!start.weg && Math.hypot(dx, dy) < 6) return; start.weg = true; b.classList.add('sleept');
-      const max = document.documentElement.scrollWidth - b.offsetWidth;
-      b.style.left = Math.max(0, Math.min(max, start.l + dx)) + 'px'; b.style.top = Math.max(0, start.t + dy) + 'px';
-    });
-    const klaar = e => { if (!start || (e && e.pointerId !== start.id)) return; const weg = start.weg; start = null; b.classList.remove('sleept'); if (weg) r.versleept = true; else hup(); };
-    b.addEventListener('pointerup', klaar); b.addEventListener('pointercancel', klaar);
-    b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hup(); } });
-    b.addEventListener('click', e => e.preventDefault());
-    document.body.appendChild(b); rommeltjes.push(r); return r;
-  }
-  function plaats() {
-    const main = $('main'), held = $('.held'), coul = $('.coulissen'), brief = $('.briefje'); if (!main || !held) return;
-    const vw = document.documentElement.clientWidth, sx = scrollX, sy = scrollY, mr = main.getBoundingClientRect(), hr = held.getBoundingClientRect();
-    const links = mr.left - 84, rechts = mr.right + 18, ruimte = links >= 6 && rechts + 66 <= vw - 6;
-    const boven = hr.bottom + sy + 60, onder = coul ? coul.getBoundingClientRect().top + sy - 40 : boven + 1800;
-    let z = 0, k = 0;
-    for (const r of rommeltjes) {
-      if (r.versleept) continue;
-      if (r.plek === 'brief') {
-        const br = brief ? brief.getBoundingClientRect() : hr, kop = document.querySelector('#tg-kop span'), kr = kop ? kop.getBoundingClientRect() : br;
-        if (vw < 700) { r.el.style.left = Math.max(kr.right + sx + 12, mr.right + sx - 70 - k * 62) + 'px'; r.el.style.top = (kr.top + sy - 18) + 'px'; r.el.hidden = k > 1 || mr.right - 70 - k * 62 < kr.right + 12; }
-        else { r.el.style.left = Math.min(br.right + sx + 40 + k * 78, mr.right + sx - 70) + 'px'; r.el.style.top = (br.top + sy + 10 + (k % 2) * 46) + 'px'; r.el.hidden = false; }
-        k++;
-      } else {
-        r.el.hidden = !ruimte; if (!ruimte) continue;
-        const stap = (onder - boven) / Math.max(1, Math.ceil(ZIJKANT.length / 2));
-        r.el.style.left = ((z % 2 ? rechts : links) + sx + ((z * 13) % 20) - 10) + 'px'; r.el.style.top = (boven + Math.floor(z / 2) * stap + (z % 2) * stap * 0.45) + 'px'; z++;
+  // ================= de rommeltjes: echte natuurkunde (zie "Rommeltjes met echte natuurkunde" in CLAUDE.md)
+  // Een eigen kleine natuurkundemotor (Fysica, hieronder), acht soorten rommeltjes met elk een eigen kunstje,
+  // kantelen en schudden, geluid en een trillinkje. Rekent alleen als er iets beweegt.
+  // ==== FYSICA begin
+  // Een kleine 2D-natuurkundemotor voor de rommeltjes, zonder bibliotheek.
+  // Vormen: cirkels en bolle veelhoeken (lichamen), en vaste veelhoeken en lijnstukjes (de pagina).
+  // Botsen met wrijving, stuiteren en draaien; een vaste tijdstap; vooruitkijkende contacten (niets
+  // schiet ergens doorheen); slapen in rust; een veer om iets op te pakken. Lengtes in px, tijd in s.
+  var Fysica = (function () {
+    'use strict';
+    var MARGE = 2.5;          // contacten tot zo ver uit elkaar tellen al mee (px)
+    var SLOP = 0.5;           // zo veel overlap mag (px)
+    var BETA = 0.25;          // hoe snel overlap wordt rechtgezet
+    var MAX_CORR = 420;       // hooguit zo snel (px/s)
+    var STUIT_DREMPEL = 70;   // langzamer dan dit stuitert niets (px/s)
+    var IMPACT = 55;          // vanaf deze snelheid telt een botsing als tik (px/s)
+    var SLAAP_V = 9, SLAAP_W = 0.12, SLAAP_T = 0.4;
+    var ITER = 10, VMAX = 5200, WMAX = 55;
+
+    function nieuwId(w) { return w.volg++; }
+
+    // ---------- vormen
+    function cirkel(r, k) { // k: traagheid als deel van m·r² (0,5 schijf, 0,4 bol)
+      return { soort: 'cirkel', r: r, ox: 0, oy: 0, opp: Math.PI * r * r, I1: (k == null ? 0.5 : k) * Math.PI * r * r * r * r, straal: r };
+    }
+    function ordenen(punten) {
+      var p = punten.map(function (q) { return [q[0], q[1]]; }), opp = 0, n = p.length, i;
+      for (i = 0; i < n; i++) { var a = p[i], b = p[(i + 1) % n]; opp += a[0] * b[1] - b[0] * a[1]; }
+      if (opp < 0) p.reverse();
+      return p;
+    }
+    function normalen(v, n) {
+      var nn = new Float64Array(2 * n);
+      for (var i = 0; i < n; i++) {
+        var j = (i + 1) % n, ex = v[2 * j] - v[2 * i], ey = v[2 * j + 1] - v[2 * i + 1], l = Math.hypot(ex, ey) || 1;
+        nn[2 * i] = ey / l; nn[2 * i + 1] = -ex / l;
+      }
+      return nn;
+    }
+    // een bolle veelhoek, in tekencoördinaten (px rond het midden van de tekening)
+    function poly(punten) {
+      var p = ordenen(punten), n = p.length, i;
+      var sx = p[0][0], sy = p[0][1], A = 0, cx = 0, cy = 0, I = 0;
+      for (i = 0; i < n; i++) {
+        var q = p[(i + 1) % n], e1x = p[i][0] - sx, e1y = p[i][1] - sy, e2x = q[0] - sx, e2y = q[1] - sy;
+        var D = e1x * e2y - e1y * e2x, ta = 0.5 * D;
+        A += ta; cx += ta * (e1x + e2x) / 3; cy += ta * (e1y + e2y) / 3;
+        I += (0.25 / 3 * D) * (e1x * e1x + e2x * e1x + e2x * e2x + e1y * e1y + e2y * e1y + e2y * e2y);
+      }
+      cx /= A; cy /= A;
+      var Ic = I - A * (cx * cx + cy * cy), ox = sx + cx, oy = sy + cy;
+      var v = new Float64Array(2 * n), straal = 0;
+      for (i = 0; i < n; i++) { v[2 * i] = p[i][0] - ox; v[2 * i + 1] = p[i][1] - oy; straal = Math.max(straal, Math.hypot(v[2 * i], v[2 * i + 1])); }
+      return { soort: 'poly', n: n, v: v, nn: normalen(v, n), ox: ox, oy: oy, opp: A, I1: Ic, straal: straal };
+    }
+    // een rechthoek met afgeschuinde hoeken (zo rolt en tuimelt hij als iets met ronde hoeken)
+    function doos(b, h, rond) { // ronde hoeken: elke hoek drie stukjes van een boog
+      var x = b / 2, y = h / 2, c = Math.min(rond || 0, x * 0.45, y * 0.45), p = [];
+      if (!c) return poly([[-x, -y], [x, -y], [x, y], [-x, y]]);
+      var hoeken = [[x - c, y - c, 0], [-x + c, y - c, 1], [-x + c, -y + c, 2], [x - c, -y + c, 3]];
+      hoeken.forEach(function (h) { for (var k = 0; k <= 3; k++) { var a = (h[2] + k / 3) * Math.PI / 2; p.push([h[0] + c * Math.cos(a), h[1] + c * Math.sin(a)]); } });
+      return poly(p);
+    }
+
+    // ---------- botsen (normaal altijd van A naar B)
+    function polyCirkel(P, cx, cy, r, marge) { // normaal van de veelhoek naar de cirkel
+      var n = P.n, v = P.wv, nn = P.wn, best = -Infinity, bi = 0, i;
+      for (i = 0; i < n; i++) {
+        var s = nn[2 * i] * (cx - v[2 * i]) + nn[2 * i + 1] * (cy - v[2 * i + 1]);
+        if (s > r + marge) return null;
+        if (s > best) { best = s; bi = i; }
+      }
+      var j = (bi + 1) % n, x1 = v[2 * bi], y1 = v[2 * bi + 1], x2 = v[2 * j], y2 = v[2 * j + 1], nx, ny, sep;
+      if (best < 1e-6) { nx = nn[2 * bi]; ny = nn[2 * bi + 1]; sep = best - r; }
+      else {
+        var u1 = (cx - x1) * (x2 - x1) + (cy - y1) * (y2 - y1), u2 = (cx - x2) * (x1 - x2) + (cy - y2) * (y1 - y2), dx, dy, d;
+        if (u1 <= 0 || u2 <= 0) {
+          if (u1 <= 0) { dx = cx - x1; dy = cy - y1; } else { dx = cx - x2; dy = cy - y2; }
+          d = Math.hypot(dx, dy); if (d - r > marge) return null;
+          nx = dx / d; ny = dy / d; sep = d - r;
+        } else { nx = nn[2 * bi]; ny = nn[2 * bi + 1]; sep = best - r; }
+      }
+      return { nx: nx, ny: ny, pts: [{ x: cx - nx * (r + sep * 0.5), y: cy - ny * (r + sep * 0.5), sep: sep, id: 0 }] };
+    }
+    function segCirkel(S, cx, cy, r, marge) { // normaal van het lijnstukje naar de cirkel
+      var ex = S.bx - S.ax, ey = S.by - S.ay, ll = ex * ex + ey * ey;
+      var t = ll ? ((cx - S.ax) * ex + (cy - S.ay) * ey) / ll : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
+      var qx = S.ax + t * ex, qy = S.ay + t * ey, dx = cx - qx, dy = cy - qy, d = Math.hypot(dx, dy), sep = d - r - S.r;
+      if (sep > marge) return null;
+      var nx, ny;
+      if (d > 1e-9) { nx = dx / d; ny = dy / d; } else { var l = Math.sqrt(ll) || 1; nx = ey / l; ny = -ex / l; if (ny > 0) { nx = -nx; ny = -ny; } }
+      return { nx: nx, ny: ny, pts: [{ x: qx + nx * (S.r + sep * 0.5), y: qy + ny * (S.r + sep * 0.5), sep: sep, id: 0 }] };
+    }
+    function maxScheiding(A, B) {
+      var best = -Infinity, bi = 0, av = A.wv, an = A.wn, bv = B.wv, m = B.n;
+      for (var i = 0; i < A.n; i++) {
+        var nx = an[2 * i], ny = an[2 * i + 1], vx = av[2 * i], vy = av[2 * i + 1], mn = Infinity;
+        for (var j = 0; j < m; j++) { var d = nx * (bv[2 * j] - vx) + ny * (bv[2 * j + 1] - vy); if (d < mn) mn = d; }
+        if (mn > best) { best = mn; bi = i; }
+      }
+      return [best, bi];
+    }
+    function knip(p, nx, ny, off, id) { // houd het deel van het lijnstukje p (2 punten) aan de binnenkant
+      var d0 = nx * p[0].x + ny * p[0].y - off, d1 = nx * p[1].x + ny * p[1].y - off, uit = [];
+      if (d0 <= 0) uit.push(p[0]);
+      if (d1 <= 0) uit.push(p[1]);
+      if (d0 * d1 < 0) { var f = d0 / (d0 - d1); uit.push({ x: p[0].x + f * (p[1].x - p[0].x), y: p[0].y + f * (p[1].y - p[0].y), id: id }); }
+      return uit.length < 2 ? null : uit;
+    }
+    function polyPoly(A, B, marge) {
+      var ra = maxScheiding(A, B); if (ra[0] > marge) return null;
+      var rb = maxScheiding(B, A); if (rb[0] > marge) return null;
+      var ref, inc, e, flip;
+      if (rb[0] > ra[0] + 0.05) { ref = B; inc = A; e = rb[1]; flip = 1; } else { ref = A; inc = B; e = ra[1]; flip = 0; }
+      var nx = ref.wn[2 * e], ny = ref.wn[2 * e + 1], ii = 0, mn = Infinity, i;
+      for (i = 0; i < inc.n; i++) { var d = nx * inc.wn[2 * i] + ny * inc.wn[2 * i + 1]; if (d < mn) { mn = d; ii = i; } }
+      var i2 = (ii + 1) % inc.n, e2 = (e + 1) % ref.n, basis = flip * 10000 + e * 100;
+      var v1x = ref.wv[2 * e], v1y = ref.wv[2 * e + 1], v2x = ref.wv[2 * e2], v2y = ref.wv[2 * e2 + 1];
+      var tx = v2x - v1x, ty = v2y - v1y, tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+      var p = [{ x: inc.wv[2 * ii], y: inc.wv[2 * ii + 1], id: basis + ii }, { x: inc.wv[2 * i2], y: inc.wv[2 * i2 + 1], id: basis + i2 }];
+      p = knip(p, -tx, -ty, -(tx * v1x + ty * v1y), basis + 50); if (!p) return null;
+      p = knip(p, tx, ty, tx * v2x + ty * v2y, basis + 51); if (!p) return null;
+      var pts = [];
+      for (i = 0; i < p.length; i++) {
+        var sep = nx * (p[i].x - v1x) + ny * (p[i].y - v1y);
+        if (sep <= marge) pts.push({ x: p[i].x - nx * sep * 0.5, y: p[i].y - ny * sep * 0.5, sep: sep, id: p[i].id });
+      }
+      if (!pts.length) return null;
+      return flip ? { nx: -nx, ny: -ny, pts: pts } : { nx: nx, ny: ny, pts: pts };
+    }
+    function draaiOm(m) { if (m) { m.nx = -m.nx; m.ny = -m.ny; } return m; }
+    // A is altijd een lichaam; B een lichaam of iets vasts
+    function botsing(A, B, marge) {
+      var a = A.vorm.soort, b = B.vorm.soort;
+      if (a === 'cirkel') {
+        if (b === 'cirkel') {
+          var dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy), sep = d - A.vorm.r - B.vorm.r;
+          if (sep > marge) return null;
+          var nx = d > 1e-9 ? dx / d : 0, ny = d > 1e-9 ? dy / d : 1;
+          return { nx: nx, ny: ny, pts: [{ x: A.x + nx * (A.vorm.r + sep * 0.5), y: A.y + ny * (A.vorm.r + sep * 0.5), sep: sep, id: 0 }] };
+        }
+        if (b === 'seg') return draaiOm(segCirkel(B.vorm, A.x, A.y, A.vorm.r, marge));
+        return draaiOm(polyCirkel(B.geo, A.x, A.y, A.vorm.r, marge));
+      }
+      if (b === 'cirkel') return polyCirkel(A.geo, B.x, B.y, B.vorm.r, marge);
+      return polyPoly(A.geo, B.geo, marge);
+    }
+
+    // ---------- de wereld
+    function Wereld(o) {
+      o = o || {};
+      this.G = o.g || 2600; this.gx = 0; this.gy = this.G;
+      this.lichamen = []; this.vast = []; this.veren = [];
+      this.volg = 1; this.oud = new Map(); this.contacten = [];
+      this.opBotsing = null; this.voorStap = null;
+      this.stappen = 0;
+    }
+    var W = Wereld.prototype;
+
+    W.lichaam = function (o) {
+      var v = o.vorm, d = o.dichtheid || 1, a = o.a || 0, c = Math.cos(a), s = Math.sin(a);
+      var b = {
+        id: nieuwId(this), vorm: v, x: (o.x || 0) + c * v.ox - s * v.oy, y: (o.y || 0) + s * v.ox + c * v.oy, a: a,
+        vx: o.vx || 0, vy: o.vy || 0, w: o.w || 0, m: d * v.opp, I: d * v.I1,
+        wr: o.wrijving == null ? 0.5 : o.wrijving, st: o.stuit == null ? 0.2 : o.stuit,
+        rol: o.rol || 0, dempL: o.dempL == null ? 0.02 : o.dempL, dempA: o.dempA == null ? 0.15 : o.dempA,
+        slaap: !!o.slaap, rust: 0, vlak: !!o.vlak, kin: false, geest: false, raakt: false, glij: 0, soort: o.soort || '', data: o.data || {},
+        px: 0, py: 0, pa: 0, geo: null, aabb: [0, 0, 0, 0]
+      };
+      b.im = 1 / b.m; b.iI = 1 / b.I;
+      if (v.soort === 'poly') b.geo = { n: v.n, wv: new Float64Array(2 * v.n), wn: new Float64Array(2 * v.n) };
+      b.px = b.x; b.py = b.y; b.pa = b.a;
+      werk(b, 0);
+      this.lichamen.push(b);
+      return b;
+    };
+    // het midden van de tekening (voor het tekenen)
+    W.midden = function (b, x, y, a) {
+      var c = Math.cos(a), s = Math.sin(a), v = b.vorm;
+      return [x - c * v.ox + s * v.oy, y - s * v.ox - c * v.oy];
+    };
+    W.zetMidden = function (b, x, y, a) {
+      var c = Math.cos(a), s = Math.sin(a), v = b.vorm;
+      b.a = a; b.x = x + c * v.ox - s * v.oy; b.y = y + s * v.ox + c * v.oy; b.px = b.x; b.py = b.y; b.pa = a;
+      werk(b, 0);
+    };
+
+    function vastPoly(w, punten, o) {
+      var p = ordenen(punten), n = p.length, v = new Float64Array(2 * n), i, mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+      for (i = 0; i < n; i++) { v[2 * i] = p[i][0]; v[2 * i + 1] = p[i][1]; mnx = Math.min(mnx, p[i][0]); mny = Math.min(mny, p[i][1]); mxx = Math.max(mxx, p[i][0]); mxy = Math.max(mxy, p[i][1]); }
+      var s = { id: nieuwId(w), vast: true, vorm: { soort: 'poly' }, geo: { n: n, wv: v, wn: normalen(v, n) }, aabb: [mnx, mny, mxx, mxy],
+        wr: o.wrijving == null ? 0.6 : o.wrijving, st: o.stuit == null ? 0.2 : o.stuit, rand: !!o.rand, el: o.el || null, data: o.data || {} };
+      w.vast.push(s);
+      return s;
+    }
+    // een doos met afgeschuinde hoeken, in wereldcoördinaten
+    W.vastDoos = function (x0, y0, x1, y1, o) {
+      o = o || {};
+      var c = Math.min(o.schuin || 0, (x1 - x0) * 0.3, (y1 - y0) * 0.3);
+      var p = c > 0.5 ? [[x0 + c, y0], [x1 - c, y0], [x1, y0 + c], [x1, y1 - c], [x1 - c, y1], [x0 + c, y1], [x0, y1 - c], [x0, y0 + c]] : [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+      return vastPoly(this, p, o);
+    };
+    // een bolle veelhoek in wereldcoördinaten (zoals een gedraaid briefje)
+    W.vastVeelhoek = function (punten, o) { return vastPoly(this, punten, o || {}); };
+    // een lijnstukje met een dikte (zoals een potloodstreep)
+    W.vastLijn = function (ax, ay, bx, by, r, o) {
+      o = o || {};
+      var dx = bx - ax, dy = by - ay, l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+      var px = -dy * r, py = dx * r, ex = dx * r, ey = dy * r;
+      var s = vastPoly(this, [[ax - ex + px, ay - ey + py], [bx + ex + px, by + ey + py], [bx + ex - px, by + ey - py], [ax - ex - px, ay - ey - py]], o);
+      s.vorm = { soort: 'seg', ax: ax, ay: ay, bx: bx, by: by, r: r };
+      return s;
+    };
+    W.weg = function (s) {
+      var i = this.vast.indexOf(s); if (i >= 0) this.vast.splice(i, 1);
+      i = this.lichamen.indexOf(s); if (i >= 0) this.lichamen.splice(i, 1);
+    };
+    W.leegVast = function (welke) { this.vast = this.vast.filter(function (s) { return !welke(s); }); };
+
+    // ---------- wakker en slapen
+    function overlapt(a, b, m) { return a[0] - m <= b[2] && b[0] - m <= a[2] && a[1] - m <= b[3] && b[1] - m <= a[3]; }
+    W.wek = function (b) {
+      if (!b.slaap) { b.rust = 0; return; }
+      b.slaap = false; b.rust = 0;
+      for (var i = 0; i < this.lichamen.length; i++) { var c = this.lichamen[i]; if (c.slaap && overlapt(b.aabb, c.aabb, 6)) this.wek(c); }
+    };
+    W.wekAlles = function () { for (var i = 0; i < this.lichamen.length; i++) { var b = this.lichamen[i]; b.slaap = false; b.rust = 0; } };
+    W.wekBij = function (aabb, m) { for (var i = 0; i < this.lichamen.length; i++) { var b = this.lichamen[i]; if (b.slaap && overlapt(aabb, b.aabb, m || 8)) this.wek(b); } };
+    W.allesSlaapt = function () {
+      if (this.veren.length) return false;
+      for (var i = 0; i < this.lichamen.length; i++) { var b = this.lichamen[i]; if (!b.slaap || b.kin) return false; }
+      return true;
+    };
+
+    // wereldpunten, normalen en omhullende doos
+    function werk(b, dt) {
+      var c = Math.cos(b.a), s = Math.sin(b.a), v = b.vorm, m = MARGE + Math.hypot(b.vx, b.vy) * dt;
+      if (v.soort === 'cirkel') { b.aabb[0] = b.x - v.r - m; b.aabb[1] = b.y - v.r - m; b.aabb[2] = b.x + v.r + m; b.aabb[3] = b.y + v.r + m; return; }
+      var g = b.geo, mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+      for (var i = 0; i < v.n; i++) {
+        var lx = v.v[2 * i], ly = v.v[2 * i + 1], x = b.x + c * lx - s * ly, y = b.y + s * lx + c * ly;
+        g.wv[2 * i] = x; g.wv[2 * i + 1] = y;
+        g.wn[2 * i] = c * v.nn[2 * i] - s * v.nn[2 * i + 1]; g.wn[2 * i + 1] = s * v.nn[2 * i] + c * v.nn[2 * i + 1];
+        if (x < mnx) mnx = x; if (y < mny) mny = y; if (x > mxx) mxx = x; if (y > mxy) mxy = y;
+      }
+      b.aabb[0] = mnx - m; b.aabb[1] = mny - m; b.aabb[2] = mxx + m; b.aabb[3] = mxy + m;
+    }
+    W.werk = function (b) { werk(b, 0); };
+
+    // ---------- oppakken: een zachte veer naar je vinger of muis
+    W.pak = function (b, wx, wy, o) {
+      o = o || {};
+      var c = Math.cos(-b.a), s = Math.sin(-b.a), rx = wx - b.x, ry = wy - b.y;
+      var j = { b: b, lx: c * rx - s * ry, ly: s * rx + c * ry, tx: wx, ty: wy, hz: o.hz || 6, zeta: o.zeta == null ? 0.7 : o.zeta,
+        maxF: (o.kracht || 40000) * b.m, ix: 0, iy: 0, rx: 0, ry: 0, M: [0, 0, 0], cx: 0, cy: 0, gamma: 0 };
+      this.wek(b); b.geest = o.geest !== false;
+      this.veren.push(j);
+      return j;
+    };
+    W.laatLos = function (j) {
+      var i = this.veren.indexOf(j); if (i >= 0) this.veren.splice(i, 1);
+      j.b.geest = false;
+    };
+    function veerKlaar(j, dt) {
+      var b = j.b, om = 2 * Math.PI * j.hz, d = 2 * b.m * j.zeta * om, k = b.m * om * om;
+      var g = dt * (d + dt * k); j.gamma = g ? 1 / g : 0; var beta = dt * k * j.gamma;
+      var c = Math.cos(b.a), s = Math.sin(b.a); j.rx = c * j.lx - s * j.ly; j.ry = s * j.lx + c * j.ly;
+      var k11 = b.im + b.iI * j.ry * j.ry + j.gamma, k12 = -b.iI * j.rx * j.ry, k22 = b.im + b.iI * j.rx * j.rx + j.gamma;
+      var det = k11 * k22 - k12 * k12; det = det ? 1 / det : 0;
+      j.M[0] = det * k22; j.M[1] = -det * k12; j.M[2] = det * k11;
+      j.cx = beta * (b.x + j.rx - j.tx); j.cy = beta * (b.y + j.ry - j.ty);
+      j.ix *= 0.9; j.iy *= 0.9;
+      b.vx += b.im * j.ix; b.vy += b.im * j.iy; b.w += b.iI * (j.rx * j.iy - j.ry * j.ix);
+      b.w *= 0.985;
+    }
+    function veerLos(j, dt) {
+      var b = j.b, vx = b.vx - b.w * j.ry + j.cx + j.gamma * j.ix, vy = b.vy + b.w * j.rx + j.cy + j.gamma * j.iy;
+      var px = -(j.M[0] * vx + j.M[1] * vy), py = -(j.M[1] * vx + j.M[2] * vy);
+      var ox = j.ix, oy = j.iy; j.ix += px; j.iy += py;
+      var mx = j.maxF * dt, l = Math.hypot(j.ix, j.iy); if (l > mx) { j.ix *= mx / l; j.iy *= mx / l; }
+      px = j.ix - ox; py = j.iy - oy;
+      b.vx += b.im * px; b.vy += b.im * py; b.w += b.iI * (j.rx * py - j.ry * px);
+    }
+
+    // ---------- contacten klaarzetten
+    function maakContact(w, A, B, m, dt) {
+      var vast = !!B.vast, imA = A.kin ? 0 : A.im, iIA = A.kin ? 0 : A.iI;
+      var imB = vast || B.slaap || B.kin ? 0 : B.im, iIB = vast || B.slaap || B.kin ? 0 : B.iI;
+      var vBx = vast ? 0 : B.vx, vBy = vast ? 0 : B.vy, wB = vast ? 0 : B.w, bx = vast ? 0 : B.x, by = vast ? 0 : B.y;
+      var nx = m.nx, ny = m.ny, tx = ny, ty = -nx;
+      var c = { A: A, B: B, nx: nx, ny: ny, imA: imA, iIA: iIA, imB: imB, iIB: iIB, wr: Math.sqrt(A.wr * B.wr), st: Math.max(A.st, B.st), pts: m.pts, sleutel: A.id + '|' + B.id };
+      var oud = w.oud.get(c.sleutel);
+      for (var i = 0; i < m.pts.length; i++) {
+        var p = m.pts[i], rax = p.x - A.x, ray = p.y - A.y, rbx = p.x - bx, rby = p.y - by;
+        var rnA = rax * ny - ray * nx, rnB = rbx * ny - rby * nx, rtA = rax * ty - ray * tx, rtB = rbx * ty - rby * tx;
+        var kn = imA + imB + iIA * rnA * rnA + iIB * rnB * rnB, kt = imA + imB + iIA * rtA * rtA + iIB * rtB * rtB;
+        p.rax = rax; p.ray = ray; p.rbx = rbx; p.rby = rby; p.mn = kn > 0 ? 1 / kn : 0; p.mt = kt > 0 ? 1 / kt : 0;
+        var dvx = vBx - wB * rby - (A.vx - A.w * ray), dvy = vBy + wB * rbx - (A.vy + A.w * rax);
+        p.vn0 = dvx * nx + dvy * ny;
+        p.vmin = p.sep > 0 ? -p.sep / dt : Math.min(BETA * Math.max(0, -p.sep - SLOP) / dt, MAX_CORR);
+        p.pn = 0; p.pt = 0; p.maxPn = 0; p.nieuw = true;
+        if (oud) for (var k = 0; k < oud.length; k++) if (oud[k].id === p.id) { p.pn = oud[k].pn * 0.85; p.pt = oud[k].pt * 0.85; p.nieuw = false; break; }
+      }
+      return c;
+    }
+    function duw(c, p, Px, Py) {
+      var A = c.A, B = c.B;
+      A.vx -= c.imA * Px; A.vy -= c.imA * Py; A.w -= c.iIA * (p.rax * Py - p.ray * Px);
+      if (c.imB) { B.vx += c.imB * Px; B.vy += c.imB * Py; B.w += c.iIB * (p.rbx * Py - p.rby * Px); }
+    }
+    function relV(c, p) {
+      var A = c.A, B = c.B, vBx = 0, vBy = 0, wB = 0;
+      if (!B.vast) { vBx = B.vx; vBy = B.vy; wB = B.w; }
+      return [vBx - wB * p.rby - (A.vx - A.w * p.ray), vBy + wB * p.rbx - (A.vy + A.w * p.rax)];
+    }
+
+    // ---------- één stap
+    W.stap = function (dt) {
+      var L = this.lichamen, V = this.vast, i, j, k, b;
+      if (this.voorStap) this.voorStap(dt);
+      this.stappen++;
+      for (i = 0; i < L.length; i++) {
+        b = L[i]; b.px = b.x; b.py = b.y; b.pa = b.a; var raakte = b.raakt; b.raakt = false; b.glij = 0;
+        if (b.slaap || b.kin) continue;
+        b.vx += this.gx * dt; b.vy += this.gy * dt;
+        // een dobbelsteen balanceert niet op een hoek: langzaam en schuin op iets, dan valt hij naar de dichtstbijzijnde platte kant
+        if (b.vlak && raakte && !b.geest && b.w * b.w < 4 && b.vx * b.vx + b.vy * b.vy < 3600) {
+          var sch = ((b.a % (Math.PI / 2)) + Math.PI / 2) % (Math.PI / 2);
+          if (sch > 0.08 && sch < Math.PI / 2 - 0.08) b.w += (sch < Math.PI / 4 - 0.01 ? -1 : sch > Math.PI / 4 + 0.01 ? 1 : (b.w < 0 ? -1 : 1)) * 30 * dt;
+        }
+        var dl = 1 / (1 + dt * b.dempL), da = 1 / (1 + dt * b.dempA);
+        b.vx *= dl; b.vy *= dl; b.w *= da;
+      }
+      for (i = 0; i < L.length; i++) werk(L[i], dt);
+      // lichamen onderling: eerst kijken wie er wakker moet worden
+      var paren = [], C = [];
+      for (i = 0; i < L.length; i++) for (j = i + 1; j < L.length; j++) {
+        var A = L[i], B = L[j];
+        if (A.slaap && B.slaap) continue;
+        if (A.kin && B.kin) continue;
+        if (!overlapt(A.aabb, B.aabb, 0)) continue;
+        var mm = botsing(A, B, MARGE + Math.hypot(A.vx - B.vx, A.vy - B.vy) * dt);
+        if (mm) paren.push([A, B, mm]);
+      }
+      for (var ronde = 0; ronde < 3; ronde++) {
+        var veranderd = false;
+        for (k = 0; k < paren.length; k++) {
+          var P = paren[k], X = P[0].slaap ? P[1] : P[0], Y = P[0].slaap ? P[0] : P[1];
+          if (!Y.slaap || X.slaap) continue;
+          var nx = P[2].nx, ny = P[2].ny, s = X === P[0] ? 1 : -1;
+          var vn = -s * (X.vx * nx + X.vy * ny);
+          var vast = this.veren.some(function (q) { return q.b === X; });
+          if (X.kin || vast || vn < -60 || P[2].pts[0].sep < -2.5) { this.wek(Y); veranderd = true; }
+        }
+        if (!veranderd) break;
+      }
+      for (k = 0; k < paren.length; k++) {
+        var Q = paren[k];
+        if (Q[0].slaap && !Q[1].slaap) C.push(maakContact(this, Q[1], Q[0], draaiOm(Q[2]), dt));
+        else C.push(maakContact(this, Q[0], Q[1], Q[2], dt));
+      }
+      // lichamen tegen de pagina
+      for (i = 0; i < L.length; i++) {
+        b = L[i]; if (b.slaap || b.kin) continue;
+        var mg = MARGE + Math.hypot(b.vx, b.vy) * dt;
+        for (j = 0; j < V.length; j++) {
+          var S = V[j]; if (b.geest && !S.rand) continue;
+          if (!overlapt(b.aabb, S.aabb, 0)) continue;
+          var m2 = botsing(b, S, mg); if (m2) C.push(maakContact(this, b, S, m2, dt));
+        }
+      }
+      // klaarzetten: veren en contacten opwarmen met de duwtjes van de vorige stap
+      for (i = 0; i < this.veren.length; i++) veerKlaar(this.veren[i], dt);
+      for (i = 0; i < C.length; i++) {
+        var c = C[i];
+        for (k = 0; k < c.pts.length; k++) { var p = c.pts[k]; if (p.pn || p.pt) duw(c, p, c.nx * p.pn + c.ny * p.pt, c.ny * p.pn - c.nx * p.pt); }
+      }
+      // oplossen
+      for (var it = 0; it < ITER; it++) {
+        for (i = 0; i < this.veren.length; i++) veerLos(this.veren[i], dt);
+        for (i = 0; i < C.length; i++) {
+          c = C[i]; var tx = c.ny, ty = -c.nx;
+          for (k = 0; k < c.pts.length; k++) {
+            p = c.pts[k];
+            // wrijving
+            var dv = relV(c, p), vt = dv[0] * tx + dv[1] * ty, lam = -p.mt * vt, maxF = c.wr * p.pn, npt = p.pt + lam;
+            npt = npt < -maxF ? -maxF : npt > maxF ? maxF : npt; lam = npt - p.pt; p.pt = npt;
+            duw(c, p, tx * lam, ty * lam);
+            // niet door elkaar heen
+            dv = relV(c, p); var vn2 = dv[0] * c.nx + dv[1] * c.ny;
+            lam = p.mn * (p.vmin - vn2); var npn = p.pn + lam; if (npn < 0) npn = 0; lam = npn - p.pn; p.pn = npn;
+            if (npn > p.maxPn) p.maxPn = npn;
+            duw(c, p, c.nx * lam, c.ny * lam);
+          }
+        }
+      }
+      // stuiteren: met de snelheid van vóór de botsing
+      for (i = 0; i < C.length; i++) {
+        c = C[i]; if (c.st <= 0) continue;
+        for (k = 0; k < c.pts.length; k++) {
+          p = c.pts[k]; if (p.vn0 > -STUIT_DREMPEL || p.maxPn <= 0) continue;
+          dv = relV(c, p); var vn3 = dv[0] * c.nx + dv[1] * c.ny;
+          lam = -p.mn * (vn3 + c.st * p.vn0); var np2 = p.pn + lam; if (np2 < 0) np2 = 0; lam = np2 - p.pn; p.pn = np2;
+          duw(c, p, c.nx * lam, c.ny * lam);
+        }
+      }
+      // onthouden voor de volgende stap, tikjes melden
+      var nieuwOud = new Map();
+      for (i = 0; i < C.length; i++) {
+        c = C[i]; var lijst = [];
+        for (k = 0; k < c.pts.length; k++) {
+          p = c.pts[k]; lijst.push({ id: p.id, pn: p.pn, pt: p.pt });
+          if (p.maxPn > 0) {
+            c.A.raakt = true; if (!c.B.vast) c.B.raakt = true;
+            var dvv = relV(c, p), vtt = Math.abs(dvv[0] * c.ny - dvv[1] * c.nx);
+            if (vtt > c.A.glij) c.A.glij = vtt; if (!c.B.vast && vtt > c.B.glij) c.B.glij = vtt;
+            if (this.opBotsing && -p.vn0 > IMPACT && (p.nieuw || -p.vn0 > 160)) this.opBotsing(c.A, c.B, -p.vn0, p.x, p.y, c.nx, c.ny);
+          }
+        }
+        nieuwOud.set(c.sleutel, lijst);
+      }
+      this.oud = nieuwOud; this.contacten = C;
+      // verplaatsen
+      var g2 = this.gx * this.gx + this.gy * this.gy, gewichtloos = g2 < 0.0225 * this.G * this.G;
+      for (i = 0; i < L.length; i++) {
+        b = L[i]; if (b.slaap) continue;
+        var sp = Math.hypot(b.vx, b.vy); if (sp > VMAX) { b.vx *= VMAX / sp; b.vy *= VMAX / sp; }
+        if (b.w > WMAX) b.w = WMAX; else if (b.w < -WMAX) b.w = -WMAX;
+        if (b.raakt && b.rol) { var dw = b.rol / b.vorm.straal * dt; b.w = b.w > dw ? b.w - dw : b.w < -dw ? b.w + dw : 0; } // rolweerstand: een vaste rem (px/s²)
+        b.x += b.vx * dt; b.y += b.vy * dt; b.a += b.w * dt;
+        if (b.kin) continue;
+        var vastgepakt = b.geest;
+        if (!vastgepakt && b.vx * b.vx + b.vy * b.vy < SLAAP_V * SLAAP_V && b.w * b.w < SLAAP_W * SLAAP_W && (b.raakt || gewichtloos)) {
+          b.rust += dt;
+          if (b.rust >= SLAAP_T) {
+            b.slaap = true; b.vx = 0; b.vy = 0; b.w = 0;
+          }
+        } else b.rust = 0;
+      }
+    };
+
+    // ---------- na loslaten: niet in de pagina blijven steken
+    // schuift een lichaam uit wat vast is (liefst omhoog), hooguit een paar keer
+    W.vrijMaken = function (b) {
+      for (var ronde = 0; ronde < 8; ronde++) {
+        werk(b, 0);
+        var diepst = null, dm = null;
+        for (var i = 0; i < this.vast.length; i++) {
+          var S = this.vast[i]; if (!overlapt(b.aabb, S.aabb, 0)) continue;
+          var m = botsing(b, S, 0); if (!m) continue;
+          var sep = Math.min.apply(null, m.pts.map(function (p) { return p.sep; }));
+          if (sep < -0.5 && (!dm || sep < dm.sep)) { diepst = S; dm = { sep: sep, m: m }; }
+        }
+        if (!diepst) return true;
+        var a = b.aabb, s = diepst.aabb, h = (a[3] - a[1]) / 2, br = (a[2] - a[0]) / 2;
+        var kosten = [
+          [0.6 * (a[3] - s[1] + 1), 0, -(a[3] - s[1] + 1)],
+          [a[2] - s[0] + 1, -(a[2] - s[0] + 1), 0],
+          [s[2] - a[0] + 1, s[2] - a[0] + 1, 0],
+          [1.4 * (s[3] - a[1] + 1), 0, s[3] - a[1] + 1]
+        ];
+        if (diepst.vorm.soort === 'seg' || diepst.rand) kosten.push([0, -dm.m.nx * (-dm.sep + 1), -dm.m.ny * (-dm.sep + 1)]);
+        if (diepst.rand) kosten = [kosten[kosten.length - 1]];
+        kosten.sort(function (x, y) { return x[0] - y[0]; });
+        b.x += kosten[0][1]; b.y += kosten[0][2]; b.px = b.x; b.py = b.y;
+        void h; void br;
+      }
+      werk(b, 0);
+      return false;
+    };
+
+    // ---------- om te zien wat de motor ziet
+    W.tekenDebug = function (ctx, ox, oy, kleur) {
+      ctx.save(); ctx.translate(-ox, -oy); ctx.lineWidth = 1.5;
+      function polyPad(g) { ctx.beginPath(); for (var i = 0; i < g.n; i++) { var x = g.wv[2 * i], y = g.wv[2 * i + 1]; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.closePath(); }
+      ctx.strokeStyle = kleur.vast;
+      for (var i = 0; i < this.vast.length; i++) { var S = this.vast[i]; if (S.rand) continue; polyPad(S.geo); ctx.stroke(); }
+      for (i = 0; i < this.lichamen.length; i++) {
+        var b = this.lichamen[i]; ctx.strokeStyle = b.slaap ? kleur.slaap : kleur.wakker;
+        if (b.vorm.soort === 'cirkel') { ctx.beginPath(); ctx.arc(b.x, b.y, b.vorm.r, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + Math.cos(b.a) * b.vorm.r, b.y + Math.sin(b.a) * b.vorm.r); ctx.stroke(); }
+        else { polyPad(b.geo); ctx.stroke(); }
+        if (!b.slaap) { ctx.strokeStyle = kleur.snel; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + b.vx * 0.05, b.y + b.vy * 0.05); ctx.stroke(); }
+      }
+      ctx.fillStyle = kleur.contact;
+      for (i = 0; i < this.contacten.length; i++) {
+        var c = this.contacten[i];
+        for (var k = 0; k < c.pts.length; k++) { var p = c.pts[k]; if (p.maxPn <= 0) continue; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill(); ctx.beginPath(); ctx.strokeStyle = kleur.contact; ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - c.nx * 10, p.y - c.ny * 10); ctx.stroke(); }
+      }
+      ctx.restore();
+    };
+
+    return { Wereld: Wereld, cirkel: cirkel, poly: poly, doos: doos, botsing: botsing };
+  })();
+  // ==== FYSICA eind
+  const RM = (function () {
+    const K = 52 / 64;                       // tekening: px per eenheid van het viewBox
+    const SLEUTEL = 'rommeltjes-v1';         // per apparaat, bewust niet in SLEUTELS (koppelen)
+    const RUSTIG = minder;
+    const DT = 1 / 120;
+    const pk = lijst => lijst.map(p => [(p[0] - 32) * K, (p[1] - 32) * K]);
+    const lees = () => { try { return JSON.parse(localStorage.getItem(SLEUTEL) || 'null') || {}; } catch (e) { return {}; } };
+    const schrijf = v => { try { localStorage.setItem(SLEUTEL, JSON.stringify(v)); } catch (e) {} };
+    let opslag = lees();
+
+    // ---------- de tekeningen en de vormen
+    const OOG = { tl: [22, 22], tr: [42, 22], ml: [22, 32], mr: [42, 32], c: [32, 32], bl: [22, 42], br: [42, 42] };
+    const OGEN = { 1: ['c'], 2: ['tr', 'bl'], 3: ['tr', 'c', 'bl'], 4: ['tl', 'tr', 'bl', 'br'], 5: ['tl', 'tr', 'c', 'bl', 'br'], 6: ['tl', 'tr', 'ml', 'mr', 'bl', 'br'] };
+    const GETAL = ['', 'één', 'twee', 'drie', 'vier', 'vijf', 'zes'];
+    const KURK = 'M32 9l5 4 6-2 3 5 6 1 0 6 5 4-3 5 3 5-5 4 0 6-6 1-3 5-6-2-5 4-5-4-6 2-3-5-6-1 0-6-5-4 3-5-3-5 5-4 0-6 6-1 3-5 6 2z';
+    const TOL = 'M12 30c0-9 9-14 20-14s20 5 20 14c0 4-2 7-6 10L32 56 18 40c-4-3-6-6-6-10z';
+    const STER = 'M32 7l7.4 15 16.6 2.4-12 11.7 2.8 16.5L32 44.8 17.2 52.6 20 36.1 8 24.4l16.6-2.4z';
+    const CLIP = 'M24 50V18a8 8 0 0 1 16 0v30a12 12 0 0 1-24 0V22';
+    const PL = [[-22.3, -6.9], [11.4, -6.9], [22.3, 0], [11.4, 6.9], [-22.3, 6.9]], PUNT = [22.3, 0];
+    const rond = (r1, r2) => `<circle class="hit fijn" cx="32" cy="32" r="${r1}"/><circle class="hit grof" cx="32" cy="32" r="${r2}"/>`;
+    const DEF = {
+      knikker: { naam: 'Knikker', klank: 'glas', vorm: () => Fysica.cirkel(17.7, 0.4), dichtheid: 2.6, wrijving: 0.35, stuit: 0.5, rol: 160, dempA: 0.05,
+        teken: () => '<circle cx="32" cy="32" r="20" fill="#7FB3E6" stroke="#231A26" stroke-width="3.5"/><path d="M18 36c6-10 18-12 28-4" fill="none" stroke="#C8323C" stroke-width="4" stroke-linecap="round"/><path d="M24 46c5 2 12 1 16-3" fill="none" stroke="#FFE76A" stroke-width="3" stroke-linecap="round"/>',
+        sch: '<circle cx="32" cy="32" r="21.5"/>', hit: rond(23, 26),
+        glans: n => `<defs><clipPath id="rm-kn${n}"><circle cx="32" cy="32" r="18.3"/></clipPath></defs><circle cx="25" cy="24" r="4.5" fill="#FFFFFF" opacity=".85"/><circle cx="39.5" cy="40" r="2" fill="#FFFFFF" opacity=".5"/><g clip-path="url(#rm-kn${n})"><rect class="streep" x="-12" y="0" width="9" height="64" fill="#FFFFFF" opacity="0" transform="rotate(25 32 32)"/></g>`,
+        label: 'Knikker. Tik om hem weg te tikken, sleep om te gooien.' },
+      dobbelsteen: { naam: 'Dobbelsteen', klank: 'plastic', vorm: () => Fysica.doos(38.6, 38.6, 7.3), dichtheid: 1.3, wrijving: 0.6, stuit: 0.32, vlak: true,
+        teken: () => '<rect x="10" y="10" width="44" height="44" rx="9" fill="#FFFFFF" stroke="#231A26" stroke-width="3.5"/>' + [1, 2, 3, 4, 5, 6].map(n => `<g class="vlak${n}"${n === 5 ? '' : ' style="opacity:0"'}>${OGEN[n].map(o => `<circle cx="${OOG[o][0]}" cy="${OOG[o][1]}" r="4.2" fill="${o === 'c' ? '#C8323C' : '#231A26'}"/>`).join('')}</g>`).join(''),
+        sch: '<rect x="8.2" y="8.2" width="47.6" height="47.6" rx="10"/>',
+        hit: '<rect class="hit fijn" x="6" y="6" width="52" height="52" rx="11"/><rect class="hit grof" x="4" y="4" width="56" height="56" rx="13"/>',
+        label: 'Dobbelsteen. Tik om te gooien.' },
+      potlood: { naam: 'Potlood', klank: 'hout', vorm: () => Fysica.poly(PL), dichtheid: 0.75, wrijving: 0.5, stuit: 0.22,
+        teken: () => '<rect x="12" y="25" width="34" height="14" fill="#F2C94C" stroke="#231A26" stroke-width="3"/><path d="M15 29.7h28" stroke="#E0A92E" stroke-width="2"/><path d="M46 25l12 7-12 7z" fill="#F4DCC2" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><path d="M54 29.7l4 2.3-4 2.3z" fill="#231A26"/><rect x="6" y="25" width="7" height="14" rx="2" fill="#E8577A" stroke="#231A26" stroke-width="3"/>',
+        sch: '<path d="M4.5 23.5h42l13.5 8.5-13.5 8.5h-42z"/>',
+        hit: '<path class="hit fijn" d="M2 20h45l16 12-16 12H2z"/><path class="hit grof" d="M-2 16h50l18 16-18 16H-2z"/>',
+        label: 'Potlood. Sleep om te tekenen, tik voor een krabbel.' },
+      paperclip: { naam: 'Paperclip', klank: 'metaal', vorm: () => Fysica.poly(pk([[16, 6.5], [40, 6.5], [43.5, 12], [43.5, 58], [38, 63.5], [18, 63.5], [12.5, 58], [12.5, 12]])), dichtheid: 1.5, wrijving: 0.07, stuit: 0.25, a0: Math.PI / 2,
+        teken: () => `<path d="${CLIP}" fill="none" stroke="#231A26" stroke-width="7" stroke-linecap="round"/><path d="${CLIP}" fill="none" stroke="#B8C0C8" stroke-width="3.4" stroke-linecap="round"/><path d="M38 20v26" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" opacity=".7"/>`,
+        sch: `<path d="${CLIP}" fill="none" stroke-width="7" stroke-linecap="round"/>`,
+        hit: '<rect class="hit fijn" x="9" y="4" width="38" height="62" rx="12"/><rect class="hit grof" x="5" y="1" width="46" height="68" rx="16"/>',
+        label: 'Paperclip. Tik en hij vliegt als een boemerang.' },
+      knoop: { naam: 'Knoop', klank: 'plastic', vorm: () => Fysica.cirkel(19.3, 0.5), dichtheid: 1.1, wrijving: 0.5, stuit: 0.68, rol: 520,
+        teken: () => '<circle cx="32" cy="32" r="22" fill="#2F6FB5" stroke="#231A26" stroke-width="3.5"/><circle cx="32" cy="32" r="15" fill="none" stroke="#1F4F85" stroke-width="2.5"/>' + [[26, 26], [38, 26], [26, 38], [38, 38]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/>`).join(''),
+        sch: '<circle cx="32" cy="32" r="23.5"/>', hit: rond(25, 28),
+        label: 'Knoop. Tik en hij stuitert als een superbal.' },
+      kroonkurk: { naam: 'Kroonkurk', klank: 'metaal', vorm: () => Fysica.cirkel(19.5, 0.5), dichtheid: 1.4, wrijving: 0.6, stuit: 0.25, rol: 1100,
+        teken: () => `<g class="voor"><path d="${KURK}" fill="#C8323C" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="32" r="13" fill="#E8414E" stroke="#231A26" stroke-width="2.5"/><path d="M26 30c2-3 8-3 12 0" fill="none" stroke="#FBF6E9" stroke-width="2.5" stroke-linecap="round"/></g><g class="achter" style="opacity:0"><path d="${KURK}" fill="#B8C0C8" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="32" r="14" fill="#D9B98C" stroke="#231A26" stroke-width="2.5"/><circle cx="32" cy="32" r="8" fill="none" stroke="#B88A55" stroke-width="2"/></g>`,
+        sch: `<path d="${KURK}"/>`, hit: rond(25, 28),
+        label: 'Kroonkurk. Tik om op te gooien: kop of munt?' },
+      sterretje: { naam: 'Sterretje', klank: 'plastic', vorm: () => Fysica.poly(pk([[32, 4.5], [58.5, 24], [48.5, 55], [15.5, 55], [5.5, 24]])), dichtheid: 0.6, wrijving: 0.45, stuit: 0.35,
+        teken: () => `<path d="${STER}" fill="#FFE76A" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/><path d="M27 26l3 3" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>`,
+        sch: `<path d="${STER}"/>`, hit: rond(24, 27),
+        label: 'Sterretje. Tik en het laat een spoor van fonkeltjes achter.' },
+      tol: { naam: 'Tol', klank: 'hout', a0: 0.91, vorm: () => Fysica.poly(pk([[32, 5.5], [44, 15.5], [52.5, 25], [53.5, 31], [32, 58.5], [10.5, 31], [11.5, 25], [20, 15.5]])), dichtheid: 0.9, wrijving: 0.5, stuit: 0.25,
+        teken: n => `<defs><clipPath id="rm-tol${n}"><path d="${TOL}"/></clipPath></defs><path d="M32 8v8" stroke="#231A26" stroke-width="4" stroke-linecap="round"/><path d="${TOL}" fill="#2E8B62" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/><g clip-path="url(#rm-tol${n})"><g class="strepen"><path d="M6 14v44M18 14v44M30 14v44M42 14v44M54 14v44M66 14v44" stroke="#FFFFFF" stroke-width="3" opacity=".22"/></g></g><path d="M13 30h38" stroke="#FFE76A" stroke-width="4"/><path d="${TOL}" fill="none" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/>`,
+        sch: `<path d="${TOL}"/><path d="M30 6h4v12h-4z"/>`, hit: '<path class="hit fijn" d="M6 30c0-12 12-20 26-20s26 8 26 20c0 6-3 10-8 14L32 62 14 44c-5-4-8-8-8-14z"/><path class="hit grof" d="M2 30c0-14 14-24 30-24s30 10 30 24c0 7-4 12-9 16L32 66 11 46c-5-4-9-9-9-16z"/>',
+        label: 'Tol. Tik om hem te laten draaien.' }
+    };
+    const BRIEF = ['knikker', 'dobbelsteen', 'potlood'];
+    const ZIJ = ['dobbelsteen', 'sterretje', 'potlood', 'paperclip', 'knoop', 'tol', 'kroonkurk', 'knikker'];
+
+    const wereld = new Fysica.Wereld({ g: 2600 });
+    let laag = null, lijnen = null, docB = 0, docH = 0, vloerY = 0;
+    const rommels = [], planken = {};
+    const tel = {};
+
+    // ---------- geluid (Web Audio; pas na de eerste aanraking, nooit bij het openen)
+    const Klank = (function () {
+      let ctx = null, hoofd = null, ruis = null, aan = opslag.g !== 0;
+      const laatst = {}, lussen = {};
+      function start() {
+        if (!aan) return;
+        if (ctx) { if (ctx.state === 'suspended') { try { ctx.resume().catch(() => {}); } catch (e) {} } return; }
+        const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+        try { ctx = new AC(); if (ctx.resume) ctx.resume().catch(() => {}); } catch (e) { ctx = null; return; }
+        hoofd = ctx.createGain(); hoofd.gain.value = 0.5; hoofd.connect(ctx.destination);
+        const n = ctx.sampleRate, buf = ctx.createBuffer(1, n, n), d = buf.getChannelData(0);
+        for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+        ruis = buf;
+      }
+      const klaar = () => ctx && aan && ctx.state === 'running';
+      function env(g, t, piek, duur) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, piek), t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + duur); }
+      function toon(f, piek, duur, type, eind, na) { const t = ctx.currentTime + (na || 0), o = ctx.createOscillator(), g = ctx.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (eind) o.frequency.exponentialRampToValueAtTime(eind, t + duur); env(g, t, piek, duur); o.connect(g); g.connect(hoofd); o.start(t); o.stop(t + duur + 0.03); }
+      function sis(f, q, piek, duur, soort) { const t = ctx.currentTime, s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = ruis; s.playbackRate.value = 0.8 + Math.random() * 0.4; fl.type = soort || 'bandpass'; fl.frequency.value = f; fl.Q.value = q; env(g, t, piek, duur); s.connect(fl); fl.connect(g); g.connect(hoofd); s.start(t, Math.random() * 0.5); s.stop(t + duur + 0.03); }
+      function tik(soort, sterkte, wie) {
+        if (!klaar()) return;
+        const nu = ctx.currentTime, k = wie || soort; if (laatst[k] && nu - laatst[k] < 0.045) return; laatst[k] = nu;
+        const v = Math.min(1, sterkte / 1100), r = 0.92 + Math.random() * 0.16;
+        if (v < 0.03) return;
+        if (soort === 'glas') { toon(2650 * r, 0.3 * v, 0.11); toon(2650 * r * 2.76, 0.11 * v, 0.06); }
+        else if (soort === 'plastic') { sis(2300 * r, 1.4, 0.45 * v, 0.04); toon(1150 * r, 0.11 * v, 0.03, 'triangle'); }
+        else if (soort === 'hout') { sis(950 * r, 1.8, 0.42 * v, 0.055); toon(420 * r, 0.13 * v, 0.045, 'triangle'); }
+        else if (soort === 'metaal') { toon(3300 * r, 0.16 * v, 0.07); toon(5100 * r, 0.07 * v, 0.05); sis(6500, 1, 0.12 * v, 0.03, 'highpass'); }
+        else if (soort === 'plof') { toon(170 * r, 0.28 * v, 0.1, 'sine', 80); sis(500, 0.7, 0.16 * v, 0.06, 'lowpass'); }
+        else if (soort === 'gooi') toon(620 * r, 0.06, 0.08, 'sine', 1300);
+        else if (soort === 'boing') toon(180 * (wie || 1), 0.16 * Math.max(0.4, v), 0.22, 'triangle', 420 * (wie || 1));
+        else if (soort === 'fonkel') [1568, 2093, 2637, 3136].forEach((f, i) => toon(f * r, 0.05, 0.16, 'sine', 0, i * 0.055));
+        else if (soort === 'krabbel') sis(3200, 0.9, 0.05, 0.05);
+        else if (soort === 'kop') { toon(880, 0.08, 0.12); toon(1320, 0.07, 0.18, 'sine', 0, 0.09); }
+      }
+      // aanhoudend: het krassen van het potlood, het rollen van de knikker, het zoemen van de tol
+      function lus(naam, maak) { if (!lussen[naam]) lussen[naam] = maak(); return lussen[naam]; }
+      function ruisLus(f, q, typ) { const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = ruis; s.loop = true; fl.type = typ; fl.frequency.value = f; fl.Q.value = q; g.gain.value = 0.0001; s.connect(fl); fl.connect(g); g.connect(hoofd); s.start(); return { g, fl }; }
+      function zet(naam, gain, maak, f) {
+        if (!ctx) return;
+        const l = lussen[naam] || (gain > 0.001 && klaar() ? lus(naam, maak) : null); if (!l) return;
+        l.g.gain.setTargetAtTime(klaar() ? Math.max(0.0001, gain) : 0.0001, ctx.currentTime, 0.04);
+        if (f && l.o) l.o.frequency.setTargetAtTime(f, ctx.currentTime, 0.05);
+      }
+      return {
+        start, tik,
+        krassen: v => zet('kras', Math.min(0.12, v / 2500 * 0.12), () => ruisLus(3400, 0.7, 'bandpass')),
+        rollen: v => zet('rol', v > 25 ? Math.min(0.2, v / 900 * 0.2) : 0, () => ruisLus(320, 0.6, 'lowpass')),
+        zoemen: (v, f) => zet('tol', v, () => { const o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.value = f || 140; fl.type = 'lowpass'; fl.frequency.value = 900; g.gain.value = 0.0001; o.connect(fl); fl.connect(g); g.connect(hoofd); o.start(); return { g, o }; }, f),
+        get aan() { return aan; },
+        zetAan(b) { aan = b; if (b) start(); else if (ctx) Object.keys(lussen).forEach(k => { lussen[k].g.gain.value = 0.0001; }); }
+      };
+    })();
+    let trilKlok = 0;
+    function tril(ms) { const nu = performance.now(); if (nu - trilKlok < 120) return; trilKlok = nu; try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(ms); } catch (e) {} }
+
+    // ---------- een rommeltje maken
+    function maak(soort, plek, nr) {
+      const d = DEF[soort], el = document.createElement('button'), n = rommels.length;
+      el.type = 'button'; el.className = 'tg-rommel'; el.dataset.rommel = soort; el.setAttribute('aria-label', d.label);
+      el.innerHTML = `<span class="rm-sch" aria-hidden="true"><svg viewBox="0 0 64 64">${d.sch}</svg></span><span class="rm-draai" aria-hidden="true"><svg viewBox="0 0 64 64"><g class="tek">${d.teken(n)}</g>${d.hit}</svg></span>` + (d.glans ? `<span class="rm-glans" aria-hidden="true"><svg viewBox="0 0 64 64">${d.glans(n)}</svg></span>` : '');
+      laag.appendChild(el);
+      const b = wereld.lichaam({ vorm: d.vorm(), dichtheid: d.dichtheid, wrijving: d.wrijving, stuit: d.stuit, rol: d.rol, dempA: d.dempA, vlak: d.vlak, soort, x: -300, y: -300, slaap: true });
+      const r = { id: soort + nr, soort, plek, d, el, b, sch: el.querySelector('.rm-sch'), draai: el.querySelector('.rm-draai'), lift: 0, liftDoel: 0, face: 5, draaiSom: 0, gerold: false, zessen: 0, flip: 0, flipV: 0, kant: 1, superbal: 0, weg: false, getoond: '', td: '', ts: '' };
+      b.data.r = r; b.data.st0 = d.stuit;
+      if (soort === 'kroonkurk') { r.voor = el.querySelector('.voor'); r.achter = el.querySelector('.achter'); }
+      if (soort === 'tol') r.strepen = el.querySelector('.strepen');
+      rommels.push(r); koppel(r);
+      return r;
+    }
+
+    // ---------- de wereld: wat er vast op de pagina staat
+    function hoekVan(el) { const t = getComputedStyle(el).transform; if (!t || t === 'none') return 0; const m = t.match(/matrix\(([^)]+)\)/); if (!m) return 0; const v = m[1].split(',').map(parseFloat); return Math.atan2(v[1], v[0]); }
+    // een gedraaide rechthoek (de randen van het element, met afgeschuinde hoeken), in documentcoördinaten
+    function vastVan(el, o) {
+      const q = el.getBoundingClientRect(); if (!q.width || !q.height) return null;
+      const w = o.w || el.offsetWidth || q.width, h = o.h || el.offsetHeight || q.height, a = o.hoek != null ? o.hoek : hoekVan(el);
+      const cx = (o.cx != null ? o.cx : q.left + q.width / 2) + scrollX, cy = (o.cy != null ? o.cy : q.top + q.height / 2) + scrollY;
+      const x = w / 2, y = h / 2, c = Math.min(o.schuin || 0, x * 0.3, y * 0.3), co = Math.cos(a), si = Math.sin(a);
+      const p = c > 0.5 ? [[-x + c, -y], [x - c, -y], [x, -y + c], [x, y - c], [x - c, y], [-x + c, y], [-x, y - c], [-x, -y + c]] : [[-x, -y], [x, -y], [x, y], [-x, y]];
+      return wereld.vastVeelhoek(p.map(v => [cx + co * v[0] - si * v[1], cy + si * v[0] + co * v[1]]), { wrijving: o.wrijving || 0.6, el: o.el || el, rand: o.rand, data: { naam: o.naam, klank: o.klank || 'plof', anker: o.anker, tik: o.tik } });
+    }
+    // de sticker: een ovaal om het hoofd (de hoeken van het plaatje zijn doorzichtig)
+    function stickerVast(el) {
+      const q = el.getBoundingClientRect(); if (!q.width) return;
+      const w = el.offsetWidth, h = el.offsetHeight, a = hoekVan(el), cx0 = q.left + q.width / 2 + scrollX, cy0 = q.top + q.height / 2 + scrollY;
+      const co = Math.cos(a), si = Math.sin(a), mx = 0, my = -0.06 * h, rx = 0.42 * w, ry = 0.38 * h, p = [];
+      for (let i = 0; i < 14; i++) { const t = i / 14 * Math.PI * 2, lx = mx + rx * Math.cos(t), ly = my + ry * Math.sin(t); p.push([cx0 + co * lx - si * ly, cy0 + si * lx + co * ly]); }
+      wereld.vastVeelhoek(p, { wrijving: 0.5, el, data: { naam: 'sticker', klank: 'plof', anker: 'sticker' } });
+    }
+    function rect(el) { const q = el.getBoundingClientRect(); return { l: q.left + scrollX, t: q.top + scrollY, r: q.right + scrollX, b: q.bottom + scrollY, w: q.width, h: q.height }; }
+    // de plankjes (een naast het briefje of de kop, en op brede schermen acht in de kantlijn)
+    function plank(sleutel) {
+      if (!planken[sleutel]) { const p = document.createElement('div'); p.className = 'rm-plank'; p.setAttribute('aria-hidden', 'true'); p.innerHTML = '<i class="l"></i><i class="r"></i>'; laag.insertBefore(p, laag.firstChild); planken[sleutel] = p; }
+      return planken[sleutel];
+    }
+    let zijRuimte = false;
+    // is er naast het briefje plek voor het plankje? (anders: naast de kop Alle spellen)
+    function breed() { const main = $('main'), brief = $('.briefje'); if (!main || !brief) return false; const m = rect(main), br = rect(brief); return docB >= 700 && m.r - 24 - (br.r + 40) >= 190; }
+    function zetPlanken(naastBrief) {
+      const main = $('main'), brief = $('.briefje'), kop = $('#tg-kop span'), held = $('.held'), coul = $('.coulissen');
+      if (!main) return;
+      const m = rect(main), vw = docB, br = brief ? rect(brief) : null, kr = kop ? rect(kop) : null;
+      let x0, x1, y;
+      if (br && naastBrief) { x0 = br.r + 40; x1 = Math.min(m.r - 24, x0 + 300); y = br.t + br.h * 0.42; }
+      else if (kr) { x0 = kr.r + 14; x1 = Math.min(m.r - 8, x0 + 260); y = kr.b - 2; }
+      const pb = plank('brief');
+      if (x0 != null && x1 - x0 >= 130) { pb.hidden = false; pb.style.transform = `translate(${x0.toFixed(1)}px,${y.toFixed(1)}px)`; pb.style.width = (x1 - x0).toFixed(1) + 'px'; pb.dataset.x0 = x0; pb.dataset.y = y; pb.dataset.w = x1 - x0; }
+      else pb.hidden = true;
+      // de kantlijn
+      const links = m.l + 24 - 16, rechts = vw - m.r + 24 - 16; // de ruimte naast de inhoud (main heeft binnenruimte)
+      zijRuimte = links >= 104 && rechts >= 104 && !!held;
+      const boven = held ? rect(held).b + 60 : 600, onder = coul ? rect(coul).t - 40 : boven + 1800, stap = (onder - boven) / 4;
+      for (let z = 0; z < ZIJ.length; z++) {
+        const p = plank('zij' + z);
+        if (!zijRuimte) { p.hidden = true; continue; }
+        const rechtsKant = z % 2 === 1, breed = 84, cx = rechtsKant ? (m.r - 24 + vw) / 2 + ((z * 7) % 9) - 4 : (m.l + 24) / 2 + ((z * 11) % 9) - 4;
+        const py = boven + Math.floor(z / 2) * stap + (z % 2) * stap * 0.45 + 56;
+        p.hidden = false; p.style.transform = `translate(${(cx - breed / 2).toFixed(1)}px,${py.toFixed(1)}px)`; p.style.width = breed + 'px'; p.dataset.x0 = cx - breed / 2; p.dataset.y = py; p.dataset.w = breed;
       }
     }
-  }
-  function zetRommeltjes() {
-    BIJ_HET_BRIEFJE.forEach((s, i) => { const r = maakRommeltje(s, i); r.plek = 'brief'; });
-    ZIJKANT.forEach((s, i) => { const r = maakRommeltje(s, i + 3); r.plek = 'zij'; });
-    plaats(); let t = 0; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(plaats, 150); }); addEventListener('load', plaats); setTimeout(plaats, 900);
-  }
+    function draagVlak(b) {
+      for (const s of wereld.vast) { if (s.data.lijn || !s.el) continue; const m = Fysica.botsing(b, s, 4); if (m && m.ny > 0.4) return s; }
+      return null;
+    }
+    function steunt(b) {
+      wereld.werk(b);
+      for (const s of wereld.vast.concat(wereld.lichamen)) { if (s === b || (s.data && s.data.r && s.data.r.weg)) continue; const m = Fysica.botsing(b, s, 3); if (m && m.ny > 0.4) return true; }
+      return false;
+    }
+    function bouwWereld() {
+      const oud = rommels.filter(r => !r.weg).map(r => { const s = draagVlak(r.b); return s ? [r, s.el, s.aabb[0], s.aabb[1]] : null; }).filter(Boolean);
+      docB = document.documentElement.clientWidth;
+      const voet = $('footer'), main = $('main');
+      const vb = voet ? rect(voet) : null, mb = main ? rect(main) : { b: document.documentElement.scrollHeight };
+      vloerY = vb && vb.h ? vb.t : mb.b; docH = vb && vb.h ? vb.b : mb.b + 40;
+      laag.style.width = docB + 'px'; laag.style.height = docH + 'px';
+      lijnen.setAttribute('width', docB); lijnen.setAttribute('height', docH);
+      const naastBrief = breed(); plaatsKnopjes(naastBrief);
+      zetPlanken(naastBrief);
+      wereld.leegVast(s => !s.data.lijn);
+      wereld.vastDoos(-600, -600, 0, docH + 600, { rand: true, data: { naam: 'muur' } });
+      wereld.vastDoos(docB, -600, docB + 600, docH + 600, { rand: true, data: { naam: 'muur' } });
+      wereld.vastDoos(-600, -600, docB + 600, 0, { rand: true, data: { naam: 'plafond' } });
+      wereld.vastDoos(-600, vloerY, docB + 600, vloerY + 800, { rand: true, wrijving: 0.7, el: voet || document.body, data: { naam: 'vloer', klank: 'plof', anker: 'vloer' } });
+      const zichtbaar = el => el && el.getClientRects().length > 0;
+      document.querySelectorAll('.held h1 .tape').forEach((el, i) => vastVan(el, { schuin: 3, naam: 'tape', anker: 'tape' + i }));
+      const st = $('.sticker'); if (zichtbaar(st) && getComputedStyle(st).visibility !== 'hidden') stickerVast(st);
+      const brief = $('.briefje'); if (zichtbaar(brief)) vastVan(brief, { schuin: 3, naam: 'briefje', anker: 'briefje', tik: true });
+      const blad = $('.tg-blad'); if (zichtbaar(blad)) vastVan(blad, { schuin: 6, naam: 'blad', anker: 'blad', tik: true });
+      document.querySelectorAll('#vandaag .tg-dk').forEach((el, i) => vastVan(el, { schuin: 8, hoek: 0, naam: 'dag', anker: 'dag' + i, tik: true }));
+      const kop = $('#tg-kop span'); if (zichtbaar(kop)) vastVan(kop, { schuin: 2, naam: 'kop', anker: 'kop' });
+      // tegels: de plek van het vlak zonder het optillen bij aanwijzen (dat zit op het vlak zelf)
+      document.querySelectorAll('.tg-raster .tg-tegel').forEach(a => {
+        if (a.hidden) return; const v = a.querySelector('.tg-vlak'); if (!v) return;
+        const q = a.getBoundingClientRect(); if (!q.width) return;
+        vastVan(v, { schuin: 9, hoek: 0, w: v.offsetWidth, h: v.offsetHeight, cx: q.left + v.offsetWidth / 2, cy: q.top + v.offsetHeight / 2, el: a, naam: 'tegel', anker: 'tegel:' + a.getAttribute('href'), tik: true });
+      });
+      const coul = $('.coulissen'); if (zichtbaar(coul)) vastVan(coul, { schuin: 0, hoek: 0, naam: 'coulissen', anker: 'coulissen' });
+      for (const k in planken) {
+        const p = planken[k]; if (p.hidden) continue;
+        const x0 = +p.dataset.x0, y = +p.dataset.y, w = +p.dataset.w;
+        wereld.vastDoos(x0, y, x0 + w, y + 12, { schuin: 2, wrijving: 0.7, el: p, data: { naam: 'plank', klank: 'hout', anker: 'plank:' + k } });
+        // opstaande randjes aan de uiteinden, zodat er niets zomaar af rolt
+        wereld.vastDoos(x0 - 2.5, y - 10, x0 + 4.5, y + 1, { schuin: 1.5, wrijving: 0.6, data: { naam: 'randje', klank: 'hout' } });
+        wereld.vastDoos(x0 + w - 4.5, y - 10, x0 + w + 2.5, y + 1, { schuin: 1.5, wrijving: 0.6, data: { naam: 'randje', klank: 'hout' } });
+      }
+      // wat ergens op lag, schuift mee met dat ding
+      for (const o of oud) {
+        const nieuw = wereld.vast.find(s => s.el === o[1]); if (!nieuw) continue;
+        const dx = nieuw.data.naam === 'vloer' ? 0 : nieuw.aabb[0] - o[2], dy = nieuw.aabb[1] - o[3], b = o[0].b;
+        if (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2) { b.x += dx; b.y += dy; b.px = b.x; b.py = b.y; }
+      }
+      // de rommeltjes uit de kantlijn: alleen als daar ruimte is
+      for (const r of rommels) {
+        if (r.plek !== 'zij') continue;
+        if (!zijRuimte && !r.weg) { const s = draagVlak(r.b), m = rect($('main')); if ((s && /^plank:zij/.test(s.data.anker || '')) || r.b.x < m.l + 24 || r.b.x > m.r - 24) zetWeg(r, true); }
+        else if (zijRuimte && r.weg) { zetWeg(r, false); legOp(r, 'plank:zij' + r.zijNr); r.b.slaap = true; }
+      }
+      for (const r of rommels) { if (r.weg) continue; const b = r.b; if (b.x > docB - 12) b.x = docB - 30; if (b.x < 12) b.x = 30; if (b.y > vloerY) b.y = vloerY - 30; wereld.werk(b); }
+    }
+    function zetWeg(r, weg) {
+      r.weg = weg; r.el.hidden = weg;
+      const i = wereld.lichamen.indexOf(r.b);
+      if (weg && i >= 0) wereld.lichamen.splice(i, 1); else if (!weg && i < 0) wereld.lichamen.push(r.b);
+    }
+
+    // ---------- neerleggen: precies op iets, in rust (dan hoeft er bij het openen niets gerekend te worden)
+    function opRust(r, x, onder, a) {
+      const b = r.b, v = b.vorm; let h = v.soort === 'cirkel' ? v.r : 0;
+      if (v.soort === 'poly') { const c = Math.cos(a), s = Math.sin(a); for (let i = 0; i < v.n; i++) h = Math.max(h, s * v.v[2 * i] + c * v.v[2 * i + 1]); }
+      b.a = a; b.x = x; b.y = onder - h - 0.3; b.vx = b.vy = b.w = 0; b.px = b.x; b.py = b.y; b.pa = a; wereld.werk(b);
+    }
+    function ankerVast(naam) { return wereld.vast.find(s => s.data.anker === naam); }
+    function legOp(r, anker, f) {
+      const s = ankerVast(anker); if (!s) return false;
+      const x0 = s.aabb[0], x1 = s.aabb[2], x = x0 + (x1 - x0) * (f == null ? 0.5 : f);
+      // de bovenkant onder x (ook als het ding een beetje scheef staat)
+      let top = s.aabb[1]; const g = s.geo;
+      for (let i = 0; i < g.n; i++) { const j = (i + 1) % g.n, ax = g.wv[2 * i], ay = g.wv[2 * i + 1], bx = g.wv[2 * j], by = g.wv[2 * j + 1]; if (g.wn[2 * i + 1] < -0.5 && (ax - x) * (bx - x) <= 0 && ax !== bx) { top = ay + (by - ay) * (x - ax) / (bx - ax); break; } }
+      opRust(r, x, top, r.d.a0 || 0); return true;
+    }
+    function beginPlek() {
+      const bewaard = opslag.p || {};
+      for (const r of rommels) {
+        if (r.weg) continue;
+        const p = bewaard[r.id], s = p && ankerVast(p[0]);
+        if (s) {
+          const w = s.aabb[2] - s.aabb[0], b = r.b;
+          b.x = s.aabb[0] + Math.max(8, Math.min(w - 8, p[1])); b.y = s.aabb[1] + p[2]; b.a = p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; b.vx = b.vy = b.w = 0;
+          if (r.soort === 'dobbelsteen' && p[4]) zetVlak(r, p[4]);
+          if (r.soort === 'kroonkurk' && p[4]) { r.flip = p[4] < 0 ? Math.PI : 0; r.kant = p[4] < 0 ? -1 : 1; }
+          wereld.werk(b); continue;
+        }
+        if (r.plek === 'brief') legOp(r, 'plank:brief', [0.2, 0.5, 0.8][BRIEF.indexOf(r.soort)]);
+        else legOp(r, 'plank:zij' + r.zijNr);
+      }
+      for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); r.b.slaap = steunt(r.b); r.b.rust = 0; }
+      teken(1);
+    }
+    function bewaar() {
+      const p = {};
+      for (const r of rommels) {
+        if (r.weg) continue; const s = draagVlak(r.b); if (!s || !s.data.anker) continue;
+        p[r.id] = [s.data.anker, Math.round((r.b.x - s.aabb[0]) * 10) / 10, Math.round((r.b.y - s.aabb[1]) * 10) / 10, Math.round(r.b.a * 1000) / 1000, r.soort === 'dobbelsteen' ? r.face : r.soort === 'kroonkurk' ? r.kant : 0];
+      }
+      opslag = Object.assign(lees(), { v: 1, p, g: Klank.aan ? 1 : 0 }); schrijf(opslag);
+    }
+
+    // ---------- tekenen: alleen transform (en opacity)
+    function teken(alfa) {
+      for (const r of rommels) {
+        if (r.weg) continue;
+        const b = r.b, x = b.px + (b.x - b.px) * alfa, y = b.py + (b.y - b.py) * alfa, a = b.pa + (b.a - b.pa) * alfa, m = wereld.midden(b, x, y, a);
+        r.lift += (r.liftDoel - r.lift) * 0.3; if (Math.abs(r.lift - r.liftDoel) < 0.01) r.lift = r.liftDoel;
+        const sl = r.lift, sc = 1 + 0.1 * sl, gr = (a * 180 / Math.PI).toFixed(2);
+        let sy = sc;
+        if (r.soort === 'kroonkurk') { const c = Math.cos(r.flip); sy = sc * (Math.abs(c) < 0.06 ? (c < 0 ? -0.06 : 0.06) : c); const k = c >= 0; if (k !== r.voorZicht) { r.voorZicht = k; r.voor.style.opacity = k ? '' : '0'; r.achter.style.opacity = k ? '0' : ''; } }
+        const t = `translate3d(${m[0].toFixed(2)}px,${m[1].toFixed(2)}px,0)`;
+        if (t !== r.getoond) { r.el.style.transform = t; r.getoond = t; }
+        const td = `rotate(${gr}deg) scale(${sc.toFixed(3)},${sy.toFixed(3)})`;
+        if (td !== r.td) { r.draai.style.transform = td; r.td = td; }
+        const ts = `translate(${(1 + 2 * sl).toFixed(2)}px,${(3 + 8 * sl).toFixed(2)}px) rotate(${gr}deg) scale(${sc.toFixed(3)},${sy.toFixed(3)})`;
+        if (ts !== r.ts) { r.sch.style.transform = ts; r.ts = ts; }
+        if (r.strepen && r.tolSpin) { r.streepX = ((r.streepX || 0) + r.tolSpin * 0.016) % 12; r.strepen.style.transform = `translateX(${r.streepX.toFixed(2)}px)`; }
+      }
+    }
+
+    // ---------- de lus: rekenen alleen als er iets beweegt, hooguit 60 beelden per seconde
+    let raf = 0, vorige = 0, rest = 0, laatsteBeeld = 0, telStap = 0, telBeeld = 0, telKlok = 0, bewaarKlok = 0;
+    function lus(t) {
+      raf = 0;
+      if (document.hidden) { vorige = 0; return; }
+      if (!vorige) vorige = t;
+      if (laatsteBeeld && t - laatsteBeeld < 1000 / 60 - 3) { raf = requestAnimationFrame(lus); return; }
+      laatsteBeeld = t;
+      rest += Math.min(0.1, (t - vorige) / 1000); vorige = t;
+      let n = 0;
+      if (!RUSTIG) while (rest >= DT && n < 10) { stap(); rest -= DT; n++; }
+      if (n === 10) rest = 0;
+      teken(RUSTIG ? 1 : rest / DT);
+      telBeeld++; telStap += n;
+      geluiden();
+      if (debug.aan) debug.teken(t, telStap, telBeeld);
+      if (t - telKlok > 500) { debug.tel = [telStap * 1000 / (t - telKlok), telBeeld * 1000 / (t - telKlok)]; telKlok = t; telStap = 0; telBeeld = 0; }
+      const lift = rommels.some(r => r.lift !== r.liftDoel), draait = kantel.aan && Math.hypot(kantel.doel[0] - wereld.gx, kantel.doel[1] - wereld.gy) > 2;
+      if ((!RUSTIG && !wereld.allesSlaapt()) || lift || tekenaar || pad || tolDraait() || draait || rommels.some(r => r.flipV || r.gooit)) raf = requestAnimationFrame(lus);
+      else { vorige = 0; rest = 0; laatsteBeeld = 0; teken(1); Klank.rollen(0); Klank.zoemen(0); clearTimeout(bewaarKlok); bewaarKlok = setTimeout(bewaar, 400); debug.tel = [0, 0]; if (debug.aan) debug.teken(t, 0, 0); }
+    }
+    function wek() { if (!raf && !document.hidden) { raf = requestAnimationFrame(lus); telKlok = performance.now(); telStap = telBeeld = 0; } }
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && (!wereld.allesSlaapt() || tolDraait())) wek(); });
+    function geluiden() {
+      let rol = 0;
+      for (const r of rommels) if (r.soort === 'knikker' && !r.weg && !r.b.slaap && r.b.raakt) rol = Math.max(rol, r.b.glij * 0.25 + Math.abs(r.b.w) * 17.7 * 0.75);
+      Klank.rollen(rol);
+      const T = tekenaar || pad; Klank.krassen(T && T.streep && !T.rustig ? T.kras || 0 : 0);
+      const tol = rommels.find(r => r.tolSpin > 0); Klank.zoemen(tol ? 0.035 * Math.min(1, tol.tolSpin / 30) : 0, tol ? 90 + tol.tolSpin * 3 : 140);
+    }
+
+    function stap() {
+      kantel.stap(DT);
+      wereld.stap(DT);
+      for (const r of rommels) {
+        if (r.weg) continue; const b = r.b;
+        if (r.soort === 'dobbelsteen' && !b.slaap) {
+          // elke kwartslag tuimelen: een ander vlak boven (een buurvlak, nooit het vlak aan de overkant)
+          r.draaiSom += Math.abs(b.a - b.pa);
+          while (r.draaiSom >= Math.PI / 2) { r.draaiSom -= Math.PI / 2; const buren = [1, 2, 3, 4, 5, 6].filter(n => n !== r.face && n !== 7 - r.face); zetVlak(r, buren[Math.floor(Math.random() * 4)]); r.gerold = true; }
+        }
+        if (r.soort === 'dobbelsteen' && b.slaap && r.gerold) { r.gerold = false; r.draaiSom = 0; uitslagDobbel(r); }
+        if (r.soort === 'kroonkurk') stapKurk(r);
+        if (r.soort === 'sterretje' && !b.slaap) fonkel(r);
+        if (r.soort === 'tol' && r.tolSpin > 0) stapTol(r, DT);
+      }
+    }
+    wereld.opBotsing = (A, B, v, x, y) => {
+      const ra = A.data.r, rb = B.vast ? null : B.data.r;
+      if (ra) Klank.tik(ra.d.klank, v, ra.id);
+      if (rb) Klank.tik(rb.d.klank, v, rb.id);
+      if (B.vast && B.data.klank && v > 160) Klank.tik(B.data.klank, v * 0.6, 'v' + B.id);
+      if (ra && ra.superbal > 0 && v > 160) { ra.superbal--; Klank.tik('boing', v, 1 + (4 - ra.superbal) * 0.18); if (!ra.superbal) A.st = ra.b.data.st0; }
+      if (B.vast && B.data.tik && v > 260 && !RUSTIG) { // de tegel (of het kaartje) voelt een klein tikje
+        const doel = B.el.classList && B.el.classList.contains('tg-tegel') ? B.el.querySelector('.tg-vlak') : B.el;
+        try { doel.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${Math.min(3, v / 450).toFixed(1)}px)` }, { transform: 'translateY(0)' }], { duration: 170, easing: 'ease-out', composite: 'add' }); } catch (e) {}
+      }
+      if (v > 900) tril(6);
+    };
+
+    // ---------- springen: mik terug op het midden van waar het op ligt (anders valt het zo van een smal plankje)
+    function steun(b) {
+      wereld.werk(b); const s = draagVlak(b);
+      if (!s) return { midden: b.x, breed: 999 };
+      return { midden: Math.max(s.aabb[0] + 20, Math.min(s.aabb[2] - 20, b.x)) * 0.35 + (s.aabb[0] + s.aabb[2]) / 2 * 0.65, breed: s.aabb[2] - s.aabb[0] };
+    }
+    function naarMidden(b, st, sprong) { const tijd = 2 * sprong / wereld.G; return Math.max(-260, Math.min(260, (st.midden - b.x) / tijd)); }
+    // de bovenkant van iets vasts recht onder x (binnen een stukje), voor de tol
+    function grondOnder(x, y) {
+      let beste = null;
+      for (const s of wereld.vast) {
+        if (s.data.lijn || (s.rand && s.data.naam !== 'vloer')) continue;
+        if (x < s.aabb[0] || x > s.aabb[2] || s.aabb[1] < y - 12 || s.aabb[1] > y + 70) continue;
+        if (beste == null || s.aabb[1] < beste) beste = s.aabb[1];
+      }
+      return beste;
+    }
+
+    // ---------- de dobbelsteen
+    function zetVlak(r, n) { r.face = n; for (let i = 1; i <= 6; i++) { const g = r.el.querySelector('.vlak' + i); if (g) g.style.opacity = i === n ? '' : '0'; } }
+    function uitslagDobbel(r) {
+      const n = r.face; r.zessen = n === 6 ? r.zessen + 1 : 0;
+      r.el.setAttribute('aria-label', `Dobbelsteen: je gooide een ${GETAL[n]}. Tik om opnieuw te gooien.`);
+      if (r.zessen === 3) { // verborgen grapje: drie keer zes op rij
+        r.zessen = 0; aankondig('Dobbelsteen: drie keer zes op rij!'); bel(r, 'Drie keer zes!');
+        if (!RUSTIG) { for (const q of rommels) if (q !== r && !q.weg && !q.b.kin) { wereld.wek(q.b); q.b.vy -= 650 + Math.random() * 350; q.b.w += (Math.random() - 0.5) * 14; } wek(); }
+        Klank.tik('fonkel', 900); tril(20); return;
+      }
+      aankondig(`Dobbelsteen: je gooide een ${GETAL[n]}.`); bel(r, GETAL[n] + '!'); tril(8);
+    }
+    function gooi(r) {
+      const b = r.b, inDeLucht = !b.slaap && !b.raakt && r.gerold, st = inDeLucht ? r.steun : steun(b), smal = st.breed < 140; wereld.wek(b);
+      r.steun = st;
+      // nog in de lucht? dan een klein sprongetje (zo kun je hem jongleren)
+      b.vy = inDeLucht ? -(430 + Math.random() * 120) : -(720 + Math.random() * 360); b.vx = naarMidden(b, st, -b.vy) + (Math.random() - 0.5) * (smal ? 40 : 300);
+      b.w = (Math.random() < 0.5 ? -1 : 1) * (smal ? 6 + Math.random() * 3 : 15 + Math.random() * 11); r.gerold = true; Klank.tik('gooi', 600); wek();
+    }
+
+    // ---------- de kroonkurk: kop of munt
+    function opgooien(r) {
+      const b = r.b, st = steun(b); wereld.wek(b);
+      b.vy = -(820 + Math.random() * 260); b.vx = naarMidden(b, st, -b.vy) + (Math.random() - 0.5) * 50; b.w = (Math.random() - 0.5) * 3;
+      r.flipV = 24 + Math.random() * 10; r.gooit = true; r.kantGrap = Math.random() < 1 / 40; Klank.tik('metaal', 700, 'kurk-gooi'); wek();
+    }
+    function stapKurk(r) {
+      const b = r.b;
+      if (r.flipV) {
+        r.flip += r.flipV * DT;
+        if (b.raakt) { // op de grond: uitdraaien naar een kant (of, heel soms, op zijn kant blijven staan)
+          r.flipV *= 0.86;
+          const doel = r.kantGrap ? Math.round((r.flip - Math.PI / 2) / Math.PI) * Math.PI + Math.PI / 2 : Math.round(r.flip / Math.PI) * Math.PI;
+          if (r.flipV < 3) { r.flip += (doel - r.flip) * 0.25; if (Math.abs(doel - r.flip) < 0.01) { r.flip = doel; r.flipV = 0; } }
+        }
+      }
+      if (r.gooit && !r.flipV && b.slaap) {
+        r.gooit = false;
+        if (r.kantGrap) { r.kantGrap = false; aankondig('Kroonkurk: op zijn kant! Dat gebeurt bijna nooit.'); bel(r, 'Op zijn kant!'); Klank.tik('fonkel', 900); tril(15); setTimeout(() => { r.flip = Math.round(r.flip / Math.PI) * Math.PI; r.kant = Math.cos(r.flip) >= 0 ? 1 : -1; teken(1); }, 3500); return; }
+        r.kant = Math.cos(r.flip) >= 0 ? 1 : -1; const w = r.kant > 0 ? 'Kop' : 'Munt';
+        r.el.setAttribute('aria-label', `Kroonkurk: ${w.toLowerCase()}. Tik om opnieuw op te gooien.`);
+        aankondig('Kroonkurk: ' + w.toLowerCase() + '.'); bel(r, w + '!'); Klank.tik('kop', 600); tril(8);
+      }
+    }
+
+    // ---------- het sterretje: een spoor van fonkeltjes
+    let fonkelKlok = 0, fonkels = 0;
+    function fonkel(r) {
+      const b = r.b, sp = Math.hypot(b.vx, b.vy), nu = performance.now();
+      if (sp < 160 || nu - fonkelKlok < 45 || fonkels > 28 || RUSTIG) return; fonkelKlok = nu; fonkels++;
+      const f = document.createElement('span'); f.className = 'rm-fonkel'; f.setAttribute('aria-hidden', 'true');
+      f.innerHTML = '<svg viewBox="0 0 20 20"><path d="M10 0l2.4 7.6L20 10l-7.6 2.4L10 20l-2.4-7.6L0 10l7.6-2.4z"/></svg>';
+      const x = b.x + (Math.random() - 0.5) * 14 - 8, y = b.y + (Math.random() - 0.5) * 14 - 8, s = 0.5 + Math.random() * 0.7, dr = (Math.random() - 0.5) * 30;
+      laag.appendChild(f);
+      const an = f.animate([{ transform: `translate(${x}px,${y}px) scale(${s}) rotate(0deg)`, opacity: 1 }, { transform: `translate(${x + dr}px,${y + 26}px) scale(0) rotate(160deg)`, opacity: 0 }], { duration: 700 + Math.random() * 300, easing: 'ease-out' });
+      an.onfinish = () => { f.remove(); fonkels--; };
+    }
+    function wens(r) {
+      const b = r.b, st = steun(b); wereld.wek(b);
+      const smal = st.breed < 140;
+      b.vy = -(950 + Math.random() * 250); b.vx = naarMidden(b, st, -b.vy) + (Math.random() - 0.5) * (smal ? 30 : 380); b.w = (Math.random() < 0.5 ? -1 : 1) * (smal ? 7 + Math.random() * 3 : 16 + Math.random() * 8);
+      Klank.tik('fonkel', 900); aankondig('Sterretje: doe een wens!'); wek();
+    }
+
+    // ---------- de knoop: een superbal
+    function superbal(r) {
+      const b = r.b, st = steun(b); wereld.wek(b);
+      b.vy = -680; b.vx = naarMidden(b, st, 680) * 0.5 + (Math.random() - 0.5) * 60; r.superbal = 4; b.st = 1.12;
+      Klank.tik('boing', 700, 1); aankondig('Knoop: boing, boing, boing!'); wek();
+    }
+
+    // ---------- de tol: draaien, wiebelen en omvallen
+    const tolDraait = () => rommels.some(r => r.tolSpin > 0);
+    function draaiTol(r) {
+      const b = r.b; if (b.kin || r.tolSpin > 0) return;
+      wereld.werk(b);
+      const v = b.vorm, tip = [0 - v.ox, 19.5 - v.oy], onder = b.aabb[3] - 2.5, grond = grondOnder(b.x, onder);
+      if (grond == null) { wereld.wek(b); b.w += 9; wek(); return; } // niets onder hem: alleen een zwiep
+      r.tolTip = [b.x, grond]; r.tolT = 0; r.tolDuur = 3.5 + Math.random() * 3; r.tolSpin = 46; r.tolStart = [b.x, b.y, b.a]; r.tolOffset = tip;
+      wereld.wek(b); b.kin = true; b.slaap = false; Klank.tik('hout', 500, 'tol-start'); wek();
+    }
+    function stapTol(r, dt) {
+      const b = r.b; r.tolT += dt;
+      const t = r.tolT, T = r.tolDuur, f = Math.min(1, t / T);
+      r.tolSpin = Math.max(2, 46 * (1 - f) + 4);
+      // eerst rechtop zetten, dan draaien met een wiebel die steeds groter wordt
+      const op = Math.min(1, t / 0.25), wiebel = (0.03 + 0.32 * f * f * f) * Math.sin(t * (9 + 6 * (1 - f)));
+      const doelA = wiebel, a = r.tolStart[2] * (1 - op) + doelA * op;
+      const tipX = r.tolTip[0] + Math.sin(t * 1.3) * 5 * f, tipY = r.tolTip[1];
+      const c = Math.cos(a), s = Math.sin(a), lx = r.tolOffset[0], ly = r.tolOffset[1];
+      const nx = tipX - (c * lx - s * ly), ny = tipY - (s * lx + c * ly);
+      const zx = r.tolStart[0] * (1 - op) + nx * op, zy = r.tolStart[1] * (1 - op) + ny * op;
+      b.vx = (zx - b.x) / dt; b.vy = (zy - b.y) / dt; let da = a - b.a; b.w = da / dt;
+      if (t >= T) { // omvallen
+        b.kin = false; b.vx = 0; b.vy = 0; b.w = (wiebel >= 0 ? 1 : -1) * 4; r.tolSpin = 0;
+        aankondig('Tol: hij draaide ' + T.toFixed(1).replace('.', ',') + ' seconden.'); wek();
+      }
+    }
+
+    // ---------- het potlood (tekenen en krabbelen) en de paperclip (boemerang): langs een pad
+    let tekenaar = null, pad = null; // tekenaar: het potlood in je hand; pad: iets dat zelf een route volgt
+    const stroken = []; let lijnTeller = 0;
+    function nieuweStreep(x, y) {
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', `M${x.toFixed(1)} ${y.toFixed(1)}`); lijnen.appendChild(p);
+      const s = { p, pts: [[x, y]], d: `M${x.toFixed(1)} ${y.toFixed(1)}`, vast: [], aabb: [x, y, x, y] };
+      stroken.push(s); return s;
+    }
+    function verleng(s, x, y) {
+      const l = s.pts[s.pts.length - 1];
+      if (Math.hypot(x - l[0], y - l[1]) < 6) return;
+      s.pts.push([x, y]); s.d += ` L${x.toFixed(1)} ${y.toFixed(1)}`; s.p.setAttribute('d', s.d);
+      s.vast.push(wereld.vastLijn(l[0], l[1], x, y, 2.5, { wrijving: 0.55, stuit: 0.15, data: { lijn: true, klank: 'hout' } })); lijnTeller++;
+      s.aabb[0] = Math.min(s.aabb[0], x); s.aabb[1] = Math.min(s.aabb[1], y); s.aabb[2] = Math.max(s.aabb[2], x); s.aabb[3] = Math.max(s.aabb[3], y);
+      while (lijnTeller > 400 && stroken.length > 1) haalWeg(stroken[0]);
+    }
+    function haalWeg(s) {
+      const i = stroken.indexOf(s); if (i < 0) return; stroken.splice(i, 1);
+      for (const v of s.vast) wereld.weg(v); lijnTeller -= s.vast.length;
+      s.p.remove(); clearTimeout(s.klok);
+      wereld.wekBij([s.aabb[0] - 30, s.aabb[1] - 60, s.aabb[2] + 30, s.aabb[3] + 30], 4); wek();
+    }
+    function laatVervagen(s) { if (s.pts.length < 2) { haalWeg(s); return; } requestAnimationFrame(() => s.p.classList.add('vervaag')); s.klok = setTimeout(() => haalWeg(s), 9200); }
+    function puntVan(b) { const v = b.vorm, c = Math.cos(b.a), s = Math.sin(b.a), lx = PUNT[0] - v.ox, ly = PUNT[1] - v.oy; return [b.x + c * lx - s * ly, b.y + s * lx + c * ly]; }
+    const SCHRIJF = 2.25; // de hoek waarin je een potlood vasthoudt (punt naar linksonder)
+    function beginTekenen(r, px, py) {
+      if (pad && pad.r === r) stopPad();
+      const b = r.b, p = puntVan(b);
+      if (RUSTIG) { tekenaar = { r, rustig: true, streep: nieuweStreep(p[0], p[1]), dx: p[0] - px, dy: p[1] - py }; r.el.classList.add('vast'); return; }
+      wereld.wek(b); b.kin = true; b.slaap = false;
+      tekenaar = { r, px, py, tx: p[0], ty: p[1], streep: nieuweStreep(p[0], p[1]), hoek: b.a, vorigX: p[0] };
+      r.liftDoel = 0.6; r.el.classList.add('vast'); wek();
+    }
+    // het potlood volgt de vinger (of de krabbel) met zijn punt
+    function stuurPotlood(T, dt) {
+      const b = T.r.b, k = Math.min(1, dt * (T.zelf ? 60 : 26));
+      T.tx += (T.px - T.tx) * k; T.ty += (T.py - T.ty) * k;
+      const vx = (T.tx - T.vorigX) / dt; T.vorigX = T.tx;
+      const doelHoek = SCHRIJF - Math.max(-0.35, Math.min(0.35, vx / 2500));
+      let dh = doelHoek - T.hoek; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); T.hoek += dh * Math.min(1, dt * 14);
+      const v = b.vorm, c = Math.cos(T.hoek), s = Math.sin(T.hoek), lx = PUNT[0] - v.ox, ly = PUNT[1] - v.oy;
+      b.vx = (T.tx - (c * lx - s * ly) - b.x) / dt; b.vy = (T.ty - (s * lx + c * ly) - b.y) / dt;
+      let da = T.hoek - b.a; da = Math.atan2(Math.sin(da), Math.cos(da)); b.w = da / dt;
+      if (T.streep) verleng(T.streep, T.tx, T.ty);
+      T.kras = Math.hypot(b.vx, b.vy);
+    }
+    function voorStap(dt) {
+      if (tekenaar && !tekenaar.rustig) stuurPotlood(tekenaar, dt);
+      if (pad) {
+        pad.t += dt; const f = Math.min(1, pad.t / pad.duur);
+        if (pad.soort === 'krabbel') {
+          const q = pad.vorm(f); pad.px = pad.cx + q[0]; pad.py = pad.cy + q[1];
+          if (pad.t < 0.18) { pad.px = pad.tx + (pad.px - pad.tx) * (pad.t / 0.18); pad.py = pad.ty + (pad.py - pad.ty) * (pad.t / 0.18); }
+          stuurPotlood(pad, dt);
+        } else { // boemerang
+          const b = pad.r.b, th = Math.PI + f * Math.PI * 2, x = pad.cx + pad.a * Math.cos(th) * pad.dir, y = pad.y0 + Math.min(0, pad.h * Math.sin(th));
+          b.vx = (x - b.x) / dt; b.vy = (y - b.y) / dt; b.w = pad.dir * 15 * Math.sin(f * Math.PI) + pad.dir * 3;
+        }
+        if (pad.t >= pad.duur + (pad.soort === 'krabbel' ? 0.08 : 0)) stopPad();
+      }
+    }
+    wereld.voorStap = voorStap;
+    function loslaten(T, werp) {
+      const b = T.r.b; b.kin = false; b.rust = 0;
+      const sp = Math.hypot(b.vx, b.vy);
+      if (!werp || sp < 160) { b.vx *= 0.2; b.vy *= 0.2; b.w *= 0.2; } else if (sp > 3200) { b.vx *= 3200 / sp; b.vy *= 3200 / sp; }
+      b.w = Math.max(-20, Math.min(20, b.w));
+      wereld.vrijMaken(b);
+      if (T.streep) laatVervagen(T.streep);
+      T.r.liftDoel = 0; T.r.el.classList.remove('vast'); wek();
+    }
+    function stopTekenen(werp) {
+      const T = tekenaar; if (!T) return; tekenaar = null;
+      if (T.rustig) { laatVervagen(T.streep); T.r.el.classList.remove('vast'); T.r.b.a = 0; T.r.b.pa = 0; wereld.vrijMaken(T.r.b); teken(1); bewaar(); return; }
+      loslaten(T, werp);
+    }
+    function stopPad() { const T = pad; if (!T) return; pad = null; loslaten(T, T.soort === 'krabbel'); if (T.soort === 'boemerang') { T.r.b.vx = 0; T.r.b.vy = 0; T.r.b.w = 0; } }
+    const KRABBELS = [
+      ['een hartje', f => { const a = f * Math.PI * 2; return [2.1 * 16 * Math.pow(Math.sin(a), 3), -2.1 * (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a))]; }, 1.5],
+      ['een ster', f => { const k = f * 10, i = Math.floor(k) % 10, j = (i + 1) % 10, t = k - Math.floor(k), pt = n => { const a = -Math.PI / 2 + n * Math.PI / 5, r = n % 2 ? 13 : 32; return [Math.cos(a) * r, Math.sin(a) * r]; }, A = pt(i), B = pt(j); return [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]; }, 1.6],
+      ['een spiraal', f => { const a = f * Math.PI * 7, r = 3 + 30 * f; return [Math.cos(a) * r, Math.sin(a) * r]; }, 1.5],
+      ['een golfje', f => [-55 + 110 * f, -12 * Math.sin(f * Math.PI * 4)], 1.2],
+      ['krulletjes', f => { const a = f * Math.PI * 8; return [-50 + 100 * f + 13 * Math.cos(a + Math.PI), -13 * Math.sin(a)]; }, 1.6]
+    ];
+    let krabbelNr = Math.floor(Math.random() * KRABBELS.length);
+    function krabbel(r) {
+      if (tekenaar || pad) return;
+      const b = r.b; wereld.wek(b); b.kin = true; b.slaap = false;
+      const p = puntVan(b), K2 = KRABBELS[krabbelNr++ % KRABBELS.length];
+      const cx = Math.max(70, Math.min(docB - 70, p[0])), cy = Math.max(70, p[1] - 75), s0 = K2[1](0);
+      pad = { soort: 'krabbel', r, t: 0, duur: K2[2], vorm: K2[1], cx, cy, px: cx + s0[0], py: cy + s0[1], tx: p[0], ty: p[1], hoek: b.a, vorigX: p[0], zelf: true, streep: nieuweStreep(p[0], p[1]) };
+      r.liftDoel = 0.6; aankondig('Potlood: het tekent ' + K2[0] + '.'); Klank.tik('krabbel', 800); wek();
+    }
+    function boemerang(r) {
+      if (tekenaar || pad) return;
+      const b = r.b; wereld.wek(b);
+      let dir = b.x < docB / 2 ? 1 : -1, a = 110;
+      const ruimte = dir > 0 ? docB - 30 - b.x : b.x - 30; if (ruimte < 2 * a) a = Math.max(40, ruimte / 2);
+      b.kin = true; b.slaap = false;
+      pad = { soort: 'boemerang', r, t: 0, duur: 1.7, dir, a, h: 75, cx: b.x + dir * a, y0: b.y };
+      r.liftDoel = 0.4; Klank.tik('gooi', 700); aankondig('Paperclip: hij vliegt als een boemerang.'); wek();
+    }
+
+    // ---------- de knikker
+    function tikKnikker(r, vanX) {
+      const b = r.b; wereld.wek(b);
+      const kant = vanX == null ? (Math.random() < 0.5 ? -1 : 1) : vanX < b.x ? 1 : -1;
+      b.vx = kant * (380 + Math.random() * 180); b.vy = -110; b.w = b.vx / 17.7;
+      Klank.tik('glas', 700, 'knikker-tik'); glans(r); wek();
+    }
+    function glans(r) { const s = r.el.querySelector('.streep'); if (!s || RUSTIG) return; try { s.animate([{ opacity: 0, transform: 'translateX(0px)' }, { opacity: 0.75, offset: 0.3 }, { opacity: 0, transform: 'translateX(70px)' }], { duration: 650, easing: 'ease-out' }); } catch (e) {} }
+
+    // ---------- uitkomsten voor iedereen (ook voor schermlezers)
+    let meldEl = null;
+    function aankondig(t) { if (!meldEl) return; meldEl.textContent = ''; setTimeout(() => { meldEl.textContent = t; }, 30); }
+    function bel(r, tekst) {
+      const d = document.createElement('div'); d.className = 'rm-bel'; d.textContent = tekst; d.setAttribute('aria-hidden', 'true'); laag.appendChild(d);
+      const w = d.offsetWidth, l = Math.max(8, Math.min(docB - w - 8, r.b.x - w / 2)), y = r.b.y - 44;
+      const k = [{ transform: `translate(${l}px,${y}px) scale(.6)`, opacity: 0 }, { transform: `translate(${l}px,${y - 14}px) scale(1)`, opacity: 1, offset: .2 }, { transform: `translate(${l}px,${y - 18}px) scale(1)`, opacity: 1, offset: .8 }, { transform: `translate(${l}px,${y - 26}px) scale(1)`, opacity: 0 }];
+      d.style.transform = k[1].transform;
+      try { const an = d.animate(RUSTIG ? [{ opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: 1, offset: .85 }, { opacity: 0 }] : k, { duration: 1500, easing: 'ease-out' }); an.onfinish = () => d.remove(); } catch (e) { setTimeout(() => d.remove(), 1500); }
+    }
+    function hupje(r) { r.el.classList.remove('hup'); void r.el.offsetWidth; r.el.classList.add('hup'); }
+
+    // ---------- aanraken: oppakken, gooien, tikken
+    let greep = null;
+    function koppel(r) {
+      const el = r.el;
+      el.addEventListener('pointerdown', e => {
+        if (greep || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        e.preventDefault(); Klank.start(); bouwWereld();
+        try { (e.target.setPointerCapture ? e.target : el).setPointerCapture(e.pointerId); } catch (x) {}
+        greep = { r, id: e.pointerId, x0: e.pageX, y0: e.pageY, t0: performance.now(), cx: e.clientX, cy: e.clientY, sleept: false, veer: null };
+      });
+      el.addEventListener('pointermove', e => {
+        if (!greep || greep.id !== e.pointerId) return;
+        greep.cx = e.clientX; greep.cy = e.clientY;
+        const x = e.pageX, y = e.pageY;
+        if (!greep.sleept && Math.hypot(x - greep.x0, y - greep.y0) > 6) startSlepen(x, y);
+        if (greep.sleept) volg(x, y);
+      });
+      const los = e => {
+        if (!greep || greep.id !== e.pointerId) return;
+        const g = greep; greep = null;
+        if (!g.sleept) { if (e.type === 'pointerup' && performance.now() - g.t0 < 400) actie(g.r, e.pageX); return; }
+        if (g.r.soort === 'potlood') stopTekenen(true);
+        else if (g.veer) {
+          wereld.laatLos(g.veer); const b = g.r.b, sp = Math.hypot(b.vx, b.vy); if (sp > 3600) { b.vx *= 3600 / sp; b.vy *= 3600 / sp; }
+          wereld.vrijMaken(b); g.r.liftDoel = 0; g.r.el.classList.remove('vast'); if (sp > 700) Klank.tik('gooi', sp * 0.5);
+          if (g.r.soort === 'dobbelsteen') g.r.gerold = true;
+          wek();
+        } else if (RUSTIG) { g.r.liftDoel = 0; g.r.el.classList.remove('vast'); teken(1); bewaar(); }
+      };
+      el.addEventListener('pointerup', los); el.addEventListener('pointercancel', los); el.addEventListener('lostpointercapture', los);
+      el.addEventListener('click', e => e.preventDefault());
+      el.addEventListener('pointerover', e => { // een klein hupje als de muis erover gaat
+        if (e.pointerType !== 'mouse' || greep || RUSTIG) return;
+        const nu = performance.now(); if (r.hupKlok && nu - r.hupKlok < 700) return; r.hupKlok = nu;
+        const b = r.b; if (!b.slaap || b.kin) return; wereld.wek(b); b.vy = -150; b.w = (Math.random() - 0.5) * 2; wek();
+      });
+      el.addEventListener('keydown', e => {
+        const b = r.b;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); Klank.start(); bouwWereld(); actie(r, null); return; }
+        const duw = { ArrowLeft: [-380, -260], ArrowRight: [380, -260], ArrowUp: [0, -900], ArrowDown: [0, 320] }[e.key];
+        if (!duw) return; e.preventDefault(); Klank.start();
+        if (RUSTIG) { b.x += Math.sign(duw[0]) * 16; b.y += duw[1] > 0 ? 16 : duw[0] ? 0 : -16; b.px = b.x; b.py = b.y; wereld.vrijMaken(b); teken(1); bewaar(); return; }
+        if (b.kin) return; bouwWereld(); wereld.wek(b); b.vx += duw[0]; b.vy += duw[1]; if (duw[0]) b.w += duw[0] / 60; wek();
+      });
+    }
+    function startSlepen(x, y) {
+      const g = greep, r = g.r; g.sleept = true; tril(4);
+      if (r.soort === 'tol' && r.tolSpin > 0) { r.tolSpin = 0; r.b.kin = false; }
+      if (pad && pad.r === r) stopPad();
+      if (r.soort === 'potlood') { beginTekenen(r, x, y); return; }
+      if (RUSTIG) { g.dx = r.b.x - x; g.dy = r.b.y - y; r.liftDoel = 0.6; r.el.classList.add('vast'); return; }
+      g.veer = wereld.pak(r.b, x, y, { hz: 6, zeta: 0.6 }); r.liftDoel = 1; r.el.classList.add('vast'); wek();
+    }
+    function volg(x, y) {
+      const g = greep, r = g.r;
+      if (r.soort === 'potlood' && tekenaar && tekenaar.rustig) {
+        const T = tekenaar, b = r.b, tx = x + T.dx * 0.3, ty = y + T.dy * 0.3, v = b.vorm, c = Math.cos(SCHRIJF), s = Math.sin(SCHRIJF), lx = PUNT[0] - v.ox, ly = PUNT[1] - v.oy;
+        b.a = SCHRIJF; b.x = tx - (c * lx - s * ly); b.y = ty - (s * lx + c * ly); b.px = b.x; b.py = b.y; b.pa = b.a; wereld.werk(b);
+        verleng(T.streep, tx, ty); teken(1); return;
+      }
+      if (r.soort === 'potlood' && tekenaar) { tekenaar.px = x; tekenaar.py = y; return; }
+      if (g.veer) { g.veer.tx = Math.max(4, Math.min(docB - 4, x)); g.veer.ty = Math.max(4, Math.min(vloerY - 4, y)); wek(); return; }
+      if (RUSTIG) { const b = r.b; b.x = Math.max(20, Math.min(docB - 20, x + g.dx)); b.y = Math.max(20, Math.min(vloerY - 20, y + g.dy)); b.px = b.x; b.py = b.y; wereld.werk(b); teken(1); }
+    }
+    addEventListener('scroll', () => { if (greep && greep.sleept) volg(greep.cx + scrollX, greep.cy + scrollY); }, { passive: true });
+    function actie(r, vanX) {
+      if (RUSTIG) { // minder beweging: een rustig hupje en de uitkomst, verder niets
+        hupje(r);
+        if (r.soort === 'dobbelsteen') { zetVlak(r, 1 + Math.floor(Math.random() * 6)); uitslagDobbel(r); bewaar(); }
+        else if (r.soort === 'kroonkurk') { r.flip = Math.random() < 0.5 ? 0 : Math.PI; r.kant = Math.cos(r.flip) >= 0 ? 1 : -1; teken(1); const w = r.kant > 0 ? 'Kop' : 'Munt'; r.el.setAttribute('aria-label', `Kroonkurk: ${w.toLowerCase()}. Tik om opnieuw op te gooien.`); aankondig('Kroonkurk: ' + w.toLowerCase() + '.'); bel(r, w + '!'); bewaar(); }
+        else { Klank.tik(r.d.klank, 600, r.id); aankondig(r.d.naam + ': hupje!'); }
+        return;
+      }
+      if (r.b.kin && !(r.soort === 'tol' && r.tolSpin > 0)) return;
+      if (r.soort === 'dobbelsteen') gooi(r);
+      else if (r.soort === 'knikker') tikKnikker(r, vanX);
+      else if (r.soort === 'potlood') krabbel(r);
+      else if (r.soort === 'kroonkurk') opgooien(r);
+      else if (r.soort === 'sterretje') wens(r);
+      else if (r.soort === 'knoop') superbal(r);
+      else if (r.soort === 'paperclip') boemerang(r);
+      else if (r.soort === 'tol') { if (r.tolSpin > 0) { r.tolDuur += 1.2; r.tolT = Math.max(0.3, r.tolT - 1); Klank.tik('hout', 400, 'tol-zwiep'); } else draaiTol(r); }
+    }
+
+    // ---------- kantelen en schudden (telefoon en tablet)
+    const kantel = {
+      aan: false, kreegIets: false, doel: [0, 2600], wekG: [0, 2600], meterKlok: 0, knop: null,
+      stap(dt) { if (!this.aan) return; const k = 1 - Math.exp(-dt / 0.07); wereld.gx += (this.doel[0] - wereld.gx) * k; wereld.gy += (this.doel[1] - wereld.gy) * k; },
+      orientatie(e) {
+        if (e.beta == null || e.gamma == null) return; kantel.kreegIets = true;
+        const be = e.beta * Math.PI / 180, ga = e.gamma * Math.PI / 180, gx = Math.cos(be) * Math.sin(ga), gy = Math.sin(be);
+        const th = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI / 180;
+        const x2 = gx * Math.cos(th) + gy * Math.sin(th), y2 = -gx * Math.sin(th) + gy * Math.cos(th);
+        kantel.doel = [x2 * wereld.G, Math.max(-0.3, y2) * wereld.G];
+        // wie slaapt, wordt pas wakker als de zwaartekracht echt anders staat (niet bij elk trillen van je hand)
+        if (Math.hypot(kantel.doel[0] - kantel.wekG[0], kantel.doel[1] - kantel.wekG[1]) > wereld.G * 0.025) { kantel.wekG = kantel.doel.slice(); bouwWereld(); wereld.wekAlles(); wek(); }
+      },
+      schudKlok: 0,
+      beweging(e) {
+        const a = e.acceleration; if (!a || a.x == null) return; kantel.kreegIets = true;
+        const m = Math.hypot(a.x, a.y, a.z || 0), nu = performance.now();
+        if (m < 15 || nu - kantel.schudKlok < 250) return; kantel.schudKlok = nu;
+        for (const r of rommels) { const b = r.b; if (b.kin || r.weg) continue; wereld.wek(b); b.vx += (Math.random() - 0.5) * 1600 - a.x * 60; b.vy += -400 - Math.random() * 900; b.w += (Math.random() - 0.5) * 30; }
+        tril(10); wek();
+      },
+      uit() {
+        this.aan = false; removeEventListener('deviceorientation', this.orientatie); removeEventListener('devicemotion', this.beweging);
+        wereld.gx = 0; wereld.gy = wereld.G; this.doel = [0, wereld.G]; bouwWereld(); wereld.wekAlles(); wek();
+        if (this.knop) this.knop.setAttribute('aria-pressed', 'false');
+      },
+      async wissel() {
+        if (this.aan) { this.uit(); aankondig('Kantelen staat uit.'); return; }
+        Klank.start();
+        try {
+          if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // iPhone en iPad: toestemming vragen, meteen bij de tik (allebei tegelijk, anders is de tik al 'op')
+            const vragen = [DeviceOrientationEvent.requestPermission()];
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') vragen.push(DeviceMotionEvent.requestPermission().catch(() => 'denied'));
+            const ant = await Promise.all(vragen);
+            if (ant[0] !== 'granted') { aankondig('Geen toestemming: de rommeltjes werken gewoon zonder kantelen.'); toast('Geen toestemming: ze werken gewoon zonder kantelen.'); return; }
+          }
+        } catch (e) { toast('Kantelen kan hier niet.'); return; }
+        this.aan = true; this.kreegIets = false; this.wekG = [wereld.gx, wereld.gy]; this.doel = [wereld.gx, wereld.gy];
+        if (this.knop) this.knop.setAttribute('aria-pressed', 'true');
+        addEventListener('deviceorientation', this.orientatie); addEventListener('devicemotion', this.beweging);
+        toast('Kantel je telefoon, of schud eens!'); aankondig('Kantelen staat aan.');
+        setTimeout(() => { if (kantel.aan && !kantel.kreegIets) { toast('Dit apparaat geeft geen kanteling door.'); kantel.uit(); } }, 1600);
+      }
+    };
+    let toastEl = null, toastKlok = 0;
+    function toast(t) { if (!toastEl) return; toastEl.textContent = t; toastEl.classList.add('zichtbaar'); clearTimeout(toastKlok); toastKlok = setTimeout(() => toastEl.classList.remove('zichtbaar'), 2600); }
+
+    // ---------- verborgen: typ "natuurkunde" en zie wat de motor ziet
+    const debug = {
+      aan: false, doek: null, ctx: null, label: null, tel: [0, 0],
+      wissel() {
+        this.aan = !this.aan;
+        if (!this.doek) { this.doek = document.createElement('canvas'); this.doek.className = 'rm-debug'; this.doek.setAttribute('aria-hidden', 'true'); this.ctx = this.doek.getContext('2d'); this.label = document.createElement('div'); this.label.className = 'rm-debuglabel'; this.label.setAttribute('aria-hidden', 'true'); document.body.appendChild(this.doek); document.body.appendChild(this.label); }
+        this.doek.hidden = this.label.hidden = !this.aan; this.teken(performance.now(), 0, 0);
+      },
+      teken() {
+        if (!this.aan) return;
+        const dpr = Math.min(2, devicePixelRatio || 1), w = innerWidth, h = innerHeight, c = this.ctx;
+        if (this.doek.width !== Math.round(w * dpr) || this.doek.height !== Math.round(h * dpr)) { this.doek.width = Math.round(w * dpr); this.doek.height = Math.round(h * dpr); }
+        c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+        wereld.tekenDebug(c, scrollX, scrollY, { vast: 'rgba(47,111,181,.85)', wakker: '#C8323C', slaap: '#2E8B62', snel: '#C8323C', contact: '#E89B1C' });
+        const wakker = wereld.lichamen.filter(b => !b.slaap).length;
+        this.label.textContent = raf ? `rekent · ${Math.round(this.tel[0])} stappen/s · ${Math.round(this.tel[1])} beelden/s · ${wakker} wakker` : 'in rust · rekent niets';
+      }
+    };
+    let getypt = '';
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || /input|textarea|select/i.test((e.target && e.target.tagName) || '')) return;
+      getypt = (getypt + e.key.toLowerCase()).slice(-11);
+      if (getypt === 'natuurkunde') { getypt = ''; debug.wissel(); }
+    });
+    addEventListener('scroll', () => { if (debug.aan && !raf) debug.teken(); }, { passive: true });
+
+    // ---------- de knopjes (geluid en kantelen): onder het plankje naast het briefje, of op een telefoon in de balk boven de tegels
+    let knopGroep = null, knopPlek = null;
+    function plaatsKnopjes(naastBrief) {
+      if (!knopGroep) return;
+      if (naastBrief) {
+        const rij = $('.held-rij'); if (!rij) return;
+        if (!knopPlek) { knopPlek = document.createElement('div'); knopPlek.className = 'tg-rommelplek'; }
+        if (knopPlek.parentNode !== rij) rij.appendChild(knopPlek);
+        if (knopGroep.parentNode !== knopPlek) knopPlek.appendChild(knopGroep);
+      } else {
+        const balk = $('.tg-balk'); if (!balk) return;
+        if (knopGroep.parentNode !== balk) { const wg = balk.querySelector('.tg-weergave'); if (wg) balk.insertBefore(knopGroep, wg); else balk.appendChild(knopGroep); }
+        if (knopPlek && knopPlek.parentNode) knopPlek.remove();
+      }
+    }
+    function knopjes() {
+      const balk = $('.tg-balk'); if (!balk || balk.querySelector('.tg-rommelknop')) return;
+      const w = document.createElement('div'); w.className = 'tg-rommelknop'; w.setAttribute('role', 'group'); w.setAttribute('aria-label', 'De rommeltjes');
+      const kan = typeof DeviceOrientationEvent !== 'undefined' && window.matchMedia && matchMedia('(any-pointer: coarse)').matches && !RUSTIG;
+      w.innerHTML = `<button type="button" class="tg-rk-geluid" aria-pressed="${Klank.aan}" aria-label="Geluid van de rommeltjes"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="rk-golf" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.5a8 8 0 0 1 0 11"/><path class="rk-stil" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>` +
+        `<button type="button" class="tg-rk-terug" aria-label="Leg de rommeltjes terug op hun plankje"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v4h4"/></svg></button>` +
+        (kan ? `<button type="button" class="tg-rk-kantel" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3.5" width="9" height="16" rx="2" transform="rotate(18 12.5 11.5)"/><path d="M3.5 15.5a8 8 0 0 0 4 4.5M20.5 8.5a8 8 0 0 0-4-4.5"/></svg><span>Kantel</span></button>` : '');
+      knopGroep = w;
+      const gk = w.querySelector('.tg-rk-geluid');
+      gk.addEventListener('click', () => { const aan = !Klank.aan; Klank.zetAan(aan); gk.setAttribute('aria-pressed', String(aan)); bewaar(); toast(aan ? 'Geluid van de rommeltjes staat aan.' : 'Geluid van de rommeltjes staat uit.'); });
+      w.querySelector('.tg-rk-terug').addEventListener('click', legTerug);
+      const kk = w.querySelector('.tg-rk-kantel'); if (kk) { kantel.knop = kk; kk.addEventListener('click', () => kantel.wissel()); }
+    }
+
+    // ---------- alles terug op zijn plankje
+    function legTerug() {
+      if (greep) return;
+      if (tekenaar) stopTekenen(false); if (pad) stopPad();
+      for (const s of stroken.slice()) haalWeg(s);
+      bouwWereld();
+      for (const r of rommels) {
+        if (r.weg) continue; const b = r.b;
+        b.kin = false; r.tolSpin = 0; r.flipV = 0; r.gooit = false; r.superbal = 0; b.st = b.data.st0; r.liftDoel = 0;
+        if (r.soort === 'kroonkurk') { r.flip = 0; r.kant = 1; r.el.setAttribute('aria-label', r.d.label); }
+        if (r.plek === 'brief') legOp(r, 'plank:brief', [0.2, 0.5, 0.8][BRIEF.indexOf(r.soort)]); else legOp(r, 'plank:zij' + r.zijNr);
+      }
+      for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); r.b.slaap = steunt(r.b); r.b.rust = 0; if (!r.b.slaap) wek(); }
+      teken(1); opslag = Object.assign(lees(), { p: {} }); schrijf(opslag);
+      Klank.start(); Klank.tik('hout', 500, 'terug'); aankondig('De rommeltjes liggen weer op hun plankje.'); toast('Alles ligt weer op zijn plankje.');
+    }
+
+    // ---------- starten
+    function start() {
+      if (laag) return;
+      laag = document.createElement('div'); laag.id = 'rm-laag';
+      lijnen = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); lijnen.id = 'rm-lijnen'; lijnen.setAttribute('aria-hidden', 'true');
+      meldEl = document.createElement('div'); meldEl.className = 'rm-weg'; meldEl.setAttribute('aria-live', 'polite');
+      toastEl = document.createElement('div'); toastEl.className = 'rm-toast'; toastEl.setAttribute('role', 'status');
+      document.body.appendChild(lijnen); document.body.appendChild(laag); document.body.appendChild(meldEl); document.body.appendChild(toastEl);
+      const telS = {};
+      BRIEF.forEach(s => { telS[s] = (telS[s] || 0); maak(s, 'brief', telS[s]++); });
+      ZIJ.forEach((s, z) => { telS[s] = (telS[s] || 0); const r = maak(s, 'zij', telS[s]++); r.zijNr = z; });
+      knopjes();
+      bouwWereld();
+      for (const r of rommels) if (r.plek === 'zij' && !zijRuimte) zetWeg(r, true);
+      beginPlek();
+      for (const r of rommels) if (!r.weg && !r.b.slaap) { wek(); break; }
+      let herKlok = 0;
+      const herbouw = () => { clearTimeout(herKlok); herKlok = setTimeout(() => { bouwWereld(); naVerspringen(); }, 150); };
+      addEventListener('resize', herbouw);
+      addEventListener('load', herbouw);
+      setTimeout(herbouw, 900);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(herbouw);
+      if ('ResizeObserver' in window) { let eerste = true; new ResizeObserver(() => { if (eerste) { eerste = false; return; } herbouw(); }).observe(document.body); }
+      document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.tg-filters button')) setTimeout(herbouw, 30); });
+    }
+    function naVerspringen() { for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); if (!r.b.kin && !steunt(r.b)) { wereld.wek(r.b); wek(); } } teken(1); }
+    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
+  })();
+  function zetRommeltjes() { try { RM.start(); window.__rommeltjes = RM; } catch (e) { if (window.reportError) reportError(e); } }
 
   // ================= starten, en daarna de homepage zacht laten verschijnen
   const klaar = () => requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('hp-klaar')));

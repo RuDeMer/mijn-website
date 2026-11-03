@@ -155,6 +155,18 @@ dialog p { line-height: 1.45; }
 .uitleg-plaat svg { width: min(11rem, 40vw); height: auto; border-radius: 8px; border: 2.5px solid var(--inkt); }
 .stippen { display: flex; justify-content: center; gap: .35rem; margin: .5rem 0 0; }
 .stippen i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--balk); } .stippen i.aan { background: var(--rood); }
+/* de Kroonschool */
+.trucs { display: grid; gap: .5rem; margin: .8rem 0 0; }
+.truc { display: flex; align-items: center; gap: .7rem; width: 100%; text-align: left; font: inherit; border: 2px solid var(--kaart-rand); border-radius: 14px; background: var(--lvl); color: var(--tekst); padding: .55rem .75rem; cursor: pointer; min-height: 3.4rem; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+.truc.klaar { background: var(--lvl-klaar); } .truc.bezig { background: var(--lvl-bezig); }
+.truc-nr { flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--knop); color: var(--knop-tekst); border: 2px solid var(--knop-rand); }
+.truc.klaar .truc-nr { background: var(--balk-vol); color: var(--bg); border-color: var(--kaart-rand); }
+.truc-tekst { flex: 1; min-width: 0; } .truc-tekst b { display: block; } .truc-tekst small { display: block; font-size: .82rem; color: var(--zacht); line-height: 1.35; margin-top: .1rem; }
+.truc-stand { flex: none; font-weight: 800; font-size: .8rem; white-space: nowrap; }
+.oefeningen { display: flex; flex-wrap: wrap; gap: .45rem; margin: .6rem 0 .2rem; }
+.knop.gedaan { background: var(--lvl-klaar); color: var(--tekst); }
+.les-plaat svg { width: min(15rem, 66vw); }
+.hintvak .truc-naam { display: block; margin-bottom: .15rem; }
 .schakel { display: flex; align-items: center; gap: .7rem; padding: .55rem 0; font-weight: 700; cursor: pointer; border-bottom: 1.5px dashed var(--balk); }
 .schakel input { width: 1.4rem; height: 1.4rem; accent-color: var(--rood); flex: none; }
 .schakel span small { display: block; font-weight: 500; color: var(--zacht); font-size: .82rem; }
@@ -373,6 +385,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       <button type="button" role="tab" id="tab-puzzels" data-tab="puzzels" aria-controls="paneel-tab">Puzzels</button>
       <button type="button" role="tab" id="tab-hoofdstukken" data-tab="hoofdstukken" aria-controls="paneel-tab">Hoofdstukken</button>
       <button type="button" role="tab" id="tab-uitdagingen" data-tab="uitdagingen" aria-controls="paneel-tab">Uitdagingen</button>
+      <button type="button" role="tab" id="tab-kroonschool" data-tab="kroonschool" aria-controls="paneel-tab">Kroonschool</button>
       <button type="button" role="tab" id="tab-archief" data-tab="archief" aria-controls="paneel-tab">Archief</button>
       <button type="button" role="tab" id="tab-kast" data-tab="kast" aria-controls="paneel-tab">Kast</button>
     </div>
@@ -385,7 +398,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       <div class="regelband" id="regelband" hidden></div>
       <div class="bord-raam" id="bord-raam"><div class="bord" id="bord" role="grid" aria-label="Puzzelbord"></div></div>
       <div class="zoom" id="zoom" hidden><span class="klein">Knijp met twee vingers om in te zoomen</span><button type="button" id="z-min" aria-label="Uitzoomen">−</button><button type="button" id="z-plus" aria-label="Inzoomen">+</button><button type="button" id="z-vol" aria-label="Het hele bord">⤢</button></div>
-      <div class="hintvak" id="hintvak" hidden aria-live="polite"><p id="hint-tekst"></p><div class="balk"><button class="knop" id="hint-doe" type="button">Zet het voor me</button><button class="knop" id="hint-dicht" type="button">Begrepen</button></div></div>
+      <div class="hintvak" id="hintvak" hidden aria-live="polite"><p id="hint-tekst"></p><div class="balk"><button class="knop hoofd" id="hint-meer" type="button" hidden>Laat het antwoord zien</button><button class="knop" id="hint-doe" type="button">Zet het voor me</button><button class="knop" id="hint-les" type="button" hidden>Wat is dat trucje?</button><button class="knop" id="hint-dicht" type="button">Begrepen</button></div></div>
       <div class="balk gereedschap">
         <button class="knop" id="b-ongedaan" type="button" aria-keyshortcuts="Z"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4V2M4.5 7A8.5 8.5 0 1 1 6 17.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lang">Ongedaan maken</span><span class="kort">Ongedaan</span></button>
         <button class="knop" id="b-hint" type="button" aria-keyshortcuts="H"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Hint</button>
@@ -2323,6 +2336,7 @@ const KM2 = (() => {
   if (!isObj(opslag.dag)) opslag.dag = {};     // puzzels van de dag: { dagnummer: [tijd, hints, op de dag zelf 1/0, spoor] }
   if (!isObj(opslag.inst)) opslag.inst = {};   // { geluid, patroon }
   for (const k of ['week', 'eind', 'eindTijd', 'klok']) if (!isObj(opslag[k])) opslag[k] = {};   // fase 2 (zie de kroon van de week en Uitdagingen)
+  if (!isObj(opslag.school)) opslag.school = {};   // fase 3: de Kroonschool { trucje: [opgeloste oefeningen 1 tot 3] }
   // het totaal gaat mee in de opslag, voor de voortgang op de homepage (Verder spelen)
   const bewaar = () => { try { opslag.voortgangTotaal = PUZZELS.length; } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
   const STANDAARD = { geluid: true, patroon: false };
@@ -2331,7 +2345,7 @@ const KM2 = (() => {
   const inst = k => (k === 'patroon' && KASTNU.kleur === 'duidelijk') || (opslag.inst[k] === undefined ? STANDAARD[k] : !!opslag.inst[k]);
   const zachtBewegen = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   // koppelen 2.0: wat je op een ander apparaat oploste, staat meteen ook hier (niet midden in een puzzel)
-  try { if (window.Scorebord && Scorebord.live) Scorebord.live(KEY, () => { const sp = $('spel'); if (!sp || !sp.hidden) return false; setTimeout(() => { let o = { opgelost: {}, bezig: {}, auto: false }; try { o = Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {} for (const k of ['opgelost', 'bezig', 'dag', 'inst', 'week', 'eind', 'eindTijd', 'klok']) if (!isObj(o[k])) o[k] = {}; opslag = o; if ($('spel').hidden) tekenOverzicht(); }, 0); return true; }); } catch (e) {}
+  try { if (window.Scorebord && Scorebord.live) Scorebord.live(KEY, () => { const sp = $('spel'); if (!sp || !sp.hidden) return false; setTimeout(() => { let o = { opgelost: {}, bezig: {}, auto: false }; try { o = Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {} for (const k of ['opgelost', 'bezig', 'dag', 'inst', 'week', 'eind', 'eindTijd', 'klok', 'school']) if (!isObj(o[k])) o[k] = {}; opslag = o; if ($('spel').hidden) tekenOverzicht(); }, 0); return true; }); } catch (e) {}
 
   // ---------------- tekeningen
   const LETTER = 'ABCDEFGHIJKL';
@@ -2370,6 +2384,7 @@ const KM2 = (() => {
       if (c < n - 1 && B.reg[i] !== B.reg[i + 1]) lijn += `M${((c + 1) * w).toFixed(2)} ${(r * w).toFixed(2)}v${w.toFixed(2)}`;
       if (r < n - 1 && B.reg[i] !== B.reg[i + n]) lijn += `M${(c * w).toFixed(2)} ${((r + 1) * w).toFixed(2)}h${w.toFixed(2)}`;
     }
+    for (const i of opt.licht || []) { const r = (i / n) | 0, c = i % n; s += `<rect x="${(c * w).toFixed(2)}" y="${(r * w).toFixed(2)}" width="${w.toFixed(2)}" height="${w.toFixed(2)}" fill="#FFFFFF" opacity=".5"/><rect x="${(c * w + .7).toFixed(2)}" y="${(r * w + .7).toFixed(2)}" width="${(w - 1.4).toFixed(2)}" height="${(w - 1.4).toFixed(2)}" fill="none" stroke="#2F6FB5" stroke-width=".9"/>`; }
     let dun = ''; if (!P.g) for (let x = 1; x < n; x++) dun += `M${(x * w).toFixed(2)} 0v100M0 ${(x * w).toFixed(2)}h100`;
     s += (dun ? `<path d="${dun}" stroke="#231A26" stroke-width=".35" opacity=".5"/>` : '') + `<path d="${lijn}" stroke="#231A26" stroke-width="${n > 9 ? 1.6 : 2.2}" stroke-linecap="square"/>` + (P.g ? `<path d="${rand}" stroke="#231A26" stroke-width="2.6" stroke-linecap="square"/>` : `<rect x="0" y="0" width="100" height="100" fill="none" stroke="#231A26" stroke-width="3"/>`);
     const teken = (i, inhoud, schaal = 1) => { const r = (i / n) | 0, c = i % n, z = w * schaal; return `<g transform="translate(${(c * w + (w - z) / 2).toFixed(2)} ${(r * w + (w - z) / 2).toFixed(2)}) scale(${(z / 40).toFixed(3)})">${inhoud}</g>`; };
@@ -2379,6 +2394,8 @@ const KM2 = (() => {
     }
     for (const i of opt.kruisjes || []) s += teken(i, '<g transform="translate(10 10)">' + (KRUISJES[KASTNU.kruis] || KRUIS_PAD) + '</g>');
     for (const i of kronen) s += teken(i, kroonBinnen(), .8);
+    for (const [i, x] of opt.nieuw || []) { s += teken(i, x === 2 ? kroonBinnen() : '<g transform="translate(10 10)">' + (KRUISJES[KASTNU.kruis] || KRUIS_PAD) + '</g>', .8); const r = (i / n) | 0, c = i % n; s += `<circle cx="${(c * w + w / 2).toFixed(2)}" cy="${(r * w + w / 2).toFixed(2)}" r="${(w * .42).toFixed(2)}" fill="none" stroke="#2F6FB5" stroke-width="${(w * .09).toFixed(2)}"/>`; }
+    if (opt.letters) { const z = new Set(); for (let i = 0; i < n * n; i++) { if ((P.g && B.vast[i] === 1) || z.has(B.reg[i])) continue; z.add(B.reg[i]); const r = (i / n) | 0, c = i % n; s += `<text x="${(c * w + w * .1).toFixed(2)}" y="${(r * w + w * .36).toFixed(2)}" font-size="${(w * .3).toFixed(2)}" font-weight="800" fill="#231A26" font-family="system-ui, sans-serif">${LETTER[B.reg[i]]}</text>`; } }
     return s + '</svg>';
   }
 
@@ -2440,8 +2457,62 @@ const KM2 = (() => {
   }
   const datum = (d, opt) => new Date(d * 86400000).toLocaleDateString('nl-NL', Object.assign({ timeZone: 'UTC' }, opt || { weekday: 'long', day: 'numeric', month: 'long' }));
   const LES = { n: 5, v: 'abbbbacbbbccbbdcddddcdedd', o: '03142' };
+
+  // ================================================================ FASE 3: de Kroonschool
+  // De trucjes, in de volgorde waarin je ze leert. Elk trucje heeft drie oefenpuzzels (SCHOOL.oef) en een voorbeeldstand (SCHOOL.vb: de stand
+  // vlak voor het trucje, in oefening vb.p). Die zijn gekozen met een oplosser waarbij elk trucje apart aan of uit kan: een oefening lukt niet
+  // met alleen de trucjes ervoor, en wel met dit trucje erbij (de oplosser zelf staat niet in de pagina). trucVan(stap, B) zegt welk trucje een
+  // stap van de rekenmotor is; zo noemt ook de hint het trucje. Opslag: school { trucje: [opgeloste oefeningen 1 tot 3] }; beheerst = alle drie.
+  // Nieuwe trucjes en oefeningen altijd achteraan, en nooit een id veranderen.
+  const TRUCS = [
+    { id: 'rond', naam: 'Rond een kroon', kort: 'Rond een kroon kan geen andere kroon, ook niet schuin. En zijn rij, kolom en vlak zijn vol.', uitleg: 'Een kroon raakt geen andere kroon, ook niet schuin. Dus de acht vakjes eromheen krijgen een kruisje. En omdat er maar één kroon per rij, kolom en vlak is, krijgt de rest van zijn rij, zijn kolom en zijn vlak ook kruisjes. Doe dit na elke kroon die je zet: zo ontstaat er vanzelf ruimte voor de andere trucjes.' },
+    { id: 'laatste', naam: 'Het laatste plekje', kort: 'Een rij, kolom of vlak met nog maar één vrij vakje: daar moet de kroon.', uitleg: 'Kijk naar een rij, een kolom of een vlak. Is er nog maar één vakje over waar een kroon kan, dan moet de kroon daar staan. Vaak zie je het eerst bij een klein vlak, of bij een rij die bijna vol kruisjes staat.' },
+    { id: 'vlakInRij', naam: 'Een vlak in één rij', kort: 'Ligt een vlak helemaal in één rij, dan zit de kroon van die rij in dat vlak.', uitleg: 'Liggen alle open vakjes van een vlak in één rij (of in één kolom)? Dan staat de kroon van dat vlak in die rij. Die rij heeft maar één kroon, dus de rest van de rij, buiten het vlak, kan geen kroon meer zijn: kruisjes.' },
+    { id: 'rijInVlak', naam: 'Een rij in één vlak', kort: 'Ligt een rij helemaal in één vlak, dan zit de kroon van dat vlak in die rij.', uitleg: 'Andersom kan het ook. Liggen alle open vakjes van een rij (of kolom) in één vlak? Dan moet de kroon van die rij in dat vlak staan. Het vlak heeft maar één kroon, dus de rest van het vlak, buiten die rij, krijgt kruisjes.' },
+    { id: 'raakt', naam: 'Wat alles wegstreept', kort: 'Zou een kroon hier een hele rij, kolom of vlak wegstrepen? Dan kan hier geen kroon.', uitleg: 'Stel dat er een kroon op een vakje staat: welke vakjes worden dan kruisjes? Blijft er in een rij, kolom of vlak dan niets meer over waar zijn kroon kan, dan kan de kroon niet op dat vakje staan. Het vakje krijgt een kruisje. Kijk vooral naar vakjes vlak naast een klein vlak.' },
+    { id: 'twee', naam: 'Twee in twee', kort: 'Twee vlakken die samen in twee rijen liggen, vullen die twee rijen.', uitleg: 'Liggen twee vlakken samen helemaal in twee rijen (of kolommen)? Die twee vlakken hebben twee kronen nodig, en die twee rijen hebben er ook twee. Dus alle kronen van die twee rijen staan in die twee vlakken: de rest van de twee rijen krijgt kruisjes. Het werkt ook andersom, en met rijen in kolommen.' },
+    { id: 'drie', naam: 'Drie in drie', kort: 'Drie vlakken die samen in drie rijen liggen, vullen die drie rijen.', uitleg: 'Hetzelfde als twee in twee, maar met drie. Liggen drie vlakken samen helemaal in drie rijen (of kolommen), dan staan alle drie de kronen van die rijen in die vlakken. De rest van de drie rijen krijgt kruisjes. Dit is lastig om te zien: zoek naar vlakken die samen een strook vormen.' },
+    { id: 'doordenk', naam: 'Doordenken', kort: 'Stel dat hier een kroon staat. Loopt dat vast, dan kan hier geen kroon.', uitleg: 'Soms helpt geen enkel trucje meer. Kies dan een vakje en denk door: stel dat hier een kroon staat. Wat moet er dan nog meer? Kom je na een paar zekere stappen iets tegen wat niet kan (twee kronen die elkaar raken, of een rij zonder plek), dan klopte je begin niet: op dat vakje kan geen kroon.' },
+    { id: 'kaartje', naam: 'Het kaartje', kort: 'Het getal op een kaartje is het aantal kronen in de acht vakjes eromheen.', uitleg: 'Bij puzzels met prijskaartjes zegt het getal hoeveel kronen er in de acht vakjes rond het kaartje staan, ook schuin. Staan die er al, dan krijgt de rest eromheen kruisjes. Zijn er nog precies zoveel vrije vakjes als er kronen moeten, dan zijn het allemaal kronen. Op een kaartje met een 0 komt er rondom niets.' },
+  ];
+  const SCHOOL = {"rond":{"oef":[{"n":5,"v":"aaaaaabbcadebcceeecceeccc","o":"42031"},{"n":5,"v":"abaccaaacdaadddaaaddaeedd","o":"13042"},{"n":6,"v":"abccddaaeccdaaecccacecfcacccccaacccc","o":"152403"}],"vb":{"p":0,"s":"0000000000200000000000000"}},"laatste":{"oef":[{"n":5,"v":"aaaaaaaaabccdbbccccccccee","o":"14203"},{"n":6,"v":"aaaabcaaaaccdaaaccddddccdddeecfeeeee","o":"425130"},{"n":6,"v":"abccddbbcbbdbbcbbebbbbeebbbeeebbbffe","o":"052413"}],"vb":{"p":0,"s":"0010001110112110111000100"}},"vlakInRij":{"oef":[{"n":5,"v":"aaaabccbbbdcbbbddbbbddebb","o":"31402"},{"n":6,"v":"aaabbbaacdddeeccddeeefddeeefeeeeeeee","o":"402531"},{"n":6,"v":"aabbbbaabbbcdbbeeedeeeeedeeeeeffffee","o":"152403"}],"vb":{"p":0,"s":"0010000100001000111011211"}},"rijInVlak":{"oef":[{"n":6,"v":"aaaabbaaaabcaaacccadacccaeeefcaaeeff","o":"503142"},{"n":6,"v":"aabbbcbbbbbcbbbbbdbbbdddebfdddefffdd","o":"152403"},{"n":7,"v":"aaaabccaadbbbceadbbbceffbbbbefffbbbeebbbgbeeebbbb","o":"3624150"}],"vb":{"p":0,"s":"010000010000111000121111111000010000"}},"raakt":{"oef":[{"n":6,"v":"aaaaaabaccadbbcccdbbefffbeefefbbeeee","o":"152403"},{"n":7,"v":"aaabbccabbbbcdaaebeddeeeeeedeeefeddeeefggdeeefgdd","o":"5206314"},{"n":7,"v":"abbbbccabaaaccabadaecaaaddecfafddggfafddggfffdggg","o":"1625304"}],"vb":{"p":0,"s":"000001010010000000000001000001000001"}},"twee":{"oef":[{"n":7,"v":"aabbcccaaabbdceaabdddeeaffddeaafffgeeeegggeeeeggg","o":"2615304"},{"n":7,"v":"aaabbccaaabbbcdddbbbcdddeeeeddeeeeeddeffggddegggg","o":"5130246"},{"n":8,"v":"aaaabbccaaabbbbcaadddbecffdddeecfffffeeeffffeeeeffffeeegffffhhgg","o":"63025174"}],"vb":{"p":0,"s":"0000000001001000000000000000000000000000000000000"}},"drie":{"oef":[{"n":7,"v":"aaaaaabaaccbabacccbbbadecfbbddeefbfddgffffdggffff","o":"5362041"},{"n":8,"v":"abbbbcccaabdeccfadddeecfgggdeeefgggeeeefghheefffhhhhefffhheeefff","o":"41635027"},{"n":8,"v":"aaaabbbcddaabbbcdaaabbbbdddeebbfgdeeffffgdefffffggggffffghhfffff","o":"73641502"}],"vb":{"p":0,"s":"0000000000001010000001001000010001001100001001111"}},"doordenk":{"oef":[{"n":6,"v":"aaaaaabaaaacbbdcccebdccfeeddffeddddd","o":"203514"},{"n":7,"v":"abbbbbcabbdbccabadcccaaaddecaaffdecggfffeeffffeee","o":"4631502"},{"n":7,"v":"aaabbbbaaacbbbacccbbdaaeebbdaafegbbaafggbbfffgggb","o":"5362041"}],"vb":{"p":0,"s":"110000011110000000101010000000010001"}},"kaartje":{"oef":[{"n":6,"v":"aaaabbaaaaabcdcabbcdceeeccccccffffcc","o":"531420","t":[[1,0],[15,2],[32,1]]},{"n":6,"v":"abbbbbacbbbbaccbddccebddccebfdeeebfd","o":"031524","t":[[6,2],[12,1]]},{"n":7,"v":"aaaaaaabbaaaaacbaddeecccceefcccgeefccgggefggggfff","o":"2041536","t":[[23,1],[30,2],[35,0],[43,0]]}],"vb":{"p":0,"s":"010000000000000100000000000000001000"}}};
+  const trucNaam = t => (TRUCS.find(x => x.id === t) || {}).naam || '';
+  // welk trucje een stap van de rekenmotor is
+  function trucVan(st, Bd) {
+    if (!st) return null;
+    const metTeller = (st.eenheden || []).some(u => Bd.eenh[u] && Bd.eenh[u].soort === 'teller');
+    if (st.soort === 'gevolg') return 'rond';
+    if (st.soort === 'teller-vol') return 'kaartje';
+    if (st.soort === 'laatste') return metTeller ? 'kaartje' : 'laatste';
+    if (st.soort === 'raakt') return metTeller ? 'kaartje' : 'raakt';
+    if (st.soort === 'doordenk') return 'doordenk';
+    if (st.soort === 'groep') { const m = st.eenheden.length / 2, a = Bd.eenh[st.eenheden[0]].soort, b = Bd.eenh[st.eenheden[st.eenheden.length - 1]].soort; return m >= 3 ? 'drie' : m === 2 ? 'twee' : a === 'vlak' ? 'vlakInRij' : b === 'vlak' ? 'rijInVlak' : 'laatste'; }
+    return null;
+  }
+  const schoolKlaar = t => new Set((Array.isArray(opslag.school[t]) ? opslag.school[t] : []).filter(x => x >= 1 && x <= 3)).size;
+  const beheerst = t => schoolKlaar(t) >= 3;
+  const lijstje = l => (l.length > 1 ? l.slice(0, -1).join(', ') + ' en ' + l[l.length - 1] : l[0] || '');
+  // waar je moet kijken (de eerste stap van de hint): de rijen, kolommen en vlakken van de stap, zonder het antwoord
+  function waarKijken(st, Bd) {
+    const t = trucVan(st, Bd), nm = u => KM.naam(Bd, Bd.eenh[u]), eenh = (st.eenheden || []).filter(u => Bd.eenh[u]);
+    if (t === 'rond') return `Kijk naar de kroon op ${KM.vakNaam(Bd, st.cellen[0])}.`;
+    if (t === 'doordenk') return `Kijk naar ${KM.vakNaam(Bd, st.doel)}. Stel dat daar een kroon staat: wat moet er dan nog meer?`;
+    if (st.doel !== undefined) return `Kijk naar ${KM.vakNaam(Bd, st.doel)}${eenh.length ? ' en ' + nm(eenh[0]) : ''}: kan daar wel een kroon staan?`;
+    if (st.soort === 'groep') { const m = eenh.length / 2; return `Kijk naar ${lijstje(eenh.slice(0, m).map(nm))}, en naar ${lijstje(eenh.slice(m).map(nm))}.`; }
+    return `Kijk naar ${lijstje(eenh.map(nm))}.`;
+  }
+  // de stap van het voorbeeld, met de kleurnamen van nu (null als de motor er toch iets anders vindt)
+  function voorbeeldStap(t) {
+    const S = SCHOOL[t], vb = S && S.vb; if (!vb) return null;
+    const PP = S.oef[vb.p], Bd = KM.lees(PP), s = Int8Array.from(vb.s, Number);
+    naamP = PP; let st = null, kijk = '';
+    try { st = KM.stap(Bd, s, 4); kijk = st ? waarKijken(st, Bd) : ''; } finally { naamP = null; }
+    return st && trucVan(st, Bd) === t ? { PP, Bd, s, st, kijk } : null;
+  }
+  const schoolId = id => { const m = typeof id === 'string' && /^s([a-zA-Z]+)-([123])$/.exec(id); return m && SCHOOL[m[1]] ? { t: m[1], k: +m[2] } : null; };
   function puzzelVan(id) {
     if (id === 'les') return LES;
+    if (typeof id === 'string' && id[0] === 's') { const x = schoolId(id); return x ? SCHOOL[x.t].oef[x.k - 1] : undefined; }
     if (typeof id === 'string' && id[0] === 'd') return dagPuzzel(+id.slice(1));
     if (typeof id === 'string' && id[0] === 'w') return weekCache[+id.slice(1)];
     if (typeof id === 'string' && id[0] === 'x') { const t = TIJDELIJK.get(id); return t && t.P; }
@@ -2449,6 +2520,7 @@ const KM2 = (() => {
   }
   function titelVan(id) {
     if (id === 'les') return ['Oefenpuzzel', ''];
+    if (typeof id === 'string' && id[0] === 's') { const x = schoolId(id); return x ? ['Kroonschool · ' + trucNaam(x.t), `oefening ${x.k} van 3`] : ['Kroonschool', '']; }
     if (typeof id === 'string' && id[0] === 'w') return ['Kroon van de week', weekTekst(+id.slice(1))];
     if (typeof id === 'string' && id[0] === 'x') { const t = TIJDELIJK.get(id); return t ? [t.titel, t.sub || ''] : ['Puzzel', '']; }
     if (typeof id === 'string') return ['Puzzel van de dag', datum(+id.slice(1))];
@@ -2476,6 +2548,7 @@ const KM2 = (() => {
     st.weken = Object.values(opslag.week || {}).filter(e => Array.isArray(e) && e[2]).length;
     st.klok = +((opslag.klok || {}).b) || 0;
     st.eind = Object.values(opslag.eind || {}).reduce((a, x) => a + (+x || 0), 0);
+    st.school = TRUCS.filter(x => beheerst(x.id)).length; st.oefeningen = TRUCS.reduce((a, x) => a + schoolKlaar(x.id), 0);
     for (const [k, o] of Object.entries(opslag.opgelost)) {
       const i = +k; if (!(i >= 0 && i < N) || !o) continue;
       st.opgelost++; st.tijd += +o.tijd || 0; if (!o.hints) st.zonder++;
@@ -2512,6 +2585,9 @@ const KM2 = (() => {
     ['week4', 'Vier weken', 'Los vier keer de kroon van de week op in die week zelf.', st => st.weken, 4],
     ['klok10', 'Tegen de klok', 'Los 10 puzzels op in één keer Tegen de klok.', st => st.klok, 10],
     ['eind50', 'Eindeloos', 'Los 50 puzzels op in Eindeloos.', st => st.eind, 50],
+    // fase 3
+    ['school1', 'Eerste les', 'Los een oefening op in de Kroonschool.', st => st.oefeningen, 1],
+    ['school9', 'Geslaagd!', 'Beheers alle negen trucjes van de Kroonschool.', st => st.school, 9],
   ];
   const behaald = st => new Set(MIJLPALEN.filter(m => m[3](st) >= m[4]).map(m => m[0]));
   const MEDAILLE = (kleur = '#E9B949') => `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 2h8l4 12h-8zM34 2h-8l-4 12h8z" fill="#C8323C" stroke="#231A26" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="30" r="15" fill="${kleur}" stroke="#231A26" stroke-width="2.5"/><circle cx="24" cy="30" r="10.5" fill="none" stroke="#231A26" stroke-width="1.4" opacity=".45"/><path d="M16.5 35l-1-10 4.5 3.6 4-7 4 7 4.5-3.6-1 10z" fill="#FBF6E9" stroke="#231A26" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
@@ -2583,13 +2659,15 @@ const KM2 = (() => {
     if (!afstandCache[sl]) { const L = hex.map(labVan); afstandCache[sl] = L.map(a => L.map(b => de2000(a, b))); }
     return (m[sl] = verdeelKleuren(Pz, afstandCache[sl]).map(c => ({ k: hex[c], naam: pal[c][1] })));
   }
-  const vlakKleur = g => (P ? (kleurenVan(P)[g] || {}).naam : null) || KM.KLEURNAAM[g];
+  let naamP = null;   // een puzzel in een les: de namen van de vlakken zoals in het plaatje
+  const vlakKleur = g => { const kl = naamP ? kleurenVan(naamP, KASTNU.kleur, 'papier') : P ? kleurenVan(P) : null; return (kl && (kl[g] || {}).naam) || KM.KLEURNAAM[g]; };
 
   // de plaatjes (40 bij 40; kruisjes 20 bij 20)
   // Moeki en Floortje, getekend zoals in Huis op stelten, op een licht rondje (dan zie je ze ook op een donker bord)
   const KATJE = src => `<circle cx="20" cy="20" r="18.6" fill="#FBF6E9" stroke="#231A26" stroke-width="1.6"/><image href="${src}" x="2.5" y="2.5" width="35" height="35"/>`;
   const KROONTJES = {
     kroon: KROON_PAD,
+    hoed: '<path d="M11 19v7.5c0 2.6 4 4.5 9 4.5s9-1.9 9-4.5V19" fill="#2B2733" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M2.5 15.5L20 8l17.5 7.5L20 23z" fill="#3A3445" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 15.5l9.5 3.5v9" fill="none" stroke="#E9B949" stroke-width="2" stroke-linecap="round"/><path d="M27.5 28l2-1.5 2 1.5-.6 5h-2.8z" fill="#E9B949" stroke="#231A26" stroke-width="1.6" stroke-linejoin="round"/><circle cx="20" cy="15.5" r="1.9" fill="#E9B949" stroke="#231A26" stroke-width="1.2"/>',
     ster: '<path d="M20 4.5l4.6 9.4 10.4 1.5-7.5 7.3 1.8 10.3-9.3-4.9-9.3 4.9 1.8-10.3-7.5-7.3 10.4-1.5z" fill="#F6CF45" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M14.5 16.5l3.2-.6" stroke="#FFF4C2" stroke-width="2.2" stroke-linecap="round"/><circle cx="16.8" cy="21.5" r="1.3" fill="#231A26"/><circle cx="23.2" cy="21.5" r="1.3" fill="#231A26"/><path d="M17.8 25q2.2 1.6 4.4 0" fill="none" stroke="#231A26" stroke-width="1.5" stroke-linecap="round"/>',
     eend: '<path d="M6.5 24.5c0-3.8 3.6-6 8.5-6h4.2c-2.4-1.7-3.7-3.9-3.7-6.2a6.7 6.7 0 0 1 13.4 0c0 1.6-.6 3-1.6 4.1 3.9 1.1 6.7 4.4 6.7 8.4 0 6-5.8 9.6-13.3 9.6S6.5 30.6 6.5 24.5z" fill="#F6CF45" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M28.6 11.2l6.6 1.5-6.4 2.9z" fill="#F08C3A" stroke="#231A26" stroke-width="2" stroke-linejoin="round"/><circle cx="24.6" cy="10.4" r="1.8" fill="#231A26"/><circle cx="25.2" cy="9.8" r=".6" fill="#fff"/><path d="M12.5 23.5c3 3.4 7.6 3.4 10.6 0" fill="none" stroke="#C99A2E" stroke-width="2.2" stroke-linecap="round"/><path d="M19 7.5a4 4 0 0 1 3-1.5" fill="none" stroke="#FFF4C2" stroke-width="1.8" stroke-linecap="round"/>',
     vlaai: '<circle cx="20" cy="20" r="16" fill="#D9A15A" stroke="#231A26" stroke-width="2.4"/><circle cx="20" cy="20" r="11.5" fill="#C8323C"/><path d="M9.6 15h20.8M8.5 20h23M9.6 25h20.8M15 9.6v20.8M20 8.5v23M25 9.6v20.8" stroke="#EDBE78" stroke-width="2.3"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#231A26" stroke-width="1.6"/><path d="M8.5 12.5a14 14 0 0 1 5-4.5" fill="none" stroke="#F3D49A" stroke-width="2" stroke-linecap="round"/>',
@@ -2670,6 +2748,8 @@ const KM2 = (() => {
     { id: 'regen', s: 'feest', naam: 'Kronenregen', zeld: 1, eis: ['Los een 6×6 op binnen 30 seconden, zonder hint.', st => (st.snel[6] <= 30 ? 1 : 0), 1] },
     { id: 'pepernoten', s: 'feest', naam: 'Pepernotenregen', seiz: 'sint' },
     { id: 'sneeuw', s: 'feest', naam: 'Sneeuw', seiz: 'kerst' },
+    // fase 3 (nieuwe dingen altijd achteraan)
+    { id: 'hoed', s: 'kroon', naam: 'Afstudeerhoed', eis: ['Beheers alle negen trucjes van de Kroonschool.', st => st.school, 9] },
   ];
   const SOORT = [['kleur', 'Kleuren', 'pastel'], ['kroon', 'Kroontjes', 'kroon'], ['kruis', 'Kruisjes', 'kruis'], ['bord', 'Borden', 'papier'], ['feest', 'Feestjes', 'confetti']];
   const kastDing = id => KAST.find(x => x.id === id);
@@ -2904,6 +2984,8 @@ const KM2 = (() => {
       }).join('');
     } else if (tab === 'uitdagingen') {
       tekenUitdagingen(P);
+    } else if (tab === 'kroonschool') {
+      tekenSchool(P);
     } else if (tab === 'hoofdstukken') {
       P.innerHTML = '<h2>Hoofdstukken</h2><p class="klein">Elk hoofdstuk brengt iets nieuws op het bord. Los 5 puzzels op in een hoofdstuk en het volgende gaat open.</p>' + HOOFDSTUKKEN.map(h => {
         const open = hoofdstukOpen(h), klaar = klaarIn(h), tot = h.tot - h.van;
@@ -2960,24 +3042,24 @@ const KM2 = (() => {
   });
 
   // ---------------- het spel
-  let P = null, B = null, id = 0, dagCtx = null, weekCtx = null, n = 0, cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set(), spoor = [], hintStap = null, focusCel = 0, elems = [], les = false;
+  let P = null, B = null, id = 0, dagCtx = null, weekCtx = null, n = 0, cel = [], gesch = [], tijd = 0, klok = null, klaar = false, hints = 0, autoX = new Set(), spoor = [], hintStap = null, focusCel = 0, elems = [], les = false, hintFase = 2, schoolCtx = null;
   function start(nieuwId, ctx = {}) {
     const PP = puzzelVan(nieuwId); if (!PP) return;
     if (P && !klaar && !$('spel').hidden) bewaarBezig();
     if (!ctx.modus) modusUit();
-    id = nieuwId; P = PP; B = KM.lees(P); n = P.n; les = id === 'les';
+    id = nieuwId; P = PP; B = KM.lees(P); n = P.n; les = id === 'les'; schoolCtx = schoolId(id);
     dagCtx = ctx.dag !== undefined ? ctx.dag : (id === dagId(dagNr()) ? dagNr() : null);
     weekCtx = typeof id === 'string' && id[0] === 'w' ? +id.slice(1) : null;
-    const b = !les && opslag.bezig[id];
+    const b = !les && !schoolCtx && opslag.bezig[id];
     cel = b && Array.isArray(b.cel) && b.cel.length === n * n ? b.cel.map(x => (x === 1 || x === 2 ? x : 0)) : Array(n * n).fill(0);
     tijd = b ? +b.tijd || 0 : 0; hints = b ? +b.hints || 0 : 0; autoX = new Set(b && Array.isArray(b.auto) ? b.auto : []); spoor = b && Array.isArray(b.spoor) ? b.spoor.slice() : [];
     for (let i = 0; i < n * n; i++) if (B.vast[i]) { cel[i] = 0; autoX.delete(i); }
-    gesch = []; klaar = false; hintStap = null; focusCel = 0;
-    if (!les && !(typeof id === 'string' && id[0] === 'x')) { opslag.laatste = id; bewaar(); }
+    gesch = []; klaar = false; hintStap = null; hintFase = 2; focusCel = 0;
+    if (!les && !schoolCtx && !(typeof id === 'string' && id[0] === 'x')) { opslag.laatste = id; bewaar(); }
     $('spel').classList.toggle('zen', !!(modus && modus.soort === 'zen'));
     const [t1, t2] = dagCtx !== null && typeof id === 'number' ? ['Puzzel van de dag', datum(dagCtx) + ' · puzzel ' + (id + 1)] : titelVan(id);
     $('spel-titel').innerHTML = `${t1} · ${n}×${n}${t2 ? `<span class="sub">${t2}</span>` : ''}`;
-    const rb = regelVan(P);
+    const sx = schoolCtx && TRUCS.find(x => x.id === schoolCtx.t), rb = sx ? `<b>Trucje ${TRUCS.indexOf(sx) + 1}: ${sx.naam}.</b> ${sx.kort}` : regelVan(P);
     $('regelband').hidden = !rb; $('regelband').innerHTML = rb ? (P.t && P.t.length ? KAARTJE(1) : /[A-Z]/.test(P.v) && !P.g ? DOOS : KROON) + '<span>' + rb + '</span>' : '';
     $('overzicht').hidden = true; $('spel').hidden = false; $('hintvak').hidden = true; $('bord').classList.remove('gewonnen');
     bouwBord(); teken(); startKlok(); window.scrollTo(0, 0);
@@ -3019,7 +3101,13 @@ const KM2 = (() => {
   function teken(pop, kruisPop) {
     const fout = conflicten(), letters = inst('patroon') ? eersteVanVlak() : null;
     const hl = new Set(), doel = new Map();
-    if (hintStap) { for (const u of hintStap.eenheden || []) { const e = B.eenh[u]; for (const i of e.cellen) hl.add(i); if (e.soort === 'teller') hl.add(e.nr); } for (const i of hintStap.cellen || []) hl.add(i); for (const [i, w] of hintStap.zet || []) doel.set(i, w); }
+    if (hintStap) {
+      const kijk = hintFase === 1;
+      for (const u of hintStap.eenheden || []) { const e = B.eenh[u]; for (const i of e.cellen) hl.add(i); if (e.soort === 'teller') hl.add(e.nr); }
+      if (!kijk || hintStap.soort === 'gevolg') for (const i of hintStap.cellen || []) hl.add(i);
+      if (kijk && hintStap.doel !== undefined) hl.add(hintStap.doel);
+      if (!kijk) for (const [i, w] of hintStap.zet || []) doel.set(i, w);
+    }
     for (let i = 0; i < n * n; i++) {
       const d = elems[i], r = Math.floor(i / n) + 1, c = (i % n) + 1, vlak = vlakKleur(B.reg[i]) + ' vlak' + (inst('patroon') ? ' ' + LETTER[B.reg[i]] : '');
       let html = '', wat;
@@ -3039,8 +3127,8 @@ const KM2 = (() => {
     $('b-hint').disabled = klaar; $('b-opnieuw').disabled = klaar;
     $('b-auto').setAttribute('aria-pressed', String(!!opslag.auto));
   }
-  function bewaarBezig() { if (klaar || les || !P || (typeof id === 'string' && id[0] === 'x')) return; opslag.bezig[id] = { cel: cel.slice(), tijd: Math.floor(tijd), hints, auto: [...autoX], spoor: spoor.slice(-60) }; bewaar(); }
-  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden) tijd += (nu - vorige) / 1000; vorige = nu; toonTijd(); }, 250); toonTijd(); }
+  function bewaarBezig() { if (klaar || les || schoolCtx || !P || (typeof id === 'string' && id[0] === 'x')) return; opslag.bezig[id] = { cel: cel.slice(), tijd: Math.floor(tijd), hints, auto: [...autoX], spoor: spoor.slice(-60) }; bewaar(); }
+  function startKlok() { clearInterval(klok); let vorige = performance.now(); klok = setInterval(() => { const nu = performance.now(); if (!document.hidden && !klaar && !$('spel').hidden && !($('dlg').open && !(modus && modus.soort === 'klok'))) tijd += (nu - vorige) / 1000; vorige = nu; toonTijd(); }, 250); toonTijd(); }
   // Tegen de klok: de tijd die nog over is (rood in de laatste 30 seconden); anders de tijd tot nu toe
   function toonTijd() {
     if (modus && modus.soort === 'klok' && !modus.klaar) { const over = klokOver(); $('tijd').textContent = fmt(Math.ceil(over)); $('tijd').classList.toggle('bijna', over < 30); if (over <= 0 && !klaar) klokEinde(); }
@@ -3069,7 +3157,8 @@ const KM2 = (() => {
     klaar = true; clearInterval(klok); hintStap = null; $('hintvak').hidden = true;
     const t = Math.max(1, Math.round(tijd));
     if (modus && typeof id === 'string' && id[0] === 'x') { modusKlaar(t); return; }
-    if (les) { opslag.uitleg = 1; bewaar(); vier(); setTimeout(() => dialoog(`<div class="klaar-kaart"><span class="tape">Goed gedaan</span><h2 id="dlg-titel">Je eerste kroontjes!</h2><p>Zo werkt het: steeds de plek zoeken waar een kroon wel móét staan, of juist niet kán. Kom je vast te zitten, dan legt de hint uit wat je kunt doen.</p><div class="balk"><button class="knop hoofd" data-k="start0" type="button">Speel puzzel 1</button><button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`), n * 90 + 500); teken(); return; }
+    if (schoolCtx) { schoolOpgelost(); return; }
+    if (les) { opslag.uitleg = 1; bewaar(); vier(); setTimeout(() => dialoog(`<div class="klaar-kaart"><span class="tape">Goed gedaan</span><h2 id="dlg-titel">Je eerste kroontjes!</h2><p>Zo werkt het: steeds de plek zoeken waar een kroon wel móét staan, of juist niet kán. Kom je vast te zitten, dan legt de hint uit wat je kunt doen. De trucjes leer je één voor één in de Kroonschool.</p><div class="balk"><button class="knop hoofd" data-k="start0" type="button">Speel puzzel 1</button><button class="knop" data-k="school" type="button">Kroonschool</button><button class="knop" data-k="overzicht" type="button">Alle puzzels</button></div></div>`), n * 90 + 500); teken(); return; }
     const voor = behaald(stand()), kastVoor = bezit();
     let oud = null, record = false;
     if (typeof id === 'number') { oud = opslag.opgelost[id]; record = !oud || t < oud.tijd; if (record) opslag.opgelost[id] = { tijd: t, hints }; }
@@ -3189,8 +3278,13 @@ const KM2 = (() => {
   }
   function toonHint(st, voorvoegsel = '') {
     hintStap = st.direct ? null : st;
-    $('hint-tekst').textContent = voorvoegsel + st.tekst;
-    $('hint-doe').hidden = !!st.direct || !(st.zet || []).length;
+    const tr = !st.direct && !les ? trucVan(st, B) : null, kijk = hintFase === 1 && !!tr, ht = $('hint-tekst');
+    ht.textContent = '';
+    if (tr) { const b = document.createElement('b'); b.className = 'truc-naam'; b.textContent = `Trucje ${TRUCS.findIndex(x => x.id === tr) + 1}: ${trucNaam(tr)}`; ht.appendChild(b); }
+    ht.appendChild(document.createTextNode((tr ? ' ' : '') + (kijk ? waarKijken(st, B) : voorvoegsel + st.tekst)));
+    $('hint-meer').hidden = !kijk;
+    $('hint-les').hidden = !tr || !!(modus && modus.soort === 'klok');
+    $('hint-doe').hidden = kijk || !!st.direct || !(st.zet || []).length;
     $('hint-doe').textContent = (st.zet || []).some(([, w]) => w === 2) ? ((st.zet.length > 1 ? 'Zet de kronen' : 'Zet de kroon') + ' voor me') : 'Zet de kruisjes voor me';
     if (st.zet && st.zet.length === 1 && st.zet[0][1] === 1) $('hint-doe').textContent = 'Zet het kruisje voor me';
     $('hintvak').hidden = false;
@@ -3198,11 +3292,13 @@ const KM2 = (() => {
   function vraagHint() {
     if (klaar || !P) return;
     if (les) { toonLesTip(); return; }
+    if (hintStap && hintFase === 1 && !$('hintvak').hidden) { hintAntwoord(); return; }   // nog eens: het antwoord (dat kost niets extra)
     const st = zoekHint(); if (!st) return;
     hints++; tijd += 15; GELUID.hint();
+    hintFase = !st.direct && trucVan(st, B) ? 1 : 2;
     if (st.direct) { gesch.push(snap()); for (const [i, w] of st.zet) { cel[i] = w; autoX.delete(i); } if (opslag.auto) herberekenAuto(); toonHint(st); teken(); bewaarBezig(); elems[st.cellen[0]].classList.add('fout'); setTimeout(() => teken(), 900); return; }
     toonHint(st); teken(); bewaarBezig();
-    const eerste = (st.zet || [])[0]; if (eerste) focusOp(eerste[0], false);
+    const eerste = hintFase === 1 ? st.doel : ((st.zet || [])[0] || [])[0]; if (eerste !== undefined) focusOp(eerste, false);
   }
   function doeHint() {
     const st = hintStap; if (!st || klaar) return;
@@ -3213,7 +3309,7 @@ const KM2 = (() => {
     if (kroon) GELUID.kroon(kroon[0] % n); else GELUID.kruis();
     naZet(kroon ? kroon[0] : undefined);
   }
-  function toonLesTip() { const st = zoekHint(); if (!st) return; if (st.direct) { toonHint(st, 'Tip: '); hintStap = null; return; } toonHint(st, 'Tip: '); teken(); }
+  function toonLesTip() { hintFase = 2; const st = zoekHint(); if (!st) return; if (st.direct) { toonHint(st, 'Tip: '); hintStap = null; return; } toonHint(st, 'Tip: '); teken(); }
   $('b-hint').addEventListener('click', vraagHint);
   $('hint-doe').addEventListener('click', doeHint);
   $('hint-dicht').addEventListener('click', () => { hintStap = null; $('hintvak').hidden = true; teken(); });
@@ -3245,6 +3341,7 @@ const KM2 = (() => {
     const k = e.target.closest('[data-k]'); if (!k) return;
     const wat = k.dataset.k;
     if (wat === 'les-verder') { uitlegStap(+k.dataset.stap); return; }
+    if (wat === 'les-stap') { openLes(k.dataset.truc, +k.dataset.stap); return; }
     sluit();
     if (wat === 'volgende') { const v = volgendeVan(id); if (v !== null) start(v); }
     else if (wat === 'overzicht') { modusUit(); naarOverzicht(); }
@@ -3256,6 +3353,8 @@ const KM2 = (() => {
     else if (wat === 'klok-nog') klokStart();
     else if (wat === 'modus-nog') { if (modus) modusVolgende(modus); }
     else if (wat === 'les') start('les');
+    else if (wat === 'oef') start('s' + k.dataset.truc + '-' + k.dataset.nr);
+    else if (wat === 'school') { modusUit(); tab = 'kroonschool'; try { sessionStorage.setItem('kroon-tab', tab); } catch (e) {} naarOverzicht(); }
     else if (wat === 'start0') start(0);
   });
   $('dlg').addEventListener('change', e => {
@@ -3467,6 +3566,50 @@ const KM2 = (() => {
   }
   function knijpEind(e) { ZOOM.vingers.delete(e.pointerId); if (ZOOM.knijp && ZOOM.vingers.size < 2) { ZOOM.knijp = null; ZOOM.tot = performance.now() + 250; } }
   const knijptNet = () => !!ZOOM.knijp || performance.now() < ZOOM.tot;
+  // ---- het tabblad Kroonschool
+  function tekenSchool(Pnl) {
+    const n = TRUCS.filter(x => beheerst(x.id)).length;
+    Pnl.innerHTML = `<h2>Kroonschool</h2><p class="klein">Elke puzzel los je op met een paar vaste trucjes. Leer ze hier één voor één: een korte uitleg, een voorbeeld stap voor stap, en drie oefenpuzzels waarin je precies dat trucje nodig hebt. De hint noemt het trucje ook bij naam.</p>
+      <div class="stand-regel"><b>${n} van ${TRUCS.length} trucjes beheerst</b></div><div class="voortgang" aria-hidden="true"><i style="width:${(100 * n / TRUCS.length).toFixed(1)}%"></i></div>
+      <div class="trucs">${TRUCS.map((x, k) => { const d = schoolKlaar(x.id); return `<button type="button" class="truc${d >= 3 ? ' klaar' : d ? ' bezig' : ''}" data-les="${x.id}" aria-label="Trucje ${k + 1}: ${x.naam}, ${d >= 3 ? 'beheerst' : d + ' van 3 oefeningen'}"><span class="truc-nr" aria-hidden="true">${d >= 3 ? '✓' : k + 1}</span><span class="truc-tekst"><b>${x.naam}</b><small>${x.kort}</small></span><span class="truc-stand">${d >= 3 ? 'Beheerst' : d + ' van 3'}</span></button>`; }).join('')}</div>`;
+  }
+  $('paneel-tab').addEventListener('click', e => { const b = e.target.closest('[data-les]'); if (b) openLes(b.dataset.les, 0); });
+  // ---- een les: uitleg, het voorbeeld in drie stappen, en oefenen
+  function openLes(t, stap = 0) {
+    const x = TRUCS.find(y => y.id === t); if (!x) return;
+    const vb = voorbeeldStap(t), delen = ['uitleg'].concat(vb ? ['voor', 'kijk', 'dus'] : []).concat(['oefen']);
+    stap = Math.max(0, Math.min(delen.length - 1, stap));
+    const deel = delen[stap], nr = TRUCS.indexOf(x) + 1;
+    let inhoud = '';
+    if (deel === 'uitleg') inhoud = `<p>${x.uitleg}</p>`;
+    else if (deel === 'oefen') {
+      const l = Array.isArray(opslag.school[t]) ? opslag.school[t] : [];
+      inhoud = `<p>Nu jij! In deze drie puzzels heb je precies dit trucje nodig, en de trucjes van de lessen ervoor.</p><div class="oefeningen">${SCHOOL[t].oef.map((PP, k) => `<button class="knop${l.includes(k + 1) ? ' gedaan' : ''}" type="button" data-k="oef" data-truc="${t}" data-nr="${k + 1}">${l.includes(k + 1) ? '✓ ' : ''}Oefening ${k + 1} · ${PP.n}×${PP.n}</button>`).join('')}</div>`;
+    } else {
+      const { PP, Bd, s, st, kijk } = vb, kronen = [], kruisjes = [], licht = new Set();
+      for (let i = 0; i < Bd.nn; i++) { if (s[i] === 2) kronen.push(i); else if (s[i] === 1 && !Bd.vast[i]) kruisjes.push(i); }
+      for (const u of st.eenheden || []) for (const i of Bd.eenh[u].cellen) licht.add(i);
+      if (st.doel !== undefined) licht.add(st.doel); if (t === 'rond') for (const i of st.cellen) licht.add(i);
+      const opt = { kronen, kruisjes, letters: inst('patroon') }; if (deel !== 'voor') opt.licht = [...licht]; if (deel === 'dus') opt.nieuw = st.zet;
+      inhoud = `<div class="uitleg-plaat les-plaat">${plaatje(PP, opt)}</div><p>${deel === 'voor' ? 'Zo staat het bord ervoor. Kijk eens goed: welke stap kan nu?' : deel === 'kijk' ? kijk : '<b>Dus:</b> ' + st.tekst}</p>`;
+    }
+    dialoog(`<span class="tape">Trucje ${nr} van ${TRUCS.length}</span><h2 id="dlg-titel">${x.naam}</h2>${inhoud}<div class="stippen" aria-hidden="true">${delen.map((y, j) => `<i class="${j === stap ? 'aan' : ''}"></i>`).join('')}</div><div class="balk">${stap ? `<button class="knop" data-k="les-stap" data-truc="${t}" data-stap="${stap - 1}" type="button">Terug</button>` : ''}${stap < delen.length - 1 ? `<button class="knop hoofd" data-k="les-stap" data-truc="${t}" data-stap="${stap + 1}" type="button">${stap === 0 && vb ? 'Bekijk een voorbeeld' : stap === delen.length - 2 ? 'Oefenen' : 'Volgende'}</button>` : '<button class="knop" data-k="dicht" type="button">Klaar</button>'}</div>`);
+  }
+  // ---- een oefening opgelost
+  function schoolOpgelost() {
+    const { t, k } = schoolCtx, voor = behaald(stand()), kastVoor = bezit(), was = beheerst(t);
+    const l = (Array.isArray(opslag.school[t]) ? opslag.school[t] : []).filter(x => x === 1 || x === 2 || x === 3); if (!l.includes(k)) l.push(k); opslag.school[t] = [...new Set(l)].sort((a, b) => a - b);
+    bewaar(); teken();
+    const nu = !was && beheerst(t), alle = nu && TRUCS.every(x => beheerst(x.id)), volgende = [1, 2, 3].find(y => !opslag.school[t].includes(y));
+    vier(!nu);
+    if (!nu) GELUID.klaar();
+    setTimeout(() => dialoog(`<div class="klaar-kaart"><span class="tape">${alle ? 'Geslaagd!' : nu ? 'Beheerst!' : 'Goed zo!'}</span><h2 id="dlg-titel">${trucNaam(t)}</h2><p>${alle ? 'Je beheerst alle negen trucjes van de Kroonschool. Daarmee los je elke puzzel op!' : nu ? 'Alle drie de oefeningen opgelost. Dit trucje zit erin!' : `Oefening ${k} opgelost${hints ? ', met ' + hints + ' hint' + (hints > 1 ? 's' : '') : ''}.`}</p>${naOplossen(voor, kastVoor)}<div class="balk">${volgende ? `<button class="knop hoofd" data-k="oef" data-truc="${t}" data-nr="${volgende}" type="button">Oefening ${volgende}</button>` : ''}<button class="knop${volgende ? '' : ' hoofd'}" data-k="school" type="button">Naar de Kroonschool</button></div></div>`), n * 60 + 400);
+  }
+  // ---- de hint in twee stappen: eerst het trucje en waar je moet kijken (dat kost een hint), daarna pas het antwoord
+  function hintAntwoord() { if (!hintStap) return; hintFase = 2; toonHint(hintStap); teken(); const e = (hintStap.zet || [])[0]; if (e) focusOp(e[0], false); }
+  $('hint-meer').addEventListener('click', hintAntwoord);
+  $('hint-les').addEventListener('click', () => { const t = hintStap && trucVan(hintStap, B); if (t) openLes(t, 0); });
+
   // ---------------- scorebord (score = aantal opgeloste puzzels, net als altijd; nooit meer dan 500)
   let serverNieuw = false;
   if (window.Scorebord && Scorebord.klaar) Scorebord.klaar.then(inst => { const u = String((inst && inst.scoreUrl) || '').replace(/\/+$/, ''); if (!u) return; return fetch(u + '/status', { cache: 'no-store' }).then(r => r.json()).then(j => { if (j && j.versie && String(j.versie) >= '2026-11-03') { serverNieuw = true; stuurScore(); } }); }).catch(() => {});
@@ -3478,7 +3621,7 @@ const KM2 = (() => {
   tekenOverzicht();
   if (nieuweSpeler) setTimeout(() => uitlegStap(0), 400);
   if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-kroon'), 'opgeloste puzzels'); }
-  window.__kroon = { puzzelVan, get klaar() { return klaar; }, KM2, REEKSEN, weekNr, weekCache, speelWeek, klokStart, modusStart, modusUit, get modus() { return modus; }, ZOOM, zetZoom, get serverNieuw() { return serverNieuw; }, KAST, KASTNU, PALET, bezit, kleurenVan, feest, pasKastToe, de2000, labVan, tekenOverzicht, start, zet, get cel() { return cel; }, get id() { return id; }, PUZZELS, opslag, KM, zoekHint, vraagHint, doeHint, dagPuzzel, dagId, dagNr, stand, reeksen, HOOFDSTUKKEN, deelTekst, isOpen };
+  window.__kroon = { puzzelVan, get klaar() { return klaar; }, KM2, REEKSEN, weekNr, weekCache, speelWeek, klokStart, modusStart, modusUit, get modus() { return modus; }, ZOOM, zetZoom, get serverNieuw() { return serverNieuw; }, KAST, KASTNU, PALET, bezit, kleurenVan, feest, pasKastToe, de2000, labVan, tekenOverzicht, start, zet, get cel() { return cel; }, get id() { return id; }, PUZZELS, opslag, KM, zoekHint, vraagHint, doeHint, dagPuzzel, dagId, dagNr, stand, reeksen, HOOFDSTUKKEN, deelTekst, isOpen, TRUCS, SCHOOL, trucVan, openLes, voorbeeldStap, get hints() { return hints; }, get tijd() { return tijd; }, get hintFase() { return hintFase; } };
 })();
 </script>
 <script>

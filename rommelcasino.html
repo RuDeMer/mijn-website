@@ -6580,7 +6580,15 @@ const BALLETJE = (() => {
     return tweens.length > 0 || klaar;
   }
   // ---------- tekenen
-  function maten() { ({ W, H, dpr } = maatCanvas(cv)); const s = Math.min(W / 4.4, H / 2.6, 150); G = { s, x0: W / 2 - s * 1.45, dx: s * 1.45, y: H * .66 }; if (open) vraag(); }
+  let straatBeeld = null;
+  function maten() {
+    ({ W, H, dpr } = maatCanvas(cv));
+    const s = st.straat ? Math.min(W / 4.4, H / 3.1, 130) : Math.min(W / 4.4, H / 2.6, 150);
+    G = { s, x0: W / 2 - s * 1.45, dx: s * 1.45, y: st.straat ? H * .7 : H * .66 };
+    straatBeeld = null; if (open) vraag();
+  }
+  const manH = () => Math.min(G.s * 2.05, G.y - G.s * .45 - 4);
+  const zetStraat = aan => { st.straat = st.mensen = aan; maten(); };
   const scherm = (b) => ({ x: G.x0 + b.x * G.dx, y: G.y + b.y * G.s * .5 });
   function beker(x, y, s, til, scheef) {
     const h = s * .95, bo = s * .3, on = s * .44;
@@ -6595,17 +6603,98 @@ const BALLETJE = (() => {
   function balletje(x, y, r) { const g = c.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r); g.addColorStop(0, '#FFFBEA'); g.addColorStop(.35, '#FFD43B'); g.addColorStop(1, '#C99020'); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); }
   function handTeken(x, y, s, dicht) {
     c.save(); c.translate(x, y);
-    c.strokeStyle = '#2F2F35'; c.lineCap = 'round'; c.lineWidth = s * .3; c.beginPath(); c.moveTo(s * .05, s * .15); c.lineTo(s * .3, s * .95); c.stroke();
+    // de arm loopt naar de schouder van de man achter de doos
+    const mh = manH(), sx = W / 2 + mh * .14 - x, sy = G.y - G.s * .45 - mh * .78 - y;
+    c.strokeStyle = '#2F2F35'; c.lineCap = 'round'; c.lineWidth = mh * .09; c.beginPath(); c.moveTo(0, s * .05); c.lineTo(sx, sy); c.stroke();
     c.fillStyle = '#F2C4A0'; c.strokeStyle = 'rgba(90,50,30,.5)'; c.lineWidth = s * .02;
     c.beginPath(); c.ellipse(0, 0, s * .3, s * .22, 0, 0, 7); c.fill(); c.stroke();
     for (let i = 0; i < 4; i++) { c.beginPath(); c.ellipse(-s * .21 + i * s * .14, dicht ? s * .12 : -s * .26, s * .06, dicht ? s * .1 : s * .16, 0, 0, 7); c.fill(); c.stroke(); }
     c.beginPath(); c.ellipse(s * .32, s * .02, s * .14, s * .06, -.5, 0, 7); c.fill(); c.stroke();
     c.restore();
   }
-  function mens(x, y, s, kleur, pet) {
-    c.fillStyle = kleur; c.beginPath(); c.moveTo(x - s * .45, y + s); c.quadraticCurveTo(x - s * .48, y + s * .15, x, y + s * .12); c.quadraticCurveTo(x + s * .48, y + s * .15, x + s * .45, y + s); c.closePath(); c.fill();
-    c.fillStyle = '#E8B48E'; c.beginPath(); c.arc(x, y - s * .12, s * .26, 0, 7); c.fill();
-    if (pet) { c.fillStyle = pet; c.beginPath(); c.ellipse(x, y - s * .3, s * .27, s * .12, 0, Math.PI, 0); c.fill(); c.fillRect(x - s * .05, y - s * .32, s * .38, s * .06); }
+  // een heel mens, met de voeten op de stoep (y is waar de voeten staan, h hoe lang hij is)
+  function mens(x, y, h, m) {
+    const huid = m.huid || '#E8B48E', sch = h * .045;
+    c.save(); c.translate(x, y);
+    c.fillStyle = 'rgba(30,25,20,.25)'; c.beginPath(); c.ellipse(0, 0, h * .2, h * .035, 0, 0, 7); c.fill();
+    // benen en schoenen
+    c.fillStyle = m.broek || '#2E3546';
+    c.fillRect(-h * .11, -h * .47, h * .095, h * .44); c.fillRect(h * .015, -h * .47, h * .095, h * .44);
+    c.fillStyle = '#1C1A1A'; c.beginPath(); c.ellipse(-h * .07, -h * .02, h * .07, sch * .7, 0, 0, 7); c.ellipse(h * .07, -h * .02, h * .07, sch * .7, 0, 0, 7); c.fill();
+    // armen (achter het lijf als ze hangen)
+    const arm = (zijde, omhoog) => {
+      c.save(); c.translate(zijde * h * .14, -h * .78); c.rotate(omhoog ? zijde * -2.5 : zijde * .12);
+      c.fillStyle = m.jas; rondRect(c, -h * .045, 0, h * .09, h * .33, h * .045); c.fill();
+      c.fillStyle = huid; c.beginPath(); c.arc(0, h * .34, h * .042, 0, 7); c.fill(); c.restore();
+    };
+    arm(-1, false); if (!m.zonderArm) arm(1, !!m.juich);
+    // lijf
+    c.fillStyle = m.jas; c.beginPath(); c.moveTo(-h * .15, -h * .45); c.lineTo(-h * .16, -h * .72); c.quadraticCurveTo(-h * .15, -h * .82, -h * .06, -h * .83); c.lineTo(h * .06, -h * .83); c.quadraticCurveTo(h * .15, -h * .82, h * .16, -h * .72); c.lineTo(h * .15, -h * .45); c.closePath(); c.fill();
+    if (m.das) { c.fillStyle = m.das; c.beginPath(); c.moveTo(-h * .02, -h * .82); c.lineTo(h * .02, -h * .82); c.lineTo(h * .03, -h * .62); c.lineTo(0, -h * .58); c.lineTo(-h * .03, -h * .62); c.closePath(); c.fill(); }
+    c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(-h * .005, -h * .8, h * .01, h * .34);
+    // hoofd, haar, ogen
+    c.fillStyle = huid; c.fillRect(-h * .03, -h * .87, h * .06, h * .05);
+    c.beginPath(); c.ellipse(0, -h * .93, h * .075, h * .085, 0, 0, 7); c.fill();
+    c.fillStyle = m.haar || '#3A2A1E'; c.beginPath(); c.ellipse(0, -h * .975, h * .078, h * .05, 0, Math.PI * .95, Math.PI * 2.05); c.fill();
+    if (m.pet) { c.fillStyle = m.pet; c.beginPath(); c.ellipse(0, -h * .99, h * .082, h * .045, 0, Math.PI, 0); c.fill(); c.fillRect(-h * .01, -h * .995, h * .12, h * .022); }
+    c.fillStyle = '#2A1E14'; c.beginPath(); c.arc(-h * .027, -h * .935, h * .009, 0, 7); c.arc(h * .027, -h * .935, h * .009, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(90,40,30,.6)'; c.lineWidth = Math.max(1, h * .008); c.beginPath(); c.arc(0, -h * .9, h * .022, .2, Math.PI - .2); c.stroke();
+    c.restore();
+  }
+  // de straat: een winkelpui en een stoep in perspectief (één keer getekend, daarna een plaatje)
+  function tekenStraat() {
+    const cvs = document.createElement('canvas'); cvs.width = cv.width; cvs.height = cv.height;
+    const k = cvs.getContext('2d'); k.scale(dpr, dpr);
+    const s = G.s, wb = G.y - s * 1.15;   // waar de gevel op de stoep staat
+    // de gevel: bakstenen, twee winkels met een luifel, ramen erboven
+    const gl = k.createLinearGradient(0, 0, 0, wb); gl.addColorStop(0, '#9A5A44'); gl.addColorStop(1, '#7E4433'); k.fillStyle = gl; k.fillRect(0, 0, W, wb);
+    k.strokeStyle = 'rgba(40,18,10,.18)'; k.lineWidth = 1;
+    const bh = Math.max(6, s * .07); for (let y = wb, r = 0; y > 0; y -= bh, r++) { k.beginPath(); k.moveTo(0, y); k.lineTo(W, y); k.stroke(); for (let x = (r % 2) * bh * 1.1; x < W; x += bh * 2.2) { k.beginPath(); k.moveTo(x, y); k.lineTo(x, y - bh); k.stroke(); } }
+    const pui = Math.min(wb * .62, s * 1.7), n = W > 700 ? 3 : 2, bw = W / n;
+    for (let i = 0; i < n; i++) {
+      const x = i * bw;
+      // pilaster tussen de winkels
+      k.fillStyle = '#E9DFC9'; k.fillRect(x, wb - pui - s * .08, s * .1, pui + s * .08);
+      // de etalage
+      const ex = x + s * .2, ew = bw - s * .4, ey = wb - pui + s * .22, eh = pui - s * .22 - s * .12;
+      k.fillStyle = '#2C3440'; k.fillRect(ex, ey, ew, eh);
+      const ref = k.createLinearGradient(ex, ey, ex + ew, ey + eh); ref.addColorStop(0, 'rgba(200,225,255,.28)'); ref.addColorStop(.5, 'rgba(200,225,255,.05)'); ref.addColorStop(1, 'rgba(200,225,255,.18)'); k.fillStyle = ref; k.fillRect(ex, ey, ew, eh);
+      k.strokeStyle = 'rgba(255,255,255,.18)'; k.lineWidth = s * .05; k.beginPath(); k.moveTo(ex + ew * .2, ey + eh); k.lineTo(ex + ew * .45, ey); k.moveTo(ex + ew * .55, ey + eh); k.lineTo(ex + ew * .7, ey); k.stroke();
+      k.fillStyle = '#E9DFC9'; k.fillRect(ex - s * .04, ey + eh, ew + s * .08, s * .07); k.fillRect(ex + ew / 2 - s * .03, ey, s * .06, eh);
+      // de luifel met strepen
+      const ly = ey - s * .02, lh = s * .24, kl = [['#C8323C', '#FBF6E9'], ['#2F7A55', '#FBF6E9'], ['#2F4C8F', '#FBF6E9']][i % 3];
+      k.save(); k.beginPath(); k.moveTo(ex - s * .08, ly - lh); k.lineTo(ex + ew + s * .08, ly - lh); k.lineTo(ex + ew + s * .16, ly); k.lineTo(ex - s * .16, ly); k.closePath(); k.clip();
+      const sw = s * .16; for (let j = -2, xx = ex - s * .2; xx < ex + ew + s * .2; xx += sw, j++) { k.fillStyle = kl[(j + 4) % 2]; k.fillRect(xx, ly - lh, sw, lh); }
+      k.restore();
+      for (let xx = ex - s * .16; xx < ex + ew + s * .16; xx += s * .16) { k.fillStyle = kl[0]; k.beginPath(); k.arc(xx + s * .08, ly, s * .08, 0, Math.PI); k.fill(); }
+      // ramen erboven
+      if (wb - pui > s * .5) for (let j = 0; j < 2; j++) { const rx = x + bw * (.22 + j * .38), ry = Math.max(s * .1, wb - pui - s * .75), rw = bw * .2, rh = Math.min(s * .55, wb - pui - s * .25 - ry + s * .3); if (rh > s * .15) { k.fillStyle = '#E9DFC9'; k.fillRect(rx - s * .04, ry - s * .04, rw + s * .08, rh + s * .08); k.fillStyle = '#3B4656'; k.fillRect(rx, ry, rw, rh); k.fillStyle = 'rgba(255,230,170,.2)'; k.fillRect(rx, ry, rw / 2 - 1, rh); } }
+    }
+    // de plint
+    k.fillStyle = '#5E3A2C'; k.fillRect(0, wb - s * .1, W, s * .1);
+    // de stoep in perspectief: lichte tegels, lijnen naar een punt ver weg
+    const sg = k.createLinearGradient(0, wb, 0, H); sg.addColorStop(0, '#B9B3A6'); sg.addColorStop(1, '#D6D0C2'); k.fillStyle = sg; k.fillRect(0, wb, W, H - wb);
+    k.strokeStyle = 'rgba(70,64,54,.28)'; k.lineWidth = 1.2;
+    const vx = W / 2, vy = wb - s * 2.5; for (let i = -12; i <= 12; i++) { const bx = vx + i * s * .7; k.beginPath(); k.moveTo(vx + (bx - vx) * ((wb - vy) / (H * 2 - vy)), wb); k.lineTo(bx, H * 2); k.stroke(); }
+    for (let i = 0, y = wb; y < H; i++) { k.beginPath(); k.moveTo(0, y); k.lineTo(W, y); k.stroke(); y += s * (.12 + i * .07); }
+    k.fillStyle = 'rgba(40,30,20,.18)'; k.fillRect(0, wb, W, s * .06);
+    return cvs;
+  }
+  const MENSEN = [
+    { fx: .11, d: 0, h: 1.75, jas: '#4E6A9A', broek: '#2E3546', haar: '#6B4A2E' },
+    { fx: .82, d: .06, h: 1.85, jas: '#7E5E3C', broek: '#2B2B30', haar: '#1E1A16', pet: '#2F2F35', lokvogel: true },
+    { fx: .95, d: -.08, h: 1.6, jas: '#4E7A57', broek: '#3A3A44', haar: '#B58A4A' },
+  ];
+  // de doos: een kartonnen doos van voren, met het bovenvlak waar de bekertjes op staan
+  function doos(s) {
+    const x0 = G.x0 - s * 1.05, x1 = G.x0 + G.dx * 2 + s * 1.05, ta = G.y - s * .42, tv = G.y + s * .3, bo = Math.min(H + 2, G.y + s * 1.25);
+    c.fillStyle = 'rgba(30,25,20,.3)'; c.beginPath(); c.ellipse((x0 + x1) / 2, bo, (x1 - x0) * .55, s * .12, 0, 0, 7); c.fill();
+    c.fillStyle = '#A57A48'; c.fillRect(x0, tv, x1 - x0, bo - tv);
+    c.fillStyle = 'rgba(0,0,0,.08)'; for (let x = x0 + s * .1; x < x1; x += s * .22) c.fillRect(x, tv, 1.5, bo - tv);
+    c.fillStyle = '#D9C9A0'; c.fillRect((x0 + x1) / 2 - s * .25, tv, s * .5, bo - tv);   // plakband
+    c.fillStyle = '#C49A63'; c.beginPath(); c.moveTo(x0 + s * .2, ta); c.lineTo(x1 - s * .2, ta); c.lineTo(x1, tv); c.lineTo(x0, tv); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(80,50,20,.35)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x0 + s * .1, (ta + tv) / 2); c.lineTo(x1 - s * .1, (ta + tv) / 2); c.stroke();
+    c.fillStyle = 'rgba(255,240,200,.25)'; c.fillRect(x0, tv, x1 - x0, s * .04);
   }
   function beeld(nu) {
     if (!open || !G) return false;
@@ -6613,14 +6702,13 @@ const BALLETJE = (() => {
     c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const s = G.s;
     if (st.straat) {
-      // de stoep met tegels
-      c.fillStyle = '#8C877C'; c.fillRect(0, 0, W, H); c.strokeStyle = 'rgba(40,36,30,.35)'; c.lineWidth = 1.5;
-      const tg = Math.max(30, s * .45); for (let y = -tg; y < H; y += tg) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); for (let x = ((y / tg) % 2 ? tg / 2 : 0); x < W; x += tg) { c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + tg); c.stroke(); } }
-      // de man achter de doos, en de mensen eromheen
-      if (st.mensen) { mens(W * .1, H * .3, s * .9, '#5B6B8C', null); mens(W * .88, H * .28, s * .9, '#7E5E3C', '#2F2F35'); mens(W * .76, H * .22, s * .75, '#4E7A57', null); }
-      mens(W / 2, G.y - s * 1.75, s * 1.2, '#2F2F35', '#1A1A1E');
-      // de kartonnen doos
-      c.fillStyle = '#B88A55'; c.fillRect(G.x0 - s * .9, G.y - s * .25, G.dx * 2 + s * 1.8, H - G.y + s * .25); c.fillStyle = '#9C7244'; c.fillRect(G.x0 - s * .9, G.y + s * .35, G.dx * 2 + s * 1.8, s * .06);
+      if (!straatBeeld) straatBeeld = tekenStraat();
+      c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(straatBeeld, 0, 0); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // de mensen eromheen (op de stoep achter de doos), en de man achter de doos
+      const voet = G.y - s * .62;
+      if (st.mensen) for (const m of MENSEN) { const x = W * m.fx; mens(x, voet + m.d * s, Math.min(s * m.h, voet - 6), { ...m, juich: m.lokvogel && st.juich }); }
+      mens(W / 2, G.y - s * .45, manH(), { jas: '#2F2F35', broek: '#1E1E24', pet: '#1A1A1E', haar: '#2A1E14', das: '#8E1430', zonderArm: !!st.hand });
+      doos(s);
     } else {
       // een houten plankje met groen vilt
       c.fillStyle = 'rgba(0,0,0,.28)'; rondRect(c, G.x0 - s * .95, G.y - s * .32, G.dx * 2 + s * 1.9, s * .9, 18); c.fill();
@@ -6659,7 +6747,7 @@ const BALLETJE = (() => {
     if (fase !== 'start' && fase !== 'uit') return;
     const mijn = gen; GELUID.start(); GELUID.muziekStart(zaalId);
     try {
-      fase = 'kijk'; zetKnoppen(); begin(); st.straat = false; st.mensen = false;
+      fase = 'kijk'; zetKnoppen(); begin(); if (st.straat) zetStraat(false);
       const n = B.niveau(reeks), start = TOEVAL.getal(3), ws = B.wissels(TOEVAL, n.wissels);
       st.onder = start; st.bal = { in: start };
       zeg(`Kijk goed: het balletje gaat onder bekertje ${start + 1}.${reeks ? ` Reeks: <b>${reeks}</b>.` : ''}`);
@@ -6706,13 +6794,13 @@ const BALLETJE = (() => {
     if (fase === 'kijk' || fase === 'toon') return;
     gen++; tweens = []; les = true; lesStap = 0; reeks = 0; const mijn = gen; GELUID.start();
     try {
-      fase = 'les'; zetKnoppen(); begin(); st.straat = true; st.mensen = true; vraag();
+      fase = 'les'; zetKnoppen(); begin(); zetStraat(true); vraag();
       zeg(LES[0], '#bal-tekst'); await pauze(2600);
       // de lokvogel speelt, en wint
       st.onder = 0; st.bal = { in: 0 }; zeg(LES[1]);
       await til(st.bek[0], true); await pauze(500); await til(st.bek[0], false);
       for (const [a, b] of [[0, 1], [1, 2], [0, 1]]) await wissel(a, b, .7);
-      st.wijs = st.onder; await pauze(700); await til(st.bek[st.onder], true); st.wijs = null; GELUID.ster(); zeg(LES[2]); await pauze(2200); await til(st.bek[st.onder], false);
+      st.wijs = st.onder; await pauze(700); await til(st.bek[st.onder], true); st.wijs = null; st.juich = true; GELUID.ster(); zeg(LES[2]); await pauze(2200); await til(st.bek[st.onder], false); st.juich = false;
       // nu jij: rustig wisselen
       begin(); st.onder = 2; st.bal = { in: 2 }; zeg(LES[3]);
       await til(st.bek[2], true); await pauze(600); await til(st.bek[2], false);
@@ -6763,7 +6851,7 @@ const BALLETJE = (() => {
     zeg('Op straat kun je <b>nooit</b> winnen. De meneer die won, hoort bij de groep (een lokvogel). Vaak kijkt er iemand uit naar de politie, en soms pakt een zakkenroller ondertussen portemonnees uit de tassen van wie staat te kijken. Loop gewoon door.');
     haal('balstraat'); bewaar();
   }
-  function lesStop() { gen++; tweens = []; les = false; fase = 'start'; begin(); st.straat = false; st.mensen = false; st.onder = 1; zetKnoppen(); zeg(welkom()); vraag(); }
+  function lesStop() { gen++; tweens = []; les = false; fase = 'start'; begin(); zetStraat(false); st.juich = false; st.onder = 1; zetKnoppen(); zeg(welkom()); vraag(); }
   const welkom = () => `Volg het balletje onder de bekertjes. Zonder fiches: hier gaat het alleen om je ogen.${S.tel.balr ? ` Je record is <b>${S.tel.balr}</b> op een rij.` : ''}`;
   // ---------- de knoppen
   function zetKnoppen() {
@@ -6786,7 +6874,7 @@ const BALLETJE = (() => {
   new ResizeObserver(() => { if (open) maten(); }).observe($('#bal-veld'));
   return {
     start() { open = true; maten(); if (!les && fase !== 'kies') zeg(welkom()); zetKnoppen(); toonFiches(undefined, true); vraag(); setTimeout(() => $(les ? '#bal-lesterug' : '#bal-start').focus({ preventScroll: true }), 60); },
-    sluit() { open = false; const wasLes = les; gen++; tweens = []; les = false; if (fase !== 'uit') fase = 'start'; if (wasLes) { st.straat = st.mensen = false; } begin(); st.onder = 1; reeks = fase === 'uit' ? reeks : 0; },
+    sluit() { open = false; const wasLes = les; gen++; tweens = []; les = false; if (fase !== 'uit') fase = 'start'; if (wasLes) { st.straat = st.mensen = false; st.juich = false; straatBeeld = null; } begin(); st.onder = 1; reeks = fase === 'uit' ? reeks : 0; },
     toets(e) { const t = e.key.toLowerCase(), knop = e.target instanceof HTMLButtonElement; if ((t === ' ' || t === 'enter') && !knop) { e.preventDefault(); if (fase === 'start' || fase === 'uit') { if (!les) ronde(); } else if (fase === 'lesuit' && lesStap === 1) lesLangzaam(); return true; } if (/^[1-3]$/.test(t) && fase === 'kies') { e.preventDefault(); kies(+t - 1); return true; } return false; },
     get fase() { return fase; }, get onder() { return st.onder; }, get bek() { return st.bek; }, get reeks() { return reeks; },
   };

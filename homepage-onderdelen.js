@@ -2585,6 +2585,39 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
   .tg-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1rem; } .tg-vlak { border-radius: 1.25rem; } .tg-naam { font-size: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .tg-vlak, body.v6-body { transition: none; } .tg-tegel:hover .tg-vlak { transform: none; } }
+/* het casino: een uithangbord met neon en lampjes (bovenaan, zolang er een kaartje voor rommelcasino.html is) */
+.tg-casino { margin: 0 0 2.6rem; }
+.tg-cas-bord { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tekst plaat" "knop plaat"; align-items: center; gap: .7rem 1.6rem; padding: 2.2rem 2.1rem 2.1rem; border-radius: 1.75rem; border: 3px solid var(--tg-rand); text-decoration: none; color: #FFF4DA; overflow: hidden; background: radial-gradient(120% 150% at 88% 18%, #9A2079 0%, #4E1463 40%, #1C0B36 80%) #1C0B36; box-shadow: inset 0 0 0 3px #E9B949, inset 0 0 0 7px rgba(28,11,54,.85), inset 0 0 0 8.5px rgba(233,185,73,.5); }
+.tg-cas-bord::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 18% 115%, rgba(255,80,190,.3), transparent 48%), radial-gradient(circle at 8% 22%, rgba(255,255,255,.55) 0 1.2px, transparent 1.6px), radial-gradient(circle at 31% 12%, rgba(255,255,255,.4) 0 1px, transparent 1.4px), radial-gradient(circle at 47% 30%, rgba(255,255,255,.35) 0 1.2px, transparent 1.6px), radial-gradient(circle at 63% 14%, rgba(255,255,255,.5) 0 1px, transparent 1.4px); }
+.tg-cas-lamp { position: absolute; left: 1.3rem; right: 1.3rem; display: flex; justify-content: space-between; pointer-events: none; z-index: 1; }
+.tg-cas-lamp.boven { top: .6rem; } .tg-cas-lamp.onder { bottom: .6rem; }
+.tg-cas-lamp i { width: 8px; height: 8px; border-radius: 50%; background: #FFE9A8; box-shadow: 0 0 6px 2px rgba(255,214,110,.7); }
+.tg-cas-tekst { grid-area: tekst; position: relative; z-index: 1; min-width: 0; }
+.tg-cas-label { display: inline-block; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #2A1300; background: linear-gradient(180deg, #FFF0B8, #F4C752 55%, #D99A22); border-radius: 999px; padding: .2rem .75rem; }
+.tg-cas-neon { margin: .5rem 0 .4rem; font-size: clamp(1.85rem, 5.4vw, 3.2rem); font-weight: 800; line-height: 1.02; color: #FFF0F8; text-shadow: 0 0 4px #FFB6E6, 0 0 12px #FF4FB8, 0 0 30px rgba(255,63,160,.75); overflow-wrap: anywhere; }
+.tg-cas-zin { display: block; font-size: 1.02rem; line-height: 1.45; color: #F1E4FF; max-width: 35rem; }
+.tg-cas-status { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
+.tg-cas-status span { font-size: .82rem; font-weight: 800; color: #FFE9A8; background: rgba(255,255,255,.08); border: 1.5px solid rgba(233,185,73,.55); border-radius: 999px; padding: .2rem .65rem; }
+.tg-cas-knop { grid-area: knop; justify-self: start; position: relative; z-index: 1; white-space: nowrap; font-weight: 800; font-size: 1.05rem; color: #3A2300; background: linear-gradient(180deg, #FFF0B8 0%, #F4C752 45%, #D99A22 100%); border-radius: 999px; padding: .72rem 1.45rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 0 0 2px #8A5A12, 0 10px 22px -10px rgba(217,154,34,.9); }
+.tg-cas-bord:hover .tg-cas-knop, .tg-cas-bord:focus-visible .tg-cas-knop { background: linear-gradient(180deg, #FFF8DC, #FFD45C 50%, #EBAA2C); }
+.tg-cas-bord:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 4px; }
+.tg-cas-plaat { grid-area: plaat; position: relative; z-index: 1; width: clamp(10rem, 25vw, 16rem); }
+.tg-cas-plaat svg { display: block; width: 100%; height: auto; overflow: visible; }
+@media (max-width: 640px) {
+  .tg-casino { margin-bottom: 2rem; }
+  .tg-cas-bord { grid-template-columns: minmax(0, 1fr) 6.6rem; grid-template-areas: "tekst tekst" "knop plaat"; padding: 1.8rem 1.25rem 1.6rem; gap: .9rem .6rem; }
+  .tg-cas-plaat { width: 6.6rem; align-self: end; margin: -1.6rem -.3rem -.4rem 0; }
+  .tg-cas-zin { font-size: .94rem; } .tg-cas-lamp { left: 1rem; right: 1rem; }
+}
+@media (max-width: 400px) { .tg-cas-bord { grid-template-columns: minmax(0, 1fr) 5.6rem; } .tg-cas-plaat { width: 5.6rem; } .tg-cas-knop { font-size: .98rem; padding: .66rem 1.05rem; } }
+@media (prefers-reduced-motion: no-preference) {
+  .tg-cas-lamp i { animation: tg-lamp 1.3s steps(1) infinite; } .tg-cas-lamp i:nth-child(2n) { animation-delay: -.65s; }
+  .tg-cas-neon { animation: tg-neon 8s linear infinite; }
+  .tg-cas-wiel { animation: tg-wiel 16s linear infinite; transform-origin: 138px 66px; transform-box: view-box; }
+}
+@keyframes tg-lamp { 0% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes tg-neon { 0%, 60%, 62.5%, 65%, 100% { opacity: 1; } 61%, 64% { opacity: .55; } }
+@keyframes tg-wiel { to { transform: rotate(360deg); } }
 `;
 
   // ================= de puzzels van vandaag: elke dag nieuw, met je reeks
@@ -2672,6 +2705,46 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     document.addEventListener('visibilitychange', () => { if (!document.hidden) vernieuw(); });
   }
 
+  // ================= het casino: een uithangbord bovenaan (alleen als er een kaartje voor rommelcasino.html op de homepage staat)
+  function casinoPlaat() {
+    let s = '<svg viewBox="0 0 200 150" aria-hidden="true" focusable="false"><g class="tg-cas-wiel"><circle cx="138" cy="66" r="58" fill="#E9B949" stroke="#6B4210" stroke-width="2.5"/><circle cx="138" cy="66" r="51" fill="#5A2A14"/>';
+    for (let k = 0; k < 19; k++) { const a0 = k / 19 * Math.PI * 2, a1 = (k + 1) / 19 * Math.PI * 2, p = (r, a) => (138 + Math.cos(a) * r).toFixed(1) + ' ' + (66 + Math.sin(a) * r).toFixed(1); s += '<path d="M' + p(49, a0) + ' A49 49 0 0 1 ' + p(49, a1) + ' L' + p(33, a1) + ' A33 33 0 0 0 ' + p(33, a0) + 'Z" fill="' + (k === 0 ? '#138A4A' : k % 2 ? '#B3122E' : '#1D1A24') + '" stroke="#E9C46A" stroke-width=".8"/>'; }
+    s += '<circle cx="138" cy="66" r="31" fill="#7A3E1E" stroke="#E9B949" stroke-width="1.5"/><path d="M138 50v32M122 66h32" stroke="#F4C752" stroke-width="4" stroke-linecap="round"/><circle cx="138" cy="66" r="6" fill="#F4C752"/></g>';
+    s += '<circle cx="138" cy="15.5" r="4.2" fill="#FFFFFF" stroke="#9C9384" stroke-width="1"/>';
+    // twee kaarten en een stapel fiches
+    s += '<g transform="rotate(-15 52 98)"><rect x="30" y="66" width="44" height="62" rx="5" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><text x="36" y="81" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="13" fill="#1F2333">A</text><path d="M52 88c-6 6-12 9-12 14a5 5 0 0 0 9 3l-2 6h10l-2-6a5 5 0 0 0 9-3c0-5-6-8-12-14z" fill="#1F2333"/></g>';
+    s += '<g transform="rotate(9 74 102)"><rect x="52" y="70" width="44" height="62" rx="5" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><text x="58" y="85" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="13" fill="#C8323C">H</text><path d="M74 118c-9-5.5-13-10-13-14.5a6.5 6.5 0 0 1 13-1.6 6.5 6.5 0 0 1 13 1.6c0 4.5-4 9-13 14.5z" fill="#C8323C"/></g>';
+    [['#C8323C', 0], ['#2F4C8F', 1], ['#23865A', 2], ['#E5A425', 3]].forEach(([k, i]) => { const y = 136 - i * 7; s += '<ellipse cx="118" cy="' + (y + 3) + '" rx="20" ry="7" fill="#231A26"/><ellipse cx="118" cy="' + y + '" rx="20" ry="7" fill="' + k + '" stroke="#231A26" stroke-width="1.6"/><ellipse cx="118" cy="' + y + '" rx="12" ry="4" fill="none" stroke="#FBF6E9" stroke-width="2" stroke-dasharray="4 4"/>'; });
+    return s + '</svg>';
+  }
+  function maakCasino(tegels, blok) {
+    const t = tegels.find(x => x.href === 'rommelcasino.html'); if (!t) return;
+    const sec = document.createElement('section'); sec.className = 'tg-casino'; sec.setAttribute('aria-labelledby', 'tg-casino-kop');
+    const lampjes = n => '<i></i>'.repeat(n);
+    sec.innerHTML = `<a class="tg-cas-bord" href="rommelcasino.html">
+        <span class="tg-cas-lamp boven" aria-hidden="true">${lampjes(16)}</span><span class="tg-cas-lamp onder" aria-hidden="true">${lampjes(16)}</span>
+        <span class="tg-cas-tekst"><span class="tg-cas-label">${t.nieuw ? 'Nieuw · nu open' : 'Nu open'}</span>
+          <h2 class="tg-cas-neon" id="tg-casino-kop">Casino Rommelroyaal</h2>
+          <span class="tg-cas-zin">Zes spellen in vijf zalen: blackjack met een rekenuil, roulette, een fruitautomaat en meer. Alleen speelfiches, nooit echt geld.</span>
+          <span class="tg-cas-status"></span></span>
+        <span class="tg-cas-plaat" aria-hidden="true">${casinoPlaat()}</span>
+        <span class="tg-cas-knop">Ga naar binnen <span aria-hidden="true">›</span></span>
+      </a>`;
+    const vd = document.getElementById('vandaag'); (vd || blok).before(sec);
+    // de lampjes: zoveel als er passen
+    const bord = sec.querySelector('.tg-cas-bord'), pas = () => { const n = Math.max(8, Math.min(30, Math.round(bord.clientWidth / 34))); sec.querySelectorAll('.tg-cas-lamp').forEach(l => { if (l.children.length !== n) l.innerHTML = lampjes(n); }); };
+    pas(); addEventListener('resize', pas);
+    // wat je in het casino al deed: de hand van de dag van vandaag, en je sterren
+    const status = () => {
+      const s = lees('rommelcasino-v1'), d = s && s.dag && typeof s.dag === 'object' ? s.dag[nlDag()] : null, uit = [];
+      if (!s) uit.push('Elke dag de hand van de dag');
+      else uit.push(Array.isArray(d) ? 'Hand van de dag: ' + Math.round(+d[0] || 0) + ' van 100' : 'De hand van de dag staat klaar');
+      if (s && +s.ster > 0) uit.push(Math.round(+s.ster) + ' van ' + (+s.voortgangTotaal > 0 ? s.voortgangTotaal : 67) + ' sterren');
+      const html = uit.map(x => '<span>' + veilig(x) + '</span>').join(''), el = sec.querySelector('.tg-cas-status'); if (el.innerHTML !== html) el.innerHTML = html;
+    };
+    status(); addEventListener('pageshow', status); addEventListener('focus', status); addEventListener('storage', status); addEventListener('rommelhoekje-bijgewerkt', status);
+  }
+
   // ================= opbouwen (zodra home_v8 de categorieën heeft gezet)
   function bouw() {
     if (window.__v6) return; const v8 = $('.v8'); if (!v8) return;
@@ -2712,6 +2785,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       <div class="tg-raster">${tegels.map(tegelHTML).join('')}</div>`;
     v8.before(blok);
     try { maakDag(tegels, blok); } catch (e) {}
+    try { maakCasino(tegels, blok); } catch (e) {}
     // de coulissen staan na de eerste rij kaartjes, dus in de oude weergave van home_v8: eerst eruit halen, dan pas verbergen
     const coul = $('.coulissen'); if (coul && v8.contains(coul)) blok.after(coul);
     // filteren
@@ -3447,6 +3521,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const st = $('.sticker'); if (zichtbaar(st) && getComputedStyle(st).visibility !== 'hidden') stickerVast(st);
       const brief = $('.briefje'); if (zichtbaar(brief)) vastVan(brief, { schuin: 3, naam: 'briefje', anker: 'briefje', tik: true });
       const blad = $('.tg-blad'); if (zichtbaar(blad)) vastVan(blad, { schuin: 6, naam: 'blad', anker: 'blad', tik: true });
+      const cas = $('.tg-cas-bord'); if (zichtbaar(cas)) vastVan(cas, { schuin: 12, hoek: 0, naam: 'casino', anker: 'casino' });
       document.querySelectorAll('#vandaag .tg-dk').forEach((el, i) => vastVan(el, { schuin: 8, hoek: 0, naam: 'dag', anker: 'dag' + i, tik: true }));
       const kop = $('#tg-kop span'); if (zichtbaar(kop)) vastVan(kop, { schuin: 2, naam: 'kop', anker: 'kop' });
       // tegels: de plek van het vlak zonder het optillen bij aanwijzen (dat zit op het vlak zelf)

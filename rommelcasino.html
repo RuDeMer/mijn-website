@@ -216,6 +216,9 @@ html[data-thema="donker"] .zaal-tab { background: rgba(255,255,255,.08); box-sha
 .t-melding .winst small { color: #5A2E00; }
 .t-melding .groot { background: linear-gradient(135deg, #FF7ABF, #C21896 50%, #6E2BD6); color: #fff; box-shadow: 0 0 0 2px #fff8, 0 0 50px rgba(255,80,180,.8), 0 20px 40px -14px rgba(60,0,60,.8); }
 .t-melding .groot small { color: #FFE3F4; }
+.t-melding .mis { background: linear-gradient(135deg, #3A2F4E, #1C1530); color: #F1ECFA; box-shadow: 0 0 0 2px rgba(255,255,255,.28), 0 20px 40px -14px rgba(0,0,0,.8); }
+.t-melding .mis small { color: #CFC5E2; }
+.keuze-kop { flex-basis: 100%; text-align: center; font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--zacht); margin-bottom: -.15rem; }
 @media (prefers-reduced-motion: no-preference) { .t-melding > div { animation: melding-in .45s cubic-bezier(.3, 1.7, .5, 1) both; } }
 @keyframes melding-in { from { transform: scale(.6) translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
 .t-onder { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .6rem 1rem; padding: .3rem .8rem .7rem; max-width: 1100px; width: 100%; margin: 0 auto; }
@@ -4554,7 +4557,7 @@ const RAD_S = (() => {
   vraag = laatLopen(beeld);
   // ---------- de knoppen
   function bouwKeuze() {
-    const el = $('#rad-keuze'); el.innerHTML = '';
+    const el = $('#rad-keuze'); el.innerHTML = '<span class="keuze-kop" aria-hidden="true">Jij zet op</span>';
     for (const m of C.RAD.SOORTEN) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'knop'; b.dataset.m = m;
       b.style.setProperty('--rk', C.RAD.KLEUR[m]); b.innerHTML = `×${m}<small>${C.RAD.vakjesVan(m).length} van 25</small>`;
@@ -4590,9 +4593,10 @@ const RAD_S = (() => {
     uitslag = { vak, winst, t: performance.now() };
     if (winst) { GELUID.winst(m >= 6); if (m >= 12) FEEST.regen(m >= 24 ? 60 : 38); else { const r = cv.getBoundingClientRect(); FEEST.vonken(r.left + G.x, r.top + G.y - G.R, 20); } }
     else GELUID.verlies();
-    $('#rad-melding').innerHTML = `<div class="${winst ? (m >= 12 ? 'groot' : 'winst') : ''}">×${m}<small>${winst ? `+${fmt(netto)} fiches` : `Je zette op ×${keuze}`}</small></div>`;
+    // bij verlies niet groot "×4" laten zien (dat leest als winst): groot staat wat er met jouw inzet gebeurde
+    $('#rad-melding').innerHTML = winst ? `<div class="${m >= 12 ? 'groot' : 'winst'}">Raak! ×${m}<small>+${fmt(netto)} fiches</small></div>` : `<div class="mis">Mis<small>Het rad stopt op ×${m}, jij zette op ×${keuze}<br>−${fmt(inzet)} fiches</small></div>`;
     clearTimeout(klaar.t); klaar.t = setTimeout(() => { $('#rad-melding').innerHTML = ''; }, 3000);
-    $('#rad-stand').textContent = `Het rad stopt op keer ${m}. ${winst ? `Je wint ${fmt(winst)} fiches.` : `Je zette op keer ${keuze}: niets gewonnen.`}`;
+    $('#rad-stand').textContent = `Het rad stopt op keer ${m}. ${winst ? `Raak: je krijgt ${fmt(winst)} fiches (${fmt(netto)} meer dan je inzette).` : `Je zette op keer ${keuze}: mis, je inzet van ${fmt(inzet)} fiches is weg.`}`;
     gespeeld('rad'); haal('rad1'); if (winst && m === 24) haal('rad24'); if (S.inst.echt) haal('echt'); if (inzet === 10 && telOp('kl') >= 20) haal('klein');
     bewaar(); toonFiches(); stapperen(); zetKnoppen(); PAUZE.ronde(); vraag();
   }

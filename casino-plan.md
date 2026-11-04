@@ -31,10 +31,10 @@ Elk spel heeft een knop **Kansen** met de regels, de kansen en wat het huis gemi
 |---|---|---|---|
 | **Blackjack** | De Rommelbar | 6 spellen, voor elke hand geschud. De bank past vanaf 17. Blackjack betaalt 3 tot 2. Verdubbelen met elke twee kaarten (ook na splitsen), één keer splitsen. | **0,5%** met de beste keuzes (nagerekend: 0,495% ± 0,18% over 1,5 miljoen handen). Wie speelt zoals de bank: 5,7%. |
 | **Hoger of lager** | De Rommelbar | Raad of de volgende kaart hoger of lager is. Elke goede gok vermenigvuldigt je inzet; stop wanneer je wilt. | **3% per gok** (je krijgt 0,97 gedeeld door de kans). |
-| **De Rommelrollen** | De Lampjeshal | Een fruitautomaat met drie rollen en één winlijn: vlaai, kers, bel, ster, kroon en Moeki als joker. Ongeveer 1 op 4 draaien is raak. | **4%** (96 van elke 100 fiches komen terug). |
+| **De Rommelrollen** | De Rommelbar | Een fruitautomaat met drie rollen en één winlijn: vlaai, kers, bel, ster, kroon en Moeki als joker. Ongeveer 1 op 4 draaien is raak. | **4%** (96 van elke 100 fiches komen terug). |
 | **Knikkerval** | De Lampjeshal | Een knikker valt langs 12 rijen pinnen in een van 13 bakjes. Drie standen: rustig, gewoon en wild (de bakjes aan de rand betalen meer, maar komen veel minder vaak). | **3%** in elke stand. |
 | **Roulette** | De Groene Salon | Europees wiel met 37 vakken (0 tot en met 36). Op een nummer, een paar, een hoek, een lijn, een dozijn, een kolom, rood of zwart, even of oneven, laag of hoog. | **2,7%** op elke inzet (1 van de 37 vakken is de 0). |
-| **Het Rommelrad** | De Gouden Zaal | Een groot rad met 25 vakjes: 12 × "keer 2", 6 × "keer 4", 4 × "keer 6", 2 × "keer 12" en 1 × "keer 24". | **4%** op elk vakje (elk vakje geeft gemiddeld 96 van de 100 terug). |
+| **Het Rommelrad** | De Lampjeshal | Een groot rad met 25 vakjes: 12 × "keer 2", 6 × "keer 4", 4 × "keer 6", 2 × "keer 12" en 1 × "keer 24". | **4%** op elk vakje (elk vakje geeft gemiddeld 96 van de 100 terug). |
 
 Rommelpoker blijft een eigen spel: in het casino komt geen poker.
 
@@ -86,11 +86,11 @@ In **Waarom het huis altijd wint** staat hoe vaak jij "bijna" won, hoeveel daarv
 
 | Zaal | Open bij | Spellen | Sfeer | Hoogste inzet |
 |---|---|---|---|---|
-| De Rommelbar | meteen | Blackjack, Hoger of lager | warm hout, een zachte piano | 200 |
-| De Lampjeshal | 4 sterren | De Rommelrollen, Knikkerval | neon en lampjes, zachte synthesizers | 500 |
-| De Groene Salon | 10 sterren | Roulette (en de tafels van hierboven) | kroonluchters, groen vilt, strijkers | 1.000 |
-| Het Sterrendak | 20 sterren | alle spellen, onder de sterren | nachtblauw vilt, dromerige muziek | 2.000 |
-| De Gouden Zaal | 35 sterren | Het Rommelrad, en alles in goud | goud en marmer, swing | 5.000 |
+| De Rommelbar | meteen | Blackjack, Hoger of lager, De Rommelrollen | warm hout, een zachte piano | 200 |
+| De Lampjeshal | 3 sterren | De Rommelrollen, Knikkerval, Het Rommelrad, Hoger of lager | neon en lampjes, zachte synthesizers | 500 |
+| De Groene Salon | 8 sterren | Roulette, Blackjack, Hoger of lager, Knikkerval | kroonluchters, groen vilt, strijkers | 1.000 |
+| Het Sterrendak | 14 sterren | Blackjack, Roulette, Knikkerval, De Rommelrollen, Het Rommelrad | nachtblauw vilt, dromerige muziek | 2.000 |
+| De Gouden Zaal | 25 sterren | alle zes, in goud | goud en marmer, swing | 5.000 |
 
 - **De verzameling** (je kluisje), allemaal te verdienen met uitdagingen, niets te koop: ongeveer 12 fiches (vlaai, kroon, Moeki, Floortje, knikker, dobbelsteen, ster, kroonkurk, neon, goud, ...), 8 kaartruggen, 8 tafelkleden, 8 neonborden (je kiest welk bord er boven de ingang hangt) en 4 petjes voor de portiers.
 

@@ -143,6 +143,12 @@ html[data-thema="donker"] .zaal-tab { background: rgba(255,255,255,.08); box-sha
 .fiches-pil { display: inline-flex; align-items: center; gap: .45rem; font-weight: 800; padding: .35rem .8rem .35rem .4rem; border-radius: 999px; background: linear-gradient(180deg, #2A1E48, #1A1230); color: #FFE9A8; box-shadow: inset 0 0 0 1.5px rgba(233,185,73,.6), 0 8px 18px -10px rgba(0,0,0,.6); font-variant-numeric: tabular-nums; white-space: nowrap; border: 0; }
 .fiches-pil img { width: 24px; height: 24px; display: block; }
 .sterren-pil { cursor: pointer; }
+.volgende-zaal { display: grid; gap: .4rem; width: 100%; max-width: 36rem; margin: 0 auto .8rem; padding: .65rem .95rem .7rem; border: 0; border-radius: 18px; background: var(--vlak); color: var(--inkt); box-shadow: var(--kaart-schaduw); font: inherit; text-align: left; cursor: pointer; }
+.volgende-zaal[hidden] { display: none; }
+.volgende-zaal .lv-kop { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; font-size: .95rem; }
+.volgende-zaal .lv-naar { flex: none; font-size: .8rem; font-weight: 800; opacity: .75; }
+.volgende-zaal small { opacity: .8; font-size: .8rem; line-height: 1.3; }
+.volgende-zaal:focus-visible { outline: 3px solid #FFD45C; outline-offset: 2px; }
 .eerlijk { display: flex; align-items: center; gap: .6rem; margin: 0 auto 1.3rem; max-width: 36rem; padding: .6rem .95rem; border-radius: 18px; background: var(--vlak); color: var(--inkt); box-shadow: var(--kaart-schaduw); font-weight: 700; font-size: .92rem; }
 .eerlijk::before { content: "♣"; flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #fff; background: linear-gradient(150deg, #2E8B57, #145A36); }
 .dagkaart { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 1.1rem; align-items: center; width: 100%; text-align: left; border: 0; border-radius: 30px; padding: 1.1rem 1.4rem 1.1rem 1.2rem; margin: 0 0 1.5rem; color: #fff; overflow: hidden; isolation: isolate; cursor: pointer;
@@ -388,6 +394,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         <p class="zaal-sub" id="zaal-sub"></p>
         <div class="lobby-rij"><span class="fiches-pil" id="l-fiches"></span><button class="fiches-pil sterren-pil" id="l-sterren" type="button"></button><button class="knop klein" id="l-ingang" type="button">‹ Naar de ingang</button></div>
       </header>
+      <button class="volgende-zaal" id="l-volgende" type="button" hidden></button>
       <p class="eerlijk">Alleen voor de lol, met speelfiches. Echt gokken is iets heel anders.</p>
       <button class="dagkaart" id="dagkaart" type="button"></button>
       <div class="sectie-kop"><h2 id="tafels-kop">De tafels</h2></div>
@@ -2288,11 +2295,11 @@ const CASINO = (() => {
     rad: { naam: 'Het Rommelrad', zin: 'Een groot gouden rad met 25 vakjes.', huis: 'Het huis wint 4%' },
   };
   const ZALEN = [
-    { id: 'bar', naam: 'De Rommelbar', sterren: 0, spellen: ['bj', 'hl'], max: 200, sub: 'warm hout, een zachte piano en kleine inzetten', neon: 'goud', vilt: ['#2FA066', '#1D7547', '#0D3B24'] },
-    { id: 'hal', naam: 'De Lampjeshal', sterren: 4, spellen: ['rol', 'val'], max: 500, sub: 'lampjes, neon en zachte synthesizers', neon: 'roze', vilt: ['#3A2E8F', '#271F6B', '#140F3D'] },
-    { id: 'salon', naam: 'De Groene Salon', sterren: 10, spellen: ['rou', 'bj', 'hl'], max: 1000, sub: 'kroonluchters, groen vilt en strijkers', neon: 'groen', vilt: ['#2C9B5E', '#18703F', '#0A3A21'] },
-    { id: 'dak', naam: 'Het Sterrendak', sterren: 20, spellen: ['bj', 'rou', 'val', 'rol'], max: 2000, sub: 'op het dak, onder de sterren', neon: 'blauw', vilt: ['#2B4C9B', '#1B336F', '#0C1A3D'] },
-    { id: 'goud', naam: 'De Gouden Zaal', sterren: 35, spellen: ['rad', 'bj', 'rou', 'rol', 'val', 'hl'], max: 5000, sub: 'goud, marmer en swing', neon: 'goud', vilt: ['#8E1D3F', '#651230', '#33081A'] },
+    { id: 'bar', naam: 'De Rommelbar', sterren: 0, spellen: ['bj', 'hl', 'rol'], max: 200, sub: 'warm hout, een zachte piano en kleine inzetten', neon: 'goud', vilt: ['#2FA066', '#1D7547', '#0D3B24'] },
+    { id: 'hal', naam: 'De Lampjeshal', sterren: 3, spellen: ['rol', 'val', 'rad', 'hl'], max: 500, sub: 'lampjes, neon en zachte synthesizers', neon: 'roze', vilt: ['#3A2E8F', '#271F6B', '#140F3D'] },
+    { id: 'salon', naam: 'De Groene Salon', sterren: 8, spellen: ['rou', 'bj', 'hl', 'val'], max: 1000, sub: 'kroonluchters, groen vilt en strijkers', neon: 'groen', vilt: ['#2C9B5E', '#18703F', '#0A3A21'] },
+    { id: 'dak', naam: 'Het Sterrendak', sterren: 14, spellen: ['bj', 'rou', 'val', 'rol', 'rad'], max: 2000, sub: 'op het dak, onder de sterren', neon: 'blauw', vilt: ['#2B4C9B', '#1B336F', '#0C1A3D'] },
+    { id: 'goud', naam: 'De Gouden Zaal', sterren: 25, spellen: ['rad', 'bj', 'rou', 'rol', 'val', 'hl'], max: 5000, sub: 'goud, marmer en swing', neon: 'goud', vilt: ['#8E1D3F', '#651230', '#33081A'] },
   ];
   // de verzameling (je kluisje): alles wordt verdiend met uitdagingen, niets is te koop
   const KAST = [
@@ -2410,7 +2417,7 @@ const CASINO = (() => {
 
   const API = { zaadRng, schud, dagNr, weekNr, DAG1, datumTekst, weekdag,
     RANG, punt, telling, isBJ, kaartNaam, schoen, schoenCode, schoenUit, advies, ACTIE_NAAM, VERZEKERING_WAAROM,
-    bjNieuw, bjKan, bjAdvies, bjDoe, bjUitslag, bjHerspeel, DAG_HANDEN, DAG_INZET, dagSchoen, dagScore,
+    bjNieuw, bjKan, bjAdvies, bjDoe, bjBank, bjUitslag, bjHerspeel, DAG_HANDEN, DAG_INZET, dagSchoen, dagScore,
     HL, ROL, VAL, ROU, RAD, VALSIM, ROUSIM, SPELLEN, ZALEN, KAST, KAST_SOORT, STANDAARD, UITDAGINGEN, GROEPEN, STERREN_TOTAAL, sterren, zaalOpen,
     START, KASSA_ONDER, KASSA_TOT, SPELIDS, leeg, lees, kassa, telRonde, telBijna, haal, dagPunten, weekStand };
   return API;
@@ -4616,6 +4623,21 @@ const KAART_SVG = {
 };
 let serverNieuw = false;
 const LOBBY = (() => {
+  // makkelijke sterren, van makkelijk naar wat lastiger: alleen wat je nog niet hebt, en alleen bij spellen die al open zijn
+  const MAKKELIJK = ['les', 'bj1', 'hl1', 'rol1', 'dag1', 'val1', 'rad1', 'rou1', 'waarom', 'sim', 'bjcoach', 'echt', 'valwild', 'hlstop', 'roukol', 'klein', 'bjverz', 'hl7', 'val5', 'bjdub', 'sim3', 'pauze', 'kansen6', 'alles'];
+  const GROEP_SPEL = { blackjack: 'bj', hl: 'hl', rol: 'rol', val: 'val', rou: 'rou', rad: 'rad' };
+  function tips(n = 3) {
+    const open = new Set(C.ZALEN.filter(z => C.zaalOpen(S, z)).flatMap(z => z.spellen));
+    return MAKKELIJK.map(id => C.UITDAGINGEN.find(u => u.id === id)).filter(u => u && !S.u[u.id] && (!GROEP_SPEL[u.groep] || open.has(GROEP_SPEL[u.groep]))).slice(0, n);
+  }
+  const tipTekst = lijst => lijst.map(u => `<b>${esc(u.naam)}</b> (${esc(u.uitleg.replace(/\.$/, '').replace(/^./, c => c.toLowerCase()))})`).join(', ');
+  function volgende() {
+    const st = C.sterren(S), z = C.ZALEN.find(x => !C.zaalOpen(S, x)), el = $('#l-volgende');
+    if (!z) { el.hidden = true; return; }
+    const i = C.ZALEN.indexOf(z), vorige = C.ZALEN[i - 1].sterren, deel = Math.max(0, Math.min(1, (st - vorige) / (z.sterren - vorige))), t = tips(2), nog = z.sterren - st;
+    el.hidden = false;
+    el.innerHTML = `<span class="lv-kop"><span><span aria-hidden="true">🔒</span> Nog <b>${nog} ${nog === 1 ? 'ster' : 'sterren'}</b> tot ${esc(z.naam)}</span><span class="lv-naar">Je uitdagingen <span aria-hidden="true">›</span></span></span><span class="balkje" aria-hidden="true"><i style="width:${(deel * 100).toFixed(1)}%"></i></span>${t.length ? `<small>Snel te halen: ${t.map(u => esc(u.naam)).join(' · ')}</small>` : ''}`;
+  }
   function zaalTabs() {
     const st = C.sterren(S);
     $('#zaal-tabs').innerHTML = C.ZALEN.map(z => `<button class="zaal-tab${C.zaalOpen(S, z) ? '' : ' dicht'}" type="button" data-zaal="${z.id}" aria-current="${z.id === zaalId}">${C.zaalOpen(S, z) ? '' : '<span aria-hidden="true">🔒</span>'}${esc(z.naam)}${C.zaalOpen(S, z) ? '' : ` <small>${z.sterren} ★</small>`}</button>`).join('');
@@ -4624,7 +4646,7 @@ const LOBBY = (() => {
   }
   function kiesZaal(id) {
     const z = C.ZALEN.find(x => x.id === id);
-    if (!C.zaalOpen(S, z)) { GELUID.knop(); venster(`<h2 id="venster-kop">${esc(z.naam)}</h2><p>Deze zaal gaat open bij <b>${z.sterren} sterren</b>. Je hebt er nu ${C.sterren(S)}.</p><p>Sterren krijg je met uitdagingen: slim spelen, leren hoe de kansen werken, en af en toe een beetje geluk. Kijk in je kluisje welke er zijn.</p><div class="rij"><button class="knop goud" type="button" id="z-kluis" data-focus>Naar je kluisje</button></div>`).querySelector('#z-kluis').onclick = () => { sluit(); naar('kluis'); }; return; }
+    if (!C.zaalOpen(S, z)) { GELUID.knop(); venster(`<h2 id="venster-kop">${esc(z.naam)}</h2><p>Deze zaal gaat open bij <b>${z.sterren} sterren</b>. Je hebt er nu ${C.sterren(S)}.</p><p>Sterren krijg je met uitdagingen: slim spelen, leren hoe de kansen werken, en af en toe een beetje geluk.${tips().length ? ` Snel te halen: ${tipTekst(tips())}.` : ''} In je kluisje staan ze allemaal.</p><div class="rij"><button class="knop goud" type="button" id="z-kluis" data-focus>Naar je kluisje</button></div>`).querySelector('#z-kluis').onclick = () => { sluit(); naar('kluis'); }; return; }
     zaalId = id; document.body.dataset.zaal = id; try { localStorage.setItem('rommelcasino-zaal', id); } catch (e) {}
     S.tel['z' + id] = 1; if (C.ZALEN.every(x => S.tel['z' + x.id])) haal('zalen'); bewaar();
     GELUID.muziekStart(id); vernieuw(); stapperen();
@@ -4655,7 +4677,7 @@ const LOBBY = (() => {
     $('#lobby-neon').textContent = z.naam; $('#lobby-neon').className = 'neon ' + z.neon; $('#zaal-sub').textContent = `Zaal ${C.ZALEN.indexOf(z) + 1} van 5 · ${z.sub}`;
     $('#l-sterren').innerHTML = `<span aria-hidden="true" style="font-size:1.1rem;padding-left:.3rem">★</span><span>${st} van ${C.STERREN_TOTAAL}<span class="sr"> sterren</span></span>`;
     $('#lk-kluis-zin').textContent = `${Object.keys(S.u).length} van ${C.UITDAGINGEN.length} uitdagingen · ${S.kast.length} van ${C.KAST.length} dingen`;
-    dagkaart(); raster(); toonFiches(undefined, true);
+    volgende(); dagkaart(); raster(); toonFiches(undefined, true);
   }
   // de scores voor het scorebord: alleen als de scoreserver het casino kent
   function stuurScores() {
@@ -4904,7 +4926,7 @@ function naar(s, opties) {
 $$('.terug').forEach(b => (b.onclick = () => naar('lobby')));
 $('#b-binnen').onclick = () => { GELUID.start(); INGANG.groet(); GELUID.stapel(4); setTimeout(() => { naar(S.bezig && S.bezig.s === 'bj' ? 'bj' : 'lobby'); if (kassaErbij) { toast(`<span aria-hidden="true">🪙</span><span>De kassa heeft je stapel aangevuld tot <b>${fmt(C.KASSA_TOT)}</b> fiches.</span>`, 4200); GELUID.kassa(); kassaErbij = 0; } }, STIL() ? 0 : 450); };
 $('#l-ingang').onclick = () => naar('ingang');
-$('#l-sterren').onclick = () => naar('kluis');
+$('#l-sterren').onclick = $('#l-volgende').onclick = () => naar('kluis');
 $('#lk-kluis').onclick = () => naar('kluis');
 $('#lk-waarom').onclick = () => naar('waarom');
 $('#lk-scorebord').onclick = () => { location.href = 'scorebord.html#bord-casino'; };

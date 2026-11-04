@@ -217,11 +217,17 @@ html[data-thema="donker"] .zaal-tab { background: rgba(255,255,255,.08); box-sha
 .coach { display: flex; align-items: flex-end; gap: .5rem; min-width: 0; }
 .coach svg { width: 64px; height: 70px; flex: none; filter: drop-shadow(0 8px 10px rgba(0,0,0,.3)); }
 .coach-bel { position: relative; flex: 1; min-width: 0; background: var(--vlak); color: var(--inkt); border-radius: 18px 18px 18px 6px; padding: .55rem .8rem .6rem; font-size: .9rem; line-height: 1.35; font-weight: 600; box-shadow: var(--kaart-schaduw); min-height: 3rem; }
+.coach-tekst { min-height: calc(1.35em * 3); }
 .coach-bel b { color: var(--knop); }
 html[data-thema="donker"] .coach-bel b { color: #FFD45C; }
 .coach-bel .wie { display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--zacht); margin-bottom: .15rem; }
 .coach-bel .wie button { font-size: .72rem; letter-spacing: .02em; text-transform: none; border: 0; background: var(--vlak2); border-radius: 999px; padding: .15rem .55rem; cursor: pointer; font-weight: 800; color: var(--inkt); white-space: nowrap; }
 .knoppen { display: flex; gap: .45rem; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+/* knoppenrijen die elkaar afwisselen liggen op dezelfde plek: de hoogste bepaalt de ruimte, zodat het speelveld nooit verspringt */
+.knop-stapel { display: grid; min-width: 0; }
+.knop-stapel > .knoppen { grid-area: 1 / 1; }
+.knop-stapel > .knoppen[hidden] { display: flex; visibility: hidden; pointer-events: none; }
+.t-onder.midden .knop-stapel { justify-items: center; }
 .knoppen .knop { padding: .7rem 1.05rem; font-size: 1rem; }
 .knoppen .knop.tip { box-shadow: inset 0 0 0 2px #FFD45C, 0 0 0 3px rgba(255,212,92,.45), 0 0 22px rgba(255,212,92,.55); }
 .knoppen .knop kbd { font: inherit; font-size: .68em; opacity: .65; margin-left: .3rem; font-weight: 700; }
@@ -249,6 +255,7 @@ html[data-thema="donker"] .coach-bel b { color: #FFD45C; }
   .knoppen { justify-content: center; }
   .coach svg { width: 46px; height: 50px; }
   .coach-bel { font-size: .82rem; padding: .45rem .65rem; min-height: 0; }
+  .coach-tekst { min-height: calc(1.35em * 4); }
   .fiche-knop { width: 46px; height: 46px; }
   .t-kop > .knop { padding: .45rem .7rem; font-size: .84rem; }
 }
@@ -328,6 +335,15 @@ html[data-thema="donker"] .kast-ding[aria-pressed="true"] { background: linear-g
 /* de regen van fiches */
 #feest { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; }
 
+/* het beheer (alleen voor Ruben) */
+.bh-veld { font: inherit; font-weight: 700; font-size: 1rem; padding: .6rem .85rem; border-radius: 14px; border: 2px solid var(--zacht); background: var(--vlak2); color: var(--inkt); min-width: 0; flex: 1 1 10rem; }
+.bh-veld:focus-visible { outline: 3px solid #4F7CFF; outline-offset: 2px; }
+.bh-blok { border-top: 1.5px solid var(--lijn); margin-top: 1rem; padding-top: .8rem; }
+.bh-blok h3 { margin: 0 0 .3rem; font-size: 1rem; font-weight: 800; }
+.bh-blok p { margin: .3rem 0; }
+.bh-blok .rij { margin-top: .6rem; }
+form.rij.bh-rij { align-items: stretch; }
+
 </style>
 <!-- versie 0.6: de spelbalk bovenin, in de stijl van de homepage, met licht en donker (de keuze op de homepage geldt overal) -->
 <script>(function () { var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null; function pas() { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && !!mq && mq.matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); } pas(); if (mq && mq.addEventListener) mq.addEventListener('change', pas); addEventListener('storage', function (e) { if (e.key === 'rommelhoekje-thema') pas(); }); })();</script>
@@ -398,7 +414,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         <svg viewBox="0 0 80 88" aria-hidden="true" focusable="false"><path d="M14 30 L10 8 L28 22 Z M66 30 L70 8 L52 22 Z" fill="#6E4A2E"/><ellipse cx="40" cy="54" rx="30" ry="32" fill="#8A5E3B"/><ellipse cx="40" cy="62" rx="20" ry="22" fill="#E8D3B0"/><g stroke="#B99B72" stroke-width="2" fill="none" stroke-linecap="round"><path d="M30 58 q4 3 8 0 M42 58 q4 3 8 0 M34 68 q4 3 8 0 M44 68 q3 2 6 0 M30 76 q4 3 8 0 M42 76 q4 3 8 0"/></g><ellipse cx="40" cy="36" rx="27" ry="20" fill="#9C6C45"/><circle cx="28" cy="36" r="11" fill="#FFF7E2"/><circle cx="52" cy="36" r="11" fill="#FFF7E2"/><circle cx="29" cy="37" r="5.5" fill="#1F1A14"/><circle cx="51" cy="37" r="5.5" fill="#1F1A14"/><circle cx="30.5" cy="35" r="1.8" fill="#fff"/><circle cx="52.5" cy="35" r="1.8" fill="#fff"/><circle cx="28" cy="36" r="12.5" fill="none" stroke="#E9B949" stroke-width="2.6"/><circle cx="52" cy="36" r="12.5" fill="none" stroke="#E9B949" stroke-width="2.6"/><path d="M37 44 L43 44 L40 50 Z" fill="#F2A33A"/><path d="M28 84 q4 -5 8 0 M44 84 q4 -5 8 0" stroke="#F2A33A" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M33 22 L40 18 L47 22 L40 26 Z" fill="#C8323C"/></svg>
         <div class="coach-bel"><div class="wie"><span id="coach-wie">Oehoe, de rekenuil</span><button type="button" id="coach-aan" aria-pressed="true">Coach aan</button></div><div class="coach-tekst" id="coach-tekst" aria-live="polite"></div></div>
       </div>
-      <div>
+      <div class="knop-stapel">
         <div class="knoppen" id="bj-inzet">
           <span class="inzet-tekst" id="bj-inzetbedrag"></span>
           <div class="fiche-rij" id="bj-fiches"></div>
@@ -429,11 +445,13 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     <div class="t-veld" id="hl-veld"><canvas id="hl-doek" role="img" aria-label="Hoger of lager"></canvas><div class="t-melding" id="hl-melding"></div></div>
     <p class="sr" id="hl-stand" aria-live="polite"></p>
     <div class="t-onder midden">
+      <div class="knop-stapel">
       <div class="knoppen" id="hl-inzet"><span class="stapper" data-spel="hl"></span><button class="knop goud" id="hl-start" type="button">Trek een kaart <kbd>spatie</kbd></button></div>
       <div class="knoppen" id="hl-acties" hidden>
         <button class="knop rood" id="hl-hoger" type="button">Hoger <small></small></button>
         <button class="knop rood" id="hl-lager" type="button">Lager <small></small></button>
         <button class="knop goud" id="hl-stop" type="button">Stop en neem <b></b></button>
+      </div>
       </div>
     </div>
   </section>
@@ -2908,6 +2926,20 @@ const PAUZE = (() => {
     },
   };
 })();
+// de onderkant van een tafel krimpt niet terug: anders wordt het speelveld bij elke ronde groter en kleiner, en verspringt de tafel.
+// Wordt het venster breder, smaller of gedraaid, dan begint hij opnieuw. (Liggend staan de knoppen ernaast: dan doet dit niets.)
+(() => {
+  let breedte = innerWidth;
+  const ro = new ResizeObserver(lijst => {
+    for (const e of lijst) {
+      const el = e.target, sec = el.closest('.spel');
+      if (!sec || sec.hidden || getComputedStyle(sec).display === 'grid') { if (el.style.minHeight) { el.style.minHeight = ''; el._hoog = 0; } continue; }
+      const h = el.getBoundingClientRect().height; if (h > (el._hoog || 0) + .5) { el._hoog = h; el.style.minHeight = h + 'px'; }
+    }
+  });
+  document.querySelectorAll('.spel .t-onder').forEach(el => ro.observe(el));
+  addEventListener('resize', () => { if (innerWidth === breedte) return; breedte = innerWidth; document.querySelectorAll('.spel .t-onder').forEach(el => { el._hoog = 0; el.style.minHeight = ''; }); });
+})();
 
 // ================================================================ de ingang: een eigen gebouw, neon, een rood tapijt en twee portiers
 const INGANG = (() => {
@@ -3141,7 +3173,8 @@ const TAFEL = (() => {
     G.inzetY = bot - rail - G.fr * 2.3;
     G.spelerY = Math.max(G.bankY + ch * 1.5, G.inzetY - G.fr * 1.9 - ch * .58);
     tekenVast();
-    vraag();
+    // meteen tekenen: een canvas dat een nieuwe maat krijgt, is leeg tot het opnieuw getekend is
+    if (teken(performance.now())) vraag();
   }
   function tafelPad(k, inset) {
     const x0 = G.x0 + inset, x1 = G.x1 - inset, top = G.top, ry = G.ry - inset, cy = G.cy;
@@ -3225,8 +3258,9 @@ const TAFEL = (() => {
   function boog(p0, p1, t, h) { const x = lerp(p0.x, p1.x, t), y = lerp(p0.y, p1.y, t) - Math.sin(Math.PI * t) * h; return { x, y }; }
   // ---------- tekenen
   function vraag() { if (!loopt) { loopt = true; requestAnimationFrame(beeld); } }
-  function beeld(nu) {
-    loopt = false; if (!G) return;
+  function beeld(nu) { loopt = false; if (teken(nu)) vraag(); }
+  function teken(nu) {
+    if (!G) return false;
     let bezig = false;
     c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.drawImage(bg, 0, 0); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     // licht dat over het vilt glijdt
@@ -3284,7 +3318,7 @@ const TAFEL = (() => {
       c.save(); c.globalAlpha = v.uit ? 1 - t * .6 : 1; c.translate(p.x, p.y); c.rotate(e * v.draai); c.drawImage(ficheBeeld(v.w, r * 2, dpr), -r, -r, r * 2, r * 2); c.restore();
       if (t >= 1) { vliegers.splice(i, 1); v.klaar && v.klaar(); } else bezig = true;
     }
-    if (bezig) vraag();
+    return bezig;
   }
   function plekVan(naam) {
     const { cx, cw, fr } = G, twee = kaarten.some(x => x.hand === 's1') || stapels.inzet2.length;
@@ -3632,7 +3666,7 @@ const ROLLEN = (() => {
     // de lampjes: langs de boog bovenin en rond het venster
     const n1 = 15; for (let i = 0; i < n1; i++) { const a = Math.PI + (i + .5) / n1 * Math.PI; G.lampen.push([x0 + kw / 2 + Math.cos(a) * kw * .42, y0 + kh * .2 + Math.sin(a) * kh * .16, 'boog']); }
     for (let i = 0; i <= 10; i++) { G.lampen.push([vx - kw * .035 + i * (vw + kw * .07) / 10, vy - kh * .035, 'venster']); G.lampen.push([vx - kw * .035 + i * (vw + kw * .07) / 10, vy + vh + kh * .035, 'venster']); }
-    tekenKast(); vraag();
+    tekenKast(); if (open && beeld(performance.now())) vraag();   // meteen tekenen, anders is het canvas één beeldje leeg
   }
   function tekenKast() {
     bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height; const k = bg.getContext('2d'); k.scale(dpr, dpr);
@@ -3787,7 +3821,7 @@ const HOGER = (() => {
     ({ W, H, dpr } = maatCanvas(cv));
     const cw = Math.min(W * .3, H * .36 / 1.4, 150), y = H * .52;
     G = { cw, y, stapel: { x: W / 2 - cw * .85, y }, midden: { x: W / 2 + cw * .55, y }, kleinW: Math.min(cw * .42, W / 16), rijY: Math.max(H * .12, cw * .42 * .7 + 10) };
-    tekenVilt(); vraag();
+    tekenVilt(); if (open && beeld(performance.now())) vraag();   // meteen tekenen, anders is het canvas één beeldje leeg
   }
   function tekenVilt() {
     bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height; const k = bg.getContext('2d'); k.scale(dpr, dpr);
@@ -3951,7 +3985,7 @@ const KNIKKER = (() => {
     // in de breedte passen 15 pinnen; op een hoog scherm mogen de rijen verder uit elkaar (hooguit 1,6 keer)
     const s = Math.min(W / 15.2, H / 13.6), sy = Math.min(H / 13.6, s * 1.6), ox = W / 2, oy = (H - 13.4 * sy) / 2 + 1.7 * sy;
     G = { s, sy, ox, oy, px: x => ox + x * s, py: y => oy + y * sy };
-    tekenBord(); vraag();
+    tekenBord(); if (open && beeld(performance.now())) vraag();   // meteen tekenen, anders is het canvas één beeldje leeg
   }
   const bakKleur = m => (m >= 20 ? ['#FF4FA3', '#FFD45C'] : m >= 5 ? ['#FF7A59', '#FFC27A'] : m >= 1.5 ? ['#F4B63A', '#FFE7A0'] : m >= 1 ? ['#6FCB7A', '#C9F2C8'] : ['#4E6FD8', '#A9BCFF']);
   function tekenBord() {
@@ -4135,7 +4169,7 @@ const ROULETTE = (() => {
     }
     RB = Math.ceil(Math.max(L.wiel0.R, L.wiel1.R) * 1.16 * dpr);
     const m = $('#rou-melding'); m.style.left = Math.min(W - 150, Math.max(L.wiel1.x, 150)) + 'px'; m.style.top = L.wiel1.y + 'px';
-    tekenTafel(); tekenKom(); tekenRotor(); vraag();
+    tekenTafel(); tekenKom(); tekenRotor(); if (open && beeld(performance.now())) vraag();   // meteen tekenen, anders is het canvas één beeldje leeg
   }
   function tekenTafel() {
     tafelBg = document.createElement('canvas'); tafelBg.width = cv.width; tafelBg.height = cv.height; const k = tafelBg.getContext('2d'); k.scale(dpr, dpr);
@@ -4425,7 +4459,7 @@ const RAD_S = (() => {
     ({ W, H, dpr } = maatCanvas(cv));
     const R = Math.min(W * .43, H * .41);
     G = { R, x: W / 2, y: H * .52 + R * .04 };
-    tekenAchter(); tekenWiel(); vraag();
+    tekenAchter(); tekenWiel(); if (open && beeld(performance.now())) vraag();   // meteen tekenen, anders is het canvas één beeldje leeg
   }
   function tekenAchter() {
     bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height; const k = bg.getContext('2d'); k.scale(dpr, dpr);
@@ -4763,6 +4797,91 @@ function instellingen() {
 function zetGeluidKnop() { $('#b-geluid').setAttribute('aria-pressed', S.inst.g === 1); $('#b-geluid').textContent = S.inst.g ? 'Geluid' : 'Geen geluid'; }
 
 
+// ================================================================ BEHEER: alleen voor Ruben (met het beheerwachtwoord van de werkplaats, gecontroleerd door de scoreserver)
+// Openen: typ "beheer", of houd de naam bovenaan 2 seconden ingedrukt. Het wachtwoord wordt nergens bewaard; alleen dat het klopte, voor
+// dit tabblad (sessionStorage rommelcasino-beheer). Wat je hier verandert, telt niet voor het scorebord: daar staat alleen de hand van de dag.
+const BEHEER = (() => {
+  const K = 'rommelcasino-beheer';
+  const ontgrendeld = () => { try { return sessionStorage.getItem(K) === '1'; } catch (e) { return false; } };
+  async function controleer(pw) {
+    try {
+      const inst = window.Scorebord ? await Scorebord.klaar : {}, url = String((inst && inst.scoreUrl) || '').replace(/\/+$/, '');
+      if (!url) return 'geen';
+      const r = await fetch(url + '/ideeen/alle', { headers: { Authorization: 'Bearer ' + pw }, cache: 'no-store' });
+      return r.ok ? 'ok' : r.status === 401 || r.status === 403 ? 'fout' : r.status === 429 ? 'wacht' : 'geen';
+    } catch (e) { return 'geen'; }
+  }
+  function openen() {
+    if (!$('#venster').hidden) return;
+    if (ontgrendeld()) return menu();
+    const k = venster(`<h2 id="venster-kop">Beheer</h2><p>Vul het beheerwachtwoord van je werkplaats in.</p>
+      <form id="bh-form"><input id="bh-pw" class="bh-veld" type="password" autocomplete="current-password" aria-label="Beheerwachtwoord" data-focus>
+      <p class="klein" id="bh-fout" aria-live="polite"></p><div class="rij"><button class="knop goud" type="submit">Open</button></div></form>`);
+    k.querySelector('#bh-form').onsubmit = async e => {
+      e.preventDefault(); const pw = k.querySelector('#bh-pw').value; if (!pw) return;
+      const f = k.querySelector('#bh-fout'); f.textContent = 'Even controleren…';
+      const u = await controleer(pw);
+      if (u === 'ok') { try { sessionStorage.setItem(K, '1'); } catch (x) {} menu(); }
+      else f.textContent = u === 'fout' ? 'Dat wachtwoord klopt niet.' : u === 'wacht' ? 'Te vaak geprobeerd: wacht even een kwartier.' : 'De scoreserver is niet bereikbaar. Probeer het later opnieuw.';
+    };
+  }
+  // ---------- het menu
+  function menu() {
+    const bezig = S.bezig ? ({ bj: 'een hand blackjack', hl: 'een rondje hoger of lager' }[S.bezig.s] || 'een ronde') + ` (inzet ${fmt(+S.bezig.i || 0)})` : '';
+    const k = venster(`<h2 id="venster-kop">Beheer <small class="klein">alleen voor jou</small></h2>
+      <p class="klein">Wat je hier verandert, telt niet voor het scorebord: daar staat alleen hoe slim je de hand van de dag speelt.</p>
+      <div class="bh-blok"><h3>Fiches</h3><p>Je hebt nu <b>${fmt(S.f)}</b> fiches.</p>
+        <div class="rij"><button class="knop" type="button" data-erbij="1000">+ 1.000</button><button class="knop" type="button" data-erbij="10000">+ 10.000</button><button class="knop" type="button" data-erbij="100000">+ 100.000</button></div>
+        <form class="rij bh-rij" id="bh-zet"><input class="bh-veld" id="bh-aantal" type="number" inputmode="numeric" min="0" max="1000000000" step="1" placeholder="Bijvoorbeeld 5000" aria-label="Aantal fiches"><button class="knop goud" type="submit">Zet op dit aantal</button></form>
+        <div class="rij"><button class="knop" type="button" id="bh-kassa">Laat de kassa nu kijken</button></div></div>
+      <div class="bh-blok"><h3>Zalen en uitdagingen</h3><p>${C.sterren(S)} van ${C.STERREN_TOTAAL} sterren, ${Object.keys(S.u).length} van ${C.UITDAGINGEN.length} uitdagingen, ${S.kast.length} van ${C.KAST.length} dingen in je kluisje.</p>
+        <div class="rij"><button class="knop" type="button" id="bh-alles">Alle uitdagingen halen</button><button class="knop" type="button" id="bh-nul">Uitdagingen terugzetten</button></div>
+        <p class="klein">Alle uitdagingen halen zet alle zalen open en alles in je kluisje. Terugzetten maakt het weer zoals bij een nieuwe speler (je fiches en je handen van de dag blijven).</p></div>
+      <div class="bh-blok"><h3>Verder</h3><div class="rij">${bezig ? `<button class="knop" type="button" id="bh-stop">Stop ${esc(bezig)} en geef de inzet terug</button>` : ''}<button class="knop" type="button" id="bh-pauze">Laat Moeki om pauze vragen</button></div></div>
+      <div class="rij"><button class="knop" type="button" id="bh-slot">Vergrendel het beheer</button></div>`, { soort: 'beheer' });
+    const klaar = tekst => { bewaar(); toonFiches(); stapperen(); LOBBY.vernieuw(); toast(`<span aria-hidden="true">🔧</span><span>${tekst}</span>`, 2600); menu(); };
+    k.querySelectorAll('[data-erbij]').forEach(b => (b.onclick = () => { S.f = Math.min(1e9, S.f + +b.dataset.erbij); GELUID.stapel(5); klaar(`${fmt(+b.dataset.erbij)} fiches erbij.`); }));
+    k.querySelector('#bh-zet').onsubmit = e => {
+      e.preventDefault(); const n = Math.floor(+k.querySelector('#bh-aantal').value);
+      if (!isFinite(n) || n < 0 || n > 1e9 || k.querySelector('#bh-aantal').value === '') { toast('Vul een aantal in van 0 tot 1.000.000.000.'); return; }
+      S.f = n; GELUID.stapel(3); klaar(`Je hebt nu ${fmt(n)} fiches.`);
+    };
+    k.querySelector('#bh-kassa').onclick = () => { S.kassa = 0; const erbij = C.kassa(S, vandaag()); if (erbij) GELUID.kassa(); klaar(erbij ? `De kassa vulde aan tot ${fmt(C.KASSA_TOT)} fiches.` : `De kassa keek: je hebt ${fmt(C.KASSA_ONDER)} of meer, dus er kwam niets bij.`); };
+    k.querySelector('#bh-alles').onclick = () => { let n = 0; for (const u of C.UITDAGINGEN) if (C.haal(S, u.id, vandaag())) n++; GELUID.ster(); klaar(n ? `${n} uitdagingen gehaald: alle zalen zijn open.` : 'Je had alle uitdagingen al.'); };
+    k.querySelector('#bh-nul').onclick = () => {
+      if (!confirm('Alle uitdagingen en je kluisje terugzetten? Je fiches en je handen van de dag blijven.')) return;
+      // een nieuwe generatie: dan zet een ander apparaat met de oude uitdagingen ze niet vanzelf terug
+      try { if (window.Scorebord && Scorebord.opnieuw) Scorebord.opnieuw(SLEUTEL); } catch (e) {}
+      const L = C.leeg(); S.u = {}; S.kast = L.kast; S.kies = L.kies; S.tel = {};
+      if (!C.zaalOpen(S, ZAAL())) LOBBY.kiesZaal('bar');
+      klaar('De uitdagingen en je kluisje zijn teruggezet.');
+    };
+    const stop = k.querySelector('#bh-stop');
+    if (stop) stop.onclick = () => {
+      if (scherm !== 'ingang' && scherm !== 'lobby' && scherm !== 'kluis' && scherm !== 'waarom') naar('lobby');
+      if (S.bezig) { S.f += Math.max(0, Math.floor(+S.bezig.i || 0)); S.bezig = null; }
+      klaar('De ronde is gestopt en je inzet is terug.');
+    };
+    k.querySelector('#bh-pauze').onclick = () => { sluit(); PAUZE.vraag(); };
+    k.querySelector('#bh-slot').onclick = () => { try { sessionStorage.removeItem(K); } catch (e) {} sluit(); toast('Het beheer is vergrendeld.'); };
+  }
+  // "beheer" typen, of de naam bovenaan 2 seconden ingedrukt houden
+  let getypt = '', klok = null;
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || !e.key || e.key.length !== 1) return;
+    if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-6); if (getypt === 'beheer') { getypt = ''; openen(); }
+  });
+  const titel = $('.kop .titel');
+  if (titel) {
+    titel.addEventListener('pointerdown', () => { clearTimeout(klok); klok = setTimeout(openen, 2000); });
+    for (const t of ['pointerup', 'pointerleave', 'pointercancel']) titel.addEventListener(t, () => clearTimeout(klok));
+    titel.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  return { openen };
+})();
+
+
 // ================================================================ DE SCHERMEN
 const SPELEN = { bj: BJS, rol: ROLLEN, hl: HOGER, val: KNIKKER, rou: ROULETTE, rad: RAD_S };
 let scherm = 'ingang', neonTik = 0;
@@ -4813,7 +4932,7 @@ document.body.dataset.zaal = zaalId;
 stapperen(); toonFiches(undefined, true);
 naar('ingang');
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { kaartCache.clear(); ficheCache.clear(); if (scherm === 'rol') ROLLEN.start(); if (scherm === 'bj') TAFEL.opnieuwTekenen(); });
-window.__casino = { C, get S() { return S; }, naar, BJS, ROLLEN, TAFEL, SPELEN, HOGER, KNIKKER, ROULETTE, RAD_S, ROU_PLEK: id => ROULETTE.plek(id), ROU_INZET: () => ROULETTE.inzetten, LOBBY, WAAROM, KLUIS, toonFiches, kiesZaal: LOBBY.kiesZaal, haal, bewaar, TOEVAL, get scherm() { return scherm; } };
+window.__casino = { C, get S() { return S; }, naar, BEHEER, BJS, ROLLEN, TAFEL, SPELEN, HOGER, KNIKKER, ROULETTE, RAD_S, ROU_PLEK: id => ROULETTE.plek(id), ROU_INZET: () => ROULETTE.inzetten, LOBBY, WAAROM, KLUIS, toonFiches, kiesZaal: LOBBY.kiesZaal, haal, bewaar, TOEVAL, get scherm() { return scherm; } };
 })();
 
 </script>

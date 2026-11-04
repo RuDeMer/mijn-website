@@ -74,7 +74,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     rommelwheels: () => { const s = leesJSON('rommelwheels-v1'); if (!s || !s.levels) return null; let st = 0; for (const r of Object.values(s.levels)) st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); const t = totaal(s, 39); return st ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
     steigerstress: () => { const s = leesJSON('steiger-v1'); if (!s || !s.sterren) return null; const st = Object.values(s.sterren).reduce((a, b) => a + b, 0); return st ? [st + ' van 36 sterren', st / 36] : null; },
     productiefiets: () => { const s = leesJSON('productiefiets-v1'); if (!s || !s.best) return null; return ['Verste rit ' + s.bestMeter + ' m', Math.min(1, s.bestMeter / 5000)]; },
-    rommelcasino: () => { const s = leesJSON('rommelcasino-v1'); if (!s) return null; const st = +s.ster || 0, t = totaal(s, 67); return st ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
+    rommelcasino: () => { const s = leesJSON('rommelcasino-v1'); if (!s) return null; const st = +s.ster || 0, t = totaal(s, 122); return st ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
     reclame: () => { const s = leesJSON('reclame-v1'); if (!s || !s.s) return null; let st = 0; for (const v of Object.values(s.s)) for (const c of String(v)) st += Math.min(3, +c || 0); const t = totaal(s, 540); return st ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
     rommelbel: () => { const s = leesJSON('rommelbel-v1'); if (!s) return null; const st = Object.values(s.sterren || {}).reduce((a, b) => a + b, 0), t = totaal(s, 90); return st || s.eindeloos ? [st + ' van ' + t + ' sterren', Math.min(1, st / t)] : null; },
     rob: () => { const s = leesJSON('rommelrob-v1'); return s && s.best ? ['Record: ' + s.best + ' duimpjes', null] : null; },
@@ -2725,7 +2725,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         <span class="tg-cas-lamp boven" aria-hidden="true">${lampjes(16)}</span><span class="tg-cas-lamp onder" aria-hidden="true">${lampjes(16)}</span>
         <span class="tg-cas-tekst"><span class="tg-cas-label">${t.nieuw ? 'Nieuw · nu open' : 'Nu open'}</span>
           <h2 class="tg-cas-neon" id="tg-casino-kop">Casino Rommelroyaal</h2>
-          <span class="tg-cas-zin">Zes spellen in vijf zalen: blackjack met een rekenuil, roulette, een fruitautomaat en meer. Alleen speelfiches, nooit echt geld.</span>
+          <span class="tg-cas-zin">Veertien spellen in zes zalen: blackjack met een rekenuil, roulette, kien, krasloten en meer. Alleen speelfiches, nooit echt geld.</span>
           <span class="tg-cas-status"></span></span>
         <span class="tg-cas-plaat" aria-hidden="true">${casinoPlaat()}</span>
         <span class="tg-cas-knop">Ga naar binnen <span aria-hidden="true">›</span></span>

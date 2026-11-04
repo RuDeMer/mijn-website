@@ -86,11 +86,14 @@ In **Waarom het huis altijd wint** staat hoe vaak jij "bijna" won, hoeveel daarv
 
 | Zaal | Open bij | Spellen | Sfeer | Hoogste inzet |
 |---|---|---|---|---|
-| De Rommelbar | meteen | Blackjack, Hoger of lager, De Rommelrollen | warm hout, een zachte piano | 200 |
-| De Lampjeshal | 3 sterren | De Rommelrollen, Knikkerval, Het Rommelrad, Hoger of lager | neon en lampjes, zachte synthesizers | 500 |
-| De Groene Salon | 8 sterren | Roulette, Blackjack, Hoger of lager, Knikkerval | kroonluchters, groen vilt, strijkers | 1.000 |
-| Het Sterrendak | 14 sterren | Blackjack, Roulette, Knikkerval, De Rommelrollen, Het Rommelrad | nachtblauw vilt, dromerige muziek | 2.000 |
-| De Gouden Zaal | 25 sterren | alle zes, in goud | goud en marmer, swing | 5.000 |
+| De Rommelbar | meteen | Blackjack, Hoger of lager, De Rommelrollen, Krasloten | warm hout, een zachte piano | 200 |
+| De Lampjeshal | 3 sterren | De Rommelrollen, Knikkerval, Het Rommelrad, Vijfkaart, Hoger of lager | neon en lampjes, zachte synthesizers | 500 |
+| De Groene Salon | 8 sterren | Roulette, Blackjack, Negen, Driedobbel, Hoger of lager, Knikkerval | kroonluchters, groen vilt, strijkers | 1.000 |
+| Het Sterrendak | 14 sterren | Blackjack, Roulette, Vijfkaart, Driedobbel, Knikkerval, De Rommelrollen, Het Rommelrad | nachtblauw vilt, dromerige muziek | 2.000 |
+| De Gouden Zaal | 25 sterren | alles behalve de Boulevard, in goud | goud en marmer, swing | 5.000 |
+| De Boulevard | 30 sterren | Eendjesrace, De Muntjesduwer, Kienavond, Krasloten, Balletje-balletje, Het Rommelrad | de zee, meeuwen, kermislichtjes, een draaiorgel | 500 |
+
+*Erbij gekomen op 4 november 2026 (op verzoek van Ruben): Vijfkaart, Negen, Driedobbel, de Eendjesrace, de Muntjesduwer, de Kienavond met Kienmaster Jan, Krasloten en Balletje-balletje (zonder fiches, met de les "Zoals op straat"), en de zesde zaal De Boulevard. Zie het hoofdstuk over het casino in CLAUDE.md.*
 
 - **De verzameling** (je kluisje), allemaal te verdienen met uitdagingen, niets te koop: ongeveer 12 fiches (vlaai, kroon, Moeki, Floortje, knikker, dobbelsteen, ster, kroonkurk, neon, goud, ...), 8 kaartruggen, 8 tafelkleden, 8 neonborden (je kiest welk bord er boven de ingang hangt) en 4 petjes voor de portiers.
 

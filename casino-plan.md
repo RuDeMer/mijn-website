@@ -1,7 +1,6 @@
 # Plan: Casino Rommelroyaal
 
-Voorstel van 4 november 2026, door Claude Code. Nog niet goedgekeurd.
-De proefpagina `rommelcasino-proef.html` laat de ingang, de lobby en één tafel (blackjack) zien.
+Voorstel van 4 november 2026, door Claude Code. Goedgekeurd door Ruben op 4 november 2026 (met de schakelaar "Laat het zien zoals het echte toeval", en zonder de hand van de dag bij Puzzels van vandaag). Gebouwd: `rommelcasino.html`; wat er echt in zit staat in CLAUDE.md, bij "Casino Rommelroyaal". De proefpagina is weer weg.
 
 ## In het kort
 
@@ -55,13 +54,13 @@ Alleen bij een **verliesbeurt** mag het spel er vaker "bijna" uit laten zien dan
 
 | Spel | Hoe het eruitziet | Bij echt toeval (ongeveer) | Wat het spel laat zien |
 |---|---|---|---|
-| De Rommelrollen | Twee kroontjes op de lijn, de derde net erboven of eronder | 1 op 30 verliesbeurten | **1 op 5** |
-| Roulette (als je op losse nummers zet) | Het balletje springt in je nummer, wiebelt, en rolt eruit naar de buurman | 1 op 12 | **1 op 4** |
-| Knikkerval | De knikker wiebelt op de laatste pin boven een beter bakje, en valt de andere kant op | 1 op 10 | **1 op 4** |
-| Het Rommelrad | De wijzer tikt nog net tegen het pinnetje van je vakje, en valt terug | 1 op 12 | **1 op 4** |
+| De Rommelrollen | Twee kroontjes (of sterren) op de lijn, de derde net erboven of eronder | 0,3% van de verliesbeurten (1 op 370) | **20%** (1 op 5) |
+| Roulette (als je op een paar nummers zet) | Het balletje springt in je nummer en rolt eruit naar de buurman (alleen als jouw nummer op het wiel vlak naast het uitgekomen nummer ligt) | 6,5% (met twee nummers) | **8,9%** |
+| Knikkerval | De knikker wiebelt op de laatste pin boven een beter bakje, en valt de andere kant op | 0% (dat doet hij alleen als het casino het kiest) | **25%** (stand Wild) |
+| Het Rommelrad | De wijzer blijft tegen het pinnetje van je vakje hangen, en valt terug | 0% | **13%** (op keer 12) |
 | Blackjack en Hoger of lager | **Geen**: de kaarten zijn de uitkomst, daar verandert het spel niets aan. | | |
 
-De getallen "bij echt toeval" reken ik precies uit als ik de spellen bouw; ze komen zo in het spel te staan.
+Gemeten met een miljoen rondes per spel (de natuurkunde van roulette en Knikkerval met honderdduizend), op 4 november 2026.
 
 **De regel**: of je wint en hoeveel, komt altijd eerst uit `crypto.getRandomValues`. Het "bijna" kiest daarna alleen hoe een verliesbeurt eruitziet, met een eigen, aparte stroom toeval. **De test**: met dezelfde stroom voor de uitkomst moeten de uitkomsten met en zonder bijna-momenten bit voor bit gelijk zijn, en over een miljoen rondes per spel kloppen met de kansen in de tabel.
 

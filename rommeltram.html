@@ -81,8 +81,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     <ol>
       <li><b>Houd vast</b> als je stilstaat: de tram trekt op. Hij is zwaar, dus dat gaat langzaam.</li>
       <li><b>Laat los</b>: de tram rolt uit en gaat langzaam minder hard. Te langzaam? Houd weer vast, dan trekt hij weer op.</li>
-      <li>Voorbij het <b>rembord</b> (rood-wit gestreept) remt de knop: <b>houd vast</b> en de tram remt, steeds harder zolang je vasthoudt. Te hard remmen laat de passagiers wankelen of omvallen.</li>
-      <li>Stop met de <b>voorkant precies bij het gele bordje</b>. Op het laatst even loslaten en kort tikken: dan sta je zacht stil.</li>
+      <li>Voorbij het <b>rembord</b> (rood-wit gestreept) remt de knop: <b>houd vast</b> en de tram remt, eerst zacht en dan stevig. Niemand valt om, hoe lang je ook remt. Begin dus op tijd!</li>
+      <li>Stop met de <b>voorkant precies bij het gele bordje</b>. Sta je bijna stil, laat dan even los en tik kort: houd je vast tot je stilstaat, dan schokt de tram.</li>
     </ol>
     <p>Per halte hooguit <b>1.000 punten</b>: 500 voor hoe precies je stopt (op de centimeter is 100 extra), 200 voor rustig rijden en 200 als je op tijd bent. Te vroeg stoppen of voorbijrijden kost punten.</p>
     <p class="klein">Ook voor een rood sein remt de knop, en als je bijna te hard gaat voor een flitspaal of een doorrijhalte. Het pijltje bij de lampjes laat zien wat vasthouden nu doet.</p>
@@ -1434,8 +1434,10 @@ const RT = (() => {
   const TRAM = { lengte: 30, leeg: 36000, perMens: 75, kracht: 43000, vermogen: 520000, vmax: 50 / 3.6, refMassa: 39000 };
   // optrekken: de motor bouwt zijn kracht op in 1,5 s en laat hem in 0,3 s los
   const TREK = { op: 1.5, af: 0.3 };
-  // remmen: na 0,15 s 0,5 m/s², daarna steeds harder zolang je vasthoudt (0,75 m/s² per seconde) tot 1,8; loslaten in 0,35 s
-  const REM = { start: 0.5, opbouw: 0.15, groei: 0.75, max: 1.8, af: 0.35 };
+  // remmen: na 0,15 s 0,5 m/s², daarna steviger zolang je vasthoudt (0,6 m/s² per seconde) tot 1,15: een rustige rem,
+  // waarbij niemand wankelt of valt, hoe lang je ook vasthoudt. Loslaten in 0,35 s. De rem past zich aan het gewicht aan
+  // (zoals bij echte trams), dus vol of leeg remt hij even hard.
+  const REM = { start: 0.5, opbouw: 0.15, groei: 0.6, max: 1.15, af: 0.35 };
   // de passagiers: wankelen boven 1,35 m/s² (langer dan 0,2 s), vallen boven 1,65 (langer dan 0,4 s). Pas als het 0,6 s rustig
   // was (onder 1,0), telt een nieuw wankelen apart. Een schok: stilstaan terwijl je harder remt dan 1,1.
   const RUST = { wankel: 1.35, wankelDuur: 0.2, val: 1.65, valDuur: 0.4, weer: 1.0, weerDuur: 0.6, schok: 1.1 };
@@ -1553,8 +1555,9 @@ const RT = (() => {
     if (!h.doorrij && S.x >= rembord(L, S.doel) - 0.01) return true;
     // een rood sein vlak voor je
     for (let i = 0; i < (L.seinen || []).length; i++) { const sn = L.seinen[i], st = S.seinen[i]; if (st.rood && !st.langs && sn.x > S.x - 0.5 && sn.x - S.x <= SEIN.afstand + 2) return true; }
-    // te hard (of bijna) voor een maximumsnelheid of een doorrijhalte die eraan komt
-    return S.v > grensOp(S, S.x) - REMBORD.speling;
+    // te hard (of bijna) voor een maximumsnelheid of een doorrijhalte die eraan komt (de topsnelheid van de tram telt niet)
+    const g = grensOp(S, S.x);
+    return g < TRAM.vmax - 0.01 && S.v > g - REMBORD.speling;
   }
 
   // ---------- een nieuwe rit
@@ -1622,7 +1625,7 @@ const RT = (() => {
     let grip = gripOp(S.lijn, S.x) * G;
     if (S.zand && v > 3) S.zand = false;
     if (S.zand) grip *= 1.7;
-    let aRem = S.rem * TRAM.refMassa / m;
+    let aRem = S.rem;
     const glijdt = aRem > grip && v > 0.05;
     if (glijdt) aRem = grip * 0.75;
     if (glijdt && !S.glijdt) ev.push({ e: 'glijd' });
@@ -1823,7 +1826,7 @@ const RT = (() => {
         return teHard || nodig > (v > 2 ? remMax : Math.min(0.42, remMax));
       }
       if (S.glijdt) return false;
-      const nu = Math.min(S.rem * TRAM.refMassa / massa(S), grip);
+      const nu = Math.min(S.rem, grip);
       if (teHard && v > grens + 0.05) return nu < remMax;
       return nodig > nu * 0.92 || (nu < 0.55 && nodig > 0.3);
     };
@@ -3558,7 +3561,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     const volgend = spel.modus !== 'rijden' ? -1 : fase === 'rol' ? (RT.magRemmen(S) ? 2 : 0) : (fase === 'klaar' || fase === 'stil') ? 0 : -1;
     if (volgend >= 0) { const yy = sy + volgend * 8, kl = volgend === 2 ? '#C8323C' : '#3E6B4C'; dR(sx - 4, yy, 1, 5, kl); dR(sx - 3, yy + 1, 1, 3, kl); dR(sx - 2, yy + 2, 1, 1, kl); }
     // hoe hard je remt
-    dR(sx + 8, sy + 23, 36, 3, '#1F2333'); const rb = Math.round(34 * Math.min(1, S.rem / RT.REM.max)); dR(sx + 9, sy + 24, rb, 1, S.rem > RT.RUST.wankel ? '#FF4A4A' : '#F5A040'); dR(sx + 9 + Math.round(34 * RT.RUST.wankel / RT.REM.max), sy + 23, 1, 3, '#8C8273');
+    // hoe hard je remt; rood als je zo stilstaat met een schok (laat dan op het laatst even los)
+    dR(sx + 8, sy + 23, 36, 3, '#1F2333'); const rb = Math.round(34 * Math.min(1, S.rem / RT.REM.max)); dR(sx + 9, sy + 24, rb, 1, S.rem > RT.RUST.schok ? '#FF4A4A' : '#F5A040'); dR(sx + 9 + Math.round(34 * RT.RUST.schok / RT.REM.max), sy + 23, 1, 3, '#8C8273');
     // hoe rustig de passagiers staan: vier poppetjes die wankelen of omvallen
     const R = S.rust, wankelt = Math.abs(S.aRust) > RT.RUST.wankel * 0.92;
     dTekst(R.val ? 'AU!' : R.wankel ? 'WANKEL' : 'RUSTIG', sx + 8, sy + 29, R.val ? '#C8323C' : R.wankel ? '#B8661C' : '#3E6B4C');
@@ -3909,7 +3913,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
       if (S.fase === 'klaar' || S.fase === 'stil') s = S.knop ? 'EVEN LOSLATEN' : 'HOUD DE KNOP VAST OM OP TE TREKKEN';
       else if (S.fase === 'trek') s = S.x < u.los - 1.5 ? 'BLIJF VASTHOUDEN: DE TRAM TREKT OP' : 'LAAT NU LOS!';
       else if (S.fase === 'rol') s = !RT.magRemmen(S) ? 'DE TRAM ROLT UIT. REMMEN KAN NA HET REMBORD' : S.x < u.rem - 1.5 ? 'VOORBIJ HET REMBORD REMT DE KNOP. NOG EVEN' : 'HOUD WEER VAST: REMMEN!';
-      else s = 'REMT HIJ TE HARD? LAAT EVEN LOS';
+      else s = S.v < 1.6 ? 'BIJNA STIL? LAAT EVEN LOS, DAN STOP JE ZACHT' : 'BLIJF VASTHOUDEN: DE TRAM REMT';
     } else if (SPEL.modus === 'rijden' && S.fase !== 'halte') {
       const k = watKomt(S); if (k && !SPEL.gemeld[k[0]]) { SPEL.melding = SPEL.melding && SPEL.melding[0] === k[0] ? SPEL.melding : [k[0], k[1], LEVEN.t]; }
       if (SPEL.melding) { if (LEVEN.t - SPEL.melding[2] < 4.5) s = SPEL.melding[1]; else { SPEL.gemeld[SPEL.melding[0]] = 1; SPEL.melding = null; } }

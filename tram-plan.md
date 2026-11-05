@@ -139,6 +139,13 @@ Welke lijnen open zijn, rekent het spel uit de sterren uit (niets apart bewaard)
 4. Testen: met code (de natuurkunde, de punten, de lijn van de dag voor iedereen gelijk, bewaren en laden, de REGELS met twee apparaten) en in een echte browser op telefoon- en computerformaat, zonder fouten of overtredingen van het veiligheidsbeleid.
 5. Ik werk op de tak `claude/kind-mccarthy-kyy0ja`. Pas als jij akkoord geeft en de scoreserver draait, laat ik je zien wat er in de commit gaat en zet ik het op main.
 
+## Stand van 5 november 2026 (later op de avond): rustig remmen
+
+- **Na Rubens speelronde** ("nog voor het bordje begint hij al met remmen", en "je staat óf stil, óf er valt niemand om, maar nooit allebei"):
+  - De uitzondering "bijna te hard" rekende ook de topsnelheid van de tram mee, dus boven 45 km/u remde de knop al voor het rembord. Nu tellen alleen een maximumsnelheid en een doorrijhalte.
+  - De rem werd zolang je vasthield steeds harder (tot 1,8 m/s²): na 1,3 s wankelde er iemand en na 1,8 s viel er iemand. Nu bouwt hij op tot een stevige maar rustige rem (`REM.max` 1,15 m/s², onder het wankelen) en blijft daar; hij past zich aan het gewicht van de tram aan. Vanaf 50 km/u sta je zo na ongeveer 83 m stil (het rembord staat 110 m voor de halte). Hou je vast tot je stilstaat, dan schokt de tram nog (40 punten minder voor rustig); laat je op het laatst even los en tik je, dan stop je zacht. Het remmeterje kleurt rood zolang je dan zou schokken. Op natte of gladde rails kunnen de wielen nog glijden.
+- **Getest**: de motortests, alle vijf lijnen met drie sterren, 400 dagen van de lijn van de dag (laagste 93%, niets onder 90%), en in Chromium op computer en telefoon zonder fouten.
+
 ## Stand van 5 november 2026 (avond): het rembord en een nieuw optrekgeluid
 
 - **Het rembord** (op verzoek van Ruben): voor elke halte staat een rood-wit gestreept bord met REM erboven (`REMBORD` en `rembord(lijn, i)` in de motor). Laat je eerder los en houd je weer vast, dan trekt de tram weer op (gebeurtenis `bijtrek`); pas voorbij het rembord remt de knop. Het bord staat 110 m voor het gele bordje, op natte of gladde rails verder weg, en nooit in de eerste 40% van het stuk. De knop remt ook voor een rood sein (binnen 110 m), en als je bijna te hard gaat voor een maximumsnelheid of een doorrijhalte (`magRemmen`, met `speling` 1,3 m/s). Het stuurscherm wijst met een pijltje aan wat vasthouden nu doet; op een telefoon staat het op de grote knop.

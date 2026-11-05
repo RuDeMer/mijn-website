@@ -544,7 +544,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 ## De scoreserver die draait (stand 30 oktober 2026)
 
-- **Stand 5 november 2026: versie 2026-11-05b ligt bij Ruben** (gebouwd op 2026-11-05: een verkoop aan het gilde in de Vlaaienbakker werd teruggedraaid, zie "Vlaaienbakker: verkopen aan het gilde"; `/status` geeft dan `"versie":"2026-11-05b"`). Tot hij hem in Cloudflare zet, is 2026-11-05 het uitgangspunt.
+- **Stand 5 november 2026, 's avonds: in Cloudflare draait versie 2026-11-05b** (gebouwd op 2026-11-05: een verkoop aan het gilde in de Vlaaienbakker werd teruggedraaid, zie "Vlaaienbakker: verkopen aan het gilde"; `/status` geeft `"versie":"2026-11-05b"`). Dit is nu het uitgangspunt voor veranderingen aan de scoreserver. Wat hieronder staat, is de stand van daarvoor.
 - **Stand 4 november 2026, later op de dag: in Cloudflare draait versie 2026-11-05** (Casino Rommelroyaal, zie "Casino Rommelroyaal"; `/status` geeft `"versie":"2026-11-05"` en `"casino":1`). Dit is nu het uitgangspunt voor veranderingen aan de scoreserver. Wat hieronder staat, is de stand van daarvoor.
 - **Stand 4 november 2026: in Cloudflare draait versie 2026-11-04** (Rommelkroon fase 4, zie "Rommelkroon: samen"; gebouwd op 2026-11-03; `/status` geeft `"versie":"2026-11-04"` en `"kroon":1`). Dit is nu het uitgangspunt voor veranderingen aan de scoreserver. Wat hieronder staat, is de stand van daarvoor.
 - **Stand 3 november 2026: in Cloudflare draait versie 2026-11-03** (Rommelkroon fase 2, zie "Rommelkroon: nieuwe manieren om te spelen"; `/status` geeft `"versie":"2026-11-03"`). Dit is nu het uitgangspunt voor veranderingen aan de scoreserver. Wat hieronder staat, is de stand van daarvoor.

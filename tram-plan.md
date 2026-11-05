@@ -1,6 +1,6 @@
 # Plan: Rommeltram
 
-Voorstel van 5 november 2026, door Claude Code. **Nog niet goedgekeurd.**
+Voorstel van 5 november 2026, door Claude Code. **Goedgekeurd door Ruben op 5 november 2026**: de naam Rommeltram, met "Op tijd", niet bij Puzzels van vandaag, en lijn 1 eerst als privé testlink. Ruben wil nog mooiere graphics: van dezelfde kwaliteit als Tramwaj, maar in een eigen stijl (de tekeningen en het uiterlijk van Tramwaj nemen we niet over).
 
 Alleen het spelidee komt van Tramwaj: stop een tram zo dat de voorkant precies bij een geel bordje staat, met één knop. Het origineel heb ik niet bekeken. Naam, stad, haltes, tekeningen, teksten, geluiden en de indeling van het scherm zijn helemaal eigen.
 
@@ -138,3 +138,9 @@ Welke lijnen open zijn, rekent het spel uit de sterren uit (niets apart bewaard)
 3. Daarna lijn 2 tot en met 5, de lijn van de dag, de sterren en het scorebord.
 4. Testen: met code (de natuurkunde, de punten, de lijn van de dag voor iedereen gelijk, bewaren en laden, de REGELS met twee apparaten) en in een echte browser op telefoon- en computerformaat, zonder fouten of overtredingen van het veiligheidsbeleid.
 5. Ik werk op de tak `claude/kind-mccarthy-kyy0ja`. Pas als jij akkoord geeft en de scoreserver draait, laat ik je zien wat er in de commit gaat en zet ik het op main.
+
+## Stand van 5 november 2026: lijn 1 als testversie
+
+- `rommeltram.html` heeft lijn 1 (De Grachtenlijn, vijf haltes): de motor tussen `// ==== MOTOR begin` en `// ==== MOTOR eind` (in Node getest: dezelfde knop geeft dezelfde rit, de robot haalt 5.000 van de 5.000, een kort tikje, te vroeg stoppen, altijd vasthouden tot het stootblok, bewaren en laden), de stad in vijf lagen die per stuk van 256 pixels één keer getekend en vooruit klaargezet worden, de tram, mensen die in- en uitstappen, duiven, fietsers, bootjes, het stuurscherm, geluid, de uitleg van de eerste keer en de uitslag.
+- Nog niet: lijn 2 tot en met 5, de lijn van de dag, het scorebord, de sleutel in `SLEUTELS` en de REGELS, de homepage en de werkplaats. De pagina staat alleen op de werktak, niet op main.
+- Ruben speelt lijn 1 eerst via een privé testlink op claude.ai (zonder de gedeelde blokken van de site).

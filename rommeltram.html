@@ -80,11 +80,12 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   <div class="scherm" id="s-uitleg" hidden><div class="kaart uitleg"><p class="label">Hoe werkt het?</p><h2>Eén knop</h2>
     <ol>
       <li><b>Houd vast</b> als je stilstaat: de tram trekt op. Hij is zwaar, dus dat gaat langzaam.</li>
-      <li><b>Laat los</b>: de tram rolt uit en gaat langzaam minder hard. Optrekken kan pas weer als je stilstaat, dus geef genoeg vaart.</li>
-      <li><b>Houd weer vast</b>: de tram remt, steeds harder zolang je vasthoudt. Te hard remmen laat de passagiers wankelen of omvallen.</li>
+      <li><b>Laat los</b>: de tram rolt uit en gaat langzaam minder hard. Te langzaam? Houd weer vast, dan trekt hij weer op.</li>
+      <li>Voorbij het <b>rembord</b> (rood-wit gestreept) remt de knop: <b>houd vast</b> en de tram remt, steeds harder zolang je vasthoudt. Te hard remmen laat de passagiers wankelen of omvallen.</li>
       <li>Stop met de <b>voorkant precies bij het gele bordje</b>. Op het laatst even loslaten en kort tikken: dan sta je zacht stil.</li>
     </ol>
     <p>Per halte hooguit <b>1.000 punten</b>: 500 voor hoe precies je stopt (op de centimeter is 100 extra), 200 voor rustig rijden en 200 als je op tijd bent. Te vroeg stoppen of voorbijrijden kost punten.</p>
+    <p class="klein">Ook voor een rood sein remt de knop, en als je bijna te hard gaat voor een flitspaal of een doorrijhalte. Het pijltje bij de lampjes laat zien wat vasthouden nu doet.</p>
     <p class="klein">Op een telefoon is het hele scherm de knop; op een computer de spatie of de muis. P of Esc is pauze, B is de bel.</p>
     <div class="rij"><button class="knop hoofd" type="button" data-doe="terug">Begrepen</button></div></div></div>
   <p id="omroep" class="sr" aria-live="polite"></p>
@@ -1444,6 +1445,10 @@ const RT = (() => {
   const PERRON = { voor: 46, na: 3, teVroeg: 15, voorbij: 8 };
   // een tramsein springt op stop als je er 110 meter vanaf bent; een doorrijhalte passeer je met hooguit 30 km/u
   const SEIN = { afstand: 110 }, DOORRIJ = { max: 30 / 3.6 }, STOOTBLOK = 40;
+  // het rembord: pas voorbij dit bord remt de knop voor een halte; daarvoor trekt hij weer op (zo kun je na loslaten nog bijgeven).
+  // Gewoon 110 m voor het gele bordje, op gladde rails verder, en nooit in de eerste 40% van het stuk.
+  // Ook voor een rood sein (binnen 110 m) remt de knop, en als je te hard gaat voor een maximumsnelheid of een doorrijhalte.
+  const REMBORD = { afstand: 110, deel: 0.6, speling: 1.3 };
 
   const weerstand = v => (v > 0 ? 0.035 + 0.0006 * v * v : 0);
   const klem = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -1530,6 +1535,27 @@ const RT = (() => {
   const basisGrip = lijn => GRIP[lijn.weer === 'regen' ? 'nat' : lijn.weer === 'sneeuw' ? 'sneeuw' : 'droog'];
   const gripOp = (lijn, x) => { for (const g of lijn.gripStukken || []) if (x >= g.van && x < g.tot) return Math.min(GRIP[g.soort] || 1, basisGrip(lijn)); return basisGrip(lijn); };
   const zoneOp = (lijn, x) => (lijn.zones || []).find(z => x >= z.van && x < z.tot) || null;
+  // waar het rembord voor halte i staat (alleen voor haltes waar je stopt)
+  const rembordCache = new WeakMap();
+  function rembord(lijn, i) {
+    let r = rembordCache.get(lijn); if (!r) { r = []; rembordCache.set(lijn, r); }
+    if (r[i] !== undefined) return r[i];
+    const h = lijn.haltes[i], vorig = lijn.haltes[Math.max(0, i - 1)];
+    if (!h || h.doorrij || i === 0) return (r[i] = null);
+    // de minste grip in de aanloop: op natte of gladde rails staat het bord verder weg
+    let g = basisGrip(lijn); for (const s of lijn.gripStukken || []) if (s.tot > h.x - 220 && s.van < h.x) g = Math.min(g, GRIP[s.soort] || g);
+    const a = Math.min(1, g * G * 0.8), d = Math.max(REMBORD.afstand, 72 / a + 40);
+    return (r[i] = Math.round((h.x - Math.min(d, (h.x - vorig.x) * REMBORD.deel)) * 10) / 10);
+  }
+  // remt de knop nu (als je rolt)? Of trekt hij weer op?
+  function magRemmen(S) {
+    const L = S.lijn, h = doelHalte(S); if (!h) return true;
+    if (!h.doorrij && S.x >= rembord(L, S.doel) - 0.01) return true;
+    // een rood sein vlak voor je
+    for (let i = 0; i < (L.seinen || []).length; i++) { const sn = L.seinen[i], st = S.seinen[i]; if (st.rood && !st.langs && sn.x > S.x - 0.5 && sn.x - S.x <= SEIN.afstand + 2) return true; }
+    // te hard (of bijna) voor een maximumsnelheid of een doorrijhalte die eraan komt
+    return S.v > grensOp(S, S.x) - REMBORD.speling;
+  }
 
   // ---------- een nieuwe rit
   function nieuweRit(lijn, opties = {}) {
@@ -1573,7 +1599,8 @@ const RT = (() => {
     } else if (S.fase === 'trek') {
       if (!knop) { S.fase = 'rol'; ev.push({ e: 'rol' }); }
     } else if (S.fase === 'rol') {
-      if (nieuwDruk || (knop && S.los)) { S.fase = 'rem'; ev.push({ e: 'rem' }); }
+      // vasthouden: voorbij het rembord (of voor een rood sein, of als je te hard gaat) remt de tram; anders trekt hij weer op
+      if (nieuwDruk || (knop && S.los)) { if (magRemmen(S)) { S.fase = 'rem'; ev.push({ e: 'rem' }); } else { S.fase = 'trek'; S.los = false; ev.push({ e: 'bijtrek' }); } }
     } else if (S.fase === 'rem') {
       if (!knop) { S.fase = 'rol'; ev.push({ e: 'rol' }); }
     }
@@ -1583,7 +1610,7 @@ const RT = (() => {
     // de motor
     const m = massa(S), v = S.v, x0 = S.x;
     const trekDoel = S.fase === 'trek' ? 1 : 0;
-    S.trek = trekDoel > S.trek ? Math.min(1, S.trek + STAP / TREK.op) : Math.max(0, S.trek - STAP / TREK.af);
+    S.trek = trekDoel >= S.trek ? Math.min(1, S.trek + STAP / TREK.op) : Math.max(0, S.trek - STAP / TREK.af);
     let F = S.trek * Math.min(TRAM.kracht, TRAM.vermogen / Math.max(v, 0.1));
     F *= klem((TRAM.vmax - v) / 0.6, 0, 1);
     // de rem
@@ -1775,18 +1802,26 @@ const RT = (() => {
       // de grip tot aan het doel: kijk vooruit, want op ijzel of bladeren kun je minder hard remmen
       let gripMin = gripOp(L, S.x); for (const g of L.gripStukken || []) if (g.tot > S.x && g.van < doelX) gripMin = Math.min(gripMin, gripOp(L, (Math.max(g.van, S.x) + Math.min(g.tot, doelX)) / 2));
       const rest = doelX - S.x, v = S.v, grip = gripMin * G, remMax = Math.min(0.92, grip * 0.8), grens = grensOp(S, S.x);
+      // hoeveel hoger (+) of lager (-) het doel ligt: bergaf moet je meer remmen, bergop minder
+      const dz = hoogteOp(L, doelX - TRAM.lengte / 2) - hoogteOp(L, S.x - TRAM.lengte / 2);
       if (S.fase === 'klaar' || S.fase === 'stil') return S.los && !voorSein && rest > 0.3;
+      // het rembord van het echte doel (niet bij een rood sein)
+      const rb = !voorSein && !echt.doorrij ? rembord(L, L.haltes.indexOf(echt)) : null;
       if (S.fase === 'trek') {
         if (v >= Math.min(kruis, grens - 0.3)) return false;
+        // niet harder dan je vanaf het rembord nog rustig kunt afremmen
+        if (rb !== null && S.x < rb && v * v / (2 * Math.min(REMRUSTIG, remMax)) > doelX - rb - 4) return false;
         // eens per 0,1 s opnieuw rekenen: komt hij er al met uitrollen, en is er nog ruimte om harder te gaan?
-        if (S.t >= volgende) { volgende = S.t + 0.1; besluit = rolTot(S, doelX) < doelX + 2 || rest > (v * v) / (2 * REMRUSTIG) + v * 2 + 6; }
+        if (S.t >= volgende) { volgende = S.t + 0.1; besluit = rolTot(S, doelX) < doelX + 2 || rest > Math.max(0, v * v / 2 - G * dz) / Math.min(REMRUSTIG, remMax) + v * 2 + 6; }
         return besluit;
       }
       // rollen of remmen: hoe hard moet je remmen om precies bij het doel stil te staan (met de helling meegerekend)?
-      const dz = hoogteOp(L, doelX - TRAM.lengte / 2) - hoogteOp(L, S.x - TRAM.lengte / 2);
-      const nodig = rest > 0.05 ? (v * v / 2 + G * dz) / rest - 0.04 : 9;
+      const nodig = rest > 0.05 ? (v * v / 2 - G * dz) / rest - 0.04 : 9;
       const teHard = v > grens + 0.1;
-      if (S.fase === 'rol') return teHard || nodig > (v > 2 ? remMax : Math.min(0.42, remMax));
+      if (S.fase === 'rol') {
+        if (!magRemmen(S)) return rolTotNu(S, doelX) < doelX - 3 && v < Math.min(kruis, grens - 0.3) - 0.5 && (rb === null || S.x < rb - 2);
+        return teHard || nodig > (v > 2 ? remMax : Math.min(0.42, remMax));
+      }
       if (S.glijdt) return false;
       const nu = Math.min(S.rem * TRAM.refMassa / massa(S), grip);
       if (teHard && v > grens + 0.05) return nu < remMax;
@@ -1890,7 +1925,7 @@ const RT = (() => {
   const isOpen = (s, id) => id === 1 || !!(s.l[String(id - 1)] && s.l[String(id - 1)].s >= 1);
   const sterren = s => Object.values(s.l).reduce((a, x) => a + (x.s || 0), 0);
 
-  return { STAP, G, TRAM, TREK, REM, RUST, GRIP, PERRON, SEIN, DOORRIJ, STOOTBLOK, LIJNEN, lijnVan, toeval, hash, nieuweRit, stap, massa, doelHalte, precisie, rustigPunten, opTijdPunten,
+  return { STAP, G, TRAM, TREK, REM, RUST, GRIP, PERRON, SEIN, DOORRIJ, STOOTBLOK, REMBORD, rembord, magRemmen, LIJNEN, lijnVan, toeval, hash, nieuweRit, stap, massa, doelHalte, precisie, rustigPunten, opTijdPunten,
     totaal, maxPunten, sterrenVan, robot, rijd, planTijden, hoogteOp, hellingOp, gripOp, zoneOp, seinRood, weerstand, grensOp,
     DAG1, dagNummer, datumVan, dagLijn, seizoenVan, SLEUTEL, leesOpslag, schrijfOpslag, bewaarRit, isOpen, sterren, voortgangTotaal };
 })();
@@ -2520,6 +2555,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
       if (h.doorrij) { voeg(W, 'perron1', h.x - 1, h.x + 1, 1.9, (p, X) => doorrijBord(W, p, X + K, Yl(W, W.lagen.perron1, h.x, 1.9), h)); return; }
       // het gele bordje: hier moet de voorkant van de tram stoppen
       voeg(W, 'perron1', h.x - 1, h.x + 2, 1.9, (p, X) => geelBordje(W, p, X + K, Yl(W, W.lagen.perron1, h.x, 1.9, 0.25)));
+      // het rembord: pas voorbij dit bord remt de knop
+      const rb = RT.rembord(L, i); if (rb !== null) { const zr = W.perronOp(rb) ? 0.25 : 0; voeg(W, 'perron1', rb - 2, rb + 2, 1.9, (p, X) => rembordje(W, p, X + 2 * K, Yl(W, W.lagen.perron1, rb, 1.9, zr))); }
       // het abri, de paal met de naam, een bankje en een prullenbak
       const fa = h.x - 27; voeg(W, 'perron2', fa, fa + 7, 4.3, (p, X) => abri(W, p, X, Yl(W, W.lagen.perron2, fa, 4.6, 0.25), i));
       const fn = h.x - 35; voeg(W, 'perron2', fn - 8, fn + 8, 4.7, (p, X) => haltepaal(W, p, X + 8 * K, Yl(W, W.lagen.perron2, fn, 4.7, 0.25), h.naam));
@@ -2586,6 +2623,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     p.R(x - 6, yb - 48, 14, 15, '#1F2333'); p.R(x - 5, yb - 47, 12, 13, '#F5C330'); p.R(x - 5, yb - 47, 12, 1, '#FFE27A'); p.R(x + 6, yb - 46, 1, 12, '#D9A621');
     // een tramneusje op het bordje
     p.R(x - 3, yb - 45, 7, 7, '#1F2333'); p.R(x - 2, yb - 44, 5, 3, '#F5C330'); p.R(x - 3, yb - 37, 9, 1, '#1F2333'); p.P(x - 2, yb - 39, '#F5C330'); p.P(x + 2, yb - 39, '#F5C330');
+  }
+  // het rembord: een rood-wit gestreept bord met REM erboven
+  function rembordje(W, p, x, yb) {
+    schaduw(p, x + 5, yb, 4, 1);
+    p.R(x, yb - 30, 2, 30, '#4A4E57'); p.R(x, yb - 30, 1, 30, '#7A808C');
+    p.R(x - 6, yb - 44, 14, 15, '#1F2333'); p.R(x - 5, yb - 43, 12, 13, '#FBF6E9');
+    for (let i = 0; i < 13; i++) for (let j = 0; j < 12; j++) if (((i + j) >> 1) % 3 === 0) p.P(x - 5 + j, yb - 43 + i, '#C8323C');
+    const t = tape('REM'); p.g.drawImage(t, x + 1 - Math.floor(t.width / 2), yb - 56);
   }
   function doorrijBord(W, p, x, yb, h) {
     p.R(x, yb - 30, 2, 30, '#4A4E57');
@@ -3509,6 +3554,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     const fase = S.fase, aan = { trek: fase === 'trek', rol: fase === 'rol', rem: fase === 'rem' };
     const lamp = (yy, a, kleur, naam) => { dR(sx, yy, 5, 5, '#1F2333'); dR(sx + 1, yy + 1, 3, 3, a ? kleur : donker(kleur, 0.6)); if (a) dR(sx + 1, yy + 1, 1, 1, '#FFFFFF'); dTekst(naam, sx + 8, yy, a ? '#1F2333' : '#A99D80'); };
     lamp(sy, aan.trek, '#5CC66A', 'OPTREKKEN'); lamp(sy + 8, aan.rol, '#F2F2F2', 'UITROLLEN'); lamp(sy + 16, aan.rem, '#FF4A4A', 'REMMEN');
+    // een pijltje: wat er gebeurt als je nu vasthoudt (voor het rembord trekt de tram weer op, erna remt hij)
+    const volgend = spel.modus !== 'rijden' ? -1 : fase === 'rol' ? (RT.magRemmen(S) ? 2 : 0) : (fase === 'klaar' || fase === 'stil') ? 0 : -1;
+    if (volgend >= 0) { const yy = sy + volgend * 8, kl = volgend === 2 ? '#C8323C' : '#3E6B4C'; dR(sx - 4, yy, 1, 5, kl); dR(sx - 3, yy + 1, 1, 3, kl); dR(sx - 2, yy + 2, 1, 1, kl); }
     // hoe hard je remt
     dR(sx + 8, sy + 23, 36, 3, '#1F2333'); const rb = Math.round(34 * Math.min(1, S.rem / RT.REM.max)); dR(sx + 9, sy + 24, rb, 1, S.rem > RT.RUST.wankel ? '#FF4A4A' : '#F5A040'); dR(sx + 9 + Math.round(34 * RT.RUST.wankel / RT.REM.max), sy + 23, 1, 3, '#8C8273');
     // hoe rustig de passagiers staan: vier poppetjes die wankelen of omvallen
@@ -3535,7 +3583,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     if (S.fase === 'einde') return 'EINDHALTE';
     if (S.fase === 'klaar' || S.fase === 'stil') return S.knop && !S.los ? 'EVEN LOSLATEN' : 'HOUD VAST: OPTREKKEN';
     if (S.fase === 'trek') return 'LAAT LOS: UITROLLEN';
-    if (S.fase === 'rol') return 'HOUD VAST: REMMEN';
+    if (S.fase === 'rol') return RT.magRemmen(S) ? 'HOUD VAST: REMMEN' : 'HOUD VAST: OPTREKKEN';
     return 'LAAT LOS: UITROLLEN';
   }
   function meter(cx, cy, r, kmu) {
@@ -3558,11 +3606,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
       const n = ac.sampleRate * 2, buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0); let b = 0;
       for (let i = 0; i < n; i++) { b = 0.97 * b + 0.03 * (Math.random() * 2 - 1); d[i] = (Math.random() * 2 - 1) * 0.5 + b * 2.5; }
       ruis = buf;
-      // de motor: een zoemende omvormer en een lage brom
-      const o1 = ac.createOscillator(), o2 = ac.createOscillator(), f1 = ac.createBiquadFilter(), g1 = ac.createGain();
-      o1.type = 'sawtooth'; o2.type = 'square'; f1.type = 'bandpass'; f1.Q.value = 6; g1.gain.value = 0;
-      o1.connect(f1); o2.connect(f1); f1.connect(g1); g1.connect(uit); o1.start(); o2.start();
-      motor = { o1, o2, f1, g: g1 };
+      // de motor: de omvormer zingt bij het optrekken (een zachte toon die met de snelheid omhoog gaat, eerst in trapjes),
+      // daaronder een lage brom van de motoren, en bij vaart het janken van de tandwielen
+      const z1 = ac.createOscillator(), z2 = ac.createOscillator(), z2g = ac.createGain(), zf = ac.createBiquadFilter(), zg = ac.createGain();
+      z1.type = 'triangle'; z2.type = 'sine'; z2g.gain.value = 0.45; zf.type = 'lowpass'; zf.frequency.value = 1400; zf.Q.value = 0.8; zg.gain.value = 0;
+      z1.connect(zf); z2.connect(z2g); z2g.connect(zf); zf.connect(zg); zg.connect(uit);
+      const tril = ac.createOscillator(), trilG = ac.createGain(); tril.frequency.value = 5.5; trilG.gain.value = 2.5; tril.connect(trilG); trilG.connect(z1.frequency); trilG.connect(z2.frequency);
+      const b1 = ac.createOscillator(), b2 = ac.createOscillator(), bf = ac.createBiquadFilter(), bg = ac.createGain();
+      b1.type = 'sine'; b2.type = 'triangle'; bf.type = 'lowpass'; bf.frequency.value = 260; bg.gain.value = 0;
+      b1.connect(bg); b2.connect(bf); bf.connect(bg); bg.connect(uit);
+      const t1 = ac.createOscillator(), tg = ac.createGain(); t1.type = 'sine'; tg.gain.value = 0; t1.connect(tg); tg.connect(uit);
+      for (const o of [z1, z2, tril, b1, b2, t1]) o.start();
+      motor = { z1, z2, zf, zg, b1, b2, bg, t1, tg, stapF: 0 };
       // het rollen van de wielen
       const rs = ac.createBufferSource(), rf = ac.createBiquadFilter(), rg = ac.createGain();
       rs.buffer = ruis; rs.loop = true; rf.type = 'lowpass'; rf.frequency.value = 380; rg.gain.value = 0;
@@ -3611,6 +3666,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
         o.connect(fl); fl.connect(g); g.connect(uit); o.start(t); o.stop(t + 0.15);
       }
     }
+    // optrekken: de parkeerrem laat los (een sis van lucht) en de schakelaar klakt; bijgeven: alleen de klak
+    function optrek(bij) { toon(150, 0.05, { vol: 0.1, type: 'square' }); toon(95, 0.08, { vol: 0.08, type: 'triangle', start: 0.01 }); if (!bij) sis(0.45, { vol: 0.07, f: 3400, start: 0.03 }); }
+    // de toon van de omvormer: tot 12 km/u in vijf trapjes omhoog (zoals echte trams), daarna glijdend
+    const TRAP = [196, 220, 247, 262, 294, 330];
+    const omvormer = v => (v < 3.3 ? TRAP[Math.min(5, Math.floor(v / 0.66))] : 330 + (v - 3.3) * 46);
     function deurOpen() { sis(0.55, { vol: 0.14, f: 1800 }); toon(880, 0.16, { vol: 0.08, type: 'square', start: 0.05 }); }
     function deurDicht() { for (let i = 0; i < 3; i++) toon(1046, 0.09, { vol: 0.07, type: 'square', start: i * 0.2 }); sis(0.5, { vol: 0.12, f: 1600, start: 0.7 }); toon(330, 0.12, { vol: 0.1, type: 'triangle', start: 1.15 }); }
     function fladder() { for (let i = 0; i < 5; i++) sis(0.05, { vol: 0.05, f: 900, type: 'bandpass', start: i * 0.06, q: 2 }); }
@@ -3631,8 +3691,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     function bij(S, actief, dt) {
       if (!ac || !aan || !S) return;
       const v = S.v, ja = actief;
-      zet(motor.g.gain, ja ? (0.012 + S.trek * 0.05) * (v > 0.05 || S.trek > 0 ? 1 : 0.3) : 0, 0.08);
-      zet(motor.o1.frequency, 55 + v * 14); zet(motor.o2.frequency, 300 + Math.floor(v * 4) * 42 + v * 6); zet(motor.f1.frequency, 500 + v * 70 + S.trek * 300);
+      // de omvormer: alleen als de motor trekt (en heel zacht als hij net loslaat); de trapjes springen, daarna glijdt de toon
+      const f = omvormer(v), trap = v < 3.3;
+      zet(motor.zg.gain, ja ? S.trek * (0.045 + 0.02 * Math.min(1, v / 8)) : 0, S.trek > 0.05 ? 0.06 : 0.18);
+      zet(motor.z1.frequency, f, trap ? 0.015 : 0.06); zet(motor.z2.frequency, f * 2, trap ? 0.015 : 0.06); zet(motor.zf.frequency, 700 + S.trek * 1100 + v * 40, 0.1);
+      // de brom van de motoren en het janken van de tandwielen (dat hoor je ook als je uitrolt)
+      zet(motor.bg.gain, ja ? (v > 0.05 || S.trek > 0.02 ? 0.018 + S.trek * 0.02 : 0.006) : 0, 0.12);
+      zet(motor.b1.frequency, 46 + v * 4.5); zet(motor.b2.frequency, 92 + v * 9);
+      zet(motor.tg.gain, ja ? Math.min(0.012, v * 0.0011) * (1 - S.trek * 0.5) : 0, 0.2); zet(motor.t1.frequency, 380 + v * 88);
       zet(rol.g.gain, ja ? Math.min(0.09, v * 0.008) : 0, 0.1); zet(rol.f.frequency, 220 + v * 40);
       zet(piep.g.gain, ja && S.rem > 0.35 && v > 0.15 && v < 3.5 ? 0.012 * Math.min(1, S.rem) * (1 - v / 3.5 + 0.3) : (ja && S.glijdt ? 0.03 : 0), 0.05);
       // de railnaden: twee tikjes per naad (de draaistellen), elke 15 meter
@@ -3643,7 +3709,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     }
     function zetAan(ja) { aan = !!ja; if (!aan && ac) { try { ac.suspend(); } catch (e) {} } if (aan) { if (!ac) begin(); else try { ac.resume(); } catch (e) {} } }
     function pauze(ja) { if (!ac) return; try { if (ja) ac.suspend(); else if (aan) ac.resume(); } catch (e) {} }
-    return { begin, bel, omroep, deurOpen, deurDicht, fladder, knal, uitslag, au, glijd, flits, sein, bij, zetAan, pauze, get aan() { return aan; } };
+    return { begin, bel, optrek, omroep, deurOpen, deurDicht, fladder, knal, uitslag, au, glijd, flits, sein, bij, zetAan, pauze, get aan() { return aan; } };
   })();
   // ================= het spel: de knop, de lus, de schermen en de opslag
   const TEST = /[?&]test=/.test(location.search);
@@ -3686,7 +3752,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     const S = SPEL.S, boven = B_.Y0 - 66 - SPEL.W.hoog(S.x) * KZ;
     // tekstjes boven de tram; staat er al een, dan komt de nieuwe erboven
     const tekst = (s, kleur, bg, duur = 1.8) => { const al = LEVEN.teksten.find(k => k.s === s && k.t < k.duur - 0.3); if (al) { al.t = Math.min(al.t, 0.3); return; } const n = LEVEN.teksten.filter(k => k.t < k.duur - 0.3).length; LEVEN.teksten.push({ s, x: (S.x - 9), wereld: true, y: boven - n * 14, kleur, bg, t: 0, duur }); };
-    if (e.e === 'vertrek') { GELUID.bel(); return; }
+    if (e.e === 'vertrek') { GELUID.bel(); GELUID.optrek(false); return; }
+    if (e.e === 'bijtrek') { GELUID.optrek(true); return; }
     if (e.e === 'wankel') { tekst('HE, RUSTIG AAN!', '#FFD36A'); return; }
     if (e.e === 'val') { tekst('AU! ER VIEL IEMAND', '#FF9A9A'); GELUID.au(); return; }
     if (e.e === 'schok') { tekst('SCHOK!', '#FFD36A'); return; }
@@ -3759,7 +3826,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     const n = RT.dagNummer(), d = Math.max(1, n), dl = RT.dagLijn(d), gedaan = opslag.dag[String(d)];
     $('s-menu-in').innerHTML = `
       <h1>Rommeltram<small>Stop precies bij het gele bordje</small></h1>
-      <p>Eén knop: <b>houd vast</b> om op te trekken, <b>laat los</b> om uit te rollen, en <b>houd weer vast</b> om te remmen. Op een telefoon is het hele scherm de knop, op een computer de spatie of de muis.</p>
+      <p>Eén knop: <b>houd vast</b> om op te trekken, <b>laat los</b> om uit te rollen, en voorbij het <b>rembord</b> <b>houd je weer vast</b> om te remmen. Op een telefoon is het hele scherm de knop, op een computer de spatie of de muis.</p>
       <button class="lijn dag" type="button" data-lijn="dag:${d}"><span class="nr">★</span><span class="wat"><b>Lijn van de dag</b><small>${esc(datumTekst(d))} · ${esc(SFEERTEKST[dl.sfeer] + ', ' + dl.tijd + ', ' + WEERTEKST[dl.weer])} · ${dl.haltes.length - 1} haltes${gedaan !== undefined ? ' · vandaag ' + gedaan.toLocaleString('nl-NL') + ' punten' : ' · de eerste rit telt'}</small></span></button>
       <div class="lijnen">${RT.LIJNEN.map(kaart).join('')}</div>
       ${ALLES_OPEN ? '<p class="klein">Testversie: alle lijnen staan open, en er is nog geen scorebord.</p>' : ''}
@@ -3823,6 +3890,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
     for (const h of L.haltes) if (h.doorrij && voor(h.x - x)) return ['d' + h.x, 'HIER STAPT NIEMAND IN OF UIT: RIJ RUSTIG DOOR (HOOGUIT 30)'];
     for (const g of L.gripStukken || []) if (voor(g.van - x)) return ['g' + g.van, g.soort === 'blad' ? 'BLADEREN OP DE RAILS: REM EERDER' : 'GLAD! IJZEL OP DE RAILS: REM VOORZICHTIG'];
     for (const b of L.bruggen || []) if (!b.ophaal && voor(b.van - x - 25)) return ['b' + b.van, 'EEN BRUG: BERGOP GAAT DE TRAM VANZELF LANGZAMER'];
+    const rb = RT.rembord(L, S.doel); if (S.doel === 1 && rb !== null && voor(rb - x + 30)) return ['rem', 'VOORBIJ HET REMBORD (ROOD-WIT) REMT DE KNOP'];
     return null;
   }
   SPEL.bovenin = () => {
@@ -3840,7 +3908,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
       const u = SPEL.uitleg;
       if (S.fase === 'klaar' || S.fase === 'stil') s = S.knop ? 'EVEN LOSLATEN' : 'HOUD DE KNOP VAST OM OP TE TREKKEN';
       else if (S.fase === 'trek') s = S.x < u.los - 1.5 ? 'BLIJF VASTHOUDEN: DE TRAM TREKT OP' : 'LAAT NU LOS!';
-      else if (S.fase === 'rol') s = S.x < u.rem - 1.5 ? 'DE TRAM ROLT UIT. WACHT TOT HET RODE BORDJE' : 'HOUD WEER VAST: REMMEN!';
+      else if (S.fase === 'rol') s = !RT.magRemmen(S) ? 'DE TRAM ROLT UIT. REMMEN KAN NA HET REMBORD' : S.x < u.rem - 1.5 ? 'VOORBIJ HET REMBORD REMT DE KNOP. NOG EVEN' : 'HOUD WEER VAST: REMMEN!';
       else s = 'REMT HIJ TE HARD? LAAT EVEN LOS';
     } else if (SPEL.modus === 'rijden' && S.fase !== 'halte') {
       const k = watKomt(S); if (k && !SPEL.gemeld[k[0]]) { SPEL.melding = SPEL.melding && SPEL.melding[0] === k[0] ? SPEL.melding : [k[0], k[1], LEVEN.t]; }
@@ -3903,7 +3971,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = RT;
   kiesLijn(1); tekenMenu(); toon('s-menu');
   requestAnimationFrame(lus);
   // testhaak
-  window.__tram = { RT, get S() { return SPEL.S; }, get W() { return SPEL.W; }, SPEL, kiesLijn, start, opnieuw, naarMenu, maat, B: B_, LEVEN,
+  window.__tram = { RT, GELUID, get S() { return SPEL.S; }, get W() { return SPEL.W; }, SPEL, kiesLijn, start, opnieuw, naarMenu, maat, B: B_, LEVEN,
     stap(n = 1, knop = false) { const out = []; for (let i = 0; i < n; i++) for (const e of RT.stap(SPEL.S, knop)) { gebeurtenis(e); out.push(e); } return out; },
     get opslag() { return opslag; }, teken() { teken(SPEL.W, SPEL.S, SPEL.cam, SPEL); }, zet(x) { SPEL.S.x = x; SPEL.cam = x - SPEL.frac * B_.W / K; } };
 

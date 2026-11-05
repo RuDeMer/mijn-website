@@ -139,6 +139,13 @@ Welke lijnen open zijn, rekent het spel uit de sterren uit (niets apart bewaard)
 4. Testen: met code (de natuurkunde, de punten, de lijn van de dag voor iedereen gelijk, bewaren en laden, de REGELS met twee apparaten) en in een echte browser op telefoon- en computerformaat, zonder fouten of overtredingen van het veiligheidsbeleid.
 5. Ik werk op de tak `claude/kind-mccarthy-kyy0ja`. Pas als jij akkoord geeft en de scoreserver draait, laat ik je zien wat er in de commit gaat en zet ik het op main.
 
+## Stand van 5 november 2026 (avond): het rembord en een nieuw optrekgeluid
+
+- **Het rembord** (op verzoek van Ruben): voor elke halte staat een rood-wit gestreept bord met REM erboven (`REMBORD` en `rembord(lijn, i)` in de motor). Laat je eerder los en houd je weer vast, dan trekt de tram weer op (gebeurtenis `bijtrek`); pas voorbij het rembord remt de knop. Het bord staat 110 m voor het gele bordje, op natte of gladde rails verder weg, en nooit in de eerste 40% van het stuk. De knop remt ook voor een rood sein (binnen 110 m), en als je bijna te hard gaat voor een maximumsnelheid of een doorrijhalte (`magRemmen`, met `speling` 1,3 m/s). Het stuurscherm wijst met een pijltje aan wat vasthouden nu doet; op een telefoon staat het op de grote knop.
+- **Het optrekgeluid**: de omvormer zingt nu een zachte toon die met de snelheid omhoog gaat (tot 12 km/u in trapjes, daarna glijdend), met een lage brom van de motoren, het janken van de tandwielen bij vaart, en bij het wegrijden een klak en het sissen van de rem die loslaat (`optrek` in het geluid).
+- **Gerepareerd**: op vol vermogen wiebelde de trekkracht tussen 1,00 en 0,97 (dat hoorde je ook); en de robot rekende een helling verkeerd om, waardoor hij bergaf op sneeuw te laat remde.
+- **Getest**: de motortests (ook eerder loslaten en bijgeven, voorbij het rembord remmen, een rood sein, de 30-zone), alle vijf lijnen met drie sterren, 400 dagen van de lijn van de dag (laagste 95,6%, niets onder 90%), het geluid opgenomen in de browser (geen fouten, optrekken ongeveer 2,5 keer zo hard als uitrollen), en in Chromium op computer en telefoon zonder fouten.
+
 ## Stand van 5 november 2026 (later): vijf lijnen en een nieuw beeld
 
 - **Het beeld** is helemaal opnieuw gemaakt, op verzoek van Ruben: recht van voren en schuin van boven (de straat loopt van links naar rechts, de gevels staan erachter, de voorgrond ervoor), met veel detail. Alles is eigen tekenwerk van Rommelstad. De grond wordt per pixel getekend (klinkers, tegels, asfalt, fietspad, rails, grind, gras, akkers met sloten, water met golfjes, kades), de gebouwen met patronen (baksteen, pannen, leien) en eigen gevels (trapgevel, halsgevel, klokgevel, pakhuis, winkels), en 's avonds verlichte ramen, neon en lantaarns.

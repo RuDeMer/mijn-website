@@ -638,7 +638,9 @@ button { font: inherit; }
     const kroonDag = (b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; };
     // ---------- de maat: hoe verder, hoe hoger (dezelfde maat als 'Verder spelen' op de homepage); bij gelijke stand telt het volgende getal
     const MAAT = {
-      'vlaaienbakker-v1': s => { const o = isObj(s.oer) ? s.oer : {}; return [getal(s.opnieuw), vlog(s, 'oer.ooit'), getal(o.n), Math.max(vlog(s, 'alles'), vlog(s, 'ooit'), vlog(s, 'totaal')), vlog(s, 'totaal')]; },
+      // de Vlaaienbakker: opnieuw begonnen, oerdeeg, Oerknallen, hoe vaak je aan het gilde verkocht, alles wat je ooit bakte, deze ronde.
+      // Een verkoop aan het gilde zet deze ronde op 0: zonder de verkopen telde dat als achteruit, en zette de server de verkoop terug.
+      'vlaaienbakker-v1': s => { const o = isObj(s.oer) ? s.oer : {}, g = isObj(s.gilde) ? s.gilde : {}; return [getal(s.opnieuw), vlog(s, 'oer.ooit'), getal(o.n), getal(g.resets), Math.max(vlog(s, 'alles'), vlog(s, 'ooit'), vlog(s, 'totaal')), vlog(s, 'totaal')]; },
       'vlaaienbakker-week-v1': s => [getal(s.week), getal(s.totaal)],
       'rommelbeesten-v1': s => { const b = isObj(s.bezit) ? Object.values(s.bezit) : []; return [b.filter(x => rbHeb(x) > 0).length, b.reduce((a, x) => a + rbHeb(x), 0), getal((s.stats || {}).pakjes)]; },
       'rommelkroon-v1': s => [aantal(s.opgelost), aantal(s.dag), aantal(s.bezig)],
@@ -959,7 +961,7 @@ button { font: inherit; }
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 8;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 9;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));

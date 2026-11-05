@@ -139,6 +139,14 @@ Welke lijnen open zijn, rekent het spel uit de sterren uit (niets apart bewaard)
 4. Testen: met code (de natuurkunde, de punten, de lijn van de dag voor iedereen gelijk, bewaren en laden, de REGELS met twee apparaten) en in een echte browser op telefoon- en computerformaat, zonder fouten of overtredingen van het veiligheidsbeleid.
 5. Ik werk op de tak `claude/kind-mccarthy-kyy0ja`. Pas als jij akkoord geeft en de scoreserver draait, laat ik je zien wat er in de commit gaat en zet ik het op main.
 
+## Stand van 5 november 2026 (later): vijf lijnen en een nieuw beeld
+
+- **Het beeld** is helemaal opnieuw gemaakt, op verzoek van Ruben: recht van voren en schuin van boven (de straat loopt van links naar rechts, de gevels staan erachter, de voorgrond ervoor), met veel detail. Alles is eigen tekenwerk van Rommelstad. De grond wordt per pixel getekend (klinkers, tegels, asfalt, fietspad, rails, grind, gras, akkers met sloten, water met golfjes, kades), de gebouwen met patronen (baksteen, pannen, leien) en eigen gevels (trapgevel, halsgevel, klokgevel, pakhuis, winkels), en 's avonds verlichte ramen, neon en lantaarns.
+- **Vijf lijnen**: 1 De Grachtenlijn (lente, ochtend), 2 De Marktlijn (zomer, flitspaal), 3 De Molenlijn (herfst, bruggen en bladeren op de rails), 4 De Havenlijn (herfst, avond, regen, tramsein bij de ophaalbrug, doorrijhalte), 5 De Nachtlijn (winter, nacht, sneeuw, alles samen). Een lijn gaat open na de vorige.
+- **De lijn van de dag**: elke dag een eigen lijn, voor iedereen hetzelfde (dag 1 is vrijdag 6 november 2026); de eerste rit telt.
+- **Getest**: de robot haalt op alle vijf lijnen drie sterren; 400 dagen van de lijn van de dag zijn allemaal te rijden; in Chromium op computer, telefoon staand en liggend, licht en donker: het menu, rijden met de spatie en met een vinger, pauze, de uitslag, bewaren en het vrijspelen, zonder fouten of overtredingen van het veiligheidsbeleid.
+- **Nog niet**: het scorebord, de sleutel in `SLEUTELS` en de REGELS, de homepage en de werkplaats. De pagina staat alleen op de werktak, niet op main. Ruben speelt eerst via de privé testlink.
+
 ## Stand van 5 november 2026: lijn 1 als testversie
 
 - `rommeltram.html` heeft lijn 1 (De Grachtenlijn, vijf haltes): de motor tussen `// ==== MOTOR begin` en `// ==== MOTOR eind` (in Node getest: dezelfde knop geeft dezelfde rit, de robot haalt 5.000 van de 5.000, een kort tikje, te vroeg stoppen, altijd vasthouden tot het stootblok, bewaren en laden), de stad in vijf lagen die per stuk van 256 pixels één keer getekend en vooruit klaargezet worden, de tram, mensen die in- en uitstappen, duiven, fietsers, bootjes, het stuurscherm, geluid, de uitleg van de eerste keer en de uitslag.

@@ -1,6 +1,6 @@
-# Plan: de woordspellen van vandaag (versie 3)
+# Plan: de woordspellen van vandaag (versie 3, met je antwoorden)
 
-Voorstel van Claude Code, 6 november 2026, aangepast na twee keer feedback van Ruben. Er is nog niets gebouwd: eerst je akkoord.
+Voorstel van Claude Code, 6 november 2026, aangepast na twee keer feedback van Ruben. Ruben heeft de laatste drie vragen beantwoord (§10); nu wordt er gebouwd.
 Bij dit plan horen drie speelbare proefpagina's (één per nieuw spel, elk in een eigen stijl). Die stuur ik los; ze komen niet op de site.
 
 ---
@@ -39,7 +39,7 @@ Bij dit plan horen drie speelbare proefpagina's (één per nieuw spel, elk in ee
 - **De moeilijke stand**: wat je al weet, moet je gebruiken (groen op dezelfde plek, rood ergens in het woord).
 - **Na afloop**: wat het woord betekent, in één of twee zinnen die ik zelf schrijf.
 - **Terugblik**: de woorden van vorige dagen, met de uitleg. Alleen bekijken.
-- **Oefenen** (uitleg bij je vraag): een knop "Oefenen" geeft een willekeurig woord, van de lengte die je kiest. Dat woord is nooit een woord van de dag, je kunt er zo vaak als je wilt een nieuw nemen, en het telt nergens mee (geen reeks en geen scorebord). Het is voor wie na het woord van vandaag nog door wil spelen. **Mijn advies: houden.** Weglaten mag ook; dan is er per lengte één woord per dag, en verder niets.
+- **Geen oefenen** (besluit van Ruben): per lengte is er één woord per dag, en verder niets.
 
 ### Cryptisch (`cryptisch.html`)
 - Elke dag één cryptische omschrijving met het aantal letters, alleen die dag te spelen.
@@ -54,7 +54,8 @@ Bij dit plan horen drie speelbare proefpagina's (één per nieuw spel, elk in ee
 - Elke dag een rooster met een thema, alleen die dag te spelen.
 - Je veegt woorden. Een gevonden woord verdwijnt, en de letters erboven vallen omlaag.
 - Tijdens het vegen zie je precies wat je raakt (zie §1). Je kunt ook letters één voor één aantikken.
-- Er zijn hints: eerst een letter, dan het woord, dan de route. Ongedaan maken kan altijd. (Je zei "geen hints" bij Cryptisch. Moeten ze hier ook weg, dan haal ik ze weg.)
+- **Hints uit een potje** (besluit van Ruben): iedereen begint met **3 hints**. Los je het rooster van vandaag op, dan krijg je er **één** bij (hooguit één per dag). Eén hint is één stap: eerst een letter, dan het woord, dan de route. Is het potje leeg, dan kan het niet. Ongedaan maken kan altijd, en kost niets.
+  - Het potje wordt niet als getal bewaard, maar uitgerekend: 3, plus het aantal dagen dat je het rooster op de dag zelf oploste, min alle hints die je gebruikte. Zo kan koppelen nooit hints verdubbelen.
 - Loop je vast, dan zegt het spel dat. Elk rooster lukt in minstens één volgorde.
 
 ### Klinkermijnen (`klinkermijnen.html`)
@@ -176,7 +177,7 @@ Het antwoord is 3 tot 8 letters lang.
 |---|---|
 | `rommelwoord-extra-v1` | De lengtes 4, 6, 7 en 8, de geschiedenis van vijf letters (voor de woordreeks), de moeilijke stand |
 | `cryptisch-v1` | Je uitslagen per dag, je tijden, en een omschrijving die nog loopt |
-| `letterval-v1` | Je uitslagen per dag, je tijden, en een rooster dat nog loopt |
+| `letterval-v1` | Je uitslagen per dag, je tijden, de hints die je per dag gebruikte (`h`, één cijfer per dag), en een rooster dat nog loopt |
 | `klinkermijnen-v1` | Je uitslagen per dag, je tijden, en een veld dat nog loopt |
 
 Per spel staat er **één teken per dag** (dag 0 is 8 oktober 2026). Na een jaar is dat zo'n 400 tekens per spel. De tijden staan apart, als getallen.
@@ -203,6 +204,7 @@ Er komt één nieuwe regel bij, `woordDagen`: per dag telt de eerste uitslag, en
 |---|---|
 | Alle vier de nieuwe sleutels | `d` (de uitslagen per dag) met `woordDagen` |
 | | De tijden per dag: de eerste telt |
+| `letterval-v1` | `h` (hints per dag): per dag de hoogste, dus wat je op een van de twee apparaten gebruikte, gaat nooit verloren |
 | | `bezig` is lopend: de laatste versie wint |
 | | `inst` is een keuze |
 | `MAAT` (alle vier) | Eerst het aantal dagen gelukt, dan het aantal dagen gespeeld |
@@ -240,11 +242,18 @@ Er zit geen geld en er zitten geen spullen in, dus samenvoegen is veilig. Ik tes
 
 ---
 
-## 10. Nog drie vragen
+## 10. Je antwoorden (6 november 2026)
 
-1. **Oefenen in Rommelwoord**: houden of weglaten (zie §2)? Mijn advies: houden.
-2. **Hints bij Letterval**: houden zoals nu, of ook weg, net als bij Cryptisch? Mijn advies: houden. Je kunt hier echt vastlopen in de volgorde.
-3. **Cryptisch**: zijn de twintig in de proef nu een echte puzzel? Zo niet, noem dan er een paar die nog te makkelijk zijn. Dan weet ik welke kant ik op moet.
+1. **Oefenen in Rommelwoord**: weglaten.
+2. **Hints bij Letterval**: houden, met een potje: je begint met 3, en krijgt er één bij als je het rooster oplost (hooguit één per dag). Zie §2.
+3. **Cryptisch**: nummer 3, 5, 6, 9, 10, 12, 13, 14, 15, 17 en 18 uit de proef zijn precies goed. Dat zijn LEEK, EGEL, SNEEUW, RAAP, ATLAS, NOOT, KERN, PEER, VAKANTIE, ROZE en VLAG.
+   - **Wat ze gemeen hebben**: het woordspel werkt met letters, vaak in twee stappen: een ander woord, en dat omdraaien, inkorten of verstoppen. Of de beginletters, of om de andere letter. De betekenis zet je op het verkeerde been.
+   - **Wat minder werd gekozen**:
+     - de vier met twee betekenissen (LEVER, PUPIL, STOF en PLANT);
+     - een afkorting met een woord erachter of eromheen (KNOOP, VLAAI, HAVEN en BOTER);
+     - het makkelijke anagram AARDBEI.
+   - **Zo maak ik de voorraad**: vooral omschrijvingen zoals die elf. Twee betekenissen komen hooguit af en toe voor, en een afkorting alleen als er nog iets anders mee gebeurt.
+   - **De elf gaan in de voorraad.** Behalve ATLAS, KERN, PEER, ROZE en VAKANTIE: daarvan staat hetzelfde woordspel al openbaar in versie 2 van dit plan. Die vijf worden voorbeelden in de uitleg "Hoe werkt het?".
 
 ---
 

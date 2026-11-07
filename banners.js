@@ -239,6 +239,7 @@
 .ra-donker .ra { border-color: rgba(255,255,255,.18); }
 .ra-link { color: inherit; text-decoration: none; outline: none; }
 .ra-link::after { content: ""; position: absolute; inset: 0; z-index: 3; }
+.ra > .ra-link { position: absolute; inset: 0; z-index: 3; }
 .ra-link:focus-visible::after { outline: 3px solid #2F6FB5; outline-offset: -3px; }
 .ra-kop { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; font-family: "Arial Black", "Arial Bold", Gadget, "Helvetica Neue", Arial, sans-serif; font-weight: 900; letter-spacing: -.01em; overflow-wrap: break-word; }
 .ra-merk { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11.5px; opacity: .92; }
@@ -657,10 +658,12 @@
       (vorm === 'hoog' ? '<span class="ra-logo" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false">' + icoon(k) + '</svg></span>' : '') +
       '<span class="ra-decor" aria-hidden="true">' + (vorm === 'balk' ? loper(k) : '') + '</span>' +
       ster(sterTekst(k)) +
-      '<span class="ra-tekst"><a class="ra-link" href="' + esc(url) + '" aria-label="' + esc(labelVan(k)) + '"><span class="ra-kop' + (lang ? ' ra-lang' : '') + '">' + esc(kop) + '</span></a>' +
-      '<span class="ra-merk" aria-hidden="true"><b>' + esc(s.naam) + '</b> · ' + esc(vorm === 'balk' ? (s.zin || '') : (s.kort || s.zin || '')) + '</span></span>' +
+      '<span class="ra-tekst" aria-hidden="true"><span class="ra-kop' + (lang ? ' ra-lang' : '') + '">' + esc(kop) + '</span>' +
+      '<span class="ra-merk"><b>' + esc(s.naam) + '</b> · ' + esc(vorm === 'balk' ? (s.zin || '') : (s.kort || s.zin || '')) + '</span></span>' +
       '<span class="ra-knop" aria-hidden="true">' + esc(s.knop || 'Speel gratis') + '<svg viewBox="0 0 12 12"><path d="M4 2.5L7.5 6 4 9.5"/></svg></span>' +
       '<span class="ra-url" aria-hidden="true">rubensrommelhoekje.nl</span>' +
+      // de link ligt direct in de advertentie: zijn klikvlak (::after) is dan de hele advertentie, ook het plaatje en de knop
+      '<a class="ra-link" href="' + esc(url) + '" aria-label="' + esc(labelVan(k)) + '"></a>' +
       hoek(s.naam, o.wissel !== false) +
       '<span class="ra-uitleg" hidden>' + UITLEG + '<span class="rij"><button type="button" class="ra-oke">Oké</button><button type="button" class="ra-weg2">Toon dit twee weken niet</button></span></span>' +
       '</aside>';

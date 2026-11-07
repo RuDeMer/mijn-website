@@ -294,6 +294,7 @@ button { font: inherit; }
   <p id="e-tekst"></p>
   <div class="rij"><button class="knop" id="b-volgende" type="button">Volgende level</button><button class="knop" id="b-vlag" type="button" hidden>Verder vanaf de vlag (R)</button><button class="knop licht" id="b-opnieuw" type="button">Opnieuw (R)</button><button class="knop licht" id="b-naar-levels" type="button">Levels</button><button class="knop goud" id="b-editor-terug" type="button" hidden>Terug naar de editor</button></div>
   <div class="sb" id="sb-einde"></div>
+  <div id="eind-reclame"></div>
 </div></div>
 
 <div class="scherm donker" id="s-pauze" hidden><div class="kaart">
@@ -535,7 +536,22 @@ button { font: inherit; }
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -6770,6 +6786,13 @@ button { font: inherit; }
     $('b-vlag').hidden = !vlagKan(); $('b-opnieuw').textContent = vlagKan() ? 'Vanaf de start' : 'Opnieuw (R)';
     toon('s-einde');
     if (window.Scorebord && !S.test && !L.eigen) Scorebord.blokje($('sb-einde'), 'je punten'); else $('sb-einde').innerHTML = '';
+    // alleen als het level gehaald is (niet bij een knock-out of een test): een nep-advertentie voor een ander spel (banners.js),
+    // onder de knoppen; hooguit eens per 10 minuten
+    $('eind-reclame').innerHTML = '';
+    if (R.status === 'finish' && !S.test) {
+      const rk = document.createElement('div'); $('eind-reclame').appendChild(rk);
+      if (window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok', soms: true }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
+    }
   }
   const DELEN = { hoofd: 'zijn hoofd', barmV: 'een arm', barmA: 'een arm', oarmV: 'een onderarm', oarmA: 'een onderarm', bbeenV: 'een been', bbeenA: 'een been', obeenV: 'een onderbeen', obeenA: 'een onderbeen' };
   function verlies(R) { const n = R.verloren.length; return n === 1 ? 'wel ' + DELEN[R.verloren[0]] + ' kwijt' : n + ' lichaamsdelen kwijt'; }

@@ -893,7 +893,22 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -4310,9 +4325,12 @@ const BJS = (() => {
       <p>Met de dagfiches (10 per hand) hield je er <b>${D.n >= 0 ? '+' : '−'}${fmt(Math.abs(D.n))}</b> aan over. Dat telt niet mee: het gaat om slim spelen.</p>
       ${echt ? `<h3>Het toernooi van deze week</h3><div class="week-rij" style="color:inherit">${W.dagen.map(x => `<span class="${x.a ? 'gedaan' : ''}${x.d === C.dagNr(Date.now()) ? ' vandaag' : ''}" title="${C.weekdag(x.d)}">${C.weekdag(x.d).slice(0, 2)}${x.a ? ' ' + x.a[0] : ''}</span>`).join('')}<b>${W.punten} van 700</b></div>
       <p class="klein">Al je punten samen: ${fmt(P.totaal)}. Morgen is er een nieuwe hand, voor iedereen dezelfde.</p><div id="dag-sb"></div>` : '<p class="klein">Een vorige dag oefenen telt niet mee voor het scorebord.</p>'}
-      <div class="rij"><button class="knop goud" type="button" id="dag-terug" data-focus>Terug naar de zaal</button></div>`);
+      <div class="rij"><button class="knop goud" type="button" id="dag-terug" data-focus>Terug naar de zaal</button></div><div class="eind-reclame"></div>`);
     k.querySelector('#dag-terug').onclick = () => { sluit(); naar('lobby'); };
     if (echt && window.Scorebord) { Scorebord.blokje(k.querySelector('#dag-sb'), 'je punten van de hand van de dag'); }
+    // een nep-advertentie voor een ander spel (banners.js), onder de knop
+    const rk = k.querySelector('.eind-reclame');
+    if (rk && window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok' }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
     fase = 'klaar'; zet(); GELUID.winst(score >= 80);
   }
   // ---------- openen en sluiten

@@ -218,7 +218,22 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -1574,11 +1589,18 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     geluid.winst();
     const ster = G.schoten <= G.start / 3 ? 3 : G.schoten <= G.start / 2.2 ? 2 : 1, bonus = Math.max(0, Math.round(G.start * 1.5 - G.schoten)) * 25; G.score += bonus;
     const l = G.level; opslag.sterren[l] = Math.max(opslag.sterren[l] || 0, ster); opslag.scores[l] = Math.max(opslag.scores[l] || 0, G.score); opslag.open = Math.max(opslag.open, l + 1); bewaar(); stuurScore();
-    venster(`<h2>Level ${l} gehaald!</h2><p class="sterren">${'★'.repeat(ster)}${'☆'.repeat(3 - ster)}</p><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>In ${G.schoten} schoten${bonus ? `, met ${bonus.toLocaleString('nl-NL')} bonuspunten voor de schoten die je over had` : ''}. ${ster < 3 ? 'Voor drie sterren: maximaal ' + Math.floor(G.start / 3) + ' schoten.' : 'Perfect!'}</p><div class="rij">${l < 30 ? `<button class="knop hoofd" data-start="avontuur" data-level="${l + 1}" type="button">Volgend level</button>` : ''}<button class="knop" data-start="avontuur" data-level="${l}" type="button">Nog een keer</button><button class="knop" data-menu="levels" type="button">Levels</button></div>`);
+    venster(`<h2>Level ${l} gehaald!</h2><p class="sterren">${'★'.repeat(ster)}${'☆'.repeat(3 - ster)}</p><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>In ${G.schoten} schoten${bonus ? `, met ${bonus.toLocaleString('nl-NL')} bonuspunten voor de schoten die je over had` : ''}. ${ster < 3 ? 'Voor drie sterren: maximaal ' + Math.floor(G.start / 3) + ' schoten.' : 'Perfect!'}</p><div class="rij">${l < 30 ? `<button class="knop hoofd" data-start="avontuur" data-level="${l + 1}" type="button">Volgend level</button>` : ''}<button class="knop" data-start="avontuur" data-level="${l}" type="button">Nog een keer</button><button class="knop" data-menu="levels" type="button">Levels</button></div><div class="eind-reclame"></div>`);
+    reclameOnder();
   }
   function verlies() {
     const eind = G.modus === 'eindeloos', record = eind && G.score > opslag.eindeloos; if (record) { opslag.eindeloos = G.score; bewaar(); stuurScore(); }
-    venster(`<h2>${eind ? 'De bellen zijn beneden!' : 'Net niet...'}</h2><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>${eind ? (record ? 'Een nieuw record!' : 'Je record is ' + opslag.eindeloos.toLocaleString('nl-NL') + '.') : 'De bellen kwamen bij de rode lijn. Probeer groepjes hoog in het veld weg te schieten, dan valt alles eronder mee.'}</p><div class="rij"><button class="knop hoofd" data-start="${G.modus}" data-level="${G.level || 0}" type="button">Opnieuw</button><button class="knop" data-menu="${eind ? 'hoofd' : 'levels'}" type="button">Menu</button></div>`);
+    venster(`<h2>${eind ? 'De bellen zijn beneden!' : 'Net niet...'}</h2><p class="groot">${G.score.toLocaleString('nl-NL')}</p><p>${eind ? (record ? 'Een nieuw record!' : 'Je record is ' + opslag.eindeloos.toLocaleString('nl-NL') + '.') : 'De bellen kwamen bij de rode lijn. Probeer groepjes hoog in het veld weg te schieten, dan valt alles eronder mee.'}</p><div class="rij"><button class="knop hoofd" data-start="${G.modus}" data-level="${G.level || 0}" type="button">Opnieuw</button><button class="knop" data-menu="${eind ? 'hoofd' : 'levels'}" type="button">Menu</button></div><div class="eind-reclame"></div>`);
+    reclameOnder();
+  }
+  // een nep-advertentie voor een ander spel (banners.js), onder de uitslag en de knoppen; hooguit eens per 10 minuten
+  function reclameOnder() {
+    const rk = $('menu-in').querySelector('.eind-reclame');
+    if (rk && window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok', soms: true }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
   }
   // ---------------- tekenen
   function bel(x, y, v, s = 1, a = 1) {

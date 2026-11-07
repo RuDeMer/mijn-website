@@ -252,6 +252,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     <div class="knoppen" id="u-knoppen"></div>
     <div class="sb-plek" id="sb-gevoel" hidden></div>
     <p class="later" id="u-later"></p>
+    <div id="eind-reclame"></div>
   </div>
 </section>
 
@@ -435,7 +436,22 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -3346,6 +3362,9 @@ const REKEN = (() => {
     const sb = $('sb-gevoel');
     if (rd.modus === 'dag' && window.Scorebord) Scorebord.blokje(sb, 'je dagscore'); else sb.hidden = true;
     $('u-later').textContent = rd.modus === 'dag' ? 'Morgen staat er een nieuwe dagronde klaar.' : 'Alleen de dagronde telt mee voor het scorebord.';
+    // een nep-advertentie voor een ander spel (banners.js), onder de uitslag en de knoppen
+    const rk = document.createElement('div'); $('eind-reclame').innerHTML = ''; $('eind-reclame').appendChild(rk);
+    if (window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok' }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
     setTimeout(() => deel.focus({ preventScroll: true }), 50);
   }
 

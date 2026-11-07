@@ -432,7 +432,22 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -7137,7 +7152,10 @@ const AL = (() => {
     const oud = V.races[R.id], beter = !oud || !oud.tijd || t < oud.tijd;
     if (!oud) V.races[R.id] = { tijd: t, medaille }; else { if (beter) oud.tijd = t; if (medaille && MED.indexOf(medaille) > MED.indexOf(oud.medaille)) oud.medaille = medaille; }
     bewaar(); stuurScore(); ringGroep.clear(); race = null; $('ar-race').hidden = true; fx.fanfare();
-    venster(`<p class="rg-kopje">Aangekomen · ${STAD.naam}</p><div class="rg-uitslag"><div><h2>${R.naam}</h2><p class="ar-groot">${t.toFixed(1)} s</p></div>${medaille ? medStempel(medaille, R.id + t, ';width:6rem;height:6rem;font-size:.82rem') : ''}</div><p>${medaille ? 'Je verdient een <b>' + medaille + 'en</b> medaille!' : 'Net geen medaille. Voor brons moet je binnen ' + R.brons + ' seconden zijn.'}${beter && oud ? ' Een nieuw record!' : ''}</p><p class="ar-klein">Goud: ${R.goud} s · zilver: ${R.zilver} s · brons: ${R.brons} s</p><div class="ar-rij"><button class="ar-knop hoofd" data-race="${R.id}" type="button">Nog een keer</button><button class="ar-knop" data-actie="races" type="button">Andere wedstrijd</button><button class="ar-knop" data-actie="vrij" type="button">Vrij vliegen</button></div>`, 'rg-smal');
+    venster(`<p class="rg-kopje">Aangekomen · ${STAD.naam}</p><div class="rg-uitslag"><div><h2>${R.naam}</h2><p class="ar-groot">${t.toFixed(1)} s</p></div>${medaille ? medStempel(medaille, R.id + t, ';width:6rem;height:6rem;font-size:.82rem') : ''}</div><p>${medaille ? 'Je verdient een <b>' + medaille + 'en</b> medaille!' : 'Net geen medaille. Voor brons moet je binnen ' + R.brons + ' seconden zijn.'}${beter && oud ? ' Een nieuw record!' : ''}</p><p class="ar-klein">Goud: ${R.goud} s · zilver: ${R.zilver} s · brons: ${R.brons} s</p><div class="ar-rij"><button class="ar-knop hoofd" data-race="${R.id}" type="button">Nog een keer</button><button class="ar-knop" data-actie="races" type="button">Andere wedstrijd</button><button class="ar-knop" data-actie="vrij" type="button">Vrij vliegen</button></div><div class="eind-reclame"></div>`, 'rg-smal');
+    // een nep-advertentie voor een ander spel (banners.js), onder de knoppen
+    const rk = $('ar-venster-in').querySelector('.eind-reclame');
+    if (rk && window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok' }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
   }
   // ontdekken: laag genoeg langs een bezienswaardigheid vliegen (de Seine: laag over het water)
   let ontdekT = 0;

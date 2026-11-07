@@ -127,6 +127,7 @@ html[data-thema="donker"] .knop.rood { color: #1C1D22; }
   <section class="uitleg" id="uitleg" hidden aria-live="polite"></section>
   <details class="terugblik" id="terugblik" hidden><summary>Terugblik</summary><div id="tb"></div><button class="knop" id="tb-meer" hidden>Laat er meer zien</button></details>
   <nav class="bundel" id="bundel" aria-label="Woordspellen van vandaag"></nav>
+  <div id="eind-reclame"></div>
 </div>
 <dialog id="d-op" aria-labelledby="op-t"><h2 id="op-t">Opgeven?</h2><p>Dan zie je het antwoord en de uitleg. Deze dag telt dan niet als opgelost, en je reeks begint morgen opnieuw.</p><div class="knoppen"><button class="knop" id="op-nee">Nee, ik puzzel verder</button><button class="knop rood" id="op-ja">Ja, laat zien</button></div></dialog>
 <dialog id="d-hoe" class="gids" aria-labelledby="hoe-t"><h2 id="hoe-t">Zo werkt het</h2>
@@ -310,7 +311,22 @@ html[data-thema="donker"] .knop.rood { color: #1C1D22; }
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -2236,7 +2252,7 @@ const WS = (() => {
   async function start() {
     dag = WS.vandaag(); S = leesS(); inv = ''; klaar = false; c = null;
     $('datum').textContent = WS.datum(dag, true); $('nummer').textContent = N ? 'Nr. ' + (dag - EERSTE + 1) : '';
-    $('uitleg').hidden = true; $('mld').textContent = ''; const st = $('knipsel').querySelector('.stempel'); if (st) st.remove();
+    $('uitleg').hidden = true; $('eind-reclame').innerHTML = ''; $('mld').textContent = ''; const st = $('knipsel').querySelector('.stempel'); if (st) st.remove();
     if (!N || dag < EERSTE) { $('oms').textContent = 'De eerste omschrijving verschijnt binnenkort.'; return; }
     const nu = dag;
     try { c = await haal(nrVan(dag)); } catch (e) { $('oms').textContent = 'Deze omschrijving kon niet worden geopend. Ververs de pagina.'; return; }
@@ -2284,6 +2300,9 @@ const WS = (() => {
     if (window.Scorebord) { try { Scorebord.blokje($('sb-cryptisch'), 'je beste reeks'); if (z.r.beste > 0) Scorebord.stuur('cryptisch', z.r.beste, z.een); } catch (e) {} }
     if (klaar === 'goed') WS.vergelijk('cryptisch', dag, tijd).then(x => { const t = WS.vergelijkTekst(x, true); if (t && $('vgl')) $('vgl').textContent = t; });
     teken(); terugblik(); WS.strook($('bundel'), 'cryptisch');
+    // een nep-advertentie voor een ander spel (banners.js), onder de uitleg en het strookje met de woordspellen
+    const rk = document.createElement('div'); $('eind-reclame').innerHTML = ''; $('eind-reclame').appendChild(rk);
+    if (window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok', niet: ['rommelwoord.html', 'cryptisch.html', 'letterval.html', 'klinkermijnen.html'] }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
     if (nieuw) $('uitleg').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
   async function deel() {

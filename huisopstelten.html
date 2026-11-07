@@ -306,7 +306,22 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -4854,9 +4869,11 @@ function eindeSpel() {
       <dl class="uitslag"><dt>Streken</dt><dd>${u.gedaan.length} van ${S.streken.length}</dd><dt>Chaos</dt><dd>${u.chaos}</dd><dt>Betrapt</dt><dd>${u.betrapt}×</dd>${u.alles ? `<dt>Tijdbonus</dt><dd>${u.score - u.chaos}</dd>` : ''}</dl>
       <p>${telt ? (nieuw.record ? '<span class="stempel">Record!</span> ' : '') + 'Deze telt mee voor het scorebord.' : 'Je speelde de uitdaging van vandaag al. Dit was om te oefenen; je eerste keer telt.'}</p>
       <div class="blokje-plek"></div>
+      <div class="eind-reclame"></div>
       <div class="rij"><button class="knop hoofd" id="e-huis" type="button">Naar het huis</button><button class="knop" id="e-nog" type="button">Nog een keer (oefenen)</button></div>`);
     if (window.Scorebord && Scorebord.blokje) try { Scorebord.blokje(k.querySelector('.blokje-plek'), 'Doe mee met de uitdaging van vandaag op het scorebord.'); } catch (e) {}
     $('e-huis').onclick = huis; $('e-nog').onclick = () => startSpel(S.kamer.id, u.dag);
+    reclameOnder(k);
     return;
   }
   const K = S.kamer, ks = O.k[K.id], volgende = KAMER_VOLGORDE[KAMER_VOLGORDE.indexOf(K.id) + 1];
@@ -4867,10 +4884,18 @@ function eindeSpel() {
     <dl class="uitslag"><dt>Streken</dt><dd>${u.gedaan.length} van ${S.streken.length}</dd><dt>Tijd</dt><dd>${tijdTekst(u.tijd)}${u.alles && u.tijd <= K.richttijd ? ' ★' : ' (voor een ster: binnen ' + tijdTekst(K.richttijd) + ')'}</dd><dt>Betrapt</dt><dd>${u.betrapt}×${u.betrapt === 0 && u.alles ? ' ★' : ''}</dd><dt>Chaos</dt><dd>${u.chaos} punten</dd></dl>
     ${nieuw.album.length ? `<p>📸 ${nieuw.album.length} nieuwe foto${nieuw.album.length > 1 ? "'s" : ''} in het fotoalbum.</p>` : ''}
     ${volgende && open && !kamerOpen({ k: Object.assign({}, O.k, { [K.id]: { s: [0, 0, 0] } }) }, volgende) ? `<p><span class="stempel">Nieuw</span> De ${esc(KAMERS[volgende].naam.toLowerCase())} is open!</p>` : ''}
+    <div class="eind-reclame"></div>
     <div class="rij"><button class="knop hoofd" id="e-nog" type="button">Nog een keer</button>${open ? `<button class="knop goud" id="e-volg" type="button">${esc(KAMERS[volgende].naam)}</button>` : ''}<button class="knop" id="e-huis" type="button">Naar het huis</button>${nieuw.album.length ? '<button class="knop" id="e-album" type="button">Fotoalbum</button>' : ''}</div>`);
   $('e-nog').onclick = () => startSpel(K.id); $('e-huis').onclick = huis;
   if ($('e-volg')) $('e-volg').onclick = () => kamerIntro(volgende);
   if ($('e-album')) $('e-album').onclick = album;
+  reclameOnder($('paneel-in'));
+}
+// een nep-advertentie voor een ander spel (banners.js). Hij staat vlak boven de knoppen: die blijven onderaan het paneel
+// in beeld (.kaart > .rij:last-child is sticky), dus de advertentie duwt ze nooit weg.
+function reclameOnder(k) {
+  const rk = k && k.querySelector('.eind-reclame');
+  if (rk && window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok' }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
 }
 // ---- de uitdaging van vandaag
 function dagIntro() {

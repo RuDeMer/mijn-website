@@ -358,7 +358,22 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -2633,6 +2648,10 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
   .tg-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1rem; } .tg-vlak { border-radius: 1.25rem; } .tg-naam { font-size: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .tg-vlak, body.v6-body { transition: none; } .tg-tegel:hover .tg-vlak { transform: none; } }
+/* nep-reclame voor de spellen (banners.js): een advertentie tussen Puzzels van vandaag en Alle spellen, en een hoge in de rechter kantlijn */
+.tg-reclame { display: block; margin: 0 0 2.6rem; }
+.tg-reclame-hoog, .tg-reclame-hoog.ra-plek { position: absolute; left: 0; top: 0; width: 160px; z-index: 2; }
+@media (max-width: 640px) { .tg-reclame { margin-bottom: 2rem; } }
 /* het casino: een uithangbord met neon en lampjes (bovenaan, zolang er een kaartje voor rommelcasino.html is) */
 .tg-casino { margin: 0 0 2.6rem; }
 .tg-cas-bord { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tekst plaat" "knop plaat"; align-items: center; gap: .7rem 1.6rem; padding: 2.2rem 2.1rem 2.1rem; border-radius: 1.75rem; border: 3px solid var(--tg-rand); text-decoration: none; color: #FFF4DA; overflow: hidden; background: radial-gradient(120% 150% at 88% 18%, #9A2079 0%, #4E1463 40%, #1C0B36 80%) #1C0B36; box-shadow: inset 0 0 0 3px #E9B949, inset 0 0 0 7px rgba(28,11,54,.85), inset 0 0 0 8.5px rgba(233,185,73,.5); }
@@ -2814,6 +2833,32 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     status(); addEventListener('pageshow', status); addEventListener('focus', status); addEventListener('storage', status); addEventListener('rommelhoekje-bijgewerkt', status);
   }
 
+  // ================= nep-reclame (banners.js, via Scorebord.banner in het scorebord-blok): rouleert vanzelf, en nieuwe spellen komen
+  // de eerste 7 dagen vaker langs. Tussen Puzzels van vandaag en Alle spellen een balk (computer) of blok (telefoon), en op een
+  // groot scherm een hoge advertentie (160 x 600) in de rechter kantlijn, naast Puzzels van vandaag.
+  let reclameHoog = null, hoogGestart = false;
+  function maakReclame(blok) {
+    if (!window.Scorebord || !Scorebord.banner) return;
+    const sec = document.createElement('section'); sec.className = 'tg-reclame'; sec.setAttribute('aria-label', 'Advertentie');
+    blok.before(sec);
+    Scorebord.banner(sec, {});
+    reclameHoog = document.createElement('div'); reclameHoog.className = 'tg-reclame-hoog'; reclameHoog.hidden = true;
+    document.body.appendChild(reclameHoog);
+    plaatsHoog(); addEventListener('resize', plaatsHoog); addEventListener('load', plaatsHoog);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(plaatsHoog);
+  }
+  // de hoge advertentie staat in het midden van de rechter kantlijn, met de bovenkant gelijk aan Puzzels van vandaag (of de advertentiebalk)
+  function plaatsHoog() {
+    const h = reclameHoog, main = $('main'); if (!h || !main) return null;
+    const m = main.getBoundingClientRect(), vw = document.documentElement.clientWidth, rand = m.right - 24, ruimte = vw - rand;
+    const boven = $('#vandaag') || $('.tg-reclame');
+    if (ruimte < 208 || !boven) { h.hidden = true; return null; }
+    const top = boven.getBoundingClientRect().top + scrollY, left = rand + (ruimte - 160) / 2;
+    h.hidden = false; h.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(top) + 'px)';
+    if (!hoogGestart) { hoogGestart = true; Scorebord.banner(h, { vorm: 'hoog' }); }
+    return { l: left, t: top, r: left + 160, b: top + 618 };
+  }
+
   // ================= opbouwen (zodra home_v8 de categorieën heeft gezet)
   function bouw() {
     if (window.__v6) return; const v8 = $('.v8'); if (!v8) return;
@@ -2855,6 +2900,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     v8.before(blok);
     try { maakDag(tegels, blok); } catch (e) {}
     try { maakCasino(tegels, blok); } catch (e) {}
+    try { maakReclame(blok); } catch (e) {}
     // de coulissen staan na de eerste rij kaartjes, dus in de oude weergave van home_v8: eerst eruit halen, dan pas verbergen
     const coul = $('.coulissen'); if (coul && v8.contains(coul)) blok.after(coul);
     // filteren
@@ -3553,11 +3599,13 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const links = m.l + 24 - 16, rechts = vw - m.r + 24 - 16; // de ruimte naast de inhoud (main heeft binnenruimte)
       zijRuimte = links >= 104 && rechts >= 104 && !!held;
       const boven = held ? rect(held).b + 60 : 600, onder = coul ? rect(coul).t - 40 : boven + 1800, stap = (onder - boven) / 4;
+      const hoog = plaatsHoog(); let volgendeRechts = -Infinity;   // de hoge advertentie in de rechter kantlijn: de plankjes rechts gaan eronder
       for (let z = 0; z < ZIJ.length; z++) {
         const p = plank('zij' + z);
         if (!zijRuimte) { p.hidden = true; continue; }
         const rechtsKant = z % 2 === 1, breed = 84, cx = rechtsKant ? (m.r - 24 + vw) / 2 + ((z * 7) % 9) - 4 : (m.l + 24) / 2 + ((z * 11) % 9) - 4;
-        const py = boven + Math.floor(z / 2) * stap + (z % 2) * stap * 0.45 + 56;
+        let py = boven + Math.floor(z / 2) * stap + (z % 2) * stap * 0.45 + 56;
+        if (rechtsKant && hoog) { if (py > hoog.t - 90 && py < hoog.b + 60) py = hoog.b + 100; py = Math.max(py, volgendeRechts); volgendeRechts = py + 150; }
         p.hidden = false; p.style.transform = `translate(${(cx - breed / 2).toFixed(1)}px,${py.toFixed(1)}px)`; p.style.width = breed + 'px'; p.dataset.x0 = cx - breed / 2; p.dataset.y = py; p.dataset.w = breed;
       }
     }
@@ -3591,6 +3639,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const brief = $('.briefje'); if (zichtbaar(brief)) vastVan(brief, { schuin: 3, naam: 'briefje', anker: 'briefje', tik: true });
       const blad = $('.tg-blad'); if (zichtbaar(blad)) vastVan(blad, { schuin: 6, naam: 'blad', anker: 'blad', tik: true });
       const cas = $('.tg-cas-bord'); if (zichtbaar(cas)) vastVan(cas, { schuin: 12, hoek: 0, naam: 'casino', anker: 'casino' });
+      // de advertenties (die rouleren, dus het blok hangt aan de vaste plek eromheen)
+      const rb = $('.tg-reclame'), ra = rb && rb.querySelector('.ra'); if (zichtbaar(ra)) vastVan(ra, { hoek: 0, naam: 'reclame', anker: 'reclame', el: rb });
+      const rh = reclameHoog, rha = rh && !rh.hidden && rh.querySelector('.ra'); if (zichtbaar(rha)) vastVan(rha, { hoek: 0, naam: 'reclame', anker: 'reclame-hoog', el: rh });
       document.querySelectorAll('#vandaag .tg-dk').forEach((el, i) => vastVan(el, { schuin: 8, hoek: 0, naam: 'dag', anker: 'dag' + i, tik: true }));
       const kop = $('#tg-kop span'); if (zichtbaar(kop)) vastVan(kop, { schuin: 2, naam: 'kop', anker: 'kop' });
       // tegels: de plek van het vlak zonder het optillen bij aanwijzen (dat zit op het vlak zelf)

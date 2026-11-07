@@ -1,5 +1,7 @@
 # Plan: nep-reclame voor de spellen (7 november 2026, versie 2)
 
+> **Gebouwd op 7 november 2026**, met de antwoorden van Ruben (de teksten zijn goed; ook een hoge advertentie; de plekken op de homepage en het rouleren ja; de lijst na een spel ja; Rommelhotel Online ja; geen klikken tellen; en nieuwe spellen moeten de eerste 7 dagen vaker langskomen). Hoe het nu precies werkt staat in CLAUDE.md, bij **Nep-reclame voor de spellen**. Op een paar punten wijkt het af van dit plan: de keuze is een **gewogen loting** (nieuw 4 keer, uitgelicht 6 keer zo vaak) in plaats van een vaste volgorde, er is een **hoge advertentie** (160 × 600) naast de homepage, de advertenties wisselen tot 30 keer per bezoek, en klikken worden niet geteld.
+
 Het rommelhoekje krijgt reclame, net als een echte website: een advertentiebalk zoals bovenaan een nieuwssite, een advertentieblok op je telefoon, en "Dit vind je misschien ook leuk" met gesponsorde links. Alleen is elke advertentie nep: hij gaat altijd over een van jouw eigen spellen. Dit is het plan; er is nog niets aan de site veranderd. Zeg wat je ervan vindt, en vooral welke teksten je niet grappig vindt. Die verbeter ik dan eerst.
 
 De schetsen heb ik meegestuurd: de advertenties in de echte pagina's (homepage op een computer en een telefoon, het eindscherm van Rob, het scorebord en de 404-pagina), alle 28 als balk en als blok, en een voorbeeldbestand waarin ze bewegen.

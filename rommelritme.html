@@ -84,7 +84,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     </div>
   </div>
   <div class="rr-scherm" id="rr-pauze" hidden><div class="rr-kaart" style="max-width:22rem;text-align:center"><h2>Pauze</h2><p>Even op adem komen.</p><div class="rr-knoppen" style="justify-content:center;flex-wrap:wrap"><button class="rr-knop hoofd" id="rr-verder" type="button">Verder</button><button class="rr-knop" id="rr-opnieuw" type="button">Opnieuw</button><button class="rr-knop" type="button" data-naarmenu="1">Naar de levels</button></div></div></div>
-  <div class="rr-scherm" id="rr-einde" hidden><div class="rr-kaart" style="max-width:26rem;text-align:center"><h2 id="rr-einde-kop">Level gehaald!</h2><p id="rr-einde-tekst"></p><div class="rr-knoppen" style="justify-content:center"><button class="rr-knop hoofd" type="button" data-naarmenu="1">Naar de levels</button></div></div></div>
+  <div class="rr-scherm" id="rr-einde" hidden><div class="rr-kaart" style="max-width:26rem;text-align:center"><h2 id="rr-einde-kop">Level gehaald!</h2><p id="rr-einde-tekst"></p><div class="rr-knoppen" style="justify-content:center"><button class="rr-knop hoofd" type="button" data-naarmenu="1">Naar de levels</button></div><div id="eind-reclame"></div></div></div>
 </div>
 <script>
 (function () {
@@ -243,7 +243,22 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       if (!(await API.actief())) { el.hidden = true; return; }
       tekenBlok(el);
     },
+    // een nep-advertentie voor een ander spel van het rommelhoekje (banners.js), voor een rustig moment zoals het eindscherm.
+    // Een spel roept dit zelf aan; de ruimte wordt meteen vrijgehouden. Opties (zie banners.js): vorm ('blok', 'hoog' of 'lijst'),
+    // niet (pagina's die niet mogen), soms (hooguit eens per 10 minuten), wissel (false: niet rouleren).
+    banner(el, opties) {
+      if (!el) return;
+      opties = opties || {};
+      const pagina = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      if (opties.soms) { try { const g = JSON.parse(localStorage.getItem('rommelbanner-v1') || '{}'), t = g && g.e && g.e[pagina]; if (t && Date.now() - t < 6e5 && Date.now() >= t) return; } catch (e) {} }
+      if (!el.style.height) { const w = el.clientWidth || 300, v = opties.vorm || (w >= 744 ? 'balk' : 'blok'); el.style.minHeight = (v === 'balk' ? 108 : v === 'hoog' ? 618 : v === 'lijst' ? 232 : 268) + 'px'; }
+      const ga = () => { if (window.RommelBanner) window.RommelBanner.toon(el, opties); else el.style.minHeight = ''; };
+      if (window.RommelBanner) return ga();
+      if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+      bannerLaad.then(ga);
+    },
   };
+  let bannerLaad = null;
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -1771,7 +1786,11 @@ if (typeof module !== 'undefined') module.exports = RRM;
     if (!S.oefen) { opslag.best[id] = 100; opslag.gehaald[id] = true; bewaar(); stuurScore(); }
     for (let i = 0; i < 120; i++) S.deeltjes.push({ x: S.st.x + (Math.random() - 0.3) * 10, y: S.st.y + 8 + Math.random() * 4, vx: (Math.random() - 0.5) * 6, vy: -Math.random() * 4, t: 3, k: ['#FF5AA8', '#5EE6FF', '#FFE76A', '#8AFF6A', '#FF7A3A'][i % 5], r: 0.12, confetti: true });
     const dezeRonde = S.st;
-    setTimeout(() => { if (S.st !== dezeRonde || S.scherm !== 'spel') return; $('rr-einde-kop').textContent = S.oefen ? 'Oefenronde gehaald!' : 'Level gehaald!'; $('rr-einde-tekst').textContent = S.oefen ? 'Knap! Probeer het nu zonder checkpoints.' : `${S.lev.spec.naam} in ${S.poging} ${S.poging === 1 ? 'poging' : 'pogingen'}. Wat een ritmegevoel!`; $('rr-einde').hidden = false; S.scherm = 'einde'; }, 1600);
+    setTimeout(() => { if (S.st !== dezeRonde || S.scherm !== 'spel') return; $('rr-einde-kop').textContent = S.oefen ? 'Oefenronde gehaald!' : 'Level gehaald!'; $('rr-einde-tekst').textContent = S.oefen ? 'Knap! Probeer het nu zonder checkpoints.' : `${S.lev.spec.naam} in ${S.poging} ${S.poging === 1 ? 'poging' : 'pogingen'}. Wat een ritmegevoel!`; $('rr-einde').hidden = false; S.scherm = 'einde';
+      // een nep-advertentie voor een ander spel (banners.js), onder de knop; hooguit eens per 10 minuten
+      const rk = document.createElement('div'); $('eind-reclame').innerHTML = ''; $('eind-reclame').appendChild(rk);
+      if (window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok', soms: true }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
+    }, 1600);
   }
   function stuurScore() { if (!window.Scorebord) return; const som = RRM.LEVELS.reduce((a, s) => a + (opslag.best[s.id] || 0), 0), pog = Object.values(opslag.pogingen).reduce((a, b) => a + b, 0); if (som > 0) Scorebord.stuur('ritme', som, pog); }
   function update() {

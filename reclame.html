@@ -215,18 +215,18 @@ html[data-thema="donker"] .groep-kop { color: var(--a1); }
   .kaart .rij .knop { flex: 1 1 auto; text-align: center; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .laag:not(.reclame) .kaart { animation: kaart-in .32s cubic-bezier(.2, 1.2, .4, 1) both; }
+  .laag:not(.rc-laag) .kaart { animation: kaart-in .32s cubic-bezier(.2, 1.2, .4, 1) both; }
   .sterren .aan { display: inline-block; animation: ster-plof .45s cubic-bezier(.3, 1.9, .5, 1) both; }
   .sterren .aan:nth-child(2) { animation-delay: .18s; } .sterren .aan:nth-child(3) { animation-delay: .36s; }
   .lvl:not(:disabled) { transition: transform .2s cubic-bezier(.3, 1.6, .5, 1); }
 }
-@media (prefers-reduced-motion: no-preference) and (max-width: 560px) { .laag:not(.reclame) .kaart { animation-name: kaart-op; } }
+@media (prefers-reduced-motion: no-preference) and (max-width: 560px) { .laag:not(.rc-laag) .kaart { animation-name: kaart-op; } }
 @keyframes kaart-in { from { transform: translateY(14px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes kaart-op { from { transform: translateY(60px); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes ster-plof { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
 
 /* ---------- de reclame (nep): een filmpje op het hele scherm */
-.laag.reclame { padding: 0; background: radial-gradient(60% 50% at 50% 45%, var(--gloed), transparent 75%), #0A0718; place-items: stretch; }
+.laag.rc-laag { padding: 0; background: radial-gradient(60% 50% at 50% 45%, var(--gloed), transparent 75%), #0A0718; place-items: stretch; }
 .rc { position: relative; width: 100%; height: 100%; overflow: hidden; display: grid; place-items: center; }
 .rc canvas { display: block; border-radius: 18px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); }
 .rc .rc-slogan { position: absolute; left: 50%; top: 9%; transform: translateX(-50%) rotate(-3deg); width: max-content; max-width: 90%; text-align: center; background: #FFE14D; color: #1B1830; border-radius: 16px; padding: .5rem .9rem .55rem; font-weight: 800; font-stretch: 85%; font-size: clamp(1.4rem, 6.4vw, 2.5rem); line-height: 1.05; box-shadow: 0 14px 30px -12px rgba(0,0,0,.6); }
@@ -293,7 +293,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   </section>
 </main>
 <div class="laag" id="venster" hidden><div class="kaart" id="venster-in" role="dialog" aria-modal="true" aria-labelledby="venster-kop"></div></div>
-<div class="laag reclame" id="reclame" hidden><div class="rc" id="rc"><canvas id="rc-doek" aria-hidden="true"></canvas><span class="rc-label">Reclame (nep)</span><button class="knop rc-weg" id="rc-weg" type="button">Overslaan <span aria-hidden="true">›</span></button><div class="rc-slogan" id="rc-slogan"></div><div class="rc-onder" id="rc-onder"></div><button class="knop hoofd rc-echt" id="rc-echt" type="button" hidden>Speel het echt <span aria-hidden="true">▸</span></button></div></div>
+<div class="laag rc-laag" id="rc-laag" hidden><div class="rc" id="rc"><canvas id="rc-doek" aria-hidden="true"></canvas><span class="rc-label">Reclame (nep)</span><button class="knop rc-weg" id="rc-weg" type="button">Overslaan <span aria-hidden="true">›</span></button><div class="rc-slogan" id="rc-slogan"></div><div class="rc-onder" id="rc-onder"></div><button class="knop hoofd rc-echt" id="rc-echt" type="button" hidden>Speel het echt <span aria-hidden="true">▸</span></button></div></div>
 <script>
 (function () {
   try { const h = sessionStorage.getItem('koppel-herstel'); if (h) { const d = JSON.parse(h); for (const [k, v] of Object.entries(d)) { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
@@ -7172,7 +7172,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
   doek.addEventListener('pointerup', los); doek.addEventListener('pointercancel', los);
   doek.addEventListener('contextmenu', e => e.preventDefault());
   addEventListener('keydown', e => {
-    if (!$('reclame').hidden) { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stopReclame(); } return; }
+    if (!$('rc-laag').hidden) { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stopReclame(); } return; }
     if (!venster.hidden) { if (e.key === 'Escape' && vensterSluit) { e.preventDefault(); dicht(); } return; }
     if (!HUIDIG) return;
     if (e.key === 'Escape') { e.preventDefault(); naarPlank(); return; }
@@ -7188,7 +7188,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
   const rcDoek = $('rc-doek'), rcG = rcDoek.getContext('2d');
   function toonReclame(id, daarna) {
     const M = SP[id], R = M.reclame; if (!R) { daarna(); return; }
-    $('reclame').hidden = false; $('reclame').dataset.spel = id; $('rc-echt').hidden = true;
+    $('rc-laag').hidden = false; $('rc-laag').dataset.spel = id; $('rc-echt').hidden = true;
     $('rc-slogan').textContent = R.slogan; $('rc-onder').textContent = '';
     const demo = R.maak({ geluid: (n, k) => GELUID.speel(n, k), T, ZACHT, look: O.look[id] || 0, klaar: () => {}, zweef: () => {}, tip: () => {}, vuil: () => {} });
     RECLAME = { id, M, demo, t: 0, daarna, klaar: false };
@@ -7201,7 +7201,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = RM;
     RECLAME.s = s * d;
   }
   addEventListener('resize', rcMaat);
-  function stopReclame() { if (!RECLAME) return; const d = RECLAME.daarna; RECLAME = null; $('reclame').hidden = true; GELUID.speel('tik'); d(); }
+  function stopReclame() { if (!RECLAME) return; const d = RECLAME.daarna; RECLAME = null; $('rc-laag').hidden = true; GELUID.speel('tik'); d(); }
   $('rc-weg').addEventListener('click', stopReclame);
   $('rc-echt').addEventListener('click', stopReclame);
   function reclameStap(dt) {

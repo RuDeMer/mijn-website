@@ -2,7 +2,7 @@
 
 Kleine, vrolijke banners die spelers op een leuke manier naar andere spellen sturen, vooral naar nieuwe spellen en spellen die ze nog niet kennen. Dit is het plan; er is nog niets aan de site veranderd. Zeg wat je ervan vindt, en vooral: **welke teksten je niet grappig vindt**. Die verbeter ik dan eerst.
 
-De schetsen (computer en telefoon, licht en donker) heb ik meegestuurd als plaatjes, plus een voorbeeldbestand waarin je de animaties ziet bewegen.
+De schetsen (computer en telefoon, licht en donker) heb ik meegestuurd als plaatjes: alle 28 banners breed in licht en in donker, alle 28 smal, en een paar in de echte pagina's. Plus een voorbeeldbestand waarin je alle animaties ziet bewegen.
 
 ## 1. Zo ziet een banner eruit
 
@@ -12,7 +12,7 @@ De schetsen (computer en telefoon, licht en donker) heb ik meegestuurd als plaat
 - **Stempel Nieuw!** bij spellen die korter dan drie weken online staan.
 - **De hele banner is één link**, met een duidelijke tekst voor schermlezers ("Probeer ook Rommelarend. Even wegvliegen van alle verplichtingen? Vlieg als arend over …"). Rechtsboven een **kruisje** (die banner zie je dan twee weken niet).
 - **De ruimte is vooraf vrijgehouden**: de banner heeft een vaste hoogte (breed 140 px, smal 162 px, met het tapeje erbij), dus niets verspringt als hij verschijnt. Lange teksten worden niet afgekapt: elke tekst in de lijst past (hooguit 70 tekens, de editor in de werkplaats bewaakt dat).
-- **Animaties**: subtiel en met rustpauzes ertussen, alleen als de banner in beeld is. Staat op je apparaat **minder beweging** aan, dan staat alles stil. Per spel staat de animatie hieronder bij de teksten.
+- **Animaties**: subtiel en met rustpauzes ertussen, alleen als de banner in beeld is. Staat op je apparaat **minder beweging** aan, dan staat alles stil. Per spel staat de animatie hieronder bij de teksten. De tekst staat altijd vóór de tekening, dus wat door de banner vliegt (de arend, het vliegtuigje) maakt de tekst nooit onleesbaar. Moeki, Joop op de fiets en het karretje van Rommelwheels lopen bovenop de rand van de banner; in donker krijgen ze een lichte rand, zodat je ze ziet.
 
 ## 2. Waar ze komen
 
@@ -69,7 +69,7 @@ Wil je zien welke banners werken, dan kan de scoreserver per dag tellen hoe vaak
 
 ## 6. Wat er technisch verandert
 
-- **Nieuw**: `banners.js` (het kiezen, de ontwerpen en animaties van alle spellen, ongeveer 90 kB, alleen geladen als er een banner komt) en `banners.json` (de teksten).
+- **Nieuw**: `banners.js` (het kiezen, de ontwerpen en animaties van alle 28 spellen, ongeveer 180 kB, ingepakt over het internet zo'n 31 kB, alleen geladen als er een banner komt) en `banners.json` (de teksten).
 - **Het gedeelde scorebord-script**: één kleine functie `Scorebord.banner(plek, opties)` die `banners.js` laadt (ongeveer 15 regels). Met het script uit CLAUDE.md in alle 24 pagina's tegelijk, ook in `homepage-onderdelen.js` en de kopie in de werkplaats.
 - **`homepage-onderdelen.js`**: de plek op de homepage (home_v6), en de rommeltjes kunnen op de banner liggen. `index.html` blijft zoals hij is.
 - **`scorebord.html` en `404.html`**: een plek voor de banner.
@@ -113,7 +113,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Open pakjes en verzamel meer dan 300 Rommelbeesten, van gewoon tot geheim.  
 *Op een telefoon:* Pakjes openen en beesten verzamelen  
-*Animatie:* een pakje wiebelt, scheurt open en er glimt een kaart uit  
+*Animatie:* een pakje wiebelt, scheurt open en er komt een glimmende kaart uit  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Eén pakje nog. Zei iedereen, ooit.
@@ -126,7 +126,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Een pixelhotel vol mysteries: loop rond, praat met de gasten en los de puzzels op.  
 *Op een telefoon:* Een pixelhotel vol mysteries  
-*Animatie:* de ramen gaan één voor één aan en het liftje zoeft omhoog  
+*Animatie:* de ramen gaan één voor één aan en de vlag op het dak wappert  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Kamer 12 is voor jou gereserveerd. Al een tijdje.
@@ -139,7 +139,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Het Rommelhotel, live met je vrienden: maak een poppetje, richt je kamer in en klets.  
 *Op een telefoon:* Het Rommelhotel, live met vrienden  
-*Animatie:* het hotel, met tekstballonnetjes die opploppen  
+*Animatie:* het hotel, met praatwolkjes die opploppen ("Hoi!", een hartje, "Haha")  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Hetzelfde hotel, maar nu met echte buren.
@@ -152,7 +152,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Een eindeloze wereld van blokken: graven, bouwen, ruilen en samen spelen.  
 *Op een telefoon:* Bouw je eigen blokkenwereld  
-*Animatie:* een houweel tikt op een blok en er stapelen zich blokjes op  
+*Animatie:* er valt een blok op de stapel, en een houweel hakt erin  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Bouw je droomhuis. Zonder vergunning.
@@ -165,7 +165,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Bouw je eigen pretpark in 3D, met attracties, kraampjes en bezoekers met een mening.  
 *Op een telefoon:* Bouw je eigen 3D-pretpark  
-*Animatie:* het reuzenrad draait rond  
+*Animatie:* het reuzenrad draait, en de bakjes blijven recht hangen  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Bouw een achtbaan. Vergeet de wc's niet.
@@ -178,7 +178,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Klik vlaaien, neem bakkers in dienst en bouw een Limburgs vlaaienrijk.  
 *Op een telefoon:* Bak een Limburgs vlaaienrijk  
-*Animatie:* een vlaai draait rond op een taartplateau, met +1'tjes  
+*Animatie:* een kersenvlaai met toefjes slagroom draait rond op een bord, met +1'tjes  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Wie wat bewaart, die bakt wat.
@@ -192,7 +192,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Duik overdag in de Noordzee en kook 's avonds je vangst in je eigen restaurant.  
 *Op een telefoon:* Overdag duiken, 's avonds koken  
-*Animatie:* de duiker dobbert met belletjes, en er zwemt een visje voorbij  
+*Animatie:* de duiker dobbert met belletjes, het wier wiegt en er zwemt een visje voorbij  
 *Stempel Nieuw:* tot en met 15 november
 
 1. Een chef die zijn eigen vis vangt. Met een harpoen.
@@ -206,7 +206,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Speel pokerhanden, verzamel rare snuisterijen en versla de kraampjes op de rommelmarkt.  
 *Op een telefoon:* Poker op de rommelmarkt  
-*Animatie:* vijf kaarten waaieren open tot een full house  
+*Animatie:* vijf kaarten waaieren open tot een full house, met een rubberen eendje ernaast  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Sokken zonder paar. Toch een paar. Dat is poker.
@@ -219,7 +219,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Raad elke dag nieuwe woorden van vier tot acht letters, in zes pogingen.  
 *Op een telefoon:* Raad elke dag nieuwe woorden  
-*Animatie:* letters draaien om en worden groen  
+*Animatie:* de letters van RADEN draaien één voor één om en worden groen  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Vijf letters, zes kansen, nul excuses.
@@ -233,7 +233,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Vlieg met een papieren vliegtuigje door een neonstad, langs kranen en schoorstenen.  
 *Op een telefoon:* Vlieg met een papieren vliegtuigje  
-*Animatie:* een papieren vliegtuigje zweeft door de hele banner  
+*Animatie:* een papieren vliegtuigje zweeft door de banner, met een neonstad 's nachts  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Eén tik en je zweeft. Eén tik te veel en je kreukt.
@@ -273,7 +273,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Vlieg als arend over Parijs, Amsterdam, Londen en New York.  
 *Op een telefoon:* Vlieg als arend over vier wereldsteden  
-*Animatie:* een arend vliegt door de hele banner, boven een stad met de Eiffeltoren  
+*Animatie:* een arend met gespreide vleugels vliegt door de banner, boven een stad met de Eiffeltoren  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Even wegvliegen van alle verplichtingen?
@@ -286,7 +286,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Geef Rob zo snel mogelijk een duimpje, maar trap niet in de nep-Robs.  
 *Op een telefoon:* Geef Rob een duimpje, snel  
-*Animatie:* duimpjes ploppen omhoog  
+*Animatie:* het bordje ROB wiebelt en er ploppen duimpjes omhoog  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Rob wil een duimpje. Doe het voor Rob.
@@ -299,7 +299,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Schiet bellen, maak groepjes van drie en laat het plafond niet te laag zakken.  
 *Op een telefoon:* Schiet bellen van dezelfde kleur  
-*Animatie:* bellen stijgen op en ploppen  
+*Animatie:* een kanon schiet een bel via de muur naar de groep, en drie gele bellen ploppen  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Mikken, kaatsen, ploppen. Herhalen.
@@ -312,7 +312,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Borduur rustig kruissteekjes, zonder tijd en zonder score.  
 *Op een telefoon:* Rustig borduren, steek voor steek  
-*Animatie:* een naald borduurt heel rustig kruisjes  
+*Animatie:* een naald borduurt heel rustig kruisjes tot een hartje  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. Even niks moeten. Wel borduren.
@@ -325,7 +325,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Fiets als productieleider Joop over het Bata-terrein: springen, bukken, koffie halen.  
 *Op een telefoon:* Fiets over het Bata-terrein  
-*Animatie:* Joop fietst op de rode fiets over de bovenrand van de banner  
+*Animatie:* Joop fietst op de rode fiets over de bovenrand, en de fabriek van Bata rookt  
 *Stempel Nieuw:* nee (langer dan drie weken online)
 
 1. JAJA PRODUCTIEFIETS! Meer hoeven we niet te zeggen.
@@ -338,7 +338,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Een rustig opruimspel: zet alles recht, sorteer het en leg het op zijn plek.  
 *Op een telefoon:* Rustig opruimen, alles op zijn plek  
-*Animatie:* een scheef lijstje gaat vanzelf recht hangen  
+*Animatie:* een scheef lijstje gaat vanzelf recht hangen, en de bel van de waterpas schuift naar het midden  
 *Stempel Nieuw:* tot en met 10 november
 
 1. Voor wie een scheef schilderij niet kan uitstaan.
@@ -351,7 +351,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Hoe goed is je oog, je timing en je geheugen? Elke dag vijf korte uitdagingen.  
 *Op een telefoon:* Vijf uitdagingen voor je gevoel  
-*Animatie:* de naald van de meter zwaait heen en weer  
+*Animatie:* de naald van de meter zwaait en stopt bijna precies in het midden  
 *Stempel Nieuw:* tot en met 10 november
 
 1. Teken een perfecte cirkel. Uit de losse hand. Succes.
@@ -364,7 +364,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Laat stickers op elkaar vallen en kijk wat eruit komt. Begin met water, vuur, wind en aarde.  
 *Op een telefoon:* Combineer alles tot iets nieuws  
-*Animatie:* twee stickers botsen en worden één nieuwe  
+*Animatie:* een sticker water en een sticker vuur botsen, en er komt een sticker stoom uit  
 *Stempel Nieuw:* tot en met 9 november
 
 1. Water plus vuur is stoom. Stoom plus pizza is… probeer maar.
@@ -376,7 +376,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Een slap poppetje, een raar voertuig en een baan vol valkuilen.  
 *Op een telefoon:* Slappe poppetjes, rare karretjes  
-*Animatie:* een wiebelig karretje rijdt over de bovenrand  
+*Animatie:* een karretje met een slap poppetje rijdt over de bovenrand, en een wiel rolt over heuvels  
 *Stempel Nieuw:* tot en met 7 november
 
 1. Rijden zonder rijbewijs. Landen zonder stijl.
@@ -388,7 +388,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Zes spelletjes uit de reclames, maar dan echt. Elke dag een nieuwe.  
 *Op een telefoon:* Reclamespelletjes, maar dan echt  
-*Animatie:* een pin schuift weg en de muntjes vallen naar Snuf  
+*Animatie:* een pin schuift weg en de muntjes vallen naar Snuf de mol  
 *Stempel Nieuw:* tot en met 17 november
 
 1. Dit is reclame voor een spel over reclame. Het is echt, beloofd.
@@ -401,7 +401,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Speel als Moeki en Floortje en zet het huis op stelten, zonder dat Ruben je betrapt.  
 *Op een telefoon:* Twee katten en een lijstje streken  
-*Animatie:* Moeki sluipt over de bovenrand van de banner, en een kattenpoot duwt een glas van tafel  
+*Animatie:* Moeki sluipt over de bovenrand van de banner, en Floortje tikt een glas van tafel  
 *Stempel Nieuw:* tot en met 16 november
 
 1. Twee katten. Eén huis. Nul regels.
@@ -415,7 +415,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Elke dag zestien woorden. Vind de vier groepjes met een verborgen verband.  
 *Op een telefoon:* Zestien woorden, vier groepjes  
-*Animatie:* vier tegeltjes schuiven samen in een rij  
+*Animatie:* vier oranje tegeltjes schuiven samen in de bovenste rij  
 *Stempel Nieuw:* tot en met 18 november
 
 1. Zestien woorden, vier groepjes, een klein beetje paniek.
@@ -428,7 +428,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Elke dag één cryptische omschrijving: een zin met een betekenis en een woordspel.  
 *Op een telefoon:* Elke dag één cryptische omschrijving  
-*Animatie:* een vergrootglas glijdt over een krantenknipsel  
+*Animatie:* een vergrootglas met een vraagteken glijdt over een krantenknipsel  
 *Stempel Nieuw:* tot en met 27 november
 
 1. Eén zin, één woord, geen hints.
@@ -441,7 +441,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Elke dag een kist met letterblokjes. Veeg woorden, en de letters erboven vallen omlaag.  
 *Op een telefoon:* Veeg woorden uit de letterkist  
-*Animatie:* letterblokjes vallen in een kist  
+*Animatie:* een woord wordt weggeveegd en de letterblokjes erboven vallen omlaag  
 *Stempel Nieuw:* tot en met 27 november
 
 1. Letters vallen naar beneden. Woorden vallen op hun plek.
@@ -454,7 +454,7 @@ Per spel minstens vier teksten die afwisselen. Een tekst met een moment erachter
 
 *Wat het is:* Elke dag een klein kruiswoordveld waarin de klinkers mijnen zijn.  
 *Op een telefoon:* Kruiswoord met klinkermijnen  
-*Animatie:* vakjes klappen om; bij een klinker steekt er een rood vlaggetje op  
+*Animatie:* vakjes klappen open; op een klinker steekt een rood vlaggetje op  
 *Stempel Nieuw:* tot en met 27 november
 
 1. Klinkt goed, maar pas op voor de klinkers.

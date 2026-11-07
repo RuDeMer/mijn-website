@@ -150,9 +150,12 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     return x > 0 ? Math.log10(x) : -Infinity;
   };
   // spellen die hun score als 10-log sturen, en borden die een oude scoreserver nog niet kent (dan zeggen we niets)
-  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1, kroonklok: 1, casino: 1 };
+  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1, kroonklok: 1, casino: 1, cryptisch: 1, letterval: 1, klinker: 1 };
   const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
+  // de woordspellen (2026-11-06): je beste reeks (dagen op rij gelukt) en hoe vaak in één keer goed (het teken 1 of A)
+  const woordBron = k => { const s = lees(k), d = s && typeof s.d === 'string' ? s.d : ''; let b = 0, r = 0, een = 0; for (const x of d) { if (/[0-9A-I]/.test(x)) { r++; b = Math.max(b, r); if (x === '1' || x === 'A') een++; } else r = 0; } return b ? [b, een] : null; };
   const BRONNEN = {
+    cryptisch: () => woordBron('cryptisch-v1'), letterval: () => woordBron('letterval-v1'), klinker: () => woordBron('klinkermijnen-v1'),
     // Casino Rommelroyaal: alle punten van de hand van de dag (elke dag hooguit 100), en je beste week (de week begint op maandag)
     casino: () => { const s = lees('rommelcasino-v1'); if (!s || !s.dag || typeof s.dag !== 'object') return null; let t = 0; const w = {}; for (const [d, x] of Object.entries(s.dag)) { const p = Array.isArray(x) ? Math.max(0, Math.min(100, Math.round(+x[0] || 0))) : 0; t += p; const W = Math.floor((+d + 3) / 7); w[W] = (w[W] || 0) + p; } return t ? [t, Math.max(0, ...Object.values(w))] : null; },
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
@@ -354,6 +357,29 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     // Casino Rommelroyaal: een rijtje tellers (zoals rondes, ingezet en terug), per plek een teller
     const tellers = (b, s, i, c) => (Array.isArray(s) && Array.isArray(i) ? Array.from({ length: Math.max(s.length, i.length) }, (x, k) => teller(lijst(b)[k], getal(s[k]), getal(i[k]), c)) : keuze(b, s, i, c));
     const kroonDag = (b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; };
+    // De woordspellen (2026-11-06): Rommelwoord (4 tot en met 8 letters), Cryptisch, Letterval en Klinkermijnen. Per spel (en per lengte) één
+    // teken per dag, dag 0 is 8 oktober 2026: '.' niet gespeeld, 1-9 gelukt, A-I gelukt in de moeilijke stand, 0 gelukt van vóór de nieuwe
+    // spellen (uit een lopende reeks), x en X niet gelukt. Per dag telt de eerste uitslag; een 0 maakt plaats voor een echte uitslag.
+    const woordDagen = (b, s, i, c) => {
+      if (typeof s !== 'string' || typeof i !== 'string' || /[^.0-9A-IxX]/.test(s + i)) return keuze(b, s, i, c);
+      let r = '';
+      for (let k = 0; k < Math.max(s.length, i.length); k++) { const x = s[k] || '.', y = i[k] || '.'; r += x === '.' ? y : y === '.' ? x : x === '0' && y !== '0' ? y : x; }
+      return r.replace(/\.+$/, '');
+    };
+    // Letterval: de hints die je per dag gebruikte, een cijfer per dag. Per dag de meeste: zo komen er door het koppelen nooit hints bij
+    // (het potje rekent het spel uit: 3, plus de dagen die je oploste, min alle gebruikte hints).
+    const hintDagen = (b, s, i, c) => {
+      if (typeof s !== 'string' || typeof i !== 'string' || /[^0-9]/.test(s + i)) return keuze(b, s, i, c);
+      let r = ''; for (let k = 0; k < Math.max(s.length, i.length); k++) r += String(Math.max(+(s[k] || 0), +(i[k] || 0)));
+      return r.replace(/0+$/, '');
+    };
+    const woordMaat = x => { const t = typeof x === 'string' ? x : ''; return [(t.match(/[0-9A-I]/g) || []).length, (t.match(/[^.]/g) || []).length]; };
+    // een spel dat nog loopt, op een dag die al een uitslag heeft, is klaar; van de tijden per dag blijven de laatste 120 dagen
+    const woordNa = r => {
+      if (isObj(r.bezig) && typeof r.d === 'string' && (r.d[getal(r.bezig.dag, -1)] || '.') !== '.') r.bezig = null;
+      if (isObj(r.t)) { const d = Object.keys(r.t).sort((a, b) => a - b); for (const k of d.slice(0, Math.max(0, d.length - 120))) delete r.t[k]; }
+      return r;
+    };
     // ---------- de maat: hoe verder, hoe hoger (dezelfde maat als 'Verder spelen' op de homepage); bij gelijke stand telt het volgende getal
     const MAAT = {
       // de Vlaaienbakker: opnieuw begonnen, oerdeeg, Oerknallen, hoe vaak je aan het gilde verkocht, alles wat je ooit bakte, deze ronde.
@@ -385,6 +411,10 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       'reclame-v1': s => { const d = isObj(s.dag) ? s.dag : {}; let n = 0; for (const v of Object.values(isObj(s.s) ? s.s : {})) for (const x of String(v)) n += Math.min(3, +x || 0); return [n, getal(d.n), getal(d.b)]; },
       'rommelgroepjes-v1': s => { let o = 0, z = 0, g = 0; for (const v of Object.values(isObj(s.p) ? s.p : {})) { const x = String(v); g++; if (x[0] === 'w' || x[0] === 'a') { o++; if (x[1] === '0') z++; } } return [o, z, g]; },
       'rommelcasino-v1': s => [getal(s.n), aantal(s.u), aantal(s.dag)],
+      'rommelwoord-extra-v1': s => Object.values(isObj(s.d) ? s.d : {}).map(woordMaat).reduce((a, m) => [a[0] + m[0], a[1] + m[1]], [0, 0]),
+      'cryptisch-v1': s => woordMaat(s.d),
+      'letterval-v1': s => woordMaat(s.d),
+      'klinkermijnen-v1': s => woordMaat(s.d),
       'rommelhoekje-speler': s => [s && s.naam ? 1 : 0],
     };
     const maatVan = (sleutel, s) => { try { return MAAT[sleutel] && isObj(s) ? MAAT[sleutel](s).map(x => getal(x)) : []; } catch (e) { return []; } };
@@ -527,6 +557,12 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       'rommelcasino-v1': { geld: true,
         velden: { v: max, u: elk(of), kast: samenLijst, dag: elk(eerste), dagb: lopend, kies: elk(keuze), inst: keuze, st: elk(tellers), bijna: elk(tellers), tel: elk(max), voortgangTotaal: max },
         na: (r, b, s, i) => { const w = vergelijk(maatVan('rommelcasino-v1', i), maatVan('rommelcasino-v1', s)) >= 0 ? i : s; for (const k of ['f', 'wg', 'kassa', 'n', 'bezig']) { if (k in w) r[k] = w[k]; else delete r[k]; } return r; } },
+      // de woordspellen (2026-11-06): per dag de eerste uitslag, de tijd per dag de eerste, een spel dat nog loopt de laatste versie
+      'rommelwoord-extra-v1': { velden: { v: max, d: elk(woordDagen), bezig: elk(lopend), inst: keuze },
+        na: r => { if (isObj(r.bezig) && isObj(r.d)) for (const k of Object.keys(r.bezig)) if (isObj(r.bezig[k]) && (String(r.d[k] || '')[getal(r.bezig[k].dag, -1)] || '.') !== '.') delete r.bezig[k]; return r; } },
+      'cryptisch-v1': { velden: { v: max, d: woordDagen, t: elk(eerste), bezig: lopend, inst: keuze }, na: woordNa },
+      'letterval-v1': { velden: { v: max, d: woordDagen, h: hintDagen, t: elk(eerste), bezig: lopend, inst: keuze }, na: woordNa },
+      'klinkermijnen-v1': { velden: { v: max, d: woordDagen, t: elk(eerste), bezig: lopend, inst: keuze }, na: woordNa },
       'rommelhoekje-eitjes': { velden: elk(samenLijst) },
       'rommelhoekje-speler': { heel: true },
       'gereedschap-v2': { heel: true },
@@ -584,7 +620,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -679,7 +715,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 9;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 10;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));

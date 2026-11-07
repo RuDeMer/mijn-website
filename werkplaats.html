@@ -320,6 +320,48 @@ body.offline .tel-kop { top: 1.6rem; }
 }
 @media (pointer: fine) { .drop .alleen-aanraak { display: none; } }
 .drop .kies-knop { margin-top: .5rem; pointer-events: none; }
+/* Spellen, Antwoorden: de antwoorden van de dagpuzzels */
+.aw-nav { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
+.aw-nav input[type="date"] { width: auto; margin: 0; padding: .3rem .5rem; }
+.aw-dagtekst { margin: .7rem 0 0; font-size: 1.08rem; display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.aw-kop { display: flex; gap: .6rem; align-items: center; margin-bottom: .5rem; }
+.aw-kop svg { width: 2.2rem; height: 2.2rem; flex: none; }
+.aw-kop h2 { margin: 0; }
+.aw-kop .rechts { margin-left: auto; }
+.aw-woord { font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.aw-blok { border-top: 1.5px solid var(--lijn); padding-top: .6rem; margin-top: .6rem; }
+.aw-blok:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.aw-blok p { margin: .25rem 0; }
+.aw-knoppen { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .35rem; }
+.aw-hints { list-style: none; padding: 0; margin: .5rem 0 0; display: grid; gap: .35rem; counter-reset: aw; }
+.aw-hints li { display: flex; gap: .3rem .6rem; align-items: baseline; flex-wrap: wrap; background: var(--kaart2); border-radius: .7rem; padding: .45rem .65rem; }
+.aw-hints li > b { flex: none; min-width: 4.6rem; }
+.aw-hints li > span { flex: 1 1 13rem; min-width: 0; }
+.aw-hints li > .mini { margin-left: auto; }
+@media (max-width: 560px) { .aw-hints li > b { min-width: 0; } }
+.aw-oms { font-size: 1.12rem; font-weight: 700; line-height: 1.6; margin: .2rem 0 .4rem; }
+.aw-oms .m-def { text-decoration: underline wavy #C8323C; text-decoration-thickness: 2px; text-underline-offset: 5px; text-decoration-skip-ink: none; }
+.aw-oms .m-ind { border: 2px solid #3A6FD8; border-radius: 999px; padding: 0 .25em; }
+.aw-oms .m-fod { background: linear-gradient(transparent 55%, rgba(233,185,73,.75) 55%, rgba(233,185,73,.75) 92%, transparent 92%); }
+.aw-legenda { font-size: .82rem; color: var(--tg-zacht); display: flex; gap: .3rem .9rem; flex-wrap: wrap; }
+.aw-rooster { --n: 5; --c: min(2.1rem, calc((100vw - 6.5rem) / var(--n))); display: inline-grid; grid-template-columns: repeat(var(--n), var(--c)); gap: 3px; margin: .3rem 0 .4rem; }
+.aw-rooster i { width: var(--c); height: var(--c); display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: calc(var(--c) * .48); text-transform: uppercase; border: 2px solid var(--rand); border-radius: .3rem; background: var(--kaart); color: var(--tg-tekst); box-sizing: border-box; }
+.aw-rooster i.leeg { border-color: transparent; background: transparent; }
+.aw-rooster i.zwart { background: var(--tape); border-color: var(--tape); }
+.aw-rooster i.mijn { background: #F7B6A8; color: #3A1208; }
+.aw-rooster i.open { box-shadow: inset 0 0 0 3px #2BB36B; }
+.aw-rooster.kroon i { border-color: rgba(35,26,38,.45); color: #231A26; font-size: calc(var(--c) * .55); }
+.aw-groepen { display: grid; gap: .45rem; }
+.aw-groep { border-radius: .8rem; padding: .5rem .7rem; border: 2px solid var(--rand); }
+.aw-groep.n1 { background: #FFC76E; color: #3A1E07; } .aw-groep.n2 { background: #8BE0CF; color: #08302A; } .aw-groep.n3 { background: #BD2C5C; color: #FFFFFF; } .aw-groep.n4 { background: #262F7A; color: #FFFFFF; }
+.aw-groep b { display: block; }
+.aw-groep small { display: block; opacity: .9; font-size: .82rem; }
+.aw-groep .mini { margin-top: .35rem; }
+.aw-volgorde { margin: .3rem 0 0; padding-left: 1.4rem; }
+.aw-volgorde li { margin: .15rem 0; }
+.aw-verstop .aw-geheim:not(.toon) { filter: blur(.45em); cursor: pointer; -webkit-user-select: none; user-select: none; }
+.aw-verstop .aw-geheim:not(.toon):focus-visible { outline: 3px solid var(--hoofd); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { .aw-geheim { transition: filter .2s; } }
 </style>
 <!-- versie 0.6: dezelfde stijl als de homepage, met licht en donker (de keuze op de homepage geldt overal) -->
 <script>(function () { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); })();</script>
@@ -474,9 +516,32 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
 
     <!-- ======================================== SPELLEN -->
     <section data-deel="spellen" aria-labelledby="h-spellen" hidden>
-      <div class="koprij"><h1 id="h-spellen">🎮 Spellen</h1><button class="mini" type="button" id="g-ververs">Ververs</button></div>
-      <div class="kaart"><h2>🔥 Meest gespeeld deze week <span class="rechts zacht">accounts die het spel de afgelopen 7 dagen bewaarden</span></h2><div class="balkjes" id="g-meest"><p class="leeg">Even laden…</p></div></div>
-      <div class="raster" id="g-spellen"></div>
+      <div class="koprij"><h1 id="h-spellen">🎮 Spellen</h1></div>
+      <div class="kopje-tabs" role="tablist" aria-label="Spellen">
+        <button role="tab" type="button" data-sub="overzicht">📊 Overzicht</button>
+        <button role="tab" type="button" data-sub="antwoorden">🔤 Antwoorden</button>
+      </div>
+      <div data-subdeel="overzicht">
+        <div class="rij-knoppen" style="margin-top:0"><button class="mini" type="button" id="g-ververs">Ververs</button></div>
+        <div class="kaart"><h2>🔥 Meest gespeeld deze week <span class="rechts zacht">accounts die het spel de afgelopen 7 dagen bewaarden</span></h2><div class="balkjes" id="g-meest"><p class="leeg">Even laden…</p></div></div>
+        <div class="raster" id="g-spellen"></div>
+      </div>
+      <div data-subdeel="antwoorden" hidden>
+        <div class="kaart" id="aw-kop">
+          <h2>🔤 Antwoorden van de dagpuzzels</h2>
+          <div class="aw-nav">
+            <button class="mini" type="button" id="aw-terug" aria-label="Vorige dag">◀</button>
+            <input type="date" id="aw-datum" min="2026-10-08" aria-label="Kies een dag">
+            <button class="mini" type="button" id="aw-verder" aria-label="Volgende dag">▶</button>
+            <button class="mini" type="button" id="aw-vandaag">Vandaag</button>
+            <button class="mini" type="button" id="aw-alles">Kopieer alle antwoorden</button>
+          </div>
+          <p class="aw-dagtekst"><b id="aw-dagnaam"></b> <span class="chip info" id="aw-wanneer"></span></p>
+          <label class="check" style="margin-top:.2rem"><input type="checkbox" id="aw-verstop"><span>Verstop de antwoorden tot ik erop tik (handig als je zelf nog wilt spelen)</span></label>
+          <p class="hint" style="margin-bottom:0">Alleen voor jou. De werkplaats pakt de puzzels zelf uit, net als de spellen; er staat nergens een antwoord leesbaar. Iemand vastgelopen? Kopieer een hint en stuur die door: begin met de kleinste.</p>
+        </div>
+        <div class="raster twee" id="aw-inhoud"></div>
+      </div>
     </section>
 
     <!-- ======================================== MODERATIE -->
@@ -1111,7 +1176,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   // ================================================================ NAVIGATIE
   const DELEN = [['vandaag', '☀️', 'Vandaag'], ['spelers', '👤', 'Spelers'], ['spellen', '🎮', 'Spellen'], ['moderatie', '🧹', 'Moderatie'], ['site', '📤', 'Site'], ['servers', '🖥️', 'Servers'], ['gezondheid', '❤️', 'Gezondheid'], ['instellingen', '⚙️', 'Instellingen']];
   const ONDER = ['vandaag', 'spelers', 'moderatie', 'site'];
-  const STANDAARD_SUB = { moderatie: 'ideeen', site: 'uploaden', servers: 'overzicht' };
+  const STANDAARD_SUB = { spellen: 'overzicht', moderatie: 'ideeen', site: 'uploaden', servers: 'overzicht' };
   const LADERS = {};   // per onderdeel: wat er geladen wordt als je het opent
   let huidig = '', geladen = {}, bollen = {};
   function bouwNav() {
@@ -1600,7 +1665,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   // wat een spel hoogstens kan halen (null: geen vast maximum; de Vlaaienbakker gaat ver boven 10^66)
   const KAN = { vlaai: null, woord: null, poker: null, beest: 130, vlieger: null, ritme: 600, kroon: 620, kroonklok: null, arend: 24400, rob: null, bel: null, fiets: null, steiger: null, wheels: 39000, gevoel: 500, duiker: null, huis: 6000, reclame: 540, groepjes: null, casino: null, cryptisch: null, letterval: null, klinker: null, oerknal: null, vbpres: 74 };
   let G = null;
-  LADERS.spellen = laadSpellen;
+  LADERS['spellen/overzicht'] = laadSpellen;
   $('g-ververs').addEventListener('click', laadSpellen);
   async function laadSpellen() {
     $('g-spellen').innerHTML = '<p class="zacht">Laden…</p>';
@@ -1640,6 +1705,248 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     });
     laad();
   });
+
+  // ================================================================ SPELLEN: DE ANTWOORDEN VAN DE DAGPUZZELS
+  // Alleen voor Ruben. De werkplaats haalt de spelpagina's van de site op en pakt de puzzels zelf uit, met dezelfde sleutels
+  // als de spellen (zie "Woordspellen" en "Rommelgroepjes" in CLAUDE.md). Er staat dus nergens een antwoord leesbaar.
+  const AW_NUL = Date.UTC(2026, 9, 8);   // dag 0 van de woordspellen: donderdag 8 oktober 2026 (met de klok van het apparaat)
+  const AW_MAAND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+  const AW_WEEK = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+  const awIso = i => new Date(AW_NUL + i * 864e5).toISOString().slice(0, 10);
+  const awVanIso = s => Math.round((Date.parse(s + 'T00:00:00Z') - AW_NUL) / 864e5);
+  const awVandaag = () => { const d = new Date(); return Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - AW_NUL) / 864e5); };
+  const awDatumTekst = i => { const d = new Date(AW_NUL + i * 864e5); return AW_WEEK[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + AW_MAAND[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); };
+  const awNr = (dag, eerste, n) => ((dag - eerste) % n + n) % n + 1;   // is de voorraad op, dan begint hij weer bij 1 (zoals in de spellen)
+  let awDag = null, awBron = null, awTeller = 0, awT = [], awKort = {};
+  const awKist = new Map(), awKroonCache = new Map();
+  const awBytes = s => new TextEncoder().encode(s), awB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  function awOpen(sleutel, zout, kist) {
+    const id = sleutel + '|' + zout;
+    if (!awKist.has(id)) {
+      const p = (async () => {
+        const k = await crypto.subtle.importKey('raw', awBytes(sleutel), 'PBKDF2', false, ['deriveKey']);
+        const s = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: awBytes(zout), iterations: 100000, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+        const [iv, data] = String(kist || '').split('.').map(awB64);
+        return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, s, data)));
+      })();
+      p.catch(() => awKist.delete(id)); awKist.set(id, p);
+    }
+    return awKist.get(id);
+  }
+  // de bron: de spelpagina's zoals ze nu op de site staan (dus altijd dezelfde voorraad als de spelers)
+  async function awPagina(f) { const r = await fetch(f + '?aw=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(f + ' niet gevonden (fout ' + r.status + ')'); return r.text(); }
+  function awKistjes(html, f) {
+    const m = html.match(/const KISTJES = (\[[\s\S]*?\]);\s*\/\/ KISTJES eind/);
+    if (!m) throw new Error('geen puzzels gevonden in ' + f);
+    return JSON.parse(m[1].replace(/,\s*\]$/, ']'));
+  }
+  const awEerste = (html, f) => { const m = html.match(/const EERSTE = (\d+)/); if (!m) throw new Error('geen eerste dag gevonden in ' + f); return +m[1]; };
+  function awLaadBron() {
+    if (awBron) return awBron;
+    const een = async (f, maak) => { try { return await maak(await awPagina(f), f); } catch (e) { return { fout: (e && e.message) || String(e) }; } };
+    const woordspel = (html, f) => ({ eerste: awEerste(html, f), kist: awKistjes(html, f) });
+    awBron = Promise.all([
+      een('rommelwoord.html', async h => {
+        const a = h.match(/const ANTWOORDEN = '([a-z ]+)'\.split/), e = h.match(/const EERSTE = (\d+), EXTRA_V = '([^']+)'/);
+        if (!a || !e) throw new Error('de woorden niet gevonden in rommelwoord.html');
+        const X = new Function('window', (await awPagina('rommelwoord-extra.js')) + '\n;return window.RW_EXTRA;')({});
+        return { ant: a[1].split(' '), eerste: +e[1], kist: X.kistjes || [], uitleg5: X.uitleg5 || {} };
+      }),
+      een('cryptisch.html', woordspel), een('letterval.html', woordspel), een('klinkermijnen.html', woordspel),
+      een('rommelgroepjes.html', (h, f) => { const d = h.match(/const DAG_EEN = Date\.UTC\((\d+), (\d+), (\d+)\)/); if (!d) throw new Error('geen eerste dag gevonden in ' + f); return { een: Date.UTC(+d[1], +d[2], +d[3]), kist: awKistjes(h, f) }; }),
+      een('rommelkroon.html', h => {
+        const i = h.indexOf('// ==== MOTOR begin'), j = h.indexOf('// ==== MOTOR eind'), v = h.match(/const DAG_VANAF = (\d+)/);
+        if (i < 0 || j < i || !v) throw new Error('de rekenmotor niet gevonden in rommelkroon.html');
+        return { KM: new Function(h.slice(i, j) + '\n;return KM;')(), vanaf: +v[1] };
+      }),
+    ]).then(([woord, cryptisch, letterval, klinker, groepjes, kroon]) => ({ woord, cryptisch, letterval, klinker, groepjes, kroon }));
+    awBron.then(b => { if (Object.values(b).some(x => x.fout)) awBron = null; });   // de volgende keer opnieuw proberen
+    return awBron;
+  }
+  // stukjes om mee te tekenen
+  const awKnop = (tekst, label, wat) => `<button class="mini" type="button" data-aw-kopie="${awT.push(tekst) - 1}" data-wat="${esc(wat || 'Hint')}" title="${esc(tekst)}">${esc(label || 'Kopieer')}</button>`;
+  const awG = html => `<span class="aw-geheim">${html}</span>`;
+  const awHint = (label, tekst, wat) => `<li><b>${esc(label)}</b><span>${awG(esc(tekst))}</span>${awKnop(tekst, 'Kopieer', wat)}</li>`;
+  const awGroot = w => String(w).toUpperCase();
+  const awNiets = tekst => ({ html: `<p class="leeg">${esc(tekst)}</p>` });
+  const awPuzzelNr = (nr, n, dag, eerste) => 'puzzel ' + nr + ' van ' + n + (dag - eerste >= n ? ' (de voorraad is op: hij begint weer bij 1)' : '');
+  function awRng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  // ---- Rommelwoord: het woord van vijf letters precies zoals woordVan in rommelwoord.html, de andere lengtes uit rommelwoord-extra.js
+  async function awWoord(B, dag) {
+    if (B.fout) throw new Error(B.fout);
+    const n = B.ant.length, r = awRng(20261009 + Math.floor(dag / n) * 7919), lijst = B.ant.slice();
+    for (let i = lijst.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [lijst[i], lijst[j]] = [lijst[j], lijst[i]]; }
+    const w5 = lijst[dag % n], woorden = [[5, w5, B.uitleg5[w5] || '']];
+    let sub = 'vijf letters';
+    if (dag >= B.eerste && B.kist.length) {
+      const nr = awNr(dag, B.eerste, B.kist.length), w = await awOpen('rommelwoord:' + nr + ':' + awIso(B.eerste + nr - 1), 'rommelhoekje-rommelwoord', B.kist[nr - 1]);
+      [4, 6, 7, 8].forEach((L, i) => woorden.push([L, w[i][0], w[i][1]]));
+      woorden.sort((a, b) => a[0] - b[0]); sub = awPuzzelNr(nr, B.kist.length, dag, B.eerste);
+    }
+    const masker = (u, w) => u.replace(new RegExp(w, 'gi'), '…');
+    const html = woorden.map(([L, w, u]) => { const W = awGroot(w), kop = 'Rommelwoord (' + L + ' letters)'; return `<div class="aw-blok"><p><b>${L} letters:</b> ${awG(`<span class="aw-woord">${esc(W)}</span>`)}</p>${u ? `<p class="zacht">${awG(esc(u))}</p>` : ''}
+      <div class="aw-knoppen">${awKnop(kop + ': het woord begint met een ' + W[0] + '.', 'Hint: eerste letter')}${u ? awKnop(kop + ', een hint: ' + masker(u, w), 'Hint: betekenis') : ''}${awKnop(kop + ': het woord is ' + W + '.' + (u ? ' ' + u : ''), 'Antwoord', 'Antwoord')}</div></div>`; }).join('');
+    return { sub, html, kort: woorden.map(([L, w]) => L + ' ' + awGroot(w)).join(' · ') };
+  }
+
+  // ---- Cryptisch: [omschrijving, antwoord, soort, betekenis, signaalwoorden, letters, uitleg]
+  async function awCryptisch(B, dag) {
+    if (B.fout) throw new Error(B.fout);
+    if (dag < B.eerste) return awNiets('Cryptisch begon op ' + awDatumTekst(B.eerste) + '.');
+    const nr = awNr(dag, B.eerste, B.kist.length);
+    const [o, a, so, def, ind, fod, u] = await awOpen('cryptisch:' + nr + ':' + awIso(B.eerste + nr - 1), 'rommelhoekje-cryptisch', B.kist[nr - 1]);
+    const lo = o.toLowerCase(), st = [];
+    const zoek = (s, cls) => { let van = 0; for (;;) { const i = lo.indexOf(String(s).toLowerCase(), van); if (i < 0) return; if (!st.some(x => i < x[1] && i + s.length > x[0])) { st.push([i, i + s.length, cls]); return; } van = i + 1; } };
+    (def || []).forEach(s => zoek(s, 'm-def')); (fod || []).forEach(s => zoek(s, 'm-fod')); (ind || []).forEach(s => zoek(s, 'm-ind'));
+    st.sort((x, y) => x[0] - y[0]);
+    let oms = '', p = 0; for (const [x, y, cls] of st) { if (x < p) continue; oms += esc(o.slice(p, x)) + `<span class="${cls}">${esc(o.slice(x, y))}</span>`; p = y; } oms += esc(o.slice(p));
+    const A = awGroot(a), d0 = String((def || [''])[0]).toLowerCase(), dN = String((def || ['']).slice(-1)[0]).toLowerCase();
+    const plek = lo.startsWith(d0) ? 'begin' : lo.endsWith(dN) ? 'eind' : 'begin of eind';
+    const hints = [
+      ['Hint 1', `Cryptisch, hint 1: de betekenis staat aan het ${plek} van de zin ("${(def || []).join(' … ')}").`],
+      ['Hint 2', `Cryptisch, hint 2: het woordspel is "${String(so).toLowerCase()}"${ind && ind.length ? ', en "' + ind.join('" en "') + '" zegt wat je moet doen' : ''}.`],
+      ['Hint 3', `Cryptisch, hint 3: het antwoord begint met een ${A[0]} en heeft ${a.length} letters.`],
+      ['Antwoord', `Cryptisch: het antwoord is ${A}. ${u}`],
+    ];
+    return { sub: awPuzzelNr(nr, B.kist.length, dag, B.eerste),
+      html: `<p class="aw-oms">${oms} <span class="zacht">(${a.length})</span></p><p class="aw-legenda"><span><span class="m-def">golflijn</span>: betekenis</span><span><span class="m-ind">rondje</span>: signaalwoord</span><span><span class="m-fod">markering</span>: de letters</span></p>
+        <p><b>Antwoord:</b> ${awG(`<span class="aw-woord">${esc(A)}</span>`)} ${awG(`<span class="chip">${esc(so)}</span>`)}</p><p class="zacht">${awG(esc(u))}</p>
+        <ol class="aw-hints">${hints.map(([l, t]) => awHint(l, t, l === 'Antwoord' ? 'Antwoord' : 'Hint')).join('')}</ol>`,
+      kort: A + ' (' + o + ')' };
+  }
+
+  // ---- Letterval: [thema, maat, kolommen van onder naar boven, woorden]; de volgorde rekent de werkplaats uit zoals plan() in letterval.html
+  const AW_N8 = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+  function awPaden(kol, w) {
+    const uit = [];
+    const dfs = (k, r, i, pd, g) => {
+      if (i === w.length) { uit.push(pd.slice()); return; }
+      for (const [a, b] of AW_N8) { const k2 = k + a, r2 = r + b, s = k2 + ',' + r2; if (k2 >= 0 && k2 < kol.length && r2 >= 0 && r2 < kol[k2].length && !g.has(s) && kol[k2][r2] === w[i]) { g.add(s); pd.push([k2, r2]); dfs(k2, r2, i + 1, pd, g); pd.pop(); g.delete(s); } }
+    };
+    for (let k = 0; k < kol.length; k++) for (let r = 0; r < kol[k].length; r++) if (kol[k][r] === w[0]) dfs(k, r, 1, [[k, r]], new Set([k + ',' + r]));
+    return uit;
+  }
+  function awPlan(kol, rest, memo) {
+    if (!rest.length) return [];
+    const sl = kol.map(c => c.join('')).join('|') + '#' + rest.slice().sort().join(',');
+    if (memo.has(sl)) return memo.get(sl);
+    let uit = null;
+    zoek: for (const w of rest) for (const pd of awPaden(kol, w)) { const v = awPlan(kol.map((c, k) => c.filter((x, r) => !pd.some(([a, b]) => a === k && b === r))), rest.filter(x => x !== w), memo); if (v) { uit = [w, ...v]; break zoek; } }
+    memo.set(sl, uit); return uit;
+  }
+  async function awLetterval(B, dag) {
+    if (B.fout) throw new Error(B.fout);
+    if (dag < B.eerste) return awNiets('Letterval begon op ' + awDatumTekst(B.eerste) + '.');
+    const nr = awNr(dag, B.eerste, B.kist.length);
+    const [thema, n, kol, w] = await awOpen('letterval:' + nr + ':' + awIso(B.eerste + nr - 1), 'rommelhoekje-letterval', B.kist[nr - 1]);
+    const k = kol.map(c => Array.from(c)), orde = awPlan(k, w.slice(), new Map()) || w.slice();
+    let cellen = ''; for (let r = n - 1; r >= 0; r--) for (let c = 0; c < k.length; c++) cellen += k[c][r] ? `<i>${esc(k[c][r])}</i>` : '<i class="leeg"></i>';
+    const kop = 'Letterval ("' + thema + '")';
+    return { sub: awPuzzelNr(nr, B.kist.length, dag, B.eerste) + ' · ' + n + '×' + n,
+      html: `<p><b>Thema:</b> ${esc(thema)} <span class="zacht">· ${w.length} woorden</span></p>${awG(`<div class="aw-rooster" style="--n:${k.length}">${cellen}</div>`)}
+        <p style="margin-bottom:0"><b>Een volgorde die werkt</b> <span class="zacht">(de letters erboven vallen steeds omlaag)</span>:</p>
+        <ol class="aw-hints">${orde.map((x, i) => awHint((i + 1) + '.', i ? `${kop}: daarna kun je ${awGroot(x)} vegen.` : `${kop}: je kunt beginnen met ${awGroot(x)}.`)).join('')}</ol>
+        <div class="aw-knoppen">${awKnop(`${kop}: de woorden zijn ${orde.map(awGroot).join(', ')} (in deze volgorde lukt het).`, 'Kopieer alle woorden', 'Antwoord')}</div>`,
+      kort: thema + ': ' + orde.map(awGroot).join(', ') };
+  }
+
+  // ---- Klinkermijnen: [rijen ('#' zwart, 'ij' één vakje), open vakjes aan het begin]
+  async function awKlinker(B, dag) {
+    if (B.fout) throw new Error(B.fout);
+    if (dag < B.eerste) return awNiets('Klinkermijnen begon op ' + awDatumTekst(B.eerste) + '.');
+    const nr = awNr(dag, B.eerste, B.kist.length);
+    const [rij, start] = await awOpen('klinkermijnen:' + nr + ':' + awIso(B.eerste + nr - 1), 'rommelhoekje-klinkermijnen', B.kist[nr - 1]);
+    const g = rij.map(x => x.match(/ij|#|[a-z]/g)), R = g.length, K = g[0].length, KL = new Set(['a', 'e', 'i', 'o', 'u', 'ij']);
+    const wit = (r, k) => r >= 0 && r < R && k >= 0 && k < K && g[r][k] !== '#', open = new Set((start || []).map(([r, k]) => r + ',' + k));
+    const woorden = [];
+    for (let r = 0; r < R; r++) for (let k = 0; k < K; k++) if (wit(r, k) && !wit(r, k - 1) && wit(r, k + 1)) { let j = k, s = ''; while (wit(r, j)) s += g[r][j++]; woorden.push(['Rij ' + (r + 1) + (j - k < K ? ' (vakje ' + (k + 1) + ' tot ' + j + ')' : ''), s]); }
+    for (let k = 0; k < K; k++) for (let r = 0; r < R; r++) if (wit(r, k) && !wit(r - 1, k) && wit(r + 1, k)) { let j = r, s = ''; while (wit(j, k)) s += g[j++][k]; woorden.push(['Kolom ' + (k + 1) + (j - r < R ? ' (vakje ' + (r + 1) + ' tot ' + j + ')' : ''), s]); }
+    const cellen = g.map((x, r) => x.map((l, k) => l === '#' ? '<i class="zwart"></i>' : `<i class="${KL.has(l) ? 'mijn' : ''}${open.has(r + ',' + k) ? ' open' : ''}">${esc(l === 'ij' ? 'IJ' : l)}</i>`).join('')).join('');
+    const vorm = !rij.join('').includes('#') ? 'vol vierkant' : g[0][0] === '#' ? 'de hoekjes dicht' : 'wafel';
+    const nKl = g.flat().filter(l => KL.has(l)).length;
+    return { sub: awPuzzelNr(nr, B.kist.length, dag, B.eerste) + ' · ' + vorm,
+      html: `${awG(`<div class="aw-rooster" style="--n:${K}">${cellen}</div>`)}<p class="aw-legenda"><span>rood: klinker (mijn)</span><span>groene rand: al open aan het begin</span><span>${nKl} klinkers</span></p>
+        <ol class="aw-hints">${woorden.map(([plek, s]) => awHint(plek, `Klinkermijnen: ${plek.toLowerCase()} is ${awGroot(s)}.`)).join('')}</ol>`,
+      kort: woorden.map(x => awGroot(x[1])).join(', ') };
+  }
+
+  // ---- Rommelgroepjes: puzzel n hoort bij dag n (dag 1 is 29 oktober 2026); [[verband, uitleg, [4 woorden], per woord?] × 4], makkelijk eerst
+  async function awGroepjes(B, dag) {
+    if (B.fout) throw new Error(B.fout);
+    const gdag = Math.round((AW_NUL + dag * 864e5 - B.een) / 864e5) + 1;
+    if (gdag < 1) return awNiets('Rommelgroepjes begon op donderdag 29 oktober 2026.');
+    const N = B.kist.length, nr = ((gdag - 1) % N) + 1;
+    const g = await awOpen('rommelgroepjes:' + nr + ':' + new Date(B.een + (nr - 1) * 864e5).toISOString().slice(0, 10), 'rommelhoekje-groepjes', B.kist[nr - 1]);
+    const NIV = ['makkelijk', 'gemiddeld', 'lastig', 'heel lastig'], schoon = w => String(w).replace(/\|/g, '');
+    const html = `<div class="aw-groepen">${g.map(([v, u, w, per], i) => { const W = w.map(schoon); return `<div class="aw-groep n${i + 1}"><small>${NIV[i]}</small><b>${awG(esc(v))}</b>${awG(esc(W.join(', ')))}<small>${awG(esc(u))}</small>
+      <div class="aw-knoppen">${awKnop(`Rommelgroepjes: ${W[0]} en ${W[1]} horen bij elkaar.`, 'Hint: twee woorden')}${awKnop(`Rommelgroepjes: één groepje is "${v}".`, 'Hint: verband')}${awKnop(`Rommelgroepjes: ${v}: ${W.join(', ')}.`, 'Antwoord', 'Antwoord')}</div></div>`; }).join('')}</div>`;
+    return { sub: 'puzzel ' + nr + ' van ' + N + (gdag > N ? ' (de voorraad is op: hij begint weer bij 1)' : ''), html, kort: g.map(([v, , w]) => v + ': ' + w.map(schoon).join(', ')).join(' / ') };
+  }
+
+  // ---- Rommelkroon: de puzzel van de dag maakt de rekenmotor uit rommelkroon.html zelf (KM.dagPuzzel, dag = dagen sinds 1 januari 1970)
+  const AW_KLEUR = ['#F7A8A8', '#F9C98A', '#F8E38C', '#BDE6A1', '#9FDCCF', '#A9C8F2', '#CDB4EE', '#F5B6D8', '#D9B99B', '#C9CDD3', '#FFFFFF', '#D8F28A'];
+  async function awKroon(B, dag) {
+    if (B.fout) throw new Error(B.fout);
+    const d = Math.round(AW_NUL / 864e5) + dag;
+    if (d < B.vanaf) return awNiets('Tot en met 25 oktober 2026 kwam de puzzel van de dag uit de vaste lijst.');
+    await new Promise(r => setTimeout(r, 40));   // eerst de andere spellen laten zien
+    if (!awKroonCache.has(d)) awKroonCache.set(d, B.KM.dagPuzzel(d));
+    const P = awKroonCache.get(d); if (!P) return awNiets('De rekenmotor kon de puzzel van deze dag niet maken; het spel neemt dan een puzzel uit de vaste lijst.');
+    const n = P.n, kol = Array.from(String(P.o)).map(x => parseInt(x, 16)), v = String(P.v);
+    const cellen = Array.from({ length: n * n }, (x, i) => { const r = Math.floor(i / n), c = i % n, l = v[i].toLowerCase(); return `<i style="background:${AW_KLEUR[l.charCodeAt(0) - 97] || '#EEE'}">${kol[r] === c ? '👑' : ''}</i>`; }).join('');
+    const grootte = {}; for (const l of v.toLowerCase()) grootte[l] = (grootte[l] || 0) + 1;   // de kroon in het kleinste vlak is meestal de makkelijkste
+    const r0 = kol.map((c, r) => r).sort((a, b) => grootte[v[a * n + kol[a]].toLowerCase()] - grootte[v[b * n + kol[b]].toLowerCase()])[0];
+    const hints = [
+      ['Hint 1', `Rommelkroon: er staat een kroon in rij ${r0 + 1}, kolom ${kol[r0] + 1} (rijen van boven, kolommen van links).`],
+      ['Hint 2', `Rommelkroon: in de bovenste drie rijen staan de kronen in kolom ${kol.slice(0, 3).map(c => c + 1).join(', ')}.`],
+      ['Antwoord', `Rommelkroon, de oplossing: per rij (van boven naar beneden) de kolom van de kroon: ${kol.map(c => c + 1).join(', ')}.`],
+    ];
+    return { sub: n + '×' + n + ', ' + AW_WEEK[new Date(AW_NUL + dag * 864e5).getUTCDay()],
+      html: `${awG(`<div class="aw-rooster kroon" style="--n:${n}">${cellen}</div>`)}<ol class="aw-hints">${hints.map(([l, t]) => awHint(l, t, l === 'Antwoord' ? 'Antwoord' : 'Hint')).join('')}</ol>`,
+      kort: 'kolom per rij ' + kol.map(c => c + 1).join(', ') };
+  }
+
+  // ---- het tabblad
+  const AW_SPELLEN = [['woord', 'woord', 'Rommelwoord', 'rommelwoord.html', awWoord], ['cryptisch', 'cryptisch', 'Cryptisch', 'cryptisch.html', awCryptisch], ['letterval', 'letterval', 'Letterval', 'letterval.html', awLetterval],
+    ['klinker', 'klinker', 'Klinkermijnen', 'klinkermijnen.html', awKlinker], ['groepjes', 'groepjes', 'Rommelgroepjes', 'rommelgroepjes.html', awGroepjes], ['kroon', 'rommelkroon', 'Rommelkroon', 'rommelkroon.html', awKroon]];
+  const awVerstopAan = () => { try { return localStorage.getItem('wp-aw-verstop') === '1'; } catch (e) { return false; } };
+  function awVerstop(root) {
+    const aan = $('aw-verstop').checked; $('aw-inhoud').classList.toggle('aw-verstop', aan);
+    $$('.aw-geheim', root || $('aw-inhoud')).forEach(e => { if (aan && !e.classList.contains('toon')) { e.tabIndex = 0; e.setAttribute('role', 'button'); e.setAttribute('aria-label', 'Verstopt: tik om te zien'); } else { e.removeAttribute('tabindex'); e.removeAttribute('role'); e.removeAttribute('aria-label'); } });
+  }
+  async function awToon(dag) {
+    awDag = Math.max(0, dag); const mijn = ++awTeller; awT = []; awKort = {};
+    $('aw-datum').value = awIso(awDag); $('aw-dagnaam').textContent = awDatumTekst(awDag); $('aw-terug').disabled = awDag <= 0;
+    const v = awDag - awVandaag(); $('aw-wanneer').textContent = v === 0 ? 'vandaag' : v === 1 ? 'morgen' : v === -1 ? 'gisteren' : v > 0 ? 'over ' + v + ' dagen' : -v + ' dagen geleden';
+    $('aw-inhoud').innerHTML = AW_SPELLEN.map(([id, ico, naam, pag]) => `<div class="kaart" id="aw-k-${id}"><div class="aw-kop">${icoonSvg(ico)}<div><h2>${esc(naam)}</h2><small class="zacht aw-sub"></small></div><a class="rechts mini" href="${pag}" target="_blank" rel="noopener">Speel ↗</a></div><div class="aw-in"><p class="leeg">Even uitpakken…</p></div></div>`).join('');
+    const B = await awLaadBron(); if (mijn !== awTeller) return;
+    await Promise.all(AW_SPELLEN.map(async ([id, , naam, , f]) => {
+      let uit; try { uit = await f(B[id], awDag); } catch (e) { uit = { html: `<p class="melding fout">${esc(naam)} lukte niet: ${esc((e && e.message) || e)}</p>` }; }
+      if (mijn !== awTeller) return;
+      const k = $('aw-k-' + id); if (!k) return;
+      k.querySelector('.aw-in').innerHTML = uit.html; k.querySelector('.aw-sub').textContent = uit.sub || ''; if (uit.kort) awKort[id] = uit.kort;
+      awVerstop(k);
+    }));
+  }
+  $('aw-verstop').checked = awVerstopAan();
+  $('aw-verstop').addEventListener('change', () => { try { localStorage.setItem('wp-aw-verstop', $('aw-verstop').checked ? '1' : '0'); } catch (e) {} $$('#aw-inhoud .aw-geheim.toon').forEach(e => e.classList.remove('toon')); awVerstop(); });
+  $('aw-terug').addEventListener('click', () => awToon(awDag - 1));
+  $('aw-verder').addEventListener('click', () => awToon(awDag + 1));
+  $('aw-vandaag').addEventListener('click', () => awToon(awVandaag()));
+  $('aw-datum').addEventListener('change', () => { const x = $('aw-datum').value; if (/^\d{4}-\d\d-\d\d$/.test(x)) awToon(awVanIso(x)); });
+  $('aw-alles').addEventListener('click', () => {
+    const r = AW_SPELLEN.filter(([id]) => awKort[id]).map(([id, , naam]) => naam + ': ' + awKort[id]);
+    if (!r.length) { toast('Even geduld: de puzzels worden nog uitgepakt.'); return; }
+    kopieer('Antwoorden van ' + awDatumTekst(awDag) + '\n\n' + r.join('\n'), 'De antwoorden');
+  });
+  const awToonGeheim = g => { g.classList.add('toon'); g.removeAttribute('tabindex'); g.removeAttribute('role'); g.removeAttribute('aria-label'); };
+  $('aw-inhoud').addEventListener('click', e => {
+    const g = e.target.closest('.aw-geheim'); if (g && $('aw-inhoud').classList.contains('aw-verstop') && !g.classList.contains('toon')) { awToonGeheim(g); return; }
+    const b = e.target.closest('[data-aw-kopie]'); if (b) kopieer(awT[+b.dataset.awKopie] || '', b.dataset.wat || 'Hint');
+  });
+  $('aw-inhoud').addEventListener('keydown', e => { const g = e.target.closest && e.target.closest('.aw-geheim[tabindex]'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); awToonGeheim(g); } });
+  LADERS['spellen/antwoorden'] = async () => { $('aw-verstop').checked = awVerstopAan(); await awToon(awDag == null ? awVandaag() : awDag); };
 
   // ================================================================ MODERATIE
   // ---------------- ideeën

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' wss://rommellive.rubendm.workers.dev https://*.workers.dev https://*.rubensrommelhoekje.nl https://cloudflareinsights.com https://*.cloudflareinsights.com https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2A1F2E">
+<meta name="robots" content="noindex">
+<title>Zangproef – Ruben's rommelhoekje</title>
+<meta name="description" content="Een proefje voor het monsterkoor: laat een monster zingen door het omhoog, omlaag en opzij te slepen.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6c13 0 20 12 21 26 1 16-4 26-21 26S10 48 11 32C12 18 19 6 32 6z' fill='%23EE8FBF' stroke='%232B2233' stroke-width='3'/%3E%3Ccircle cx='25' cy='26' r='5' fill='%23fff' stroke='%232B2233' stroke-width='2'/%3E%3Ccircle cx='39' cy='26' r='5' fill='%23fff' stroke='%232B2233' stroke-width='2'/%3E%3Ccircle cx='25' cy='27' r='2.4' fill='%232B2233'/%3E%3Ccircle cx='39' cy='27' r='2.4' fill='%232B2233'/%3E%3Cellipse cx='32' cy='41' rx='7' ry='8' fill='%234A1530' stroke='%232B2233' stroke-width='2.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<script>/* licht of donker: de keuze van de homepage, anders die van het apparaat (al voor het tekenen, zonder flits) */(function () { var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null; function pas() { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && !!mq && mq.matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); } pas(); if (mq && mq.addEventListener) mq.addEventListener('change', pas); addEventListener('storage', function (e) { if (e.key === 'rommelhoekje-thema') pas(); }); })();</script>
+<style>
+/* ================================================================ ZANGPROEF
+   Een proefje voor het monsterkoor: één monster op een podium. De pagina volgt licht en donker; het podium is altijd een donkere zaal. */
+:root {
+  --papier: #FBF6E9; --stip: rgba(31,35,51,.09); --inkt: #1F2333; --zacht: #5B5F6E; --kaart: #FFFFFF; --lijn: rgba(31,35,51,.14); --tape: #23252B; --tape-tekst: #FBF6E9;
+  --rood: #C8323C; --goud: #E9B949; --keus: #FFF1C9;
+  --font: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font); -webkit-text-size-adjust: 100%;
+}
+html[data-thema="donker"] { --papier: #16181E; --stip: rgba(255,255,255,.05); --inkt: #EEEAE0; --zacht: #B4B0A6; --kaart: #20232C; --lijn: rgba(255,255,255,.12); --keus: #3A3220; color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--papier) radial-gradient(circle at 1px 1px, var(--stip) 1.5px, transparent 0) 0 0 / 22px 22px; color: var(--inkt); min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--goud); outline-offset: 3px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.kop { max-width: 820px; margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) 16px 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.terug { color: var(--inkt); text-decoration: none; font-weight: 600; border: 2px solid var(--lijn); border-radius: 999px; padding: 6px 12px; background: var(--kaart); }
+.kop h1 { margin: 0; font-size: 1.15rem; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.kop h1 b { background: var(--tape); color: var(--tape-tekst); padding: 4px 12px 5px; transform: rotate(-1.5deg); display: inline-block; letter-spacing: .04em; text-transform: uppercase; font-size: 1.05rem; }
+.kop h1 span { font-weight: 400; color: var(--zacht); font-size: .95rem; }
+main { max-width: 820px; margin: 0 auto; padding: 6px 16px 40px; }
+
+/* ---- het podium */
+.podium { position: relative; height: clamp(360px, 62vh, 600px); border-radius: 20px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
+  background: radial-gradient(ellipse 60% 70% at var(--lx, 50%) var(--ly, 55%), rgba(255,226,160,var(--lk, .2)), transparent 70%), linear-gradient(#2A1F2E, #1A1320 70%);
+  box-shadow: 0 0 0 3px #1A1320, 0 10px 30px rgba(0,0,0,.25); }
+.podium.sleep { cursor: grabbing; }
+.podium:focus-visible { outline-offset: 4px; }
+.doek { position: absolute; top: 0; bottom: 18%; width: 11%; background: repeating-linear-gradient(90deg, #7E1A26 0 10px, #A52634 10px 18px, #6A1420 18px 26px); box-shadow: inset -8px 0 14px rgba(0,0,0,.35); }
+.doek.links { left: 0; border-bottom-right-radius: 60% 30%; }
+.doek.rechts { right: 0; transform: scaleX(-1); border-bottom-right-radius: 60% 30%; }
+.val { position: absolute; left: 0; right: 0; top: 0; height: 26px; background: repeating-linear-gradient(90deg, #8E1E2B 0 22px, #B12D3B 22px 30px); box-shadow: 0 4px 0 #E9B949, 0 8px 12px rgba(0,0,0,.35); }
+.vloer { position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: repeating-linear-gradient(90deg, #6E4428 0 46px, #7A4E2D 46px 92px), #7A4E2D; box-shadow: inset 0 6px 10px rgba(0,0,0,.35); }
+.vloer::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: #E9B949; opacity: .7; }
+.ladder { position: absolute; left: 12%; right: 12%; top: 0; bottom: 0; pointer-events: none; }
+.ladder i { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed rgba(255,255,255,.1); }
+.ladder i.c { border-top: 1px solid rgba(255,255,255,.2); }
+.ladder i.nu { border-top: 2px solid var(--goud); opacity: .9; }
+.ladder i span { position: absolute; left: -2px; top: -9px; transform: translateX(-100%); font-size: .7rem; color: rgba(255,255,255,.55); padding-right: 6px; font-variant-numeric: tabular-nums; }
+.ladder i.nu span { color: var(--goud); font-weight: 700; }
+.plek { position: absolute; left: 50%; bottom: 9%; width: min(46%, 300px); transform: translateX(-50%); pointer-events: none; }
+.plek svg { width: 100%; height: auto; overflow: visible; display: block; }
+.klinkers { position: absolute; left: 12%; right: 12%; bottom: 3.5%; display: flex; justify-content: space-between; pointer-events: none; }
+.klinkers span { font-weight: 800; color: rgba(255,255,255,.55); background: rgba(0,0,0,.25); border-radius: 999px; min-width: 2.4em; text-align: center; padding: 2px 8px; transition: color .15s, background .15s; }
+.klinkers span.nu { color: #1A1320; background: var(--goud); }
+.bord { position: absolute; top: 36px; left: 50%; transform: translateX(-50%); margin: 0; color: #FBF6E9; font-weight: 700; text-align: center; white-space: nowrap; text-shadow: 0 2px 6px rgba(0,0,0,.5); pointer-events: none; }
+.bord small { display: block; font-weight: 400; opacity: .75; font-size: .85rem; min-height: 1.2em; }
+.start { position: absolute; inset: 0; margin: auto; width: max-content; height: max-content; padding: 16px 26px; border: 3px solid #1A1320; border-radius: 999px; background: var(--goud); color: #1A1320; font-weight: 800; font-size: 1.1rem; box-shadow: 0 6px 0 #1A1320; z-index: 3; }
+.start:active { transform: translateY(3px); box-shadow: 0 3px 0 #1A1320; }
+
+/* ---- bediening */
+.bediening { display: grid; gap: 14px; margin-top: 16px; }
+.kiezer { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.kies { border: 3px solid var(--lijn); border-radius: 16px; background: var(--kaart); padding: 6px 4px 8px; display: grid; justify-items: center; gap: 2px; min-width: 0; }
+.kies svg { width: 72%; max-width: 92px; height: auto; overflow: visible; }
+.kies b { font-size: 1rem; }
+.kies small { color: var(--zacht); font-size: .78rem; }
+.kies[aria-checked="true"] { border-color: var(--inkt); background: var(--keus); box-shadow: 0 4px 0 var(--inkt); }
+.knoppen { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.knop { border: 3px solid var(--inkt); border-radius: 999px; background: var(--goud); color: #1F2333; font-weight: 800; padding: 10px 18px; box-shadow: 0 4px 0 var(--inkt); }
+.knop:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--inkt); }
+.keuze { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.keuze input[type="checkbox"] { width: 22px; height: 22px; accent-color: #C8323C; }
+.keuze input[type="range"] { width: 130px; accent-color: #C8323C; }
+.uitleg { margin-top: 22px; background: var(--kaart); border: 2px solid var(--lijn); border-radius: 16px; padding: 14px 18px; line-height: 1.5; }
+.uitleg h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.uitleg ul { margin: 0; padding-left: 1.2em; }
+.uitleg p { margin: 10px 0 0; color: var(--zacht); }
+kbd { font: inherit; font-size: .85em; border: 1.5px solid var(--lijn); border-bottom-width: 3px; border-radius: 6px; padding: 0 5px; background: var(--papier); }
+@media (max-width: 560px) {
+  .podium { height: clamp(380px, 64vh, 560px); border-radius: 16px; }
+  .plek { width: min(64%, 260px); }
+  .doek { width: 8%; }
+  .ladder, .klinkers { left: 13%; right: 9%; }
+  .kies small { font-size: .7rem; }
+}
+</style>
+</head>
+<body data-pagina="zangproef">
+<header class="kop">
+  <a class="terug" href="./">← Rommelhoekje</a>
+  <h1><b>Zangproef</b> <span>een proefje voor het monsterkoor</span></h1>
+</header>
+<main>
+  <section class="podium" id="podium" tabindex="0" aria-label="Podium: sleep omhoog en omlaag voor hoger en lager, en opzij voor een andere klinker. Met het toetsenbord: spatie ingedrukt houden om te zingen, pijltjes omhoog en omlaag voor de toon, pijltjes opzij voor de klinker.">
+    <div class="val"></div>
+    <div class="doek links"></div><div class="doek rechts"></div>
+    <div class="ladder" id="ladder" aria-hidden="true"></div>
+    <div class="vloer"></div>
+    <div class="plek" id="plek"></div>
+    <div class="klinkers" id="klinkers" aria-hidden="true"><span>i</span><span>e</span><span>a</span><span>o</span><span>oe</span></div>
+    <p class="bord" id="bord" aria-hidden="true"></p>
+    <button class="start" id="start" type="button">🔊 Zet het geluid aan</button>
+  </section>
+  <p class="sr" id="voorlezen" aria-live="polite"></p>
+  <div class="bediening">
+    <div class="kiezer" id="kiezer" role="radiogroup" aria-label="Wie zingt er?"></div>
+    <div class="knoppen">
+      <button class="knop" id="demo" type="button">▶ Laat Fleur een liedje zingen</button>
+      <label class="keuze"><input type="checkbox" id="noten" checked> Op de noten</label>
+      <label class="keuze">Volume <input type="range" id="volume" min="0" max="100" value="80"></label>
+    </div>
+  </div>
+  <section class="uitleg">
+    <h2>Zo zing je</h2>
+    <ul>
+      <li><b>Slepen</b> met je muis of vinger: omhoog en omlaag is hoger en lager, opzij is een andere klinker (i, e, a, o, oe). Loslaten is stoppen.</li>
+      <li><b>Toetsenbord</b>: houd <kbd>spatie</kbd> ingedrukt om te zingen, <kbd>↑</kbd> <kbd>↓</kbd> voor een andere toon en <kbd>←</kbd> <kbd>→</kbd> voor een andere klinker. Met <kbd>1</kbd> tot <kbd>4</kbd> kies je een ander monster.</li>
+      <li><b>Op de noten</b> zingt het monster precies op de noten van de toonladder; zet je het uit, dan glijdt het vrij.</li>
+    </ul>
+    <p>Dit is een proef: hier zingt één monster tegelijk. In het echte spel staan ze met z'n vieren op het podium, en zingen de anderen vanzelf mee. De stemmen maakt de pagina zelf; er zitten geen opnames in.</p>
+  </section>
+</main>
+<script>
+// ==== STEM begin
+// De zangstem: helemaal zelf gemaakt met de Web Audio API, zonder opnames.
+// Zo werkt een stem:
+//  1. de bron is de trilling van de stembanden: een golfvorm met de fasen van een echte stembandpuls (Rosenberg),
+//     en een spectrum dat 6 dB per octaaf zakt (kantel);
+//  2. adem: ruis die met de stembanden meetrilt;
+//  3. de klinker: vijf formanten (de pieken in het spectrum die een i, e, a, o of oe maken) als piekfilters achter elkaar.
+//     Hoe hoog en breed elke piek moet zijn, rekent ijk() één keer uit met dezelfde formules als de browser;
+//  4. vibrato, een langzame wiebel in de toon (niemand zingt precies zuiver), een aanzet van onderaf en een zachte val aan het eind;
+//  5. alles gaat via een zachte compressor en een galm van een zaal.
+// Elke waarde die verandert, loopt via een Lijn: die zet de verandering in de Web Audio API én rekent hem zelf na,
+// zodat de tekening (mond, wangen, ogen) en de opname precies weten wat je hoort.
+const STEM = (() => {
+  'use strict';
+  const KLINKERS = ['i', 'e', 'a', 'o', 'oe'];
+  // per stem en klinker vijf formanten: [frequentie in Hz, niveau in dB ten opzichte van de eerste, bandbreedte in Hz]
+  // (gangbare waarden uit de fonetiek van zangstemmen, met een minder scherpe 'zangersformant' zodat het warm blijft)
+  const FORMANT = {
+    sopraan: {
+      i: [[270, 0, 60], [2140, -12, 90], [2950, -26, 100], [3900, -28, 120], [4950, -44, 120]],
+      e: [[350, 0, 60], [2000, -20, 100], [2800, -17, 120], [3600, -40, 150], [4950, -56, 200]],
+      a: [[800, 0, 80], [1150, -6, 90], [2900, -24, 120], [3900, -30, 130], [4950, -50, 140]],
+      o: [[450, 0, 70], [800, -11, 80], [2830, -24, 100], [3800, -28, 130], [4950, -50, 135]],
+      oe: [[325, 0, 50], [700, -16, 60], [2700, -35, 170], [3800, -40, 180], [4950, -60, 200]]
+    },
+    alt: {
+      i: [[350, 0, 50], [1700, -20, 100], [2700, -30, 120], [3700, -36, 150], [4950, -60, 200]],
+      e: [[400, 0, 60], [1600, -22, 80], [2700, -28, 120], [3300, -35, 150], [4950, -60, 200]],
+      a: [[800, 0, 80], [1150, -4, 90], [2800, -22, 120], [3500, -34, 130], [4950, -60, 140]],
+      o: [[450, 0, 70], [800, -9, 80], [2830, -18, 100], [3500, -28, 130], [4950, -55, 135]],
+      oe: [[325, 0, 50], [700, -12, 60], [2530, -30, 170], [3500, -40, 180], [4950, -64, 200]]
+    },
+    tenor: {
+      i: [[290, 0, 40], [1870, -15, 90], [2800, -20, 100], [3250, -22, 120], [3540, -32, 120]],
+      e: [[400, 0, 70], [1700, -14, 80], [2600, -17, 100], [3200, -19, 120], [3580, -25, 120]],
+      a: [[650, 0, 80], [1080, -6, 90], [2650, -13, 120], [2900, -14, 130], [3250, -26, 140]],
+      o: [[400, 0, 40], [800, -10, 80], [2600, -16, 100], [2800, -17, 120], [3000, -30, 120]],
+      oe: [[350, 0, 40], [600, -20, 60], [2700, -22, 100], [2900, -20, 120], [3300, -30, 120]]
+    },
+    bas: {
+      i: [[250, 0, 60], [1750, -24, 90], [2600, -20, 100], [3050, -24, 120], [3340, -30, 120]],
+      e: [[400, 0, 40], [1620, -12, 80], [2400, -15, 100], [2800, -17, 120], [3100, -23, 120]],
+      a: [[600, 0, 60], [1040, -7, 70], [2250, -14, 110], [2450, -15, 120], [2750, -24, 130]],
+      o: [[400, 0, 40], [750, -11, 80], [2400, -21, 100], [2600, -22, 120], [2900, -40, 120]],
+      oe: [[350, 0, 40], [600, -20, 80], [2400, -32, 100], [2675, -28, 120], [2950, -36, 120]]
+    }
+  };
+  // laag en hoog: het bereik (MIDI-nummers, 60 = C4); vib: vibrato per seconde; diepte: vibrato in cent;
+  // adem: hoeveel lucht; dal: hoe diep de dalen tussen de formanten (dB); kantel: hoe snel de bron zakt (1 = 6 dB per octaaf)
+  const SOORT = {
+    sopraan: { laag: 60, hoog: 83, vib: 5.7, diepte: 34, adem: 0.075, dal: 23, kantel: 1.08, wiebel: 6, aanzet: 30, niveau: 0.5, naam: 'sopraan' },
+    alt: { laag: 53, hoog: 76, vib: 5.35, diepte: 32, adem: 0.06, dal: 24, kantel: 1.12, wiebel: 6, aanzet: 34, niveau: 0.56, naam: 'alt' },
+    tenor: { laag: 48, hoog: 69, vib: 5.5, diepte: 30, adem: 0.055, dal: 25, kantel: 1.04, wiebel: 5, aanzet: 34, niveau: 0.6, naam: 'tenor' },
+    bas: { laag: 40, hoog: 62, vib: 5.0, diepte: 26, adem: 0.05, dal: 25, kantel: 1.1, wiebel: 5, aanzet: 40, niveau: 0.7, naam: 'bas' }
+  };
+  const BREED = [1.25, 1.2, 1.1, 1.1, 1.1], MINBREED = [62, 80, 100, 110, 120];
+  const hz = noot => 440 * Math.pow(2, (noot - 69) / 12);
+
+  // ---- de piekfilters: dezelfde formules als de BiquadFilterNode van de browser (type 'peaking')
+  function piekDb(f, F, Q, G, fs) {
+    const A = Math.pow(10, G / 40), w0 = 2 * Math.PI * F / fs, al = Math.sin(w0) / (2 * Q), c = Math.cos(w0);
+    const b0 = 1 + al * A, b1 = -2 * c, b2 = 1 - al * A, a0 = 1 + al / A, a1 = -2 * c, a2 = 1 - al / A;
+    const w = 2 * Math.PI * f / fs, cw = Math.cos(w), sw = Math.sin(w), c2 = Math.cos(2 * w), s2 = Math.sin(2 * w);
+    const nr = b0 + b1 * cw + b2 * c2, ni = -(b1 * sw + b2 * s2), dr = a0 + a1 * cw + a2 * c2, di = -(a1 * sw + a2 * s2);
+    return 10 * Math.log10((nr * nr + ni * ni) / (dr * dr + di * di));
+  }
+  // de breedte van een piek, 3 dB onder de top
+  function breedte(F, Q, G, fs) {
+    const top = piekDb(F, F, Q, G, fs) - 3, kant = (lo, hi, op) => { for (let i = 0; i < 18; i++) { const m = Math.sqrt(lo * hi); if ((piekDb(m, F, Q, G, fs) > top) === op) lo = m; else hi = m; } return Math.sqrt(lo * hi); };
+    return kant(F, fs * 0.49, true) - kant(10, F, false);
+  }
+  function zoekQ(F, G, bw, fs) {
+    if (G < 3.5) return Math.max(0.5, F / bw);
+    let lo = 0.2, hi = 400;
+    for (let i = 0; i < 20; i++) { const m = Math.sqrt(lo * hi); if (breedte(F, m, G, fs) > bw) lo = m; else hi = m; }
+    return Math.sqrt(lo * hi);
+  }
+  // per stem en klinker: frequentie, Q en versterking van de vijf filters, zodat de pieken op de goede hoogte staan
+  const IJK = {};
+  function ijk(soort, klinker, fs) {
+    const sleutel = soort + klinker + fs;
+    if (!IJK[sleutel]) IJK[sleutel] = ijkNu(soort, klinker, fs);
+    return IJK[sleutel];
+  }
+  function ijkNu(soort, klinker, fs) {
+    const s = SOORT[soort], fm = FORMANT[soort][klinker];
+    const F = fm.map(x => Math.min(x[0], fs * 0.45)), bw = fm.map((x, k) => Math.max(MINBREED[k], x[2] * BREED[k]));
+    const vloer = f => -6.02 * s.kantel * Math.log2(f / F[0]);
+    const doel = fm.map(x => s.dal + x[1]);
+    const G = doel.map((d, k) => Math.max(0, d - vloer(F[k]))), Q = F.map((f, k) => f / bw[k]);
+    for (let ronde = 0; ronde < 6; ronde++) {
+      for (let k = 0; k < 5; k++) Q[k] = zoekQ(F[k], G[k], bw[k], fs);
+      for (let k = 0; k < 5; k++) {
+        let e = vloer(F[k]);
+        for (let j = 0; j < 5; j++) e += piekDb(F[k], F[j], Q[j], G[j], fs);
+        G[k] = Math.max(0, Math.min(40, G[k] + (doel[k] - e)));
+      }
+    }
+    return { F, Q, G };
+  }
+  // hoe hard een klinker klinkt (in dB) bij een bepaalde toon: de harmonischen van de bron door de filters
+  function luidheid(p, s, f0, fs) {
+    let som = 0;
+    for (let n = 1; n * f0 < Math.min(8000, fs * 0.45); n++) {
+      const f = n * f0; let e = -6.02 * s.kantel * Math.log2(n);
+      for (let j = 0; j < 5; j++) e += piekDb(f, p.F[j], p.Q[j], p.G[j], fs);
+      som += Math.pow(10, e / 10);
+    }
+    return 10 * Math.log10(som);
+  }
+
+  // ---- de bron: een stembandpuls met echte fasen en een gekozen spectrum
+  const BRON = {};
+  function bron(ctx, kantel) {
+    if (!BRON[kantel]) BRON[kantel] = bronNu(kantel);
+    return ctx.createPeriodicWave(BRON[kantel][0], BRON[kantel][1]);
+  }
+  function bronNu(kantel) {
+    const N = 2048, H = 160, To = 0.6 * N, Tp = 0.64 * To, Tn = To - Tp, g = new Float64Array(N);
+    for (let i = 0; i < N; i++) g[i] = i < Tp ? 0.5 * (1 - Math.cos(Math.PI * i / Tp)) : i < To ? Math.cos(Math.PI * (i - Tp) / (2 * Tn)) : 0;
+    const re = new Float32Array(H + 1), im = new Float32Array(H + 1);
+    for (let n = 1; n <= H; n++) {
+      let a = 0, b = 0;
+      for (let i = 0; i < N; i++) { const d = g[(i + 1) % N] - g[i], w = 2 * Math.PI * n * i / N; a += d * Math.cos(w); b -= d * Math.sin(w); }
+      const fase = Math.atan2(-b, a), m = Math.pow(n, -kantel);
+      re[n] = m * Math.cos(fase); im[n] = m * Math.sin(fase);
+    }
+    return [re, im];
+  }
+  // alvast uitrekenen (bijvoorbeeld terwijl de pagina nog niets te doen heeft), zodat een stem meteen klaar is
+  function voorbereid(soort, fs) { KLINKERS.forEach(k => ijk(soort, k, fs)); if (!BRON[SOORT[soort].kantel]) BRON[SOORT[soort].kantel] = bronNu(SOORT[soort].kantel); }
+  // een vast toeval, zodat elke keer hetzelfde klinkt (en opnemen en afspelen precies gelijk zijn)
+  function toeval(zaad) { let x = zaad >>> 0 || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+  // ruis, en een langzame wiebel (som van een paar trage golven die precies rond lopen in 10 seconden)
+  function ruis(ctx, zaad) {
+    const n = Math.floor(ctx.sampleRate * 2), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0), r = toeval(zaad);
+    for (let i = 0; i < n; i++) d[i] = r() * 2 - 1;
+    return b;
+  }
+  function wiebel(ctx, zaad) {
+    const r = toeval(zaad), echt = 3000, m = echt * 10, buf = ctx.createBuffer(1, m, echt), d = buf.getChannelData(0);
+    const golven = [[0.7, 0.5], [1.3, 0.3], [2.9, 0.15], [4.1, 0.08]].map(([f, a]) => [f, a, r() * Math.PI * 2]);
+    for (let i = 0; i < m; i++) { const t = i / echt; let v = 0; for (const [f, a, p] of golven) v += a * Math.sin(2 * Math.PI * f * t + p); d[i] = v; }
+    return buf;
+  }
+
+  // ---- de galm: een eigen zaal (vroege weerkaatsingen en een staart die steeds doffer wordt)
+  function galm(ctx, sec) {
+    const fs = ctx.sampleRate, n = Math.floor(sec * fs), b = ctx.createBuffer(2, n, fs), r = toeval(777);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = b.getChannelData(ch); let lp = 0, lp2 = 0;
+      for (let i = 0; i < n; i++) {
+        const t = i / fs, a = Math.min(0.94, 0.25 + t * 0.55), x = r() * 2 - 1;
+        lp += (1 - a) * (x - lp); lp2 += (1 - a) * (lp - lp2);
+        const in_ = t < 0.018 ? 0 : Math.min(1, (t - 0.018) / 0.03);
+        d[i] = (lp2 * 2.2) * Math.exp(-t * 6.9 / sec) * in_;
+      }
+      [[0.011, 0.5], [0.017, -0.4], [0.023, 0.35], [0.031, -0.3], [0.043, 0.25], [0.059, -0.2]].forEach(([t, a], k) => { const i = Math.floor((t + ch * 0.0037 * (k % 2 ? 1 : -1)) * fs); if (i > 0 && i < n) d[i] += a; });
+    }
+    let e = 0; for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < n; i++) e += d[i] * d[i]; }
+    const k = 1 / Math.sqrt(e / 2); for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < n; i++) d[i] *= k; }
+    return b;
+  }
+
+  // ---- Lijn: een waarde die vloeiend verandert, in de browser én nagerekend
+  class Lijn {
+    constructor(params, v) { this.p = params; this.s = [{ t: -1, v0: v, doel: v, tc: 0 }]; params.forEach(p => { p.value = v; }); }
+    waarde(t) {
+      let s = this.s[0];
+      for (let i = this.s.length - 1; i >= 0; i--) if (this.s[i].t <= t) { s = this.s[i]; break; }
+      return s.tc > 0 ? s.doel + (s.v0 - s.doel) * Math.exp(-(t - s.t) / s.tc) : s.doel;
+    }
+    doel(t) { let s = this.s[0]; for (let i = this.s.length - 1; i >= 0; i--) if (this.s[i].t <= t) { s = this.s[i]; break; } return s.doel; }
+    naar(t, doel, tc) {
+      if (this.s[this.s.length - 1].t > t) {
+        const v = this.waarde(t);
+        this.s = this.s.filter(s => s.t <= t);
+        this.p.forEach(p => { p.cancelScheduledValues(t); p.setValueAtTime(v, t); });
+        this.s.push({ t, v0: v, doel: v, tc: 0 });
+      }
+      const v0 = this.waarde(t);
+      this.s.push({ t, v0, doel, tc });
+      this.p.forEach(p => { if (tc > 0) p.setTargetAtTime(doel, t, tc); else p.setValueAtTime(doel, t); });
+      // oude stukken weg (het eerste stuk blijft, als begin)
+      if (this.s.length > 64) { const w = this.waarde(t - 5); this.s = this.s.filter(s => s.t >= t - 5); this.s.unshift({ t: -1, v0: w, doel: w, tc: 0 }); }
+    }
+  }
+
+  // ---- een stem
+  class Stem {
+    constructor(ctx, soort, uit, opties) {
+      const o = opties || {}, s = SOORT[soort], fs = ctx.sampleRate;
+      this.ctx = ctx; this.soort = soort; this.s = s;
+      this.tabel = KLINKERS.map(k => ijk(soort, k, fs));
+      // hoe hard het gemiddeld klinkt op een middentoon: elke klinker op elke toon wordt daarnaar gezet
+      const mid = (s.laag + s.hoog) / 2;
+      this.ref = KLINKERS.reduce((som, k, i) => som + luidheid(this.rauw(i, mid), s, hz(mid), fs), 0) / 5;
+      // bron en adem
+      const osc = ctx.createOscillator(), mod = ctx.createOscillator();
+      osc.setPeriodicWave(bron(ctx, s.kantel)); osc.frequency.value = 440; mod.frequency.value = 440;
+      const lfo = ctx.createOscillator(); lfo.frequency.value = s.vib; this.lfoStart = 0;
+      const vib = ctx.createGain(); vib.gain.value = 0;
+      lfo.connect(vib); vib.connect(osc.detune); vib.connect(mod.detune);
+      const wb = ctx.createBufferSource(); wb.buffer = wiebel(ctx, (o.zaad || 1) * 97 + 13); wb.loop = true;
+      const wg = ctx.createGain(); wg.gain.value = s.wiebel; wb.connect(wg); wg.connect(osc.detune); wg.connect(mod.detune);
+      const lucht = ctx.createBufferSource(); lucht.buffer = ruis(ctx, (o.zaad || 1) * 31 + 7); lucht.loop = true;
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400; hp.Q.value = 0.5;
+      const adem = ctx.createGain(); adem.gain.value = 0;
+      const ritme = ctx.createGain(); ritme.gain.value = 0;   // ruis die met de stembanden meetrilt
+      lucht.connect(hp); hp.connect(adem); mod.connect(ritme); ritme.connect(adem.gain);
+      const bronG = ctx.createGain(); bronG.gain.value = 1;
+      osc.connect(bronG);
+      // de helderheid (zacht zingen klinkt doffer dan hard zingen)
+      const helder = ctx.createBiquadFilter(); helder.type = 'highshelf'; helder.frequency.value = 2600; helder.gain.value = -6;
+      bronG.connect(helder); adem.connect(helder);
+      // de vijf formanten
+      this.f = [];
+      let vorige = helder;
+      for (let k = 0; k < 5; k++) { const b = ctx.createBiquadFilter(); b.type = 'peaking'; vorige.connect(b); vorige = b; this.f.push(b); }
+      const onder = ctx.createBiquadFilter(); onder.type = 'highpass'; onder.frequency.value = hz(s.laag) * 0.55; onder.Q.value = 0.6;
+      vorige.connect(onder);
+      const norm = ctx.createGain(); norm.gain.value = Math.pow(10, -(s.dal - 6) / 20);
+      const env = ctx.createGain(); env.gain.value = 0;
+      const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      onder.connect(norm); norm.connect(env);
+      if (pan) { pan.pan.value = o.pan || 0; env.connect(pan); pan.connect(uit); } else env.connect(uit);
+      // de lijnen
+      const p0 = this.params(2, (s.laag + s.hoog) / 2);
+      this.toon = new Lijn([osc.detune, mod.detune], ((s.laag + s.hoog) / 2 - 69) * 100);
+      this.env = new Lijn([env.gain], 0);
+      this.vib = new Lijn([vib.gain], 0);
+      this.adem = new Lijn([adem.gain], 0);
+      this.ritme = new Lijn([ritme.gain], 0);
+      this.helder = new Lijn([helder.gain], -6);
+      this.kl = new Lijn([], 2);
+      this.FL = this.f.map((b, k) => new Lijn([b.frequency], p0.F[k]));
+      this.QL = this.f.map((b, k) => new Lijn([b.Q], p0.Q[k]));
+      this.GL = this.f.map((b, k) => new Lijn([b.gain], p0.G[k]));
+      this.knopen = { osc, mod, lfo, wb, lucht };
+      this.aan = false; this.niveau = 0;
+      const t0 = ctx.currentTime;
+      osc.start(t0); mod.start(t0); lfo.start(t0); wb.start(t0); lucht.start(t0);
+      this.lfoStart = t0;
+    }
+    // de filterwaarden voor een klinker (0 = i tot 4 = oe, ook alles ertussen) bij een toon
+    params(k, noot) {
+      const p = this.rauw(k, noot);
+      p.luid = this.ref - luidheid(p, this.s, hz(noot), this.ctx.sampleRate);
+      return p;
+    }
+    rauw(k, noot) {
+      const a = Math.max(0, Math.min(4, k)), i = Math.min(3, Math.floor(a)), u = a - i, p = this.tabel[i], q = this.tabel[i + 1];
+      const F = p.F.map((f, j) => f + (q.F[j] - f) * u), Q = p.Q.map((x, j) => x + (q.Q[j] - x) * u), G = p.G.map((x, j) => x + (q.G[j] - x) * u);
+      const f0 = hz(noot);
+      // hoge noten: de eerste formant gaat mee omhoog met de toon (zoals een sopraan doet), anders verdwijnt de grondtoon
+      if (f0 * 1.08 > F[0]) { const n = f0 * 1.12; Q[0] = Q[0] * n / F[0]; F[0] = n; }
+      if (F[1] < F[0] * 1.4) { const n = F[0] * 1.4; Q[1] = Q[1] * n / F[1]; F[1] = n; }
+      return { F, Q, G };
+    }
+    // zing: begin met zingen, of ga naar een nieuwe toon of klinker. noot (MIDI, mag een kommagetal zijn), klinker (0..4), sterkte (0..1)
+    zing(t, noot, klinker, sterkte, glij) {
+      const s = this.s, d = sterkte == null ? 0.7 : Math.max(0, Math.min(1, sterkte));
+      const p = this.params(klinker, noot), tc = glij == null ? 0.045 : glij;
+      const hoog = Math.max(0, Math.min(1, (noot - s.laag) / (s.hoog - s.laag)));
+      const niveau = s.niveau * Math.pow(10, p.luid / 20) * (0.42 + 0.58 * d) * (0.82 + 0.3 * hoog);
+      const cent = (noot - 69) * 100;
+      if (!this.aan) {
+        // aanzet: een fractie onder de toon beginnen en omhoog glijden, adem bij het inzetten
+        this.toon.naar(t, cent - s.aanzet, 0);
+        this.toon.naar(t + 0.005, cent, 0.05);
+        this.env.naar(t, niveau, 0.03);
+        this.adem.naar(t, s.adem * 2.2, 0.01); this.adem.naar(t + 0.06, s.adem, 0.08);
+        this.vib.naar(t, 0, 0); this.vib.naar(t + 0.22, s.diepte * (0.75 + 0.35 * d), 0.22);
+        this.aan = true;
+      } else {
+        this.toon.naar(t, cent, tc);
+        this.env.naar(t, niveau, 0.06);
+        const sprong = Math.abs(this.toon.doel(t) - cent);
+        if (sprong > 30 && tc > 0) { this.vib.naar(t, s.diepte * 0.35, 0.03); this.vib.naar(t + 0.14, s.diepte * (0.75 + 0.35 * d), 0.25); }
+        else this.vib.naar(t, s.diepte * (0.75 + 0.35 * d), 0.2);
+      }
+      this.ritme.naar(t, s.adem * 0.7, 0.05);
+      this.helder.naar(t, -9 + 9 * d + 3 * hoog, 0.08);
+      this.kl.naar(t, klinker, 0.05);
+      for (let k = 0; k < 5; k++) { this.FL[k].naar(t, p.F[k], 0.05); this.QL[k].naar(t, p.Q[k], 0.05); this.GL[k].naar(t, p.G[k], 0.05); }
+      this.niveau = niveau; this.laatst = { noot, klinker, sterkte: d };
+    }
+    // stoppen met zingen: zacht uitklinken, met een kleine val in de toon
+    stil(t) {
+      if (!this.aan) return;
+      this.aan = false;
+      this.env.naar(t, 0, 0.07);
+      this.toon.naar(t, this.toon.doel(t) - 18, 0.12);
+      this.vib.naar(t, 0, 0.1);
+      this.adem.naar(t, 0, 0.09); this.ritme.naar(t, 0, 0.09);
+    }
+    // wat er op tijdstip t te zien is: de toon (met vibrato), de klinker en hoe ver de mond open is (0..1)
+    stand(t) {
+      const vib = this.vib.waarde(t) * Math.sin(2 * Math.PI * this.s.vib * (t - this.lfoStart));
+      return { noot: 69 + this.toon.waarde(t) / 100, klinker: this.kl.waarde(t), open: Math.min(1, this.env.waarde(t) / (this.s.niveau * 0.9)), vib: vib / 100, trilling: vib / Math.max(1, this.s.diepte) };
+    }
+    // alles wat nog ingepland stond (zoals een liedje) afbreken, en zacht stoppen
+    stop(t) {
+      [this.toon, this.env, this.vib, this.adem, this.ritme, this.helder, this.kl].concat(this.FL, this.QL, this.GL).forEach(l => { if (l.s[l.s.length - 1].t > t) l.naar(t, l.waarde(t), 0); });
+      this.aan = true; this.stil(t);
+    }
+    // is er op tijdstip t nog iets te horen?
+    klinkt(t) { return this.env.waarde(t) > 0.0005 || this.env.doel(t) > 0; }
+    weg(t) { const k = this.knopen; this.stil(t); [k.osc, k.mod, k.lfo, k.wb, k.lucht].forEach(n => { try { n.stop(t + 0.6); } catch (e) {} }); }
+  }
+
+  // ---- het koor: een zachte compressor, de galm, en het volume
+  function koor(ctx, uit) {
+    const bus = ctx.createGain(), comp = ctx.createDynamicsCompressor(), droog = ctx.createGain(), nat = ctx.createGain(), conv = ctx.createConvolver(), vol = ctx.createGain();
+    comp.threshold.value = -16; comp.knee.value = 14; comp.ratio.value = 3; comp.attack.value = 0.012; comp.release.value = 0.25;
+    droog.gain.value = 0.86; nat.gain.value = 0.3; conv.buffer = galm(ctx, 2.6); vol.gain.value = 0.9;
+    bus.connect(comp); comp.connect(droog); comp.connect(conv); conv.connect(nat); droog.connect(vol); nat.connect(vol); vol.connect(uit || ctx.destination);
+    return { bus, vol, stem: (soort, opties) => new Stem(ctx, soort, bus, opties) };
+  }
+
+  return { KLINKERS, FORMANT, SOORT, hz, ijk, piekDb, luidheid, Lijn, Stem, koor, galm, voorbereid };
+})();
+// ==== STEM eind
+
+// ==== MONSTERS begin
+// De vier monsters, eigen tekeningen (SVG). maak(soort) geeft een tekening met zet(stand) om hem te laten zingen:
+// de mond krijgt de vorm van de klinker en gaat open met het geluid, de ogen kijken mee, de wangen trillen mee met het vibrato,
+// het lijf rekt mee met de toon (een veer, zodat het een beetje na-wiebelt) en leunt opzij met de klinker.
+const MONSTER = (() => {
+  'use strict';
+  const INKT = '#2B2233', WIT = '#FFFFFF', MONDKLEUR = '#4A1530', TONG = '#F07090', TAND = '#FFFDF7';
+  const SOORTEN = {
+    sopraan: { naam: 'Fleur', stem: 'sopraan', wat: 'hoog en helder', kleur: '#EE8FBF', licht: '#FFD3E8', donker: '#C9659A', buik: '#FFE6F2', wang: '#FF6F9E', iris: '#6B3FA0', extra: '#B4497F',
+      lijf: 'M120 58 C152 58 170 98 174 140 C180 196 168 246 120 246 C72 246 60 196 66 140 C70 98 88 58 120 58 Z',
+      buikV: [120, 198, 34, 36], ogen: [[100, 118, 15, 17], [140, 118, 15, 17]], mond: [120, 163, 60], wangen: [[88, 150], [152, 150]], armen: [[70, 168, -1], [170, 168, 1]], voeten: [[100, 246], [140, 246]], lid: 0 },
+    alt: { naam: 'Amber', stem: 'alt', wat: 'warm en zacht', kleur: '#F4A43B', licht: '#FFDA96', donker: '#D07E1C', buik: '#FFEBC4', wang: '#F0705A', iris: '#7A4A1A', extra: '#FFC2A0',
+      lijf: null, buikV: [120, 196, 44, 34], ogen: [[98, 142, 14, 15], [142, 142, 14, 15]], mond: [120, 187, 62], wangen: [[84, 174], [156, 174]], armen: [[42, 182, -1], [198, 182, 1]], voeten: [[98, 244], [142, 244]], lid: 0.18 },
+    tenor: { naam: 'Teun', stem: 'tenor', wat: 'stralend en vrolijk', kleur: '#39B3A0', licht: '#A2EADC', donker: '#23887A', buik: '#D2F6EF', wang: '#FF8F8F', iris: '#2B5F9E', extra: '#F7D154',
+      lijf: 'M120 66 C158 66 178 120 178 168 C178 218 154 246 120 246 C86 246 62 218 62 168 C62 120 82 66 120 66 Z',
+      buikV: [120, 204, 36, 30], ogen: [[100, 124, 15, 16], [140, 124, 15, 16]], mond: [120, 173, 66], wangen: [[86, 160], [154, 160]], armen: [[63, 186, -1], [177, 186, 1]], voeten: [[100, 246], [140, 246]], lid: 0 },
+    bas: { naam: 'Brom', stem: 'bas', wat: 'diep en rond', kleur: '#5257B5', licht: '#9599E6', donker: '#393C8C', buik: '#BEC1F2', wang: '#E97AA6', iris: '#3C2A1E', extra: '#F2E3C2',
+      lijf: 'M120 72 C176 72 204 102 206 150 C208 200 200 246 120 246 C40 246 32 200 34 150 C36 102 64 72 120 72 Z',
+      buikV: [120, 206, 52, 30], ogen: [[98, 130, 13, 14], [142, 130, 13, 14]], mond: [120, 182, 76], wangen: [[76, 168], [164, 168]], armen: [[36, 184, -1], [204, 184, 1]], voeten: [[94, 246], [146, 246]], lid: 0.32 }
+  };
+  const VOLGORDE = ['sopraan', 'alt', 'tenor', 'bas'];
+  // mondvorm per klinker: breedte, hoogte, rondheid, glimlach, tanden
+  const MONDV = [[0.96, 0.32, 0.95, 0.16, 1], [0.86, 0.5, 0.86, 0.08, 1], [0.74, 1.0, 0.8, 0.02, 0.7], [0.5, 0.82, 0.62, -0.02, 0], [0.32, 0.54, 0.62, -0.02, 0]];
+  let teller = 0;
+  const r1 = v => Math.round(v * 10) / 10;
+
+  // een pluizige rand (Amber): een cirkel met zachte bobbels
+  function pluis(cx, cy, r, n, a) {
+    const p = [];
+    for (let i = 0; i < n * 8; i++) { const t = i / (n * 8) * Math.PI * 2; const rr = r + a * Math.cos(n * t); p.push([cx + rr * Math.sin(t), cy - rr * Math.cos(t) * 0.98]); }
+    let d = 'M' + r1(p[0][0]) + ' ' + r1(p[0][1]);
+    for (let i = 1; i <= p.length; i++) { const q = p[i % p.length], m = p[(i + 1) % p.length]; d += ' Q' + r1(q[0]) + ' ' + r1(q[1]) + ' ' + r1((q[0] + m[0]) / 2) + ' ' + r1((q[1] + m[1]) / 2); i++; }
+    return d + ' Z';
+  }
+  function svgVan(soort, id) {
+    const m = SOORTEN[soort], g = id + '-g', lijf = m.lijf || pluis(120, 160, 84, 16, 4.5);
+    let s = `<svg viewBox="0 0 240 262" class="monster" data-soort="${soort}" role="img" aria-label="${m.naam}, de ${m.stem}">`;
+    s += `<defs><radialGradient id="${g}" cx="38%" cy="28%" r="78%"><stop offset="0" stop-color="${m.licht}"/><stop offset="0.55" stop-color="${m.kleur}"/><stop offset="1" stop-color="${m.donker}"/></radialGradient>`;
+    s += `<clipPath id="${id}-mk"><path class="mk"/></clipPath>`;
+    m.ogen.forEach((o, i) => { s += `<clipPath id="${id}-o${i}"><ellipse cx="${o[0]}" cy="${o[1]}" rx="${o[2]}" ry="${o[3]}"/></clipPath>`; });
+    s += `</defs>`;
+    s += `<ellipse class="schaduw" cx="120" cy="250" rx="64" ry="8" fill="#000" opacity="0.28"/>`;
+    s += `<g class="rek">`;
+    // achter het lijf: armen, oren, hoorns, sprieten, pluim
+    m.armen.forEach((a, i) => { s += `<path class="arm arm${i}" d="M${a[0]} ${a[1] - 4} q${a[2] * 26} 2 ${a[2] * 31} 30 q${a[2] * 3} 11 ${-a[2] * 8} 9 q${-a[2] * 4} -14 ${-a[2] * 18} -24" fill="${m.kleur}" stroke="${INKT}" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>`; });
+    if (soort === 'alt') [[78, 88], [162, 88]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="17" fill="${m.kleur}" stroke="${INKT}" stroke-width="3.2"/><circle cx="${x}" cy="${y + 1}" r="8.5" fill="${m.extra}"/>`; });
+    if (soort === 'bas') s += `<g class="hoorns" fill="${m.extra}" stroke="${INKT}" stroke-width="3" stroke-linejoin="round"><path d="M80 92 C70 70 74 52 88 44 C86 58 92 72 100 84 Z"/><path d="M160 92 C170 70 166 52 152 44 C154 58 148 72 140 84 Z"/></g>`;
+    if (soort === 'tenor') s += `<g class="spriet spriet0"><path d="M106 74 C100 56 92 44 86 34" fill="none" stroke="${m.donker}" stroke-width="4.5" stroke-linecap="round"/><circle cx="85" cy="31" r="8" fill="${m.extra}" stroke="${INKT}" stroke-width="3"/></g><g class="spriet spriet1"><path d="M134 74 C140 56 148 44 154 34" fill="none" stroke="${m.donker}" stroke-width="4.5" stroke-linecap="round"/><circle cx="155" cy="31" r="8" fill="${m.extra}" stroke="${INKT}" stroke-width="3"/></g>`;
+    if (soort === 'sopraan') s += `<g class="pluim" fill="none" stroke="${m.extra}" stroke-width="6" stroke-linecap="round"><path d="M118 62 C112 44 98 38 92 46 C88 52 94 58 100 55"/><path d="M122 62 C124 40 134 30 142 35 C148 40 143 48 137 45"/><path d="M120 62 C118 46 120 30 126 22"/></g>`;
+    m.voeten.forEach(v => { s += `<ellipse cx="${v[0]}" cy="${v[1]}" rx="15" ry="7" fill="${m.donker}" stroke="${INKT}" stroke-width="3"/>`; });
+    // het lijf
+    s += `<path class="lijf" d="${lijf}" fill="url(#${g})" stroke="${INKT}" stroke-width="3.6" stroke-linejoin="round"/>`;
+    if (soort === 'bas') s += `<path d="M104 76 q3 -13 10 -3 q4 -14 10 -1 q5 -12 9 4" fill="${m.kleur}" stroke="${INKT}" stroke-width="3" stroke-linejoin="round"/>`;
+    s += `<ellipse cx="${m.buikV[0]}" cy="${m.buikV[1]}" rx="${m.buikV[2]}" ry="${m.buikV[3]}" fill="${m.buik}" opacity="0.75"/>`;
+    if (soort === 'tenor') [[76, 200, 6], [168, 196, 5], [72, 150, 4], [166, 140, 4.5]].forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${m.donker}" opacity="0.55"/>`; });
+    // het gezicht
+    s += `<g class="gezicht">`;
+    m.ogen.forEach((o, i) => {
+      s += `<g class="oog oog${i}"><ellipse cx="${o[0]}" cy="${o[1]}" rx="${o[2]}" ry="${o[3]}" fill="${WIT}" stroke="${INKT}" stroke-width="3"/>`;
+      s += `<g clip-path="url(#${id}-o${i})"><g class="iris"><circle cx="${o[0]}" cy="${o[1]}" r="${o[2] * 0.6}" fill="${m.iris}"/><circle cx="${o[0]}" cy="${o[1]}" r="${o[2] * 0.32}" fill="#1A1420"/><circle cx="${o[0] - o[2] * 0.2}" cy="${o[1] - o[3] * 0.24}" r="${o[2] * 0.16}" fill="#fff"/></g>`;
+      s += `<ellipse class="lid" cx="${o[0]}" cy="${o[1]}" rx="${o[2] + 3}" ry="${o[3] + 3}" fill="${m.kleur}"/></g>`;
+      s += `<ellipse cx="${o[0]}" cy="${o[1]}" rx="${o[2]}" ry="${o[3]}" fill="none" stroke="${INKT}" stroke-width="3"/></g>`;
+      if (soort === 'sopraan') { const k = i ? 1 : -1; s += `<path d="M${o[0] + k * 9} ${o[1] - 14} l${k * 6} -6 M${o[0] + k * 13} ${o[1] - 9} l${k * 7} -3" stroke="${INKT}" stroke-width="2.6" stroke-linecap="round"/>`; }
+    });
+    const dik = soort === 'bas' ? 6 : 3.4;
+    m.ogen.forEach((o, i) => { const k = i ? 1 : -1; s += `<path class="wenkbrauw wb${i}" d="M${o[0] - 10} ${o[1] - o[3] - 8 + (k > 0 ? 0 : 0)} Q${o[0]} ${o[1] - o[3] - 13} ${o[0] + 10} ${o[1] - o[3] - 8}" fill="none" stroke="${INKT}" stroke-width="${dik}" stroke-linecap="round"/>`; });
+    m.wangen.forEach((w, i) => { s += `<ellipse class="wang wang${i}" cx="${w[0]}" cy="${w[1]}" rx="11" ry="6.5" fill="${m.wang}" opacity="0.55"/>`; });
+    if (soort === 'alt') [[78, 166], [84, 160], [72, 162], [162, 166], [156, 160], [168, 162]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="1.6" fill="#B86A1E"/>`; });
+    s += `<g clip-path="url(#${id}-mk)"><path class="mond" fill="${MONDKLEUR}"/><rect class="tanden" fill="${TAND}" rx="3"/><ellipse class="tong" fill="${TONG}"/></g>`;
+    s += `<path class="mondrand" fill="none" stroke="${INKT}" stroke-width="3.2" stroke-linejoin="round"/>`;
+    s += `</g></g></svg>`;
+    return s;
+  }
+
+  function lerp(a, b, u) { return a + (b - a) * u; }
+  function mondParams(kl) {
+    const a = Math.max(0, Math.min(4, kl)), i = Math.min(3, Math.floor(a)), u = a - i, p = MONDV[i], q = MONDV[i + 1];
+    return p.map((v, j) => lerp(v, q[j], u));
+  }
+  function mondPad(cx, cy, M, kl, open) {
+    const [bw, bh, rond, glim, tand] = mondParams(kl), o = Math.max(0, Math.min(1, open));
+    const w = M * lerp(0.48, bw, Math.min(1, o * 1.6)), h = M * (0.06 + bh * 0.8 * o), s = M * lerp(0.1, glim, Math.min(1, o * 2));
+    const k = lerp(0.95, rond, Math.min(1, o * 1.6)), x0 = cx - w / 2, x1 = cx + w / 2, yc = cy - s;
+    const boven = cy - h * 0.34, onder = cy + h * 0.66, kx = w / 2 * k;
+    const d = `M${r1(x0)} ${r1(yc)} C${r1(cx - kx)} ${r1(boven)} ${r1(cx + kx)} ${r1(boven)} ${r1(x1)} ${r1(yc)} C${r1(cx + kx)} ${r1(onder)} ${r1(cx - kx)} ${r1(onder)} ${r1(x0)} ${r1(yc)} Z`;
+    return { d, w, h, boven, onder, tand: tand * Math.min(1, o * 1.5) };
+  }
+
+  function maak(soort, opties) {
+    const o = opties || {}, m = SOORTEN[soort], id = 'mo' + (++teller);
+    const houder = document.createElement('div'); houder.innerHTML = svgVan(soort, id);
+    const svg = houder.firstElementChild, $ = s => svg.querySelector(s), $$ = s => Array.from(svg.querySelectorAll(s));
+    const el = { rek: $('.rek'), gezicht: $('.gezicht'), mond: $('.mond'), mk: $('.mk'), rand: $('.mondrand'), tanden: $('.tanden'), tong: $('.tong'),
+      iris: $$('.iris'), lid: $$('.lid'), wb: $$('.wenkbrauw'), wang: $$('.wang'), arm: $$('.arm'), spriet: $$('.spriet'), pluim: $('.pluim'), hoorns: $('.hoorns'), schaduw: $('.schaduw') };
+    const stilte = !!o.stil;   // minder beweging
+    // de veer van het lijf
+    const veer = { y: 1, v: 0, x: 0, vx: 0 };
+    let knipper = 0, kijk = [0, 0.15];
+    function zet(st, dt) {
+      const hoog = Math.max(-1, Math.min(1, st.hoog || 0)), open = st.open || 0, kl = st.klinker == null ? 2 : st.klinker, tr = st.trilling || 0;
+      const leun = Math.max(-1, Math.min(1, st.leun || 0));
+      // veer: het lijf rekt mee met de toon en wiebelt een beetje na
+      const doelY = stilte ? 1 : 1 + 0.1 * hoog * (0.3 + 0.7 * Math.min(1, open * 1.5)), doelX = stilte ? 0 : leun;
+      const h = Math.min(0.05, dt || 0.016);
+      if (stilte) { veer.y = doelY; veer.x = doelX; veer.v = veer.vx = 0; }
+      else { veer.v += (-(veer.y - doelY) * 260 - veer.v * 15) * h; veer.y += veer.v * h; veer.vx += (-(veer.x - doelX) * 160 - veer.vx * 13) * h; veer.x += veer.vx * h; }
+      const sy = veer.y, sx = 1 / Math.sqrt(Math.max(0.6, sy)), sk = veer.x * 5;
+      el.rek.setAttribute('transform', `translate(120 248) skewX(${r1(sk)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)}) translate(-120 -248)`);
+      if (el.schaduw) el.schaduw.setAttribute('rx', r1(64 * sx));
+      el.gezicht.setAttribute('transform', `translate(${r1(veer.x * 5)} ${r1(-hoog * 3)})`);
+      // mond
+      const [cx, cy, M] = m.mond, md = mondPad(cx, cy, M, kl, open);
+      el.mond.setAttribute('d', md.d); el.mk.setAttribute('d', md.d); el.rand.setAttribute('d', md.d);
+      el.tanden.setAttribute('x', r1(cx - md.w * 0.3)); el.tanden.setAttribute('y', r1(md.boven - 3)); el.tanden.setAttribute('width', r1(md.w * 0.6)); el.tanden.setAttribute('height', r1(Math.max(0, md.h * 0.2 * md.tand + 2.5)));
+      el.tong.setAttribute('cx', cx); el.tong.setAttribute('cy', r1(md.onder - md.h * 0.12)); el.tong.setAttribute('rx', r1(md.w * 0.3)); el.tong.setAttribute('ry', r1(md.h * 0.26));
+      // ogen: kijken naar kijk, en knipperen; lage noten maken de ogen loom, hoge noten wijd
+      m.ogen.forEach((oo, i) => {
+        el.iris[i].setAttribute('transform', `translate(${r1(kijk[0] * oo[2] * 0.42)} ${r1(kijk[1] * oo[3] * 0.4)})`);
+        const dicht = Math.max(knipper, Math.min(0.55, m.lid + Math.max(0, -hoog) * 0.25 * open - Math.max(0, hoog) * 0.15 * open));
+        el.lid[i].setAttribute('transform', `translate(0 ${r1(-(oo[3] * 2 + 6) * (1 - dicht))})`);
+      });
+      el.wb.forEach((w, i) => w.setAttribute('transform', `translate(0 ${r1(-hoog * 5 * open - (open > 0.3 ? 2 : 0))}) rotate(${r1((i ? -1 : 1) * hoog * 6 * open)} ${m.ogen[i][0]} ${m.ogen[i][1] - 20})`));
+      // wangen trillen mee met het vibrato
+      const wt = stilte ? 0 : tr;
+      el.wang.forEach((w, i) => { const [x, y] = m.wangen[i]; w.setAttribute('transform', `translate(${x} ${r1(y + wt * 1.6)}) scale(${(1 + wt * 0.12 + open * 0.08).toFixed(3)} ${(1 - wt * 0.08).toFixed(3)}) translate(${-x} ${-y})`); w.setAttribute('opacity', (0.45 + open * 0.3).toFixed(2)); });
+      // armen gaan omhoog bij hoge noten
+      el.arm.forEach((a, i) => { const [x, y, k] = m.armen[i]; a.setAttribute('transform', `rotate(${r1(-k * (10 + hoog * 28 * open + (stilte ? 0 : wt * 3)))} ${x} ${y})`); });
+      el.spriet.forEach((s, i) => s.setAttribute('transform', `rotate(${r1((i ? 1 : -1) * (stilte ? 0 : veer.v * 1.4 + wt * 4) + veer.x * 6)} 120 74)`));
+      if (el.pluim) el.pluim.setAttribute('transform', `rotate(${r1(stilte ? 0 : veer.v * 1.2 + wt * 3 + veer.x * 5)} 120 62)`);
+      if (el.hoorns) el.hoorns.setAttribute('transform', `translate(0 ${r1(stilte ? 0 : wt * 0.8)})`);
+      return Math.abs(veer.v) > 0.002 || Math.abs(veer.y - doelY) > 0.002 || Math.abs(veer.vx) > 0.002 || Math.abs(veer.x - doelX) > 0.002;
+    }
+    zet({ hoog: 0, open: 0, klinker: 2 }, 0);
+    return {
+      svg, soort, naam: m.naam, zet,
+      kijk(x, y) { kijk = [Math.max(-1, Math.min(1, x)), Math.max(-1, Math.min(1, y))]; },
+      knipper(v) { knipper = v; },
+      stil(v) { /* minder beweging aan of uit */ }
+    };
+  }
+  return { SOORTEN, VOLGORDE, maak, svgVan, mondPad };
+})();
+// ==== MONSTERS eind
+
+// ==== PROEF begin
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const podium = $('podium'), plek = $('plek'), bord = $('bord'), ladder = $('ladder'), kiezer = $('kiezer'), demoKnop = $('demo'), voorlezen = $('voorlezen');
+  const klinkerEls = Array.from($('klinkers').children), NAAM = ['i', 'e', 'a', 'o', 'oe'], LETTER = ['C', 'D', 'E', 'F', 'G', 'A', 'B'], DIA = [0, 2, 4, 5, 7, 9, 11];
+  const minder = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  let ctx = null, koor = null, soort = 'sopraan', monster = null, stemmen = {}, noten = true;
+  let noot = null, kl = 2, actief = null, toets = false, demo = null, raf = 0, vorige = 0, knipperTot = 0;
+
+  // ---- tonen
+  const bereik = () => { const s = STEM.SOORT[soort]; return [s.laag, s.hoog]; };
+  const isDia = n => DIA.indexOf(((Math.round(n) % 12) + 12) % 12) >= 0;
+  const naamVan = n => { const r = Math.round(n), p = ((r % 12) + 12) % 12, o = Math.floor(r / 12) - 1, i = DIA.indexOf(p); return i >= 0 ? LETTER[i] + o : LETTER[DIA.indexOf(p - 1)] + '♯' + o; };
+  function opLadder(n) { let best = Math.round(n), bd = 99; for (let d = -2; d <= 2; d++) { const m = Math.round(n) + d; if (isDia(m) && Math.abs(m - n) < bd) { bd = Math.abs(m - n); best = m; } } return best; }
+  function stap(n, r) { const [lo, hi] = bereik(); let m = Math.round(n); if (!noten) return Math.max(lo, Math.min(hi, m + r)); do { m += r; } while (!isDia(m) && m > lo && m < hi); return Math.max(lo, Math.min(hi, m)); }
+  const BOVEN = 0.1, ONDER = 0.8;               // het speelveld: van 10% tot 80% van de hoogte (daaronder is de vloer)
+  function yVan(n) { const [lo, hi] = bereik(); return BOVEN + (ONDER - BOVEN) * (1 - (n - lo) / (hi - lo)); }
+  function tekenLadder() {
+    const [lo, hi] = bereik(); let h = '';
+    for (let n = Math.ceil(lo); n <= hi; n++) if (isDia(n)) h += `<i data-n="${n}" class="${n % 12 === 0 ? 'c' : ''}" style="top:${(yVan(n) * 100).toFixed(2)}%"><span>${n % 12 === 0 || n === lo || n === hi ? naamVan(n) : ''}</span></i>`;
+    ladder.innerHTML = h;
+  }
+
+  // ---- het geluid (pas na de eerste tik, zoals een iPhone dat wil)
+  function geluid() {
+    if (!ctx) {
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { bord.innerHTML = 'Deze browser kan geen geluid maken.'; return null; }
+      ctx = new AC({ latencyHint: 'interactive' });
+      koor = STEM.koor(ctx, ctx.destination);
+      koor.vol.gain.value = $('volume').value / 100;
+      stemVan(soort);
+    }
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    $('start').hidden = true;
+    return ctx;
+  }
+  function stemVan(s) { if (!ctx) return null; if (!stemmen[s]) stemmen[s] = koor.stem(s, { zaad: MONSTER.VOLGORDE.indexOf(s) + 1 }); return stemmen[s]; }
+  const nu = () => ctx.currentTime + 0.01;
+  // de tijd van het geluid dat je nu hoort (de uitvoer loopt iets achter op de klok)
+  function hoorTijd() { if (!ctx) return 0; try { const o = ctx.getOutputTimestamp && ctx.getOutputTimestamp(); if (o && o.contextTime > 0) return o.contextTime; } catch (e) {} return Math.max(0, ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0)); }
+
+  function zing(n, k, glij) {
+    const st = stemVan(soort); if (!st) return;
+    if (n === noot && Math.abs(k - kl) < 0.02 && st.aan) return;
+    noot = n; kl = k;
+    st.zing(nu(), n, k, 0.72, glij);
+    kom();
+  }
+  function stil() { const st = stemmen[soort]; if (st && ctx) st.stil(nu()); kom(); }
+
+  // ---- het monster
+  function zetMonster() {
+    plek.innerHTML = '';
+    monster = MONSTER.maak(soort, { stil: minder.matches });
+    plek.appendChild(monster.svg);
+    tekenLadder();
+    const m = MONSTER.SOORTEN[soort];
+    demoKnop.textContent = '▶ Laat ' + m.naam + ' een liedje zingen';
+    bord.innerHTML = `${m.naam} · ${m.stem}<small></small>`;
+    kiezer.querySelectorAll('.kies').forEach(k => k.setAttribute('aria-checked', String(k.dataset.soort === soort)));
+    vorige = 0; kom();
+  }
+  function kies(s) {
+    if (s === soort) return;
+    stopDemo(); if (actief != null || toets) { stil(); actief = null; toets = false; }
+    if (stemmen[soort] && ctx) stemmen[soort].stil(nu());
+    soort = s; noot = null; zetMonster();
+    voorlezen.textContent = MONSTER.SOORTEN[s].naam + ', de ' + MONSTER.SOORTEN[s].stem + ', staat op het podium.';
+  }
+  MONSTER.VOLGORDE.forEach((s, i) => {
+    const m = MONSTER.SOORTEN[s], b = document.createElement('button');
+    b.type = 'button'; b.className = 'kies'; b.dataset.soort = s; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
+    b.setAttribute('aria-label', `${m.naam}, de ${m.stem}: ${m.wat}`);
+    const mini = MONSTER.maak(s, { stil: true }); mini.svg.setAttribute('aria-hidden', 'true');
+    b.appendChild(mini.svg); b.insertAdjacentHTML('beforeend', `<b>${m.naam}</b><small>${m.stem}</small>`);
+    b.addEventListener('click', () => kies(s));
+    kiezer.appendChild(b);
+  });
+  kiezer.addEventListener('keydown', e => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault(); const i = MONSTER.VOLGORDE.indexOf(soort), r = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
+    const s = MONSTER.VOLGORDE[(i + r + 4) % 4]; kies(s); kiezer.querySelector(`[data-soort="${s}"]`).focus();
+  });
+
+  // ---- tekenen: alleen zolang er iets beweegt
+  function kom() { if (!raf) raf = requestAnimationFrame(teken); }
+  function teken(tijd) {
+    raf = 0;
+    const dt = vorige ? Math.min(0.05, (tijd - vorige) / 1000) : 0.016; vorige = tijd;
+    const st = stemmen[soort], t = hoorTijd(), [lo, hi] = bereik(), mid = (lo + hi) / 2;
+    let s = { open: 0, klinker: kl, hoog: 0, trilling: 0, leun: 0 }, klinkt = false, zichtbareNoot = noot;
+    if (st && ctx) {
+      const a = st.stand(t); klinkt = st.klinkt(t);
+      s = { open: a.open, klinker: a.klinker, hoog: Math.max(-1, Math.min(1, (a.noot - mid) / ((hi - lo) / 2))), trilling: minder.matches ? 0 : a.trilling, leun: (a.klinker - 2) / 2 };
+      if (klinkt) zichtbareNoot = 69 + st.toon.doel(t) / 100;   // de noot waar het monster naartoe zingt (zonder vibrato en aanzet)
+    }
+    if (knipperTot > tijd) monster.knipper(Math.sin(Math.PI * (1 - (knipperTot - tijd) / 160)));
+    else monster.knipper(0);
+    const beweegt = monster.zet(s, dt);
+    // het licht volgt het monster, de lijn van de toon en de klinker lichten op
+    if (!minder.matches) { podium.style.setProperty('--ly', (yVan(zichtbareNoot == null ? mid : zichtbareNoot) * 100 + 18).toFixed(1) + '%'); podium.style.setProperty('--lx', (50 + s.leun * 6).toFixed(1) + '%'); }
+    podium.style.setProperty('--lk', (0.16 + 0.22 * s.open).toFixed(3));
+    const rn = klinkt && zichtbareNoot != null ? Math.round(zichtbareNoot) : null;
+    ladder.querySelectorAll('i').forEach(i => i.classList.toggle('nu', +i.dataset.n === rn));
+    const rk = Math.round(s.klinker); klinkerEls.forEach((k, i) => k.classList.toggle('nu', klinkt && i === rk));
+    const m = MONSTER.SOORTEN[soort];
+    const regel = klinkt && rn != null ? `zingt een ${NAAM[rk]} op ${naamVan(rn)}` : (demo ? '' : 'sleep om te zingen');
+    const sm = bord.querySelector('small'); if (sm && sm.textContent !== regel) sm.textContent = regel;
+    if (klinkt || beweegt || demo || knipperTot > tijd) kom();
+  }
+  // af en toe knipperen (niet bij minder beweging)
+  (function knipper() { setTimeout(() => { if (!minder.matches && !document.hidden) { knipperTot = performance.now() + 160; kom(); } knipper(); }, 2600 + Math.random() * 3800); })();
+
+  // ---- slepen met muis of vinger
+  function vanPunt(e) {
+    const r = podium.getBoundingClientRect(), fy = (e.clientY - r.top) / r.height, fx = (e.clientX - r.left) / r.width;
+    const [lo, hi] = bereik(), u = Math.max(0, Math.min(1, (ONDER - fy) / (ONDER - BOVEN)));
+    const ruw = lo + (hi - lo) * u, n = noten ? opLadder(ruw) : ruw;
+    // de klinker: van links (i) naar rechts (oe), met een zachte voorkeur voor de vijf klinkers zelf
+    const v = Math.max(0, Math.min(4, (fx - 0.12) / 0.76 * 4)), r0 = Math.round(v), d = v - r0, k = r0 + Math.sign(d) * Math.pow(Math.abs(d) * 2, 2) / 2;
+    return { n, k: Math.max(0, Math.min(4, k)), fx, fy };
+  }
+  function kijkNaar(e) {
+    if (!monster) return;
+    const r = plek.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * 0.45;
+    monster.kijk((e.clientX - cx) / (r.width * 0.9), (e.clientY - cy) / (r.height * 0.9)); kom();
+  }
+  podium.addEventListener('pointerdown', e => {
+    if (e.target.closest('button') || actief != null) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault(); podium.focus({ preventScroll: true });
+    if (!geluid()) return;
+    stopDemo();
+    actief = e.pointerId; try { podium.setPointerCapture(e.pointerId); } catch (x) {}
+    podium.classList.add('sleep');
+    const p = vanPunt(e); kijkNaar(e); zing(p.n, p.k, 0.035);
+  });
+  podium.addEventListener('pointermove', e => { kijkNaar(e); if (e.pointerId !== actief) return; const p = vanPunt(e); zing(p.n, p.k, 0.035); });
+  const los = e => { if (e.pointerId !== actief) return; actief = null; podium.classList.remove('sleep'); stil(); if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {}); };
+  podium.addEventListener('pointerup', los); podium.addEventListener('pointercancel', los); podium.addEventListener('lostpointercapture', los);
+  podium.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && actief == null && monster) { monster.kijk(0, 0.15); kom(); } });
+  $('start').addEventListener('click', () => { geluid(); podium.focus({ preventScroll: true }); voorlezen.textContent = 'Het geluid staat aan. Sleep op het podium, of houd de spatiebalk ingedrukt om te zingen.'; });
+
+  // ---- het toetsenbord
+  function zeg() { voorlezen.textContent = `${MONSTER.SOORTEN[soort].naam}: ${NAAM[Math.round(kl)]} op ${naamVan(noot)}`; }
+  podium.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const [lo, hi] = bereik(), start = noot == null ? opLadder((lo + hi) / 2) : noot;
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault(); if (e.repeat) return; if (!geluid()) return;
+      stopDemo(); toets = true; zing(start, kl, 0.05); zeg();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault(); if (!geluid()) return; stopDemo();
+      const n = stap(start, e.key === 'ArrowUp' ? 1 : -1);
+      if (toets || actief != null) zing(n, kl, 0.05); else { kort(n, kl); }
+      noot = n; zeg();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault(); if (!geluid()) return; stopDemo();
+      const k = Math.max(0, Math.min(4, Math.round(kl) + (e.key === 'ArrowRight' ? 1 : -1)));
+      if (toets || actief != null) zing(start, k, 0.05); else kort(start, k);
+      kl = k; zeg();
+    } else if (e.key === 'Escape') { stopDemo(); toets = false; stil(); }
+    else if (/^[1-4]$/.test(e.key)) { kies(MONSTER.VOLGORDE[+e.key - 1]); }
+  });
+  podium.addEventListener('keyup', e => { if ((e.key === ' ' || e.key === 'Enter') && toets) { toets = false; stil(); } });
+  podium.addEventListener('blur', () => { if (toets) { toets = false; stil(); } });
+  // een kort tooontje als je met de pijltjes kiest zonder de spatie vast te houden
+  let kortKlok = 0;
+  function kort(n, k) { const st = stemVan(soort); if (!st) return; clearTimeout(kortKlok); noot = n; kl = k; st.zing(nu(), n, k, 0.65, 0.05); kom(); kortKlok = setTimeout(() => { if (!toets && actief == null) stil(); }, 450); }
+
+  // ---- een liedje: Vader Jacob (traditioneel), om te horen hoe de stem klinkt
+  const LIED = [[0, 1, 3], [2, 1, 2], [4, 1, 2], [0, 1, 3], [0, 1, 3], [2, 1, 2], [4, 1, 2], [0, 1, 3], [4, 1, 1], [5, 1, 2], [7, 2, 2], [4, 1, 1], [5, 1, 2], [7, 2, 2],
+    [7, .5, 0], [9, .5, 1], [7, .5, 2], [5, .5, 3], [4, 1, 2], [0, 1, 4], [7, .5, 0], [9, .5, 1], [7, .5, 2], [5, .5, 3], [4, 1, 2], [0, 1, 4], [0, 1, 3], [-5, 1, 2], [0, 2, 4], [0, 1, 3], [-5, 1, 2], [0, 2, 4]];
+  const ADEM = [3, 7, 9, 13, 19, 25, 28, 31], DO = { sopraan: 67, alt: 60, tenor: 55, bas: 48 };
+  function speelDemo() {
+    if (demo) { stopDemo(); return; }
+    if (!geluid()) return;
+    const st = stemVan(soort); if (!st) return;
+    stil(); const tel = 60 / 100; let t = ctx.currentTime + 0.25;
+    LIED.forEach(([s, n, k], i) => { st.zing(t, DO[soort] + s, k, 0.72, 0.04); t += n * tel; if (ADEM.indexOf(i) >= 0) st.stil(t - 0.09); });
+    demo = { eind: t, klok: setTimeout(() => { demo = null; demoKnop.textContent = '▶ Laat ' + MONSTER.SOORTEN[soort].naam + ' een liedje zingen'; kom(); }, (t - ctx.currentTime) * 1000 + 300) };
+    demoKnop.textContent = '■ Stop het liedje'; monster.kijk(0, -0.3); kom();
+  }
+  function stopDemo() {
+    if (!demo) return;
+    clearTimeout(demo.klok); demo = null;
+    const st = stemmen[soort]; if (st && ctx) st.stop(nu());
+    demoKnop.textContent = '▶ Laat ' + MONSTER.SOORTEN[soort].naam + ' een liedje zingen'; kom();
+  }
+  demoKnop.addEventListener('click', speelDemo);
+  $('noten').addEventListener('change', e => { noten = e.target.checked; });
+  $('volume').addEventListener('input', e => { if (koor) koor.vol.gain.setTargetAtTime(e.target.value / 100, ctx.currentTime, 0.03); });
+
+  // ---- weg uit beeld: stil en zuinig
+  let wasAan = false;
+  document.addEventListener('visibilitychange', () => {
+    if (!ctx) return;
+    if (document.hidden) { wasAan = ctx.state === 'running'; stopDemo(); toets = false; actief = null; stil(); setTimeout(() => { if (document.hidden) ctx.suspend().catch(() => {}); }, 200); }
+    else if (wasAan) ctx.resume().catch(() => {});
+  });
+  if (minder.addEventListener) minder.addEventListener('change', zetMonster);
+
+  zetMonster();
+  // de filters van de stemmen alvast uitrekenen, als de pagina niets te doen heeft (eerst het monster dat er staat)
+  const later = window.requestIdleCallback || (f => setTimeout(f, 200));
+  const rij = [];
+  [soort].concat(MONSTER.VOLGORDE.filter(s => s !== soort)).forEach(s => [48000, 44100].forEach(fs => rij.push([s, fs])));
+  (function volgende() { const x = rij.shift(); if (!x) return; later(() => { STEM.voorbereid(x[0], x[1]); volgende(); }); })();
+  // testhaak
+  window.__zang = { STEM, MONSTER, get ctx() { return ctx; }, get stem() { return stemmen[soort]; }, get demo() { return demo; }, get noot() { return noot; }, get kl() { return kl; }, kies, speelDemo, stopDemo, yVan, bereik };
+})();
+// ==== PROEF eind
+</script>
+</body>
+</html>

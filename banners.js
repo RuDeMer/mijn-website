@@ -799,10 +799,23 @@
   if (window.matchMedia) { var mq = matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) mq.addEventListener('change', zetThema); }
   addEventListener('storage', function (e) { if (e.key === 'rommelhoekje-thema') zetThema(); });
 
+  // een rommeltje van de homepage komt er hard tegenaan: de advertentie schudt even en wisselt (hooguit eens per 1,5 seconde).
+  // Geen beweging bij minder beweging; telt niet als wegklikken.
+  function raak(el) {
+    var p = plekken.filter(function (x) { return x.el === el; })[0];
+    if (!p || !p.k || p.vorm === 'lijst' || !p.D || el.hidden) return false;
+    var nu = Date.now(); if (p.geraakt && nu - p.geraakt < 1500) return false;
+    var b = el.querySelector('.ra-wrap:not(.ra-uit)'); if (!b || el.querySelector('.ra-uitleg:not([hidden])') || el.contains(document.activeElement)) return false;
+    p.geraakt = nu;
+    var ra = b.querySelector('.ra');
+    if (!minder() && ra && ra.animate) { try { ra.animate([{ transform: 'none' }, { transform: 'translateX(-6px) rotate(-1.2deg)' }, { transform: 'translateX(5px) rotate(1deg)' }, { transform: 'translateX(-3px) rotate(-.5deg)' }, { transform: 'translateX(2px)' }, { transform: 'none' }], { duration: 420, easing: 'ease-out' }); } catch (e) {} }
+    setTimeout(function () { if (!el.isConnected || p.k == null) return; var k = kies(p.D, optiesVoor(p, [p.k.href])); if (k) teken(p, k, true); }, minder() ? 0 : 320);
+    return true;
+  }
   // mag er op dit eindscherm nu een advertentie? (opties.soms: hooguit eens per 10 minuten per spel)
   function mag(o) { if (!o || !o.soms) return true; var G = geheugen(), t = G.e[hierPagina()]; return !(t && Date.now() - t < SOMS_MS && Date.now() >= t); }
 
-  window.RommelBanner = { toon: toon, kies: kies, kansen: kansen, maak: maak, maakLijst: maakLijst, mag: mag, data: data, hoogteVan: hoogteVan, vormVan: vormVan, geheugen: geheugen,
+  window.RommelBanner = { toon: toon, raak: raak, kies: kies, kansen: kansen, maak: maak, maakLijst: maakLijst, mag: mag, data: data, hoogteVan: hoogteVan, vormVan: vormVan, geheugen: geheugen,
     isNieuw: isNieuw, SPEELDE: SPEELDE, WACHT: WACHT, ONTWERP: ONTWERP, ICOON: ICOON, GEWICHT: GEWICHT, STIJL: function () { return STIJL; } };
   // plekken die al in de pagina staan (zoals op de 404-pagina): <div data-rommelbanner="lijst"></div>
   function start() { [].slice.call(document.querySelectorAll('[data-rommelbanner]')).forEach(function (el) { if (!el.dataset.rbKlaar) { el.dataset.rbKlaar = '1'; var v = el.dataset.rommelbanner; toon(el, { vorm: v === 'lijst' || v === 'blok' || v === 'hoog' ? v : undefined }); } }); }

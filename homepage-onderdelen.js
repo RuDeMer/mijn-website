@@ -2624,8 +2624,45 @@ html[data-thema="donker"] { --rm-potlood: rgba(240,234,222,.86); --rm-sch: rgba(
 .rm-plank i { position: absolute; top: -12.5px; width: 7px; height: 12px; box-sizing: border-box; background: var(--rm-hout); border: 2.5px solid var(--tg-rand); border-bottom: 0; border-radius: 3px 3px 0 0; }
 .rm-plank i.l { left: -5px; } .rm-plank i.r { right: -5px; }
 .rm-bel { position: absolute; left: 0; top: 0; z-index: 6; pointer-events: none; background: #23252B; color: #FBF6E9; font-weight: 800; font-size: .95rem; padding: 3px 10px 4px; border-radius: 999px; white-space: nowrap; }
-.rm-fonkel { position: absolute; left: 0; top: 0; width: 16px; height: 16px; pointer-events: none; }
-.rm-fonkel svg { display: block; width: 100%; height: 100%; fill: #FFE76A; stroke: #231A26; stroke-width: 1.4; }
+/* de rommelkast met knipoogjes (hebbedingetjes uit series en films, eigen tekeningen) */
+:root { --rm-sch-k: #231A26; --rm-sch-a: .2; --rm-kast-achter: #EAD5AA; --rm-kast-gaatje: rgba(122,78,45,.34); --rm-stof: #8A7E70; }
+html[data-thema="donker"] { --rm-sch-k: #FFF0C8; --rm-sch-a: .13; --rm-kast-achter: #3A2E24; --rm-kast-gaatje: rgba(0,0,0,.4); --rm-stof: #CFC5B4; }
+.rm-sch.rm-vol svg { opacity: var(--rm-sch-a); }
+.rm-sch.rm-vol svg * { fill: var(--rm-sch-k); stroke: none; }
+.rm-sch.rm-vol svg [fill="none"] { fill: none; stroke: var(--rm-sch-k); }
+.rm-sch .rm-gloed { display: none; }
+.rm-knipoog .rm-draai svg { transform-origin: 50% 88%; }
+.rm-knipoog .rm-steen { transform-box: fill-box; transform-origin: 50% 50%; }
+.rm-knipoog .rm-wip { transform-box: fill-box; transform-origin: 50% 100%; }
+.rm-knipoog .rm-links, .rm-knipoog .rm-rechts { transform-origin: 32px 41px; }
+.tg-rommel[data-rommel="vingerval"] .tek { transform-origin: 32px 44px; }
+.tg-kast { margin: 0 0 2.6rem; padding-top: 24px; }
+.rm-kast { position: relative; margin: 0 auto; box-sizing: border-box; pointer-events: none; }
+.rm-kast.rm-zij { position: absolute; left: 0; top: 0; margin: 0; z-index: 2; }
+.rm-kast > span { position: absolute; display: block; box-sizing: border-box; }
+.rm-kast-kast { left: 0; right: 0; top: 12px; bottom: 8px; background: var(--rm-hout); border: 3px solid var(--tg-rand); border-radius: 4px; box-shadow: 5px 6px 0 var(--rm-sch); }
+.rm-kast-achter { left: 13px; right: 13px; top: 20px; bottom: 18px; background: var(--rm-kast-achter) radial-gradient(circle, var(--rm-kast-gaatje) 1.6px, transparent 2.1px) 7px 7px / 14px 14px; box-shadow: inset 0 0 0 2px var(--tg-rand), inset 5px 7px 0 rgba(35,26,38,.13); }
+.rm-kast-plank { left: 11px; right: 11px; height: 10px; background: var(--rm-hout); border: 2.5px solid var(--tg-rand); border-radius: 2px; box-shadow: 0 5px 0 rgba(35,26,38,.15); }
+.rm-kast-kroon { left: -6px; right: -6px; top: 0; height: 14px; background: var(--rm-hout); border: 3px solid var(--tg-rand); border-radius: 4px 4px 2px 2px; box-shadow: inset 0 3px 0 rgba(255,255,255,.18), 0 3px 0 var(--rm-hout-donker); }
+.rm-kast-voet { bottom: 0; width: 16px; height: 12px; background: var(--rm-hout-donker); border: 2.5px solid var(--tg-rand); border-top: 0; border-radius: 0 0 4px 4px; }
+.rm-kast-voet.l { left: 10px; } .rm-kast-voet.r { right: 10px; }
+.rm-kast-tape { left: 50%; top: -21px; transform: translateX(-50%) rotate(-3deg); background: #23252B; color: #F4F1EC; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; line-height: 1; padding: 5px 10px 4px; border-radius: 3px; white-space: nowrap; font-stretch: 75%; box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.rm-kaart { position: absolute; left: 0; top: 0; z-index: 7; max-width: 220px; box-sizing: border-box; padding: 8px 11px 9px; background: var(--tg-knop); color: var(--tg-tekst); border: 2.5px solid var(--tg-knop-rand); border-radius: 10px; box-shadow: 3px 4px 0 rgba(35,26,38,.18); pointer-events: none; opacity: 0; transition: opacity .15s ease; line-height: 1.25; text-align: left; }
+.rm-kaart.zichtbaar { opacity: 1; }
+.rm-kaart b { display: block; font-weight: 800; font-size: .95rem; }
+.rm-kaart .rm-serie { display: inline-block; margin: 3px 0 4px; padding: 1px 7px 2px; border-radius: 999px; background: #23252B; color: #FBF6E9; font-size: .72rem; font-weight: 800; letter-spacing: .02em; }
+html[data-thema="donker"] .rm-kaart .rm-serie { background: #FFE76A; color: #231A26; }
+.rm-kaart .rm-zin { display: block; font-size: .85rem; }
+.rm-flits { position: absolute; left: 0; top: 0; border-radius: 50%; pointer-events: none; z-index: 6; opacity: 0; }
+.rm-bliksem { position: absolute; left: 0; top: 0; width: 40px; height: 80px; pointer-events: none; z-index: 6; opacity: 0; }
+.rm-bliksem svg { display: block; width: 100%; height: 100%; fill: #FFE76A; stroke: #231A26; stroke-width: 2.5; stroke-linejoin: round; }
+.rm-vuur { position: absolute; width: 150px; height: 4px; border-radius: 3px; background: linear-gradient(90deg, #FFF3A8, #F08A2C 45%, rgba(200,50,60,0)); pointer-events: none; z-index: 4; transform-origin: 0 50%; opacity: 0; }
+.rm-vuur.links { background: linear-gradient(270deg, #FFF3A8, #F08A2C 45%, rgba(200,50,60,0)); transform-origin: 100% 50%; }
+.rm-deeltje { position: absolute; left: 0; top: 0; width: 14px; height: 14px; pointer-events: none; z-index: 6; }
+.rm-deeltje svg { display: block; width: 100%; height: 100%; }
+.rm-stof i { display: block; width: 5px; height: 5px; border-radius: 50%; background: var(--rm-stof); }
+@media (prefers-reduced-motion: reduce) { .rm-kaart { transition: none; } }
+@media (max-width: 420px) { .tg-rommelknop .tg-rk-kantel { padding: 0; } .tg-rommelknop .tg-rk-kantel span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .rm-toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 180%); background: #23252B; color: #FBF6E9; font-weight: 700; padding: 10px 18px; border-radius: 999px; z-index: 60; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; transition: transform .25s ease; pointer-events: none; }
 .rm-toast.zichtbaar { transform: translate(-50%, 0); }
 html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { background: #FBF6E9; color: #231A26; }
@@ -3435,10 +3472,6 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     const OOG = { tl: [22, 22], tr: [42, 22], ml: [22, 32], mr: [42, 32], c: [32, 32], bl: [22, 42], br: [42, 42] };
     const OGEN = { 1: ['c'], 2: ['tr', 'bl'], 3: ['tr', 'c', 'bl'], 4: ['tl', 'tr', 'bl', 'br'], 5: ['tl', 'tr', 'c', 'bl', 'br'], 6: ['tl', 'tr', 'ml', 'mr', 'bl', 'br'] };
     const GETAL = ['', 'één', 'twee', 'drie', 'vier', 'vijf', 'zes'];
-    const KURK = 'M32 9l5 4 6-2 3 5 6 1 0 6 5 4-3 5 3 5-5 4 0 6-6 1-3 5-6-2-5 4-5-4-6 2-3-5-6-1 0-6-5-4 3-5-3-5 5-4 0-6 6-1 3-5 6 2z';
-    const TOL = 'M12 30c0-9 9-14 20-14s20 5 20 14c0 4-2 7-6 10L32 56 18 40c-4-3-6-6-6-10z';
-    const STER = 'M32 7l7.4 15 16.6 2.4-12 11.7 2.8 16.5L32 44.8 17.2 52.6 20 36.1 8 24.4l16.6-2.4z';
-    const CLIP = 'M24 50V18a8 8 0 0 1 16 0v30a12 12 0 0 1-24 0V22';
     const PL = [[-22.3, -6.9], [11.4, -6.9], [22.3, 0], [11.4, 6.9], [-22.3, 6.9]], PUNT = [22.3, 0];
     const rond = (r1, r2) => `<circle class="hit fijn" cx="32" cy="32" r="${r1}"/><circle class="hit grof" cx="32" cy="32" r="${r2}"/>`;
     const DEF = {
@@ -3457,30 +3490,217 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         sch: '<path d="M4.5 23.5h42l13.5 8.5-13.5 8.5h-42z"/>',
         hit: '<path class="hit fijn" d="M2 20h45l16 12-16 12H2z"/><path class="hit grof" d="M-2 16h50l18 16-18 16H-2z"/>',
         label: 'Potlood. Sleep om te tekenen, tik voor een krabbel.' },
-      paperclip: { naam: 'Paperclip', klank: 'metaal', vorm: () => Fysica.poly(pk([[16, 6.5], [40, 6.5], [43.5, 12], [43.5, 58], [38, 63.5], [18, 63.5], [12.5, 58], [12.5, 12]])), dichtheid: 1.5, wrijving: 0.07, stuit: 0.25, a0: Math.PI / 2,
-        teken: () => `<path d="${CLIP}" fill="none" stroke="#231A26" stroke-width="7" stroke-linecap="round"/><path d="${CLIP}" fill="none" stroke="#B8C0C8" stroke-width="3.4" stroke-linecap="round"/><path d="M38 20v26" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" opacity=".7"/>`,
-        sch: `<path d="${CLIP}" fill="none" stroke-width="7" stroke-linecap="round"/>`,
-        hit: '<rect class="hit fijn" x="9" y="4" width="38" height="62" rx="12"/><rect class="hit grof" x="5" y="1" width="46" height="68" rx="16"/>',
-        label: 'Paperclip. Tik en hij vliegt als een boemerang.' },
-      knoop: { naam: 'Knoop', klank: 'plastic', vorm: () => Fysica.cirkel(19.3, 0.5), dichtheid: 1.1, wrijving: 0.5, stuit: 0.68, rol: 520,
-        teken: () => '<circle cx="32" cy="32" r="22" fill="#2F6FB5" stroke="#231A26" stroke-width="3.5"/><circle cx="32" cy="32" r="15" fill="none" stroke="#1F4F85" stroke-width="2.5"/>' + [[26, 26], [38, 26], [26, 38], [38, 38]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/>`).join(''),
-        sch: '<circle cx="32" cy="32" r="23.5"/>', hit: rond(25, 28),
-        label: 'Knoop. Tik en hij stuitert als een superbal.' },
-      kroonkurk: { naam: 'Kroonkurk', klank: 'metaal', vorm: () => Fysica.cirkel(19.5, 0.5), dichtheid: 1.4, wrijving: 0.6, stuit: 0.25, rol: 1100,
-        teken: () => `<g class="voor"><path d="${KURK}" fill="#C8323C" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="32" r="13" fill="#E8414E" stroke="#231A26" stroke-width="2.5"/><path d="M26 30c2-3 8-3 12 0" fill="none" stroke="#FBF6E9" stroke-width="2.5" stroke-linecap="round"/></g><g class="achter" style="opacity:0"><path d="${KURK}" fill="#B8C0C8" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="32" r="14" fill="#D9B98C" stroke="#231A26" stroke-width="2.5"/><circle cx="32" cy="32" r="8" fill="none" stroke="#B88A55" stroke-width="2"/></g>`,
-        sch: `<path d="${KURK}"/>`, hit: rond(25, 28),
-        label: 'Kroonkurk. Tik om op te gooien: kop of munt?' },
-      sterretje: { naam: 'Sterretje', klank: 'plastic', vorm: () => Fysica.poly(pk([[32, 4.5], [58.5, 24], [48.5, 55], [15.5, 55], [5.5, 24]])), dichtheid: 0.6, wrijving: 0.45, stuit: 0.35,
-        teken: () => `<path d="${STER}" fill="#FFE76A" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/><path d="M27 26l3 3" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>`,
-        sch: `<path d="${STER}"/>`, hit: rond(24, 27),
-        label: 'Sterretje. Tik en het laat een spoor van fonkeltjes achter.' },
-      tol: { naam: 'Tol', klank: 'hout', a0: 0.91, vorm: () => Fysica.poly(pk([[32, 5.5], [44, 15.5], [52.5, 25], [53.5, 31], [32, 58.5], [10.5, 31], [11.5, 25], [20, 15.5]])), dichtheid: 0.9, wrijving: 0.5, stuit: 0.25,
-        teken: n => `<defs><clipPath id="rm-tol${n}"><path d="${TOL}"/></clipPath></defs><path d="M32 8v8" stroke="#231A26" stroke-width="4" stroke-linecap="round"/><path d="${TOL}" fill="#2E8B62" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/><g clip-path="url(#rm-tol${n})"><g class="strepen"><path d="M6 14v44M18 14v44M30 14v44M42 14v44M54 14v44M66 14v44" stroke="#FFFFFF" stroke-width="3" opacity=".22"/></g></g><path d="M13 30h38" stroke="#FFE76A" stroke-width="4"/><path d="${TOL}" fill="none" stroke="#231A26" stroke-width="3.5" stroke-linejoin="round"/>`,
-        sch: `<path d="${TOL}"/><path d="M30 6h4v12h-4z"/>`, hit: '<path class="hit fijn" d="M6 30c0-12 12-20 26-20s26 8 26 20c0 6-3 10-8 14L32 62 14 44c-5-4-8-8-8-14z"/><path class="hit grof" d="M2 30c0-14 14-24 30-24s30 10 30 24c0 7-4 12-9 16L32 66 11 46c-5-4-9-9-9-16z"/>',
-        label: 'Tol. Tik om hem te laten draaien.' }
     };
+    // ---------- de knipoogjes in de rommelkast: hebbedingetjes uit series en films, als eigen tekeningen
+    // (geen namen, logo's of personages; een hamer, een kubus, een kopje ...). romp: de botsvorm (bol, in tekencoördinaten).
+    const KNIPOOG = (function () {
+      const I = '#231A26';
+      const f1 = v => +v.toFixed(1);
+      const pol = (cx, cy, r, a) => [f1(cx + Math.sin(a * Math.PI / 180) * r), f1(cy - Math.cos(a * Math.PI / 180) * r)];
+      const steen = (x, y, kleur, i) => `<g class="rm-steen" style="--i:${i}"><path d="M${x - 5.5} ${y - 2.5}L${x - 2.5} ${y - 6}h5l3 3.5L${x} ${y + 6.5}z" fill="${kleur}" stroke="${I}" stroke-width="1.9" stroke-linejoin="round"/><path d="M${x - 5.5} ${y - 2.5}h11M${x - 2.5} ${y - 6}l1 3.5L${x} ${y + 6.5}M${x + 2.5} ${y - 6}l-1 3.5" fill="none" stroke="${I}" stroke-width=".9" opacity=".45"/><path d="M${x - 3.6} ${y - 3.8}l1.3-1.2" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" opacity=".9"/></g>`;
+      const K = {
+        // ================= Marvel
+        hamer: { naam: 'Hamer', serie: 'Marvel', zin: 'Probeer hem maar eens op te tillen.', klank: 'metaal', dichtheid: 30, wrijving: 0.8, stuit: 0.05,
+          romp: [[26, 5], [39, 5], [54, 33], [54, 53], [47, 60], [11, 60], [11, 40], [19, 33]],
+          svg: n => `<path d="M29.5 9.5c-3-4-10-4-11.5 0-1.6 4.5 2.5 9.5 9 12" fill="none" stroke="${I}" stroke-width="5.2" stroke-linecap="round"/>
+            <path d="M29.5 9.5c-3-4-10-4-11.5 0-1.6 4.5 2.5 9.5 9 12" fill="none" stroke="#6B4426" stroke-width="2.4" stroke-linecap="round"/>
+            <rect x="28" y="12" width="9" height="24" rx="1.5" fill="#7A4E2D" stroke="${I}" stroke-width="2.4"/>
+            <path d="M28 16.5l9-2.4M28 21l9-2.4M28 25.5l9-2.4M28 30l9-2.4" stroke="#4E321C" stroke-width="2.2"/>
+            <path d="M29.5 14v19" stroke="#A5754A" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>
+            <rect x="26.5" y="6.5" width="12" height="6" rx="2" fill="#B8C0CA" stroke="${I}" stroke-width="2.2"/>
+            <path d="M28.5 9h4" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round"/>
+            <rect x="26.5" y="33" width="12" height="4" rx="1" fill="#8C939E" stroke="${I}" stroke-width="2"/>
+            <path d="M11 40l8-7h35l-8 7z" fill="#C9D0D8" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M46 40l8-7v20l-8 7z" fill="#727C89" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <rect x="11" y="40" width="35" height="20" fill="#A3ACB7" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M14 44h29M14 56h29" stroke="#7D8794" stroke-width="1.6"/>
+            <path d="M28.5 46.5l4 3.5-4 3.5-4-3.5z" fill="#8C939E" stroke="#5E6672" stroke-width="1.3"/>
+            ${[[16, 50], [41, 50]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="1.3" fill="#5E6672"/>`).join('')}
+            <path d="M14 42h12" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+            <path d="M48.5 41l3-2.6" stroke="#A3ACB7" stroke-width="1.3" stroke-linecap="round"/>` },
+        kubus: { naam: 'Blauwe kubus', serie: 'Marvel', zin: 'Niet aankomen. Oké, één keer dan.', klank: 'glas', dichtheid: 1.6, wrijving: 0.5, stuit: 0.25,
+          romp: [[12, 24], [20, 15], [53, 15], [53, 48], [45, 57], [12, 57]],
+          svg: n => `<defs><radialGradient id="kb-g${n}"><stop offset="0" stop-color="#9FE8FF" stop-opacity=".55"/><stop offset="1" stop-color="#9FE8FF" stop-opacity="0"/></radialGradient></defs>
+            <circle class="rm-gloed" cx="32" cy="36" r="31" fill="url(#kb-g${n})"/>
+            <path d="M12 24l8-9h33l-8 9z" fill="#B7F0FF" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M45 24l8-9v33l-8 9z" fill="#1F7FC4" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <rect x="12" y="24" width="33" height="33" fill="#3FA9E6" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <rect x="16.5" y="28.5" width="24" height="24" rx="2" fill="none" stroke="#9BE3FF" stroke-width="1.6" opacity=".9"/>
+            <path d="M22 46c3-7 6-11 13-14M20 37c5-1 8 2 11 6M33 47c1-4 4-6 8-7" fill="none" stroke="#E4FBFF" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>
+            <circle cx="28.5" cy="40.5" r="3.2" fill="#E4FBFF"/>
+            <path d="M17 21.5l6-6.5h10" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M49 25v16" stroke="#58B9EE" stroke-width="1.5" stroke-linecap="round"/>
+            ${[[7, 16], [58, 10], [59, 54], [5, 50]].map(p => `<path class="rm-gloed" d="M${p[0]} ${p[1] - 3}v6M${p[0] - 3} ${p[1]}h6" stroke="#58B9EE" stroke-width="1.5" stroke-linecap="round"/>`).join('')}` },
+        stenen: { naam: 'Zes steentjes', serie: 'Marvel', zin: 'Zes steentjes. Eén knip.', klank: 'hout', dichtheid: 1.1, wrijving: 0.7, stuit: 0.15,
+          romp: [[7, 36], [14, 28], [50, 28], [57, 36], [53, 50], [41, 60], [23, 60], [11, 50]],
+          svg: n => `<ellipse cx="32" cy="36" rx="25" ry="7.5" fill="#4E2F19" stroke="${I}" stroke-width="2.4"/>
+            ${steen(21, 34.5, '#3DBA6A', 0)}${steen(32, 33, '#8E5BD6', 1)}${steen(43, 34.5, '#F2C94C', 2)}${steen(16, 40.5, '#3F7FE0', 3)}${steen(32, 41.5, '#E0384A', 4)}${steen(48, 40.5, '#F08A2C', 5)}
+            <path d="M7 36A25 7.5 0 0 0 57 36C57 47 46 55 32 55S7 47 7 36z" fill="#8A5B34" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M9.5 38.5A25 7.5 0 0 0 54.5 38.5" fill="none" stroke="#C08B55" stroke-width="2"/>
+            <path d="M13 46c5 4 12 6 19 6M18 49.5c4 2 8 3 13 3" fill="none" stroke="#6B4426" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M12 42c1 3 3 5 5 6.5" fill="none" stroke="#B07A4A" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M24 54.5h16l2 5.5H22z" fill="#6B4426" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>` },
+        // ================= Back to the Future
+        foto: { naam: 'Familiefoto', serie: 'Back to the Future', zin: 'Een familiefoto. Hij wordt wel steeds vager.', klank: 'hout', dichtheid: 0.7, wrijving: 0.6, stuit: 0.2,
+          romp: [[12, 5], [52, 5], [52, 59], [12, 59]],
+          svg: n => `<rect x="12" y="5" width="40" height="54" rx="2" fill="#B9834F" stroke="${I}" stroke-width="2.6"/>
+            <path d="M12 5l5 5h30l5-5M12 59l5-5h30l5 5" fill="none" stroke="#8E5E36" stroke-width="1.5"/>
+            <rect x="17" y="10" width="30" height="44" fill="#FBF6E9" stroke="${I}" stroke-width="1.8"/>
+            <rect x="20" y="13" width="24" height="29" fill="#9CC4DE" stroke="${I}" stroke-width="1.4"/>
+            <path d="M20 34c6-2 17-2 24 0v8H20z" fill="#86B06A"/>
+            <path d="M33 34v-6l3-3 3 3v6" fill="#D9C8A8" stroke="${I}" stroke-width=".9"/>
+            ${[[25, '#5A3820', '#C8323C', 0], [31.5, '#E9B949', '#2F6FB5', -1.5], [38, '#2B2733', '#E8833A', 0]].map((f, i) => `<g class="rm-kind" style="--i:${i}"><circle cx="${f[0]}" cy="${29 + f[3]}" r="2.6" fill="#F2C9A0" stroke="${I}" stroke-width="1"/><path d="M${f[0] - 2.8} ${28 + f[3]}a2.8 2.8 0 0 1 5.6 0" fill="${f[1]}" stroke="${I}" stroke-width="1"/><path d="M${f[0] - 3} ${39}v-4.5a3 3 0 0 1 6 0V${39}z" fill="${f[2]}" stroke="${I}" stroke-width="1" transform="translate(0 ${f[3]})"/></g>`).join('')}
+            <path d="M21 48h12M21 51h8" stroke="#C9BFAE" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M20 13l6 0" stroke="#FFFFFF" stroke-width="1.2" opacity=".7"/>` },
+        klok: { naam: 'Klokje op 10:04', serie: 'Back to the Future', zin: 'Hij staat stil sinds de bliksem insloeg.', klank: 'hout', dichtheid: 1.1, wrijving: 0.6, stuit: 0.15,
+          romp: [[12, 28], [18, 14], [32, 8], [46, 14], [52, 28], [53, 60], [11, 60]],
+          svg: n => `<path d="M12 58V28a20 20 0 0 1 40 0v30z" fill="#7A4E2D" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M16 54V28a16 16 0 0 1 32 0v26" fill="none" stroke="#5A3820" stroke-width="1.6"/>
+            <circle cx="32" cy="28" r="14" fill="#E2C277" stroke="${I}" stroke-width="2"/>
+            <circle cx="32" cy="28" r="11.5" fill="#FBF6E9" stroke="${I}" stroke-width="1.4"/>
+            ${Array.from({ length: 12 }, (_, i) => { const a = pol(32, 28, i % 3 ? 9.8 : 8.6, i * 30), b = pol(32, 28, 10.8, i * 30); return `<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" stroke="${I}" stroke-width="${i % 3 ? 1 : 1.8}" stroke-linecap="round"/>`; }).join('')}
+            <g class="rm-uur" style="transform-origin:32px 28px;transform:rotate(302deg)"><path d="M32 29v-6.5" stroke="${I}" stroke-width="2.4" stroke-linecap="round"/></g>
+            <g class="rm-min" style="transform-origin:32px 28px;transform:rotate(24deg)"><path d="M32 29.5v-9.5" stroke="${I}" stroke-width="1.6" stroke-linecap="round"/></g>
+            <circle cx="32" cy="28" r="1.6" fill="#C8323C"/>
+            <rect x="25.5" y="44.5" width="13" height="10" rx="2" fill="#2E1A10" stroke="${I}" stroke-width="1.8"/>
+            <path d="M32 44.5v5" stroke="#E2C277" stroke-width="1.2"/><circle cx="32" cy="51" r="2.2" fill="#E2C277" stroke="${I}" stroke-width="1"/>
+            <path d="M10 58h44v2.5H10z" fill="#5A3820" stroke="${I}" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M17.5 21a16 16 0 0 1 9-8" fill="none" stroke="#A5754A" stroke-width="1.8" stroke-linecap="round"/>
+            <path class="rm-flitsje" d="M46 5l-5 8h4l-3 7 7-9h-4l3-6z" fill="#FFE76A" stroke="${I}" stroke-width="1.4" stroke-linejoin="round"/>` },
+        meter: { naam: 'Snelheidsmeter', serie: 'Back to the Future', zin: 'Bij 88 gebeurt er iets.', klank: 'metaal', dichtheid: 1.4, wrijving: 0.6, stuit: 0.2,
+          romp: [[10, 28], [17, 12], [32, 6], [47, 12], [54, 28], [47, 44], [43, 60], [21, 60], [17, 44]],
+          svg: n => `<path d="M24 47h16l4 12H20z" fill="#3B3F48" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M17 59h30" stroke="${I}" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="32" cy="28" r="22" fill="#B8C0CA" stroke="${I}" stroke-width="2.6"/>
+            <circle cx="32" cy="28" r="18" fill="#17191E" stroke="${I}" stroke-width="1.6"/>
+            <path d="M16 18a22 22 0 0 1 12-9" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+            ${Array.from({ length: 11 }, (_, i) => { const g = -125 + i * 25, a = pol(32, 28, i % 2 ? 14.2 : 13, g), b = pol(32, 28, 16, g); return `<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" stroke="${i > 8 ? '#E8414E' : '#F6F2EA'}" stroke-width="${i % 2 ? 1.2 : 2}" stroke-linecap="round"/>`; }).join('')}
+            <path d="M${pol(32, 28, 15.5, 100).join(' ')}A15.5 15.5 0 0 1 ${pol(32, 28, 15.5, 125).join(' ')}" fill="none" stroke="#E8414E" stroke-width="2.4"/>
+            <g class="rm-naald" style="transform-origin:32px 28px;transform:rotate(-110deg)"><path d="M32 30.5V15" stroke="#F08A2C" stroke-width="2.2" stroke-linecap="round"/></g>
+            <circle cx="32" cy="28" r="2.6" fill="#F6F2EA" stroke="${I}" stroke-width="1.2"/>
+            <rect x="25" y="35" width="14" height="7.5" rx="1.5" fill="#3A0E12" stroke="#E8414E" stroke-width="1.2"/>
+            <text x="32" y="41.3" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-weight="700" font-size="6.5" fill="#FF6B6B">88</text>` },
+        // ================= Severance
+        computer: { naam: 'Oude computer', serie: 'Severance', zin: 'De cijfers voelen eng. Niemand weet waarom.', klank: 'plastic', dichtheid: 1.2, wrijving: 0.7, stuit: 0.15,
+          romp: [[8, 8], [56, 8], [56, 44], [60, 52], [60, 59], [4, 59], [4, 52], [8, 44]],
+          svg: n => `<rect x="8" y="5" width="48" height="40" rx="6" fill="#D3DCCB" stroke="${I}" stroke-width="2.6"/>
+            <path d="M11 41h42" stroke="#B8C2B0" stroke-width="2" stroke-linecap="round"/>
+            <rect x="13" y="10" width="38" height="27" rx="4" fill="#0D2633" stroke="${I}" stroke-width="2"/>
+            <g class="rm-cijfers" font-family="ui-monospace,Menlo,monospace" font-weight="700" font-size="4.6" fill="#7FE0F0">${['5 3 8 1 6 2', '9 0 4 7 2 8', '1 6 2 9 8 5', '4 8 7 3 5 0'].map((r, i) => `<text x="32" y="${16.5 + i * 5.6}" text-anchor="middle" letter-spacing=".25">${r}</text>`).join('')}</g>
+            <rect x="23.5" y="19" width="12" height="11" rx="1.5" fill="none" stroke="#FFE76A" stroke-width="1" stroke-dasharray="1.6 1.2"/>
+            <path d="M15.5 13c3-1 6-1.5 9-1.5" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity=".55"/>
+            <circle cx="50" cy="41" r="1.5" fill="#7BE07B" stroke="${I}" stroke-width=".8"/>
+            <path d="M8 46h48l4 6v7H4v-7z" fill="#BFC9B6" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/>
+            <path d="M10 51h44M9 55h46" stroke="#93A08B" stroke-width="1.6" stroke-dasharray="3 1.6"/>` },
+        wafel: { naam: 'Wafel', serie: 'Severance', zin: 'Wafelfeest! Voor het beste team van de verdieping.', klank: 'plof', dichtheid: 0.8, wrijving: 0.7, stuit: 0.1,
+          romp: [[6, 47], [12, 39], [32, 34], [52, 39], [58, 47], [56, 58], [8, 58]],
+          svg: n => `<defs><clipPath id="wf-c${n}"><ellipse cx="32" cy="43" rx="20.5" ry="9.5"/></clipPath><mask id="wf-m${n}"><rect x="0" y="0" width="64" height="64" fill="#FFFFFF"/>${[[50, 39], [53.5, 45], [47.5, 50]].map((b, i) => `<circle class="rm-hap rm-hap${i}" cx="${b[0]}" cy="${b[1]}" r="0" fill="#000000"/>`).join('')}</mask></defs>
+            <ellipse cx="32" cy="54" rx="26" ry="5" fill="#FFFFFF" stroke="${I}" stroke-width="2.4"/>
+            <ellipse cx="32" cy="53.2" rx="17" ry="2.6" fill="none" stroke="#DDD6CA" stroke-width="1.4"/>
+            <g mask="url(#wf-m${n})"><ellipse cx="32" cy="46.5" rx="21.5" ry="9.5" fill="#B9782A" stroke="${I}" stroke-width="2.4"/>
+            <ellipse cx="32" cy="43" rx="21.5" ry="9.5" fill="#E2A443" stroke="${I}" stroke-width="2.4"/>
+            <g clip-path="url(#wf-c${n})" fill="#C2832F">${[0, 1, 2, 3, 4, 5].map(i => [0, 1, 2, 3].map(j => `<rect x="${12.5 + i * 7}" y="${35 + j * 4.3}" width="4.6" height="2.6" rx=".8"/>`).join('')).join('')}</g>
+            <path d="M22 41.5l13-4 6 2.5-13 4z" fill="#FFF0A3" stroke="${I}" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M17 44c5 3 10 3 14 1s9-3 14-1" fill="none" stroke="#9A5418" stroke-width="2.2" stroke-linecap="round" opacity=".85"/>
+            <path d="M18 38.5c4-2 8-3 12-3" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity=".55"/></g>` },
+        vingerval: { naam: 'Vingerval', serie: 'Severance', zin: 'Een cadeautje van de baas. Hoera.', klank: 'plastic', dichtheid: 0.5, wrijving: 0.8, stuit: 0.3,
+          romp: [[4, 37], [8, 30], [56, 30], [60, 37], [60, 50], [56, 57], [8, 57], [4, 50]],
+          svg: n => `<defs><clipPath id="vv-c${n}"><rect x="5" y="31" width="54" height="25" rx="12.5"/></clipPath></defs>
+            <rect x="5" y="31" width="54" height="25" rx="12.5" fill="#E9C27A"/>
+            <g clip-path="url(#vv-c${n})" stroke-width="3.2">${Array.from({ length: 12 }, (_, i) => `<path d="M${-6 + i * 7} 58l15-29" stroke="${i % 2 ? '#C8323C' : '#2E8B62'}"/><path d="M${-6 + i * 7} 29l15 29" stroke="#F6E2B3"/>`).join('')}
+            <rect x="0" y="31" width="64" height="7" fill="#FFFFFF" opacity=".28"/><rect x="0" y="49" width="64" height="7" fill="#231A26" opacity=".14"/></g>
+            <rect x="5" y="31" width="54" height="25" rx="12.5" fill="none" stroke="${I}" stroke-width="2.6"/>
+            <ellipse cx="9.5" cy="43.5" rx="3" ry="9" fill="#8A5B34" stroke="${I}" stroke-width="1.8"/>
+            <ellipse cx="54.5" cy="43.5" rx="3" ry="9" fill="#8A5B34" stroke="${I}" stroke-width="1.8"/>
+            <ellipse cx="9.5" cy="43.5" rx="1.2" ry="5" fill="#4E2F19"/><ellipse cx="54.5" cy="43.5" rx="1.2" ry="5" fill="#4E2F19"/>` },
+        // ================= Ted Lasso
+        bordje: { naam: 'Bordje GELOOF', serie: 'Ted Lasso', zin: 'Hangt boven de deur van de kleedkamer.', klank: 'hout', dichtheid: 0.7, wrijving: 0.7, stuit: 0.15,
+          romp: [[8, 10], [56, 10], [56, 46], [52, 60], [12, 60], [8, 46]],
+          svg: n => { const bord = `<rect x="8" y="12" width="48" height="29" rx="1" fill="#F6D44A" stroke="${I}" stroke-width="2.4"/><path d="M10 14l44 0" stroke="#FFF2A8" stroke-width="1.4" opacity=".8"/><text x="32" y="31.5" text-anchor="middle" font-family="'Bricolage Grotesque',system-ui,sans-serif" font-weight="800" font-size="11.5" textLength="38" lengthAdjust="spacingAndGlyphs" fill="#2F5FA8">GELOOF</text><path d="M14 36c8 1.5 24 1.5 36 0" fill="none" stroke="#2F5FA8" stroke-width="1.6" stroke-linecap="round"/>`;
+            return `<defs><clipPath id="bj-l${n}"><path d="M0 0H32L30 8 33 15 30 23 32 30 30 37 32 44V64H0z"/></clipPath><clipPath id="bj-r${n}"><path d="M64 0H32L30 8 33 15 30 23 32 30 30 37 32 44V64H64z"/></clipPath></defs>
+            <path d="M20 40L14 60M44 40l6 20" stroke="${I}" stroke-width="5" stroke-linecap="round"/><path d="M20 40L14 60M44 40l6 20" stroke="#A5754A" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M32 8v-3" stroke="${I}" stroke-width="3" stroke-linecap="round"/>
+            <g class="rm-helft rm-links" clip-path="url(#bj-l${n})">${bord}</g><g class="rm-helft rm-rechts" clip-path="url(#bj-r${n})">${bord}</g>
+            <rect class="rm-plakker" x="28.5" y="19" width="7" height="17" rx="1" fill="#E8E2D6" fill-opacity=".5" stroke="${I}" stroke-width="1.2" opacity="0"/>
+            <rect x="9" y="40.5" width="46" height="5" rx="1.5" fill="#B9834F" stroke="${I}" stroke-width="2.2"/>
+            <rect x="4" y="9.5" width="11" height="5.5" rx="1" fill="#E8E2D6" fill-opacity=".9" stroke="${I}" stroke-width="1.2" transform="rotate(-28 9.5 12)"/>
+            <rect x="49" y="9.5" width="11" height="5.5" rx="1" fill="#E8E2D6" fill-opacity=".9" stroke="${I}" stroke-width="1.2" transform="rotate(28 54.5 12)"/>`; } },
+        koekjes: { naam: 'Koekjes voor de baas', serie: 'Ted Lasso', zin: 'Elke ochtend vers, voor de baas.', klank: 'plastic', dichtheid: 0.7, wrijving: 0.7, stuit: 0.15,
+          romp: [[8, 34], [12, 10], [52, 10], [56, 34], [56, 58], [8, 58]],
+          svg: n => `<g class="rm-deksel" style="transform-origin:32px 28px"><path d="M13 28l-1-18h40l-1 18z" fill="#F9CFDE" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 25l-.6-12h33.2l-.6 12" fill="none" stroke="#F0A9C4" stroke-width="1.5"/></g>
+            <path d="M8 34l5-6h38l5 6z" fill="#F7E9DE" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>
+            ${[15, 22, 29, 36, 43].map((x, i) => `<rect x="${x}" y="${21 + (i % 2)}" width="6.5" height="14" rx="1.5" fill="#E9C27A" stroke="${I}" stroke-width="1.5"/><circle cx="${x + 2}" cy="${25 + (i % 2)}" r=".7" fill="#B9853F"/><circle cx="${x + 4.5}" cy="${29 + (i % 2)}" r=".7" fill="#B9853F"/>`).join('')}
+            <rect x="8" y="34" width="48" height="24" rx="2.5" fill="#F6B9CF" stroke="${I}" stroke-width="2.6"/>
+            <path d="M8 34l-4 6h8M56 34l4 6h-8" fill="#F9CFDE" stroke="${I}" stroke-width="1.8" stroke-linejoin="round"/>
+            <rect x="21" y="40" width="22" height="12" rx="2" fill="#FFFFFF" stroke="${I}" stroke-width="1.6"/>
+            <path d="M25 44h14M25 47.5h9" stroke="#E894B4" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M11 38v16" stroke="#F9D4E1" stroke-width="2" stroke-linecap="round"/>` },
+        // ================= Dexter
+        donutdoos: { naam: 'Doos donuts', serie: 'Dexter', zin: 'Hij neemt elke vrijdag donuts mee.', klank: 'plastic', dichtheid: 0.6, wrijving: 0.7, stuit: 0.15,
+          romp: [[6, 36], [14, 8], [50, 8], [58, 36], [58, 58], [6, 58]],
+          svg: n => `<path d="M12 28l2-20h36l2 20z" fill="#F6C3D6" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/>
+            <path d="M16 12h32M15.5 17h33" stroke="#EE9DBD" stroke-width="2"/>
+            <path d="M6 36l6-8h40l6 8z" fill="#EADBC8" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>
+            ${[[18, '#F28DB4'], [32, '#6B3A26'], [46, '#FFF3D6']].map((d, i) => `<g class="rm-donut${i === 1 ? ' rm-wip' : ''}"><ellipse cx="${d[0]}" cy="33" rx="7.5" ry="4.4" fill="#D49A5E" stroke="${I}" stroke-width="1.6"/><ellipse cx="${d[0]}" cy="32.2" rx="6" ry="3.2" fill="${d[1]}" stroke="${I}" stroke-width="1"/><ellipse cx="${d[0]}" cy="32.4" rx="2" ry="1.1" fill="#5A3820"/>${d[1] === '#F28DB4' ? `<path d="M${d[0] - 3.5} 31h1.5M${d[0] + 2} 30.5h1.5M${d[0] - 1} 34h1.5" stroke="#FFE76A" stroke-width="1" stroke-linecap="round"/>` : ''}</g>`).join('')}
+            <rect x="6" y="36" width="52" height="22" rx="2.5" fill="#FFFFFF" stroke="${I}" stroke-width="2.6"/>
+            <path d="M6 42.5h52M6 47h52" stroke="#E8577A" stroke-width="2.4"/>
+            <circle cx="47" cy="52.5" r="3.2" fill="#FFE76A" stroke="${I}" stroke-width="1.4"/>
+            <path d="M10 53h20" stroke="#F3D7E1" stroke-width="1.8" stroke-linecap="round"/>` },
+        glaasjes: { naam: 'Kistje met glaasjes', serie: 'Dexter', zin: 'Gewoon een hobby. Echt.', klank: 'hout', dichtheid: 1.0, wrijving: 0.7, stuit: 0.15,
+          romp: [[8, 36], [14, 8], [50, 8], [56, 36], [56, 58], [8, 58]],
+          svg: n => `<path d="M12 30l2-22h36l2 22z" fill="#6E3B2A" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/>
+            <path d="M16 27l1.6-15.5h28.8L48 27z" fill="#8E1F2A" stroke="#4E2A1D" stroke-width="1.4"/>
+            <path d="M19 15c4-1 9-1 13-1" stroke="#B8424C" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M8 36l4-6h40l4 6z" fill="#2E170F" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>
+            ${[16, 23.5, 31, 38.5, 46].map((x, i) => `<g class="rm-glas${i === 2 ? ' rm-wip' : ''}"><rect x="${x - 2.8}" y="${i === 2 ? 17 : 19 + (i % 2) * 1.5}" width="5.6" height="22" rx=".8" fill="#DCEFF6" stroke="${I}" stroke-width="1.3"/><rect x="${x - 2.8}" y="${i === 2 ? 17 : 19 + (i % 2) * 1.5}" width="5.6" height="4" fill="#FFFFFF" stroke="${I}" stroke-width="1"/><circle cx="${x}" cy="${(i === 2 ? 17 : 19 + (i % 2) * 1.5) + 8.5}" r="1.6" fill="#C8323C"/></g>`).join('')}
+            <rect x="8" y="36" width="48" height="22" rx="2" fill="#7A3E2C" stroke="${I}" stroke-width="2.6"/>
+            <path d="M11 43c9-1.5 22-1.5 42 0M11 51c12 1 25 1 42-1" fill="none" stroke="#5E2E20" stroke-width="1.3" stroke-linecap="round"/>
+            <rect x="28" y="39" width="8" height="8" rx="1.5" fill="#D9AE5B" stroke="${I}" stroke-width="1.5"/><path d="M32 41.5v3" stroke="${I}" stroke-width="1.4" stroke-linecap="round"/>
+            ${[[8, 36], [52, 36], [8, 54], [52, 54]].map(p => `<rect x="${p[0]}" y="${p[1]}" width="4" height="4" rx=".6" fill="#D9AE5B" stroke="${I}" stroke-width="1"/>`).join('')}` },
+        // ================= Hannibal
+        kopje: { naam: 'Theekopje', serie: 'Hannibal', zin: 'Een mooi kopje. Laat het niet vallen.', klank: 'glas', dichtheid: 0.9, wrijving: 0.6, stuit: 0.2,
+          romp: [[8, 26], [48, 22], [58, 30], [57, 46], [56, 59], [4, 59], [4, 52]],
+          svg: n => `<path class="rm-damp rm-gloed" d="M24 18c-3-4 3-6 0-10M33 17c-3-4 3-6 0-10" fill="none" stroke="#C9C3B8" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>
+            <ellipse cx="30" cy="55" rx="26" ry="5" fill="#FFFFFF" stroke="${I}" stroke-width="2.4"/>
+            <ellipse cx="30" cy="54" rx="14" ry="2.4" fill="none" stroke="#3F6FB0" stroke-width="1.2"/>
+            <path d="M46 29c8-2 11 3 10 7.5s-6.5 7.5-12 6.5" fill="none" stroke="${I}" stroke-width="6.2" stroke-linecap="round"/>
+            <path d="M46 29c8-2 11 3 10 7.5s-6.5 7.5-12 6.5" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M10 25h40c0 15-7 27-20 27S10 40 10 25z" fill="#FFFFFF" stroke="${I}" stroke-width="2.6" stroke-linejoin="round"/>
+            <ellipse cx="30" cy="25" rx="20" ry="4.6" fill="#8B5A2B" stroke="${I}" stroke-width="2.2"/>
+            <ellipse cx="30" cy="25" rx="20" ry="4.6" fill="none" stroke="#E2C277" stroke-width="1.2"/>
+            <path d="M15.5 33c3 1 4 4 7 3M28 40c2-2 5-1 6-3M38.5 32c1 2 3 3 4.5 2" fill="none" stroke="#3F6FB0" stroke-width="1.6" stroke-linecap="round"/>
+            ${[[19, 35.5, 1.6], [32, 41, 1.6], [43, 34.5, 1.4], [24, 44, 1.1], [37, 46, 1.1]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]}" fill="#3F6FB0"/>`).join('')}
+            <path d="M13.5 31c1 4 2.5 8 5 10.5" fill="none" stroke="#ECE7DE" stroke-width="2" stroke-linecap="round"/><path class="rm-barst rm-gloed" d="M27 29.5l3 5-4 4.5 3.5 4-2 6M30 34.5l5 1.5 2 4.5M26 39l-5 1" fill="none" stroke="${I}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
+            <path d="M46 53l11-6" stroke="${I}" stroke-width="3.6" stroke-linecap="round"/><path d="M46 53l11-6" stroke="#C9CED6" stroke-width="1.6" stroke-linecap="round"/>` },
+        hert: { naam: 'Zwart hertje', serie: 'Hannibal', zin: 'Het kijkt je aan. Altijd.', klank: 'hout', dichtheid: 1.2, wrijving: 0.7, stuit: 0.15,
+          romp: [[10, 52], [26, 26], [36, 4], [58, 8], [58, 30], [54, 60], [10, 60]],
+          svg: n => `<path d="M40 22c-5-5-5-11-2-16M39.5 13.5c3-1.5 5-4 5-7.5M38.5 17c-3-.5-5.5-2.5-6.5-5.5M44 21.5c3-5 7-8 12.5-9M50.5 14.5c1-3 .5-6-1.5-8.5M51.5 15c3 0 5.5-1 7-3.5M55.5 13c1.5 1 2.5 2.5 2.5 4.5" fill="none" stroke="${I}" stroke-width="4" stroke-linecap="round"/>
+            <path d="M40 22c-5-5-5-11-2-16M39.5 13.5c3-1.5 5-4 5-7.5M38.5 17c-3-.5-5.5-2.5-6.5-5.5M44 21.5c3-5 7-8 12.5-9M50.5 14.5c1-3 .5-6-1.5-8.5M51.5 15c3 0 5.5-1 7-3.5M55.5 13c1.5 1 2.5 2.5 2.5 4.5" fill="none" stroke="#5E5670" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M17 36c1-6 8-8.5 16-8.5 3.5 0 5.5-1.5 6.5-4.5l3-3.5c2.5 0 4.5 1 5.5 3.5l-2 2.5c-1 3-3 5-4.2 7.5 1 4.5 0 8.5-3 10.5V53h-3.3V44c-3.8.8-7.6.8-11.4 0v9h-3.3v-9.5C18.5 42 17 39.5 17 36z" fill="#3A3444" stroke="${I}" stroke-width="2" stroke-linejoin="round"/><path d="M19.5 33.5c2-3.5 7-5 13.5-5 4 0 6.3-1.6 7.4-4.6l2.2-2.6" fill="none" stroke="#7A7190" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M17.5 37c-2.5 0-4-1.5-4-4" fill="none" stroke="#3A3444" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M22 33c2-1.5 4-2 6-2M23 37.5c2.5-1 5-1.5 7.5-1.5M30 33.5c2-1 4-1.2 6-1" fill="none" stroke="#5E5670" stroke-width="1.3" stroke-linecap="round"/>
+            <circle cx="45" cy="23.5" r="1.1" fill="#F6F2EA"/><circle class="rm-oog rm-gloed" cx="45" cy="23.5" r="1.9" fill="#FF4A55" opacity="0"/>
+            <rect x="10" y="53" width="44" height="7" rx="2" fill="#7A4E2D" stroke="${I}" stroke-width="2.4"/>
+            <rect x="26" y="55" width="12" height="3" rx=".8" fill="#D9AE5B" stroke="${I}" stroke-width=".9"/>` },
+      };
+      return K;
+    })();
+    const KAST_RIJ = [['hamer', 'kubus', 'stenen'], ['klok', 'foto', 'meter'], ['computer', 'wafel', 'vingerval'], ['bordje', 'koekjes', 'donutdoos'], ['glaasjes', 'kopje', 'hert']];
+    const KAST_ALLES = [].concat.apply([], KAST_RIJ);
+    // een bolle vorm iets groter maken (voor waar je hem kunt pakken)
+    function uitzet(romp, d) {
+      let cx = 0, cy = 0; romp.forEach(p => { cx += p[0]; cy += p[1]; }); cx /= romp.length; cy /= romp.length;
+      return romp.map(p => { const dx = p[0] - cx, dy = p[1] - cy, l = Math.hypot(dx, dy) || 1; return (p[0] + dx / l * d).toFixed(1) + ',' + (p[1] + dy / l * d).toFixed(1); }).join(' ');
+    }
+    const zonderDefs = s => s.replace(/<defs>[\s\S]*?<\/defs>/g, '').replace(/ (clip-path|mask)="url\(#[^)]*\)"/g, '');
+    KAST_ALLES.forEach(id => {
+      const k = KNIPOOG[id];
+      DEF[id] = { naam: k.naam, serie: k.serie, zin: k.zin, klank: k.klank, knipoog: true, vorm: () => Fysica.poly(pk(k.romp)), dichtheid: k.dichtheid, wrijving: k.wrijving, stuit: k.stuit,
+        teken: k.svg, schVan: n => zonderDefs(k.svg(n + 's')),
+        hit: `<polygon class="hit fijn" points="${uitzet(k.romp, 2.5)}"/><polygon class="hit grof" points="${uitzet(k.romp, 7)}"/>`,
+        label: `${k.naam}, uit ${k.serie}. ${k.zin} Tik voor een verrassing, sleep om te verplaatsen.` };
+    });
     const BRIEF = ['knikker', 'dobbelsteen', 'potlood'];
-    const ZIJ = ['dobbelsteen', 'sterretje', 'potlood', 'paperclip', 'knoop', 'tol', 'kroonkurk', 'knikker'];
 
     const wereld = new Fysica.Wereld({ g: 2600 });
     let laag = null, lijnen = null, docB = 0, docH = 0, vloerY = 0;
@@ -3519,9 +3739,20 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         else if (soort === 'boing') toon(180 * (wie || 1), 0.16 * Math.max(0.4, v), 0.22, 'triangle', 420 * (wie || 1));
         else if (soort === 'fonkel') [1568, 2093, 2637, 3136].forEach((f, i) => toon(f * r, 0.05, 0.16, 'sine', 0, i * 0.055));
         else if (soort === 'krabbel') sis(3200, 0.9, 0.05, 0.05);
-        else if (soort === 'kop') { toon(880, 0.08, 0.12); toon(1320, 0.07, 0.18, 'sine', 0, 0.09); }
+        else if (soort === 'donder') { sis(160, 0.6, 0.55 * v, 0.75, 'lowpass'); toon(68, 0.22 * v, 0.6, 'sine', 38); }
+        else if (soort === 'knip') { sis(3600, 2.5, 0.6 * v, 0.035); toon(1700, 0.06 * v, 0.03, 'square'); }
+        else if (soort === 'zap') { toon(320, 0.07, 0.28, 'sawtooth', 1900); toon(1500, 0.05, 0.22, 'sine', 420); }
+        else if (soort === 'zoef') toon(140, 0.06, 1.0, 'sawtooth', 1300);
+        else if (soort === 'knal') { sis(420, 0.5, 0.7 * v, 0.4, 'lowpass'); toon(95, 0.28 * v, 0.32, 'sine', 40); }
+        else if (soort === 'klik') sis(5200, 4, 0.3 * v, 0.016);
+        else if (soort === 'hap') { sis(1500, 0.8, 0.5 * v, 0.09); sis(800, 1.2, 0.32 * v, 0.07); }
+        else if (soort === 'scheur') { sis(2300, 0.6, 0.45 * v, 0.28); sis(1200, 0.8, 0.25 * v, 0.2); }
+        else if (soort === 'plak') sis(1100, 1, 0.3 * v, 0.14);
+        else if (soort === 'tink') { toon(3150 * r, 0.14 * v, 0.4); toon(4700 * r, 0.05 * v, 0.28); }
+        else if (soort === 'ding') { toon(1320, 0.09, 0.45); toon(1980, 0.04, 0.55, 'sine', 0, 0.02); }
+        else if (soort === 'brom') toon(92, 0.16 * v, 0.9, 'triangle', 62);
       }
-      // aanhoudend: het krassen van het potlood, het rollen van de knikker, het zoemen van de tol
+      // aanhoudend: het krassen van het potlood en het rollen van de knikker
       function lus(naam, maak) { if (!lussen[naam]) lussen[naam] = maak(); return lussen[naam]; }
       function ruisLus(f, q, typ) { const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = ruis; s.loop = true; fl.type = typ; fl.frequency.value = f; fl.Q.value = q; g.gain.value = 0.0001; s.connect(fl); fl.connect(g); g.connect(hoofd); s.start(); return { g, fl }; }
       function zet(naam, gain, maak, f) {
@@ -3534,7 +3765,6 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         start, tik,
         krassen: v => zet('kras', Math.min(0.12, v / 2500 * 0.12), () => ruisLus(3400, 0.7, 'bandpass')),
         rollen: v => zet('rol', v > 25 ? Math.min(0.2, v / 900 * 0.2) : 0, () => ruisLus(320, 0.6, 'lowpass')),
-        zoemen: (v, f) => zet('tol', v, () => { const o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.value = f || 140; fl.type = 'lowpass'; fl.frequency.value = 900; g.gain.value = 0.0001; o.connect(fl); fl.connect(g); g.connect(hoofd); o.start(); return { g, o }; }, f),
         get aan() { return aan; },
         zetAan(b) { aan = b; if (b) start(); else if (ctx) Object.keys(lussen).forEach(k => { lussen[k].g.gain.value = 0.0001; }); }
       };
@@ -3545,14 +3775,12 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     // ---------- een rommeltje maken
     function maak(soort, plek, nr) {
       const d = DEF[soort], el = document.createElement('button'), n = rommels.length;
-      el.type = 'button'; el.className = 'tg-rommel'; el.dataset.rommel = soort; el.setAttribute('aria-label', d.label);
-      el.innerHTML = `<span class="rm-sch" aria-hidden="true"><svg viewBox="0 0 64 64">${d.sch}</svg></span><span class="rm-draai" aria-hidden="true"><svg viewBox="0 0 64 64"><g class="tek">${d.teken(n)}</g>${d.hit}</svg></span>` + (d.glans ? `<span class="rm-glans" aria-hidden="true"><svg viewBox="0 0 64 64">${d.glans(n)}</svg></span>` : '');
+      el.type = 'button'; el.className = 'tg-rommel' + (d.knipoog ? ' rm-knipoog' : ''); el.dataset.rommel = soort; el.setAttribute('aria-label', d.label);
+      el.innerHTML = `<span class="rm-sch${d.knipoog ? ' rm-vol' : ''}" aria-hidden="true"><svg viewBox="0 0 64 64">${d.knipoog ? d.schVan(n) : d.sch}</svg></span><span class="rm-draai" aria-hidden="true"><svg viewBox="0 0 64 64"><g class="tek">${d.teken(n)}</g>${d.hit}</svg></span>` + (d.glans ? `<span class="rm-glans" aria-hidden="true"><svg viewBox="0 0 64 64">${d.glans(n)}</svg></span>` : '');
       laag.appendChild(el);
       const b = wereld.lichaam({ vorm: d.vorm(), dichtheid: d.dichtheid, wrijving: d.wrijving, stuit: d.stuit, rol: d.rol, dempA: d.dempA, vlak: d.vlak, soort, x: -300, y: -300, slaap: true });
-      const r = { id: soort + nr, soort, plek, d, el, b, sch: el.querySelector('.rm-sch'), draai: el.querySelector('.rm-draai'), lift: 0, liftDoel: 0, face: 5, draaiSom: 0, gerold: false, zessen: 0, flip: 0, flipV: 0, kant: 1, superbal: 0, weg: false, getoond: '', td: '', ts: '' };
+      const r = { id: soort + nr, soort, plek, d, el, b, sch: el.querySelector('.rm-sch'), draai: el.querySelector('.rm-draai'), lift: 0, liftDoel: 0, face: 5, draaiSom: 0, gerold: false, zessen: 0, weg: false, getoond: '', td: '', ts: '' };
       b.data.r = r; b.data.st0 = d.stuit;
-      if (soort === 'kroonkurk') { r.voor = el.querySelector('.voor'); r.achter = el.querySelector('.achter'); }
-      if (soort === 'tol') r.strepen = el.querySelector('.strepen');
       rommels.push(r); koppel(r);
       return r;
     }
@@ -3577,37 +3805,69 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       wereld.vastVeelhoek(p, { wrijving: 0.5, el, data: { naam: 'sticker', klank: 'plof', anker: 'sticker' } });
     }
     function rect(el) { const q = el.getBoundingClientRect(); return { l: q.left + scrollX, t: q.top + scrollY, r: q.right + scrollX, b: q.bottom + scrollY, w: q.width, h: q.height }; }
-    // de plankjes (een naast het briefje of de kop, en op brede schermen acht in de kantlijn)
+    // het plankje naast het briefje (of naast de kop Alle spellen)
     function plank(sleutel) {
       if (!planken[sleutel]) { const p = document.createElement('div'); p.className = 'rm-plank'; p.setAttribute('aria-hidden', 'true'); p.innerHTML = '<i class="l"></i><i class="r"></i>'; laag.insertBefore(p, laag.firstChild); planken[sleutel] = p; }
       return planken[sleutel];
     }
-    let zijRuimte = false;
     // is er naast het briefje plek voor het plankje? (anders: naast de kop Alle spellen)
     function breed() { const main = $('main'), brief = $('.briefje'); if (!main || !brief) return false; const m = rect(main), br = rect(brief); return docB >= 700 && m.r - 24 - (br.r + 40) >= 190; }
     function zetPlanken(naastBrief) {
-      const main = $('main'), brief = $('.briefje'), kop = $('#tg-kop span'), held = $('.held'), coul = $('.coulissen');
+      const main = $('main'), brief = $('.briefje'), kop = $('#tg-kop span');
       if (!main) return;
-      const m = rect(main), vw = docB, br = brief ? rect(brief) : null, kr = kop ? rect(kop) : null;
+      const m = rect(main), br = brief ? rect(brief) : null, kr = kop ? rect(kop) : null;
       let x0, x1, y;
       if (br && naastBrief) { x0 = br.r + 40; x1 = Math.min(m.r - 24, x0 + 300); y = br.t + br.h * 0.42; }
       else if (kr) { x0 = kr.r + 14; x1 = Math.min(m.r - 8, x0 + 260); y = kr.b - 2; }
       const pb = plank('brief');
       if (x0 != null && x1 - x0 >= 130) { pb.hidden = false; pb.style.transform = `translate(${x0.toFixed(1)}px,${y.toFixed(1)}px)`; pb.style.width = (x1 - x0).toFixed(1) + 'px'; pb.dataset.x0 = x0; pb.dataset.y = y; pb.dataset.w = x1 - x0; }
       else pb.hidden = true;
-      // de kantlijn
-      const links = m.l + 24 - 16, rechts = vw - m.r + 24 - 16; // de ruimte naast de inhoud (main heeft binnenruimte)
-      zijRuimte = links >= 104 && rechts >= 104 && !!held;
-      const boven = held ? rect(held).b + 60 : 600, onder = coul ? rect(coul).t - 40 : boven + 1800, stap = (onder - boven) / 4;
-      const hoog = plaatsHoog(); let volgendeRechts = -Infinity;   // de hoge advertentie in de rechter kantlijn: de plankjes rechts gaan eronder
-      for (let z = 0; z < ZIJ.length; z++) {
-        const p = plank('zij' + z);
-        if (!zijRuimte) { p.hidden = true; continue; }
-        const rechtsKant = z % 2 === 1, breed = 84, cx = rechtsKant ? (m.r - 24 + vw) / 2 + ((z * 7) % 9) - 4 : (m.l + 24) / 2 + ((z * 11) % 9) - 4;
-        let py = boven + Math.floor(z / 2) * stap + (z % 2) * stap * 0.45 + 56;
-        if (rechtsKant && hoog) { if (py > hoog.t - 90 && py < hoog.b + 60) py = hoog.b + 100; py = Math.max(py, volgendeRechts); volgendeRechts = py + 150; }
-        p.hidden = false; p.style.transform = `translate(${(cx - breed / 2).toFixed(1)}px,${py.toFixed(1)}px)`; p.style.width = breed + 'px'; p.dataset.x0 = cx - breed / 2; p.dataset.y = py; p.dataset.w = breed;
+    }
+
+    // ---------- de rommelkast: in de linker kantlijn als daar ruimte is (de hoge advertentie staat rechts),
+    // anders als kast in de pagina, tussen de advertentie en Alle spellen. Maten in px.
+    const KAST = { cel: 58, wand: 13, binnen: 20, vak: 72, plank: 10, voet: 8 };
+    let kastEl = null, kastSec = null, kastSig = '', kastMaat = null;
+    function kastTeken(cols, cel) {
+      const rijen = Math.ceil(KAST_ALLES.length / cols), w = cols * cel + 2 * KAST.wand, h = KAST.binnen + rijen * (KAST.vak + KAST.plank) + KAST.voet, sig = cols + ':' + cel;
+      if (kastEl.dataset.sig !== sig) {
+        kastEl.dataset.sig = sig; kastEl.style.width = w + 'px'; kastEl.style.height = h + 'px';
+        let html = '<span class="rm-kast-kast"></span><span class="rm-kast-achter"></span>';
+        for (let i = 0; i < rijen; i++) html += `<span class="rm-kast-plank" style="top:${KAST.binnen + KAST.vak + i * (KAST.vak + KAST.plank)}px"></span>`;
+        kastEl.innerHTML = html + '<span class="rm-kast-voet l"></span><span class="rm-kast-voet r"></span><span class="rm-kast-kroon"></span><span class="rm-kast-tape">Rommelkast</span>';
       }
+      return { cols, cel, rijen, w, h };
+    }
+    function zetKast() {
+      const main = $('main'); if (!main || !kastEl) return null;
+      kastSec.hidden = true;
+      const m = rect(main), ruimte = m.l + 24, boven = $('#vandaag') || $('.tg-reclame') || $('#spellen');
+      if (ruimte >= 208 && boven) {
+        const k = kastTeken(3, Math.max(52, Math.min(KAST.cel, Math.floor((ruimte - 46) / 3))));
+        if (kastEl.parentNode !== document.body) document.body.appendChild(kastEl);
+        kastEl.classList.add('rm-zij');
+        kastEl.style.transform = `translate(${Math.round((ruimte - k.w) / 2)}px,${Math.round(rect(boven).t + 26)}px)`;
+        k.modus = 'zij'; return k;
+      }
+      kastSec.hidden = false; kastEl.classList.remove('rm-zij'); kastEl.style.transform = '';
+      if (kastEl.parentNode !== kastSec) kastSec.appendChild(kastEl);
+      const bw = kastSec.clientWidth || m.w - 48, cols = Math.max(3, Math.min(8, Math.floor((bw - 26) / KAST.cel))), cel = Math.min(84, Math.floor((bw - 26) / cols));
+      const k = kastTeken(cols, cel); k.modus = 'plank'; return k;
+    }
+    // de bovenkant van iets vasts onder x (ook als het een beetje scheef staat)
+    function topVan(s, x) {
+      const g = s.geo;
+      for (let i = 0; i < g.n; i++) { const j = (i + 1) % g.n, ax = g.wv[2 * i], ay = g.wv[2 * i + 1], bx = g.wv[2 * j], by = g.wv[2 * j + 1]; if (g.wn[2 * i + 1] < -0.5 && (ax - x) * (bx - x) <= 0 && ax !== bx) return ay + (by - ay) * (x - ax) / (bx - ax); }
+      return s.aabb[1];
+    }
+    // waar een rommeltje thuishoort: op het plankje naast het briefje, of op zijn plek in de kast
+    function thuis(r) {
+      if (r.plek === 'brief') return legOp(r, 'plank:brief', [0.2, 0.5, 0.8][BRIEF.indexOf(r.soort)]);
+      const k = kastMaat; if (!k) return false;
+      const i = KAST_ALLES.indexOf(r.soort), rij = Math.floor(i / k.cols), j = i % k.cols, n = Math.min(k.cols, KAST_ALLES.length - rij * k.cols);
+      const s = ankerVast('kast' + k.cols + ':' + rij); if (!s) return false;
+      const x = s.aabb[0] + (k.cols - n) * k.cel / 2 + k.cel * (j + 0.5);
+      opRust(r, x + r.b.vorm.ox, topVan(s, x), 0); return true;
     }
     function draagVlak(b) {
       for (const s of wereld.vast) { if (s.data.lijn || !s.el) continue; const m = Fysica.botsing(b, s, 4); if (m && m.ny > 0.4) return s; }
@@ -3619,7 +3879,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       return false;
     }
     function bouwWereld() {
-      const oud = rommels.filter(r => !r.weg).map(r => { const s = draagVlak(r.b); return s ? [r, s.el, s.aabb[0], s.aabb[1]] : null; }).filter(Boolean);
+      const oud = rommels.filter(r => !r.weg).map(r => { const s = draagVlak(r.b); return s ? [r, s.el, s.aabb[0], s.aabb[1], s.data.kast != null] : null; }).filter(Boolean);
       docB = document.documentElement.clientWidth;
       const voet = $('footer'), main = $('main');
       const vb = voet ? rect(voet) : null, mb = main ? rect(main) : { b: document.documentElement.scrollHeight };
@@ -3627,7 +3887,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       laag.style.width = docB + 'px'; laag.style.height = docH + 'px';
       lijnen.setAttribute('width', docB); lijnen.setAttribute('height', docH);
       const naastBrief = breed(); plaatsKnopjes(naastBrief);
-      zetPlanken(naastBrief);
+      // eerst de kast (die kan de pagina eronder verschuiven), dan het plankje en de hoge advertentie
+      const k = zetKast(), sig = k ? k.modus + k.cols + ':' + k.cel : '', anders = !!kastSig && sig !== kastSig; kastSig = sig; kastMaat = k;
+      zetPlanken(naastBrief); plaatsHoog();
       wereld.leegVast(s => !s.data.lijn);
       wereld.vastDoos(-600, -600, 0, docH + 600, { rand: true, data: { naam: 'muur' } });
       wereld.vastDoos(docB, -600, docB + 600, docH + 600, { rand: true, data: { naam: 'muur' } });
@@ -3659,17 +3921,23 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         wereld.vastDoos(x0 - 2.5, y - 10, x0 + 4.5, y + 1, { schuin: 1.5, wrijving: 0.6, data: { naam: 'randje', klank: 'hout' } });
         wereld.vastDoos(x0 + w - 4.5, y - 10, x0 + w + 2.5, y + 1, { schuin: 1.5, wrijving: 0.6, data: { naam: 'randje', klank: 'hout' } });
       }
-      // wat ergens op lag, schuift mee met dat ding
+      // de kast: een bovenkant om iets op te leggen, twee zijwanden en de planken
+      if (kastMaat) {
+        const q = rect(kastEl), x0 = q.l, y0 = q.t, w = kastMaat.w, h = kastMaat.h;
+        wereld.vastDoos(x0 - 6, y0, x0 + w + 6, y0 + KAST.binnen, { schuin: 2, wrijving: 0.7, el: kastEl.querySelector('.rm-kast-kroon'), data: { naam: 'kast', klank: 'hout', anker: 'kast-top' } });
+        wereld.vastDoos(x0, y0 + 12, x0 + KAST.wand, y0 + h, { wrijving: 0.6, data: { naam: 'kastwand', klank: 'hout' } });
+        wereld.vastDoos(x0 + w - KAST.wand, y0 + 12, x0 + w, y0 + h, { wrijving: 0.6, data: { naam: 'kastwand', klank: 'hout' } });
+        kastEl.querySelectorAll('.rm-kast-plank').forEach((p, i) => {
+          const y = y0 + KAST.binnen + KAST.vak + i * (KAST.vak + KAST.plank);
+          wereld.vastDoos(x0 + KAST.wand, y, x0 + w - KAST.wand, y + KAST.plank, { wrijving: 0.7, el: p, data: { naam: 'kast', klank: 'hout', anker: 'kast' + kastMaat.cols + ':' + i, kast: i } });
+        });
+      }
+      // wat ergens op lag, schuift mee met dat ding (en wat in een kast stond die nu anders is, gaat terug naar zijn plek)
       for (const o of oud) {
+        if (anders && o[4]) { thuis(o[0]); continue; }
         const nieuw = wereld.vast.find(s => s.el === o[1]); if (!nieuw) continue;
         const dx = nieuw.data.naam === 'vloer' ? 0 : nieuw.aabb[0] - o[2], dy = nieuw.aabb[1] - o[3], b = o[0].b;
         if (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2) { b.x += dx; b.y += dy; b.px = b.x; b.py = b.y; }
-      }
-      // de rommeltjes uit de kantlijn: alleen als daar ruimte is
-      for (const r of rommels) {
-        if (r.plek !== 'zij') continue;
-        if (!zijRuimte && !r.weg) { const s = draagVlak(r.b), m = rect($('main')); if ((s && /^plank:zij/.test(s.data.anker || '')) || r.b.x < m.l + 24 || r.b.x > m.r - 24) zetWeg(r, true); }
-        else if (zijRuimte && r.weg) { zetWeg(r, false); legOp(r, 'plank:zij' + r.zijNr); r.b.slaap = true; }
       }
       for (const r of rommels) { if (r.weg) continue; const b = r.b; if (b.x > docB - 12) b.x = docB - 30; if (b.x < 12) b.x = 30; if (b.y > vloerY) b.y = vloerY - 30; wereld.werk(b); }
     }
@@ -3689,10 +3957,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     function legOp(r, anker, f) {
       const s = ankerVast(anker); if (!s) return false;
       const x0 = s.aabb[0], x1 = s.aabb[2], x = x0 + (x1 - x0) * (f == null ? 0.5 : f);
-      // de bovenkant onder x (ook als het ding een beetje scheef staat)
-      let top = s.aabb[1]; const g = s.geo;
-      for (let i = 0; i < g.n; i++) { const j = (i + 1) % g.n, ax = g.wv[2 * i], ay = g.wv[2 * i + 1], bx = g.wv[2 * j], by = g.wv[2 * j + 1]; if (g.wn[2 * i + 1] < -0.5 && (ax - x) * (bx - x) <= 0 && ax !== bx) { top = ay + (by - ay) * (x - ax) / (bx - ax); break; } }
-      opRust(r, x, top, r.d.a0 || 0); return true;
+      opRust(r, x, topVan(s, x), r.d.a0 || 0); return true;
     }
     function beginPlek() {
       const bewaard = opslag.p || {};
@@ -3703,11 +3968,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
           const w = s.aabb[2] - s.aabb[0], b = r.b;
           b.x = s.aabb[0] + Math.max(8, Math.min(w - 8, p[1])); b.y = s.aabb[1] + p[2]; b.a = p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; b.vx = b.vy = b.w = 0;
           if (r.soort === 'dobbelsteen' && p[4]) zetVlak(r, p[4]);
-          if (r.soort === 'kroonkurk' && p[4]) { r.flip = p[4] < 0 ? Math.PI : 0; r.kant = p[4] < 0 ? -1 : 1; }
           wereld.werk(b); continue;
         }
-        if (r.plek === 'brief') legOp(r, 'plank:brief', [0.2, 0.5, 0.8][BRIEF.indexOf(r.soort)]);
-        else legOp(r, 'plank:zij' + r.zijNr);
+        thuis(r);
       }
       for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); r.b.slaap = steunt(r.b); r.b.rust = 0; }
       teken(1);
@@ -3716,7 +3979,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const p = {};
       for (const r of rommels) {
         if (r.weg) continue; const s = draagVlak(r.b); if (!s || !s.data.anker) continue;
-        p[r.id] = [s.data.anker, Math.round((r.b.x - s.aabb[0]) * 10) / 10, Math.round((r.b.y - s.aabb[1]) * 10) / 10, Math.round(r.b.a * 1000) / 1000, r.soort === 'dobbelsteen' ? r.face : r.soort === 'kroonkurk' ? r.kant : 0];
+        p[r.id] = [s.data.anker, Math.round((r.b.x - s.aabb[0]) * 10) / 10, Math.round((r.b.y - s.aabb[1]) * 10) / 10, Math.round(r.b.a * 1000) / 1000, r.soort === 'dobbelsteen' ? r.face : 0];
       }
       opslag = Object.assign(lees(), { v: 1, p, g: Klank.aan ? 1 : 0 }); schrijf(opslag);
     }
@@ -3728,15 +3991,13 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         const b = r.b, x = b.px + (b.x - b.px) * alfa, y = b.py + (b.y - b.py) * alfa, a = b.pa + (b.a - b.pa) * alfa, m = wereld.midden(b, x, y, a);
         r.lift += (r.liftDoel - r.lift) * 0.3; if (Math.abs(r.lift - r.liftDoel) < 0.01) r.lift = r.liftDoel;
         const sl = r.lift, sc = 1 + 0.1 * sl, gr = (a * 180 / Math.PI).toFixed(2);
-        let sy = sc;
-        if (r.soort === 'kroonkurk') { const c = Math.cos(r.flip); sy = sc * (Math.abs(c) < 0.06 ? (c < 0 ? -0.06 : 0.06) : c); const k = c >= 0; if (k !== r.voorZicht) { r.voorZicht = k; r.voor.style.opacity = k ? '' : '0'; r.achter.style.opacity = k ? '0' : ''; } }
+        const sy = sc;
         const t = `translate3d(${m[0].toFixed(2)}px,${m[1].toFixed(2)}px,0)`;
         if (t !== r.getoond) { r.el.style.transform = t; r.getoond = t; }
         const td = `rotate(${gr}deg) scale(${sc.toFixed(3)},${sy.toFixed(3)})`;
         if (td !== r.td) { r.draai.style.transform = td; r.td = td; }
         const ts = `translate(${(1 + 2 * sl).toFixed(2)}px,${(3 + 8 * sl).toFixed(2)}px) rotate(${gr}deg) scale(${sc.toFixed(3)},${sy.toFixed(3)})`;
         if (ts !== r.ts) { r.sch.style.transform = ts; r.ts = ts; }
-        if (r.strepen && r.tolSpin) { r.streepX = ((r.streepX || 0) + r.tolSpin * 0.016) % 12; r.strepen.style.transform = `translateX(${r.streepX.toFixed(2)}px)`; }
       }
     }
 
@@ -3758,17 +4019,16 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       if (debug.aan) debug.teken(t, telStap, telBeeld);
       if (t - telKlok > 500) { debug.tel = [telStap * 1000 / (t - telKlok), telBeeld * 1000 / (t - telKlok)]; telKlok = t; telStap = 0; telBeeld = 0; }
       const lift = rommels.some(r => r.lift !== r.liftDoel), draait = kantel.aan && Math.hypot(kantel.doel[0] - wereld.gx, kantel.doel[1] - wereld.gy) > 2;
-      if ((!RUSTIG && !wereld.allesSlaapt()) || lift || tekenaar || pad || tolDraait() || draait || rommels.some(r => r.flipV || r.gooit)) raf = requestAnimationFrame(lus);
-      else { vorige = 0; rest = 0; laatsteBeeld = 0; teken(1); Klank.rollen(0); Klank.zoemen(0); clearTimeout(bewaarKlok); bewaarKlok = setTimeout(bewaar, 400); debug.tel = [0, 0]; if (debug.aan) debug.teken(t, 0, 0); }
+      if ((!RUSTIG && !wereld.allesSlaapt()) || lift || tekenaar || pad || draait) raf = requestAnimationFrame(lus);
+      else { vorige = 0; rest = 0; laatsteBeeld = 0; teken(1); Klank.rollen(0); clearTimeout(bewaarKlok); bewaarKlok = setTimeout(bewaar, 400); debug.tel = [0, 0]; if (debug.aan) debug.teken(t, 0, 0); }
     }
     function wek() { if (!raf && !document.hidden) { raf = requestAnimationFrame(lus); telKlok = performance.now(); telStap = telBeeld = 0; } }
-    document.addEventListener('visibilitychange', () => { if (!document.hidden && (!wereld.allesSlaapt() || tolDraait())) wek(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && !wereld.allesSlaapt()) wek(); });
     function geluiden() {
       let rol = 0;
       for (const r of rommels) if (r.soort === 'knikker' && !r.weg && !r.b.slaap && r.b.raakt) rol = Math.max(rol, r.b.glij * 0.25 + Math.abs(r.b.w) * 17.7 * 0.75);
       Klank.rollen(rol);
       const T = tekenaar || pad; Klank.krassen(T && T.streep && !T.rustig ? T.kras || 0 : 0);
-      const tol = rommels.find(r => r.tolSpin > 0); Klank.zoemen(tol ? 0.035 * Math.min(1, tol.tolSpin / 30) : 0, tol ? 90 + tol.tolSpin * 3 : 140);
     }
 
     function stap() {
@@ -3782,9 +4042,6 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
           while (r.draaiSom >= Math.PI / 2) { r.draaiSom -= Math.PI / 2; const buren = [1, 2, 3, 4, 5, 6].filter(n => n !== r.face && n !== 7 - r.face); zetVlak(r, buren[Math.floor(Math.random() * 4)]); r.gerold = true; }
         }
         if (r.soort === 'dobbelsteen' && b.slaap && r.gerold) { r.gerold = false; r.draaiSom = 0; uitslagDobbel(r); }
-        if (r.soort === 'kroonkurk') stapKurk(r);
-        if (r.soort === 'sterretje' && !b.slaap) fonkel(r);
-        if (r.soort === 'tol' && r.tolSpin > 0) stapTol(r, DT);
       }
     }
     wereld.opBotsing = (A, B, v, x, y) => {
@@ -3792,7 +4049,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       if (ra) Klank.tik(ra.d.klank, v, ra.id);
       if (rb) Klank.tik(rb.d.klank, v, rb.id);
       if (B.vast && B.data.klank && v > 160) Klank.tik(B.data.klank, v * 0.6, 'v' + B.id);
-      if (ra && ra.superbal > 0 && v > 160) { ra.superbal--; Klank.tik('boing', v, 1 + (4 - ra.superbal) * 0.18); if (!ra.superbal) A.st = ra.b.data.st0; }
+      if (v > 1150) { if (ra && ra.soort === 'kopje') kopjeBreekt(ra); if (rb && rb.soort === 'kopje') kopjeBreekt(rb); }
+      // hard tegen een advertentie: die schudt en wisselt (banners.js houdt bij dat het niet te vaak gebeurt)
+      if (B.vast && B.data.naam === 'reclame' && v > 650 && window.RommelBanner && RommelBanner.raak) { try { RommelBanner.raak(B.el); } catch (e) {} }
       if (B.vast && B.data.tik && v > 260 && !RUSTIG) { // de tegel (of het kaartje) voelt een klein tikje
         const doel = B.el.classList && B.el.classList.contains('tg-tegel') ? B.el.querySelector('.tg-vlak') : B.el;
         try { doel.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${Math.min(3, v / 450).toFixed(1)}px)` }, { transform: 'translateY(0)' }], { duration: 170, easing: 'ease-out', composite: 'add' }); } catch (e) {}
@@ -3807,16 +4066,6 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       return { midden: Math.max(s.aabb[0] + 20, Math.min(s.aabb[2] - 20, b.x)) * 0.35 + (s.aabb[0] + s.aabb[2]) / 2 * 0.65, breed: s.aabb[2] - s.aabb[0] };
     }
     function naarMidden(b, st, sprong) { const tijd = 2 * sprong / wereld.G; return Math.max(-260, Math.min(260, (st.midden - b.x) / tijd)); }
-    // de bovenkant van iets vasts recht onder x (binnen een stukje), voor de tol
-    function grondOnder(x, y) {
-      let beste = null;
-      for (const s of wereld.vast) {
-        if (s.data.lijn || (s.rand && s.data.naam !== 'vloer')) continue;
-        if (x < s.aabb[0] || x > s.aabb[2] || s.aabb[1] < y - 12 || s.aabb[1] > y + 70) continue;
-        if (beste == null || s.aabb[1] < beste) beste = s.aabb[1];
-      }
-      return beste;
-    }
 
     // ---------- de dobbelsteen
     function zetVlak(r, n) { r.face = n; for (let i = 1; i <= 6; i++) { const g = r.el.querySelector('.vlak' + i); if (g) g.style.opacity = i === n ? '' : '0'; } }
@@ -3825,7 +4074,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       r.el.setAttribute('aria-label', `Dobbelsteen: je gooide een ${GETAL[n]}. Tik om opnieuw te gooien.`);
       if (r.zessen === 3) { // verborgen grapje: drie keer zes op rij
         r.zessen = 0; aankondig('Dobbelsteen: drie keer zes op rij!'); bel(r, 'Drie keer zes!');
-        if (!RUSTIG) { for (const q of rommels) if (q !== r && !q.weg && !q.b.kin) { wereld.wek(q.b); q.b.vy -= 650 + Math.random() * 350; q.b.w += (Math.random() - 0.5) * 14; } wek(); }
+        if (!RUSTIG) { for (const q of rommels) if (q !== r && !q.weg && !q.b.kin && !teZwaar(q)) { wereld.wek(q.b); q.b.vy -= 650 + Math.random() * 350; q.b.w += (Math.random() - 0.5) * 14; } wek(); }
         Klank.tik('fonkel', 900); tril(20); return;
       }
       aankondig(`Dobbelsteen: je gooide een ${GETAL[n]}.`); bel(r, GETAL[n] + '!'); tril(8);
@@ -3838,86 +4087,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       b.w = (Math.random() < 0.5 ? -1 : 1) * (smal ? 6 + Math.random() * 3 : 15 + Math.random() * 11); r.gerold = true; Klank.tik('gooi', 600); wek();
     }
 
-    // ---------- de kroonkurk: kop of munt
-    function opgooien(r) {
-      const b = r.b, st = steun(b); wereld.wek(b);
-      b.vy = -(820 + Math.random() * 260); b.vx = naarMidden(b, st, -b.vy) + (Math.random() - 0.5) * 50; b.w = (Math.random() - 0.5) * 3;
-      r.flipV = 24 + Math.random() * 10; r.gooit = true; r.kantGrap = Math.random() < 1 / 40; Klank.tik('metaal', 700, 'kurk-gooi'); wek();
-    }
-    function stapKurk(r) {
-      const b = r.b;
-      if (r.flipV) {
-        r.flip += r.flipV * DT;
-        if (b.raakt) { // op de grond: uitdraaien naar een kant (of, heel soms, op zijn kant blijven staan)
-          r.flipV *= 0.86;
-          const doel = r.kantGrap ? Math.round((r.flip - Math.PI / 2) / Math.PI) * Math.PI + Math.PI / 2 : Math.round(r.flip / Math.PI) * Math.PI;
-          if (r.flipV < 3) { r.flip += (doel - r.flip) * 0.25; if (Math.abs(doel - r.flip) < 0.01) { r.flip = doel; r.flipV = 0; } }
-        }
-      }
-      if (r.gooit && !r.flipV && b.slaap) {
-        r.gooit = false;
-        if (r.kantGrap) { r.kantGrap = false; aankondig('Kroonkurk: op zijn kant! Dat gebeurt bijna nooit.'); bel(r, 'Op zijn kant!'); Klank.tik('fonkel', 900); tril(15); setTimeout(() => { r.flip = Math.round(r.flip / Math.PI) * Math.PI; r.kant = Math.cos(r.flip) >= 0 ? 1 : -1; teken(1); }, 3500); return; }
-        r.kant = Math.cos(r.flip) >= 0 ? 1 : -1; const w = r.kant > 0 ? 'Kop' : 'Munt';
-        r.el.setAttribute('aria-label', `Kroonkurk: ${w.toLowerCase()}. Tik om opnieuw op te gooien.`);
-        aankondig('Kroonkurk: ' + w.toLowerCase() + '.'); bel(r, w + '!'); Klank.tik('kop', 600); tril(8);
-      }
-    }
-
-    // ---------- het sterretje: een spoor van fonkeltjes
-    let fonkelKlok = 0, fonkels = 0;
-    function fonkel(r) {
-      const b = r.b, sp = Math.hypot(b.vx, b.vy), nu = performance.now();
-      if (sp < 160 || nu - fonkelKlok < 45 || fonkels > 28 || RUSTIG) return; fonkelKlok = nu; fonkels++;
-      const f = document.createElement('span'); f.className = 'rm-fonkel'; f.setAttribute('aria-hidden', 'true');
-      f.innerHTML = '<svg viewBox="0 0 20 20"><path d="M10 0l2.4 7.6L20 10l-7.6 2.4L10 20l-2.4-7.6L0 10l7.6-2.4z"/></svg>';
-      const x = b.x + (Math.random() - 0.5) * 14 - 8, y = b.y + (Math.random() - 0.5) * 14 - 8, s = 0.5 + Math.random() * 0.7, dr = (Math.random() - 0.5) * 30;
-      laag.appendChild(f);
-      const an = f.animate([{ transform: `translate(${x}px,${y}px) scale(${s}) rotate(0deg)`, opacity: 1 }, { transform: `translate(${x + dr}px,${y + 26}px) scale(0) rotate(160deg)`, opacity: 0 }], { duration: 700 + Math.random() * 300, easing: 'ease-out' });
-      an.onfinish = () => { f.remove(); fonkels--; };
-    }
-    function wens(r) {
-      const b = r.b, st = steun(b); wereld.wek(b);
-      const smal = st.breed < 140;
-      b.vy = -(950 + Math.random() * 250); b.vx = naarMidden(b, st, -b.vy) + (Math.random() - 0.5) * (smal ? 30 : 380); b.w = (Math.random() < 0.5 ? -1 : 1) * (smal ? 7 + Math.random() * 3 : 16 + Math.random() * 8);
-      Klank.tik('fonkel', 900); aankondig('Sterretje: doe een wens!'); wek();
-    }
-
-    // ---------- de knoop: een superbal
-    function superbal(r) {
-      const b = r.b, st = steun(b); wereld.wek(b);
-      b.vy = -680; b.vx = naarMidden(b, st, 680) * 0.5 + (Math.random() - 0.5) * 60; r.superbal = 4; b.st = 1.12;
-      Klank.tik('boing', 700, 1); aankondig('Knoop: boing, boing, boing!'); wek();
-    }
-
-    // ---------- de tol: draaien, wiebelen en omvallen
-    const tolDraait = () => rommels.some(r => r.tolSpin > 0);
-    function draaiTol(r) {
-      const b = r.b; if (b.kin || r.tolSpin > 0) return;
-      wereld.werk(b);
-      const v = b.vorm, tip = [0 - v.ox, 19.5 - v.oy], onder = b.aabb[3] - 2.5, grond = grondOnder(b.x, onder);
-      if (grond == null) { wereld.wek(b); b.w += 9; wek(); return; } // niets onder hem: alleen een zwiep
-      r.tolTip = [b.x, grond]; r.tolT = 0; r.tolDuur = 3.5 + Math.random() * 3; r.tolSpin = 46; r.tolStart = [b.x, b.y, b.a]; r.tolOffset = tip;
-      wereld.wek(b); b.kin = true; b.slaap = false; Klank.tik('hout', 500, 'tol-start'); wek();
-    }
-    function stapTol(r, dt) {
-      const b = r.b; r.tolT += dt;
-      const t = r.tolT, T = r.tolDuur, f = Math.min(1, t / T);
-      r.tolSpin = Math.max(2, 46 * (1 - f) + 4);
-      // eerst rechtop zetten, dan draaien met een wiebel die steeds groter wordt
-      const op = Math.min(1, t / 0.25), wiebel = (0.03 + 0.32 * f * f * f) * Math.sin(t * (9 + 6 * (1 - f)));
-      const doelA = wiebel, a = r.tolStart[2] * (1 - op) + doelA * op;
-      const tipX = r.tolTip[0] + Math.sin(t * 1.3) * 5 * f, tipY = r.tolTip[1];
-      const c = Math.cos(a), s = Math.sin(a), lx = r.tolOffset[0], ly = r.tolOffset[1];
-      const nx = tipX - (c * lx - s * ly), ny = tipY - (s * lx + c * ly);
-      const zx = r.tolStart[0] * (1 - op) + nx * op, zy = r.tolStart[1] * (1 - op) + ny * op;
-      b.vx = (zx - b.x) / dt; b.vy = (zy - b.y) / dt; let da = a - b.a; b.w = da / dt;
-      if (t >= T) { // omvallen
-        b.kin = false; b.vx = 0; b.vy = 0; b.w = (wiebel >= 0 ? 1 : -1) * 4; r.tolSpin = 0;
-        aankondig('Tol: hij draaide ' + T.toFixed(1).replace('.', ',') + ' seconden.'); wek();
-      }
-    }
-
-    // ---------- het potlood (tekenen en krabbelen) en de paperclip (boemerang): langs een pad
+    // ---------- het potlood (tekenen en krabbelen): langs een pad
     let tekenaar = null, pad = null; // tekenaar: het potlood in je hand; pad: iets dat zelf een route volgt
     const stroken = []; let lijnTeller = 0;
     function nieuweStreep(x, y) {
@@ -3968,15 +4138,10 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       if (tekenaar && !tekenaar.rustig) stuurPotlood(tekenaar, dt);
       if (pad) {
         pad.t += dt; const f = Math.min(1, pad.t / pad.duur);
-        if (pad.soort === 'krabbel') {
-          const q = pad.vorm(f); pad.px = pad.cx + q[0]; pad.py = pad.cy + q[1];
-          if (pad.t < 0.18) { pad.px = pad.tx + (pad.px - pad.tx) * (pad.t / 0.18); pad.py = pad.ty + (pad.py - pad.ty) * (pad.t / 0.18); }
-          stuurPotlood(pad, dt);
-        } else { // boemerang
-          const b = pad.r.b, th = Math.PI + f * Math.PI * 2, x = pad.cx + pad.a * Math.cos(th) * pad.dir, y = pad.y0 + Math.min(0, pad.h * Math.sin(th));
-          b.vx = (x - b.x) / dt; b.vy = (y - b.y) / dt; b.w = pad.dir * 15 * Math.sin(f * Math.PI) + pad.dir * 3;
-        }
-        if (pad.t >= pad.duur + (pad.soort === 'krabbel' ? 0.08 : 0)) stopPad();
+        const q = pad.vorm(f); pad.px = pad.cx + q[0]; pad.py = pad.cy + q[1];
+        if (pad.t < 0.18) { pad.px = pad.tx + (pad.px - pad.tx) * (pad.t / 0.18); pad.py = pad.ty + (pad.py - pad.ty) * (pad.t / 0.18); }
+        stuurPotlood(pad, dt);
+        if (pad.t >= pad.duur + 0.08) stopPad();
       }
     }
     wereld.voorStap = voorStap;
@@ -3994,7 +4159,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       if (T.rustig) { laatVervagen(T.streep); T.r.el.classList.remove('vast'); T.r.b.a = 0; T.r.b.pa = 0; wereld.vrijMaken(T.r.b); teken(1); bewaar(); return; }
       loslaten(T, werp);
     }
-    function stopPad() { const T = pad; if (!T) return; pad = null; loslaten(T, T.soort === 'krabbel'); if (T.soort === 'boemerang') { T.r.b.vx = 0; T.r.b.vy = 0; T.r.b.w = 0; } }
+    function stopPad() { const T = pad; if (!T) return; pad = null; loslaten(T, true); }
     const KRABBELS = [
       ['een hartje', f => { const a = f * Math.PI * 2; return [2.1 * 16 * Math.pow(Math.sin(a), 3), -2.1 * (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a))]; }, 1.5],
       ['een ster', f => { const k = f * 10, i = Math.floor(k) % 10, j = (i + 1) % 10, t = k - Math.floor(k), pt = n => { const a = -Math.PI / 2 + n * Math.PI / 5, r = n % 2 ? 13 : 32; return [Math.cos(a) * r, Math.sin(a) * r]; }, A = pt(i), B = pt(j); return [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]; }, 1.6],
@@ -4011,15 +4176,6 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       pad = { soort: 'krabbel', r, t: 0, duur: K2[2], vorm: K2[1], cx, cy, px: cx + s0[0], py: cy + s0[1], tx: p[0], ty: p[1], hoek: b.a, vorigX: p[0], zelf: true, streep: nieuweStreep(p[0], p[1]) };
       r.liftDoel = 0.6; aankondig('Potlood: het tekent ' + K2[0] + '.'); Klank.tik('krabbel', 800); wek();
     }
-    function boemerang(r) {
-      if (tekenaar || pad) return;
-      const b = r.b; wereld.wek(b);
-      let dir = b.x < docB / 2 ? 1 : -1, a = 110;
-      const ruimte = dir > 0 ? docB - 30 - b.x : b.x - 30; if (ruimte < 2 * a) a = Math.max(40, ruimte / 2);
-      b.kin = true; b.slaap = false;
-      pad = { soort: 'boemerang', r, t: 0, duur: 1.7, dir, a, h: 75, cx: b.x + dir * a, y0: b.y };
-      r.liftDoel = 0.4; Klank.tik('gooi', 700); aankondig('Paperclip: hij vliegt als een boemerang.'); wek();
-    }
 
     // ---------- de knikker
     function tikKnikker(r, vanX) {
@@ -4030,12 +4186,204 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     }
     function glans(r) { const s = r.el.querySelector('.streep'); if (!s || RUSTIG) return; try { s.animate([{ opacity: 0, transform: 'translateX(0px)' }, { opacity: 0.75, offset: 0.3 }, { opacity: 0, transform: 'translateX(70px)' }], { duration: 650, easing: 'ease-out' }); } catch (e) {} }
 
+    // ---------- de knipoogjes: een kaartje met de naam en de serie, en voor elk een eigen kunstje
+    let kaartEl = null, kaartVan = null, kaartKlok = 0;
+    function toonKaart(r, ms) {
+      if (!r.d.knipoog || r.weg) return;
+      if (!kaartEl) { kaartEl = document.createElement('div'); kaartEl.className = 'rm-kaart'; kaartEl.setAttribute('aria-hidden', 'true'); }
+      if (kaartEl.parentNode !== laag || laag.lastChild !== kaartEl) laag.appendChild(kaartEl);
+      if (kaartVan !== r) kaartEl.innerHTML = `<b>${r.d.naam}</b><span class="rm-serie">${r.d.serie}</span><span class="rm-zin">${r.d.zin}</span>`;
+      kaartVan = r;
+      const b = r.b, w = kaartEl.offsetWidth, h = kaartEl.offsetHeight, l = Math.max(8, Math.min(docB - w - 8, b.x - w / 2));
+      let y = b.aabb[3] + 8; if (y + h > scrollY + innerHeight - 8 || y + h > docH - 8) y = b.aabb[1] - h - 36;
+      kaartEl.style.transform = `translate(${Math.round(l)}px,${Math.round(y)}px)`; kaartEl.classList.add('zichtbaar');
+      clearTimeout(kaartKlok); if (ms) kaartKlok = setTimeout(() => verbergKaart(), ms);
+    }
+    function verbergKaart(r) { if (r && kaartVan !== r) return; clearTimeout(kaartKlok); if (kaartEl) kaartEl.classList.remove('zichtbaar'); kaartVan = null; }
+    const kq = (r, s) => r.draai.querySelector(s), kqa = (r, s) => [...r.draai.querySelectorAll(s)];
+    function speel(el, k, o) { if (!el || !el.animate) return null; try { return el.animate(k, o); } catch (e) { return null; } }
+    function weg(el, ms) { setTimeout(() => el.remove(), ms); }
+    function wiebel(r, s) { if (RUSTIG) return; speel(r.draai.querySelector('svg'), [0, -6, 5, -3, 1.5, 0].map(g => ({ transform: `rotate(${g * s}deg)` })), { duration: 480, easing: 'ease-out' }); }
+    // een korte lichtflits (zonder beweging)
+    function flits(x, y, kleur, s) {
+      const f = document.createElement('span'); f.className = 'rm-flits'; f.setAttribute('aria-hidden', 'true');
+      f.style.width = f.style.height = s + 'px'; f.style.background = `radial-gradient(circle, ${kleur} 0, rgba(255,255,255,0) 68%)`; f.style.transform = `translate(${Math.round(x - s / 2)}px,${Math.round(y - s / 2)}px)`;
+      laag.appendChild(f); speel(f, [{ opacity: 0 }, { opacity: 1, offset: 0.15 }, { opacity: 0 }], { duration: 650, easing: 'ease-out' }); weg(f, 700);
+    }
+    function bliksem(r) {
+      const z = document.createElement('span'); z.className = 'rm-bliksem'; z.setAttribute('aria-hidden', 'true');
+      z.innerHTML = '<svg viewBox="0 0 40 80"><path d="M25 1L7 44h13L11 79 36 31H22L32 1z"/></svg>';
+      z.style.transform = `translate(${Math.round(r.b.x - 20)}px,${Math.round(r.b.aabb[1] - 84)}px)`; laag.appendChild(z);
+      speel(z, RUSTIG ? [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1, offset: 0.08 }, { opacity: 0.25, offset: 0.2 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], { duration: 750 }); weg(z, 800);
+      flits(r.b.x, r.b.y, 'rgba(255,236,140,.9)', 150); Klank.tik('donder', 900);
+    }
+    // iets kleins dat even wegvliegt (een koekje, stof)
+    function deeltje(html, x, y, dx, dy, ms, klasse) {
+      if (RUSTIG) return;
+      const d = document.createElement('span'); d.className = 'rm-deeltje' + (klasse ? ' ' + klasse : ''); d.setAttribute('aria-hidden', 'true'); d.innerHTML = html; laag.appendChild(d);
+      speel(d, [{ transform: `translate(${x}px,${y}px) rotate(0deg)`, opacity: 1 }, { transform: `translate(${x + dx * 0.6}px,${y + dy}px) rotate(${dx * 2}deg)`, opacity: 1, offset: 0.5 }, { transform: `translate(${x + dx}px,${y + dy * 0.4}px) rotate(${dx * 4}deg)`, opacity: 0 }], { duration: ms, easing: 'ease-out' });
+      weg(d, ms + 50);
+    }
+    // de hamer: alleen wie het waard is, tilt hem op (na drie keer proberen)
+    let hamerWaard = false, hamerPoging = 0;
+    const teZwaar = r => r.soort === 'hamer' && !hamerWaard;
+    function probeerHamer(r) {
+      if (hamerWaard) return true;
+      if (++hamerPoging < 3) { wiebel(r, 0.5); Klank.tik('metaal', 700, r.id); bel(r, hamerPoging === 1 ? 'Te zwaar!' : 'Echt te zwaar…'); aankondig('Hamer: hij is te zwaar om op te tillen.'); return false; }
+      hamerWaard = true; bliksem(r); bel(r, 'Je bent het waard!'); aankondig('Hamer: je bent het waard! Nu kun je hem optillen.');
+      return true;
+    }
+    function kopjeBreekt(r) {
+      if (r.barst) return; r.barst = true; const c = kq(r, '.rm-barst'); if (c) c.setAttribute('opacity', '1');
+      Klank.tik('tink', 1100, 'barst'); bel(r, 'Krak!');
+      setTimeout(() => { speel(c, [{ opacity: 1 }, { opacity: 0 }], { duration: 800 }); setTimeout(() => { if (c) c.setAttribute('opacity', '0'); r.barst = false; bel(r, 'Weer heel.'); aankondig('Theekopje: het is vanzelf weer heel.'); }, 800); }, 2600);
+    }
+    // de kubus verdwijnt en duikt ergens anders op (op iets dat in beeld is)
+    function teleport(r) {
+      const b = r.b, nu = draagVlak(b);
+      const keus = wereld.vast.filter(s => s !== nu && s.data.anker && !s.rand && s.data.naam !== 'vloer' && s.aabb[2] - s.aabb[0] >= 70 && s.aabb[1] > scrollY + 100 && s.aabb[1] < scrollY + innerHeight - 30);
+      if (!keus.length) { wiebel(r, 1); bel(r, 'Nergens plek.'); return 400; }
+      // een vrij plekje: niet bovenop een ander rommeltje
+      const w2 = (b.aabb[2] - b.aabb[0]) / 2 + 4, vrij = (s, x) => { const y = topVan(s, x); return !rommels.some(q => q !== r && !q.weg && q.b.aabb[0] < x + w2 && q.b.aabb[2] > x - w2 && q.b.aabb[3] > y - 60 && q.b.aabb[1] < y); };
+      let s = null, x = 0;
+      for (let i = 0; i < 24 && !s; i++) { const z = keus[Math.floor(Math.random() * keus.length)], xx = z.aabb[0] + 30 + Math.random() * (z.aabb[2] - z.aabb[0] - 60); if (vrij(z, xx)) { s = z; x = xx; } }
+      if (!s) { wiebel(r, 1); bel(r, 'Nergens plek.'); return 400; }
+      flits(b.x, b.y, 'rgba(130,220,255,.95)', 140); Klank.tik('zap', 900);
+      const zet = () => {
+        opRust(r, x + b.vorm.ox, topVan(s, x), 0); if (!RUSTIG) { b.y -= 30; b.py = b.y; }
+        wereld.vrijMaken(b); wereld.wek(b); teken(1); flits(b.x, b.y, 'rgba(130,220,255,.95)', 140); Klank.tik('zap', 700, 'zap2');
+        if (RUSTIG) { b.slaap = steunt(b); bewaar(); } else wek();
+        speel(r.el, [{ opacity: 0 }, { opacity: 1 }], { duration: RUSTIG ? 10 : 260 });
+      };
+      if (RUSTIG) { zet(); aankondig('Blauwe kubus: hij staat nu ergens anders.'); return 300; }
+      const an = speel(r.el, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' });
+      setTimeout(() => { if (an) an.cancel(); zet(); }, 230);
+      aankondig('Blauwe kubus: hij verdwijnt en duikt ergens anders op.'); return 700;
+    }
+    const KUNST = {
+      hamer(r) {
+        if (!hamerWaard) { if (!probeerHamer(r)) return 500; } else { bliksem(r); bel(r, 'Donder!'); }
+        if (!RUSTIG) { wereld.wek(r.b); r.b.vy = -480; r.b.w = 0; wek(); }
+        return 800;
+      },
+      kubus: teleport,
+      stenen(r) {
+        kqa(r, '.rm-steen').forEach((g, i) => speel(g, RUSTIG ? [{ opacity: 1 }, { opacity: 0.35 }, { opacity: 1 }] : [{ transform: 'scale(1)' }, { transform: 'scale(1.45)' }, { transform: 'scale(1)' }], { duration: 380, delay: i * 110 }));
+        Klank.tik('fonkel', 900);
+        setTimeout(() => {
+          Klank.tik('knip', 1000); bel(r, 'Knip!');
+          const ander = rommels.filter(q => q !== r && !q.weg).sort(() => Math.random() - 0.5), n = Math.floor(ander.length / 2);
+          ander.slice(0, n).forEach(q => {
+            const v = Math.random() * 350;
+            speel(q.el, [{ opacity: 1 }, { opacity: 0, offset: 0.22 }, { opacity: 0, offset: 0.8 }, { opacity: 1 }], { duration: 3600, delay: v });
+            for (let i = 0; i < 4; i++) setTimeout(() => deeltje('<i></i>', q.b.x - 3 + (Math.random() - 0.5) * 30, q.b.y - 3 + (Math.random() - 0.5) * 24, 14 + Math.random() * 26, -18 - Math.random() * 26, 900 + Math.random() * 400, 'rm-stof'), v + i * 70);
+          });
+          aankondig(`Zes steentjes: knip! ${n} rommeltjes zijn even weg.`);
+        }, 6 * 110 + 280);
+        return 4500;
+      },
+      klok(r) {
+        bliksem(r); bel(r, '10:04!'); aankondig('Klokje: de bliksem slaat in, en hij blijft stilstaan op 10:04.');
+        if (!RUSTIG) {
+          speel(kq(r, '.rm-uur'), [{ transform: 'rotate(302deg)' }, { transform: 'rotate(1022deg)' }], { duration: 1500, easing: 'cubic-bezier(.3,0,.2,1)' });
+          speel(kq(r, '.rm-min'), [{ transform: 'rotate(24deg)' }, { transform: 'rotate(2184deg)' }], { duration: 1500, easing: 'cubic-bezier(.3,0,.2,1)' });
+          for (let i = 1; i < 6; i++) setTimeout(() => Klank.tik('klik', 700, 'klok' + i), 200 + i * 200);
+        }
+        return 1700;
+      },
+      foto(r) {
+        kqa(r, '.rm-kind').forEach((k, i) => speel(k, [{ opacity: 1 }, { opacity: 0, offset: 0.3 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }], { duration: 2400, delay: i * 320 }));
+        bel(r, 'Ze vervagen!'); Klank.tik('brom', 600);
+        setTimeout(() => { bel(r, 'Nog net op tijd!'); Klank.tik('ding', 600); }, 3100);
+        aankondig('Familiefoto: de kinderen vervagen, en komen nog net op tijd terug.'); return 3300;
+      },
+      meter(r) {
+        const nd = kq(r, '.rm-naald');
+        if (RUSTIG) { bel(r, '88!'); aankondig('Snelheidsmeter: 88! Er gebeurt iets.'); return 600; }
+        const an = speel(nd, [{ transform: 'rotate(-110deg)' }, { transform: 'rotate(96deg)' }], { duration: 1000, easing: 'ease-in', fill: 'forwards' });
+        Klank.tik('zoef', 900);
+        setTimeout(() => {
+          const b = r.b, links = b.x > docB / 2;
+          flits(b.x, b.y, 'rgba(255,255,255,.95)', 170); Klank.tik('knal', 1000); bel(r, '88!');
+          for (const dy of [-5, 4]) {
+            const v = document.createElement('span'); v.className = 'rm-vuur' + (links ? ' links' : ''); v.setAttribute('aria-hidden', 'true');
+            v.style.left = Math.round(links ? b.x - 150 : b.x) + 'px'; v.style.top = Math.round(b.aabb[3] - 9 + dy) + 'px'; laag.appendChild(v);
+            speel(v, [{ transform: 'scaleX(0)', opacity: 1 }, { transform: 'scaleX(1)', opacity: 1, offset: 0.3 }, { transform: 'scaleX(1)', opacity: 0 }], { duration: 1300, easing: 'ease-out' }); weg(v, 1350);
+          }
+          speel(r.el, [{ opacity: 1 }, { opacity: 0, offset: 0.06 }, { opacity: 0, offset: 0.85 }, { opacity: 1 }], { duration: 1700 });
+          setTimeout(() => { if (an) an.cancel(); flits(r.b.x, r.b.y, 'rgba(255,255,255,.9)', 130); Klank.tik('plof', 700, 'meter-terug'); aankondig('Snelheidsmeter: 88! Hij was even weg, en is terug.'); }, 1450);
+        }, 1000);
+        return 2800;
+      },
+      computer(r) {
+        const t = kqa(r, '.rm-cijfers text'), oud = t.map(e => e.textContent);
+        aankondig('Oude computer: de enge cijfers zijn verfijnd.');
+        if (RUSTIG) { bel(r, 'Verfijnd: 100%'); return 600; }
+        let n = 0;
+        const iv = setInterval(() => {
+          t.forEach(e => { e.textContent = e.textContent.replace(/\d/g, () => String(Math.floor(Math.random() * 10))); });
+          if (n % 2 === 0) Klank.tik('klik', 600, 'pc' + (n % 4));
+          if (++n >= 14) { clearInterval(iv); t.forEach((e, i) => { e.textContent = oud[i]; }); bel(r, 'Verfijnd: 100%'); Klank.tik('ding', 600); }
+        }, 75);
+        return 1300;
+      },
+      wafel(r) {
+        const i = r.hap || 0, c = kq(r, '.rm-hap' + i); if (c) c.setAttribute('r', '6.5'); r.hap = i + 1; Klank.tik('hap', 800);
+        if (r.hap < 3) { bel(r, i ? 'Nog een hap!' : 'Hap!'); aankondig('Wafel: hap!'); return 250; }
+        bel(r, 'Wafelfeest!'); aankondig('Wafel: op! Wafelfeest.');
+        setTimeout(() => { kqa(r, '.rm-hap').forEach(h => h.setAttribute('r', '0')); r.hap = 0; Klank.tik('ding', 600); bel(r, 'Nog een wafel!'); }, 1900);
+        return 2100;
+      },
+      vingerval(r) {
+        if (!RUSTIG) speel(kq(r, '.tek'), [{ transform: 'scale(1,1)' }, { transform: 'scale(1.3,.84)', offset: 0.4 }, { transform: 'scale(.95,1.05)', offset: 0.7 }, { transform: 'scale(1,1)' }], { duration: 700, easing: 'ease-out' });
+        Klank.tik('boing', 700, 1.3); bel(r, 'Hoera.'); aankondig('Vingerval: hoera.'); return 750;
+      },
+      bordje(r) {
+        const p = kq(r, '.rm-plakker'); if (p) p.setAttribute('opacity', '0');
+        Klank.tik('scheur', 900); bel(r, 'Oeps!');
+        if (!RUSTIG) {
+          const k = g => [{ transform: 'none' }, { transform: `translate(${-2.5 * g}px,1px) rotate(${-10 * g}deg)`, offset: 0.3 }, { transform: `translate(${-2.5 * g}px,1px) rotate(${-10 * g}deg)`, offset: 0.65 }, { transform: 'none' }];
+          speel(kq(r, '.rm-links'), k(1), { duration: 1300, easing: 'ease-in-out' }); speel(kq(r, '.rm-rechts'), k(-1), { duration: 1300, easing: 'ease-in-out' });
+        }
+        setTimeout(() => { if (p) p.setAttribute('opacity', '1'); Klank.tik('plak', 700); bel(r, 'GELOOF!'); aankondig('Bordje: gescheurd en weer vastgeplakt. Geloof!'); }, RUSTIG ? 300 : 1150);
+        return 1500;
+      },
+      koekjes(r) {
+        if (!RUSTIG) speel(kq(r, '.rm-deksel'), [{ transform: 'rotate(0deg)' }, { transform: 'translateY(-3px) rotate(-12deg)', offset: 0.3 }, { transform: 'rotate(0deg)' }], { duration: 750, easing: 'ease-out' });
+        deeltje('<svg viewBox="0 0 14 14"><rect x="3" y="1" width="8" height="12" rx="2" fill="#E9C27A" stroke="#231A26" stroke-width="1.6"/></svg>', r.b.x - 7, r.b.aabb[1] + 4, r.b.x > docB / 2 ? -46 : 46, -46, 900);
+        Klank.tik('hout', 600, r.id); bel(r, 'Voor de baas!'); aankondig('Koekjes: elke ochtend vers, voor de baas.'); return 900;
+      },
+      donutdoos(r) {
+        if (!RUSTIG) speel(kq(r, '.rm-wip'), [{ transform: 'translateY(0) rotate(0deg)' }, { transform: 'translateY(-9px) rotate(-10deg)', offset: 0.4 }, { transform: 'translateY(0) rotate(0deg)' }], { duration: 650, easing: 'ease-out' });
+        const tot = (12 - new Date().getDay()) % 7, t = tot === 0 ? 'Het is vrijdag!' : tot === 1 ? 'Morgen is het vrijdag' : `Nog ${tot} dagen tot vrijdag`;
+        Klank.tik('plastic', 600, r.id); bel(r, t); aankondig('Doos donuts: ' + t.toLowerCase() + '.'); return 700;
+      },
+      glaasjes(r) {
+        if (!RUSTIG) speel(kq(r, '.rm-wip'), [{ transform: 'translateY(0)' }, { transform: 'translateY(-7px)', offset: 0.35 }, { transform: 'translateY(-7px)', offset: 0.6 }, { transform: 'translateY(0)' }], { duration: 800, easing: 'ease-in-out' });
+        Klank.tik('glas', 500, r.id); bel(r, 'Gewoon een hobby.'); aankondig('Kistje met glaasjes: gewoon een hobby. Echt.'); return 850;
+      },
+      kopje(r) {
+        if (!RUSTIG) speel(kq(r, '.rm-damp'), [{ transform: 'translateY(0)', opacity: 0.8 }, { transform: 'translateY(-6px)', opacity: 0 }, { transform: 'translateY(3px)', opacity: 0, offset: 0.55 }, { transform: 'translateY(0)', opacity: 0.8 }], { duration: 1600 });
+        Klank.tik('tink', 700, r.id); bel(r, 'Thee?'); aankondig('Theekopje: thee?'); return 900;
+      },
+      hert(r) {
+        speel(kq(r, '.rm-oog'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 1900 });
+        Klank.tik('brom', 800); bel(r, 'Altijd.'); aankondig('Zwart hertje: het kijkt je aan. Altijd.'); return 1900;
+      }
+    };
+    function knipoogActie(r) {
+      toonKaart(r, 2800);
+      if (r.bezig || (r.b.kin && !RUSTIG)) return;
+      const f = KUNST[r.soort]; if (!f) return;
+      const ms = f(r) || 600; r.bezig = true; setTimeout(() => { r.bezig = false; }, ms);
+    }
+
     // ---------- uitkomsten voor iedereen (ook voor schermlezers)
     let meldEl = null;
     function aankondig(t) { if (!meldEl) return; meldEl.textContent = ''; setTimeout(() => { meldEl.textContent = t; }, 30); }
     function bel(r, tekst) {
       const d = document.createElement('div'); d.className = 'rm-bel'; d.textContent = tekst; d.setAttribute('aria-hidden', 'true'); laag.appendChild(d);
-      const w = d.offsetWidth, l = Math.max(8, Math.min(docB - w - 8, r.b.x - w / 2)), y = r.b.y - 44;
+      const w = d.offsetWidth, l = Math.max(8, Math.min(docB - w - 8, r.b.x - w / 2)), y = Math.min(r.b.y - 44, r.b.aabb[1] - 30);
       const k = [{ transform: `translate(${l}px,${y}px) scale(.6)`, opacity: 0 }, { transform: `translate(${l}px,${y - 14}px) scale(1)`, opacity: 1, offset: .2 }, { transform: `translate(${l}px,${y - 18}px) scale(1)`, opacity: 1, offset: .8 }, { transform: `translate(${l}px,${y - 26}px) scale(1)`, opacity: 0 }];
       d.style.transform = k[1].transform;
       try { const an = d.animate(RUSTIG ? [{ opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: 1, offset: .85 }, { opacity: 0 }] : k, { duration: 1500, easing: 'ease-out' }); an.onfinish = () => d.remove(); } catch (e) { setTimeout(() => d.remove(), 1500); }
@@ -4048,7 +4396,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const el = r.el;
       el.addEventListener('pointerdown', e => {
         if (greep || (e.pointerType === 'mouse' && e.button !== 0)) return;
-        e.preventDefault(); Klank.start(); bouwWereld();
+        e.preventDefault(); Klank.start(); bouwWereld(); clearTimeout(r.kaartKlok);
         try { (e.target.setPointerCapture ? e.target : el).setPointerCapture(e.pointerId); } catch (x) {}
         greep = { r, id: e.pointerId, x0: e.pageX, y0: e.pageY, t0: performance.now(), cx: e.clientX, cy: e.clientY, sleept: false, veer: null };
       });
@@ -4074,29 +4422,37 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       el.addEventListener('pointerup', los); el.addEventListener('pointercancel', los); el.addEventListener('lostpointercapture', los);
       el.addEventListener('click', e => e.preventDefault());
       el.addEventListener('pointerover', e => { // een klein hupje als de muis erover gaat
-        if (e.pointerType !== 'mouse' || greep || RUSTIG) return;
+        if (e.pointerType !== 'mouse' || greep || RUSTIG || teZwaar(r)) return;
         const nu = performance.now(); if (r.hupKlok && nu - r.hupKlok < 700) return; r.hupKlok = nu;
         const b = r.b; if (!b.slaap || b.kin) return; wereld.wek(b); b.vy = -150; b.w = (Math.random() - 0.5) * 2; wek();
       });
+      // het kaartje met de naam: als de muis erop blijft staan, of met het toetsenbord
+      if (r.d.knipoog) {
+        el.addEventListener('pointerenter', e => { if (e.pointerType !== 'mouse') return; clearTimeout(r.kaartKlok); r.kaartKlok = setTimeout(() => { if (!greep) toonKaart(r); }, 280); });
+        el.addEventListener('pointerleave', e => { if (e.pointerType !== 'mouse') return; clearTimeout(r.kaartKlok); verbergKaart(r); });
+        el.addEventListener('focus', () => { let z = true; try { z = el.matches(':focus-visible'); } catch (x) {} if (z) toonKaart(r); });
+        el.addEventListener('blur', () => verbergKaart(r));
+      }
       el.addEventListener('keydown', e => {
         const b = r.b;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); Klank.start(); bouwWereld(); actie(r, null); return; }
         const duw = { ArrowLeft: [-380, -260], ArrowRight: [380, -260], ArrowUp: [0, -900], ArrowDown: [0, 320] }[e.key];
         if (!duw) return; e.preventDefault(); Klank.start();
+        if (teZwaar(r)) { wiebel(r, 0.5); bel(r, 'Te zwaar!'); return; }
         if (RUSTIG) { b.x += Math.sign(duw[0]) * 16; b.y += duw[1] > 0 ? 16 : duw[0] ? 0 : -16; b.px = b.x; b.py = b.y; wereld.vrijMaken(b); teken(1); bewaar(); return; }
         if (b.kin) return; bouwWereld(); wereld.wek(b); b.vx += duw[0]; b.vy += duw[1]; if (duw[0]) b.w += duw[0] / 60; wek();
       });
     }
     function startSlepen(x, y) {
-      const g = greep, r = g.r; g.sleept = true; tril(4);
-      if (r.soort === 'tol' && r.tolSpin > 0) { r.tolSpin = 0; r.b.kin = false; }
+      const g = greep, r = g.r; g.sleept = true; tril(4); verbergKaart();
+      if (teZwaar(r) && !probeerHamer(r)) { g.vast = true; return; }
       if (pad && pad.r === r) stopPad();
       if (r.soort === 'potlood') { beginTekenen(r, x, y); return; }
       if (RUSTIG) { g.dx = r.b.x - x; g.dy = r.b.y - y; r.liftDoel = 0.6; r.el.classList.add('vast'); return; }
       g.veer = wereld.pak(r.b, x, y, { hz: 6, zeta: 0.6 }); r.liftDoel = 1; r.el.classList.add('vast'); wek();
     }
     function volg(x, y) {
-      const g = greep, r = g.r;
+      const g = greep, r = g.r; if (g.vast) return;
       if (r.soort === 'potlood' && tekenaar && tekenaar.rustig) {
         const T = tekenaar, b = r.b, tx = x + T.dx * 0.3, ty = y + T.dy * 0.3, v = b.vorm, c = Math.cos(SCHRIJF), s = Math.sin(SCHRIJF), lx = PUNT[0] - v.ox, ly = PUNT[1] - v.oy;
         b.a = SCHRIJF; b.x = tx - (c * lx - s * ly); b.y = ty - (s * lx + c * ly); b.px = b.x; b.py = b.y; b.pa = b.a; wereld.werk(b);
@@ -4108,22 +4464,17 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     }
     addEventListener('scroll', () => { if (greep && greep.sleept) volg(greep.cx + scrollX, greep.cy + scrollY); }, { passive: true });
     function actie(r, vanX) {
+      if (r.d.knipoog) { knipoogActie(r); return; }
       if (RUSTIG) { // minder beweging: een rustig hupje en de uitkomst, verder niets
         hupje(r);
         if (r.soort === 'dobbelsteen') { zetVlak(r, 1 + Math.floor(Math.random() * 6)); uitslagDobbel(r); bewaar(); }
-        else if (r.soort === 'kroonkurk') { r.flip = Math.random() < 0.5 ? 0 : Math.PI; r.kant = Math.cos(r.flip) >= 0 ? 1 : -1; teken(1); const w = r.kant > 0 ? 'Kop' : 'Munt'; r.el.setAttribute('aria-label', `Kroonkurk: ${w.toLowerCase()}. Tik om opnieuw op te gooien.`); aankondig('Kroonkurk: ' + w.toLowerCase() + '.'); bel(r, w + '!'); bewaar(); }
         else { Klank.tik(r.d.klank, 600, r.id); aankondig(r.d.naam + ': hupje!'); }
         return;
       }
-      if (r.b.kin && !(r.soort === 'tol' && r.tolSpin > 0)) return;
+      if (r.b.kin) return;
       if (r.soort === 'dobbelsteen') gooi(r);
       else if (r.soort === 'knikker') tikKnikker(r, vanX);
       else if (r.soort === 'potlood') krabbel(r);
-      else if (r.soort === 'kroonkurk') opgooien(r);
-      else if (r.soort === 'sterretje') wens(r);
-      else if (r.soort === 'knoop') superbal(r);
-      else if (r.soort === 'paperclip') boemerang(r);
-      else if (r.soort === 'tol') { if (r.tolSpin > 0) { r.tolDuur += 1.2; r.tolT = Math.max(0.3, r.tolT - 1); Klank.tik('hout', 400, 'tol-zwiep'); } else draaiTol(r); }
     }
 
     // ---------- kantelen en schudden (telefoon en tablet)
@@ -4144,7 +4495,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         const a = e.acceleration; if (!a || a.x == null) return; kantel.kreegIets = true;
         const m = Math.hypot(a.x, a.y, a.z || 0), nu = performance.now();
         if (m < 15 || nu - kantel.schudKlok < 250) return; kantel.schudKlok = nu;
-        for (const r of rommels) { const b = r.b; if (b.kin || r.weg) continue; wereld.wek(b); b.vx += (Math.random() - 0.5) * 1600 - a.x * 60; b.vy += -400 - Math.random() * 900; b.w += (Math.random() - 0.5) * 30; }
+        for (const r of rommels) { const b = r.b; if (b.kin || r.weg || teZwaar(r)) continue; wereld.wek(b); b.vx += (Math.random() - 0.5) * 1600 - a.x * 60; b.vy += -400 - Math.random() * 900; b.w += (Math.random() - 0.5) * 30; }
         tril(10); wek();
       },
       uit() {
@@ -4220,7 +4571,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const w = document.createElement('div'); w.className = 'tg-rommelknop'; w.setAttribute('role', 'group'); w.setAttribute('aria-label', 'De rommeltjes');
       const kan = typeof DeviceOrientationEvent !== 'undefined' && window.matchMedia && matchMedia('(any-pointer: coarse)').matches && !RUSTIG;
       w.innerHTML = `<button type="button" class="tg-rk-geluid" aria-pressed="${Klank.aan}" aria-label="Geluid van de rommeltjes"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="rk-golf" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.5a8 8 0 0 1 0 11"/><path class="rk-stil" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>` +
-        `<button type="button" class="tg-rk-terug" aria-label="Leg de rommeltjes terug op hun plankje"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v4h4"/></svg></button>` +
+        `<button type="button" class="tg-rk-terug" aria-label="Zet de rommeltjes terug op hun plek"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v4h4"/></svg></button>` +
         (kan ? `<button type="button" class="tg-rk-kantel" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3.5" width="9" height="16" rx="2" transform="rotate(18 12.5 11.5)"/><path d="M3.5 15.5a8 8 0 0 0 4 4.5M20.5 8.5a8 8 0 0 0-4-4.5"/></svg><span>Kantel</span></button>` : '');
       knopGroep = w;
       const gk = w.querySelector('.tg-rk-geluid');
@@ -4229,7 +4580,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const kk = w.querySelector('.tg-rk-kantel'); if (kk) { kantel.knop = kk; kk.addEventListener('click', () => kantel.wissel()); }
     }
 
-    // ---------- alles terug op zijn plankje
+    // ---------- alles terug op zijn plek
     function legTerug() {
       if (greep) return;
       if (tekenaar) stopTekenen(false); if (pad) stopPad();
@@ -4237,13 +4588,12 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       bouwWereld();
       for (const r of rommels) {
         if (r.weg) continue; const b = r.b;
-        b.kin = false; r.tolSpin = 0; r.flipV = 0; r.gooit = false; r.superbal = 0; b.st = b.data.st0; r.liftDoel = 0;
-        if (r.soort === 'kroonkurk') { r.flip = 0; r.kant = 1; r.el.setAttribute('aria-label', r.d.label); }
-        if (r.plek === 'brief') legOp(r, 'plank:brief', [0.2, 0.5, 0.8][BRIEF.indexOf(r.soort)]); else legOp(r, 'plank:zij' + r.zijNr);
+        b.kin = false; b.st = b.data.st0; r.liftDoel = 0;
+        thuis(r);
       }
       for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); r.b.slaap = steunt(r.b); r.b.rust = 0; if (!r.b.slaap) wek(); }
       teken(1); opslag = Object.assign(lees(), { p: {} }); schrijf(opslag);
-      Klank.start(); Klank.tik('hout', 500, 'terug'); aankondig('De rommeltjes liggen weer op hun plankje.'); toast('Alles ligt weer op zijn plankje.');
+      Klank.start(); Klank.tik('hout', 500, 'terug'); aankondig('De rommeltjes liggen weer op hun plek.'); toast('Alles staat weer op zijn plek.');
     }
 
     // ---------- starten
@@ -4256,10 +4606,13 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       document.body.appendChild(lijnen); document.body.appendChild(laag); document.body.appendChild(meldEl); document.body.appendChild(toastEl);
       const telS = {};
       BRIEF.forEach(s => { telS[s] = (telS[s] || 0); maak(s, 'brief', telS[s]++); });
-      ZIJ.forEach((s, z) => { telS[s] = (telS[s] || 0); const r = maak(s, 'zij', telS[s]++); r.zijNr = z; });
+      KAST_ALLES.forEach(s => maak(s, 'kast', 0));
+      // de rommelkast: een lege plek in de pagina (tussen de advertentie en Alle spellen), of in de kantlijn
+      kastSec = document.createElement('section'); kastSec.className = 'tg-kast'; kastSec.setAttribute('aria-hidden', 'true'); kastSec.hidden = true;
+      const spellen = $('#spellen'); if (spellen) spellen.before(kastSec); else document.body.appendChild(kastSec);
+      kastEl = document.createElement('div'); kastEl.className = 'rm-kast'; kastEl.setAttribute('aria-hidden', 'true');
       knopjes();
       bouwWereld();
-      for (const r of rommels) if (r.plek === 'zij' && !zijRuimte) zetWeg(r, true);
       beginPlek();
       for (const r of rommels) if (!r.weg && !r.b.slaap) { wek(); break; }
       let herKlok = 0;
@@ -4272,7 +4625,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.tg-filters button')) setTimeout(herbouw, 30); });
     }
     function naVerspringen() { for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); if (!r.b.kin && !steunt(r.b)) { wereld.wek(r.b); wek(); } } teken(1); }
-    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
+    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, wek, legTerug, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
   })();
   function zetRommeltjes() { try { RM.start(); window.__rommeltjes = RM; } catch (e) { if (window.reportError) reportError(e); } }
 

@@ -55,10 +55,10 @@ Een onbekend nummer dat zegt dat het je bank is; haast; geheimzinnig doen; een b
 - **Bewaren midden in een gesprek**: herlaad je, dan ga je verder waar je was, met dezelfde tijden.
 - **Opslag** `helpdesk-v1` (in `SLEUTELS`): per gesprek de beste sterren en de minste beurten, de eindes en grappige antwoorden, een lopend gesprek, het geluid, de typsnelheid en `voortgangTotaal` (30).
 - **Koppelen**: een regel in de REGELS (sterren de hoogste, eindes en grappen samen). Er is geen geld, dus samenvoegen is veilig.
-- **Scorebord**: spel `helpdesk`, score = alle sterren (hooguit 30), extra = gevonden eindes. Een nieuwe scoreserver (2026-11-09); **de pagina gaat pas online als die in Cloudflare staat**.
+- **Scorebord**: spel `helpdesk`, score = alle sterren (hooguit 30), extra = gevonden eindes. Een nieuwe scoreserver (2026-11-09), sinds 8 november 2026 in Cloudflare.
 - **Homepage**: een eigen icoon, het onderschrift, de voortgang "x van 30 sterren", en een banner.
 
 ## Volgorde
 
 1. **Gesprekken 1 tot en met 3** in de nieuwe stijl: door Ruben goedgekeurd op 8 november 2026 ("Ja, maak de andere zeven gesprekken maar").
-2. **Gesprekken 4 tot en met 10**, de wending, het slot, de homepage, de banner, het scorebord en de scoreserver 2026-11-09: gebouwd op 8 november 2026. Online zodra de scoreserver in Cloudflare staat.
+2. **Gesprekken 4 tot en met 10**, de wending, het slot, de homepage, de banner, het scorebord en de scoreserver 2026-11-09: gebouwd op 8 november 2026, en dezelfde dag online (de scoreserver stond toen in Cloudflare).

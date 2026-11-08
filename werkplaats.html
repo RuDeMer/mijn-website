@@ -2243,7 +2243,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
       vg.textContent = 'Versies opvragen…';
       await serversStatus().catch(() => {});
       const versieRegels = [];
-      const vi = (teksten['index.html'] || '').match(/Versie (\d+(?:\.\d{2})?)/); versieRegels.push('Homepage: <b>' + (vi ? 'versie ' + esc(vi[1]) : 'onbekend') + '</b>' + ((teksten['index.html'] || '').match(/homepage-onderdelen\.js\?v=(\d+)/) ? ' · onderdelen van ' + esc(datum(+(teksten['index.html'].match(/homepage-onderdelen\.js\?v=(\d+)/)[1]))) : ''));
+      const vi = (teksten['index.html'] || '').match(/Versie (\d+(?:\.\d{2})?)/); versieRegels.push('Homepage: <b>' + (vi ? 'versie ' + esc(vi[1]) : 'onbekend') + '</b>' + ((teksten['index.html'] || '').match(/src=["']homepage-onderdelen\.js\?v=(\d+)/) ? ' · onderdelen van ' + esc(datum(+(teksten['index.html'].match(/src=["']homepage-onderdelen\.js\?v=(\d+)/)[1]))) : ''));
       versieRegels.push('Werkplaats: <b>' + WP_VERSIE + '</b>');
       versieRegels.push('Scoreserver: <b>' + (SV.sc && SV.sc.status === 'fulfilled' ? esc(SV.sc.value.versie) : 'niet bereikbaar') + '</b>');
       versieRegels.push('Drukpers: <b>' + (SV.moes && SV.moes.status === 'fulfilled' ? esc(SV.moes.value.versie || '?') : 'niet bereikbaar') + '</b>');
@@ -2575,7 +2575,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
         if (VERSIE_RE.test(indexTekst)) { indexTekst = indexTekst.replace(VERSIE_RE, nieuweVersieTekst); indexAangepast = true; logRegel('Versienummer is nu ' + fmtVersie(doel), 'ok'); }
         else { nieuweVersieTekst = null; logRegel('Geen versienummer gevonden op de homepage', 'fout'); }
       }
-      if (indexTekst != null && bestanden.some(b => b.naam === 'homepage-onderdelen.js')) { indexTekst = indexTekst.replace(/homepage-onderdelen\.js(\?v=[0-9]+)?/, 'homepage-onderdelen.js?v=' + Date.now()); indexAangepast = true; logRegel('Homepage laadt meteen de nieuwe onderdelen', 'ok'); }
+      if (indexTekst != null && bestanden.some(b => b.naam === 'homepage-onderdelen.js')) { const srcRe = /(\bsrc=["'])homepage-onderdelen\.js(?:\?v=[0-9]+)?(["'])/, nu = Date.now(); indexTekst = srcRe.test(indexTekst) ? indexTekst.replace(srcRe, (m, a, b) => a + 'homepage-onderdelen.js?v=' + nu + b) : indexTekst.replace(/homepage-onderdelen\.js(\?v=[0-9]+)?/, 'homepage-onderdelen.js?v=' + nu); indexAangepast = true; logRegel('Homepage laadt meteen de nieuwe onderdelen', 'ok'); }
       if (indexAangepast) {
         const voorOnderdelen = indexTekst;
         indexTekst = werkIconenBij(indexTekst);

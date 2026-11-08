@@ -1,17 +1,14 @@
-# Plan: het koor uit de coulissen
+# Plan: het Coulissenkoor
 
 Uit de ideeënbox: personages die samen a capella zingen, naar het idee van Blob Opera (Google Arts & Culture). **Alleen het idee**: eigen tekeningen, eigen stemmen, een eigen podium en een eigen naam. Niets van Blob Opera (geen namen, tekeningen, stemmen, geluiden of schermen).
 
 **De zangers zijn de negen personages uit de coulissen** (zo besloten door Ruben op 8 november 2026): Juan Martinez, Caspian Darius, Dokter de Groot, Winston Darius, Erik Jacobs, Roeter, Hans Herzschlag, Callum en Dorian Verstronden. Geen monsters.
 
-**Stand 8 november 2026**: dit plan, de proefpagina `zangproef.html` (één personage zingt, je kiest wie) en geluidsfragmenten. Nog niets op de site.
+**Stand 8 november 2026, 's avonds**: het spel is af: `coulissenkoor.html`, met de nieuwe scoreserver 2026-11-10 (alleen de REGELS voor het koppelen). Ruben keurde de naam, het mannenkoor, de verdeling van de stemmen en de tekeningen goed, en vroeg om goed naar Blob Opera te kijken, zodat je er vanzelf muziek mee maakt. De proefpagina `zangproef.html` is weer weg.
 
-## Namen
+## Naam
 
-1. **Coulissenkoor** (voorkeur): de zangers komen uit de coulissen op de homepage.
-2. **Het Rommelkoor**: past bij de site.
-3. **Koor van de Coulissen**.
-4. **De Galmgasten**.
+**Coulissenkoor** (gekozen door Ruben): de zangers komen uit de coulissen op de homepage.
 
 ## De zangers
 
@@ -46,6 +43,7 @@ Bij minder beweging (`prefers-reduced-motion`) blijft alleen de mond bewegen.
 
 ## Zingen
 
+- **De toneellift**: elke zanger staat op een kleine schaarlift. Pak je hem, dan gaat hij met je vinger mee omhoog en omlaag: je houdt hem bij zijn borst vast. Ook de anderen staan op de hoogte van de toon die ze zingen, dus je ziet het akkoord als vier hoogtes. Als ze klaar zijn met zingen, zakken de liften weer. (Zo rekken de zangers in Blob Opera uit; hier is het een eigen idee dat bij een theater past.)
 - **Slepen**: omhoog en omlaag is hoger en lager, opzij is een andere klinker (i, e, a, o, oe). Standaard **op de noten** van de toonladder, met een zachte overgang; je kunt ook vrij laten glijden.
 - **Wie je pakt, is de voorzanger.** De andere drie zingen vanzelf mee.
 - **Met meerdere vingers**: elk personage dat je pakt, zingt jouw toon. Wie je niet pakt, zingt mee in de harmonie.
@@ -104,18 +102,21 @@ Alleen oude, traditionele melodieën die vrij zijn van rechten. De personages zi
 - Vader Jacob (ook als canon: de vier stemmen komen er één voor één bij)
 - Altijd is Kortjakje ziek
 - In de maneschijn
-- Daar was laatst een meisje loos
+- Alle eendjes zwemmen in het water
 - Greensleeves
 - Ode an die Freude (Beethoven, 1824)
 - Stille nacht (1818)
-- O dennenboom
 - Jingle Bells (1857)
-- Ere zij God
-- Sinterklaas kapoentje
+- Wiegenlied (Brahms, 1868)
+- Old MacDonald had a farm
+- Auld Lang Syne (oud en nieuw)
+
+Vier liedjes uit het eerste plan zijn vervangen (Daar was laatst een meisje loos, Ere zij God, Sinterklaas kapoentje en O dennenboom): van die melodieën wist ik de noten niet zeker genoeg, en een fout in een bekend liedje hoor je meteen.
 
 Twee manieren:
 - **Luisteren**: het koor zingt het voor.
-- **Meezingen**: de noten schuiven voorbij als stippen, jij zingt de melodie met de voorzanger, en de anderen zingen de harmonie. Er is geen score, wel een "Bravo!" als het mooi ging.
+- **Meezingen**: na een maat aftikken schuiven de noten voorbij als stippen, jij zingt de melodie met tenor 1, en de anderen zingen de harmonie. Er is geen score, wel een "Bravo!" (met bloemen) als je minstens 60% van de noten goed zong. Dat liedje krijgt dan een vinkje.
+- Tijdens het luisteren kun je **een zanger pakken**: hij zingt dan jouw toon, en laat je los, dan zingt hij weer mee met het liedje.
 
 ## Opslag en koppelen
 
@@ -123,37 +124,31 @@ Twee manieren:
   - `koor`: wie er per stem staat;
   - `liedjes`: je opgenomen liedjes, alleen de codes, hooguit 30;
   - `inst`: decor, toonsoort, op de noten, volume;
+  - `gezongen`: met welke liedjes je goed meezong;
   - `voortgangTotaal`: het aantal liedjes om mee te zingen.
 - In `SLEUTELS`, met een regel in de REGELS (liedjes samen, je koor en de instellingen als keuze), in het gedeelde blok en in de scoreserver tegelijk.
-- **Daarvoor is een nieuwe scoreserver nodig** (een kleine verandering). De pagina gaat pas online als die in Cloudflare staat.
+- **Daarvoor is een nieuwe scoreserver nodig**: versie 2026-11-10 (een kleine verandering). De pagina gaat pas online als die in Cloudflare staat.
 - Geen scorebord.
 
 ## Op de rest van de site
 
-- **Homepage**: een eigen icoon (een zingend gezichtje met muzieknoten), in de categorie Even rustig. Onderschrift "Negen zangers uit de coulissen", voortgang "x van 11 liedjes gezongen".
+- **Homepage**: een eigen icoon (een zanger tussen rode gordijnen met een muzieknoot), in de categorie Even rustig. Onderschrift "Negen zangers uit de coulissen", voortgang "x van 11 liedjes meegezongen".
 - Een banner, `privacy.html` en de werkplaats (`SPELINFO`).
 
-## Wat ik van je wil weten
+## Besluiten van Ruben (8 november 2026)
 
-1. **De naam**: Coulissenkoor, of een van de andere?
-2. **De stemmen**: is een mannenkoor goed? (De andere mogelijkheid: twee personages zingen de hoge stemmen in hun kopstem, als sopraan en alt. Dat klinkt grappiger, maar minder mooi.)
-3. **Wie welke stem zingt**: klopt de tabel, of hoort iemand bij een andere stem?
-4. **De tekeningen**: lijkt iedereen genoeg op zichzelf? Wat moet er anders?
-5. **De stemmen zelf**: luister naar de fragmenten. Wat klinkt raar of te nep?
-
-## Volgorde
-
-1. **Nu**: het plan, de proefpagina met één zingend personage, en de geluidsfragmenten. Jij luistert en zegt wat er anders moet.
-2. De vier zangers samen op het podium, met de harmonie, je koor kiezen, meerdere vingers en het toetsenbord.
-3. De decors, het licht en het publiek.
-4. Opnemen, afspelen en delen met een link; de opslag, de REGELS en de nieuwe scoreserver.
-5. De liedjes om mee te zingen; de homepage, de banner en de privacyverklaring; alles testen, en online.
+1. De naam: Coulissenkoor.
+2. Een mannenkoor.
+3. De verdeling over de stemmen in de tabel is goed ("in principe speel ik alle personages").
+4. De tekeningen zijn goed.
+5. De stemmen: nog niet beluisterd, maar goed zo.
+6. "Kijk goed naar Blob Opera, zodat je er intuïtief muziek mee maakt": daarom de toneellift, het koor dat de frase netjes uitzingt als je loslaat, meer vingers tegelijk, en liedjes waarin je een zanger kunt pakken.
 
 ## Testen
 
 - **De harmonie**: duizenden willekeurige melodieën. Elk akkoord moet uit de toonsoort komen, met de melodienoot erin, binnen ieders bereik, zonder kruisen en zonder parallellen.
 - **De stemmen**: geen klikjes, geen pieken boven 1, de klinkers even hard, en vier stemmen samen op een telefoon (gemeten met de processor vier keer vertraagd).
-- **Opnemen en afspelen**: precies gelijk (hetzelfde geluid, sample voor sample).
+- **Opnemen en afspelen**: dezelfde gebeurtenissen, en hetzelfde geluid. De browser rekent hetzelfde stuk twee keer ook niet tot op de laatste bit gelijk (het verschil is honderd keer zachter dan je kunt horen); via de link is het verschil niet groter dan dat.
 - **Links**: duizenden kapotte en nagemaakte links breken niets.
 - **In de browser**: op telefoon, tablet en computer, met muis, vinger (ook meerdere) en toetsenbord, in licht en donker, met minder beweging, en zonder fouten of overtredingen van het veiligheidsbeleid.
 - **Niet te testen in deze omgeving**: hoe het klinkt op een echte iPhone. Dat hoor ik graag van jou.

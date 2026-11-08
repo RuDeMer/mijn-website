@@ -28,15 +28,15 @@ Verzonnen, met realistische namen en een eigen portret. Slim, eigenwijs en grapp
 | 1 | **Harm Veldkamp** (af) | Ondertekent elk berichtje met "Mvg Harm Veldkamp", pakt eerst zijn leesbril, stuurt per ongeluk een foto van het plafond | Kleindochter Sanne komt binnen |
 | 2 | **Riet Hendriks** (af) | Net terug van de busreis naar de Ardennen, met foto's van de waterval, de grot en de soep | Buschauffeur Ton belt, of de groepsapp |
 | 3 | **G. Pelgrim** (af) | Oud-boekhouder, rekent alles na tot op de cent, en schrijft alles op in zijn schriftje | Wil alles eerst op papier, met een handtekening |
-| 4 | Annie Kuipers (voorstel) | Vraagt alles aan haar kleinzoon Jesse | Jesse stelt via oma steeds slimmere vragen |
-| 5 | Gonnie Verbeek (voorstel) | Quizkampioen van het buurthuis | Beantwoordt alles met een wedervraag |
-| 6 | Wim Hoekstra (voorstel) | "Ik bel even terug, met het nummer op mijn pas" | Dennis moet zich eruit kletsen |
-| 7 | Mevrouw Bakhuizen (voorstel) | Wil bewijs: een foto van je pasje, een handtekening van de directeur | Het "bewijs" wordt steeds slechter |
-| 8 | Jan en Ans de Wit (voorstel) | Samen achter één telefoon, het nooit met elkaar eens | Twee meningen tegelijk |
-| 9 | Bram Verhoef, oud-rechercheur (voorstel) | Heeft het in zijn eerste berichtje al door | Hij ondervraagt jóu |
-| 10 | Lies van der Meer (voorstel) | De liefste van allemaal: "Ach jongen, je klinkt moe" | De wending |
+| 4 | **Annie Kuipers** (af) | Vraagt alles aan haar kleinzoon Jesse | Jesse stelt via oma steeds slimmere vragen |
+| 5 | **Gonnie Verbeek** (af) | Quizkampioen van het buurthuis | Beantwoordt alles met een wedervraag |
+| 6 | **Wim Hoekstra** (af) | "Ik bel even terug, met het nummer op mijn pas" | Dennis moet zich eruit kletsen |
+| 7 | **C. Bakhuizen** (af) | Wil bewijs: een foto van je pasje, een handtekening van de directeur | Het "bewijs" wordt steeds slechter |
+| 8 | **Jan & Ans de Wit** (af) | Samen achter één telefoon, het nooit met elkaar eens | Twee meningen tegelijk |
+| 9 | **B. Verhoef**, oud-rechercheur (af) | Heeft het in zijn eerste berichtje al door | Hij ondervraagt jóu |
+| 10 | **Lies van der Meer** (af) | De liefste van allemaal: "Ach jongen, je klinkt moe" | De wending |
 
-**De wending (voorstel)**: Lies blijkt de baas van het digicafé in het buurthuis. Alle klanten van de vorige gesprekken zijn daar lid, en ze stuurden haar al hun schermafbeeldingen. In het laatste gesprek raakt Dennis alles kwijt: Lies laat hem zijn eigen smoesjes horen, het buurthuis meldt zijn nummer, en Kwebbel blokkeert zijn account. **Het slot** is een groepsapp met alle klanten en de oud-rechercheur, en een vacature voor Dennis: vlaaienbezorger, eerlijk werk.
+**De wending** (gebouwd): Lies blijkt de baas van het digicafé in het buurthuis. Alle klanten van de vorige gesprekken zijn daar lid, en ze stuurden haar al hun schermafbeeldingen. In het laatste gesprek raakt Dennis alles kwijt: Lies laat hem zijn eigen smoesjes horen, het buurthuis meldt zijn nummer, en Kwebbel blokkeert zijn account. **Het slot** is een groepsapp met alle klanten en de oud-rechercheur, en een vacature voor Dennis: vlaaienbezorger, eerlijk werk.
 
 ## Alles verzonnen
 
@@ -60,5 +60,5 @@ Een onbekend nummer dat zegt dat het je bank is; haast; geheimzinnig doen; een b
 
 ## Volgorde
 
-1. **Gesprekken 1 tot en met 3** in de nieuwe stijl: Ruben speelt ze eerst (nu).
-2. Daarna de gesprekken 4 tot en met 10, de wending, het slot, de homepage en de scoreserver.
+1. **Gesprekken 1 tot en met 3** in de nieuwe stijl: door Ruben goedgekeurd op 8 november 2026 ("Ja, maak de andere zeven gesprekken maar").
+2. **Gesprekken 4 tot en met 10**, de wending, het slot, de homepage, de banner, het scorebord en de scoreserver 2026-11-09: gebouwd op 8 november 2026. Online zodra de scoreserver in Cloudflare staat.

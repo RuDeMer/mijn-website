@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#1E2A55">
 <title>Helpdesk Hopeloos – Ruben's rommelhoekje</title>
 <meta name="description" content="Jij bent Dennis van Dam, en je doet je via de app voor als medewerker van de Duinbank. Maar je klanten zijn slimmer dan jij. Een komisch chatspel waarin de oplichter altijd verliest.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="30" fill="%232E6E73"/%3E%3Cellipse cx="32" cy="38" rx="20" ry="15" fill="%23F4A9B8" stroke="%231F2333" stroke-width="3"/%3E%3Cpath d="M16 31l-3-8 9 4M44 27l9-4-3 8" fill="%23F4A9B8" stroke="%231F2333" stroke-width="2.6" stroke-linejoin="round"/%3E%3Cellipse cx="45" cy="40" rx="6.5" ry="5" fill="%23F7C3CD" stroke="%231F2333" stroke-width="2.4"/%3E%3Ccircle cx="35" cy="33" r="2.2" fill="%231F2333"/%3E%3Cpath d="M15 35a17 17 0 0 1 34 0" fill="none" stroke="%231F2333" stroke-width="3.4"/%3E%3Crect x="10" y="32" width="8" height="11" rx="3" fill="%23C8323C" stroke="%231F2333" stroke-width="2.4"/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Cg stroke="%23231A26" stroke-width="2.2" stroke-linejoin="round"%3E%3Crect x="14" y="5" width="32" height="54" rx="6" fill="%233B4FB8"/%3E%3Crect x="18" y="12" width="24" height="38" rx="2" fill="%23F1F2F6"/%3E%3C/g%3E%3Cpath d="M21 17h12a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-8l-4 3z" fill="%23FFFFFF" stroke="%23231A26" stroke-width="1.6" stroke-linejoin="round"/%3E%3Cpath d="M39 31H27a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3h8l4 3z" fill="%23DCE4FF" stroke="%23231A26" stroke-width="1.6" stroke-linejoin="round"/%3E%3Ccircle cx="30" cy="54" r="2" fill="%23F1F2F6"/%3E%3Cpath d="M50 10v26" stroke="%23231A26" stroke-width="2.4" stroke-linecap="round"/%3E%3Cpath d="M50 10h11l-3.4 5 3.4 5H50z" fill="%23C8323C" stroke="%23231A26" stroke-width="2" stroke-linejoin="round"/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
@@ -182,6 +182,11 @@ body[data-scherm="titel"] .statusbalk { background: transparent; color: #fff; po
 .spraak-rij .duur { font-size: .72rem; color: var(--zacht); }
 .uitgeschreven { display: block; margin-top: .35rem; font-size: .88rem; font-style: italic; color: var(--zacht); }
 .typend .bel { padding: .72rem .8rem; display: inline-flex; gap: 4px; }
+.bericht.groep { align-items: flex-end; }
+.van-foto { width: 28px; height: 28px; border-radius: 50%; margin-right: 6px; flex: none; }
+.bel .van { display: block; font-size: .78rem; font-weight: 700; margin-bottom: .08rem; }
+html[data-thema="donker"] .bel .van { filter: brightness(1.7) saturate(.8); }
+.blok-melding { margin: .7rem .8rem .2rem; padding: .7rem .85rem; border-radius: 14px; background: color-mix(in srgb, var(--rood) 12%, var(--kop)); color: var(--inkt); font-size: .88rem; line-height: 1.4; }
 .typend .bel span { width: 7px; height: 7px; border-radius: 50%; background: var(--zacht); opacity: .55; }
 
 /* wat Dennis kan sturen, en het invoerveld */
@@ -459,7 +464,7 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
     return x > 0 ? Math.log10(x) : -Infinity;
   };
   // spellen die hun score als 10-log sturen, en borden die een oude scoreserver nog niet kent (dan zeggen we niets)
-  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1, kroonklok: 1, casino: 1, cryptisch: 1, letterval: 1, klinker: 1 };
+  const LOG_SPEL = { vlaai: 1 }, NIEUW_BORD = { oerknal: 1, vbpres: 1, kroonklok: 1, casino: 1, cryptisch: 1, letterval: 1, klinker: 1, helpdesk: 1 };
   const vkey = spel => (LOG_SPEL[spel] ? spel + '~log' : spel);
   // de woordspellen (2026-11-06): je beste reeks (dagen op rij gelukt) en hoe vaak in één keer goed (het teken 1 of A)
   const woordBron = k => { const s = lees(k), d = s && typeof s.d === 'string' ? s.d : ''; let b = 0, r = 0, een = 0; for (const x of d) { if (/[0-9A-I]/.test(x)) { r++; b = Math.max(b, r); if (x === '1' || x === 'A') een++; } else r = 0; } return b ? [b, een] : null; };
@@ -470,6 +475,7 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
     gevoel: () => { const s = lees('opgevoel-v1'); return s && s.stat && s.stat.dag && s.stat.dag.best ? [s.stat.dag.best, (s.reeks && s.reeks.lengte) || 0] : null; },
     groepjes: () => { const s = lees('rommelgroepjes-v1'); if (!s || !s.p) return null; let b = 0, r = 0, v = -9, z = 0; for (const d of Object.keys(s.p).map(Number).filter(n => n > 0).sort((a, c) => a - c)) { const x = String(s.p[d]); if (x[0] === 'w') { r = d === v + 1 ? r + 1 : 1; v = d; b = Math.max(b, r); } if ((x[0] === 'w' || x[0] === 'a') && x[1] === '0') z++; } return b ? [b, z] : null; },
     reclame: () => { const s = lees('reclame-v1'); if (!s || !s.s) return null; let n = 0; for (const v of Object.values(s.s)) for (const c of String(v)) n += Math.min(3, +c || 0); return n ? [n, (s.dag && s.dag.b) || 0] : null; },
+    helpdesk: () => { const s = lees('helpdesk-v1'); if (!s || !s.lv) return null; let st = 0; for (const r of Object.values(s.lv)) st += ((r && r.s) || []).filter(Boolean).length; return st ? [st, (s.eind || []).length] : null; },
     huis: () => { const s = lees('huisopstelten-v1'); return s && s.besteDag > 0 ? [Math.round(s.besteDag), Object.values(s.k || {}).reduce((n, k) => n + ((k && k.s) || []).filter(Boolean).length, 0)] : null; },
     duiker: () => { const s = lees('rubendeduiker-v1'); return s && s.beste && s.beste.avond > 0 ? [Math.round(s.beste.avond), Object.keys(s.boek || {}).length] : null; },
     wheels: () => { const s = lees('rommelwheels-v1'); if (!s || !s.levels) return null; let p = 0, st = 0; for (const r of Object.values(s.levels)) { p += r.punten || 0; st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); } return p ? [p, st] : null; },
@@ -679,6 +685,8 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
     // zelf was, dan de snelste. 'Op de dag zelf' blijft aan als het één keer aan stond.
     const kroonBest = (b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; };
     // Casino Rommelroyaal: een rijtje tellers (zoals rondes, ingezet en terug), per plek een teller
+    // Helpdesk Hopeloos: de sterren van een gesprek als [bijna gelukt, snel, zonder rode vlag]; wat op een van de twee gehaald is, blijft
+    const hdSterren = (b, s, i, c) => (Array.isArray(s) && Array.isArray(i) ? [0, 1, 2].map(k => (s[k] || i[k] ? 1 : 0)) : keuze(b, s, i, c));
     const tellers = (b, s, i, c) => (Array.isArray(s) && Array.isArray(i) ? Array.from({ length: Math.max(s.length, i.length) }, (x, k) => teller(lijst(b)[k], getal(s[k]), getal(i[k]), c)) : keuze(b, s, i, c));
     const kroonDag = (b, s, i) => { if (!Array.isArray(s) || !Array.isArray(i)) return Array.isArray(s) ? s : i; const w = getal(i[2]) > getal(s[2]) || (getal(i[2]) === getal(s[2]) && getal(i[0], 1e12) < getal(s[0], 1e12)) ? i : s; const r = w.slice(); r[2] = Math.max(getal(s[2]), getal(i[2])); return r; };
     // De woordspellen (2026-11-06): Rommelwoord (4 tot en met 8 letters), Cryptisch, Letterval en Klinkermijnen. Per spel (en per lengte) één
@@ -739,6 +747,7 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
       'cryptisch-v1': s => woordMaat(s.d),
       'letterval-v1': s => woordMaat(s.d),
       'klinkermijnen-v1': s => woordMaat(s.d),
+      'helpdesk-v1': s => { let st = 0, n = 0; for (const r of Object.values(isObj(s.lv) ? s.lv : {})) if (isObj(r)) { st += lijst(r.s).filter(Boolean).length; n += getal(r.n); } return [st, lijst(s.eind).length, lijst(s.grap).length, n]; },
       'rommelhoekje-speler': s => [s && s.naam ? 1 : 0],
     };
     const maatVan = (sleutel, s) => { try { return MAAT[sleutel] && isObj(s) ? MAAT[sleutel](s).map(x => getal(x)) : []; } catch (e) { return []; } };
@@ -887,6 +896,9 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
       'cryptisch-v1': { velden: { v: max, d: woordDagen, t: elk(eerste), bezig: lopend, inst: keuze }, na: woordNa },
       'letterval-v1': { velden: { v: max, d: woordDagen, h: hintDagen, t: elk(eerste), bezig: lopend, inst: keuze }, na: woordNa },
       'klinkermijnen-v1': { velden: { v: max, d: woordDagen, t: elk(eerste), bezig: lopend, inst: keuze }, na: woordNa },
+      // Helpdesk Hopeloos (2026-11-09): per gesprek de beste sterren, de minste beurten en hoe vaak gespeeld; eindes en grappige antwoorden
+      // samen; een gesprek dat nog loopt de laatste versie. Er is geen geld of spullen, dus samenvoegen is veilig.
+      'helpdesk-v1': { velden: { v: max, lv: elk({ s: hdSterren, b: snelste, n: teller }), eind: samenLijst, grap: samenLijst, bezig: lopend, inst: keuze, voortgangTotaal: max } },
       'rommelhoekje-eitjes': { velden: elk(samenLijst) },
       'rommelhoekje-speler': { heel: true },
       'gereedschap-v2': { heel: true },
@@ -944,7 +956,7 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
   }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'helpdesk-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -1039,7 +1051,7 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 10;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 11;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
@@ -1805,8 +1817,10 @@ html[data-thema="donker"] .keuzerij button[aria-pressed="true"] { background: va
 // voor de ster 'snel'), start, op (het einde als het vertrouwen op is), knopen en eindes.
 // Een knoop: zeg (berichtjes) en keuzes. Een berichtje: tekst, of { t, na } (na = zoveel minuten later), { foto, t } of { spraak, duur }.
 // Een keuze: t (wat Dennis stuurt), naar (een knoop, of 'eind:<id>'), v (vertrouwen erbij of eraf), vlag (een rode vlag),
-// grap (een antwoord voor je schermafbeeldingen: [id, korte naam]) en b (zoveel beurten; standaard 1).
-// Een einde: soort ('gehaald' = bijna gelukt, 'mis' of 'geheim'), titel, zeg, en bij 'gehaald' een zin bijna.
+// grap (een antwoord voor je schermafbeeldingen: [id, korte naam]), foto (Dennis stuurt een foto, met t als onderschrift) en b (zoveel
+// beurten; standaard 1).
+// Een einde: soort ('gehaald' = bijna gelukt, 'mis' of 'geheim'), titel, zeg, en bij 'gehaald' een zin bijna. Het laatste gesprek heeft
+// het slot (slot: true, met een eigen stempel).
 // Nieuwe levels, eindes en grappen altijd achteraan, en nooit een id veranderen (ze staan in de opslag).
 const GESPREKKEN = [
   {
@@ -1940,6 +1954,352 @@ const GESPREKKEN = [
       'pelgrim-drie': { soort: 'mis', titel: 'Drie banken', zeg: ['Alle drie. Bij drie verschillende banken.', 'Geen van die drie heet de Duinbank.', 'Goedemiddag.'] },
       'pelgrim-schriftje': { soort: 'mis', titel: 'Het schriftje', zeg: ['Ik heb alles in mijn schriftje genoteerd.', { foto: 'schriftje7' }, 'Zeven dingen die niet kloppen. Ik bel nu zelf mijn bank. Goedemiddag.'] },
       'pelgrim-les': { soort: 'geheim', titel: 'Rekenles', zeg: ['Eerlijk. Dat waardeer ik.', 'Ik geef op dinsdagavond rekenles in het buurthuis. Half acht. Neem een potlood mee.', 'En zoekt u een ander baantje. Goedemiddag.'] },
+    },
+  },
+  {
+    id: 'annie', naam: 'Annie Kuipers', wie: 'Annie', kort: 'Hallo, met Annie Kuipers.', stijl: 'netjes', tijd: '10:15', over: 'Oma van Jesse 💙',
+    les: 'Annie liet Jesse meelezen, en ze keek eerst zelf in de app van haar eigen bank. Daar stond niets geks. Een echte bank vindt het altijd goed als je eerst zelf kijkt.',
+    snel: 5, start: 'a1', op: 'annie-boos',
+    knopen: {
+      a1: { zeg: ['Hallo, met Annie Kuipers.', 'Ik kreeg een berichtje dat ik u moest appen over mijn rekening. Mijn kleinzoon Jesse is er toevallig, die leest even mee.', { foto: 'jesse' }, 'Dat is Jesse. Hij zegt hoi.'], keuzes: [
+        { t: 'Goedemorgen mevrouw Kuipers, u spreekt met Dennis van de Duinbank. Hoi Jesse!', naar: 'a2', v: 5 },
+        { t: 'Liever niet dat Jesse meeleest. Dit is privé.', naar: 'a1b', v: -15, vlag: true },
+        { t: 'Hoi Jesse! Mooie koptelefoon.', naar: 'a1c', v: 5, grap: ['koptelefoon', 'Mooie koptelefoon'] } ] },
+      a1b: { zeg: ['Jesse vraagt waarom dat privé is.', 'Hij zegt: als het echt de bank is, mag iedereen meelezen.'], keuzes: [
+        { t: 'Dat is ook zo. Hij mag gewoon meelezen.', naar: 'a2', v: 0 },
+        { t: 'Moet Jesse niet naar school?', naar: 'a2', v: -10, vlag: true, grap: ['school', 'Moet Jesse niet naar school?'] } ] },
+      a1c: { zeg: ['Jesse zegt dat hij die van zijn verjaardag heeft.', 'En hij vraagt welk level u bent.'], keuzes: [
+        { t: 'Level 34.', naar: 'a2', v: -5, grap: ['level', 'Level 34'] },
+        { t: 'Ik speel geen spelletjes, ik werk bij de bank.', naar: 'a2', v: 0 } ] },
+      a2: { zeg: ['Wat is er dan met mijn rekening?'], keuzes: [
+        { t: 'Vannacht zijn er een paar betalingen geprobeerd die niet van u lijken te komen. Die hebben we tegengehouden.', naar: 'a3', v: 5 },
+        { t: 'Uw rekening is gehackt.', naar: 'a2b', v: -5 },
+        { t: 'Dat kan ik alleen aan u vertellen, niet aan Jesse.', naar: 'a2c', v: -15, vlag: true } ] },
+      a2b: { zeg: ['Jesse vraagt: hoe dan?', 'Hij zegt dat "gehackt" geen uitleg is. Dat roept hij ook altijd als hij een spelletje verliest 😄'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'a3', v: 0 },
+        { t: 'Met een computer.', naar: 'a3', v: -10, grap: ['computer', 'Met een computer'] } ] },
+      a2c: { zeg: ['Jesse zegt dat dat een rode vlag is.', 'Ik weet niet wat een rode vlag is, maar Jesse kijkt heel streng.'], keuzes: [
+        { t: 'Excuses. Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'a3', v: 0 } ] },
+      a3: { zeg: ['Oh jee.', 'Jesse vraagt hoe laat dat was.'], keuzes: [
+        { t: 'Vannacht om 02:47.', naar: 'a4', v: 5 },
+        { t: 'Dat weet ik niet precies. Het is nu belangrijk dat we snel zijn.', naar: 'a3b', v: -15, vlag: true },
+        { t: 'Dat mag ik niet zeggen.', naar: 'a3b', v: -10, vlag: true } ] },
+      a3b: { zeg: ['Jesse zegt dat we alle tijd hebben. Hij zegt: een bank die haast maakt, is geen bank.', 'Hij is veertien, maar hij is heel slim.'], keuzes: [
+        { t: 'Hij heeft gelijk. Het was vannacht om 02:47.', naar: 'a4', v: 0 } ] },
+      a4: { zeg: ['Om 02:47 sliep ik. Jesse ook, zegt hij. Ik geloof er niks van 😄', 'Jesse zegt dat ik eerst zelf in de app van mijn eigen bank moet kijken. Wacht even.', { t: 'Zo. Ik heb gekeken.', na: 3 }], keuzes: [
+        { t: 'En? Ziet u iets geks?', naar: 'a5', v: 5 },
+        { t: 'Daar ziet u het niet, het is tegengehouden.', naar: 'a4b', v: -5 },
+        { t: 'Niet in die app kijken! Die is ook gehackt.', naar: 'eind:annie-app', v: -20, vlag: true, grap: ['app-gehackt', 'Die app is ook gehackt'] } ] },
+      a4b: { zeg: ['Jesse zegt dat tegengehouden betalingen er gewoon in staan. Bij hem wel, toen hij een spelletje wilde kopen.'], keuzes: [
+        { t: 'Dan zie ik dat hier anders.', naar: 'a5', v: -5 },
+        { t: 'Jesse wilde een spelletje kopen?', naar: 'a4c', v: 5, grap: ['spelletje', 'Jesse wilde een spelletje kopen?'] } ] },
+      a4c: { zeg: ['Ja. Van míjn rekening. Daar hebben we het nog over, meneer Jesse.', 'Maar goed. Wat moest ik doen?'], keuzes: [
+        { t: 'Dan help ik u nu verder.', naar: 'a5', v: 0 } ] },
+      a5: { zeg: ['Er staat niks geks in mijn app. Alleen de boodschappen en de kapper.', 'Wat moet ik nu doen?'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:annie-jesse', v: 0 },
+        { t: 'Zullen we Jesse er nu even buiten laten?', naar: 'eind:annie-boos', v: -10, vlag: true },
+        { t: 'Eerlijk gezegd ben ik niet van de bank. Zeg maar tegen Jesse dat hij gelijk had.', naar: 'eind:annie-eerlijk', v: 10 } ] },
+    },
+    eindes: {
+      'annie-jesse': { soort: 'gehaald', titel: 'Jesse neemt over', zeg: [{ t: 'hoi dit is jesse', na: 1 }, 'oma gaat morgen met mij naar de bank', 'en in haar app staat niks dus', 'doei dennis'], bijna: 'Bijna. Annie wilde net beginnen, maar Jesse nam de telefoon over. In de app van haar eigen bank stond niets geks.' },
+      'annie-app': { soort: 'mis', titel: 'In de app', zeg: ['Jesse zegt dat een app niet gehackt is omdat u dat zegt.', 'Ik heb gekeken. Er staat niks geks.', 'Ik bel nu de bank. Met het nummer op mijn pas. Fijne dag.'] },
+      'annie-boos': { soort: 'mis', titel: 'Jesse is boos', zeg: ['Jesse is boos. Hij zegt dat u een oplichter bent.', 'Ik geloof hem. Hij heeft altijd gelijk, behalve als het om opruimen gaat.', 'Dag meneer.'] },
+      'annie-eerlijk': { soort: 'geheim', titel: 'Jesse had gelijk', zeg: ['Jesse zegt: zie je wel, oma.', 'Nou. Bedankt voor je eerlijkheid. Jesse zegt dat je beter kunt gaan gamen. Dat is tenminste eerlijk.', 'Dag Dennis.'] },
+    },
+  },
+  {
+    id: 'gonnie', naam: 'Gonnie Verbeek', wie: 'Gonnie', kort: 'Goedemorgen. Eerst een vraag.', stijl: 'netjes', tijd: '11:30', over: 'Quizteam De Slimme Tantes 🏆',
+    les: 'Gonnie stelde zelf de vragen. En ze vroeg iets wat een echte bank meteen weet: bij welke bank ze zit. Een oplichter appt iedereen tegelijk, en weet dat niet.',
+    snel: 5, start: 'g1', op: 'gonnie-quizboekje',
+    knopen: {
+      g1: { zeg: ['Goedemorgen.', 'Ik kreeg een bericht dat er iets met mijn rekening is. Voor ik antwoord: een vraag.', 'Hoeveel provincies heeft Nederland?'], keuzes: [
+        { t: 'Twaalf.', naar: 'g2', v: 10 },
+        { t: 'Elf. Of dertien.', naar: 'g1b', v: -10, grap: ['elf-of-dertien', 'Elf. Of dertien.'] },
+        { t: 'Daar is nu geen tijd voor, mevrouw. Het is dringend.', naar: 'g1c', v: -15, vlag: true } ] },
+      g1b: { zeg: ['Twaalf.', 'Bij de quiz in het buurthuis zeggen we: wie het niet weet, moet niet raden.', 'Ik geef u nog een kans. Wat is de hoofdstad van Australië?'], keuzes: [
+        { t: 'Canberra.', naar: 'g2', v: 5 },
+        { t: 'Sydney.', naar: 'g2', v: -10, grap: ['sydney', 'Sydney'] } ] },
+      g1c: { zeg: ['Er is altijd tijd voor een quizvraag.', 'Dat zeggen we bij de quiz ook: wie haast heeft, verliest.', 'Hoeveel provincies heeft Nederland?'], keuzes: [
+        { t: 'Twaalf.', naar: 'g2', v: 0 } ] },
+      g2: { zeg: ['Goed.', 'Wat is er dan met mijn rekening? Kort en duidelijk graag. Zoals een quizantwoord.'], keuzes: [
+        { t: 'Vannacht zijn er betalingen geprobeerd die niet van u lijken te komen. Die hebben we tegengehouden.', naar: 'g3', v: 5 },
+        { t: 'Iemand probeert bij uw geld te komen. Meer kan ik niet zeggen.', naar: 'g2b', v: -10, vlag: true },
+        { t: 'Dat is een goede vraag. Mag ik de vraag nog een keer horen?', naar: 'g2c', v: -5, grap: ['vraag-herhalen', 'Mag ik de vraag nog een keer horen?'] } ] },
+      g2b: { zeg: ['"Meer kan ik niet zeggen" is geen antwoord. Dat is een pas.', 'U heeft er nog één over.'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'g3', v: 0 } ] },
+      g2c: { zeg: ['De vraag was: wat is er met mijn rekening.', 'Bij de quiz telt dit als een fout. Maar ik ben vandaag vriendelijk.'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'g3', v: 0 } ] },
+      g3: { zeg: ['Interessant.', { foto: 'bekers' }, 'Dit zijn de bekers van ons quizteam. Weet u waarom we zo vaak winnen?'], keuzes: [
+        { t: 'Omdat u goed voorbereid bent?', naar: 'g4', v: 5 },
+        { t: 'Mooie bekers! Is die grote van echt goud?', naar: 'g3c', v: 0, grap: ['goud', 'Is die grote van echt goud?'] },
+        { t: 'Omdat jullie stiekem spieken?', naar: 'g3b', v: -15, grap: ['spieken', 'Omdat jullie stiekem spieken?'] } ] },
+      g3b: { zeg: ['Wij spieken niet. Wij lezen de krant.', 'Ik zet het in het quizboekje.'], keuzes: [
+        { t: 'Excuses. U bent vast gewoon heel goed.', naar: 'g4', v: 0 } ] },
+      g3c: { zeg: ['Plastic, met goudverf. Net als uw verhaal misschien. Dat gaan we zien.'], keuzes: [
+        { t: 'Ik snap het. Zullen we verder gaan?', naar: 'g4', v: 0 } ] },
+      g4: { zeg: ['Omdat we nooit gokken. We controleren alles.', 'Dus: laatste ronde. Wat moet ik doen?'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:gonnie-bonus', v: 0 },
+        { t: 'U moet nu snel handelen, anders bent u alles kwijt.', naar: 'eind:gonnie-gong', v: -15, vlag: true },
+        { t: 'Eerlijk gezegd ben ik niet van de bank. U wint deze ronde.', naar: 'eind:gonnie-eerlijk', v: 10 } ] },
+    },
+    eindes: {
+      'gonnie-bonus': { soort: 'gehaald', titel: 'De bonusvraag', zeg: ['Wacht. Eerst nog een bonusvraag.', 'Bij welke bank zit ik? Niet de uwe. De mijne.', { t: 'De tijd is om.', na: 1 }, 'Een echte bank weet bij welke bank ik zit. Ik bel ze zelf. Goedemiddag.'], bijna: 'Bijna. Maar Gonnie had nog één bonusvraag: bij welke bank zit ik? Dat wist Dennis niet.' },
+      'gonnie-gong': { soort: 'mis', titel: 'De gong', zeg: ['Haast. Dat is fout.', 'Bij ons in het buurthuis slaan we dan op de gong. Gong.', 'U ligt eruit. Goedemiddag.'] },
+      'gonnie-quizboekje': { soort: 'mis', titel: 'Het quizboekje', zeg: ['Ik heb het quizboekje erbij gepakt.', 'U heeft nul punten. Zelfs Henk had er meer, en Henk weet alleen sportvragen.', 'Ik bel zelf mijn bank. Goedemiddag.'] },
+      'gonnie-eerlijk': { soort: 'geheim', titel: 'Eén punt', zeg: ['Dat is het eerste goede antwoord van vandaag.', 'Daar krijgt u een punt voor. Eén punt. Gefeliciteerd.', 'En zoek een eerlijk baantje.'] },
+    },
+  },
+  {
+    id: 'wim', naam: 'Wim Hoekstra', wie: 'Wim', kort: 'Met Wim.', stijl: 'traag', tijd: '13:10', over: 'Kan alles maken, behalve deze telefoon',
+    les: 'Wim belt altijd eerst zelf terug, met het nummer op zijn pas. Dat is het beste wat je kunt doen: stop met appen, en bel zelf.',
+    snel: 5, start: 'w1', op: 'wim-geduld',
+    knopen: {
+      w1: { zeg: ['Met Wim.', 'Wat is er met mijn rekening.', 'Ik bel u even terug. Welk nummer.'], keuzes: [
+        { t: 'Dit nummer is alleen voor de app, daar kunt u niet op bellen.', naar: 'w2', v: -5 },
+        { t: 'Bellen is niet nodig, we kunnen het gewoon hier regelen.', naar: 'w2', v: 0 },
+        { t: 'Bel liever niet, de lijnen zijn overbelast. Het is dringend.', naar: 'w1b', v: -15, vlag: true } ] },
+      w1b: { zeg: ['Overbelast.', 'Dan wacht ik wel even.', { foto: 'werkbank', na: 2 }, 'Ik ben intussen mijn radio aan het maken.'], keuzes: [
+        { t: 'Mooie radio! Wat is er mis mee?', naar: 'w2', v: 5, grap: ['radio', 'Wat is er mis met de radio?'] },
+        { t: 'Kunnen we dan nu verder?', naar: 'w2', v: 0 } ] },
+      w2: { zeg: ['Vertel.', 'Ik typ met één vinger, dus kort graag.'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'w3', v: 5 },
+        { t: 'Uw rekening is in gevaar. Er zit een virus in.', naar: 'w2b', v: -10, grap: ['virus', 'Er zit een virus in uw rekening'] },
+        { t: 'U moet nu snel zijn. Er wordt geld afgeschreven terwijl we praten.', naar: 'w2c', v: -15, vlag: true } ] },
+      w2b: { zeg: ['Virus.', 'Mijn rekening heeft geen griep, jongen.'], keuzes: [
+        { t: 'Ik bedoel: er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'w3', v: 0 } ] },
+      w2c: { zeg: ['Terwijl we praten?', 'Dan bel ik nu de bank. Met het nummer op mijn pas.'], keuzes: [
+        { t: 'Nee! Niet bellen, dan duurt het te lang.', naar: 'eind:wim-terugbellen', v: -10, vlag: true },
+        { t: 'Dat hoeft niet, het is al tegengehouden. Rustig maar.', naar: 'w3', v: 0 } ] },
+      w3: { zeg: ['Tegengehouden. Mooi.', 'Dan bel ik u even terug. Met het nummer op mijn pas.'], keuzes: [
+        { t: 'Dat kan, maar dan moet u heel lang in de wacht.', naar: 'w3b', v: -5, grap: ['wacht', 'Heel lang in de wacht'] },
+        { t: 'Prima. Maar ik kan het u ook hier uitleggen, dat gaat sneller.', naar: 'w4', v: 5 },
+        { t: 'Bel vooral niet de bank, die weten hier niks van.', naar: 'eind:wim-terugbellen', v: -15, vlag: true, grap: ['bank-weet-niks', 'De bank weet hier niks van'] } ] },
+      w3b: { zeg: ['Ik heb de tijd. Ik ben met pensioen.', 'Ik zet hem op de speaker en ga intussen verder met de radio.'], keuzes: [
+        { t: 'Of ik leg het u gewoon hier uit. Dat gaat sneller.', naar: 'w4', v: 0 },
+        { t: 'Niet op de speaker! Straks luistert er iemand mee.', naar: 'w4', v: -20, vlag: true, grap: ['meeluisteren', 'Straks luistert er iemand mee'] } ] },
+      w4: { zeg: ['Goed.', 'Wat moet ik doen.'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:wim-speaker', v: 0 },
+        { t: 'Het is heel simpel. U hoeft alleen even…', naar: 'eind:wim-speaker', v: 0 },
+        { t: 'Eerlijk gezegd ben ik niet van de bank. Bel ze vooral zelf.', naar: 'eind:wim-eerlijk', v: 10 } ] },
+    },
+    eindes: {
+      'wim-speaker': { soort: 'gehaald', titel: 'Toch even terugbellen', zeg: ['Ho.', 'Ik bel toch even terug. Met het nummer op mijn pas. Zo doe ik dat al vijftig jaar.', { t: 'De bank kent geen Dennis.', na: 6 }, 'Ze kennen ook geen Duinbank.', 'De radio doet het weer trouwens.'], bijna: 'Bijna. Maar Wim belt altijd eerst zelf terug, met het nummer op zijn pas. Zijn bank kende geen Dennis.' },
+      'wim-terugbellen': { soort: 'mis', titel: 'Juist wel bellen', zeg: ['Niet de bank bellen?', 'Dan bel ik juist wel de bank.', 'Dag.'] },
+      'wim-geduld': { soort: 'mis', titel: 'Geen zin meer', zeg: ['Ik heb er geen zin meer in.', 'Ik ga mijn radio maken. Die praat tenminste geen onzin.', 'Dag.'] },
+      'wim-eerlijk': { soort: 'geheim', titel: 'Een hulpje in de werkplaats', zeg: ['Zo.', 'Kun je solderen? Ik zoek een hulpje in de werkplaats. Eerlijk werk.', 'Denk er maar over na.'] },
+    },
+  },
+  {
+    id: 'bakhuizen', naam: 'C. Bakhuizen', wie: 'Mevrouw Bakhuizen', kort: 'Goedemiddag. Met wie spreek ik?', stijl: 'netjes', tijd: '15:00', over: 'Juf van groep 8 (1971–2008)',
+    les: 'Mevrouw Bakhuizen wilde bewijs, en ze liet het zien aan iemand die echt bij een bank werkt. Een pasje of een foto kan iedereen maken. Bel bij twijfel zelf je bank.',
+    snel: 6, start: 'b1', op: 'bakhuizen-onvoldoende',
+    knopen: {
+      b1: { zeg: ['Goedemiddag.', 'Met wie spreek ik? Graag uw volledige naam en uw functie.'], keuzes: [
+        { t: 'Dennis van Dam, medewerker klantenservice van de Duinbank.', naar: 'b2', v: 5 },
+        { t: 'Dennis. Gewoon Dennis.', naar: 'b1b', v: -5, grap: ['gewoon-dennis', 'Gewoon Dennis'] },
+        { t: 'Dat doet er niet toe. Het gaat om uw rekening, en het is dringend.', naar: 'b1c', v: -15, vlag: true } ] },
+      b1b: { zeg: ['"Gewoon Dennis" is geen naam. Zo heet een hond.', 'Nog een keer.'], keuzes: [
+        { t: 'Dennis van Dam, medewerker klantenservice van de Duinbank.', naar: 'b2', v: 0 } ] },
+      b1c: { zeg: ['Het doet er altijd toe met wie je praat. Dat leren ze in groep 8 al.', 'Nog een keer: met wie spreek ik?'], keuzes: [
+        { t: 'Dennis van Dam, van de Duinbank.', naar: 'b2', v: 0 } ] },
+      b2: { zeg: ['Dennis van Dam.', 'Kunt u dat bewijzen? Een foto van uw pasje bijvoorbeeld.'], keuzes: [
+        { t: 'Natuurlijk. Hier is mijn pasje.', foto: 'pasje', naar: 'b3', v: 0 },
+        { t: 'Dat mag ik niet sturen. Dat is geheim.', naar: 'b2b', v: -15, vlag: true },
+        { t: 'Mijn pasje ligt nog op kantoor.', naar: 'b2c', v: -5, grap: ['pasje-kantoor', 'Mijn pasje ligt nog op kantoor'] } ] },
+      b2b: { zeg: ['Geheim. Een pasje. Dat hangt toch gewoon om uw nek?'], keuzes: [
+        { t: 'U heeft gelijk. Hier is het.', foto: 'pasje', naar: 'b3', v: 0 } ] },
+      b2c: { zeg: ['U bent toch op kantoor? U bent toch aan het werk?', 'Stuur dan maar een foto van uw kantoor.'], keuzes: [
+        { t: 'Alstublieft. Mijn kantoor.', foto: 'kantoor', naar: 'b3c', v: -5, grap: ['kantoor', 'Mijn kantoor'] } ] },
+      b3: { zeg: ['Hm.', 'Dat pasje is van papier. Er zit een koffievlek op.', 'En "medewerker" schrijf je met één k.'], keuzes: [
+        { t: 'Een tikfout. Die maakt iedereen wel eens.', naar: 'b4', v: 5 },
+        { t: 'Dat is een oud pasje. Het nieuwe is nog onderweg.', naar: 'b4', v: -5, grap: ['onderweg', 'Het nieuwe pasje is nog onderweg'] },
+        { t: 'Kijk, hier ziet u mijn kantoor.', foto: 'kantoor', naar: 'b3c', v: -5, grap: ['kantoor', 'Mijn kantoor'] } ] },
+      b3c: { zeg: ['Dat is een keuken.', 'Er staat een koekenpan naast uw computer. En "Duinbank" hangt met plakband aan het keukenkastje.'], keuzes: [
+        { t: 'We hebben een open keuken. Dat is modern.', naar: 'b4', v: -5, grap: ['open-keuken', 'Een open keuken is modern'] },
+        { t: 'Ik werk vandaag thuis.', naar: 'b4', v: 0 } ] },
+      b4: { zeg: ['Goed. Wat is er met mijn rekening? In hele zinnen graag.'], keuzes: [
+        { t: 'Vannacht zijn er betalingen geprobeerd die niet van u lijken te komen. Die hebben we tegengehouden.', naar: 'b5', v: 5 },
+        { t: 'er zijn betalingen gedaan die niet van u zijn ofzo', naar: 'b4b', v: -10, grap: ['ofzo', '…ofzo'] },
+        { t: 'Er is iets ergs gebeurt. U moet snel zijn.', naar: 'b4c', v: -15, vlag: true } ] },
+      b4b: { zeg: ['Een hoofdletter aan het begin. Een punt aan het eind. En "ofzo" is geen woord.', 'Nog een keer.'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'b5', v: 0 } ] },
+      b4c: { zeg: ['Gebeurd. Met een d. Het is een voltooid deelwoord.', 'En haast maken we hier niet. Nog een keer.'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'b5', v: 0 } ] },
+      b5: { zeg: ['Dat is een nette zin. Een 7.', 'Als laatste: een handtekening van uw directeur. Dan weet ik dat het klopt.'], keuzes: [
+        { t: 'Hier is hij.', foto: 'handtekening', naar: 'b6', v: 0, grap: ['handtekening', 'De handtekening van de directeur'] },
+        { t: 'Mijn directeur is op vakantie.', naar: 'b5b', v: -5 },
+        { t: 'Eerlijk gezegd heb ik geen directeur. Ik ben niet van de bank.', naar: 'eind:bakhuizen-eerlijk', v: 10 } ] },
+      b5b: { zeg: ['Dan wacht ik tot hij terug is.', 'Ik heb de tijd. Ik heb veertig jaar lang proefwerken nagekeken.'], keuzes: [
+        { t: 'Hij heeft er net een gestuurd.', foto: 'handtekening', naar: 'b6', v: -5, grap: ['handtekening', 'De handtekening van de directeur'] },
+        { t: 'Dat kan niet, het moet vandaag.', naar: 'eind:bakhuizen-rood', v: -15, vlag: true } ] },
+      b6: { zeg: ['Dat is een servetje.', 'Er staat "Directeur" op, in uw handschrift. Hm.', 'Goed. Wat moet ik doen?'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:bakhuizen-neef', v: 0 },
+        { t: 'U hoeft alleen even…', naar: 'eind:bakhuizen-neef', v: 0 } ] },
+    },
+    eindes: {
+      'bakhuizen-neef': { soort: 'gehaald', titel: 'De neef', zeg: ['Een moment.', 'Ik heb uw foto\'s naar mijn neef gestuurd. Hij werkt echt bij een bank.', { t: 'Hij zegt dat zijn pasje van plastic is. En dat zijn directeur nooit op een servetje tekent.', na: 4 }, 'Ik ga morgen met hem naar mijn eigen bank. U krijgt een 4. Goedemiddag.'], bijna: 'Bijna. Maar mevrouw Bakhuizen liet je bewijs zien aan haar neef, en die werkt echt bij een bank.' },
+      'bakhuizen-rood': { soort: 'mis', titel: 'Vandaag nee', zeg: ['Moet het vandaag? Dan is het antwoord vandaag: nee.', 'Goedemiddag.'] },
+      'bakhuizen-onvoldoende': { soort: 'mis', titel: 'Onvoldoende', zeg: ['Ik heb uw berichten nagekeken.', { foto: 'rodepen' }, 'Een 3. En dat is nog vriendelijk. Ik bel zelf mijn bank. Goedemiddag.'] },
+      'bakhuizen-eerlijk': { soort: 'geheim', titel: 'Een 10 voor eerlijkheid', zeg: ['Dat is de eerste ware zin van vandaag.', 'Daar krijgt u een 10 voor. De rest is een 3.', 'Gemiddeld een 6,5. Gaat u maar iets eerlijks doen.'] },
+    },
+  },
+  {
+    id: 'wit', naam: 'Jan & Ans de Wit', wie: 'Jan en Ans', kort: 'Goedenavond, met Ans. Jan zit naast me.', stijl: 'netjes', tijd: '19:05', over: '52 jaar getrouwd en het nog steeds niet eens',
+    les: 'Jan en Ans waren het niet eens, en dus deden ze niets tot ze samen bij hun eigen bank waren geweest. Twijfel je? Doe dan niets, en vraag het eerst na.',
+    snel: 5, start: 'j1', op: 'wit-eens',
+    knopen: {
+      j1: { zeg: ['Goedenavond, met Ans. Jan zit naast me.', 'Jan hier. Ans heeft de telefoon, maar ik lees mee.', 'Ans hier. Wat is er met onze rekening?'], keuzes: [
+        { t: 'Goedenavond allebei. Dennis van de Duinbank. Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'j2', v: 5 },
+        { t: 'Ik wil graag alleen met meneer De Wit praten.', naar: 'j1b', v: -10, vlag: true },
+        { t: 'Goedenavond! Wie van u gaat over het geld?', naar: 'j1c', v: 0, grap: ['wie-geld', 'Wie van u gaat over het geld?'] } ] },
+      j1b: { zeg: ['Ans hier. Dat kan niet. We doen alles samen.', 'Jan hier. Behalve de afwas.', 'Ans hier. Jan!'], keuzes: [
+        { t: 'Excuses. Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'j2', v: 0 } ] },
+      j1c: { zeg: ['Jan hier. Ik.', 'Ans hier. Niet waar. Ik.', 'Jan hier. Vroeger ik.', 'Ans hier. Toen was het ook al ik.'], keuzes: [
+        { t: 'Dan vertel ik het u allebei. Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'j2', v: 5 },
+        { t: 'Laat maar. Er zijn betalingen geprobeerd.', naar: 'j2', v: 0 } ] },
+      j2: { zeg: ['Ans hier. Oh nee.', 'Jan hier. Rustig, Ans. Laat de man uitpraten.', 'Ans hier. Ik bén rustig, Jan.'], keuzes: [
+        { t: 'Geen zorgen, die hebben we tegengehouden.', naar: 'j3', v: 5 },
+        { t: 'U moet allebei heel snel zijn.', naar: 'j2b', v: -15, vlag: true },
+        { t: 'Meneer heeft gelijk, mevrouw. Even rustig blijven.', naar: 'j2c', v: -5, grap: ['meneer-gelijk', 'Meneer heeft gelijk'] } ] },
+      j2b: { zeg: ['Jan hier. Snel? Wij doen nooit iets snel. Over onze nieuwe bank hebben we drie jaar gedaan.', 'Ans hier. Een bank om op te zitten. Niet zo\'n bank als die van u.'], keuzes: [
+        { t: 'Dat begrijp ik. We doen het rustig aan.', naar: 'j3', v: 0 } ] },
+      j2c: { zeg: ['Ans hier. Pardon?', 'Jan hier. Dank u, Dennis.', 'Ans hier. Jan, hij is het met jou eens. Dat is verdacht.'], keuzes: [
+        { t: 'Ik ben het met niemand eens. Ik ben van de bank.', naar: 'j3', v: 0 },
+        { t: 'Mevrouw heeft óók gelijk.', naar: 'j3', v: -5, grap: ['ook-gelijk', 'Mevrouw heeft óók gelijk'] } ] },
+      j3: { zeg: ['Jan hier. Ik vind het een aardige jongen.', 'Ans hier. Ik vind het een rare jongen. Een bank die om zeven uur \'s avonds appt?', { foto: 'jan-ans' }, 'Jan hier. Verkeerde knop. Dat zijn wij op ons 50-jarig huwelijk.'], keuzes: [
+        { t: 'Gefeliciteerd, wat een mooie foto!', naar: 'j4', v: 5, grap: ['gefeliciteerd', 'Gefeliciteerd, wat een mooie foto'] },
+        { t: 'Wij werken dag en nacht. Dat moet wel, het is dringend.', naar: 'j3b', v: -10, vlag: true },
+        { t: 'Mevrouw heeft gelijk, normaal appen we niet zo laat.', naar: 'j3c', v: 0 } ] },
+      j3b: { zeg: ['Ans hier. Zie je wel, Jan. Dringend.', 'Jan hier. Hm. Dringend vind ik ook niet zo fijn.'], keuzes: [
+        { t: 'Ik bedoel: we helpen u graag, ook \'s avonds.', naar: 'j4', v: 0 } ] },
+      j3c: { zeg: ['Ans hier. Zie je, Jan.', 'Jan hier. Maar waarom appt u dan nu?'], keuzes: [
+        { t: 'Omdat het niet kan wachten tot morgen.', naar: 'j4', v: -10, vlag: true },
+        { t: 'Omdat u het bericht vandaag kreeg.', naar: 'j4', v: 0 } ] },
+      j4: { zeg: ['Ans hier. Goed. Wat moeten we doen?', 'Jan hier. Ik doe het wel.', 'Ans hier. Nee, ik.'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:wit-morgen', v: 0 },
+        { t: 'Meneer doet het. Mevrouw, u mag wel even koffie zetten.', naar: 'eind:wit-koffie', v: -15, grap: ['koffie-zetten', 'Mevrouw mag wel even koffie zetten'] },
+        { t: 'Eerlijk gezegd ben ik niet van de bank. Gefeliciteerd met jullie huwelijk.', naar: 'eind:wit-eerlijk', v: 10 } ] },
+    },
+    eindes: {
+      'wit-morgen': { soort: 'gehaald', titel: 'Morgen samen naar de bank', zeg: ['Jan hier. Ik wil wel beginnen.', 'Ans hier. Ik niet.', 'Jan hier. Als wij het niet eens zijn, doen we niks. Dan gaan we samen naar de bank. Zo doen we dat al 52 jaar.', 'Ans hier. Morgen om tien uur. Op de fiets. Goedenavond.'], bijna: 'Bijna. Jan wilde beginnen, maar Ans niet. En als ze het niet eens zijn, gaan ze samen naar hun eigen bank.' },
+      'wit-koffie': { soort: 'mis', titel: 'Koffie zetten', zeg: ['Ans hier. Koffie zetten?', 'Jan hier. Oei.', 'Ans hier. Jan, geef mij die telefoon. Ik bel de bank. Zelf. Met het nummer op de pas.', 'Jan hier. Ans heeft gelijk. Dat zeg ik niet vaak.'] },
+      'wit-eens': { soort: 'mis', titel: 'Het eindelijk eens', zeg: ['Jan hier. Ans en ik zijn het eens.', 'Ans hier. Dat gebeurt bijna nooit.', 'Jan hier. U bent een oplichter. Goedenavond.'] },
+      'wit-eerlijk': { soort: 'geheim', titel: 'Een stukje taart', zeg: ['Ans hier. Oh.', 'Jan hier. Dat waarderen we.', 'Ans hier. Je bent een rare jongen. Maar als je ooit eerlijk werk hebt, mag je een stukje taart komen halen.'] },
+    },
+  },
+  {
+    id: 'verhoef', naam: 'B. Verhoef', wie: 'Meneer Verhoef', kort: 'Goedenavond, Dennis.', stijl: 'netjes', tijd: '20:30', over: 'Recherche (b.d.). Altijd nieuwsgierig.',
+    les: 'Meneer Verhoef bleef rustig, stelde dezelfde vraag twee keer en bewaarde alles. Je hoeft niet te bewijzen dat iemand een oplichter is: stop met antwoorden, en meld het.',
+    snel: 6, start: 'v1', op: 'verhoef-verhoor',
+    knopen: {
+      v1: { zeg: ['Goedenavond, Dennis.', 'U stuurde mij een bericht over mijn rekening. Ik heb eerst een paar vragen. Ik was veertig jaar rechercheur, dus ik ben er goed in.', 'Vraag één: vanuit welke plaats werkt u?'], keuzes: [
+        { t: 'Vanuit Haarlem, daar zit ons hoofdkantoor.', naar: 'v2', v: 5 },
+        { t: 'Vanuit ons hoofdkantoor.', naar: 'v1b', v: -5 },
+        { t: 'Dat mag ik niet zeggen, om veiligheidsredenen.', naar: 'v1c', v: -15, vlag: true } ] },
+      v1b: { zeg: ['Dat is geen plaats. Dat is een gebouw.', 'Welke plaats?'], keuzes: [
+        { t: 'Haarlem.', naar: 'v2', v: 0 } ] },
+      v1c: { zeg: ['Om veiligheidsredenen. Die ken ik. Dat zeiden ze bij ons op het bureau ook altijd, als ze iets niet wisten.', 'Welke plaats?'], keuzes: [
+        { t: 'Haarlem.', naar: 'v2', v: 0 } ] },
+      v2: { zeg: ['Haarlem. Genoteerd.', 'Vraag twee: hoe laat begon uw werkdag vandaag?'], keuzes: [
+        { t: 'Om negen uur vanochtend.', naar: 'v3', v: 5 },
+        { t: 'Ik heb geen vaste tijden. Ik werk wanneer het nodig is.', naar: 'v2b', v: -5, grap: ['geen-tijden', 'Ik werk wanneer het nodig is'] },
+        { t: 'Waarom wilt u dat weten?', naar: 'v2b', v: -10 } ] },
+      v2b: { zeg: ['Interessant. Een bank met een medewerker zonder rooster.', 'Ik noteer: "vaag".'], keuzes: [
+        { t: 'Om negen uur.', naar: 'v3', v: 0 } ] },
+      v3: { zeg: ['Negen uur. En nu is het half negen \'s avonds. Lange dag.', 'Vraag drie: vanuit welke plaats werkt u?'], keuzes: [
+        { t: 'Haarlem. Dat zei ik al.', naar: 'v4', v: 10 },
+        { t: 'Amsterdam.', naar: 'v3b', v: -20, grap: ['amsterdam', 'Amsterdam'] },
+        { t: 'Waarom vraagt u dat nog een keer?', naar: 'v3c', v: 0 } ] },
+      v3b: { zeg: ['Daarnet was het Haarlem.', 'Rechercheurs noemen dat een tegenstrijdigheid. Ik noem het een fout.'], keuzes: [
+        { t: 'Ik woon in Amsterdam en ik werk in Haarlem.', naar: 'v4', v: -5, grap: ['woon-werk', 'Ik woon in Amsterdam en ik werk in Haarlem'] },
+        { t: 'Ik bedoelde Haarlem.', naar: 'v4', v: -5 } ] },
+      v3c: { zeg: ['Omdat leugenaars hun eigen antwoorden vergeten. U niet. Netjes.'], keuzes: [
+        { t: 'Dank u. Zullen we het nu over uw rekening hebben?', naar: 'v4', v: 5 } ] },
+      v4: { zeg: ['Goed. Vertel. Wat is er met mijn rekening?'], keuzes: [
+        { t: 'Vannacht zijn er betalingen geprobeerd die niet van u lijken te komen. Die hebben we tegengehouden.', naar: 'v5', v: 5 },
+        { t: 'Het is heel dringend, meneer. We moeten nu iets doen.', naar: 'v4b', v: -15, vlag: true },
+        { t: 'Ik zie dat u veel vragen stelt. Dat is heel verstandig.', naar: 'v4c', v: 0, grap: ['verstandig', 'Dat is heel verstandig'] } ] },
+      v4b: { zeg: ['Dringend.', 'In veertig jaar heb ik één ding geleerd: wie haast maakt, wil niet dat je nadenkt.'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'v5', v: 0 } ] },
+      v4c: { zeg: ['Dat weet ik.', 'Wat is er met mijn rekening?'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'v5', v: 0 } ] },
+      v5: { zeg: ['Laatste vraag.', 'Uw profielfoto. Waarom staat daar "VOORBEELD" op?'], keuzes: [
+        { t: 'Dat is ons nieuwe logo.', naar: 'v5b', v: -10, grap: ['logo', 'Dat is ons nieuwe logo'] },
+        { t: 'Die foto is nog niet af.', naar: 'v5b', v: -5, grap: ['niet-af', 'Die foto is nog niet af'] },
+        { t: 'Goed gezien. Dat had nog niemand gezien.', naar: 'v6', v: 5 } ] },
+      v5b: { zeg: ['Het is een stockfoto, Dennis. Die man staat ook op een reclame voor tandpasta. En in een folder voor zonnepanelen.'], keuzes: [
+        { t: 'Laten we het daar maar niet over hebben.', naar: 'v6', v: -5 } ] },
+      v6: { zeg: ['Goed.', 'Wat moet ik doen?'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:verhoef-dossier', v: 0 },
+        { t: 'U hoeft alleen even…', naar: 'eind:verhoef-dossier', v: 0 },
+        { t: 'Eerlijk gezegd ben ik niet van de bank.', naar: 'eind:verhoef-eerlijk', v: 10 } ] },
+    },
+    eindes: {
+      'verhoef-dossier': { soort: 'gehaald', titel: 'Het dossier', zeg: ['Nee.', 'Eerst ík.', { foto: 'dossier', na: 1 }, 'Dit is uw dossier. Alle berichten, alle tijden, en uw profielfoto met het watermerk.', 'Ik stuur het naar een goede vriendin. Die weet wel wat ze ermee moet. Goedenavond, Dennis.'], bijna: 'Bijna. Je hield het lang vol tegen een oud-rechercheur. Maar hij bewaarde alles, en stuurde het naar een goede vriendin.' },
+      'verhoef-verhoor': { soort: 'mis', titel: 'Einde verhoor', zeg: ['Einde verhoor.', 'Ik heb genoeg gehoord, en ik heb alles bewaard.', 'Goedenavond, Dennis.'] },
+      'verhoef-eerlijk': { soort: 'geheim', titel: 'Een bekentenis', zeg: ['Een bekentenis. Dat is het mooiste wat een rechercheur kan krijgen.', 'Ik heb alles bewaard. Maar ik waardeer het.', 'Doe er iets goeds mee, jongen.'] },
+    },
+  },
+  {
+    id: 'lies', naam: 'Lies van der Meer', wie: 'Lies', kort: 'Hallo jongen ☺️', stijl: 'emoji', tijd: '21:15', over: 'Digicafé De Linde ☕💻 elke dinsdag',
+    les: 'Lies was heel vriendelijk, maar zíj stelde de vragen. En ze deed het niet alleen: samen met anderen zie je een oplichter veel sneller.',
+    snel: 5, start: 'l1', op: 'lies-thee',
+    knopen: {
+      l1: { zeg: ['Hallo jongen ☺️', 'Ik kreeg een berichtje van je. Het is al laat, hè. Ben je nog aan het werk?'], keuzes: [
+        { t: 'Goedenavond mevrouw Van der Meer. Dennis van de Duinbank. Ja, er is iets met uw rekening.', naar: 'l2', v: 5 },
+        { t: 'Ja, het is dringend, anders appte ik niet zo laat.', naar: 'l1b', v: -15, vlag: true },
+        { t: 'Ja, lange dag. Ik zit hier al sinds negen uur.', naar: 'l1c', v: 5, grap: ['lange-dag', 'Ik zit hier al sinds negen uur'] } ] },
+      l1b: { zeg: ['Ach. Dringend. Rustig maar, jongen. Haast is nooit goed. Ook niet voor jou.'], keuzes: [
+        { t: 'U heeft gelijk. Er is iets met uw rekening.', naar: 'l2', v: 0 } ] },
+      l1c: { zeg: ['Sinds negen uur! Ach jongen, je klinkt moe.', 'Heb je al gegeten?'], keuzes: [
+        { t: 'Nog niet, eigenlijk.', naar: 'l1d', v: 5 },
+        { t: 'Daar heb ik geen tijd voor. Het gaat om uw rekening.', naar: 'l2', v: -5 } ] },
+      l1d: { zeg: ['Dat dacht ik al. Je moet goed eten, hoor.', { foto: 'boerenkool' }, 'Kijk, dit at ik vanavond. Boerenkool, met een worstje.'], keuzes: [
+        { t: 'Dat ziet er heerlijk uit. Maar goed: uw rekening.', naar: 'l2', v: 5, grap: ['boerenkool', 'Dat ziet er heerlijk uit'] } ] },
+      l2: { zeg: ['Mijn rekening, ja.', 'Weet je wat, Dennis. Ik wil graag zien met wie ik praat. Je profielfoto is van iemand anders, dat zie ik zo. Stuur je even een fotootje?'], keuzes: [
+        { t: 'Vooruit. Dit ben ik.', foto: 'selfie', naar: 'l3', v: 10 },
+        { t: 'Dat is gewoon mijn profielfoto.', naar: 'l2b', v: -10 },
+        { t: 'Dat mag niet, om privacyredenen.', naar: 'l2c', v: -15, vlag: true } ] },
+      l2b: { zeg: ['Nee jongen. Die meneer staat ook op een reclame voor tandpasta. Dat zei een vriend van me.', 'Toe. Eén fotootje.'], keuzes: [
+        { t: 'Vooruit dan. Dit ben ik.', foto: 'selfie', naar: 'l3', v: 5 },
+        { t: 'Nee, echt niet.', naar: 'l3n', v: -10 } ] },
+      l2c: { zeg: ['Privacy! Dat snap ik. Ik vind privacy ook heel belangrijk.', 'Daarom geef ik ook nooit iets door aan iemand die me zomaar appt. Snap je? ☺️'], keuzes: [
+        { t: 'Oké. Dit ben ik.', foto: 'selfie', naar: 'l3', v: 0 },
+        { t: 'Nee, echt niet.', naar: 'l3n', v: -10 } ] },
+      l3n: { zeg: ['Ook goed, jongen. Dan zonder foto.', 'Wat is er met mijn rekening?'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'l4', v: 0 } ] },
+      l3: { zeg: ['Ach, wat een lieve jongen. Je lijkt helemaal niet op die meneer van je profielfoto.', 'Je kamer is wel een rommeltje, hè.', 'Maar goed. Wat is er met mijn rekening?'], keuzes: [
+        { t: 'Er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'l4', v: 5 },
+        { t: 'Ik ruim morgen op. En er zijn betalingen geprobeerd die niet van u lijken te komen.', naar: 'l4', v: 5, grap: ['opruimen', 'Ik ruim morgen op'] } ] },
+      l4: { zeg: ['Oei.', 'En wat moet ik dan doen, jongen?'], keuzes: [
+        { t: 'Ik leg het u stap voor stap uit. Eerst…', naar: 'eind:lies-digicafe', v: 0 },
+        { t: 'U moet nu snel zijn, anders is het weg.', naar: 'eind:lies-haast', v: -15, vlag: true },
+        { t: 'Eerlijk gezegd ben ik niet van de bank, mevrouw.', naar: 'eind:lies-eerlijk', v: 10 } ] },
+    },
+    eindes: {
+      // het slot: Lies voegt je toe aan de groepsapp van haar digicafé, met al je klanten erin
+      'lies-digicafe': { soort: 'gehaald', slot: true, stempel: 'Ontmaskerd', titel: 'Het digicafé', zeg: [
+        'Dennis, jongen. Ik moet je iets vertellen.',
+        'Ik geef elke dinsdag les in het digicafé van buurthuis De Linde. Daar leren we hoe je oplichters herkent.',
+        'En vanavond lezen er een paar van mijn cursisten mee ☺️',
+        { systeem: 'Lies heeft je toegevoegd aan de groep "Digicafé De Linde".' },
+        { groep: 'Digicafé De Linde', leden: 'Lies, Harm, Riet, Annie, Wim en 6 anderen' },
+        { van: 'harm', t: 'Goedenavond. Mvg Harm Veldkamp' },
+        { van: 'riet', t: 'Hoi Dennis!! 😄 Ton zegt ook hoi 🚌' },
+        { van: 'pelgrim', t: 'Ik heb een totaaloverzicht gemaakt. Tien gesprekken. Nul euro. Klopt tot op de cent.' },
+        { van: 'annie', t: 'Jesse zegt: gg' },
+        { van: 'gonnie', t: 'Eindstand: 0 punten.' },
+        { van: 'wim', t: 'Radio doet het nog steeds.' },
+        { van: 'bakhuizen', t: 'Ik heb al uw berichten nagekeken. Een 3.' },
+        { van: 'wit', t: 'Ans hier. Jan zegt hoi. Ik niet.' },
+        { van: 'verhoef', t: 'Het dossier is compleet. Met de foto. Alles ligt bij de politie.' },
+        { van: 'lies', t: 'Je bent alles kwijt, jongen. Je account, je profielfoto en je smoesjes. Die kent nu het hele buurthuis.' },
+        { van: 'lies', t: 'Maar je bent nog jong. De bakker op de hoek zoekt een vlaaienbezorger. Eerlijk werk 🥧' },
+        { systeem: 'Kwebbel heeft dit account geblokkeerd.' },
+      ], bijna: 'Lies geeft les in het digicafé van het buurthuis, en al je klanten zaten in de klas. Je bent alles kwijt: je account, je profielfoto en je smoesjes.' },
+      'lies-haast': { soort: 'mis', titel: 'Een rode vlag', zeg: ['Haast, jongen? Dat leer ik mijn cursisten elke dinsdag: haast is een rode vlag.', 'Ik stop nu met appen. Slaap lekker.'] },
+      'lies-thee': { soort: 'mis', titel: 'Een kopje thee', zeg: ['Weet je wat, jongen. Ik stop ermee.', 'Ik ga een kopje thee drinken. Dat zou jij ook moeten doen.', 'Slaap lekker.'] },
+      'lies-eerlijk': { soort: 'geheim', titel: 'Ik wist het al', zeg: ['Dat weet ik, jongen ☺️', 'Ik wist het al vanaf je eerste bericht. Maar het is fijn dat je het zelf zegt.', 'Kom dinsdag maar naar het digicafé. Dan leer ik je iets nuttigs.'] },
     },
   },
 ];
@@ -2387,11 +2747,248 @@ const TEKEN = (() => {
       <path d="M0 560q110-40 210 0t180-10v290H0z" fill="url(#d1)"/><path d="M0 620q80-50 190-8t200-30v262H0z" fill="url(#d2)"/><path d="M0 700q140-60 260 0t130-20v164H0z" fill="url(#d3)"/>${helm}
       <rect width="390" height="844" fill="#000" opacity=".12"/>${korrel(390, 844, .14)}`);
   }
-  const MAKERS = { achtergrond, harm, riet, pelgrim, dennis, plafond, koffie, waterval, groep, soep, groepsapp, schriftje: () => schriftje(2), schriftje7: () => schriftje(7), uitprint };
+  // ================================================================ EEN MENS (voor de portretten van gesprek 4 tot en met 10)
+  // Hoofd en schouders in een vak van 160 x 160, met het gezicht rond (80, 76). p maakt de namen van verlopen uniek (twee mensen op één foto).
+  // o: huid [licht, midden, donker], vrouw, oud (0..1, rimpels), lach (0..1, vanaf .6 met tanden), iris, haar { soort, kleur: [licht, donker] },
+  // bril ('rond', 'groot', 'halve', 'op-hoofd'), kleding { soort, kleur: [licht, donker], kraag }, oorbel, ketting, snor, pet.
+  function mens(o, p, r) {
+    const [h1, h2, h3] = o.huid || ['#F4D0B4', '#E2A888', '#B9785C'], [k1, k2] = o.kleding.kleur, [a1, a2] = (o.haar && o.haar.kleur) || ['#E8E6E2', '#A9A49C'];
+    const oud = o.oud === undefined ? .8 : o.oud, lach = o.lach === undefined ? .5 : o.lach, id = n => p + n;
+    const defs = rg(id('h'), [[0, h1], [.55, h2], [.88, h3], [1, h3]], .45, .4, .62) + rg(id('w'), [[0, o.vrouw ? '#EC7F86' : '#E5806C', .5], [1, '#E5806C', 0]])
+      + lg(id('k'), [[0, k1], [1, k2]], 1, 1) + lg(id('n'), [[0, h3], [.6, h2], [1, h2]], 0, 1) + rg(id('hr'), [[0, a1], [.7, a1], [1, a2]], .45, .3, .7)
+      + lg(id('ks'), [[0, '#000', .4], [.25, '#000', 0], [.75, '#000', 0], [1, '#000', .45]], 1, 0);
+    const H = o.haar ? o.haar.soort : 'kort';
+    let achter = '', voor = '';
+    // haar achter het hoofd
+    if (H === 'bob') achter = `<path d="M47 78c-4-30 12-46 33-46s37 16 33 46c2 14 0 24-4 30-6-6-6-20-8-30H58c-2 10-2 24-8 30-4-6-6-16-3-30z" fill="url(#${id('hr')})"/>`;
+    if (H === 'knot') achter = `<circle cx="80" cy="32" r="13" fill="url(#${id('hr')})"/><path d="M70 30q10-8 20 0" stroke="${a2}" stroke-width="1.2" fill="none" opacity=".7"/>`;
+    if (H === 'krul') { for (let i = 0; i < 40; i++) { const a = Math.PI * (1.02 + r() * .96), rr = 24 + r() * 11, x = 80 + Math.cos(a) * rr * 1.08, y = 68 + Math.sin(a) * rr * .95; achter += `<circle cx="${x.toFixed(1)}" cy="${(y + 1.5).toFixed(1)}" r="${(6 + r() * 2).toFixed(1)}" fill="${a2}"/>`; voor += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(5.2 + r() * 2.2).toFixed(1)}" fill="url(#${id('hr')})"/><path d="M${(x - 3).toFixed(1)} ${(y + 1).toFixed(1)}q3 -5 6 -1" fill="none" stroke="${a2}" stroke-width=".8" opacity=".7"/>`; } }
+    // kleding
+    const K = o.kleding.soort;
+    let kleding = `<path d="M8 160c3-25 18-35 41-40l16-4h30l16 4c23 5 38 15 41 40z" fill="url(#${id('k')})"/><path d="M8 160c3-25 18-35 41-40l16-4h30l16 4c23 5 38 15 41 40z" fill="url(#${id('ks')})"/>`;
+    if (K === 'vest') kleding += `<path d="M64 116l16 44 16-44" fill="${o.kleding.kraag || '#F3F1EC'}"/><path d="M62 117l18 43M98 117l-18 43" stroke="#000" stroke-opacity=".3" stroke-width="2"/><circle cx="79" cy="146" r="2" fill="#000" opacity=".35"/>`;
+    if (K === 'blouse') kleding += `<path d="M66 115l14 16 14-16 6 3-20 20-20-20z" fill="${o.kleding.kraag || '#FFFFFF'}"/><path d="M66 115l14 16 14-16" stroke="#000" stroke-opacity=".15" fill="none"/>`;
+    if (K === 'overhemd') kleding += `<path d="M60 116l20 16 20-16 4 4-24 24-24-24z" fill="${o.kleding.kraag || '#E9EEF2'}"/><path d="M80 132v28" stroke="#000" stroke-opacity=".2"/><circle cx="80" cy="142" r="1.4" fill="#000" opacity=".3"/><circle cx="80" cy="154" r="1.4" fill="#000" opacity=".3"/>`;
+    if (K === 'overall') kleding += `<path d="M52 122l8 38M108 122l-8 38" stroke="${o.kleding.kraag || '#2C3E5E'}" stroke-width="9"/><path d="M60 116l20 14 20-14" stroke="#000" stroke-opacity=".2" stroke-width="2" fill="none"/><circle cx="58" cy="140" r="3" fill="#C9A646"/><circle cx="102" cy="140" r="3" fill="#C9A646"/>`;
+    if (K === 'colbert') kleding += `<path d="M64 116l16 18 16-18 2 44H62z" fill="#F1F1EE"/><path d="M76 128h8l2 32H74z" fill="${o.kleding.kraag || '#6E2A2A'}"/><path d="M50 122l14-6 16 18-10 26H48zM110 122l-14-6-16 18 10 26h22z" fill="${k2}"/>`;
+    if (K === 'trui') kleding += `<path d="M64 115q16 10 32 0" stroke="#000" stroke-opacity=".25" stroke-width="5" fill="none"/>`;
+    if (o.ketting === 'parels') kleding += Array.from({ length: 13 }, (_, i) => { const t = i / 12, x = 64 + t * 32, y = 120 + Math.sin(t * Math.PI) * 9; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#F6F2EA" stroke="#C9C1B2" stroke-width=".5"/>`; }).join('');
+    if (o.ketting === 'goud') kleding += `<path d="M66 118q14 14 28 0" stroke="#D9B64E" stroke-width="1.6" fill="none"/><circle cx="80" cy="125" r="2.6" fill="#E9C25A"/>`;
+    // het gezicht
+    const mondY = 100, open = lach >= .6;
+    const mond = open ? `<path d="M69 ${mondY - 3}q11 11 22 0q-11 3-22 0z" fill="#FFFFFF"/><path d="M68.5 ${mondY - 3.4}q11.5 2.4 23 0" stroke="${o.vrouw ? '#B5486A' : '#8E4A3C'}" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M68.5 ${mondY - 3}q11.5 13 23 0" stroke="${o.vrouw ? '#B5486A' : '#9A5444'}" stroke-width="1.5" fill="none"/>`
+      : lach > .2 ? `<path d="M70 ${mondY}q10 6.5 20 0q-10 3-20 0z" fill="${o.vrouw ? '#C25A6E' : '#B96D5A'}"/><path d="M70 ${mondY}q10 6.5 20 0" fill="none" stroke="${o.vrouw ? '#913A50' : '#7E3E30'}" stroke-width="1.4" stroke-linecap="round"/>`
+      : `<path d="M71 ${mondY + 1}q9 1.4 18 0" fill="none" stroke="#7A3E30" stroke-width="1.6" stroke-linecap="round"/><path d="M72 ${mondY + 3}q8 2.4 16 0" fill="none" stroke="#C9887A" stroke-width="1.5" opacity=".7"/>`;
+    const rimpels = oud > .3 ? `<path d="M64 54q16-4 32 0M65 58.5q15-3.4 30 0" fill="none" stroke="rgba(120,64,44,${(oud * .3).toFixed(2)})" stroke-width=".9"/><path d="M70 86q-5 7-2 15M90 86q5 7 2 15" fill="none" stroke="rgba(120,62,40,${(oud * .38).toFixed(2)})" stroke-width="1.2"/><path d="M69 109q11 7 22 0" fill="none" stroke="rgba(110,58,40,${(oud * .25).toFixed(2)})" stroke-width="1.2"/>` : '';
+    let haarVoor = '';
+    if (H === 'kort') { haarVoor = `<path d="M50 76c-3-26 9-42 30-42s33 16 30 42c-2-10-6-16-11-19-9 3-29 3-38 0-5 3-9 9-11 19z" fill="url(#${id('hr')})"/>`; for (let i = 0; i < 22; i++) { const x = 56 + r() * 48, y = 40 + r() * 14; haarVoor += `<path d="M${x.toFixed(1)} ${y.toFixed(1)}q${(r() * 6 - 3).toFixed(1)} 4 ${(r() * 8 - 4).toFixed(1)} 9" stroke="${a2}" stroke-width=".7" fill="none" opacity=".6"/>`; } }
+    if (H === 'kaal') { haarVoor = `<ellipse cx="74" cy="47" rx="14" ry="7" fill="#fff" opacity=".3" filter="url(#zb)"/><path d="M53 84c-1-10 1-18 4-22M107 84c1-10-1-18-4-22" stroke="${a1}" stroke-width="5.5" stroke-linecap="round"/><path d="M54 70c2-4 4-6 6-7M106 70c-2-4-4-6-6-7" stroke="${a2}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`; }
+    if (H === 'bob') haarVoor = `<path d="M51 70c0-22 12-36 29-36 17 0 30 14 29 36-6-12-16-19-28-20 4 6 2 10-2 12-6-6-16-6-28 8z" fill="url(#${id('hr')})"/><path d="M60 46q14-8 32 0" stroke="${a1}" stroke-width="1.4" opacity=".7" fill="none"/>`;
+    if (H === 'knot') haarVoor = `<path d="M51 72c-1-24 11-36 29-36s30 12 29 36c-3-10-8-17-16-21-8 3-20 3-27-1-7 4-12 12-15 22z" fill="url(#${id('hr')})"/><path d="M58 52q10-12 22-14M102 52q-8-12-20-14" stroke="${a2}" stroke-width="1" fill="none" opacity=".7"/>`;
+    if (H === 'kortv') { haarVoor = `<path d="M49 78c-4-28 9-44 31-44s35 16 31 44c-3-9-7-15-12-18-7 2-13 1-17-3-6 5-17 6-23 3-5 3-8 10-10 18z" fill="url(#${id('hr')})"/>`; for (let i = 0; i < 16; i++) { const x = 54 + r() * 52, y = 38 + r() * 18; haarVoor += `<path d="M${x.toFixed(1)} ${y.toFixed(1)}q3 3 2 8" stroke="${a2}" stroke-width=".8" fill="none" opacity=".55"/>`; } }
+    const bril = o.bril === 'rond' ? `<g fill="#DCE8EE" fill-opacity=".22" stroke="${o.brilKleur || '#4A3A2E'}" stroke-width="1.6"><circle cx="69" cy="75" r="8.5"/><circle cx="91" cy="75" r="8.5"/></g><path d="M77.5 74q2.5-2 5 0M60.5 74l-8-2M99.5 74l8-2" stroke="${o.brilKleur || '#4A3A2E'}" stroke-width="1.4" fill="none"/><path d="M64 71l3-2M86 71l3-2" stroke="#fff" stroke-width="1.2" opacity=".6" stroke-linecap="round"/>`
+      : o.bril === 'groot' ? `<g fill="#DCE8EE" fill-opacity=".2" stroke="${o.brilKleur || '#7A2E46'}" stroke-width="2.4"><rect x="58" y="66" width="20" height="17" rx="6"/><rect x="82" y="66" width="20" height="17" rx="6"/></g><path d="M78 73q2-2 4 0M58 71l-6-2M102 71l6-2" stroke="${o.brilKleur || '#7A2E46'}" stroke-width="2" fill="none"/><path d="M62 70l4-2M86 70l4-2" stroke="#fff" stroke-width="1.4" opacity=".55" stroke-linecap="round"/>`
+      : o.bril === 'halve' ? `<path d="M59 86h19q0 8-9.5 8T59 86zM82 86h19q0 8-9.5 8T82 86z" fill="#D7E6EE" fill-opacity=".28" stroke="#B48F3E" stroke-width="1.2"/><path d="M78 86.4q2-1.6 4 0M59 86l-6-5M101 86l6-5" stroke="#B48F3E" stroke-width="1.1" fill="none"/>`
+      : o.bril === 'op-hoofd' ? `<g transform="rotate(-3 80 46)"><path d="M58 48q22-8 44 0" stroke="#2A2420" stroke-width="1.6" fill="none"/><rect x="60" y="41" width="18" height="11" rx="5" fill="#E8F0F4" fill-opacity=".4" stroke="#3A2A20" stroke-width="1.6"/><rect x="82" y="41" width="18" height="11" rx="5" fill="#E8F0F4" fill-opacity=".4" stroke="#3A2A20" stroke-width="1.6"/></g>` : '';
+    const pet = o.pet ? `<path d="M50 60q0-26 30-26t30 26q-30-6-60 0z" fill="${o.pet}"/><path d="M48 60q32-8 66 2q-2 6-8 6q-26-6-56-2z" fill="${o.pet}"/><path d="M50 60q30-6 60 0" stroke="#000" stroke-opacity=".35" fill="none" stroke-width="1.4"/><path d="M58 44q20-8 42 0" stroke="#fff" stroke-opacity=".12" stroke-width="3" fill="none"/>` : '';
+    const body = `${achter}${kleding}
+      <path d="M67 103c0 8-1 12-3 15 8 8 24 8 32 0-2-3-3-7-3-15z" fill="url(#${id('n')})"/><path d="M67 106c4 6 22 6 26 0v-3H67z" fill="#000" opacity=".18" filter="url(#zb)"/>
+      <ellipse cx="51.5" cy="80" rx="6.5" ry="10.5" fill="${h2}"/><path d="M50.5 74q-3 6 1 13" stroke="${h3}" stroke-width="1.6" fill="none"/><ellipse cx="108.5" cy="80" rx="6.5" ry="10.5" fill="${h3}"/><path d="M109.5 74q3 6-1 13" stroke="${h3}" stroke-width="1.6" fill="none" opacity=".8"/>
+      ${o.oorbel ? `<circle cx="51" cy="91" r="2.6" fill="${o.oorbel}" stroke="#000" stroke-opacity=".25" stroke-width=".6"/><circle cx="109" cy="91" r="2.6" fill="${o.oorbel}" stroke="#000" stroke-opacity=".25" stroke-width=".6"/>` : ''}
+      <path d="M80 38c-17 0-28 13-28 33 0 21 8 34 14 40 7 6 21 6 28 0 6-6 14-19 14-40 0-20-11-33-28-33z" fill="url(#${id('h')})"/>
+      ${voor}${haarVoor}${rimpels}
+      ${wenkbrauw(61, 67, 75, 66, 2.4, o.wenkbrauw || a2, o.vrouw ? 1.6 : 2.4, r)}${wenkbrauw(85, 66, 99, 67, 2.4, o.wenkbrauw || a2, o.vrouw ? 1.6 : 2.4, r)}
+      ${oog(69, 75, { w: 6, lach, iris: o.iris || '#5D7B90', kraai: oud > .4 ? -1 : 0, zakjes: oud > .5, wimper: o.vrouw, dy: o.kijk || 0 })}${oog(91, 75, { w: 6, lach, iris: o.iris || '#5D7B90', kraai: oud > .4 ? 1 : 0, zakjes: oud > .5, wimper: o.vrouw, dy: o.kijk || 0 })}
+      <ellipse cx="66" cy="90" rx="8" ry="5" fill="url(#${id('w')})"/><ellipse cx="94" cy="90" rx="8" ry="5" fill="url(#${id('w')})"/>
+      <path d="M81 75c0 7 2 12 5 15-1 3-4 4-6 4s-5-1-6-3" fill="none" stroke="rgba(130,70,48,.42)" stroke-width="2.2" filter="url(#zb)"/><path d="M74.5 92q2 2 4.4 1M85.5 92q-2 2-4.4 1" stroke="${h3}" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      ${o.snor ? `<path d="M70 96q10-5 20 0q-3 4-10 2q-7 2-10-2z" fill="${o.snor}"/>` : ''}${mond}${bril}${pet}`;
+    return { defs, body };
+  }
+  // achtergronden voor de portretten (altijd onscherp, zoals bij een telefooncamera)
+  function achter(soort, r) {
+    if (soort === 'kamer') { let s = '<rect width="160" height="160" fill="#C9B79C"/>'; for (let i = 0; i < 12; i++) s += `<rect x="${i * 14}" width="7" height="160" fill="#BBA88B" opacity=".6"/>`; return s + '<rect x="100" y="16" width="44" height="36" fill="#6E5A3E"/><rect x="104" y="20" width="36" height="28" fill="#9DB4C2"/><ellipse cx="22" cy="40" rx="16" ry="12" fill="#FFE7B0" opacity=".9"/><rect x="18" y="50" width="8" height="70" fill="#8A7A5E"/><ellipse cx="140" cy="118" rx="26" ry="30" fill="#4C7A3C"/><rect y="124" width="160" height="36" fill="#7A5A3E"/>'; }
+    if (soort === 'keuken') { let s = '<rect width="160" height="160" fill="#E9E4DA"/>'; for (let x = 0; x < 160; x += 16) for (let y = 40; y < 110; y += 16) s += `<rect x="${x + 1}" y="${y + 1}" width="14" height="14" fill="${(x + y) % 32 ? '#DCE6E8' : '#F2F4F2'}"/>`; return s + '<rect width="160" height="38" fill="#8FA8A0"/><rect x="6" y="4" width="46" height="30" fill="#A7BDB6"/><rect x="58" y="4" width="46" height="30" fill="#A7BDB6"/><rect x="110" y="4" width="46" height="30" fill="#A7BDB6"/><rect y="110" width="160" height="50" fill="#8A6A4A"/><circle cx="130" cy="100" r="9" fill="#C8323C"/>'; }
+    if (soort === 'garage') { let s = '<rect width="160" height="160" fill="#B89870"/>'; for (let x = 6; x < 160; x += 10) for (let y = 6; y < 110; y += 10) s += `<circle cx="${x}" cy="${y}" r="1.6" fill="#7A5E3E"/>`; return s + '<path d="M18 20l18 24M14 22l8-6" stroke="#5A5A62" stroke-width="5" stroke-linecap="round"/><rect x="118" y="18" width="10" height="40" rx="3" fill="#C8323C"/><path d="M60 30h40" stroke="#4A4A52" stroke-width="6"/><circle cx="140" cy="76" r="12" fill="none" stroke="#3E5A8A" stroke-width="5"/><rect y="112" width="160" height="48" fill="#6E4E30"/>'; }
+    if (soort === 'bekers') { let s = '<rect width="160" height="160" fill="#C7C0D6"/><rect y="58" width="160" height="6" fill="#7A5A3E"/><rect y="112" width="160" height="6" fill="#7A5A3E"/>'; for (let i = 0; i < 6; i++) s += `<path d="M${12 + i * 26} 58v-8h10v8zM${8 + i * 26} 30h18q0 18-9 20q-9-2-9-20z" fill="${i % 2 ? '#D8D8DE' : '#E9C25A'}"/>`; return s + '<rect x="16" y="76" width="34" height="30" fill="#5A4A3A"/><rect x="19" y="79" width="28" height="24" fill="#B9C8D2"/>'; }
+    if (soort === 'klas') return '<rect width="160" height="160" fill="#D9D2C2"/><rect x="8" y="12" width="96" height="60" fill="#2F4A3A"/><path d="M18 28h40M18 40h60M18 52h30" stroke="#F2F2E8" stroke-width="3" opacity=".7"/><rect x="112" y="10" width="44" height="70" fill="#BFD6E2"/><path d="M134 10v70M112 45h44" stroke="#F4F0E6" stroke-width="3"/><ellipse cx="134" cy="84" rx="20" ry="10" fill="#4C7A3C"/><rect y="118" width="160" height="42" fill="#8A6A4A"/>';
+    if (soort === 'studeer') { let s = '<rect width="160" height="160" fill="#3A2A20"/>'; for (let i = 0; i < 8; i++) s += `<rect x="${i * 20 + 2}" y="0" width="16" height="160" fill="#4A3628" opacity=".8"/>`; return s + '<ellipse cx="130" cy="40" rx="20" ry="16" fill="#FFD98A" opacity=".85"/><rect x="126" y="54" width="8" height="40" fill="#2A1E16"/><rect x="10" y="20" width="40" height="52" fill="#5E6A50"/><rect x="14" y="24" width="32" height="44" fill="#C9C3A8"/>'; }
+    if (soort === 'buurthuis') { let s = '<rect width="160" height="160" fill="#E2D8C4"/><rect x="10" y="10" width="90" height="64" fill="#B88A58"/>'; for (let i = 0; i < 7; i++) s += `<rect x="${16 + (i % 4) * 21}" y="${16 + Math.floor(i / 4) * 28}" width="16" height="22" fill="${['#FFF6D8', '#D8ECFF', '#FFE0E0', '#E0FFE6'][i % 4]}" transform="rotate(${(i % 3) * 4 - 4} ${24 + (i % 4) * 21} ${27 + Math.floor(i / 4) * 28})"/>`; return s + '<rect x="108" y="70" width="46" height="30" rx="3" fill="#2E3440"/><rect x="111" y="73" width="40" height="22" fill="#8FB4E8"/><rect y="104" width="160" height="56" fill="#A88A64"/><ellipse cx="30" cy="104" rx="14" ry="6" fill="#fff" opacity=".7"/>'; }
+    if (soort === 'feest') { let s = '<rect width="160" height="160" fill="#E8D8C0"/>'; for (let i = 0; i < 9; i++) s += `<path d="M${i * 20} 8l10 16 10-16z" fill="${['#C8323C', '#E9B949', '#2E8B62'][i % 3]}"/>`; return s + '<circle cx="20" cy="60" r="14" fill="#E9B949"/><circle cx="142" cy="54" r="16" fill="#C8323C"/><rect y="120" width="160" height="40" fill="#F6F1E6"/>'; }
+    return '<rect width="160" height="160" fill="#BFC8D2"/>';
+  }
+  function portret(o, zaad) {
+    const r = rnd(zaad), m = mens(o, 'p', r);
+    return svg(160, 160, KORREL + VIGNET(.32) + blur('bl', o.scherp ? 1.5 : 2.8) + blur('zb', 1.3) + m.defs, `<g filter="url(#bl)">${achter(o.achter, r)}</g>${m.body}${vignet(160, 160)}${korrel(160, 160, .14)}`);
+  }
+  const annie = () => portret({ achter: 'kamer', vrouw: true, oud: .7, lach: .7, huid: ['#F6D6C2', '#E8B49A', '#C68A6E'], haar: { soort: 'bob', kleur: ['#D9D3CC', '#A8A098'] }, bril: 'groot', brilKleur: '#3E5A8A', iris: '#5E7A6A', kleding: { soort: 'blouse', kleur: ['#6FA7C9', '#3E7499'], kraag: '#F4F8FB' }, oorbel: '#F6F2EA' }, 101);
+  const gonnie = () => portret({ achter: 'bekers', vrouw: true, oud: .6, lach: .65, huid: ['#F3D2BC', '#E0A88C', '#BF8064'], haar: { soort: 'kortv', kleur: ['#C9673E', '#8E3A20'] }, bril: 'groot', brilKleur: '#1F2333', iris: '#6B5A48', kleding: { soort: 'vest', kleur: ['#2F7E70', '#1C544A'], kraag: '#F2C14E' }, ketting: 'goud', wenkbrauw: '#7A4A30' }, 113);
+  const wim = () => portret({ achter: 'garage', oud: .85, lach: .35, huid: ['#EDC2A2', '#D69A78', '#AC6C50'], haar: { soort: 'kort', kleur: ['#DDDAD4', '#A9A49C'] }, pet: '#3E4A3A', iris: '#4E6A80', kleding: { soort: 'overall', kleur: ['#3E5A86', '#22385C'], kraag: '#2C3E5E' }, snor: '#D4D0C8' }, 127);
+  const bakhuizen = () => portret({ achter: 'klas', vrouw: true, oud: .85, lach: .15, kijk: -.6, huid: ['#F8DCCB', '#E9B9A2', '#C8907A'], haar: { soort: 'knot', kleur: ['#F2F1EE', '#BDBAB4'] }, bril: 'halve', iris: '#4E5E7A', kleding: { soort: 'vest', kleur: ['#8A3B4E', '#5E2534'], kraag: '#F6F2EA' }, ketting: 'parels' }, 131);
+  const verhoef = () => portret({ achter: 'studeer', oud: .8, lach: .1, huid: ['#EFC9AE', '#D9A284', '#B27258'], haar: { soort: 'kort', kleur: ['#CFCCC6', '#8A8680'] }, iris: '#5A6A58', kleding: { soort: 'colbert', kleur: ['#7A6A4E', '#584A34'], kraag: '#3E4A6E' }, snor: '#BDB8AE', scherp: true }, 139);
+  const lies = () => portret({ achter: 'buurthuis', vrouw: true, oud: .85, lach: .8, huid: ['#F9DECD', '#EDBDA4', '#CB927A'], haar: { soort: 'krul', kleur: ['#FFFFFF', '#C9CAD2'] }, bril: 'rond', brilKleur: '#B4683E', iris: '#7A6A52', kleding: { soort: 'vest', kleur: ['#E58FA6', '#B95E78'], kraag: '#FFF6EE' }, oorbel: '#E9C25A' }, 149);
+  // Jan en Ans: samen op één foto, een beetje scheef (Ans hield de telefoon vast)
+  function wit() {
+    const r = rnd(157), ans = mens({ vrouw: true, oud: .85, lach: .3, huid: ['#F7D9C6', '#E7B29A', '#C48A70'], haar: { soort: 'kortv', kleur: ['#E9E7EA', '#AEA9B2'] }, bril: 'rond', brilKleur: '#7A5A8A', iris: '#5E6A8A', kleding: { soort: 'blouse', kleur: ['#A7C46E', '#6E8E42'] }, oorbel: '#F6F2EA' }, 'a', r);
+    const jan = mens({ oud: .85, lach: .75, huid: ['#EFC6A8', '#D99E7E', '#B47458'], haar: { soort: 'kaal', kleur: ['#E8E6E2', '#B9B5AE'] }, iris: '#5D7B90', kleding: { soort: 'trui', kleur: ['#C9A46A', '#9A7A44'] } }, 'j', r);
+    return svg(160, 160, KORREL + VIGNET(.3) + blur('bl', 2.8) + blur('zb', 1.3) + ans.defs + jan.defs, `<g filter="url(#bl)">${achter('kamer', r)}</g>
+      <g transform="translate(28 18) scale(.86) rotate(-3 80 80)">${jan.body}</g><g transform="translate(-20 22) scale(.84) rotate(4 80 80)">${ans.body}</g>${vignet(160, 160)}${korrel(160, 160, .14)}`);
+  }
+  // het plaatje van de groepsapp van het digicafé: een lindeblad en een kopje koffie
+  function digicafe() {
+    return svg(160, 160, lg('dg', [[0, '#3E8A5A'], [1, '#22603A']], 1, 1), `<rect width="160" height="160" fill="url(#dg)"/><path d="M80 34c-26 0-42 24-34 50 6 20 26 34 34 44 8-10 28-24 34-44 8-26-8-50-34-50z" fill="#9ED37E"/><path d="M80 40v84M80 64l-18-10M80 64l18-10M80 86l-20-10M80 86l20-10" stroke="#3E8A5A" stroke-width="3" stroke-linecap="round"/><rect x="58" y="104" width="44" height="30" rx="6" fill="#FBF6E9"/><path d="M102 110q14 2 10 12t-10 6" fill="none" stroke="#FBF6E9" stroke-width="5"/><rect x="62" y="106" width="36" height="8" rx="3" fill="#6E4529"/>`);
+  }
+
+  // ---------- foto's van gesprek 4 tot en met 10
+  // Jesse op de bank, met zijn koptelefoon en een controller
+  function jesse() {
+    const defs = KORREL + VIGNET(.42) + blur('bl', 4) + blur('gl', 10) + lg('bank', [[0, '#5E6E8A'], [1, '#3A465E']]) + lg('hoodie', [[0, '#2E3A58'], [1, '#1C243A']], 1, 1) + rg('huid', [[0, '#F3D0B4'], [.7, '#E2A888'], [1, '#C68668']], .45, .4, .6) + lg('haar', [[0, '#6A4A2E'], [1, '#3A2616']]);
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="#2A2E3A"/><g filter="url(#bl)"><rect x="210" y="20" width="110" height="80" fill="#6EA8FF" opacity=".55"/><rect x="0" y="10" width="60" height="90" fill="#8A7A5E"/><ellipse cx="40" cy="30" rx="18" ry="12" fill="#FFE7B0" opacity=".7"/></g><ellipse cx="270" cy="70" rx="80" ry="60" fill="#6EA8FF" opacity=".25" filter="url(#gl)"/>
+      <path d="M0 150q160-30 320 0v90H0z" fill="url(#bank)"/><rect x="0" y="120" width="320" height="40" rx="16" fill="#4E5E7A"/>
+      <path d="M96 240q4-60 64-66 60 6 64 66z" fill="url(#hoodie)"/><path d="M140 176q20 14 40 0" stroke="#3E4A6E" stroke-width="6" fill="none"/>
+      <rect x="150" y="150" width="20" height="20" fill="#D89E7E"/><ellipse cx="160" cy="124" rx="26" ry="30" fill="url(#huid)"/>
+      <path d="M132 118c-2-24 12-36 28-36s32 10 28 34c-6-12-14-16-26-16-10 0-18 6-30 18z" fill="url(#haar)"/>
+      <path d="M128 120q0-40 32-40t32 40" fill="none" stroke="#1F2333" stroke-width="6"/><rect x="122" y="110" width="12" height="24" rx="5" fill="#C8323C"/><rect x="186" y="110" width="12" height="24" rx="5" fill="#C8323C"/>
+      <path d="M148 120q4-2 8 0M164 120q4-2 8 0" stroke="#3A2616" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="152" cy="126" r="2" fill="#2A2020"/><circle cx="168" cy="126" r="2" fill="#2A2020"/><path d="M152 141q8 4 16 0" stroke="#9A4A3A" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M128 214q32-14 64 0q2 10-6 12-26-8-52 0-8-2-6-12z" fill="#2B2D33"/><circle cx="142" cy="212" r="3" fill="#C8323C"/><circle cx="178" cy="212" r="3" fill="#3E7AE0"/><ellipse cx="160" cy="226" rx="70" ry="12" fill="#D89E7E" opacity=".0"/>
+      ${vignet(320, 240)}${korrel(320, 240, .22)}`);
+  }
+  // de plank met de bekers van quizteam De Slimme Tantes
+  function bekers() {
+    const defs = KORREL + VIGNET(.4) + blur('sch', 3) + lg('goud', [[0, '#8A6A1E'], [.35, '#F2D27A'], [.6, '#C9A040'], [1, '#7A5A14']], 1, 0) + lg('zilver', [[0, '#7A7E86'], [.4, '#F2F4F7'], [1, '#6A6E76']], 1, 0) + lg('plank', [[0, '#8A5E3A'], [1, '#5E3E22']], 0, 1) + lg('muur', [[0, '#D8CFE6'], [1, '#B8AECB']]);
+    const beker = (x, s, m) => `<g transform="translate(${x} 150) scale(${s})"><rect x="-16" y="-8" width="32" height="10" fill="#2E2A26"/><rect x="-5" y="-30" width="10" height="24" fill="url(#${m})"/><path d="M-24 -78h48q0 40-24 46q-24-6-24-46z" fill="url(#${m})"/><path d="M-24 -72q-14 2-12 14t14 10M24 -72q14 2 12 14t-14 10" fill="none" stroke="url(#${m})" stroke-width="4"/><rect x="-12" y="-6" width="24" height="5" fill="#C9A646" opacity=".8"/></g>`;
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="url(#muur)"/><rect x="0" y="150" width="320" height="14" fill="url(#plank)"/><rect y="164" width="320" height="10" fill="#000" opacity=".2" filter="url(#sch)"/>
+      ${beker(52, .8, 'zilver')}${beker(112, 1.05, 'goud')}${beker(170, 1.3, 'goud')}${beker(228, .9, 'zilver')}${beker(282, .75, 'goud')}
+      <g transform="rotate(-4 160 205)"><rect x="96" y="184" width="128" height="46" fill="#F7F2E6"/><text x="160" y="212" font-family="Georgia, serif" font-size="15" font-weight="700" fill="#7A2E46" text-anchor="middle">De Slimme Tantes</text><rect x="104" y="218" width="112" height="2" fill="#7A2E46"/></g>
+      <rect x="10" y="40" width="70" height="52" fill="#5A4A3A"/><rect x="14" y="44" width="62" height="44" fill="#C9D6DE"/>${[22, 36, 50, 64].map((x, i) => `<circle cx="${x}" cy="62" r="5" fill="#E2B49A"/><path d="M${x - 6} 86q6-14 12 0z" fill="${['#2F7E70', '#C8323C', '#6FA7C9', '#E9B949'][i]}"/>`).join('')}
+      ${vignet(320, 240)}${korrel(320, 240, .16)}`);
+  }
+  // de werkbank van Wim, met een opengeschroefde radio en een gaatjesbord vol gereedschap
+  function werkbank() {
+    const r = rnd(167);
+    let gaatjes = ''; for (let x = 8; x < 320; x += 16) for (let y = 8; y < 130; y += 16) gaatjes += `<circle cx="${x}" cy="${y}" r="2.2" fill="#7A5E3E"/>`;
+    const defs = KORREL + VIGNET(.45) + blur('sch', 4) + blur('rook', 3) + lg('bord', [[0, '#C9A97E'], [1, '#A88A60']]) + lg('blad', [[0, '#8A5E3A'], [1, '#5E3E22']], 0, 1) + lg('kast', [[0, '#9A6A3E'], [1, '#6A4422']], 1, 1);
+    return svg(320, 240, defs, `<rect width="320" height="150" fill="url(#bord)"/>${gaatjes}
+      <g stroke-linecap="round"><path d="M30 20v60" stroke="#6A4422" stroke-width="7"/><rect x="18" y="12" width="26" height="14" rx="3" fill="#5A5E66"/>
+        <path d="M74 18l40 70" stroke="#9AA0A8" stroke-width="5"/><path d="M70 14l10 18" stroke="#C8323C" stroke-width="10"/>
+        <path d="M150 20l-6 46M162 20l6 46" stroke="#3E5A8A" stroke-width="5"/><circle cx="156" cy="24" r="6" fill="#7A7E86"/>
+        <path d="M210 16v56" stroke="#2E3440" stroke-width="5"/><path d="M200 70h20" stroke="#E9B949" stroke-width="10"/>
+        <circle cx="270" cy="48" r="20" fill="none" stroke="#2E8B62" stroke-width="7"/></g>
+      <rect y="150" width="320" height="90" fill="url(#blad)"/><rect y="150" width="320" height="5" fill="#B88A58"/>
+      <ellipse cx="160" cy="214" rx="90" ry="12" fill="#000" opacity=".35" filter="url(#sch)"/>
+      <rect x="80" y="138" width="150" height="76" rx="8" fill="url(#kast)"/><rect x="90" y="148" width="72" height="56" rx="4" fill="#2E2A26"/><circle cx="196" cy="168" r="16" fill="#E9DFC6" stroke="#5A4A3A" stroke-width="3"/><path d="M196 168l8-8" stroke="#C8323C" stroke-width="2"/><circle cx="186" cy="198" r="5" fill="#3A2A20"/><circle cx="206" cy="198" r="5" fill="#3A2A20"/>
+      ${Array.from({ length: 6 }, (_, i) => `<rect x="${98 + (i % 3) * 20}" y="${156 + Math.floor(i / 3) * 22}" width="12" height="16" rx="2" fill="${['#C8323C', '#3E7AE0', '#E9B949'][i % 3]}"/>`).join('')}<path d="M100 196q20-10 54 4" stroke="#E9B949" stroke-width="1.6" fill="none"/>
+      <g transform="rotate(-18 262 200)"><rect x="236" y="196" width="64" height="9" rx="4" fill="#C8323C"/><rect x="214" y="198" width="24" height="5" fill="#B9BDC4"/><path d="M214 200l-8 1" stroke="#7A7E86" stroke-width="2"/></g>
+      <g filter="url(#rook)" opacity=".4"><path d="M206 192q-8-16 4-28t-2-24" stroke="#fff" stroke-width="4" fill="none"/></g>
+      <g transform="translate(36 180)"><rect x="0" y="0" width="30" height="34" rx="4" fill="#F2EEE6"/><path d="M30 8q12 2 10 12t-10 8" fill="none" stroke="#F2EEE6" stroke-width="5"/><ellipse cx="15" cy="2" rx="13" ry="3" fill="#4A2A16"/></g>
+      ${vignet(320, 240)}${korrel(320, 240, .2)}`);
+  }
+  // het "pasje" van Dennis: een geprint papiertje in een plastic hoesje, met een tikfout en een koffievlek
+  function pasje() {
+    const defs = KORREL + VIGNET(.45) + blur('sch', 5) + lg('tafel', [[0, '#7A6A5A'], [1, '#4E4236']], 1, 1) + lg('hoes', [[0, '#fff', .35], [.5, '#fff', .05], [1, '#fff', .3]], 1, 1);
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="url(#tafel)"/>
+      <path d="M150 0q10 30 10 40" stroke="#2E5AA8" stroke-width="7" fill="none"/>
+      <g transform="rotate(6 160 130)"><rect x="76" y="46" width="176" height="128" rx="6" fill="#000" opacity=".35" filter="url(#sch)"/><rect x="72" y="40" width="176" height="128" rx="6" fill="#FFFFFF"/>
+        <rect x="72" y="40" width="176" height="26" rx="6" fill="#2E6EA8"/><text x="84" y="58" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#fff">DUINBANK</text>
+        <rect x="84" y="76" width="56" height="70" fill="#DCE6F0"/><circle cx="112" cy="102" r="14" fill="#E2A57F"/><path d="M92 146q20-30 40 0z" fill="#22304F"/><text x="112" y="118" font-family="Arial" font-size="7" fill="#fff" fill-opacity=".9" text-anchor="middle" transform="rotate(-24 112 110)">VOORBEELD</text>
+        <text x="150" y="92" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#1D2130">Dennis van Dam</text><text x="150" y="110" font-family="Arial, sans-serif" font-size="11" fill="#1D2130">Medewerkker</text><text x="150" y="126" font-family="Arial, sans-serif" font-size="9" fill="#6A7080">Klantenservice</text>
+        <circle cx="214" cy="146" r="18" fill="none" stroke="#8A5A32" stroke-width="5" opacity=".35"/><path d="M200 140q8-4 18 2" stroke="#8A5A32" stroke-width="3" opacity=".25" fill="none"/>
+        <rect x="64" y="32" width="192" height="144" rx="10" fill="url(#hoes)" stroke="#fff" stroke-opacity=".5"/><rect x="146" y="26" width="28" height="10" rx="5" fill="#BFC6D0"/></g>
+      ${vignet(320, 240)}${korrel(320, 240, .18)}`);
+  }
+  // het "kantoor" van Dennis: zijn keuken, met een vel papier waar DUINBANK op staat
+  function kantoor() {
+    const defs = KORREL + VIGNET(.45) + blur('bl', 2) + blur('sch', 4) + lg('kast', [[0, '#F2EEE6'], [1, '#D8D2C6']], 0, 1) + lg('blad', [[0, '#C9B79C'], [1, '#A8946E']], 0, 1) + lg('pan', [[0, '#2A2A2E'], [1, '#4A4A52']], 1, 1);
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="#E6E0D4"/><g filter="url(#bl)"><rect x="0" y="0" width="320" height="96" fill="url(#kast)"/><path d="M80 0v96M160 0v96M240 0v96" stroke="#C9C1B2" stroke-width="2"/><circle cx="72" cy="50" r="3" fill="#9A9080"/><circle cx="168" cy="50" r="3" fill="#9A9080"/><circle cx="248" cy="50" r="3" fill="#9A9080"/></g>
+      <g transform="rotate(-3 200 46)"><rect x="168" y="18" width="70" height="50" fill="#FFFFFF"/><text x="203" y="50" font-family="Comic Sans MS, Segoe Print, cursive" font-size="14" font-weight="700" fill="#2E5AA8" text-anchor="middle">DUINBANK</text><rect x="174" y="12" width="20" height="10" fill="#F6E9A8" opacity=".8" transform="rotate(-12 184 17)"/><rect x="214" y="12" width="20" height="10" fill="#F6E9A8" opacity=".8" transform="rotate(10 224 17)"/></g>
+      <rect y="120" width="320" height="120" fill="url(#blad)"/><rect y="120" width="320" height="6" fill="#8A7454"/>
+      <ellipse cx="110" cy="196" rx="70" ry="10" fill="#000" opacity=".3" filter="url(#sch)"/><path d="M50 190l20-56h96l-16 56z" fill="#2E3440"/><path d="M58 186l17-48h84l-13 48z" fill="#5C82C2"/><rect x="40" y="188" width="132" height="8" rx="2" fill="#3A404C"/><path d="M80 150h50M78 160h60M76 170h40" stroke="#fff" stroke-width="3" opacity=".5"/>
+      <ellipse cx="240" cy="182" rx="40" ry="16" fill="url(#pan)"/><ellipse cx="240" cy="180" rx="32" ry="11" fill="#3A3A40"/><ellipse cx="236" cy="178" rx="9" ry="5" fill="#F6E7B0"/><circle cx="236" cy="178" r="3" fill="#F2B23E"/><rect x="276" y="176" width="44" height="7" rx="3" fill="#1F1F22"/>
+      <rect x="190" y="104" width="30" height="44" fill="#E8604C"/><rect x="194" y="112" width="22" height="10" fill="#FBF6E9"/>
+      ${vignet(320, 240)}${korrel(320, 240, .2)}`);
+  }
+  // de "handtekening van de directeur": op een servetje
+  function handtekening() {
+    const defs = KORREL + VIGNET(.42) + blur('sch', 5) + lg('tafel', [[0, '#5E4A3A'], [1, '#3A2C22']], 1, 1);
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="url(#tafel)"/>
+      <g transform="rotate(-5 160 120)"><rect x="66" y="36" width="190" height="170" fill="#000" opacity=".35" filter="url(#sch)"/><rect x="62" y="30" width="190" height="170" fill="#FBFAF6"/>
+        <rect x="70" y="38" width="174" height="154" fill="none" stroke="#E2DDD0" stroke-width="2" stroke-dasharray="3 3"/><path d="M62 115h190" stroke="#E8E3D8" stroke-width="2"/>
+        <path d="M92 128c10-30 20-30 18 0s14-36 22-6 12-20 20 4 18-14 26-2 10 6 30 0" fill="none" stroke="#1E2A6E" stroke-width="2.6" stroke-linecap="round"/>
+        <text x="157" y="168" font-family="Segoe Print, Bradley Hand, Comic Sans MS, cursive" font-size="16" fill="#1E2A6E" text-anchor="middle">Directeur</text><path d="M110 174q48 6 94-2" stroke="#1E2A6E" stroke-width="1.6" fill="none"/></g>
+      <g transform="rotate(28 270 200)"><rect x="210" y="196" width="110" height="8" rx="4" fill="#2E5AA8"/><path d="M210 196l-12 4 12 4z" fill="#D9D2C2"/></g>
+      ${vignet(320, 240)}${korrel(320, 240, .16)}`);
+  }
+  // de berichten van Dennis, nagekeken met rode pen door mevrouw Bakhuizen
+  function rodepen() {
+    const M = 'font-family="Helvetica, Arial, sans-serif"', H = 'font-family="Segoe Print, Bradley Hand, Comic Sans MS, cursive"';
+    const defs = KORREL + VIGNET(.4) + blur('sch', 5) + lg('tafel', [[0, '#6E5A44'], [1, '#4A3A2A']], 1, 1);
+    const R = ['Dennis: Dat doet er niet toe.', 'Dennis: Mijn pasje ligt op kantoor.', 'Dennis: er zijn betalingen gedaan', '        die niet van u zijn ofzo', 'Dennis: Er is iets ergs gebeurt.'];
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="url(#tafel)"/>
+      <g transform="rotate(-3 160 120)"><rect x="40" y="20" width="240" height="230" fill="#000" opacity=".35" filter="url(#sch)"/><rect x="36" y="14" width="240" height="230" fill="#FFFFFF"/>
+        ${R.map((t, i) => `<text x="52" y="${48 + i * 22}" ${M} font-size="10" fill="#2A2A2A">${t}</text>`).join('')}
+        <path d="M118 56q-2-8 6-8M206 102q10 0 12 6M90 106h48M178 136l10 6" stroke="#D2232C" stroke-width="2" fill="none"/><text x="226" y="114" ${H} font-size="11" fill="#D2232C">?!</text><text x="196" y="146" ${H} font-size="12" fill="#D2232C">-d!</text><path d="M120 110q14 6 28 0" stroke="#D2232C" stroke-width="2" fill="none"/>
+        <circle cx="226" cy="196" r="28" fill="none" stroke="#D2232C" stroke-width="3"/><text x="226" y="210" ${H} font-size="38" fill="#D2232C" text-anchor="middle">3</text><text x="60" y="200" ${H} font-size="13" fill="#D2232C" transform="rotate(-4 60 200)">Onvoldoende.</text></g>
+      <g transform="rotate(-24 70 220)"><rect x="20" y="214" width="110" height="9" rx="4" fill="#D2232C"/><path d="M20 214l-12 4 12 5z" fill="#E9DFC6"/></g>
+      ${vignet(320, 240)}${korrel(320, 240, .14)}`);
+  }
+  // Jan en Ans op hun 50-jarig huwelijk (een beetje bewogen)
+  function janAns() {
+    const r = rnd(173), ans = mens({ vrouw: true, oud: .7, lach: .8, huid: ['#F7D9C6', '#E7B29A', '#C48A70'], haar: { soort: 'kortv', kleur: ['#DCDADF', '#A8A3AE'] }, iris: '#5E6A8A', kleding: { soort: 'blouse', kleur: ['#C95A7A', '#943E58'] }, ketting: 'parels' }, 'a', r);
+    const jan = mens({ oud: .7, lach: .85, huid: ['#EFC6A8', '#D99E7E', '#B47458'], haar: { soort: 'kort', kleur: ['#D8D6D2', '#9A968E'] }, iris: '#5D7B90', kleding: { soort: 'colbert', kleur: ['#3A4A6E', '#22304E'], kraag: '#C8323C' } }, 'j', r);
+    const defs = KORREL + VIGNET(.4) + blur('bl', 3) + blur('bew', .55) + blur('zb', 1.3) + blur('sch', 4) + ans.defs + jan.defs + lg('taart', [[0, '#FFF6EA'], [1, '#E6D6BE']], 0, 1);
+    return svg(320, 240, defs, `<g filter="url(#bl)"><rect width="320" height="240" fill="#E8D8C0"/>${Array.from({ length: 16 }, (_, i) => `<path d="M${i * 20} 8l10 16 10-16z" fill="${['#C8323C', '#E9B949', '#2E8B62'][i % 3]}"/>`).join('')}<circle cx="30" cy="70" r="18" fill="#E9B949"/><circle cx="292" cy="62" r="20" fill="#C8323C"/><circle cx="270" cy="96" r="16" fill="#E9B949"/></g>
+      <g filter="url(#bew)"><g transform="translate(150 22) scale(1.05)">${jan.body}</g><g transform="translate(16 30) scale(1.0)">${ans.body}</g></g>
+      <rect y="196" width="320" height="44" fill="#F6F1E6"/><ellipse cx="160" cy="214" rx="60" ry="10" fill="#000" opacity=".25" filter="url(#sch)"/><path d="M110 176h100v34H110z" fill="url(#taart)"/><ellipse cx="160" cy="176" rx="50" ry="10" fill="#FFFFFF"/><path d="M110 188q10 6 20 0t20 0 20 0 20 0 20 0" stroke="#E58FA6" stroke-width="4" fill="none"/>
+      <text x="160" y="170" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#C9A646" text-anchor="middle">50</text>
+      ${vignet(320, 240)}${korrel(320, 240, .18)}`);
+  }
+  // het dossier van meneer Verhoef
+  function dossier() {
+    const H = 'font-family="Segoe Print, Bradley Hand, Comic Sans MS, cursive"';
+    const defs = KORREL + VIGNET(.48) + blur('sch', 6) + blur('gl', 14) + lg('tafel', [[0, '#3E2A1C'], [1, '#22160E']], 1, 1) + lg('map', [[0, '#E9CF8E'], [1, '#C9A866']], 1, 1) + rg('lamp', [[0, '#FFE6A8', .5], [1, '#FFE6A8', 0]], .3, .2, .8) + lg('glas', [[0, '#fff', .4], [1, '#9AC0D8', .15]], 1, 1);
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="url(#tafel)"/><rect width="320" height="240" fill="url(#lamp)"/>
+      <g transform="rotate(-4 160 130)"><rect x="40" y="34" width="250" height="190" rx="4" fill="#000" opacity=".4" filter="url(#sch)"/><rect x="36" y="28" width="250" height="190" rx="4" fill="url(#map)"/><rect x="36" y="20" width="80" height="16" rx="4" fill="#E2C47E"/>
+        <text x="54" y="58" ${H} font-size="18" font-weight="700" fill="#5A2A1E">DOSSIER: "DENNIS"</text>
+        <rect x="56" y="74" width="120" height="128" fill="#FFFFFF" transform="rotate(-3 116 138)"/>${Array.from({ length: 9 }, (_, i) => `<rect x="${64}" y="${84 + i * 12}" width="${70 + (i * 23) % 36}" height="3" fill="#9A9A9A" transform="rotate(-3 116 138)"/>`).join('')}
+        <g transform="rotate(6 232 120)"><rect x="190" y="74" width="84" height="84" fill="#DCE6F0"/><circle cx="232" cy="106" r="16" fill="#E2A57F"/><path d="M204 158q28-40 56 0z" fill="#22304F"/><path d="M216 92q16-12 32 0" stroke="#2E1C12" stroke-width="6" fill="none"/><text x="232" y="122" font-family="Arial" font-size="9" font-weight="700" fill="#fff" fill-opacity=".85" text-anchor="middle" transform="rotate(-24 232 116)">VOORBEELD</text><path d="M196 70q-6 0-6 8v20q0 6 5 6t5-6V80" fill="none" stroke="#C9CDD3" stroke-width="3"/></g>
+        <text x="196" y="186" ${H} font-size="12" fill="#C8323C" transform="rotate(-6 196 186)">Stockfoto!</text></g>
+      <g transform="translate(250 192) rotate(-30)"><circle r="26" fill="url(#glas)" stroke="#2A2A2A" stroke-width="5"/><rect x="24" y="-5" width="50" height="10" rx="5" fill="#2A1A10"/></g>
+      ${vignet(320, 240)}${korrel(320, 240, .2)}`);
+  }
+  // het bord boerenkool van Lies
+  function boerenkool() {
+    const r = rnd(181);
+    let kool = ''; for (let i = 0; i < 70; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * 58; kool += `<circle cx="${(150 + Math.cos(a) * d * 1.3).toFixed(1)}" cy="${(128 + Math.sin(a) * d * .62).toFixed(1)}" r="${(1.6 + r() * 2.4).toFixed(1)}" fill="${['#3E6A2E', '#5A8A3E', '#2E5222', '#6E9A4A'][i % 4]}"/>`; }
+    const defs = KORREL + VIGNET(.45) + blur('bl', 5) + blur('sch', 6) + lg('tafel', [[0, '#C9A97E'], [1, '#9A7A50']], 1, 1) + rg('bord', [[0, '#FFFFFF'], [.8, '#F2EEE6'], [1, '#C9C2B6']], .45, .4, .6) + rg('stamp', [[0, '#F0E6C8'], [1, '#D8C8A0']], .45, .4, .6) + lg('worst', [[0, '#A8462E'], [.5, '#C8664A'], [1, '#7A2E1E']], 0, 1) + rg('jus', [[0, '#8A5A2A'], [1, '#5A3416']], .4, .4, .6);
+    return svg(320, 240, defs, `<rect width="320" height="240" fill="url(#tafel)"/><g filter="url(#bl)"><rect x="250" y="10" width="60" height="70" rx="6" fill="#E8604C" opacity=".6"/><circle cx="40" cy="30" r="22" fill="#FFF6D8" opacity=".7"/></g>
+      <ellipse cx="164" cy="150" rx="128" ry="66" fill="#000" opacity=".3" filter="url(#sch)"/><ellipse cx="160" cy="138" rx="128" ry="66" fill="url(#bord)"/><ellipse cx="160" cy="136" rx="100" ry="50" fill="none" stroke="#E2DCD0" stroke-width="2"/>
+      <ellipse cx="150" cy="128" rx="78" ry="38" fill="url(#stamp)"/>${kool}<ellipse cx="148" cy="122" rx="20" ry="9" fill="url(#jus)"/><ellipse cx="144" cy="119" rx="6" ry="2" fill="#fff" opacity=".3"/>
+      <g transform="rotate(-14 230 150)"><rect x="196" y="138" width="80" height="22" rx="11" fill="url(#worst)"/><ellipse cx="200" cy="149" rx="6" ry="10" fill="#E8A08A"/><path d="M220 142q20 4 50 0" stroke="#fff" stroke-width="2" opacity=".3"/></g>
+      <g transform="rotate(-10 60 200)"><rect x="10" y="196" width="100" height="8" rx="4" fill="#B9BDC4"/><path d="M110 196l20-6v20l-20-6z" fill="#B9BDC4"/></g>
+      ${vignet(320, 240)}${korrel(320, 240, .18)}`);
+  }
+  // de echte foto van Dennis: geen stockfoto, gewoon een jongen in een rommelige kamer
+  function selfie() {
+    const r = rnd(191);
+    const defs = KORREL + VIGNET(.5) + blur('bl', 3) + blur('gl', 12) + lg('muur', [[0, '#4A4E66'], [1, '#2E3044']]) + lg('hoodie', [[0, '#4E5A44'], [1, '#2E3828']], 1, 1) + rg('huid', [[0, '#F0C8A6'], [.6, '#DCA080'], [1, '#B47458']], .4, .38, .62) + lg('haar', [[0, '#3A2A1E'], [1, '#1A120C']]);
+    let rommel = ''; for (let i = 0; i < 9; i++) rommel += `<rect x="${(r() * 300).toFixed(1)}" y="${(150 + r() * 70).toFixed(1)}" width="${(10 + r() * 24).toFixed(1)}" height="${(6 + r() * 14).toFixed(1)}" fill="${['#C8323C', '#E9B949', '#6EA8FF', '#F2F2F2', '#2E8B62'][i % 5]}" opacity=".7" transform="rotate(${Math.round(r() * 60 - 30)} 150 190)"/>`;
+    return svg(240, 320, defs, `<rect width="240" height="320" fill="url(#muur)"/><g filter="url(#bl)"><rect x="150" y="30" width="70" height="90" fill="#D8C8A8" opacity=".6"/><rect x="156" y="36" width="58" height="78" fill="#7A4E9A" opacity=".5"/><rect x="10" y="190" width="110" height="60" rx="6" fill="#5A6E8A"/>${rommel}<ellipse cx="40" cy="60" rx="24" ry="18" fill="#FFE7B0" opacity=".45"/><rect x="0" y="250" width="240" height="70" fill="#3A3A44"/></g>
+      <ellipse cx="200" cy="300" rx="70" ry="50" fill="#8EB4FF" opacity=".25" filter="url(#gl)"/>
+      <path d="M40 320q6-80 80-90 74 10 80 90z" fill="url(#hoodie)"/><path d="M92 236q28 22 56 0" stroke="#2E3828" stroke-width="8" fill="none"/><path d="M104 248v40M136 248v40" stroke="#D8D8D8" stroke-width="3"/>
+      <rect x="108" y="200" width="24" height="30" fill="#CC8E70"/><ellipse cx="120" cy="170" rx="34" ry="42" fill="url(#huid)"/><ellipse cx="86" cy="174" rx="6" ry="10" fill="#D89474"/><ellipse cx="154" cy="174" rx="6" ry="10" fill="#C88464"/>
+      <path d="M84 160c-4-34 14-50 36-50s40 14 36 48c-4-12-10-20-20-24 2 6-4 8-8 4-6 6-18 6-24 0-8 4-14 12-20 22z" fill="url(#haar)"/><path d="M96 118l-6-10M120 112l2-12M140 118l8-8" stroke="#1A120C" stroke-width="4" stroke-linecap="round"/>
+      <path d="M100 160q8-4 14 0M126 160q8-4 14 0" stroke="#2A1A10" stroke-width="2.4" fill="none" stroke-linecap="round"/><ellipse cx="107" cy="168" rx="4" ry="3" fill="#2A2020"/><ellipse cx="133" cy="168" rx="4" ry="3" fill="#2A2020"/><path d="M102 176q5 3 10 0M128 176q5 3 10 0" stroke="#9A6A54" stroke-width="1.4" fill="none" opacity=".7"/>
+      <path d="M120 170c0 8 2 12 5 15-2 2-4 3-7 3" fill="none" stroke="rgba(130,70,48,.5)" stroke-width="2"/><path d="M108 194q12 6 24-1" stroke="#8A4A38" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M0 320l40-60q10-6 20 0l20 60z" fill="url(#hoodie)" opacity=".9"/>
+      ${vignet(240, 320)}${korrel(240, 320, .26)}`);
+  }
+  const MAKERS = { achtergrond, harm, riet, pelgrim, dennis, plafond, koffie, waterval, groep, soep, groepsapp, schriftje: () => schriftje(2), schriftje7: () => schriftje(7), uitprint,
+    annie, gonnie, wim, bakhuizen, wit, verhoef, lies, digicafe, jesse, bekers, werkbank, pasje, kantoor, handtekening, rodepen, 'jan-ans': janAns, dossier, boerenkool, selfie };
   // wat een schermlezer hoort bij elke foto
   const ALT = { harm: 'Profielfoto van Harm Veldkamp in zijn tuin', riet: 'Profielfoto van Riet Hendriks in de bus', pelgrim: 'Profielfoto van meneer Pelgrim voor zijn boekenkast', dennis: 'Profielfoto van Dennis: een stockfoto met het watermerk er nog op',
     plafond: 'Een scheve, bewogen foto van een keukenplafond met een lamp, en een duim voor de lens', koffie: 'Een kop koffie op tafel, met een krant en een leesbril', waterval: 'Een waterval in het bos, met chauffeur Ton ervoor', groep: 'De hele reisgroep bij de ingang van een grot',
-    soep: 'Een kom tomatensoep met brood', groepsapp: 'Schermafbeelding van de groepsapp Busreis Ardennen: Ton zegt dat Riet niet meer moet antwoorden en zelf haar bank moet bellen', schriftje: 'Een schriftje met aantekeningen over Dennis', schriftje7: 'Een schriftje met zeven dingen die niet kloppen', uitprint: 'De uitgeprinte berichten, met een paperclip en een markeerstift' };
+    soep: 'Een kom tomatensoep met brood', groepsapp: 'Schermafbeelding van de groepsapp Busreis Ardennen: Ton zegt dat Riet niet meer moet antwoorden en zelf haar bank moet bellen', schriftje: 'Een schriftje met aantekeningen over Dennis', schriftje7: 'Een schriftje met zeven dingen die niet kloppen', uitprint: 'De uitgeprinte berichten, met een paperclip en een markeerstift',
+    annie: 'Profielfoto van Annie Kuipers in haar woonkamer', gonnie: 'Profielfoto van Gonnie Verbeek voor de kast met quizbekers', wim: 'Profielfoto van Wim Hoekstra met pet, in zijn werkplaats', bakhuizen: 'Profielfoto van mevrouw Bakhuizen met een parelketting en een leesbril', wit: 'Profielfoto van Jan en Ans de Wit, samen op de bank', verhoef: 'Profielfoto van meneer Verhoef in zijn studeerkamer', lies: 'Profielfoto van Lies van der Meer in het buurthuis', digicafe: 'Het plaatje van de groep Digicafé De Linde: een lindeblad en een kopje koffie',
+    jesse: 'Jesse op de bank, met een koptelefoon en een controller', bekers: 'Een plank met quizbekers van De Slimme Tantes', werkbank: 'Een werkbank met een opengeschroefde radio, voor een gaatjesbord met gereedschap', pasje: 'Het pasje van Dennis: een papiertje in een plastic hoesje, met een tikfout en een koffievlek', kantoor: 'Het kantoor van Dennis: een keuken, met een vel papier waar DUINBANK op staat', handtekening: 'Een servetje met een krabbel en het woord Directeur', rodepen: 'De berichten van Dennis, nagekeken met rode pen: een 3', 'jan-ans': 'Jan en Ans op hun 50-jarig huwelijk, met een taart', dossier: 'Een dossiermap over Dennis, met zijn stockfoto en een vergrootglas', boerenkool: 'Een bord boerenkool met een worstje', selfie: 'Een selfie van Dennis: een jongen in een rommelige kamer' };
   const cache = {}, maten = {};
   const bron = id => { if (!cache[id] && MAKERS[id]) { const s = MAKERS[id](), m = /viewBox="0 0 (\d+) (\d+)"/.exec(s); maten[id] = [+m[1], +m[2]]; cache[id] = url(s); } return cache[id] || ''; };
   const maat = id => { bron(id); return maten[id] || [1, 1]; };
@@ -2447,16 +3044,19 @@ const TEKEN = (() => {
   const minVan = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
   const hhmm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
   const norm = m => (typeof m === 'string' ? { t: m } : m);
-  function tik(k, wie, m, vorige) { if (wie === 'uit') return k.klok += 1; if (m.na) return k.klok += m.na; if (vorige === 'uit') k.klok += 1; return k.klok; }
+  function tik(k, wie, m, vorige) { if (m.systeem || m.groep) return k.klok; if (wie === 'uit') return k.klok += 1; if (m.na) return k.klok += m.na; if (vorige === 'uit') k.klok += 1; return k.klok; }
   // een gesprek in gedachten afspelen (voor de lijst en na herladen): elk berichtje met zijn tijd
   function speelAf(id, pad, teken) {
     const L = HH.LV[id], k = { klok: minVan(L.tijd) }, g = HH.begin(id); let vorige = null;
-    const zeg = (wie, m, extra) => { m = norm(m); tik(k, wie, m, vorige); if (teken) teken(wie, m, hhmm(k.klok), extra || {}); vorige = wie; };
+    const zeg = (wie, m, extra) => { m = norm(m); tik(k, wie, m, vorige); if (teken) teken(wie, m, hhmm(k.klok), extra || {}); if (!m.systeem && !m.groep) vorige = wie; };
     for (const m of L.knopen[L.start].zeg) zeg('in', m);
     let laatste = null;
-    for (const i of pad) { const c = HH.knoop(g).keuzes[i], r = HH.kies(g, i); if (!r) break; laatste = c; zeg('uit', c.t, { vlag: c.vlag }); for (const m of (r.einde ? r.einde.zeg : HH.knoop(g).zeg)) zeg('in', m); }
+    for (const i of pad) { const c = HH.knoop(g).keuzes[i], r = HH.kies(g, i); if (!r) break; laatste = c; zeg('uit', uitBericht(c), { vlag: c.vlag }); for (const m of (r.einde ? r.einde.zeg : HH.knoop(g).zeg)) zeg('in', m); }
     return { g, klok: k.klok, laatste, vorige };
   }
+
+  // wat Dennis stuurt: een tekst, of een foto met de tekst eronder
+  const uitBericht = c => (c.foto ? { foto: c.foto, t: c.t } : c.t);
 
   // ================================================================ SCHERMEN
   const SCHERMEN = ['titel', 'lijst', 'chat', 'shots'];
@@ -2477,6 +3077,7 @@ const TEKEN = (() => {
   document.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) naar(t.dataset.tab); const n = e.target.closest('[data-naar]'); if (n) naar(n.dataset.naar); });
   $('ik-foto').src = fotoVan('dennis');
   // welke klant is nu aan de beurt (de eerste die open is en nog niet bijna gelukt), en wat er in de lijst staat
+  const geblokkeerd = () => !!(S.lv.lies && S.lv.lies.s[0]);
   const aanDeBeurt = () => GESPREKKEN.find(g => HH.open(S, g.id) && !(S.lv[g.id] && S.lv[g.id].s[0])) || null;
   function tekenStand() {
     const st = HH.totaalSterren(S), html = `<span>${st} van ${HH.LEVELS * 3} sterren</span><span>${S.eind.length} van ${HH.EINDES.length} eindes</span><span>${S.grap.length} van ${HH.GRAPPEN.length} grappige antwoorden</span>`;
@@ -2488,7 +3089,7 @@ const TEKEN = (() => {
     $('s-titel').style.backgroundImage = `url("${fotoVan('achtergrond')}")`;
     $('lock-uur').textContent = hhmm(lockMin);
     try { $('lock-datum').textContent = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) { $('lock-datum').textContent = ''; }
-    $('meldingen').innerHTML = volgende ? `<button class="melding" type="button" data-start="${volgende.id}"><img src="${fotoVan(volgende.id)}" alt=""><span style="min-width:0"><span class="app-regel"><span>Kwebbel</span><span>${S.bezig ? 'eerder' : 'nu'}</span></span><b>${esc(volgende.naam)}</b><span class="voorbeeld">${esc(S.bezig ? 'Wacht op je antwoord' : volgende.kort)}</span></span></button>` : '';
+    $('meldingen').innerHTML = !volgende && geblokkeerd() ? `<button class="melding" type="button" data-naar="lijst"><img src="${fotoVan('digicafe')}" alt=""><span style="min-width:0"><span class="app-regel"><span>Kwebbel</span><span>gisteren</span></span><b>Je account is geblokkeerd</b><span class="voorbeeld">Dit account is gemeld door meerdere mensen.</span></span></button>` : volgende ? `<button class="melding" type="button" data-start="${volgende.id}"><img src="${fotoVan(volgende.id)}" alt=""><span style="min-width:0"><span class="app-regel"><span>Kwebbel</span><span>${S.bezig ? 'eerder' : 'nu'}</span></span><b>${esc(volgende.naam)}</b><span class="voorbeeld">${esc(S.bezig ? 'Wacht op je antwoord' : volgende.kort)}</span></span></button>` : '';
     $('b-start').textContent = S.bezig ? 'Ga verder met je gesprek' : 'Open je berichten';
   }
   $('meldingen').addEventListener('click', e => { const b = e.target.closest('[data-start]'); if (!b) return; const id = b.dataset.start; startGesprek(id, S.bezig && S.bezig.lv === id ? S.bezig.pad : null); });
@@ -2497,11 +3098,11 @@ const TEKEN = (() => {
   const tekstVan = m => { m = norm(m); return m.spraak ? '🎤 Spraakbericht' : m.foto ? '📷 Foto' : m.t || ''; };
   const laatsteTekst = lijst => { for (let i = lijst.length - 1; i >= 0; i--) { const m = norm(lijst[i]); if (m.t && !m.foto) return m.t; } return tekstVan(lijst[lijst.length - 1]); };
   function tekenLijst() {
-    $('chats').innerHTML = GESPREKKEN.map(L => {
+    $('chats').innerHTML = (geblokkeerd() ? '<p class="blok-melding" role="note"><b>Je account is geblokkeerd.</b> Kwebbel kreeg meldingen van tien mensen en een oud-rechercheur. (In dit spel mag je de gesprekken nog een keer spelen, voor de sterren.)</p>' : '') + GESPREKKEN.map(L => {
       const r = S.lv[L.id], open = HH.open(S, L.id), bezig = S.bezig && S.bezig.lv === L.id, foto = `<img src="${fotoVan(L.id)}" alt="">`;
       if (!open) return `<button class="chatrij" type="button" aria-disabled="true" data-dicht="${L.id}" aria-label="${esc(L.naam)}: nog geen antwoord. Speel eerst het gesprek hierboven.">${foto}<span style="min-width:0"><b>${esc(L.naam)}</b><span class="voorbeeld">${VINK(2).replace('class="vink"', 'class="vink vinkjes"')}Nog geen antwoord</span></span><span class="rechts"><span class="tijd">gisteren</span></span></button>`;
       let voorbeeld, tijd = L.tijd, nieuw = false, extra = '';
-      if (bezig) { const a = speelAf(L.id, S.bezig.pad); tijd = hhmm(a.klok); voorbeeld = a.vorige === 'uit' ? `${VINK(3).replace('class="vink"', 'class="vink vinkjes"')}${esc(a.laatste.t)}` : esc(laatsteTekst(HH.knoop(a.g).zeg)); }
+      if (bezig) { const a = speelAf(L.id, S.bezig.pad); tijd = hhmm(a.klok); voorbeeld = a.vorige === 'uit' ? `${VINK(3).replace('class="vink"', 'class="vink vinkjes"')}${esc(a.laatste.foto ? '📷 Foto' : a.laatste.t)}` : esc(laatsteTekst(HH.knoop(a.g).zeg)); }
       else if (r) { const e = HH.EINDES.filter(x => x.lv === L.id && S.eind.includes(x.id)); const best = e.find(x => x.soort === 'gehaald' && r.s[0]) || e[e.length - 1]; voorbeeld = esc(best ? laatsteTekst(best.zeg) : L.kort); extra = `<span class="sterren" aria-hidden="true">${r.s.map(STER).join('')}</span>`; }
       else { voorbeeld = esc(L.kort); nieuw = true; extra = `<span class="badge">${L.knopen[L.start].zeg.length}</span>`; }
       const label = `${L.naam}${nieuw ? ', nieuwe berichten' : ''}${bezig ? ', je bent met dit gesprek bezig' : ''}${r ? ', ' + r.s.reduce((a, b) => a + b, 0) + ' van 3 sterren' : ''}`;
@@ -2526,29 +3127,39 @@ const TEKEN = (() => {
 
   // ================================================================ HET GESPREK
   let G = null, K = { klok: 0 }, laatsteWie = null, sessie = 0, pending = null, snel = false, vlagGezegd = false;
-  const TEMPO = { rustig: 1.5, gewoon: 1, snel: 0.5, meteen: 0 }, STIJL = { netjes: 1.15, emoji: 0.85 };
+  const TEMPO = { rustig: 1.5, gewoon: 1, snel: 0.5, meteen: 0 }, STIJL = { netjes: 1.15, emoji: 0.85, traag: 1.45 };
   const factor = () => (snel ? 0 : TEMPO[S.inst.tempo]);
   // wachten, maar een tik op het gesprek doet alles wat nog komt meteen
   function later(ms, f) { const mijn = sessie; const run = () => { pending = null; if (mijn === sessie) f(); }; if (!ms || snel) { pending = null; run(); return; } pending = { klok: setTimeout(run, ms), run }; }
   function stopTypen() { sessie++; if (pending) clearTimeout(pending.klok); pending = null; snel = false; if (typer) clearInterval(typer); typer = null; const t = $('log').querySelector('.typend'); if (t) t.remove(); }
   $('log').addEventListener('click', e => { if (e.target.closest('button')) return; if (pending) { snel = true; clearTimeout(pending.klok); const p = pending; pending = null; p.run(); } });
-  const typeDuur = m => { const f = factor(); if (!f) return 0; const len = (m.t || m.spraak || '').length; const d = m.foto ? 1500 : m.spraak ? 1300 + 160 * (+String(m.duur || '0:05').split(':')[1] || 5) : 600 + len * 36; return Math.min(3200, d) * f * (STIJL[HH.LV[G.lv].stijl] || 1) * (reduce ? 0.6 : 1); };
+  const typeDuur = m => { const f = factor(); if (!f || m.systeem || m.groep) return 0; const len = (m.t || m.spraak || '').length; const d = m.foto ? 1500 : m.spraak ? 1300 + 160 * (+String(m.duur || '0:05').split(':')[1] || 5) : 600 + len * 36; return Math.min(3200, d) * f * (STIJL[HH.LV[G.lv].stijl] || 1) * (reduce ? 0.6 : 1); };
   const naarOnder = () => { const l = $('log'); l.scrollTop = l.scrollHeight; };
   const status = (t, typt) => { const s = $('chat-status'); s.textContent = t; s.classList.toggle('typt', !!typt); };
   // een berichtje als HTML
+  const VAN_KLEUR = ['#C8323C', '#2E8B62', '#7A4E9A', '#A86A00', '#2F63D6', '#C25A1E', '#00838F', '#AD1457', '#6D4C41', '#3949AB'];
   function berichtHTML(wie, m, tijd, o) {
-    const L = HH.LV[G.lv], blok = laatsteWie !== wie ? ' nieuw-blok' : '';
+    if (m.systeem) return `<span class="chip" role="note">${esc(m.systeem)}</span>`;
+    const L = HH.LV[G.lv], nieuw = laatsteWie !== wie || (m.van && m.van !== laatsteVan), blok = nieuw ? ' nieuw-blok' : '';
     const meta = `<span class="meta">${o.vlag ? VLAG : ''}${tijd}${wie === 'uit' ? VINK(o.stand || 3) : ''}</span>`;
-    const naam = wie === 'uit' ? 'Jij' : L.wie, vlagSr = o.vlag ? ' (rode vlag)' : '';
+    const naam = wie === 'uit' ? 'Jij' : m.van ? HH.LV[m.van].naam : L.wie, vlagSr = o.vlag ? ' (rode vlag)' : '';
     let inhoud;
     if (m.foto) { const [w, h] = TEKEN.maat(m.foto), alt = TEKEN.ALT[m.foto] || 'Foto'; inhoud = `<div class="bel foto"><span class="sr">${esc(naam)} stuurt een foto, ${tijd}: </span><button type="button" data-foto="${m.foto}" aria-label="Bekijk de foto: ${esc(alt)}"><img src="${fotoVan(m.foto)}" alt="${esc(alt)}" width="${w}" height="${h}">${meta}</button>${m.t ? `<div style="padding:.35rem .45rem .15rem">${esc(m.t)}</div>` : ''}</div>`; }
     else if (m.spraak) inhoud = `<div class="bel spraak"><span class="sr">${esc(naam)}, spraakbericht van ${esc(m.duur)}, ${tijd}: </span><span class="spraak-rij" aria-hidden="true"><span class="mic">${MIC}</span>${GOLF(m.spraak.length)}<span class="duur">${esc(m.duur)}</span></span><span class="uitgeschreven">“${esc(m.spraak)}”</span>${meta}</div>`;
+    else if (m.van) { const kl = VAN_KLEUR[GESPREKKEN.findIndex(g => g.id === m.van) % VAN_KLEUR.length]; inhoud = `<div class="bel"><span class="sr">${esc(naam)}, ${tijd}: </span>${nieuw ? `<span class="van" style="color:${kl}" aria-hidden="true">${esc(naam)}</span>` : ''}${esc(m.t)}${meta}</div>`; }
     else inhoud = `<div class="bel"><span class="sr">${esc(naam)}, ${tijd}${vlagSr}: </span>${esc(m.t)}${meta}</div>`;
-    return `<div class="bericht ${wie}${blok}">${inhoud}</div>`;
+    const voor = m.van ? (nieuw ? `<img class="van-foto" src="${fotoVan(m.van)}" alt="">` : '<span class="van-foto" aria-hidden="true"></span>') : '';
+    return `<div class="bericht ${wie}${blok}${m.van ? ' groep' : ''}">${voor}${inhoud}</div>`;
   }
+  // het gesprek wordt een groepsapp: een andere naam, foto en regel onder de naam
+  let standaard = 'online', laatsteVan = null;
+  function wordtGroep(m) { $('chat-naam').textContent = m.groep; $('chat-foto').src = fotoVan('digicafe'); $('b-wie').dataset.profiel = 'digicafe'; $('b-wie').setAttribute('aria-label', 'Bekijk de groep ' + m.groep); standaard = m.leden; status(standaard); }
   function plaats(wie, m, o) {
     m = norm(m); const tijd = hhmm(tik(K, wie, m, laatsteWie));
-    $('log').insertAdjacentHTML('beforeend', berichtHTML(wie, m, tijd, o || {})); laatsteWie = wie; zetKlok(K.klok); naarOnder();
+    if (m.groep) { wordtGroep(m); return null; }
+    $('log').insertAdjacentHTML('beforeend', berichtHTML(wie, m, tijd, o || {}));
+    if (!m.systeem) { laatsteWie = wie; laatsteVan = m.van || null; }
+    zetKlok(K.klok); naarOnder();
     return $('log').lastElementChild;
   }
   // de meter, de beurten en de doelen (op de kaart naast de telefoon, of in de strook bovenin)
@@ -2559,20 +3170,21 @@ const TEKEN = (() => {
     const vs = $('hud-verschil'); vs.textContent = verschil ? (verschil > 0 ? '+' + verschil : '−' + Math.abs(verschil)) : ''; vs.className = 'verschil' + (verschil > 0 ? ' op' : verschil < 0 ? ' af' : '');
     $('hud-naam').textContent = L.naam; $('hud-tijd').textContent = 'Gesprek ' + L.nr + ' van ' + HH.LEVELS;
     const snelOk = G.beurten <= L.snel;
-    $('hud-doelen').innerHTML = `<li>${STER(false)}<span>Bijna gelukt: kom zo ver mogelijk</span></li><li>${STER(snelOk)}<span>Snel: beurt ${G.beurten} van hooguit ${L.snel}${snelOk ? '' : ' (te laat)'}</span></li><li>${STER(!G.vlaggen)}<span>Zonder rode vlag${G.vlaggen ? `: ${G.vlaggen} rode vlag${G.vlaggen > 1 ? 'gen' : ''}` : ''}</span></li>`;
+    const e = G.klaar && L.eindes[G.klaar], gehaald = !!e && e.soort === 'gehaald';
+    $('hud-doelen').innerHTML = `<li>${STER(gehaald)}<span>${L.eindes[L.op] && Object.values(L.eindes).some(x => x.slot) ? 'Tot het eind' : 'Bijna gelukt'}: kom zo ver mogelijk</span></li><li>${STER(snelOk)}<span>Snel: beurt ${G.beurten} van hooguit ${L.snel}${snelOk ? '' : ' (te laat)'}</span></li><li>${STER(!G.vlaggen)}<span>Zonder rode vlag${G.vlaggen ? `: ${G.vlaggen} rode vlag${G.vlaggen > 1 ? 'gen' : ''}` : ''}</span></li>`;
     $('strip-rechts').innerHTML = `<span title="Rode vlaggen" aria-label="${G.vlaggen} rode vlaggen" style="color:var(--vlag)">${VLAG}${G.vlaggen}</span><span aria-label="Beurt ${G.beurten} van hooguit ${L.snel} voor de ster snel">Beurt ${G.beurten}/${L.snel}</span>`;
   }
   // een gesprek beginnen, of verder gaan na herladen (pad: de keuzes die al gemaakt waren; die staan er meteen)
   function startGesprek(id, pad) {
     stopTypen();
     const L = HH.LV[id];
-    G = HH.begin(id); K = { klok: minVan(L.tijd) }; laatsteWie = null; vlagGezegd = false;
+    G = HH.begin(id); K = { klok: minVan(L.tijd) }; laatsteWie = null; laatsteVan = null; standaard = 'online'; vlagGezegd = false;
     $('chat-naam').textContent = L.naam; $('chat-foto').src = fotoVan(id); $('b-wie').dataset.profiel = id; $('b-wie').setAttribute('aria-label', 'Bekijk het profiel van ' + L.naam);
     $('log').innerHTML = `<span class="chip">Vandaag</span><span class="chip let-op">Alles in dit gesprek is verzonnen, en bedragen zijn spelgeld. Dennis werkt niet bij een bank, en de Duinbank bestaat niet.</span>`;
     $('keuzes').hidden = true; $('keuze-lijst').innerHTML = ''; $('invoer').hidden = false; $('afgelopen').hidden = true; leegVeld();
     naar('chat'); status('online');
     if (pad && pad.length) {
-      const a = speelAf(id, pad, (wie, m, tijd, o) => { $('log').insertAdjacentHTML('beforeend', berichtHTML(wie, m, tijd, o)); laatsteWie = wie; });
+      const a = speelAf(id, pad, (wie, m, tijd, o) => { if (m.groep) { wordtGroep(m); return; } $('log').insertAdjacentHTML('beforeend', berichtHTML(wie, m, tijd, o)); if (!m.systeem) { laatsteWie = wie; laatsteVan = m.van || null; } });
       if (a.g.klaar || a.g.pad.length !== pad.length) { startGesprek(id); return; }
       G = a.g; K.klok = a.klok; zetKlok(K.klok); zetHud(0); naarOnder(); toonKeuzes();
     } else { zetHud(0); zetKlok(K.klok); later(factor() ? (reduce ? 200 : 500) : 0, () => zeg(L.knopen[L.start].zeg, toonKeuzes)); }
@@ -2582,14 +3194,15 @@ const TEKEN = (() => {
   function zeg(lijst, klaar) {
     const rij = lijst.map(norm);
     const volgende = () => {
-      if (!rij.length) { status('online'); klaar(); return; }
+      if (!rij.length) { status(standaard); klaar(); return; }
       const m = rij.shift(), d = typeDuur(m);
+      if (m.systeem || m.groep) { later(factor() ? 700 * factor() : 0, () => { plaats('in', m); later(factor() ? 500 * factor() : 0, volgende); }); return; }
       const typ = () => {
-        if (d) { status(m.foto ? 'stuurt een foto…' : m.spraak ? 'neemt een spraakbericht op…' : 'typt…', true); $('log').insertAdjacentHTML('beforeend', `<div class="bericht in typend${laatsteWie !== 'in' ? ' nieuw-blok' : ''}" aria-hidden="true"><div class="bel"><span></span><span></span><span></span></div></div>`); naarOnder(); }
-        later(d, () => { const t = $('log').querySelector('.typend'); if (t) t.remove(); plaats('in', m); GELUID.in(); status('online'); later(d ? 280 : 0, volgende); });
+        if (d) { status((m.van ? HH.LV[m.van].wie + ' ' : '') + (m.foto ? 'stuurt een foto…' : m.spraak ? 'neemt een spraakbericht op…' : 'typt…'), true); $('log').insertAdjacentHTML('beforeend', `<div class="bericht in typend${laatsteWie !== 'in' ? ' nieuw-blok' : ''}" aria-hidden="true"><div class="bel"><span></span><span></span><span></span></div></div>`); naarOnder(); }
+        later(d, () => { const t = $('log').querySelector('.typend'); if (t) t.remove(); plaats('in', m); GELUID.in(); status(standaard); later(d ? 280 : 0, volgende); });
       };
       // { na }: de klant is even weg (koffie zetten, leesbril pakken) en komt later terug
-      if (m.na && factor()) { status('online'); later(1100 * factor(), typ); } else typ();
+      if (m.na && factor()) { status(standaard); later(1100 * factor(), typ); } else typ();
     };
     volgende();
   }
@@ -2621,16 +3234,17 @@ const TEKEN = (() => {
     const verstuur = () => {
       if (typer) clearInterval(typer); typer = null; if (mijn !== sessie) return;
       leegVeld();
-      const el = plaats('uit', c.t, { vlag: c.vlag, stand: 1 }); GELUID.uit(); zetHud(G.vertrouwen - voor);
+      const el = plaats('uit', uitBericht(c), { vlag: c.vlag, stand: 1 }); GELUID.uit(); zetHud(G.vertrouwen - voor);
       if (c.grap && (!S.grap.includes(c.grap[0]) || (af && af.nieuweGrappen.includes(c.grap[0])))) toast('📸 Schermafbeelding: ' + c.grap[1]);
       else if (c.vlag && !vlagGezegd) { vlagGezegd = true; toast('🚩 Rode vlag: dat klinkt verdacht.'); }
       const vink = el.querySelector('.vink'), f = factor();
       later(f ? 350 : 0, () => { vink.dataset.stand = 2;
-        later(f ? 900 * f : 0, () => { vink.dataset.stand = 3; if (af) zeg(af.einde.zeg, () => toonEinde(af)); else zeg(HH.knoop(G).zeg, toonKeuzes); }); });
+        later(f ? 900 * f : 0, () => { vink.dataset.stand = 3; if (af) zeg(af.einde.zeg, () => { zetHud(0); toonEinde(af); }); else zeg(HH.knoop(G).zeg, toonKeuzes); }); });
     };
     // het antwoord verschijnt letter voor letter in het invoerveld
     const f = factor();
     if (!f || reduce) { verstuur(); return; }
+    if (c.foto) { $('veld-leeg').hidden = true; $('veld-tekst').textContent = '📷 Foto'; $('stuur').classList.add('klaar'); later(450, verstuur); return; }
     $('veld-leeg').hidden = true; $('veld-cursor').hidden = false; let n = 0; const stap = Math.max(1, Math.ceil(c.t.length / 28));
     typer = setInterval(() => { if (mijn !== sessie) { clearInterval(typer); typer = null; return; } n = Math.min(c.t.length, n + stap); $('veld-tekst').textContent = c.t.slice(0, n); if (n >= c.t.length) { clearInterval(typer); typer = null; $('stuur').classList.add('klaar'); later(220, verstuur); } }, 22);
   }
@@ -2644,15 +3258,15 @@ const TEKEN = (() => {
   function toonEinde(af) {
     const e = af.einde, L = HH.LV[G.lv], i = GESPREKKEN.findIndex(g => g.id === G.lv), volgende = GESPREKKEN[i + 1];
     $('invoer').hidden = true; $('afgelopen').hidden = false;
-    $('afgelopen').textContent = e.soort === 'gehaald' ? 'Het gesprek is afgelopen.' : `${L.wie} antwoordt niet meer.`;
-    status('laatst gezien om ' + hhmm(K.klok));
-    const stempel = e.soort === 'gehaald' ? 'Bijna gelukt' : e.soort === 'geheim' ? 'Geheim einde' : 'Mislukt';
+    $('afgelopen').textContent = e.slot ? 'Dit account is geblokkeerd. Je kunt geen berichten meer sturen.' : e.soort === 'gehaald' ? 'Het gesprek is afgelopen.' : `${L.wie} antwoordt niet meer.`;
+    status(e.slot ? standaard : 'laatst gezien om ' + hhmm(K.klok));
+    const stempel = e.stempel || (e.soort === 'gehaald' ? 'Bijna gelukt' : e.soort === 'geheim' ? 'Geheim einde' : 'Mislukt');
     const tekst = e.soort === 'gehaald' ? e.bijna : e.soort === 'geheim' ? 'Je deed per ongeluk iets aardigs. Daar krijg je geen sterren voor, wel een schermafbeelding.' : G.vertrouwen <= 0 ? `${L.wie} vertrouwde je helemaal niet meer: te veel rode vlaggen.` : `${L.wie} trapte er niet in. Probeer het nog eens, met andere antwoorden.`;
-    const NAMEN = ['Bijna gelukt', `Snel: hooguit ${L.snel} beurten`, 'Zonder rode vlag'];
+    const NAMEN = [e.slot ? 'Tot het eind' : 'Bijna gelukt', `Snel: hooguit ${L.snel} beurten`, 'Zonder rode vlag'];
     const sterren = e.soort === 'gehaald' ? `<div class="sterren" role="img" aria-label="${af.sterren.reduce((a, b) => a + b, 0)} van 3 sterren">${af.sterren.map((s, k) => `<span class="ster${s ? '' : ' uit'}">${STER(!!s)}${NAMEN[k]}</span>`).join('')}</div>` : '';
     const nieuw = [af.nieuwEinde ? 'het einde "' + e.titel + '"' : '', ...af.nieuweGrappen.map(id => '"' + HH.GRAPPEN.find(g => g.id === id).naam + '"')].filter(Boolean);
-    $('log').insertAdjacentHTML('beforeend', `<div class="einde" role="status"><span class="stempel ${e.soort}">${stempel}</span><h3>${esc(e.titel)}</h3>${sterren}<p>${esc(tekst)}</p>
-      <div class="les"><b>Wat ${esc(L.wie)} goed deed</b>${esc(L.les)}</div>
+    $('log').insertAdjacentHTML('beforeend', `<div class="einde" role="status"><span class="stempel ${e.slot ? 'mis' : e.soort}">${stempel}</span><h3>${esc(e.titel)}</h3>${sterren}<p>${esc(tekst)}</p>
+      <div class="les"><b>Wat ${esc(L.wie)} goed deed</b>${esc(L.les)}</div>${e.slot ? '<p class="nieuw-shot"><b>Dit is het einde van Helpdesk Hopeloos.</b> Dennis is ontmaskerd. Probeer nog alle sterren, eindes en grappige antwoorden te vinden.</p>' : ''}
       ${nieuw.length ? `<p class="nieuw-shot">Nieuwe schermafbeelding${nieuw.length > 1 ? 'en' : ''}: ${esc(nieuw.join(', '))}</p>` : ''}
       <div class="knoppen"><button class="knop" type="button" data-opnieuw>Nog een keer</button>${e.soort === 'gehaald' && volgende ? `<button class="knop hoofd" type="button" data-volgende="${volgende.id}">Volgende klant</button>` : ''}<button class="knop" type="button" data-tab="lijst">Naar je chats</button></div>
       <button class="linkknop" type="button" data-leerde>De echte waarschuwingssignalen</button><div class="einde-reclame" id="einde-reclame"></div></div>`);
@@ -2678,6 +3292,7 @@ const TEKEN = (() => {
     const p = e.target.closest('[data-profiel]');
     if (p) {
       const id = p.dataset.profiel, L = HH.LV[id];
+      if (id === 'digicafe') { $('profiel-foto').src = fotoVan(id); $('profiel-foto').alt = TEKEN.ALT[id]; $('profiel-naam').textContent = 'Digicafé De Linde'; $('profiel-over').textContent = 'Elke dinsdag van tien tot twaalf in buurthuis De Linde. De koffie staat klaar.'; $('profiel-extra').textContent = 'Groep met ' + GESPREKKEN.map(g => g.wie.replace(/^Meneer |^Mevrouw /, '')).join(', ') + '.'; open('d-profiel'); return; }
       $('profiel-foto').src = fotoVan(id); $('profiel-foto').alt = TEKEN.ALT[id] || '';
       $('profiel-naam').textContent = L ? L.naam : 'Dennis | Duinbank';
       $('profiel-over').textContent = L ? L.over : 'Altijd voor u klaar! 😊';

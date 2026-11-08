@@ -1,5 +1,7 @@
 # Plan: de Gildewinkel in de Vlaaienbakker
 
+> **Gebouwd op 8 november 2026** (goedgekeurd door Ruben). Wat er echt gebouwd is, staat in CLAUDE.md onder "Vlaaienbakker: de Gildewinkel". Kleine verschillen met dit plan: er is ook een gouden korst (bij De Gouden Vlaai) en "Geen schort" als begin; Gildemeester staat als stempeltje naast je titel.
+
 Uit de ideeënbox: spelers willen meer kunnen kopen met hun gildesterren. Nu zijn er tien gildevoordelen, en een fanatieke speler heeft die na drie of vier dagen allemaal. Daarna sparen ze sterren voor niets.
 
 ## Wat er verandert
@@ -60,10 +62,12 @@ Gerekend met een robotspeler die de echte rekenregels van het spel gebruikt (hij
 | | Nu | Met de gildewinkel |
 |---|---|---|
 | Eerste gildester | dag 0,5 | dag 0,5 (precies gelijk) |
-| Eerste Oerknal, bij 4 uur per dag | dag 5,3 | dag 4,4 |
-| Na 10 dagen, bij 4 uur per dag | 10⁸⁷ | 10⁹⁴ |
-| Eerste Oerknal, bij 1 uur per dag | dag 18,3 | dag 15,3 |
-| Na 30 dagen, bij 1 uur per dag | 10⁷⁸ | 10⁸³ |
+| Eerste Oerknal, bij 4 uur per dag | dag 5,3 tot 5,5 | dag 4,3 tot 4,4 |
+| Na 10 dagen, bij 4 uur per dag | 10⁸⁶ tot 10⁸⁷ | 10⁹⁴ |
+| Eerste Oerknal, bij 1 uur per dag | dag 16 tot 18 | dag 13 tot 15 |
+| Na 30 dagen, bij 1 uur per dag | 10⁷⁸ tot 10⁸⁰ | 10⁸³ tot 10⁸⁶ |
+
+(Nagerekend met de gebouwde versie, met drie verschillende zaadjes.)
 
 - **Het begin blijft precies hetzelfde**: tot je eerste gildester (ongeveer een halve dag spelen) verandert er niets.
 - De eerste Oerknal komt ongeveer een dag (bij veel spelen) tot drie dagen (bij weinig spelen) eerder. Daarna groeit het ongeveer 6 tot 8% sneller (meer nullen).

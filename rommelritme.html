@@ -1761,7 +1761,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
   const KWAL = {
     zuinig: { dpr: 1, laagDpr: 0.6, deeltjes: 0.4, fps: 60, weinig: true },
     normaal: { dpr: 2, laagDpr: matchMedia('(pointer: coarse)').matches ? 1 : 1.5, deeltjes: 0.75, fps: 60, weinig: false },
-    mooi: { dpr: 2, laagDpr: 2, deeltjes: 1, fps: 0, weinig: false },
+    mooi: { dpr: 2, laagDpr: matchMedia('(pointer: coarse)').matches ? 1.25 : 2, deeltjes: 1, fps: 0, weinig: false },
   };
   function autoKwal() {
     if (app.a && KWAL[app.a]) return app.a;
@@ -2144,7 +2144,9 @@ if (typeof module !== 'undefined') module.exports = RRM;
     const stukken = [];
     for (let ry = 0; ry < h; ry += T) { let st = null; for (let rx = 0; rx < w; rx += T) { if (vol(rx, ry)) { if (st && st.x1 === rx) st.x1 = rx + T; else { if (st) stukken.push(st); st = { x0: rx, x1: rx + T, y: ry }; } } } if (st) stukken.push(st); }
     if (!stukken.length) return null;
-    return stukken.map(q => { const sx = q.x0 * k, sy = q.y * k; return { sx, sy, sw: Math.min(c.width, q.x1 * k) - sx, sh: Math.min(c.height, (q.y + T) * k) - sy }; });
+    let open = 0; for (let i = 3; i < px.length; i += 4) if (px[i] < 250) { open++; break; }
+    const uit = stukken.map(q => { const sx = q.x0 * k, sy = q.y * k; return { sx, sy, sw: Math.min(c.width, q.x1 * k) - sx, sh: Math.min(c.height, (q.y + T) * k) - sy }; });
+    uit.dicht = !open; return uit;
   }
   function bouwWereld(lev) {
     const kw = KW(), id = lev.spec.id, sl = id + '|' + W + 'x' + H + '|' + kwNaam();
@@ -2195,7 +2197,9 @@ if (typeof module !== 'undefined') module.exports = RRM;
     const kw = KW(), g = WER.ag, ld = WER.ld, Bc = WER.Bc, ty0 = (camY - CAMY0) * Bc; if (!g) return;
     const rond = WER.glad ? (v => v) : (v => Math.round(v * ld) / ld), rondY = v => Math.round(v * ld) / ld;
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
-    g.drawImage(WER.lucht, 0, 0); g.setTransform(ld, 0, 0, ld, 0, 0);
+    const gyC = sy(0) / dpr(), l0 = WER.lagen[0], dicht = l0 && l0.stukken.dicht && l0.y + ty0 * l0.def.fy <= 0;
+    if (!dicht) { const hP = Math.max(1, Math.min(WER.lucht.height, Math.ceil(gyC * ld) + 2)); g.drawImage(WER.lucht, 0, 0, WER.lucht.width, hP, 0, 0, WER.lucht.width, hP); }
+    g.setTransform(ld, 0, 0, ld, 0, 0);
     // de lucht kleurt mee met de bas (en sterker op een bekken): een gloed in de kleur van het level boven de horizon
     const PR = window.__rrProef || {};
     if (!PR.lucht && WER.mooi) { const K = WER.lev.spec.kleuren, a = (reduce ? 0.1 : 0.32) * Math.min(1, BEAT.bas * 1.1 + BEAT.bekken * 0.7 + BEAT.kick * 0.15); if (a > 0.02) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; g.drawImage(gloedDot(K[1]), 0, 4, 64, 56, -WER.Wc * 0.25, WER.hor - WER.Hc * 0.62, WER.Wc * 1.5, WER.Hc * 0.95); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; } }
@@ -2213,7 +2217,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
         g.globalAlpha = Math.max(0, Math.min(1, l.glans)); g.globalCompositeOperation = 'lighter';
       }
       const Wc = WER.Wc;
-      if (PR.heel) { if (!PR.lagen) g.drawImage(l.c, 0, 0, l.c.width, l.c.height, tx, ty, l.c.width / ld, l.c.height / ld); } else if (!PR.lagen) for (const q of l.stukken) { let x = tx + q.sx / ld, sx = q.sx, sw = q.sw; if (x + sw / ld <= 0 || x >= Wc) continue; if (x < 0) { const knip = Math.ceil(-x * ld); sx += knip; sw -= knip; x += knip / ld; } if (x + sw / ld > Wc) sw = Math.ceil((Wc - x) * ld); if (sw < 1) continue; g.drawImage(l.c, sx, q.sy, sw, q.sh, x, ty + q.sy / ld, sw / ld, q.sh / ld); }
+      if (PR.heel) { if (!PR.lagen) g.drawImage(l.c, 0, 0, l.c.width, l.c.height, tx, ty, l.c.width / ld, l.c.height / ld); } else if (!PR.lagen) for (const q of l.stukken) { let x = tx + q.sx / ld, sx = q.sx, sw = q.sw, sh = q.sh; const y = ty + q.sy / ld; if (y >= gyC || y + sh / ld <= 0) continue; if (y + sh / ld > gyC) sh = Math.min(sh, Math.ceil((gyC - y) * ld) + 2); if (x + sw / ld <= 0 || x >= Wc) continue; if (x < 0) { const knip = Math.ceil(-x * ld); sx += knip; sw -= knip; x += knip / ld; } if (x + sw / ld > Wc) sw = Math.ceil((Wc - x) * ld); if (sw < 1) continue; g.drawImage(l.c, sx, q.sy, sw, sh, x, y, sw / ld, sh / ld); }
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
       if (l.draaiers.length) { l.hoek = (l.hoek || 0) + dt * (reduce ? 0.5 : 1.1 + BEAT.bas * 2.4); for (const q of l.draaiers) { const x = tx + q.x; if (x < -q.r * 2 || x > WER.Wc + q.r * 2) continue; g.save(); g.translate(x, ty + (q.y - l.y)); g.rotate(l.hoek); g.drawImage(q.c, -q.r, -q.r, q.r * 2, q.r * 2); g.restore(); } }
       if (l.n === WER.dynNa && !PR.dyn) dyn();

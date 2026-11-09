@@ -7,6 +7,8 @@
 <title>Rommelritme – Ruben's rommelhoekje</title>
 <meta name="description" content="Spring op de maat van de muziek over spijkers, door tunnels en langs springringen. Zes levels, van pittig tot echt lastig.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%228%22%20y%3D%2222%22%20width%3D%2226%22%20height%3D%2226%22%20rx%3D%223%22%20fill%3D%22%238AFF6A%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223%22/%3E%3Crect%20x%3D%2214%22%20y%3D%2230%22%20width%3D%224%22%20height%3D%225%22%20fill%3D%22%231F2333%22/%3E%3Crect%20x%3D%2224%22%20y%3D%2230%22%20width%3D%224%22%20height%3D%225%22%20fill%3D%22%231F2333%22/%3E%3Crect%20x%3D%2215%22%20y%3D%2239%22%20width%3D%2212%22%20height%3D%222.6%22%20fill%3D%22%231F2333%22/%3E%3Cpath%20d%3D%22M44%2010v24%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2010l12%204v7l-12-4%22%20fill%3D%22%23FF5AA8%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22/%3E%3Cellipse%20cx%3D%2240%22%20cy%3D%2235%22%20rx%3D%225.5%22%20ry%3D%224.2%22%20fill%3D%22%23FF5AA8%22%20stroke%3D%22%231F2333%22%20stroke-width%3D%222.6%22/%3E%3Cpath%20d%3D%22M4%2056h56%22%20stroke%3D%22%235EE6FF%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M44%2056l6-8%206%208z%22%20fill%3D%22%231F2333%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
 <style>
 :root { --nacht: #1A2248; --papier: #FBF6E9; --manila: #F2DDA0; --inkt: #231A26; --rood: #C8323C; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 *, *::before, *::after { box-sizing: inherit; }
@@ -46,6 +48,57 @@ html, body { overscroll-behavior: none; }
   .rr-levels { grid-template-columns: 1fr !important; }
   #rr-melding { left: .5rem !important; right: .5rem !important; transform: none !important; max-width: none !important; text-align: center; }
 }
+/* de wereld achter het speelveld: losse lagen die de browser zelf verschuift */
+.rr-kaart [hidden], #rr-banner[hidden] { display: none !important; }
+#rr-scene { position: absolute; inset: 0; overflow: hidden; background: #06060E; }
+#rr-wereld { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#rr-doek { position: absolute; inset: 0; }
+#rr-achter { position: absolute; inset: 0; }
+#rr-flits { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; }
+/* een banner die met een klap in beeld komt (een nieuw record) */
+#rr-banner { position: absolute; left: 50%; top: 20%; z-index: 5; transform: translate(-50%, 0) rotate(-3deg); background: var(--papier); color: var(--inkt); border: 3px solid var(--inkt); border-radius: 14px; padding: .35rem 1.2rem .5rem; text-align: center; box-shadow: 0 5px 0 rgba(0,0,0,.4); pointer-events: none; }
+#rr-banner b { display: block; font-size: .9rem; text-transform: uppercase; letter-spacing: .1em; color: var(--rood); }
+#rr-banner span { display: block; font-size: 2.3rem; font-weight: 900; line-height: 1; }
+/* de uitslag */
+.rr-uitslag { max-width: 30rem; text-align: center; }
+.rr-uitslag-rij { display: grid; grid-template-columns: 1fr auto; gap: .6rem 1rem; align-items: center; margin: .6rem 0 .4rem; text-align: left; }
+.rr-cijfers { display: grid; gap: .15rem; }
+.rr-cijfer { display: flex; justify-content: space-between; gap: .8rem; padding: .18rem .55rem; border-radius: 6px; background: rgba(35,26,38,.07); font-size: .95rem; }
+.rr-cijfer b { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+.rr-cijfer.groot { background: var(--inkt); color: var(--manila); margin-top: .2rem; }
+.rr-cijfer.groot b { font-size: 1.35rem; }
+.rr-stempelplek { width: 9.5rem; min-height: 6rem; display: grid; place-items: center; }
+.rr-stempel { color: #B3261E; border: 4px double #B3261E; border-radius: 10px; padding: .35rem .5rem; font-weight: 900; font-size: 1.35rem; line-height: 1.05; text-transform: uppercase; letter-spacing: .04em; transform: rotate(-9deg); text-align: center; background: rgba(255,255,255,.18); box-shadow: inset 0 0 0 2px rgba(179,38,30,.25); }
+.rr-nieuw { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem; margin: .1rem 0 .5rem; }
+.rr-nieuw span { background: var(--rood); color: #fff; font-weight: 800; font-size: .85rem; padding: .2rem .6rem; border-radius: 999px; }
+.rr-best { font-weight: 700; }
+.rr-minist { display: inline-block; border: 2px solid var(--k2); color: var(--k2); border-radius: 5px; padding: 0 .3rem; font-size: .72rem; font-weight: 900; text-transform: uppercase; transform: rotate(-4deg); margin-right: .2rem; }
+/* instellingen */
+.rr-inst-kaart { max-width: 32rem; }
+.rr-veldset { border: 2px solid rgba(35,26,38,.25); border-radius: 10px; margin: .6rem 0; padding: .4rem .8rem .7rem; }
+.rr-veldset legend { font-weight: 800; padding: 0 .3rem; }
+.rr-veldset label { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; padding: .22rem 0; cursor: pointer; }
+.rr-veldset small { color: #5E5643; }
+.rr-schuif { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: .4rem 0; }
+.rr-schuif input { flex: 1; min-width: 9rem; accent-color: var(--rood); }
+.rr-schuif output { font-weight: 800; min-width: 4.5rem; font-variant-numeric: tabular-nums; }
+.rr-wegl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.rr-proeftik { display: block; width: 100%; margin: .5rem 0; font: inherit; font-size: 1.5rem; font-weight: 900; padding: 1.1rem; border: 3px solid var(--inkt); border-radius: 14px; background: #FFE76A; color: var(--inkt); cursor: pointer; touch-action: manipulation; }
+.rr-proef-uit { min-height: 1.3em; font-weight: 700; }
+.rr-kaart :focus-visible { outline: 3px solid #2F6FB5; outline-offset: 2px; }
+@media (max-width: 640px) { .rr-uitslag-rij { grid-template-columns: 1fr; } .rr-stempelplek { width: auto; min-height: 4.5rem; } #rr-banner span { font-size: 1.8rem; } }
+@media (prefers-reduced-motion: no-preference) {
+  #rr-banner.klap { animation: rr-klap .45s cubic-bezier(.2, 1.5, .4, 1) both; }
+  .rr-stempel.klap { animation: rr-stempel .38s cubic-bezier(.3, 1.4, .5, 1) both; }
+  .rr-proeftik.tik { animation: rr-tik .18s ease-out; }
+  .rr-nieuw:not([hidden]) span { animation: rr-wip .4s cubic-bezier(.2, 1.6, .4, 1) both; }
+}
+.rr-stempel.zacht { animation: rr-zacht .3s ease-out both; }
+@keyframes rr-klap { 0% { transform: translate(-50%, 0) scale(2.3) rotate(-10deg); opacity: 0; } 55% { opacity: 1; } 100% { transform: translate(-50%, 0) scale(1) rotate(-3deg); } }
+@keyframes rr-stempel { 0% { transform: scale(3) rotate(-22deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: scale(1) rotate(-9deg); } }
+@keyframes rr-tik { 0% { transform: scale(.94); background: #FFF6B0; } 100% { transform: scale(1); } }
+@keyframes rr-wip { 0% { transform: translateY(8px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes rr-zacht { from { opacity: 0; } to { opacity: 1; } }
 </style>
 <!-- versie 0.6: de spelbalk bovenin, in de stijl van de homepage, met licht en donker (de keuze op de homepage geldt overal) -->
 <script>(function () { var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null; function pas() { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && !!mq && mq.matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); } pas(); if (mq && mq.addEventListener) mq.addEventListener('change', pas); addEventListener('storage', function (e) { if (e.key === 'rommelhoekje-thema') pas(); }); })();</script>
@@ -72,19 +125,46 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   <div class="rechts"><button class="rr-knop" id="rr-geluid" type="button" aria-pressed="true">Muziek aan</button><button class="rr-knop" id="rr-pauzeknop" type="button">Pauze</button></div>
 </div>
 <div class="rr-veld" id="rr-veld">
-  <canvas id="rr-doek" aria-label="Een blokje dat op de maat van de muziek over spijkers springt"></canvas>
+  <div id="rr-scene"><div id="rr-wereld" aria-hidden="true"></div><canvas id="rr-doek" aria-label="Een blokje dat op de maat van de muziek over spijkers springt"></canvas></div>
+  <div id="rr-flits" aria-hidden="true"></div>
+  <div id="rr-banner" hidden role="status"><b>Nieuw record!</b><span></span></div>
   <div id="rr-melding" hidden role="status"></div>
   <div class="rr-scherm" id="rr-menu">
     <div class="rr-kaart">
       <h2>Rommelritme</h2>
       <p>Je blokje rent vanzelf vooruit, op de maat van de muziek. Spring precies op de beat over de spijkers! Druk op <b>spatie</b>, klik, of tik op het scherm. Ingedrukt houden laat je blijven springen.</p>
-      <p class="rr-tip">Gele ringen: druk als je erdoorheen vliegt voor een extra sprong. Gele kussens: die lanceren je vanzelf. Roze poort: je wordt een raketje; houd ingedrukt om omhoog te gaan. Met oefenen krijg je checkpoints, maar dan telt je score niet mee. Esc of P is pauze, R begint opnieuw.</p>
+      <p class="rr-tip">Gele ringen: druk als je erdoorheen vliegt voor een extra sprong. Gele kussens: die lanceren je vanzelf. Roze poort: je wordt een raketje; houd ingedrukt om omhoog te gaan. Valt je sprong precies op de tel, dan krijg je <b>Perfect!</b>, en sprongen op rij geven een combo. Met oefenen krijg je checkpoints, maar dan telt je score niet mee. Esc of P is pauze, R begint opnieuw.</p>
+      <div class="rr-knoppen"><button class="rr-knop" id="rr-inst-knop" type="button">Instellingen</button></div>
       <div class="rr-levels" id="rr-levels"></div>
       <div id="sb-ritme"></div>
     </div>
   </div>
   <div class="rr-scherm" id="rr-pauze" hidden><div class="rr-kaart" style="max-width:22rem;text-align:center"><h2>Pauze</h2><p>Even op adem komen.</p><div class="rr-knoppen" style="justify-content:center;flex-wrap:wrap"><button class="rr-knop hoofd" id="rr-verder" type="button">Verder</button><button class="rr-knop" id="rr-opnieuw" type="button">Opnieuw</button><button class="rr-knop" type="button" data-naarmenu="1">Naar de levels</button></div></div></div>
-  <div class="rr-scherm" id="rr-einde" hidden><div class="rr-kaart" style="max-width:26rem;text-align:center"><h2 id="rr-einde-kop">Level gehaald!</h2><p id="rr-einde-tekst"></p><div class="rr-knoppen" style="justify-content:center"><button class="rr-knop hoofd" type="button" data-naarmenu="1">Naar de levels</button></div><div id="eind-reclame"></div></div></div>
+  <div class="rr-scherm" id="rr-einde" hidden><div class="rr-kaart rr-uitslag">
+    <h2 id="rr-einde-kop">Level gehaald!</h2><p id="rr-einde-tekst"></p>
+    <div class="rr-uitslag-rij"><div class="rr-cijfers" id="rr-cijfers"></div><div class="rr-stempelplek"><div class="rr-stempel" id="rr-stempel" hidden></div></div></div>
+    <div class="rr-nieuw" id="rr-nieuw" hidden></div>
+    <div class="rr-knoppen" style="justify-content:center;flex-wrap:wrap"><button class="rr-knop hoofd" id="rr-weer" type="button">Nog een keer</button><button class="rr-knop" type="button" data-naarmenu="1">Naar de levels</button></div>
+    <div id="eind-reclame"></div>
+  </div></div>
+  <div class="rr-scherm" id="rr-inst" hidden><div class="rr-kaart rr-inst-kaart" role="dialog" aria-labelledby="rr-inst-kop">
+    <h2 id="rr-inst-kop">Instellingen</h2>
+    <fieldset class="rr-veldset"><legend>Beeld</legend>
+      <label><input type="radio" name="rr-kw" value="auto"> <b>Automatisch</b> <small>nu: <span id="rr-kw-auto">Normaal</span></small></label>
+      <label><input type="radio" name="rr-kw" value="zuinig"> <b>Zuinig</b> <small>minder details, spaart je batterij</small></label>
+      <label><input type="radio" name="rr-kw" value="normaal"> <b>Normaal</b></label>
+      <label><input type="radio" name="rr-kw" value="mooi"> <b>Mooi</b> <small>alles, ook op schermen van 120 Hz (je apparaat wordt warmer)</small></label>
+    </fieldset>
+    <fieldset class="rr-veldset"><legend>Vertraging van je scherm of koptelefoon</legend>
+      <p class="rr-tip">Hoor je de muziek later dan je het blokje ziet springen, bijvoorbeeld met een draadloze koptelefoon? Meet het hier, of schuif zelf. Aan de levels verandert niets: het spel loopt alleen zoveel later, zodat je ziet wat je hoort.</p>
+      <div class="rr-schuif"><label for="rr-vert" class="rr-wegl">Vertraging</label><input type="range" id="rr-vert" min="-50" max="300" step="5" value="0" aria-describedby="rr-vert-w"><output id="rr-vert-w" for="rr-vert">0 ms</output><button class="rr-knop" id="rr-vert-nul" type="button">Op 0</button></div>
+      <div class="rr-knoppen" style="flex-wrap:wrap"><button class="rr-knop" id="rr-proef" type="button">Meet de vertraging</button><button class="rr-knop hoofd" id="rr-proef-neem" type="button" hidden>Gebruik dit</button></div>
+      <button class="rr-proeftik" id="rr-proef-tik" type="button" hidden>Tik mee!</button>
+      <p id="rr-proef-uit" class="rr-proef-uit" role="status"></p>
+    </fieldset>
+    <p class="rr-tip">Dit geldt alleen voor dit apparaat.</p>
+    <div class="rr-knoppen"><button class="rr-knop hoofd" id="rr-inst-dicht" type="button">Klaar</button></div>
+  </div></div>
 </div>
 <script>
 (function () {
@@ -523,7 +603,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
       'rommelarend-v1': { velden: { ontdekt: samenLijst, veren: samenLijst, gestart: of, voortgangTotaal: max,
         races: elk((b, s, i) => (isObj(s) && isObj(i) ? Object.assign({}, s, { tijd: snelste(undefined, s.tijd, i.tijd), medaille: (MEDAILLE[i.medaille] || 0) > (MEDAILLE[s.medaille] || 0) ? i.medaille : s.medaille }) : isObj(s) ? s : i)) } },
       'rommelbel-v1': { velden: { open: max, sterren: elk(max), scores: elk(max), eindeloos: max, gespeeld: teller, voortgangTotaal: max } },
-      'rommelritme-v1': { velden: { best: elk(max), pogingen: elk(teller), gehaald: elk(of), voortgangTotaal: max } },
+      'rommelritme-v1': { velden: { best: elk(max), pogingen: elk(teller), gehaald: elk(of), combo: elk(max), ritme: elk(max), voortgangTotaal: max } },
       'vouwvlieger-v1': { velden: { best: max, sterren: teller, gespeeld: teller, spaar: saldo, skins: samenLijst, upg: samenLijst },
         // sterren uitgeven op twee apparaten tegelijk: kocht je op allebei hetzelfde, dan krijg je één keer je sterren terug.
         // Gaf je samen meer uit dan je had, dan voegen we niet samen (anders kreeg je iets gratis): dan wint de meeste voortgang.
@@ -733,7 +813,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 12;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 13;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
@@ -1664,22 +1744,41 @@ if (typeof module !== 'undefined') module.exports = RRM;
 
 (function () {
   const $ = id => document.getElementById(id);
-  const cv = $('rr-doek'), ctx = cv.getContext('2d'), veld = $('rr-veld');
+  const cv = $('rr-doek'), ctx = cv.getContext('2d'), veld = $('rr-veld'), scene = $('rr-scene');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const KEY = 'rommelritme-v1';
+  const KEY = 'rommelritme-v1', APP = 'rommelritme-apparaat';
   let opslag = { best: {}, pogingen: {}, gehaald: {}, geluid: true };
   try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const isObj = o => !!o && typeof o === 'object' && !Array.isArray(o);
   // het aantal levels gaat mee in de opslag, voor de voortgang op de homepage (Verder spelen)
   const bewaar = () => { try { opslag.voortgangTotaal = LEVELS.length; } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
   const LEVELS = RRM.LEVELS.map(spec => ({ spec, L: RRM.bouw(spec) }));
+  // per apparaat (niet bij het koppelen): de beeldkwaliteit en de vertraging van je scherm of koptelefoon
+  let app = { k: 'auto', v: 0 };
+  try { const a = JSON.parse(localStorage.getItem(APP) || '{}'); if (isObj(a)) { if (['auto', 'zuinig', 'normaal', 'mooi'].includes(a.k)) app.k = a.k; if (typeof a.v === 'number' && isFinite(a.v)) app.v = Math.max(-50, Math.min(300, Math.round(a.v))); if (a.a) app.a = a.a; } } catch (e) {}
+  const bewaarApp = () => { try { localStorage.setItem(APP, JSON.stringify(app)); } catch (e) {} };
+  // de kwaliteit: Zuinig, Normaal of Mooi. Automatisch kijkt naar het apparaat, en zakt een stand als het tekenen het niet bijhoudt.
+  const KWAL = {
+    zuinig: { dpr: 1, laagDpr: 0.6, deeltjes: 0.4, fps: 60, weinig: true },
+    normaal: { dpr: 2, laagDpr: matchMedia('(pointer: coarse)').matches ? 1 : 1.5, deeltjes: 0.75, fps: 60, weinig: false },
+    mooi: { dpr: 2, laagDpr: 2, deeltjes: 1, fps: 0, weinig: false },
+  };
+  function autoKwal() {
+    if (app.a && KWAL[app.a]) return app.a;
+    const grof = matchMedia('(pointer: coarse)').matches, kernen = navigator.hardwareConcurrency || 4, geheugen = navigator.deviceMemory || 4;
+    return grof && (kernen < 6 || geheugen < 4) ? 'zuinig' : kernen <= 2 ? 'zuinig' : 'normaal';
+  }
+  const kwNaam = () => (app.k === 'auto' ? autoKwal() : app.k);
+  const KW = () => KWAL[kwNaam()];
+  const dpr = () => Math.min(KW().dpr, devicePixelRatio || 1);
 
   // ---------------- muziek: per level een eigen nummer, gespeeld op de klok van de geluidskaart
   let ac = null, master = null;
-  const audio = () => { if (!opslag.geluid) return null; try { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.55; const comp = ac.createDynamicsCompressor(); master.connect(comp); comp.connect(ac.destination); } if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } };
+  const audio = () => { if (!opslag.geluid) return null; try { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.55; const comp = ac.createDynamicsCompressor(); master.connect(comp); maakLuisteraar(comp); } if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } };
   let ruisBuf = null; const ruis = () => { if (!ruisBuf) { ruisBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = ruisBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return ruisBuf; };
   const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
-  function kick(t, vol) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.32); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.34); }
-  function geruis(t, duur, freq, type, vol) { const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = ruis(); f.type = type; f.frequency.value = freq; f.Q.value = 0.9; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + duur); s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 0.5); s.stop(t + duur + 0.02); }
+  function kick(t, vol) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.32); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.34); beatLog('kick', t, vol); }
+  function geruis(t, duur, freq, type, vol) { const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = ruis(); f.type = type; f.frequency.value = freq; f.Q.value = 0.9; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + duur); s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 0.5); s.stop(t + duur + 0.02); if (type === 'bandpass' && freq === 1700) beatLog('clap', t, vol); else if (type === 'highpass' && duur > 1) beatLog('bekken', t, vol); }
   function toon(t, m, duur, type, vol, filter, glij) { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(mtof(m), t); if (glij) o.frequency.exponentialRampToValueAtTime(mtof(m + glij), t + duur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + duur); let uit = o; if (filter) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(filter, t); f.frequency.exponentialRampToValueAtTime(filter * 0.35, t + duur); o.connect(f); uit = f; } uit.connect(g); g.connect(master); o.start(t); o.stop(t + duur + 0.03); }
   // nummers: grondtoon, akkoorden (stappen in de mineurtoonladder), en een melodie per maat
   const MINEUR = [0, 2, 3, 5, 7, 8, 10];
@@ -1715,6 +1814,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
   let muziek = null;
   function startMuziek(lev, vanaf) {
     stopMuziek(); const a = audio(); if (!a) return null;
+    BEAT.q.length = 0;
     const L = lev.L, slag = L.slag, zestiende = slag / 4, liedje = LIEDJES[lev.spec.id];
     const begin = a.currentTime + 0.08 - vanaf;
     const delen = []; let tel = 8; delen.push({ van: 0, tot: 8, soort: 'intro', n: -1 }); lev.spec.delen.forEach((d, n) => { delen.push({ van: tel, tot: tel + d.tellen, soort: d.schip ? 'schip' : 'kubus', n }); tel += d.tellen; }); delen.push({ van: tel, tot: tel + 16, soort: 'eind', n: 99 });
@@ -1768,133 +1868,824 @@ if (typeof module !== 'undefined') module.exports = RRM;
   function stopMuziek() { if (muziek) { clearInterval(muziek.timer); muziek = null; } }
   const fx = { dood: () => { const a = audio(); if (!a) return; geruis(a.currentTime, 0.4, 600, 'lowpass', 0.6); toon(a.currentTime, 40, 0.3, 'sawtooth', 0.12, 800, -12); }, klaar: () => { const a = audio(); if (!a) return; [0, 4, 7, 12].forEach((d, i) => toon(a.currentTime + i * 0.09, 64 + d, 0.4, 'triangle', 0.1)); } };
 
+  // ---------------- de werelden: per level lagen die één keer getekend worden en daarna alleen nog verschuiven
+  // Elke laag: f (hoe snel hij meeschuift, 0 = stil, 1 = als de grond), fy (idem verticaal), boven (waar de laag begint, deel van de hoogte),
+  // P (de breedte van één herhaling, in CSS-pixels), teken(g, o) met o = { w, h, P, hor, U, Bc, rnd, rep }.
+  // soort 'gloed' = een laag waarvan de helderheid op de maat meegaat (alleen doorzichtigheid: dat kost de browser bijna niets).
+  const zaad = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const rgbVan = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const meng = (a, b, f) => { const x = rgbVan(a), y = rgbVan(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * f).toString(16).padStart(2, '0')).join(''); };
+  const rgba = (h, a) => { const x = rgbVan(h); return `rgba(${x[0]},${x[1]},${x[2]},${a})`; };
+  function rondje(g, x, y, r) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+  function rondRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  function halo(g, x, y, r, kleur, a) { const v = g.createRadialGradient(x, y, 0, x, y, r); v.addColorStop(0, rgba(kleur, a)); v.addColorStop(0.35, rgba(kleur, a * 0.45)); v.addColorStop(1, rgba(kleur, 0)); g.fillStyle = v; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  // een snoer dat doorhangt tussen twee punten, met lampjes (of vlaggetjes) erlangs
+  function snoer(g, x0, y0, x1, y1, zak, n, elk) { g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo((x0 + x1) / 2, (y0 + y1) / 2 + zak * 2, x1, y1); g.stroke(); for (let i = 1; i < n; i++) { const t = i / n, x = (1 - t) * (1 - t) * x0 + 2 * t * (1 - t) * (x0 + x1) / 2 + t * t * x1, y = (1 - t) * (1 - t) * y0 + 2 * t * (1 - t) * ((y0 + y1) / 2 + zak * 2) + t * t * y1; elk(x, y, i); } }
+
+  const WERELD = {
+    // ---------- Zoldertrap: een zolder met balken, een dakraam met de maan, lampjes aan snoeren en stofjes in de lichtbundel
+    zolder: {
+      lucht: ['#120A20', '#26173A', '#3A2434'],
+      dynNa: 1,
+      lagen: [
+        { f: 0.05, fy: 0.1, boven: 0, P: 900, teken(g, o) {
+          const { w, h, hor, U, rnd, rep, P } = o;
+          // planken van de achterwand
+          for (let x = 0; x < w; x += U * 0.9) { g.fillStyle = (Math.floor(x / (U * 0.9)) % 2) ? '#1E1229' : '#22152E'; g.fillRect(x, 0, U * 0.9, h); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, 0, 1.5, h); }
+          // het ronde dakraam met de maan
+          rep(P * 0.3, x => {
+            const y = hor * 0.34, r = U * 1.6;
+            const lucht = g.createLinearGradient(0, y - r, 0, y + r); lucht.addColorStop(0, '#0B1A45'); lucht.addColorStop(1, '#2B3F7A'); g.fillStyle = lucht; rondje(g, x, y, r);
+            g.fillStyle = '#FFF6D8'; for (let i = 0; i < 9; i++) { const a = rnd() * 6.28, d = rnd() * r * 0.85; g.fillRect(x + Math.cos(a) * d, y + Math.sin(a) * d, 1.6, 1.6); }
+            halo(g, x + r * 0.35, y - r * 0.3, r * 0.9, '#FFF1C4', 0.5); g.fillStyle = '#FFF4CF'; rondje(g, x + r * 0.35, y - r * 0.3, r * 0.32); g.fillStyle = '#16264F'; rondje(g, x + r * 0.47, y - r * 0.38, r * 0.27);
+            g.strokeStyle = '#4A2E3E'; g.lineWidth = U * 0.28; g.beginPath(); g.arc(x, y, r, 0, 6.29); g.stroke(); g.lineWidth = U * 0.14; g.beginPath(); g.moveTo(x - r, y); g.lineTo(x + r, y); g.moveTo(x, y - r); g.lineTo(x, y + r); g.stroke();
+          });
+          // schuine balken van het dak
+          rep(0, x => { g.strokeStyle = '#2E1C2C'; g.lineWidth = U * 0.75; g.beginPath(); g.moveTo(x - U, h * 0.95); g.lineTo(x + P / 2, -U); g.lineTo(x + P + U, h * 0.95); g.stroke(); g.strokeStyle = 'rgba(233,87,122,.12)'; g.lineWidth = U * 0.12; g.beginPath(); g.moveTo(x - U, h * 0.95 - U * 0.35); g.lineTo(x + P / 2, -U * 1.35); g.stroke(); });
+          g.fillStyle = '#2E1C2C'; g.fillRect(0, hor * 0.06, w, U * 0.5);
+          const vloer = g.createLinearGradient(0, hor, 0, h); vloer.addColorStop(0, '#2A1A2A'); vloer.addColorStop(1, '#140B16'); g.fillStyle = vloer; g.fillRect(0, hor, w, h - hor);
+        } },
+        { f: 0.05, fy: 0.1, boven: 0, P: 900, soort: 'gloed', bron: 'bas', teken(g, o) {
+          // de lichtbundel uit het dakraam
+          const { hor, U, rep, P } = o;
+          rep(P * 0.3, x => { const y = hor * 0.34, r = U * 1.6, gr = g.createLinearGradient(x, y, x + U * 4, hor); gr.addColorStop(0, 'rgba(255,240,200,.28)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(x - r * 0.7, y + r * 0.2); g.lineTo(x + r * 0.7, y - r * 0.2); g.lineTo(x + U * 6.5, hor + U); g.lineTo(x + U * 1.2, hor + U); g.closePath(); g.fill(); });
+        } },
+        { f: 0.16, fy: 0.25, boven: 0.25, P: 760, teken(g, o) {
+          // rommel op de zolder: dozen, een koffer, een hobbelpaard, een spiegel en een paspop
+          const { w, hor, U, rnd, rep, P } = o, vul = '#170D1C', rand = 'rgba(255,214,150,.22)';
+          const doos = (x, y, bw, bh) => { g.fillStyle = vul; g.fillRect(x, y - bh, bw, bh); g.fillStyle = 'rgba(255,214,150,.06)'; g.fillRect(x, y - bh, bw, bh * 0.3); g.fillStyle = 'rgba(255,214,150,.13)'; g.fillRect(x + bw / 2 - U * 0.12, y - bh, U * 0.24, bh * 0.45); g.fillStyle = rand; g.fillRect(x, y - bh, bw, 2); };
+          for (let i = 0; i < 5; i++) {
+            const x0 = (i / 5) * P + rnd() * P * 0.08, soort = i % 5;
+            rep(x0, x => {
+              if (soort === 0) { doos(x, hor, U * 2.2, U * 1.6); doos(x + U * 0.3, hor - U * 1.6, U * 1.6, U * 1.2); doos(x + U * 2.3, hor, U * 1.4, U * 1.1); }
+              else if (soort === 1) { g.fillStyle = vul; rondRect(g, x, hor - U * 1.5, U * 2.8, U * 1.5, U * 0.35); g.fill(); g.fillStyle = rand; g.fillRect(x, hor - U * 1.0, U * 2.8, 2); g.fillStyle = 'rgba(246,203,47,.35)'; g.fillRect(x + U * 1.25, hor - U * 1.15, U * 0.3, U * 0.3); }
+              else if (soort === 2) { g.strokeStyle = vul; g.lineWidth = U * 0.25; g.beginPath(); g.arc(x + U * 1.4, hor - U * 0.2, U * 1.5, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); g.fillStyle = vul; g.beginPath(); g.ellipse(x + U * 1.4, hor - U * 1.8, U * 0.9, U * 0.45, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(x + U * 2.3, hor - U * 2.3, U * 0.32, U * 0.5, 0.5, 0, 7); g.fill(); g.fillRect(x + U * 0.9, hor - U * 1.6, U * 0.18, U * 0.9); g.fillRect(x + U * 1.8, hor - U * 1.6, U * 0.18, U * 0.9); g.fillStyle = rand; g.fillRect(x + U * 2.5, hor - U * 2.55, 3, 3); }
+              else if (soort === 3) { g.fillStyle = vul; rondRect(g, x, hor - U * 3.4, U * 1.4, U * 3.4, U * 0.6); g.fill(); g.fillStyle = 'rgba(140,150,200,.14)'; rondRect(g, x + U * 0.2, hor - U * 3.15, U * 1.0, U * 2.6, U * 0.45); g.fill(); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(x + U * 0.35, hor - U * 3.0, U * 0.15, U * 1.2); }
+              else { g.fillStyle = vul; g.beginPath(); g.ellipse(x + U * 0.8, hor - U * 2.6, U * 0.55, U * 0.75, 0, 0, 7); g.fill(); g.beginPath(); g.moveTo(x + U * 0.25, hor - U * 2.2); g.quadraticCurveTo(x + U * 0.8, hor - U * 1.0, x + U * 0.45, hor - U * 0.9); g.lineTo(x + U * 1.15, hor - U * 0.9); g.quadraticCurveTo(x + U * 0.8, hor - U * 1.0, x + U * 1.35, hor - U * 2.2); g.fill(); g.fillRect(x + U * 0.74, hor - U * 0.9, U * 0.12, U * 0.9); g.fillStyle = rand; g.fillRect(x + U * 0.3, hor - U * 2.55, U * 1.0, 2); }
+            });
+          }
+          void w;
+        } },
+        { f: 0.34, fy: 0.45, boven: 0, P: 640, teken(g, o) {
+          // staanders met snoeren lampjes
+          const { h, hor, U, rep, P } = o;
+          rep(0, x => { const bw = U * 0.55; g.fillStyle = '#1A0F1E'; g.fillRect(x, 0, bw, h); g.fillStyle = 'rgba(233,87,122,.18)'; g.fillRect(x + bw - 2, 0, 2, h); g.fillStyle = '#1A0F1E'; g.fillRect(x - U * 0.5, hor * 0.12, bw + U, U * 0.35); });
+          g.strokeStyle = '#120A16'; g.lineWidth = 2;
+          rep(0, x => snoer(g, x + U * 0.3, hor * 0.16, x + P + U * 0.3, hor * 0.16, U * 0.9, 9, (lx, ly) => { g.fillStyle = '#3A2A1A'; g.fillRect(lx - 2, ly, 4, 5); g.fillStyle = '#FFD86A'; g.beginPath(); g.ellipse(lx, ly + 9, U * 0.16, U * 0.22, 0, 0, 7); g.fill(); }));
+        } },
+        { f: 0.34, fy: 0.45, boven: 0, P: 640, soort: 'gloed', bron: 'kick', teken(g, o) {
+          const { hor, U, rep, P } = o;
+          rep(0, x => snoer({ beginPath() {}, moveTo() {}, quadraticCurveTo() {}, stroke() {} }, x + U * 0.3, hor * 0.16, x + P + U * 0.3, hor * 0.16, U * 0.9, 9, (lx, ly) => halo(g, lx, ly + 9, U * 1.1, '#FFC94A', 0.85)));
+        } },
+      ],
+      grond(g, o) { const { w, h, Bc } = o; g.fillStyle = '#2A1828'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += Bc * 0.5) { g.fillStyle = (Math.floor(y / (Bc * 0.5)) % 2) ? '#2E1B2C' : '#271624'; g.fillRect(0, y, w, Bc * 0.5); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, y, w, 1.5); for (let x = ((y / (Bc * 0.5)) % 2) * Bc; x < w; x += Bc * 2) { g.fillRect(x, y, 1.5, Bc * 0.5); g.fillStyle = 'rgba(246,203,47,.18)'; g.fillRect(x + 4, y + Bc * 0.2, 2, 2); g.fillStyle = 'rgba(0,0,0,.35)'; } } const sch = g.createLinearGradient(0, 0, 0, h); sch.addColorStop(0, 'rgba(0,0,0,0)'); sch.addColorStop(1, 'rgba(0,0,0,.55)'); g.fillStyle = sch; g.fillRect(0, 0, w, h); },
+      blok: { vul: '#7A4B35', donker: '#4A2C20', licht: '#A9714E', rand: '#E9577A', soort: 'kist' },
+      spijker: { vul: '#C9CED6', donker: '#6A707C', rand: '#F6CB2F' },
+      deeltjes: 'stof',
+    },
+    // ---------- Kermiskoorts: een reuzenrad, tenten, lampjes die om de beurt aan gaan, en ballonnen
+    kermis: {
+      lucht: ['#140A2A', '#3A1648', '#C24A3A'],
+      dynNa: 0,
+      lagen: [
+        { f: 0.04, fy: 0.08, boven: 0.3, P: 1100, teken(g, o) {
+          const { w, h, hor, U, rnd } = o;
+          const zon = g.createRadialGradient(w * 0.5, hor, 0, w * 0.5, hor, U * 9); zon.addColorStop(0, 'rgba(255,170,90,.55)'); zon.addColorStop(1, 'rgba(255,170,90,0)'); g.fillStyle = zon; g.fillRect(0, 0, w, h);
+          g.fillStyle = '#2A1232'; g.beginPath(); g.moveTo(0, hor); for (let x = 0; x <= w; x += U) g.lineTo(x, hor - U * (0.6 + Math.sin(x / (U * 7)) * 0.4 + rnd() * 0.15)); g.lineTo(w, h); g.lineTo(0, h); g.fill();
+        } },
+        { f: 0.12, fy: 0.2, boven: 0.25, P: 820, teken(g, o) {
+          // tenten met strepen en vlaggetjes
+          const { h, hor, U, rep, P } = o, KL = [['#B8323C', '#F2DDA0'], ['#E07A2A', '#FBF6E9'], ['#1E8A8A', '#E9F7F2'], ['#6A3A9A', '#F6CB2F']];
+          for (let i = 0; i < 4; i++) rep(i * P / 4 + U * 0.6, x => {
+            const [a, b] = KL[i], tw = U * (2.6 + (i % 2) * 0.8), th = U * (2.2 + (i % 3) * 0.5), dak = U * 1.4;
+            for (let s = 0; s < 8; s++) { g.fillStyle = s % 2 ? meng(a, '#000000', 0.35) : meng(b, '#000000', 0.45); g.fillRect(x + s * tw / 8, hor - th, tw / 8 + 0.5, th); }
+            for (let s = 0; s < 8; s++) { g.fillStyle = s % 2 ? meng(a, '#000000', 0.2) : meng(b, '#000000', 0.3); g.beginPath(); g.moveTo(x + tw / 2, hor - th - dak); g.lineTo(x + s * tw / 8, hor - th); g.lineTo(x + (s + 1) * tw / 8, hor - th); g.closePath(); g.fill(); }
+            g.fillStyle = meng(a, '#000000', 0.5); g.beginPath(); for (let s = 0; s <= 8; s++) g.arc(x + s * tw / 8, hor - th, tw / 16, 0, Math.PI); g.fill();
+            g.strokeStyle = '#2A1232'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + tw / 2, hor - th - dak); g.lineTo(x + tw / 2, hor - th - dak - U * 0.8); g.stroke(); g.fillStyle = a; g.beginPath(); g.moveTo(x + tw / 2, hor - th - dak - U * 0.8); g.lineTo(x + tw / 2 + U * 0.6, hor - th - dak - U * 0.6); g.lineTo(x + tw / 2, hor - th - dak - U * 0.4); g.fill();
+            g.fillStyle = 'rgba(20,8,30,.75)'; rondRect(g, x + tw * 0.3, hor - th * 0.6, tw * 0.4, th * 0.6, U * 0.2); g.fill();
+          });
+          void h;
+        } },
+        { f: 0.12, fy: 0.2, boven: 0.25, P: 820, soort: 'gloed', bron: 'achtste', fase: 0, teken(g, o) { kermisLampjes(g, o, 0); } },
+        { f: 0.12, fy: 0.2, boven: 0.25, P: 820, soort: 'gloed', bron: 'achtste', fase: 1, teken(g, o) { kermisLampjes(g, o, 1); } },
+        { f: 0.3, fy: 0.42, boven: 0, P: 620, teken(g, o) {
+          // lantaarnpalen met lampjesslingers boven in beeld
+          const { hor, U, rep, P } = o;
+          rep(0, x => { g.fillStyle = '#1A0B22'; g.fillRect(x, hor * 0.1, U * 0.22, hor * 0.9 + U * 4); g.beginPath(); g.arc(x + U * 0.11, hor * 0.1, U * 0.45, Math.PI, 0); g.fill(); g.fillStyle = 'rgba(255,138,48,.5)'; g.fillRect(x + U * 0.18, hor * 0.1, 2, hor * 0.9); });
+          g.strokeStyle = '#1A0B22'; g.lineWidth = 2;
+          rep(0, x => snoer(g, x + U * 0.11, hor * 0.1, x + P + U * 0.11, hor * 0.1, U * 1.3, 12, (lx, ly, i) => { g.fillStyle = i % 2 ? '#FFB45A' : '#7FF0FF'; rondje(g, lx, ly + 4, U * 0.13); }));
+        } },
+        { f: 0.3, fy: 0.42, boven: 0, P: 620, soort: 'gloed', bron: 'kick', teken(g, o) {
+          const { hor, U, rep, P } = o, leeg = { beginPath() {}, moveTo() {}, quadraticCurveTo() {}, stroke() {} };
+          rep(0, x => snoer(leeg, x + U * 0.11, hor * 0.1, x + P + U * 0.11, hor * 0.1, U * 1.3, 12, (lx, ly, i) => halo(g, lx, ly + 4, U * 0.8, i % 2 ? '#FFB45A' : '#7FF0FF', 0.8)));
+        } },
+      ],
+      grond(g, o) { const { w, h, Bc } = o; g.fillStyle = '#2A1430'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += Bc * 0.42) for (let x = ((y / (Bc * 0.42)) % 2) * Bc * 0.3; x < w; x += Bc * 0.6) { g.fillStyle = 'rgba(255,255,255,.045)'; rondRect(g, x + 1, y + 1, Bc * 0.55, Bc * 0.38, Bc * 0.12); g.fill(); } const sch = g.createLinearGradient(0, 0, 0, h); sch.addColorStop(0, 'rgba(255,138,48,.10)'); sch.addColorStop(0.15, 'rgba(0,0,0,0)'); sch.addColorStop(1, 'rgba(0,0,0,.55)'); g.fillStyle = sch; g.fillRect(0, 0, w, h); },
+      blok: { vul: '#E07A2A', donker: '#7A2A3A', licht: '#FBF6E9', rand: '#5EE6FF', soort: 'streep' },
+      spijker: { vul: '#F2EFE6', donker: '#B8323C', rand: '#5EE6FF', streep: true },
+      deeltjes: 'ballon',
+      rad: true,
+    },
+    // ---------- Neonnacht: een gestreepte zon, twee lagen gebouwen, lichtreclames en een lichtgevend raster
+    neon: {
+      lucht: ['#03061A', '#0B1A3A', '#3A1150'],
+      dynNa: 1,
+      lagen: [
+        { f: 0.02, fy: 0.05, boven: 0.05, P: 1500, teken(g, o) {
+          const { w, hor, U, P } = o, x = (w - P) * 0.62, r = U * 3.2, y = hor - U * 3.6;
+          halo(g, x, y, r * 2.6, '#FF5AA8', 0.35);
+          const zon = g.createLinearGradient(0, y - r, 0, y + r); zon.addColorStop(0, '#FFE76A'); zon.addColorStop(0.55, '#FF8A6A'); zon.addColorStop(1, '#FF3A9A'); g.fillStyle = zon; rondje(g, x, y, r);
+          g.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 7; i++) { const yy = y + r * (0.1 + i * 0.13), dik = 1.5 + i * 1.6; g.fillRect(x - r, yy, r * 2, dik); } g.globalCompositeOperation = 'source-over';
+          g.fillStyle = 'rgba(255,255,255,.8)'; for (let i = 0; i < 60; i++) g.fillRect(((i * 997) % 1000) / 1000 * w, ((i * 617) % 1000) / 1000 * hor * 0.7, 1.4, 1.4);
+        } },
+        { f: 0.08, fy: 0.15, boven: 0.15, P: 900, teken(g, o) {
+          const { hor, U, rnd, rep, P } = o; let x = 0;
+          while (x < P) { const bw = U * (0.9 + rnd() * 1.4), bh = U * (1.4 + rnd() * rnd() * 5), x0 = x; rep(x0, xx => { g.fillStyle = '#0E1640'; g.fillRect(xx, hor - bh, bw, bh + U * 6); g.fillStyle = 'rgba(94,230,255,.5)'; for (let yy = hor - bh + U * 0.3; yy < hor - U * 0.2; yy += U * 0.45) for (let rx = xx + U * 0.18; rx < xx + bw - U * 0.2; rx += U * 0.32) if (((rx * 7 + yy * 3) | 0) % 11 < 2) g.fillRect(rx, yy, U * 0.12, U * 0.16); if (bh > U * 4.5) { g.fillStyle = '#0E1640'; g.fillRect(xx + bw / 2 - 1, hor - bh - U * 0.8, 2, U * 0.8); g.fillStyle = '#FF4A6A'; rondje(g, xx + bw / 2, hor - bh - U * 0.8, 2.4); } }); x += bw + U * (rnd() < 0.3 ? 0.9 : 0.1); }
+        } },
+        { f: 0.2, fy: 0.3, boven: 0.1, P: 760, teken(g, o) { neonStad(g, o, false); } },
+        { f: 0.2, fy: 0.3, boven: 0.1, P: 760, soort: 'gloed', bron: 'clap', teken(g, o) { neonStad(g, o, true); } },
+      ],
+      grond(g, o) { const { w, h, Bc } = o; const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1A0A3A'); gr.addColorStop(1, '#05020F'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(255,90,168,.55)'; g.lineWidth = 1.5; for (let y = Bc * 0.5, k = 1; y < h; y += Bc * 0.5 * k, k *= 1.25) { g.globalAlpha = Math.max(0.1, 0.8 - y / h); g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } g.globalAlpha = 0.5; g.strokeStyle = 'rgba(94,230,255,.6)'; for (let x = 0; x < w; x += Bc) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); } g.globalAlpha = 1; },
+      blok: { vul: '#0C1838', donker: '#060C22', licht: '#5EE6FF', rand: '#5EE6FF', soort: 'glas' },
+      spijker: { vul: '#140A22', donker: '#05020F', rand: '#FF5AA8', neon: true },
+      deeltjes: 'equalizer',
+    },
+    // ---------- Vastelaovend: trapgevels, vlaggetjes in rood, geel en groen, en confetti
+    vastelaovend: {
+      lucht: ['#0E0618', '#26103A', '#5A2440'],
+      dynNa: 2,
+      lagen: [
+        { f: 0.02, fy: 0.04, boven: 0, P: 1400, teken(g, o) { const { w, hor, U, rnd } = o; g.fillStyle = '#FFF3D0'; for (let i = 0; i < 90; i++) { g.globalAlpha = 0.25 + rnd() * 0.6; g.fillRect(rnd() * w, rnd() * hor * 0.75, 1.4, 1.4); } g.globalAlpha = 1; const mx = (w - o.P) * 0.78, my = hor * 0.3; halo(g, mx, my, U * 2.6, '#FFE9B0', 0.35); g.fillStyle = '#FFF4D6'; rondje(g, mx, my, U * 0.75); g.fillStyle = 'rgba(200,180,140,.35)'; rondje(g, mx - U * 0.2, my - U * 0.15, U * 0.14); rondje(g, mx + U * 0.25, my + U * 0.2, U * 0.1); } },
+        { f: 0.05, fy: 0.1, boven: 0.2, P: 900, teken(g, o) { gevels(g, o, '#1C0F2A', 0.2, false); } },
+        { f: 0.16, fy: 0.25, boven: 0.15, P: 760, teken(g, o) { gevels(g, o, null, 1, false); } },
+        { f: 0.16, fy: 0.25, boven: 0.15, P: 760, soort: 'gloed', bron: 'kick', teken(g, o) { gevels(g, o, null, 1, true); } },
+        { f: 0.36, fy: 0.5, boven: 0, P: 600, teken(g, o) {
+          const { hor, U, rep, P } = o, K = ['#D6302F', '#F6CB2F', '#2E8B62'];
+          g.strokeStyle = '#1A0B14'; g.lineWidth = 1.6;
+          rep(0, x => snoer(g, x, hor * 0.08, x + P, hor * 0.08, U * 1.1, 14, (lx, ly, i) => { g.fillStyle = K[i % 3]; g.beginPath(); g.moveTo(lx - U * 0.22, ly); g.lineTo(lx + U * 0.22, ly); g.lineTo(lx, ly + U * 0.55); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.moveTo(lx - U * 0.22, ly); g.lineTo(lx, ly); g.lineTo(lx - U * 0.05, ly + U * 0.35); g.fill(); }));
+          rep(P * 0.5, x => snoer(g, x, hor * 0.2, x + P, hor * 0.2, U * 0.8, 12, (lx, ly, i) => { g.fillStyle = K[(i + 1) % 3]; g.beginPath(); g.moveTo(lx - U * 0.18, ly); g.lineTo(lx + U * 0.18, ly); g.lineTo(lx, ly + U * 0.45); g.closePath(); g.fill(); }));
+        } },
+      ],
+      grond(g, o) { const { w, h, Bc } = o; g.fillStyle = '#20121E'; g.fillRect(0, 0, w, h); const s = Bc * 0.38; for (let y = 0, r = 0; y < h; y += s * 0.85, r++) for (let x = (r % 2) * s * 0.5; x < w; x += s) { g.fillStyle = `rgba(${150 + ((x * 13 + y * 7) % 40)},${110 + ((x * 3) % 30)},${120},.16)`; g.beginPath(); g.ellipse(x + s / 2, y + s * 0.42, s * 0.44, s * 0.36, 0, 0, 7); g.fill(); } const sch = g.createLinearGradient(0, 0, 0, h); sch.addColorStop(0, 'rgba(0,0,0,0)'); sch.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = sch; g.fillRect(0, 0, w, h); },
+      blok: { vul: '#9A3A2E', donker: '#5A1E1A', licht: '#C8604A', rand: '#F6CB2F', soort: 'steen' },
+      spijker: { vul: '#F6CB2F', donker: '#A8721A', rand: '#D6302F' },
+      deeltjes: 'confetti',
+    },
+    // ---------- Hyperrommel: een tunnel van licht, een nevel en zwevende scherven
+    hyper: {
+      lucht: ['#020008', '#0E0322', '#24062E'],
+      dynNa: 0,
+      lagen: [
+        { f: 0.02, fy: 0.04, boven: 0, P: 1400, teken(g, o) {
+          const { w, h, U, rnd } = o;
+          for (let i = 0; i < 7; i++) halo(g, rnd() * w, rnd() * h * 0.7, U * (3 + rnd() * 5), ['#B88AFF', '#FF3A6A', '#5A3AFF'][i % 3], 0.18);
+          g.fillStyle = '#FFFFFF'; for (let i = 0; i < 140; i++) { g.globalAlpha = 0.3 + rnd() * 0.7; g.fillRect(rnd() * w, rnd() * h, 1.3, 1.3); } g.globalAlpha = 1;
+          const px = w * 0.2, py = h * 0.22, r = U * 1.3; const pl = g.createRadialGradient(px - r * 0.3, py - r * 0.3, 0, px, py, r); pl.addColorStop(0, '#E8C8FF'); pl.addColorStop(1, '#4A1A7A'); g.fillStyle = pl; rondje(g, px, py, r); g.strokeStyle = 'rgba(255,200,255,.5)'; g.lineWidth = 2; g.beginPath(); g.ellipse(px, py, r * 1.9, r * 0.45, -0.25, 0, 7); g.stroke();
+        } },
+        { f: 0.22, fy: 0.3, boven: 0, P: 700, teken(g, o) {
+          const { h, U, rnd, rep, P } = o;
+          for (let i = 0; i < 9; i++) { const x0 = rnd() * P, y = rnd() * h * 0.75, s = U * (0.3 + rnd() * 0.8), a = rnd() * 6.28; rep(x0, x => { g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = i % 2 ? 'rgba(184,138,255,.22)' : 'rgba(255,58,106,.18)'; g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.6, s * 0.5); g.lineTo(-s * 0.6, s * 0.5); g.closePath(); g.fill(); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1.2; g.stroke(); g.restore(); }); }
+        } },
+      ],
+      grond(g, o) { const { w, h, Bc } = o; const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1A0630'); gr.addColorStop(1, '#030008'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(184,138,255,.3)'; g.lineWidth = 1.2; const s = Bc * 0.5; for (let y = 0, r = 0; y < h; y += s * 0.866, r++) for (let x = (r % 2) * s * 0.75; x < w; x += s * 1.5) { g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; g.lineTo(x + Math.cos(a) * s * 0.5, y + Math.sin(a) * s * 0.5); } g.closePath(); g.stroke(); } },
+      blok: { vul: '#2A0E4A', donker: '#12052A', licht: '#B88AFF', rand: '#B88AFF', soort: 'kristal' },
+      spijker: { vul: '#FF3A6A', donker: '#7A0A2A', rand: '#FFD0E0' },
+      deeltjes: 'tunnel',
+    },
+    // ---------- Rommelstorm: wolken, een molen, regen, bliksem en rommel die voorbij waait
+    storm: {
+      lucht: ['#05030A', '#150A1A', '#3A1A16'],
+      dynNa: 1,
+      lagen: [
+        { f: 0.03, fy: 0.06, boven: 0, P: 1200, teken(g, o) {
+          const { w, h, hor, U, rnd } = o;
+          const gl = g.createLinearGradient(0, hor - U * 3, 0, hor + U); gl.addColorStop(0, 'rgba(255,122,58,0)'); gl.addColorStop(1, 'rgba(255,122,58,.28)'); g.fillStyle = gl; g.fillRect(0, hor - U * 3, w, U * 4);
+          for (let i = 0; i < 26; i++) { const x = rnd() * w, y = rnd() * hor * 0.55, r = U * (1.2 + rnd() * 2.4); const c = g.createRadialGradient(x, y, 0, x, y, r); c.addColorStop(0, 'rgba(70,50,80,.55)'); c.addColorStop(1, 'rgba(40,25,50,0)'); g.fillStyle = c; g.fillRect(x - r, y - r, r * 2, r * 2); }
+          void h;
+        } },
+        { f: 0.1, fy: 0.18, boven: 0.25, P: 980, teken(g, o) {
+          const { w, h, hor, U, rnd, rep, P } = o;
+          g.fillStyle = '#0F0814'; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w + 4; x += 6) { const t = (x % P) / P; g.lineTo(x, hor - U * (1 + Math.sin(t * Math.PI * 2) * 0.7 + Math.sin(t * Math.PI * 6) * 0.2)); } g.lineTo(w, h); g.fill();
+          // gebogen boompjes
+          for (let i = 0; i < 6; i++) { const x0 = rnd() * P; rep(x0, x => { const t = (x0 % P) / P, y = hor - U * (1 + Math.sin(t * Math.PI * 2) * 0.7 + Math.sin(t * Math.PI * 6) * 0.2); g.strokeStyle = '#0F0814'; g.lineWidth = U * 0.18; g.beginPath(); g.moveTo(x, y + 2); g.quadraticCurveTo(x + U * 0.3, y - U * 0.8, x + U * 0.9, y - U * 1.3); g.stroke(); g.fillStyle = '#0F0814'; g.beginPath(); g.ellipse(x + U * 1.1, y - U * 1.45, U * 0.8, U * 0.45, -0.3, 0, 7); g.fill(); }); }
+          // het huisje van de molen
+          rep(P * 0.62, x => { const t = (P * 0.62 % P) / P, y = hor - U * (1 + Math.sin(t * Math.PI * 2) * 0.7 + Math.sin(t * Math.PI * 6) * 0.2); g.fillStyle = '#0F0814'; g.beginPath(); g.moveTo(x - U * 0.7, y + 2); g.lineTo(x - U * 0.45, y - U * 2.6); g.lineTo(x + U * 0.45, y - U * 2.6); g.lineTo(x + U * 0.7, y + 2); g.fill(); g.beginPath(); g.moveTo(x - U * 0.55, y - U * 2.6); g.lineTo(x, y - U * 3.2); g.lineTo(x + U * 0.55, y - U * 2.6); g.fill(); g.fillStyle = 'rgba(255,170,90,.45)'; g.fillRect(x - U * 0.1, y - U * 1.4, U * 0.2, U * 0.3); });
+        }, molen: { x: 0.62, y: 3.0, r: 2.3 } },
+        { f: 0.26, fy: 0.35, boven: 0, P: 760, teken(g, o) {
+          const { w, hor, U, rnd } = o;
+          for (let i = 0; i < 18; i++) { const x = rnd() * w, y = rnd() * hor * 0.3, rw = U * (2 + rnd() * 3), rh = U * (0.5 + rnd() * 0.7); const c = g.createRadialGradient(x, y, 0, x, y, rw); c.addColorStop(0, 'rgba(25,15,30,.75)'); c.addColorStop(1, 'rgba(25,15,30,0)'); g.fillStyle = c; g.save(); g.translate(x, y); g.scale(1, rh / rw); g.translate(-x, -y); g.fillRect(x - rw, y - rw, rw * 2, rw * 2); g.restore(); }
+        } },
+      ],
+      grond(g, o) { const { w, h, Bc } = o; const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1E2414'); gr.addColorStop(0.1, '#1A140E'); gr.addColorStop(1, '#070504'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(138,255,106,.10)'; for (let x = 0; x < w; x += 3) g.fillRect(x, 0, 1.5, 3 + ((x * 7) % 9)); g.fillStyle = 'rgba(0,0,0,.25)'; for (let i = 0; i < w * h / (Bc * Bc) * 2; i++) { const x = (i * 97) % w, y = ((i * 61) % (h * 10)) / 10; g.beginPath(); g.ellipse(x, y, Bc * 0.15, Bc * 0.08, 0, 0, 7); g.fill(); } },
+      blok: { vul: '#4A4A52', donker: '#24242A', licht: '#7A7A84', rand: '#FF7A3A', soort: 'metaal' },
+      spijker: { vul: '#8A5A3A', donker: '#3A2214', rand: '#FF7A3A' },
+      deeltjes: 'storm',
+    },
+  };
+  WERELD.storm.rommel = ['sok', 'stoel', 'emmer', 'paraplu', 'krant'];
+  // lampjes op de tenten van de kermis: twee groepen die om de beurt aangaan
+  function kermisLampjes(g, o, fase) {
+    const { hor, U, rep, P } = o;
+    for (let i = 0; i < 4; i++) rep(i * P / 4 + U * 0.6, x => { const tw = U * (2.6 + (i % 2) * 0.8), th = U * (2.2 + (i % 3) * 0.5), dak = U * 1.4; for (let s = 0; s <= 8; s++) { if (s % 2 !== fase) continue; const lx = x + s * tw / 8, ly = hor - th - dak * (1 - Math.abs(s - 4) / 4); halo(g, lx, ly, U * 0.55, '#FFD27A', 0.9); } });
+  }
+  // de neonstad: gebouwen dichterbij met lichtreclames (zonder gloed, of alleen de gloed)
+  const NEONTEKST = ['ROMMEL', 'OPEN', 'VLAAI', '24/7', 'RITME', 'BAR', 'DISCO', 'HOTEL'];
+  function neonStad(g, o, gloed) {
+    const { hor, U, rep, P } = o, r = zaad(77); let x = 0, n = 0;
+    while (x < P - U) {
+      const bw = U * (1.6 + r() * 1.6), bh = U * (1.4 + r() * 3.2), x0 = x, tekst = NEONTEKST[n % NEONTEKST.length], kleur = ['#5EE6FF', '#FF5AA8', '#FFE76A', '#B88AFF'][n % 4], heeft = r() < 0.7;
+      rep(x0, xx => {
+        if (!gloed) { g.fillStyle = '#060B26'; g.fillRect(xx, hor - bh, bw, bh + U * 6); g.fillStyle = 'rgba(255,231,160,.35)'; for (let yy = hor - bh + U * 0.35; yy < hor - U * 0.2; yy += U * 0.5) for (let rx = xx + U * 0.2; rx < xx + bw - U * 0.25; rx += U * 0.4) if (((rx * 5 + yy * 11) | 0) % 9 < 2) g.fillRect(rx, yy, U * 0.18, U * 0.22); }
+        if (heeft) { const sy = hor - bh - U * 0.9, sw = Math.min(bw - U * 0.2, U * 0.45 * tekst.length + U * 0.4); g.save(); g.font = `800 ${U * 0.5}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; if (gloed) { g.shadowColor = kleur; g.shadowBlur = U * 0.6; g.strokeStyle = kleur; g.lineWidth = 3; rondRect(g, xx + (bw - sw) / 2, sy, sw, U * 0.8, U * 0.2); g.stroke(); g.fillStyle = kleur; g.fillText(tekst, xx + bw / 2, sy + U * 0.42, sw - U * 0.3); } else { g.fillStyle = '#0A0F2E'; rondRect(g, xx + (bw - sw) / 2, sy, sw, U * 0.8, U * 0.2); g.fill(); g.strokeStyle = rgba(kleur, 0.35); g.lineWidth = 2; g.stroke(); g.fillStyle = rgba(kleur, 0.35); g.fillText(tekst, xx + bw / 2, sy + U * 0.42, sw - U * 0.3); g.fillStyle = '#060B26'; g.fillRect(xx + bw / 2 - 1, sy + U * 0.8, 2, U * 0.1); } g.restore(); }
+      });
+      x += bw + U * 0.25; n++;
+    }
+  }
+  // trapgevels: ver weg alleen silhouetten, dichtbij met kleur, ramen, deuren en vlaggen
+  function gevels(g, o, vast, licht, gloed) {
+    const { hor, U, rep, P } = o, r = zaad(vast ? 11 : 23); let x = 0;
+    const KLEUR = ['#4A1822', '#4A3C16', '#183C30', '#3A2248', '#4A3018', '#2A2A44'];
+    while (x < P - U * 0.5) {
+      const bw = U * (vast ? 1.2 + r() * 1.0 : 1.8 + r() * 1.0), bh = U * (vast ? 2.2 + r() * 2.2 : 2.4 + r() * 1.8), x0 = x, kl = vast || KLEUR[Math.floor(r() * KLEUR.length)], trap = 2 + Math.floor(r() * 2), vlag = r() < 0.5, k = Math.floor(r() * 3);
+      rep(x0, xx => {
+        const top = hor - bh;
+        if (!gloed) {
+          g.fillStyle = vast ? kl : meng(kl, '#000000', 0.35); g.fillRect(xx, top, bw, bh + U * 6);
+          // de trap bovenop
+          const st = bw / (trap * 2 + 1); for (let s = 0; s < trap; s++) g.fillRect(xx + st * (s + 1), top - st * 0.8 * (s + 1), bw - st * 2 * (s + 1), st * 0.8 + 1);
+          if (!vast) {
+            g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(xx, top, 3, bh); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(xx + bw - 3, top, 3, bh);
+            g.fillStyle = 'rgba(240,225,200,.28)'; for (let s = 0; s < trap; s++) g.fillRect(xx + st * (s + 1), top - st * 0.8 * (s + 1), bw - st * 2 * (s + 1), 2); g.fillRect(xx, top, bw, 2); for (let yy = top + U * 1.2; yy < hor - U; yy += U * 1.5) g.fillRect(xx, yy, bw, 1.5);
+            g.fillStyle = '#140810'; rondRect(g, xx + bw / 2 - U * 0.27, hor - U * 0.85, U * 0.54, U * 0.85, U * 0.2); g.fill(); g.fillStyle = 'rgba(255,196,106,.35)'; g.fillRect(xx + bw / 2 - U * 0.2, hor - U * 0.78, U * 0.4, U * 0.16);
+          }
+        }
+        const ramen = vast ? 0.18 : 1;
+        for (let yy = top + U * 0.45; yy < hor - U * 0.9; yy += U * 0.75) for (let rx = xx + U * 0.3; rx < xx + bw - U * 0.45; rx += U * 0.6) {
+          const aan = ((rx * 3 + yy * 7) | 0) % 5 < 3;
+          if (gloed) { if (aan && !vast) halo(g, rx + U * 0.15, yy + U * 0.2, U * 0.42, '#FFC46A', 0.4); }
+          else { g.fillStyle = aan ? rgba('#FFC46A', 0.82 * ramen * licht) : 'rgba(10,5,15,.7)'; g.fillRect(rx, yy, U * 0.3, U * 0.4); if (!vast) { g.fillStyle = 'rgba(20,8,16,.55)'; g.fillRect(rx + U * 0.14, yy, 1.2, U * 0.4); g.fillRect(rx, yy + U * 0.18, U * 0.3, 1.2); g.fillStyle = 'rgba(240,225,200,.25)'; g.fillRect(rx - 1, yy + U * 0.4, U * 0.3 + 2, 2); } }
+        }
+        if (vlag && !vast && !gloed) { const K = ['#D6302F', '#F6CB2F', '#2E8B62']; for (let s = 0; s < 3; s++) { g.fillStyle = K[(s + k) % 3]; g.fillRect(xx + bw * 0.2 + s * U * 0.16, top + U * 0.4, U * 0.16, U * 0.9); } g.fillStyle = '#1A0B14'; g.fillRect(xx + bw * 0.2 - 2, top + U * 0.3, 2, U * 1.2); }
+      });
+      x += bw + (vast ? U * 0.05 : U * 0.15);
+    }
+  }
+
+  // ---------------- de wereld opbouwen: lagen die één keer getekend worden, en elk beeld op één achtergronddoekje worden neergezet
+  // (één doekje op een lagere resolutie: zo hoeft de browser maar twee lagen samen te voegen, de achtergrond en het speelveld)
+  const WER = { sleutel: '', lagen: [], g: null, ag: null, achter: null, lucht: null, grond: null, grondP: 0, def: null, lev: null, U: 40, hor: 0, ballon: [], vonk: [], regen: [], rommel: [], bliksem: null, bliksemT: 0, confetti: [], laser: 0 };
+  const CAMY0 = 2.5;
+  function maakDoek(wCss, hCss, dpr) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(wCss * dpr)); c.height = Math.max(1, Math.round(hCss * dpr)); const g = c.getContext('2d'); g.scale(c.width / wCss, c.height / hCss); return { c, g }; }
+  // alleen de vakjes van een laag waar echt iets staat (een leeg stuk neerzetten kost ook tijd): per rij van 128 pixels de stukken die iets bevatten
+  function bijsnijden(c) {
+    const k = 8, T = 8, w = Math.max(1, Math.ceil(c.width / k)), h = Math.max(1, Math.ceil(c.height / k)), t = document.createElement('canvas'); t.width = w; t.height = h;
+    const g = t.getContext('2d', { willReadFrequently: true }); g.drawImage(c, 0, 0, w, h); const px = g.getImageData(0, 0, w, h).data;
+    const vol = (x0, y0) => { for (let y = y0; y < Math.min(h, y0 + T); y++) for (let x = x0; x < Math.min(w, x0 + T); x++) if (px[(y * w + x) * 4 + 3] > 2) return true; return false; };
+    const stukken = [];
+    for (let ry = 0; ry < h; ry += T) { let st = null; for (let rx = 0; rx < w; rx += T) { if (vol(rx, ry)) { if (st && st.x1 === rx) st.x1 = rx + T; else { if (st) stukken.push(st); st = { x0: rx, x1: rx + T, y: ry }; } } } if (st) stukken.push(st); }
+    if (!stukken.length) return null;
+    return stukken.map(q => { const sx = q.x0 * k, sy = q.y * k; return { sx, sy, sw: Math.min(c.width, q.x1 * k) - sx, sh: Math.min(c.height, (q.y + T) * k) - sy }; });
+  }
+  function bouwWereld(lev) {
+    const kw = KW(), id = lev.spec.id, sl = id + '|' + W + 'x' + H + '|' + kwNaam();
+    if (WER.sleutel === sl) return; WER.sleutel = sl; WER.lev = lev;
+    const def = WERELD[id] || WERELD.zolder; WER.def = def;
+    const d = dpr(), Wc = W / d, Hc = H / d, Bc = B / d, U = Math.max(22, Math.min(Hc, Wc * 1.3) / 10);
+    const basis = Math.min(H, (H + 13 * B) / 2), hor0 = (basis - (0 - CAMY0 + 4.2) * B) / d, ld = Math.min(kw.laagDpr, devicePixelRatio || 1);
+    WER.U = U; WER.hor = hor0; WER.Wc = Wc; WER.Hc = Hc; WER.Bc = Bc; WER.ld = ld; WER.glad = !kw.weinig && kw.fps === 0; WER.mooi = kwNaam() === 'mooi';
+    const el = $('rr-wereld'); el.innerHTML = ''; WER.lagen = [];
+    // het achtergronddoekje (niet doorzichtig: dat kan de browser het snelst neerzetten)
+    const ac2 = document.createElement('canvas'); ac2.id = 'rr-achter'; ac2.width = Math.round(Wc * ld); ac2.height = Math.round(Hc * ld); ac2.style.width = '100%'; ac2.style.height = '100%';
+    el.appendChild(ac2); WER.achter = ac2; WER.ag = ac2.getContext('2d', { alpha: false }); WER.g = WER.ag;
+    $('rr-scene').style.background = def.lucht[1];
+    // de lucht: één keer als plaatje
+    { const { c, g } = maakDoek(Wc, Hc, ld), v = g.createLinearGradient(0, 0, 0, Hc); v.addColorStop(0, def.lucht[0]); v.addColorStop(0.55, def.lucht[1]); v.addColorStop(1, def.lucht[2]); g.fillStyle = v; g.fillRect(0, 0, Wc, Hc); WER.lucht = c; }
+    WER.dynNa = def.dynNa;
+    def.lagen.forEach((L0, n) => {
+      if (kw.weinig && L0.soort === 'gloed' && L0.bron === 'achtste' && L0.fase) return; // Zuinig: één groep lampjes
+      const P = Math.round(Math.max(L0.P * U / 60, Wc * 0.5)), top = L0.boven * Hc - Bc * 1.5, hL = Hc - top + Bc * 9, wL = Wc + P + 4;
+      const { c, g } = maakDoek(wL, hL, ld);
+      const rnd = zaad(1000 + n * 77 + id.length * 13), hor = hor0 - top;
+      const o = { w: wL, h: hL, P, hor, U, Bc, rnd, rep: (x, f) => { for (let k = -1; x + k * P < wL + P; k++) f(x + k * P); } };
+      try { L0.teken(g, o); } catch (e) { console.error(e); }
+      const vorige = WER.lagen[WER.lagen.length - 1];
+      if (L0.soort === 'gloed' && L0.bron === 'bas' && !WER.mooi && vorige && vorige.def.f === L0.f && vorige.P === P && vorige.top === top) { const vg = vorige.c.getContext('2d'); vg.save(); vg.globalAlpha = 0.6; vg.globalCompositeOperation = 'lighter'; vg.drawImage(c, 0, 0); vg.restore(); vorige.stukken = bijsnijden(vorige.c) || vorige.stukken; return; }
+      const laag = { def: L0, P, glans: 0, top, n, draaiers: [] };
+      const stukken = bijsnijden(c); if (!stukken && !L0.molen) return; laag.c = c; laag.y = top; laag.stukken = stukken || [];
+      if (L0.molen) { const m = L0.molen, mx = m.x * P, t = (mx % P) / P, gy = hor - U * (1 + Math.sin(t * Math.PI * 2) * 0.7 + Math.sin(t * Math.PI * 6) * 0.2), r = m.r * U; const dk = maakDoek(r * 2 + 4, r * 2 + 4, ld); tekenWieken(dk.g, r + 2, r); for (let k = -1; mx + k * P < wL + P; k++) laag.draaiers.push({ c: dk.c, x: mx + k * P, y: top + gy - m.y * U, r: r + 2 }); }
+      WER.lagen.push(laag);
+    });
+    // de grond onder de baan: een strook die precies met de blokken meeschuift
+    const P = Bc * 4, gw = Wc + P * 2, gh = Hc + Bc * 2;
+    const gd = maakDoek(gw, gh, ld); try { def.grond(gd.g, { w: gw, h: gh, Bc }); } catch (e) { console.error(e); }
+    WER.grond = gd.c; WER.grondP = P;
+    WER.ballon = []; WER.vonk = []; WER.rommel = []; WER.confetti = []; WER.bliksem = null; WER.laser = 0;
+    WER.regen = Array.from({ length: kw.weinig ? 24 : 70 }, (_, i) => [zaad(i + 5)() * Wc, zaad(i + 9)() * Hc, 0.6 + zaad(i + 3)() * 0.6]);
+    WER.stof = Array.from({ length: kw.weinig ? 12 : 34 }, (_, i) => { const r = zaad(i * 7 + 1); return [r() * Wc, r() * Hc * 0.85, r() * 6.28, 0.4 + r()]; });
+    WER.ster = Array.from({ length: kw.weinig ? 30 : 80 }, (_, i) => { const r = zaad(i * 3 + 2); return [r() * 6.28, r(), r() * 0.8 + 0.2]; });
+    bouwPlaatjes(lev);
+  }
+  function tekenWieken(g, m, r) {
+    g.fillStyle = '#0F0814'; g.strokeStyle = '#0F0814';
+    for (let k = 0; k < 4; k++) { g.save(); g.translate(m, m); g.rotate(k * Math.PI / 2); g.fillRect(-r * 0.05, 0, r * 0.1, r); g.globalAlpha = 0.85; g.fillRect(r * 0.05, r * 0.25, r * 0.22, r * 0.72); g.globalAlpha = 1; g.lineWidth = 1; for (let s = 0.3; s < 0.97; s += 0.12) { g.beginPath(); g.moveTo(r * 0.05, r * s); g.lineTo(r * 0.27, r * s); g.stroke(); } g.restore(); }
+    g.beginPath(); g.arc(m, m, r * 0.09, 0, 7); g.fill();
+  }
+  // elk beeld: de lucht, dan de lagen van ver naar dichtbij (met de gloed op de maat), het bewegende stuk en de grond
+  function plaatsWereld(camX, camY, dt, tel, kracht) {
+    const kw = KW(), g = WER.ag, ld = WER.ld, Bc = WER.Bc, ty0 = (camY - CAMY0) * Bc; if (!g) return;
+    const rond = WER.glad ? (v => v) : (v => Math.round(v * ld) / ld), rondY = v => Math.round(v * ld) / ld;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    g.drawImage(WER.lucht, 0, 0); g.setTransform(ld, 0, 0, ld, 0, 0);
+    // de lucht kleurt mee met de bas (en sterker op een bekken): een gloed in de kleur van het level boven de horizon
+    const PR = window.__rrProef || {};
+    if (!PR.lucht && WER.mooi) { const K = WER.lev.spec.kleuren, a = (reduce ? 0.1 : 0.32) * Math.min(1, BEAT.bas * 1.1 + BEAT.bekken * 0.7 + BEAT.kick * 0.15); if (a > 0.02) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; g.drawImage(gloedDot(K[1]), 0, 4, 64, 56, -WER.Wc * 0.25, WER.hor - WER.Hc * 0.62, WER.Wc * 1.5, WER.Hc * 0.95); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; } }
+    let dynGedaan = false;
+    const dyn = () => { if (!dynGedaan) { dynGedaan = true; tekenDyn(camX, camY, dt, tel, kracht, kw); } };
+    for (const l of WER.lagen) {
+      const off = camX * Bc * l.def.f, tx = rond(-(((off % l.P) + l.P) % l.P)), ty = rondY(l.y + ty0 * l.def.fy);
+      if (l.def.soort === 'gloed' && PR.gloed) continue;
+      if (l.def.soort === 'gloed') {
+        let v; const s = l.def.bron;
+        if (s === 'kick') v = BEAT.kick; else if (s === 'clap') v = Math.max(BEAT.clap, BEAT.kick * 0.4); else if (s === 'bas') v = BEAT.bas;
+        else { const stap = reduce ? Math.floor(tel) : Math.floor(tel * 2); v = (stap % 2 === l.def.fase) ? 1 : 0; }
+        const doel = reduce ? 0.45 + v * 0.25 : 0.22 + v * 0.78 + BEAT.bekken * 0.3;
+        l.glans += (doel - l.glans) * Math.min(1, dt * (s === 'achtste' ? 30 : 18));
+        g.globalAlpha = Math.max(0, Math.min(1, l.glans)); g.globalCompositeOperation = 'lighter';
+      }
+      const Wc = WER.Wc;
+      if (PR.heel) { if (!PR.lagen) g.drawImage(l.c, 0, 0, l.c.width, l.c.height, tx, ty, l.c.width / ld, l.c.height / ld); } else if (!PR.lagen) for (const q of l.stukken) { let x = tx + q.sx / ld, sx = q.sx, sw = q.sw; if (x + sw / ld <= 0 || x >= Wc) continue; if (x < 0) { const knip = Math.ceil(-x * ld); sx += knip; sw -= knip; x += knip / ld; } if (x + sw / ld > Wc) sw = Math.ceil((Wc - x) * ld); if (sw < 1) continue; g.drawImage(l.c, sx, q.sy, sw, q.sh, x, ty + q.sy / ld, sw / ld, q.sh / ld); }
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      if (l.draaiers.length) { l.hoek = (l.hoek || 0) + dt * (reduce ? 0.5 : 1.1 + BEAT.bas * 2.4); for (const q of l.draaiers) { const x = tx + q.x; if (x < -q.r * 2 || x > WER.Wc + q.r * 2) continue; g.save(); g.translate(x, ty + (q.y - l.y)); g.rotate(l.hoek); g.drawImage(q.c, -q.r, -q.r, q.r * 2, q.r * 2); g.restore(); } }
+      if (l.n === WER.dynNa && !PR.dyn) dyn();
+    }
+    if (!PR.dyn) dyn();
+    if (WER.grond && !PR.grond) { const gy = rond(sy(0) / dpr()), tx = rond(-((((camX * Bc) % WER.grondP) + WER.grondP) % WER.grondP)); g.drawImage(WER.grond, 0, 0, WER.grond.width, WER.grond.height, tx, gy, WER.grond.width / ld, WER.grond.height / ld); }
+  }
+  // het bewegende doekje achter de baan: per wereld iets anders, altijd met weinig tekenwerk
+  function tekenDyn(camX, camY, dt, tel, kracht, kw) {
+    const g = WER.g, def = WER.def; if (!g || !def) return;
+    const Wc = WER.Wc, Hc = WER.Hc, U = WER.U, Bc = WER.Bc, hor = WER.hor + (camY - CAMY0) * Bc * 0.2, soort = def.deeltjes, t = performance.now() / 1000;
+    if (soort === 'stof') {
+      g.fillStyle = '#FFE9B0';
+      for (const s of WER.stof) { s[0] += Math.cos(s[2] + t * 0.3) * dt * 6 - dt * (3 + BEAT.bas * 10) * s[3]; s[1] += Math.sin(s[2] * 1.7 + t * 0.4) * dt * 4; if (s[0] < -5) s[0] += Wc + 10; g.globalAlpha = (0.25 + 0.5 * Math.abs(Math.sin(t * s[3] + s[2]))) * (0.6 + BEAT.kick * 0.4); g.fillRect(s[0], s[1], 1.8 * s[3], 1.8 * s[3]); }
+      g.globalAlpha = 1;
+    } else if (soort === 'ballon') {
+      // het reuzenrad, met de lampjes op de maat
+      const L0 = WER.lagen[0], P = L0 ? L0.P : 1100, off = camX * Bc * 0.04, cx0 = P * 0.68 - (((off % P) + P) % P), r = Math.min(U * 3.3, hor * 0.42), cy = hor - r - U * 0.5, hoek = t * (reduce ? 0.05 : 0.12);
+      for (let cx = cx0; cx < Wc + r + P; cx += P) { if (cx < -r - 10) continue;
+        g.strokeStyle = '#2A1232'; g.lineWidth = U * 0.16; g.beginPath(); g.moveTo(cx - r * 0.5, hor + 2); g.lineTo(cx, cy); g.lineTo(cx + r * 0.5, hor + 2); g.stroke();
+        g.lineWidth = 2; g.strokeStyle = 'rgba(60,24,70,1)'; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke(); g.beginPath(); g.arc(cx, cy, r * 0.72, 0, 7); g.stroke();
+        for (let k = 0; k < 12; k++) { const a = hoek + k * Math.PI / 6, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke(); g.fillStyle = ['#B8323C', '#1E8A8A', '#E07A2A', '#6A3A9A'][k % 4]; g.fillRect(x - U * 0.22, y + 2, U * 0.44, U * 0.34); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x - U * 0.22, y + 2 + U * 0.22, U * 0.44, U * 0.12); }
+        const licht = 0.35 + BEAT.kick * 0.65;
+        for (let k = 0; k < 24; k++) { const a = hoek + k * Math.PI / 12, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; g.fillStyle = (k + Math.floor(tel * 2)) % 2 ? `rgba(255,210,122,${licht})` : `rgba(127,240,255,${licht * 0.8})`; g.fillRect(x - 1.6, y - 1.6, 3.2, 3.2); }
+        g.fillStyle = '#FFD27A'; g.beginPath(); g.arc(cx, cy, U * 0.25, 0, 7); g.fill();
+      }
+      // ballonnen
+      if (!kw.weinig && Math.random() < dt * 0.6) WER.ballon.push({ x: Wc * (0.2 + Math.random() * 0.9), y: Hc + 20, k: ['#FF5A6A', '#FFD25A', '#5EE6FF', '#B88AFF', '#7AF09A'][Math.floor(Math.random() * 5)], f: Math.random() * 6 });
+      for (const b of WER.ballon) { b.y -= dt * (18 + BEAT.bas * 20); b.x -= dt * 8; const x = b.x + Math.sin(t + b.f) * 6; g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, b.y + U * 0.35); g.quadraticCurveTo(x - 4, b.y + U * 0.7, x + 2, b.y + U * 1.0); g.stroke(); g.fillStyle = b.k; g.beginPath(); g.ellipse(x, b.y, U * 0.26, U * 0.34, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.45)'; g.beginPath(); g.ellipse(x - U * 0.08, b.y - U * 0.12, U * 0.06, U * 0.1, 0, 0, 7); g.fill(); }
+      WER.ballon = WER.ballon.filter(b => b.y > -40);
+    } else if (soort === 'equalizer') {
+      // een equalizer op de horizon, die echt luistert naar de muziek
+      const n = kw.weinig ? 16 : 32, bw = Wc / n, sp = BEAT.spec;
+      for (let i = 0; i < n; i++) { let v = (WER.knal || 0) * 0.5 + (sp ? sp[Math.min(sp.length - 1, 1 + Math.floor(Math.pow(i / n, 1.6) * (sp.length * 0.6)))] / 255 : (0.3 + 0.5 * Math.abs(Math.sin(tel * 1.7 + i * 0.6))) * (0.4 + BEAT.kick * 0.6)); v = Math.max(0.04, v * v); const hB = v * U * 3.4; g.fillStyle = i % 2 ? 'rgba(94,230,255,.42)' : 'rgba(255,90,168,.42)'; g.fillRect(i * bw + bw * 0.15, hor - hB, bw * 0.7, hB); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(i * bw + bw * 0.15, hor - hB - 3, bw * 0.7, 2); }
+      if (!kw.weinig && Math.random() < dt * 0.25) WER.vonk.push({ x: Wc * Math.random(), y: Hc * 0.1 * Math.random(), t: 0.9 });
+      for (const v of WER.vonk) { v.t -= dt; v.x += dt * 260; v.y += dt * 90; g.strokeStyle = `rgba(255,255,255,${Math.max(0, v.t)})`; g.lineWidth = 1.6; g.beginPath(); g.moveTo(v.x, v.y); g.lineTo(v.x - 40, v.y - 14); g.stroke(); }
+      WER.vonk = WER.vonk.filter(v => v.t > 0);
+    } else if (soort === 'confetti') {
+      const veel = kw.weinig ? 0.3 : 1, K = ['#D6302F', '#F6CB2F', '#2E8B62'];
+      if (Math.random() < dt * (reduce ? 3 : 12) * veel) WER.confetti.push({ x: Math.random() * Wc, y: -10, vy: 30 + Math.random() * 30, k: K[Math.floor(Math.random() * 3)], a: Math.random() * 6, s: 3 + Math.random() * 3 });
+    } else if (soort === 'tunnel') {
+      // een tunnel van lichtringen die op je af raast, met sterrenstrepen en (op de zware stukken) lasers
+      const vx = Wc * 0.64, vy = hor * 0.55, maxR = Math.hypot(Wc, Hc), snel = reduce ? 0.12 : 0.35 + kracht * 0.12, n = kw.weinig ? 7 : 12;
+      g.lineWidth = 2;
+      for (let i = 0; i < n; i++) { const z = ((t * snel + i / n) % 1), s = Math.pow(z, 2.2) * maxR * 0.9, a = Math.min(1, z * (0.5 + BEAT.kick * 0.5 + (WER.knal || 0))); g.strokeStyle = i % 2 ? `rgba(184,138,255,${a})` : `rgba(255,58,106,${a * 0.9})`; g.lineWidth = 1 + z * 4; g.save(); g.translate(vx, vy); g.rotate(z * 0.6 + t * 0.1); g.strokeRect(-s, -s * 0.62, s * 2, s * 1.24); g.restore(); }
+      g.lineWidth = 1.4;
+      for (const s of WER.ster) { s[1] += dt * s[2] * (reduce ? 0.12 : 0.5 + kracht * 0.2); if (s[1] > 1) s[1] -= 1; const d0 = Math.pow(s[1], 2.4) * maxR, d1 = Math.pow(Math.max(0, s[1] - 0.05), 2.4) * maxR; g.strokeStyle = `rgba(255,255,255,${Math.min(1, s[1] * 1.4)})`; g.beginPath(); g.moveTo(vx + Math.cos(s[0]) * d1, vy + Math.sin(s[0]) * d1); g.lineTo(vx + Math.cos(s[0]) * d0, vy + Math.sin(s[0]) * d0); g.stroke(); }
+      WER.laser += ((kracht >= 2 ? 1 : 0) - WER.laser) * Math.min(1, dt * 3);
+      if (WER.laser > 0.02 && !kw.weinig) { g.globalCompositeOperation = 'lighter'; for (let k = 0; k < 3; k++) { const a = t * (0.4 + k * 0.15) + k * 2.1; g.strokeStyle = `rgba(255,${80 + k * 60},${160 + k * 30},${0.35 * WER.laser * (0.5 + BEAT.kick * 0.5)})`; g.lineWidth = 3 + BEAT.kick * 4; g.beginPath(); g.moveTo(vx, vy); g.lineTo(vx + Math.cos(a) * maxR, vy + Math.sin(a) * maxR); g.stroke(); } g.globalCompositeOperation = 'source-over'; }
+    } else if (soort === 'storm') {
+      // regen, rommel die voorbij waait, en bliksem (af en toe, en vaker in de raketstukken)
+      if (!reduce && Math.random() < dt * (kracht >= 3 ? 0.3 : 0.08)) bliksem();
+      g.strokeStyle = 'rgba(180,190,220,.35)'; g.lineWidth = 1.2; g.beginPath();
+      for (const r of WER.regen) { r[1] += dt * 520 * r[2]; r[0] -= dt * 160 * r[2]; if (r[1] > Hc) { r[1] -= Hc + 20; r[0] = Math.random() * (Wc + 100); } if (r[0] < -20) r[0] += Wc + 40; g.moveTo(r[0], r[1]); g.lineTo(r[0] + 6 * r[2], r[1] - 18 * r[2]); }
+      g.stroke();
+      if (!kw.weinig && Math.random() < dt * 0.22) WER.rommel.push({ soort: WERELD.storm.rommel[Math.floor(Math.random() * 5)], x: Wc + 40, y: hor * (0.2 + Math.random() * 0.6), vx: -(180 + Math.random() * 160), vy: (Math.random() - 0.5) * 40, a: 0, va: (Math.random() - 0.5) * 6, s: U * (0.5 + Math.random() * 0.4) });
+      for (const r of WER.rommel) { r.x += r.vx * dt; r.y += (r.vy + Math.sin(t * 3 + r.s) * 30) * dt; r.a += r.va * dt; g.save(); g.translate(r.x, r.y); g.rotate(r.a); tekenRommel(g, r.soort, r.s); g.restore(); }
+      WER.rommel = WER.rommel.filter(r => r.x > -60);
+      if (WER.bliksem) { const b = WER.bliksem; b.t -= dt; if (b.t <= 0) WER.bliksem = null; else { g.strokeStyle = `rgba(255,240,220,${Math.min(1, b.t * 6)})`; g.lineWidth = 3; g.beginPath(); b.pad.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); g.strokeStyle = `rgba(170,140,255,${Math.min(0.5, b.t * 3)})`; g.lineWidth = 9; g.stroke(); } }
+    }
+    // confetti (Vastelaovend altijd een beetje, en overal een bui op een zwaar moment in de muziek)
+    if (WER.confetti.length) {
+      for (const c of WER.confetti) { c.y += dt * c.vy; c.x += Math.sin(t * 2 + c.a) * dt * 20 - dt * 12; c.a += dt * 4; g.fillStyle = c.k; g.save(); g.translate(c.x, c.y); g.rotate(c.a); g.fillRect(-c.s / 2, -c.s * 0.3, c.s, c.s * 0.6 * Math.abs(Math.cos(c.a)) + 0.5); g.restore(); }
+      WER.confetti = WER.confetti.filter(c => c.y < Hc + 10);
+      if (WER.confetti.length > 260) WER.confetti.splice(0, WER.confetti.length - 260);
+    }
+    WER.knal = Math.max(0, (WER.knal || 0) - dt * 2);
+  }
+  function bliksem() {
+    if (reduce || performance.now() - WER.bliksemT < 1500) return;
+    WER.bliksemT = performance.now();
+    const x0 = WER.Wc * (0.2 + Math.random() * 0.7), pad = [[x0, 0]]; let x = x0, y = 0; while (y < WER.hor * 0.85) { y += 12 + Math.random() * 26; x += (Math.random() - 0.5) * 40; pad.push([x, y]); }
+    WER.bliksem = { pad, t: 0.28 }; flits('#BFB0FF', 0.22, 0.3); GELUIDJES.donder();
+  }
+  function tekenRommel(g, s, m) {
+    g.fillStyle = '#16101A'; g.strokeStyle = '#2A2030'; g.lineWidth = 1.5;
+    if (s === 'sok') { g.beginPath(); g.moveTo(-m * 0.2, -m * 0.5); g.lineTo(m * 0.1, -m * 0.5); g.lineTo(m * 0.1, m * 0.15); g.quadraticCurveTo(m * 0.5, m * 0.2, m * 0.45, m * 0.45); g.lineTo(-m * 0.15, m * 0.45); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,122,58,.4)'; g.fillRect(-m * 0.2, -m * 0.5, m * 0.3, m * 0.12); }
+    else if (s === 'stoel') { g.fillRect(-m * 0.4, -m * 0.05, m * 0.8, m * 0.12); g.fillRect(-m * 0.4, -m * 0.6, m * 0.1, m * 1.0); g.fillRect(m * 0.3, -m * 0.05, m * 0.1, m * 0.5); g.fillRect(-m * 0.4, -m * 0.6, m * 0.5, m * 0.1); }
+    else if (s === 'emmer') { g.beginPath(); g.moveTo(-m * 0.35, -m * 0.35); g.lineTo(m * 0.35, -m * 0.35); g.lineTo(m * 0.25, m * 0.4); g.lineTo(-m * 0.25, m * 0.4); g.closePath(); g.fill(); g.beginPath(); g.arc(0, -m * 0.35, m * 0.35, Math.PI, 0); g.stroke(); }
+    else if (s === 'paraplu') { g.beginPath(); g.arc(0, 0, m * 0.5, Math.PI, 0); g.closePath(); g.fill(); g.beginPath(); g.moveTo(0, 0); g.lineTo(0, m * 0.55); g.arc(-m * 0.08, m * 0.55, m * 0.08, 0, Math.PI); g.stroke(); }
+    else { g.fillRect(-m * 0.4, -m * 0.3, m * 0.8, m * 0.6); g.fillStyle = 'rgba(200,200,210,.25)'; for (let k = 0; k < 4; k++) g.fillRect(-m * 0.3, -m * 0.2 + k * m * 0.12, m * 0.6, 2); }
+  }
+
+  // ---------------- plaatjes voor het speelveld: één keer tekenen, daarna alleen nog neerzetten
+  const PL = {};
+  function plaatje(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return { c, g: c.getContext('2d') }; }
+  function gloedDot(kleur) { const k = 'dot' + kleur; if (PL[k]) return PL[k]; const { c, g } = plaatje(64, 64), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, rgba(kleur, 1)); r.addColorStop(0.25, rgba(kleur, 0.55)); r.addColorStop(1, rgba(kleur, 0)); g.fillStyle = r; g.fillRect(0, 0, 64, 64); PL[k] = c; return c; }
+  function bouwPlaatjes(lev) {
+    const def = WERELD[lev.spec.id] || WERELD.zolder, K = lev.spec.kleuren, b = def.blok, sp = def.spijker, s = Math.max(4, Math.round(B));
+    for (const k of Object.keys(PL)) if (!k.startsWith('dot')) delete PL[k];
+    // een blok (als patroon, zodat grote vlakken in één keer gevuld worden)
+    { const { c, g } = plaatje(s, s), r = s / 40;
+      const v = g.createLinearGradient(0, 0, 0, s); v.addColorStop(0, b.licht); v.addColorStop(0.08, b.vul); v.addColorStop(1, b.donker); g.fillStyle = v; g.fillRect(0, 0, s, s);
+      if (b.soort === 'kist') { g.fillStyle = b.donker; g.fillRect(0, 0, s, 4 * r); g.fillRect(0, s - 4 * r, s, 4 * r); g.fillRect(0, 0, 4 * r, s); g.fillRect(s - 4 * r, 0, 4 * r, s); g.strokeStyle = b.donker; g.lineWidth = 4 * r; g.beginPath(); g.moveTo(4 * r, s - 4 * r); g.lineTo(s - 4 * r, 4 * r); g.stroke(); g.fillStyle = 'rgba(0,0,0,.2)'; for (let y = 12 * r; y < s; y += 12 * r) g.fillRect(4 * r, y, s - 8 * r, 1); g.fillStyle = '#E8D7A0'; for (const [x, y] of [[6, 6], [34, 6], [6, 34], [34, 34]]) g.fillRect(x * r - r, y * r - r, 2 * r, 2 * r); }
+      else if (b.soort === 'streep') { g.save(); g.beginPath(); g.rect(0, 0, s, s); g.clip(); for (let x = -s; x < s * 2; x += 10 * r) { g.fillStyle = Math.round(x / (10 * r)) % 2 ? b.vul : b.licht; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 5 * r, 0); g.lineTo(x + 5 * r - s, s); g.lineTo(x - s, s); g.fill(); } g.restore(); g.strokeStyle = b.donker; g.lineWidth = 3 * r; g.strokeRect(1.5 * r, 1.5 * r, s - 3 * r, s - 3 * r); }
+      else if (b.soort === 'glas') { g.strokeStyle = rgba(b.licht, 0.16); g.lineWidth = 1; for (let k = 1; k < 4; k++) { g.beginPath(); g.moveTo(k * s / 4, 0); g.lineTo(k * s / 4, s); g.moveTo(0, k * s / 4); g.lineTo(s, k * s / 4); g.stroke(); } g.strokeStyle = rgba(b.licht, 0.7); g.lineWidth = 1.5 * r; g.strokeRect(2 * r, 2 * r, s - 4 * r, s - 4 * r); g.fillStyle = 'rgba(255,255,255,.06)'; g.beginPath(); g.moveTo(0, 0); g.lineTo(s * 0.6, 0); g.lineTo(0, s * 0.6); g.fill(); }
+      else if (b.soort === 'steen') { g.fillStyle = b.donker; for (let y = 0; y < s; y += 10 * r) { g.fillRect(0, y, s, 1.5 * r); const o2 = (y / (10 * r)) % 2 ? 10 * r : 0; for (let x = o2; x < s; x += 20 * r) g.fillRect(x, y, 1.5 * r, 10 * r); } g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, 0, s, 3 * r); }
+      else if (b.soort === 'kristal') { g.fillStyle = rgba(b.licht, 0.16); g.beginPath(); g.moveTo(s / 2, 2 * r); g.lineTo(s - 2 * r, s / 2); g.lineTo(s / 2, s - 2 * r); g.lineTo(2 * r, s / 2); g.closePath(); g.fill(); g.strokeStyle = rgba(b.licht, 0.6); g.lineWidth = 1.5 * r; g.stroke(); g.strokeStyle = b.licht; g.lineWidth = 2 * r; g.strokeRect(r, r, s - 2 * r, s - 2 * r); }
+      else { g.strokeStyle = b.donker; g.lineWidth = 2 * r; g.strokeRect(2 * r, 2 * r, s - 4 * r, s - 4 * r); g.fillStyle = b.licht; for (const [x, y] of [[6, 6], [34, 6], [6, 34], [34, 34]]) { g.beginPath(); g.arc(x * r, y * r, 2.2 * r, 0, 7); g.fill(); } g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(4 * r, s / 2, s - 8 * r, 1.5 * r); }
+      PL.blok = c; PL.blokPat = ctx.createPattern(c, 'repeat');
+    }
+    // een spijker: precies dezelfde driehoek als waar je tegenaan botst
+    const spijker = (glow) => { const p = Math.round(B * 0.3), { c, g } = plaatje(B + p * 2, B + p * 2), cx = p + B / 2, by = p + B; g.beginPath(); g.moveTo(cx - B * 0.48, by); g.lineTo(cx, by - B * 0.95); g.lineTo(cx + B * 0.48, by); g.closePath();
+      if (glow) { g.shadowColor = sp.rand; g.shadowBlur = B * 0.35; g.strokeStyle = sp.rand; g.lineWidth = Math.max(2, B * 0.08); g.stroke(); g.stroke(); return c; }
+      const v = g.createLinearGradient(cx - B * 0.48, 0, cx + B * 0.48, 0); v.addColorStop(0, sp.vul); v.addColorStop(0.5, meng(sp.vul, sp.donker, 0.35)); v.addColorStop(0.5, sp.donker); v.addColorStop(1, meng(sp.donker, '#000000', 0.3)); g.fillStyle = v; g.fill();
+      if (sp.streep) { g.save(); g.clip(); g.fillStyle = sp.donker; for (let k = 0; k < 3; k++) g.fillRect(cx - B * 0.5, by - B * (0.22 + k * 0.28), B, B * 0.12); g.restore(); }
+      g.lineJoin = 'round'; g.strokeStyle = '#0A0A12'; g.lineWidth = Math.max(2, B * 0.06); g.stroke(); g.strokeStyle = sp.rand; g.lineWidth = Math.max(1, B * 0.03); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(cx - B * 0.04, by - B * 0.82); g.lineTo(cx - B * 0.3, by - B * 0.12); g.lineTo(cx - B * 0.2, by - B * 0.12); g.closePath(); g.fill(); return c; };
+    PL.spijker = spijker(false); PL.spijkerGloed = spijker(true); PL.spijkerP = Math.round(B * 0.3);
+    // springring, springkussen en de poorten
+    { const R = B * 0.62, { c, g } = plaatje(R * 2, R * 2); g.shadowColor = '#FFE76A'; g.shadowBlur = B * 0.3; g.strokeStyle = '#FFE76A'; g.lineWidth = Math.max(3, B * 0.1); g.beginPath(); g.arc(R, R, B * 0.38, 0, 7); g.stroke(); g.shadowBlur = 0; g.fillStyle = 'rgba(255,231,106,.32)'; g.fill(); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = Math.max(1, B * 0.03); g.beginPath(); g.arc(R, R, B * 0.3, -2.4, -1.2); g.stroke(); PL.ring = c; PL.ringR = R; }
+    { const { c, g } = plaatje(B * 1.3, B * 0.6); g.shadowColor = '#FFE76A'; g.shadowBlur = B * 0.25; const v = g.createLinearGradient(0, B * 0.1, 0, B * 0.45); v.addColorStop(0, '#FFF6B0'); v.addColorStop(1, '#E9B030'); g.fillStyle = v; g.beginPath(); g.ellipse(B * 0.65, B * 0.45, B * 0.48, B * 0.2, 0, Math.PI, 0); g.fill(); PL.kussen = c; }
+    const poort = kl => { const { c, g } = plaatje(B * 1.6, B * 4.2); g.shadowColor = kl; g.shadowBlur = B * 0.4; g.strokeStyle = kl; g.lineWidth = Math.max(4, B * 0.13); g.beginPath(); g.ellipse(B * 0.8, B * 2.1, B * 0.45, B * 1.7, 0, 0, 7); g.stroke(); g.shadowBlur = 0; const v = g.createRadialGradient(B * 0.8, B * 2.1, 0, B * 0.8, B * 2.1, B * 1.7); v.addColorStop(0, rgba(kl, 0.0)); v.addColorStop(1, rgba(kl, 0.35)); g.fillStyle = v; g.fill(); g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = Math.max(1.5, B * 0.04); g.beginPath(); g.ellipse(B * 0.8, B * 2.1, B * 0.3, B * 1.45, 0, -2, -0.6); g.stroke(); return c; };
+    PL.poortSchip = poort('#FF5AA8'); PL.poortKubus = poort('#8AFF6A');
+    // het blokje zelf, met een gezichtje dat kan knipperen, lachen en schrikken
+    const kubus = gezicht => { const sz = B * 0.92, p = Math.round(B * 0.12), { c, g } = plaatje(sz + p * 2, sz + p * 2), x0 = p, y0 = p, rr = Math.max(2, sz * 0.12);
+      const v = g.createLinearGradient(0, y0, 0, y0 + sz); v.addColorStop(0, meng(K[2], '#FFFFFF', 0.35)); v.addColorStop(0.45, K[2]); v.addColorStop(1, meng(K[2], '#000000', 0.25)); g.fillStyle = v; rondRect(g, x0, y0, sz, sz, rr); g.fill();
+      g.lineWidth = Math.max(2, sz * 0.07); g.strokeStyle = '#0A0A12'; g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.35)'; rondRect(g, x0 + sz * 0.12, y0 + sz * 0.1, sz * 0.3, sz * 0.14, sz * 0.06); g.fill();
+      g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(x0 + sz * 0.08, y0 + sz * 0.78, sz * 0.84, sz * 0.12);
+      g.fillStyle = '#0A0A12'; g.strokeStyle = '#0A0A12'; g.lineCap = 'round'; const ex1 = x0 + sz * 0.3, ex2 = x0 + sz * 0.68, ey = y0 + sz * 0.42;
+      if (gezicht === 'knipper') { g.lineWidth = sz * 0.07; g.beginPath(); g.moveTo(ex1 - sz * 0.08, ey); g.lineTo(ex1 + sz * 0.08, ey); g.moveTo(ex2 - sz * 0.08, ey); g.lineTo(ex2 + sz * 0.08, ey); g.stroke(); g.fillRect(x0 + sz * 0.3, y0 + sz * 0.64, sz * 0.4, sz * 0.08); }
+      else if (gezicht === 'blij') { g.lineWidth = sz * 0.07; g.beginPath(); g.arc(ex1, ey + sz * 0.04, sz * 0.08, Math.PI * 1.1, Math.PI * 1.9); g.moveTo(ex2 + sz * 0.08 * Math.cos(Math.PI * 1.1), ey + sz * 0.04 + sz * 0.08 * Math.sin(Math.PI * 1.1)); g.arc(ex2, ey + sz * 0.04, sz * 0.08, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); g.beginPath(); g.arc(x0 + sz * 0.5, y0 + sz * 0.6, sz * 0.16, 0.15, Math.PI - 0.15); g.stroke(); g.fillStyle = 'rgba(255,90,120,.45)'; rondje(g, x0 + sz * 0.18, y0 + sz * 0.62, sz * 0.07); rondje(g, x0 + sz * 0.82, y0 + sz * 0.62, sz * 0.07); }
+      else if (gezicht === 'focus') { g.fillRect(ex1 - sz * 0.09, ey - sz * 0.03, sz * 0.18, sz * 0.09); g.fillRect(ex2 - sz * 0.09, ey - sz * 0.03, sz * 0.18, sz * 0.09); g.lineWidth = sz * 0.05; g.beginPath(); g.moveTo(ex1 - sz * 0.1, ey - sz * 0.12); g.lineTo(ex1 + sz * 0.08, ey - sz * 0.07); g.moveTo(ex2 + sz * 0.1, ey - sz * 0.12); g.lineTo(ex2 - sz * 0.08, ey - sz * 0.07); g.stroke(); g.fillRect(x0 + sz * 0.36, y0 + sz * 0.66, sz * 0.28, sz * 0.06); }
+      else { g.fillRect(ex1 - sz * 0.075, ey - sz * 0.1, sz * 0.15, sz * 0.2); g.fillRect(ex2 - sz * 0.075, ey - sz * 0.1, sz * 0.15, sz * 0.2); g.fillStyle = '#FFFFFF'; g.fillRect(ex1 - sz * 0.02, ey - sz * 0.07, sz * 0.05, sz * 0.05); g.fillRect(ex2 - sz * 0.02, ey - sz * 0.07, sz * 0.05, sz * 0.05); g.fillStyle = '#0A0A12'; g.fillRect(x0 + sz * 0.28, y0 + sz * 0.64, sz * 0.44, sz * 0.08); }
+      return c; };
+    PL.kubus = { gewoon: kubus('gewoon'), knipper: kubus('knipper'), blij: kubus('blij'), focus: kubus('focus') };
+    { const sz = B * 0.92, { c, g } = plaatje(sz * 1.6, sz * 1.2), cx = sz * 0.8, cy = sz * 0.6; const v = g.createLinearGradient(0, cy - sz * 0.5, 0, cy + sz * 0.5); v.addColorStop(0, meng(K[1], '#FFFFFF', 0.3)); v.addColorStop(1, meng(K[1], '#000000', 0.3)); g.fillStyle = v; g.strokeStyle = '#0A0A12'; g.lineWidth = Math.max(2, sz * 0.07); g.lineJoin = 'round'; g.beginPath(); g.moveTo(cx + sz * 0.7, cy); g.quadraticCurveTo(cx + sz * 0.2, cy - sz * 0.5, cx - sz * 0.6, cy - sz * 0.35); g.lineTo(cx - sz * 0.45, cy); g.lineTo(cx - sz * 0.6, cy + sz * 0.35); g.quadraticCurveTo(cx + sz * 0.2, cy + sz * 0.5, cx + sz * 0.7, cy); g.fill(); g.stroke(); g.fillStyle = 'rgba(255,255,255,.4)'; g.beginPath(); g.ellipse(cx + sz * 0.15, cy - sz * 0.18, sz * 0.28, sz * 0.06, -0.15, 0, 7); g.fill(); PL.schip = c; }
+    // brokjes van het blokje als het stukgaat
+    PL.scherf = []; for (let k = 0; k < 9; k++) { const sz = B * 0.92 / 3, { c, g } = plaatje(sz, sz); g.drawImage(PL.kubus.gewoon, -(PL.kubus.gewoon.width - B * 0.92) / 2 - (k % 3) * sz, -(PL.kubus.gewoon.height - B * 0.92) / 2 - Math.floor(k / 3) * sz); PL.scherf.push(c); }
+  }
+
+  // ---------------- meeluisteren met de muziek: wat er gespeeld wordt (gepland) en hoe hard (AnalyserNode)
+  const BEAT = { q: [], kick: 0, clap: 0, bekken: 0, bas: 0, mid: 0, hoog: 0, spec: null, an: null, vorigTel: -1 };
+  function maakLuisteraar(comp) { try { const an = ac.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = 0.55; comp.connect(an); an.connect(ac.destination); BEAT.an = an; BEAT.data = new Uint8Array(an.frequencyBinCount); } catch (e) { comp.connect(ac.destination); } }
+  function beatLog(s, t, v) { if (!muziek) return; BEAT.q.push([t - muziek.begin, s, v]); if (BEAT.q.length > 400) BEAT.q.splice(0, 200); }
+  // bliepjes en deuntjes bij het spelen (via dezelfde mengtafel als de muziek)
+  const GELUIDJES = {
+    gemist: () => { const a = audio(); if (!a) return; toon(a.currentTime, 43, 0.14, 'square', 0.07, 700, -4); },
+    mijlpaal: n => { const a = audio(); if (!a || !S.lev) return; const lied = LIEDJES[S.lev.spec.id]; [0, 2, 4, 7].slice(0, n >= 50 ? 4 : 3).forEach((d, i) => toon(a.currentTime + i * 0.06, graad(lied, d) + 24, 0.22, 'triangle', 0.05, 5000)); },
+    record: () => { const a = audio(); if (!a) return; [0, 4, 7, 12, 16].forEach((d, i) => toon(a.currentTime + i * 0.07, 67 + d, 0.3, 'square', 0.045, 3800)); },
+    stempel: () => { const a = audio(); if (!a) return; kick(a.currentTime, 1); geruis(a.currentTime, 0.25, 900, 'lowpass', 0.5); },
+    tik: () => { const a = audio(); if (!a) return; toon(a.currentTime, 96, 0.03, 'square', 0.02, 6000); },
+    feest: () => { const a = audio(); if (!a) return; [[0, 72], [0.12, 76], [0.24, 79], [0.36, 84], [0.56, 83], [0.68, 84]].forEach(([d, m]) => { toon(a.currentTime + d, m, 0.3, 'square', 0.05, 4200); toon(a.currentTime + d, m - 12, 0.3, 'triangle', 0.05); }); },
+    donder: () => { const a = audio(); if (!a) return; geruis(a.currentTime, 1.4, 180, 'lowpass', 0.35); },
+    klik: t => { const a = audio(); if (!a) return; toon(t, 88, 0.05, 'square', 0.12, 6000); },
+  };
+  function luister(dt, tel, opBeat) {
+    // geplande slagen: precies op het moment dat de baan daar is
+    if (muziek && ac) {
+      const nu0 = S.st ? S.sim : ac.currentTime - muziek.begin;
+      while (BEAT.q.length && BEAT.q[0][0] <= nu0) { const [, s, v] = BEAT.q.shift(); if (s === 'kick') BEAT.kick = Math.max(BEAT.kick, Math.min(1, v)); else if (s === 'clap') BEAT.clap = 1; else if (s === 'bekken') { BEAT.bekken = 1; accent(); } }
+    } else if (opBeat) { const tk = Math.floor(tel); if (tk !== BEAT.vorigTel) { BEAT.vorigTel = tk; BEAT.kick = 0.9; if (tk % 2) BEAT.clap = 0.8; } }
+    BEAT.kick *= Math.exp(-dt * 7); BEAT.clap *= Math.exp(-dt * 9); BEAT.bekken *= Math.exp(-dt * 1.6);
+    if (BEAT.an && muziek && opslag.geluid) {
+      BEAT.an.getByteFrequencyData(BEAT.data); const d = BEAT.data, gem = (a, b) => { let s = 0; for (let i = a; i < b; i++) s += d[i]; return s / (b - a) / 255; };
+      BEAT.bas += (gem(1, 4) - BEAT.bas) * Math.min(1, dt * 14); BEAT.mid += (gem(4, 16) - BEAT.mid) * Math.min(1, dt * 12); BEAT.hoog += (gem(20, 64) - BEAT.hoog) * Math.min(1, dt * 12); BEAT.spec = d;
+    } else { BEAT.bas = BEAT.kick * 0.7; BEAT.mid = BEAT.clap * 0.5; BEAT.hoog = 0; BEAT.spec = null; }
+  }
+  // een zwaar moment in de muziek (een bekken op het refrein): elke wereld doet iets eigens
+  function accent() {
+    const s = WER.def && WER.def.deeltjes; if (!s) return;
+    if (s === 'storm') bliksem();
+    else if (s === 'confetti' || s === 'ballon' || s === 'stof') { const K = s === 'confetti' ? ['#D6302F', '#F6CB2F', '#2E8B62'] : s === 'stof' ? ['#FFD86A', '#E9577A', '#FFF1C4'] : ['#FF8A30', '#5EE6FF', '#FFE76A', '#FF5AA8']; const n = Math.round((reduce ? 10 : 60) * KW().deeltjes); for (let i = 0; i < n; i++) WER.confetti.push({ x: Math.random() * WER.Wc, y: -10 - Math.random() * 120, vy: 60 + Math.random() * 60, k: K[i % K.length], a: Math.random() * 6, s: 3 + Math.random() * 4 }); }
+    else if (s === 'equalizer' || s === 'tunnel') { WER.knal = 1; }
+  }
+  // het stuk van het level waar we nu zijn (voor de wereld: intro, gewoon, raket, refrein)
+  function deelHier(lev, tel) {
+    let van = 8; if (tel < 8) return { soort: 'intro', kracht: 0 };
+    for (const d of lev.spec.delen) { if (tel < van + d.tellen) return { soort: d.schip ? 'schip' : 'kubus', kracht: d.schip ? 3 : d.m === 'B' ? 2.5 : d.m === 'C' || d.m === 'D' ? 2 : 1, m: d.m, van }; van += d.tellen; }
+    return { soort: 'eind', kracht: 1 };
+  }
+
   // ---------------- het spel
-  const S = { scherm: 'menu', lev: null, st: null, tijd: 0, sim: 0, druk: false, oefen: false, check: null, poging: 1, deeltjes: [], camY: 2, rot: 0, klok0: 0, flits: 0, eindT: 0, spoor: [] };
+  const S = { scherm: 'menu', lev: null, st: null, tijd: 0, sim: 0, druk: false, oefen: false, check: null, poging: 1, deeltjes: [], camY: 2, rot: 0, klok0: 0, flits: 0, eindT: 0, spoor: [], teksten: [], strepen: [], menuX: 0, menuLev: 0, schud: 0, gezicht: 0, vorigDeel: null };
   function nieuweStaat() { return { x: 2, y: 0, vy: 0, modus: 'kubus', grond: true, dood: false, klaar: false }; }
   function begin(levIndex, oefen) {
     const a = audio();
-    S.lev = LEVELS[levIndex]; S.oefen = oefen; S.check = null; S.poging = 1; S.scherm = 'spel';
-    $('rr-menu').hidden = true; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; void a;
+    S.lev = LEVELS[levIndex]; S.menuLev = levIndex; S.oefen = oefen; S.check = null; S.poging = 1; S.scherm = 'spel';
+    $('rr-menu').hidden = true; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; $('rr-inst').hidden = true; void a;
+    pasKwaliteitToe(); bouwWereld(S.lev);
     herstart();
   }
   function herstart() {
     const c = S.oefen && S.check;
     S.st = c ? Object.assign({}, c.st, { gebruikt: new Set(c.st.gebruikt) }) : nieuweStaat();
-    S.sim = S.tijd = c ? c.tijd : 0; S.deeltjes = []; S.spoor = []; S.rot = 0; S.camY = Math.max(2, S.st.y);
+    S.sim = S.tijd = c ? c.tijd : 0; S.deeltjes = []; S.spoor = []; S.rot = 0; S.camY = Math.max(2, S.st.y); S.teksten = []; S.strepen = []; S.vorigDeel = null; S.golf = 0;
+    kwaliteitOmlaag();
+    ooStart(S.lev.L, S.sim, S.st.x);
     const m = startMuziek(S.lev, S.tijd); S.klok0 = m ? null : performance.now() / 1000 - S.tijd;
     if (!S.oefen) { const id = S.lev.spec.id; opslag.pogingen[id] = (opslag.pogingen[id] || 0) + 1; bewaar(); }
   }
-  function nu() { if (muziek && ac) return ac.currentTime - muziek.begin; return performance.now() / 1000 - S.klok0; }
+  // de klok van het spel volgt de geluidskaart; met een vertraging (ingesteld per apparaat) loopt het spel zoveel later, zodat je ziet wat je hoort
+  function nu() { if (muziek && ac) return ac.currentTime - muziek.begin - (app.v || 0) / 1000; return performance.now() / 1000 - S.klok0; }
   function sterf() {
     S.st.dood = true; fx.dood(); stopMuziek(); S.flits = 0.25;
-    for (let i = 0; i < 26; i++) S.deeltjes.push({ x: S.st.x, y: S.st.y + 0.45, vx: (Math.random() - 0.5) * 16, vy: Math.random() * 14 - 3, t: 0.9, k: i % 2 ? S.lev.spec.kleuren[2] : '#FFFFFF', r: 0.12 + Math.random() * 0.18 });
+    breekStuk();
     const pct = Math.min(100, Math.floor(S.st.x / S.lev.L.eind * 100));
-    if (!S.oefen) { const id = S.lev.spec.id; if (pct > (opslag.best[id] || 0)) { opslag.best[id] = pct; bewaar(); melding('Nieuw record: ' + pct + '%!'); } }
+    if (!S.oefen) { const id = S.lev.spec.id; let nieuw = false, record = false; if (pct > (opslag.best[id] || 0)) { opslag.best[id] = pct; nieuw = record = true; } if (OO.max > (isObj(opslag.combo) ? opslag.combo[id] || 0 : 0)) { if (!isObj(opslag.combo)) opslag.combo = {}; opslag.combo[id] = OO.max; nieuw = true; } if (nieuw) bewaar(); if (record) toonBanner('Nieuw record!', pct + '%'); }
     S.poging++;
     const dezeDood = S.st; setTimeout(() => { if (S.scherm === 'spel' && S.st === dezeDood) herstart(); }, 750);
   }
   function gehaald() {
     S.st.klaar = true; fx.klaar(); S.eindT = 0;
-    const id = S.lev.spec.id;
-    if (!S.oefen) { opslag.best[id] = 100; opslag.gehaald[id] = true; bewaar(); stuurScore(); }
-    for (let i = 0; i < 120; i++) S.deeltjes.push({ x: S.st.x + (Math.random() - 0.3) * 10, y: S.st.y + 8 + Math.random() * 4, vx: (Math.random() - 0.5) * 6, vy: -Math.random() * 4, t: 3, k: ['#FF5AA8', '#5EE6FF', '#FFE76A', '#8AFF6A', '#FF7A3A'][i % 5], r: 0.12, confetti: true });
+    const id = S.lev.spec.id, score = ritmeScore(), uit = { score, max: OO.max, perfect: OO.perfect, goed: OO.goed, net: OO.net, gemist: OO.gemist, door: OO.door, poging: S.poging, eerst: !opslag.gehaald[id], beterRitme: false, beterCombo: false, oefen: S.oefen };
+    if (!S.oefen) {
+      opslag.best[id] = 100; opslag.gehaald[id] = true;
+      if (!isObj(opslag.combo)) opslag.combo = {}; if (!isObj(opslag.ritme)) opslag.ritme = {};
+      if (opslag.ritme[id] === undefined || score > opslag.ritme[id]) { uit.beterRitme = true; uit.oudRitme = opslag.ritme[id]; opslag.ritme[id] = score; }
+      if (OO.max > (opslag.combo[id] || 0)) { uit.beterCombo = true; opslag.combo[id] = OO.max; }
+      bewaar(); stuurScore();
+    }
+    const n = Math.round(160 * KW().deeltjes * (reduce ? 0.3 : 1));
+    for (let i = 0; i < n; i++) S.deeltjes.push({ x: S.st.x + (Math.random() - 0.3) * 12, y: S.st.y + 8 + Math.random() * 5, vx: (Math.random() - 0.5) * 6, vy: -Math.random() * 4, t: 3.2, t0: 3.2, k: ['#FF5AA8', '#5EE6FF', '#FFE76A', '#8AFF6A', '#FF7A3A'][i % 5], r: 0.13, confetti: true, a: Math.random() * 6 });
     const dezeRonde = S.st;
-    setTimeout(() => { if (S.st !== dezeRonde || S.scherm !== 'spel') return; $('rr-einde-kop').textContent = S.oefen ? 'Oefenronde gehaald!' : 'Level gehaald!'; $('rr-einde-tekst').textContent = S.oefen ? 'Knap! Probeer het nu zonder checkpoints.' : `${S.lev.spec.naam} in ${S.poging} ${S.poging === 1 ? 'poging' : 'pogingen'}. Wat een ritmegevoel!`; $('rr-einde').hidden = false; S.scherm = 'einde';
-      // een nep-advertentie voor een ander spel (banners.js), onder de knop; hooguit eens per 10 minuten
-      const rk = document.createElement('div'); $('eind-reclame').innerHTML = ''; $('eind-reclame').appendChild(rk);
-      if (window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok', soms: true }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
-    }, 1600);
+    setTimeout(() => { if (S.st !== dezeRonde || S.scherm !== 'spel') return; toonUitslag(uit); }, 1600);
   }
   function stuurScore() { if (!window.Scorebord) return; const som = RRM.LEVELS.reduce((a, s) => a + (opslag.best[s.id] || 0), 0), pog = Object.values(opslag.pogingen).reduce((a, b) => a + b, 0); if (som > 0) Scorebord.stuur('ritme', som, pog); }
+  // de spellus: precies zoals altijd (vaste stapjes van 1/240 s op de klok van de geluidskaart); het oordeel kijkt alleen mee
   function update() {
     if (S.scherm !== 'spel' || !S.st || S.st.dood) return;
     const L = S.lev.L, doel = nu();
     let stappen = 0;
     while (S.sim + RRM.DT <= doel && stappen < 400) {
-      RRM.stap(S.st, L, S.druk || S.tikBuffer, RRM.DT); S.tikBuffer = false; S.sim += RRM.DT; stappen++;
+      const voor = ooVoor(S.st), d = S.druk || S.tikBuffer;
+      RRM.stap(S.st, L, d, RRM.DT); S.tikBuffer = false; S.sim += RRM.DT; stappen++;
+      ooNa(voor, d, L);
       if (S.oefen) for (const c of L.checks) if (S.st.x >= c.x && (!S.check || S.check.x < c.x) && (S.st.grond || S.st.modus === 'schip')) { S.check = { x: c.x, tijd: S.sim, st: Object.assign({}, S.st, { gebruikt: new Set(S.st.gebruikt) }) }; melding('Checkpoint!'); }
       if (S.st.dood) { sterf(); return; }
       if (S.st.klaar) { gehaald(); return; }
     }
-    if (S.st.ring !== undefined) { const r = L.ringen[S.st.ring]; for (let i = 0; i < 10; i++) S.deeltjes.push({ x: r.x, y: r.y, vx: Math.cos(i) * 5, vy: Math.sin(i) * 5, t: 0.4, k: '#FFE76A', r: 0.1 }); S.st.ring = undefined; }
+    if (S.st.ring !== undefined) { const r = L.ringen[S.st.ring]; vonken(r.x, r.y, 14, '#FFE76A', 7); S.st.ring = undefined; }
   }
 
+  // ---------------- het oordeel: viel je sprong op de bedoelde tel? (verandert niets aan het spel)
+  const PERFECT = 0.030, GOED = 0.070, VENSTER = 0.16, SPRONG_VY = RRM.V0 - RRM.G * RRM.DT;
+  const OO = { n: 0, i: 0, klaar: new Uint8Array(0), perfect: 0, goed: 0, net: 0, gemist: 0, combo: 0, max: 0, door: 0, schip: 0, noten: 0, laatsteDruk: -9, vorigDruk: false };
+  function ooStart(L, vanaf, x0) {
+    Object.assign(OO, { n: L.invoer.length, i: 0, klaar: new Uint8Array(L.invoer.length), perfect: 0, goed: 0, net: 0, gemist: 0, combo: 0, max: 0, door: 0, laatsteDruk: -9, vorigDruk: false });
+    let noten = 0; for (let k = 0; k < OO.n; k++) { if (L.invoer[k] < vanaf - 1e-6) OO.klaar[k] = 2; else noten++; }
+    OO.noten = noten; OO.schip = L.schip.filter(z => z.x0 >= x0 - 0.5).length;
+  }
+  const ooVoor = st => ({ grond: st.grond, n: st.gebruikt ? st.gebruikt.size : 0, modus: st.modus });
+  function ooNa(voor, d, L) {
+    const st = S.st, t = S.sim - RRM.DT;
+    if (d && !OO.vorigDruk) OO.laatsteDruk = t; OO.vorigDruk = d;
+    const ring = st.gebruikt && st.gebruikt.size > voor.n;
+    if (ring) ooDruk(L, OO.laatsteDruk, 'ring');
+    else if (st.modus === 'kubus' && voor.grond && !st.grond) { if (st.vy === SPRONG_VY) ooDruk(L, t, 'sprong'); else kussenFx(); }
+    if (voor.modus !== st.modus) { if (st.modus === 'schip') poortFx('#FF5AA8', 'Raket!'); else { OO.door++; ooCombo(1); poortFx('#8AFF6A', 'Doorgevlogen!'); } }
+    while (OO.i < OO.n && (OO.klaar[OO.i] || L.invoer[OO.i] < t - VENSTER)) { if (!OO.klaar[OO.i]) { OO.klaar[OO.i] = 1; ooGemist(L, L.invoer[OO.i]); } OO.i++; }
+  }
+  function ooDruk(L, t, soort) {
+    let beste = -1, bd = 9;
+    for (let j = OO.i; j < OO.n && L.invoer[j] <= t + VENSTER; j++) if (!OO.klaar[j]) { const dd = Math.abs(t - L.invoer[j]); if (dd <= VENSTER && dd < bd) { bd = dd; beste = j; } }
+    if (beste < 0) { if (soort === 'sprong') stofje(); return; }
+    OO.klaar[beste] = 1;
+    const dlt = t - L.invoer[beste];
+    if (bd <= PERFECT) { OO.perfect++; ooCombo(1); oordeelFx('perfect', dlt); }
+    else if (bd <= GOED) { OO.goed++; ooCombo(1); oordeelFx('goed', dlt); }
+    else { OO.net++; oordeelFx('net', dlt); }
+  }
+  function ooGemist(L, t0) {
+    OO.gemist++; const was = OO.combo; OO.combo = 0;
+    const x = 2 + L.v * t0, y = Math.floor(x) < L.lengte ? L.T[Math.max(0, Math.floor(x))] : 0;
+    S.teksten.push({ tekst: 'Gemist', x, y: y + 1.2, t: 0.9, t0: 0.9, kleur: '#FF6A6A', soort: 'gemist' });
+    S.strepen.push({ x, y, t: 0.5, t0: 0.5, kleur: '#FF4A4A', breed: 0.5 });
+    GELUIDJES.gemist(); if (was >= 10) S.comboBreuk = 0.5;
+  }
+  function ooCombo(n) {
+    OO.combo += n; if (OO.combo > OO.max) OO.max = OO.combo; S.comboPop = 1;
+    if ([10, 25, 50, 75, 100, 150, 200].includes(OO.combo)) { S.teksten.push({ tekst: OO.combo + ' op rij!', x: 0, y: 0, t: 1.4, t0: 1.4, kleur: '#FFE76A', soort: 'mijlpaal' }); GELUIDJES.mijlpaal(OO.combo); if (OO.combo >= 50 && !reduce) S.golf = 1; }
+  }
+  function ritmeScore() { const tot = OO.noten + OO.schip; if (!tot) return 100; return Math.max(0, Math.min(100, Math.round(100 * (OO.perfect + 0.6 * OO.goed + 0.3 * OO.net + OO.door) / tot))); }
+  const STEMPELS = [[95, 'Ritmekoning'], [85, 'Swingend'], [70, 'Strak'], [50, 'In de maat'], [0, 'Gehaald!']];
+  const stempelVan = s => STEMPELS.find(([g]) => s >= g)[1];
+
+  // ---------------- effecten (alleen voor het oog)
+  const veelheid = () => KW().deeltjes * (reduce ? 0.35 : 1);
+  function vonken(x, y, n, kleur, kracht) { n = Math.round(n * veelheid()); for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = kracht * (0.5 + Math.random() * 0.8); S.deeltjes.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v + 2, t: 0.45, t0: 0.45, k: kleur, r: 0.11, vonk: true }); } }
+  function oordeelFx(soort, dlt) {
+    const st = S.st, K = S.lev.spec.kleuren, x = st.x, y = st.y;
+    const T = { perfect: ['Perfect!', '#FFFFFF', 18, K[2]], goed: ['Goed!', '#FFE76A', 9, '#FFE76A'], net: [dlt < 0 ? 'Net! (vroeg)' : 'Net! (laat)', '#C9C2D8', 0, null] }[soort];
+    S.teksten.push({ tekst: T[0], x: x + 0.2, y: y + 1.5, t: soort === 'net' ? 0.6 : 0.85, t0: soort === 'net' ? 0.6 : 0.85, kleur: T[1], soort, rand: T[3] });
+    if (T[2]) { vonken(x, y + 0.1, T[2], T[3], soort === 'perfect' ? 9 : 6); S.strepen.push({ x, y: hoogteOnder(x), t: 0.35, t0: 0.35, kleur: T[3], breed: soort === 'perfect' ? 2.4 : 1.4 }); }
+    if (soort === 'perfect') S.gloei = 1;
+  }
+  function hoogteOnder(x) { const L = S.lev.L, i = Math.floor(x); return i >= 0 && i < L.lengte ? (L.F[i] > -99 ? L.F[i] : L.T[i]) : 0; }
+  function stofje() { const st = S.st; for (let i = 0; i < Math.round(4 * veelheid()); i++) S.deeltjes.push({ x: st.x - 0.3, y: st.y, vx: -1 - Math.random() * 2, vy: Math.random() * 2, t: 0.4, t0: 0.4, k: 'rgba(255,255,255,.6)', r: 0.08 }); }
+  function kussenFx() { const st = S.st; vonken(st.x, st.y, 10, '#FFE76A', 6); S.teksten.push({ tekst: 'Boing!', x: st.x + 0.3, y: st.y + 1.3, t: 0.6, t0: 0.6, kleur: '#FFE76A', soort: 'klein' }); }
+  function poortFx(kleur, tekst) { const st = S.st; vonken(st.x, st.y + 0.4, 22, kleur, 10); S.teksten.push({ tekst, x: st.x + 0.4, y: st.y + 1.7, t: 0.9, t0: 0.9, kleur, soort: 'goed' }); }
+  function breekStuk() {
+    const st = S.st, K = S.lev.spec.kleuren, n = Math.round(22 * veelheid()) + 4;
+    for (let k = 0; k < 9; k++) S.deeltjes.push({ x: st.x + ((k % 3) - 1) * 0.3, y: st.y + 0.45 + (1 - Math.floor(k / 3)) * 0.3, vx: ((k % 3) - 1) * 5 + (Math.random() - 0.5) * 6, vy: 4 + Math.random() * 9, t: 1.0, t0: 1.0, scherf: k, a: 0, va: (Math.random() - 0.5) * 14, r: 0.31 });
+    for (let i = 0; i < n; i++) S.deeltjes.push({ x: st.x, y: st.y + 0.45, vx: (Math.random() - 0.5) * 16, vy: Math.random() * 14 - 3, t: 0.8, t0: 0.8, k: i % 2 ? K[2] : '#FFFFFF', r: 0.1 + Math.random() * 0.12, vonk: i % 3 === 0 });
+    S.schud = reduce ? 0 : 0.32; flits('#FF4A6A', reduce ? 0.12 : 0.3, 0.35);
+  }
+  // een kleurflits over het hele beeld (als losse laag: kost niets), en een banner die met een klap in beeld komt
+  let flitsT = null;
+  function flits(kleur, a, duur) { const f = $('rr-flits'); if (!f) return; f.style.transition = 'none'; f.style.background = kleur; f.style.opacity = String(reduce ? Math.min(a, 0.12) : a); void f.offsetWidth; f.style.transition = `opacity ${duur}s ease-out`; f.style.opacity = '0'; clearTimeout(flitsT); }
+  function toonBanner(kop, groot) { const b = $('rr-banner'); if (!b) return; b.querySelector('b').textContent = kop; b.querySelector('span').textContent = groot; b.hidden = false; b.classList.remove('klap'); void b.offsetWidth; b.classList.add('klap'); GELUIDJES.record(); clearTimeout(b._t); b._t = setTimeout(() => { b.hidden = true; }, 1700); }
+
   // ---------------- tekenen
-  let B = 40, W = 0, H = 0;
-  function maat() { const r = veld.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); W = cv.width; H = cv.height; B = Math.min(H / 11, W / 14); }
-  addEventListener('resize', maat);
-  const hexMix = (a, b, f) => { const p = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; const x = p(a), y = p(b); return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * f)).join(',')})`; };
+  let B = 40, W = 0, H = 0, CAM = { x: 0, y: 2, basis: 0 };
+  const sx = x => (x - CAM.x) * B, sy = y => CAM.basis - (y - CAM.y + 4.2) * B;
+  function maat() { const r = veld.getBoundingClientRect(), d = dpr(); cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); W = cv.width; H = cv.height; B = Math.min(H / 11, W / 14); WER.sleutel = ''; const lev = S.lev || LEVELS[S.menuLev]; if (lev && W > 0) bouwWereld(lev); }
+  let maatT = null; addEventListener('resize', () => { clearTimeout(maatT); maatT = setTimeout(maat, 120); });
+  function pasKwaliteitToe() { const d = dpr(); const r = veld.getBoundingClientRect(); if (Math.round(r.width * d) !== W || Math.round(r.height * d) !== H) maat(); }
   function teken(dt) {
-    const lev = S.lev || LEVELS[0], L = lev.L, K = lev.spec.kleuren, st = S.st || nieuweStaat();
-    const tel = S.st ? S.sim / L.slag : performance.now() / 1000 / 0.46, fase = tel - Math.floor(tel), puls = reduce ? 0 : Math.pow(1 - fase, 3);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    const lucht = ctx.createLinearGradient(0, 0, 0, H); lucht.addColorStop(0, hexMix(K[0], '#000000', 0.35)); lucht.addColorStop(1, hexMix(K[0], K[1], 0.18 + puls * 0.12)); ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, H);
-    // camera
+    const lev = S.lev || LEVELS[S.menuLev] || LEVELS[0], L = lev.L, K = lev.spec.kleuren, st = S.st || Object.assign(nieuweStaat(), { x: S.menuX });
+    if (WER.lev !== lev || !WER.sleutel) bouwWereld(lev);
+    if (!S.st) S.menuX = (S.menuX + dt * (reduce ? 1.5 : 4)) % Math.max(40, L.eind);
+    const tel = S.st ? S.sim / L.slag : performance.now() / 1000 / L.slag, fase = tel - Math.floor(tel), deel = S.st ? deelHier(lev, tel) : { soort: 'intro', kracht: 1 };
+    luister(dt, tel, true);
+    // een nieuw stuk van het level: bij de liedjes zonder refreinen (of zonder muziek) geeft een refrein of een raketstuk een accent
+    if (S.st && deel.van !== undefined && S.vorigDeel !== deel.van) { if (S.vorigDeel !== null && (deel.m === 'B' || deel.soort === 'schip') && (!muziek || !(LIEDJES[lev.spec.id] || {}).secties)) accent(); S.vorigDeel = deel.van; }
+    const puls = reduce ? BEAT.kick * 0.3 : Math.max(BEAT.kick, Math.pow(1 - fase, 3) * 0.4);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+    // camera (precies zoals altijd)
     const doelY = st.modus === 'schip' ? 3 : Math.max(2.5, st.y - 1); S.camY += (doelY - S.camY) * Math.min(1, dt * 4);
-    // op een smal (staand) scherm: kleinere blokjes, de speler meer naar links en de speelstrook in het midden
-    const zicht = W / B, camX = st.x - (zicht < 21 ? 3.6 : 7), basis = Math.min(H, (H + 13 * B) / 2), sx = x => (x - camX) * B, sy = y => basis - (y - S.camY + 4.2) * B;
-    // achtergrondvormen die langzaam meeschuiven
-    ctx.save(); ctx.globalAlpha = 0.16; ctx.strokeStyle = K[1]; ctx.lineWidth = 3;
-    for (let i = 0; i < 12; i++) { const px = ((i * 260 - camX * B * 0.2) % (W + 300) + W + 300) % (W + 300) - 150, py = H * (0.15 + (i * 37 % 50) / 100), s = B * (1.2 + (i % 3)); ctx.save(); ctx.translate(px, py); ctx.rotate(tel * 0.08 * (i % 2 ? 1 : -1) + i); ctx.strokeRect(-s / 2, -s / 2, s, s); ctx.restore(); }
-    ctx.restore();
-    // grond
-    const gy = sy(0); ctx.fillStyle = hexMix(K[0], '#000000', 0.5); ctx.fillRect(0, gy, W, H - gy);
-    ctx.strokeStyle = K[1]; ctx.lineWidth = 2 + puls * 3; ctx.shadowColor = K[1]; ctx.shadowBlur = 10 + puls * 18; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); ctx.shadowBlur = 0;
-    ctx.globalAlpha = 0.25; for (let x = Math.floor(camX); x < camX + W / B + 1; x += 2) { ctx.beginPath(); ctx.moveTo(sx(x), gy); ctx.lineTo(sx(x) - B * 2, H); ctx.stroke(); } ctx.globalAlpha = 1;
-    const x0 = Math.max(0, Math.floor(camX) - 1), x1 = Math.min(L.lengte - 1, Math.ceil(camX + W / B) + 1);
-    // terrein en tunnels
-    const blokVul = hexMix(K[0], '#000000', 0.25);
+    const zicht = W / B, camX = st.x - (zicht < 21 ? 3.6 : 7), basis = Math.min(H, (H + 13 * B) / 2);
+    CAM.x = camX; CAM.y = S.camY; CAM.basis = basis;
+    // zacht schudden: op de kick als je combo loopt, en een schokje als je stukgaat (de hele scène, als laag)
+    let dx = 0, dy = 0;
+    if (!reduce) { if (S.schud > 0) { S.schud -= dt; const a = S.schud * B * 0.5 / dpr(); dx = (Math.random() - 0.5) * a; dy = (Math.random() - 0.5) * a; } else if (OO.combo >= 10 && S.st && !st.dood) dy = BEAT.kick * Math.min(3, 1 + OO.combo / 25); }
+    scene.style.transform = dx || dy ? `translate3d(${dx.toFixed(1)}px,${dy.toFixed(1)}px,0)` : '';
+    plaatsWereld(camX, S.camY, dt, tel, deel.kracht || 0);
+    const gy = sy(0), x0 = Math.max(0, Math.floor(camX) - 1), x1 = Math.min(L.lengte - 1, Math.ceil(camX + W / B) + 1);
+    // de rand van de grond, die op de maat oplicht en gaat gloeien bij een combo
+    const combo = S.st ? OO.combo : 0, gloei = Math.min(1, combo / 25), rand = WER.def.blok.rand;
+    S.gloei = Math.max(0, (S.gloei || 0) - dt * 3);
+    ctx.globalCompositeOperation = 'lighter';
+    if (combo >= 10 || puls > 0.2) { ctx.globalAlpha = Math.min(1, 0.15 + gloei * 0.5 + puls * 0.25); ctx.drawImage(gloedDot(combo >= 50 ? K[2] : rand), 0, 16, 64, 32, 0, gy - B * (0.5 + gloei * 0.6), W, B * (1 + gloei * 1.2)); ctx.globalAlpha = 1; }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = rand; ctx.fillRect(0, gy - Math.max(1, B * 0.03) - puls * B * 0.04, W, Math.max(2, B * 0.06) + puls * B * 0.08);
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(0, gy - Math.max(1, B * 0.03), W, Math.max(1, B * 0.02));
+    // het terrein en de tunnels, met een patroon in de stijl van de wereld
+    const pat = PL.blokPat; if (pat && pat.setTransform && window.DOMMatrix) pat.setTransform(new DOMMatrix([1, 0, 0, 1, sx(0), gy]));
+    ctx.fillStyle = pat || WER.def.blok.vul;
+    ctx.beginPath();
     for (let i = x0; i <= x1; i++) {
-      const h = L.T[i];
-      if (L.F[i] > -99) { ctx.fillStyle = blokVul; ctx.fillRect(sx(i), sy(L.F[i]), B + 1, gy - sy(L.F[i]) + 1); ctx.fillRect(sx(i), 0, B + 1, sy(L.C[i])); ctx.strokeStyle = K[2]; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx(i), sy(L.F[i])); ctx.lineTo(sx(i + 1), sy(L.F[i])); ctx.moveTo(sx(i), sy(L.C[i])); ctx.lineTo(sx(i + 1), sy(L.C[i])); ctx.stroke(); if (L.F[i - 1] !== undefined && L.F[i - 1] !== L.F[i] && L.F[i - 1] > -99) { ctx.beginPath(); ctx.moveTo(sx(i), sy(L.F[i - 1])); ctx.lineTo(sx(i), sy(L.F[i])); ctx.moveTo(sx(i), sy(L.C[i - 1])); ctx.lineTo(sx(i), sy(L.C[i])); ctx.stroke(); } continue; }
-      if (h > 0) { ctx.fillStyle = blokVul; ctx.fillRect(sx(i), sy(h), B + 1, h * B + 1); ctx.strokeStyle = K[1]; ctx.lineWidth = 2; ctx.strokeRect(sx(i) + 3, sy(h) + 3, B - 6, B - 6); }
+      if (L.F[i] > -99) { ctx.rect(sx(i), sy(L.F[i]), B + 1, gy - sy(L.F[i]) + 1); ctx.rect(sx(i), 0, B + 1, sy(L.C[i])); continue; }
+      const h = L.T[i]; if (h > 0) ctx.rect(sx(i), sy(h), B + 1, h * B + 1);
     }
-    for (const b of L.blokken) { if (b.x + b.w < x0 || b.x > x1) continue; ctx.strokeStyle = K[1]; ctx.lineWidth = 3; ctx.shadowColor = K[1]; ctx.shadowBlur = 8 + puls * 10; ctx.strokeRect(sx(b.x), sy(b.h), b.w * B, b.h * B); ctx.shadowBlur = 0; }
-    // spijkers, ringen, kussens, poorten
-    for (const s of L.spijkers) { if (s.x < x0 - 1 || s.x > x1 + 1) continue; const px = sx(s.x), py = sy(s.y); ctx.fillStyle = '#0A0A12'; ctx.strokeStyle = K[2]; ctx.lineWidth = 2; ctx.shadowColor = K[2]; ctx.shadowBlur = 6 + puls * 8; ctx.beginPath(); ctx.moveTo(px - B * 0.48, py); ctx.lineTo(px, py - B * 0.95); ctx.lineTo(px + B * 0.48, py); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; }
-    L.ringen.forEach((r, n) => { if (r.x < x0 - 1 || r.x > x1 + 1) return; const op = st.gebruikt && st.gebruikt.has(n); ctx.save(); ctx.globalAlpha = op ? 0.3 : 1; ctx.strokeStyle = '#FFE76A'; ctx.shadowColor = '#FFE76A'; ctx.shadowBlur = 16; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx(r.x), sy(r.y), B * (0.38 + puls * 0.08), 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(255,231,106,.35)'; ctx.fill(); ctx.restore(); });
-    for (const k of L.kussens) { if (k.x < x0 - 1 || k.x > x1 + 1) continue; ctx.save(); ctx.fillStyle = '#FFE76A'; ctx.shadowColor = '#FFE76A'; ctx.shadowBlur = 14; ctx.beginPath(); ctx.ellipse(sx(k.x), sy(k.y), B * 0.48, B * 0.2, 0, Math.PI, 0); ctx.fill(); ctx.restore(); }
-    for (const p of L.poorten) { if (p.x < x0 - 2 || p.x > x1 + 2) continue; const k = p.soort === 'schip' ? '#FF5AA8' : '#8AFF6A'; ctx.save(); ctx.strokeStyle = k; ctx.shadowColor = k; ctx.shadowBlur = 18; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(sx(p.x), sy(2.2), B * 0.45, B * 1.7, 0, 0, 7); ctx.stroke(); ctx.restore(); }
-    if (S.oefen) for (const c of L.checks) if (c.x > x0 && c.x < x1) { ctx.fillStyle = S.check && S.check.x >= c.x ? '#8AFF6A' : 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.moveTo(sx(c.x), sy(L.T[Math.floor(c.x)]) - B * 1.6); ctx.lineTo(sx(c.x) + B * 0.4, sy(L.T[Math.floor(c.x)]) - B * 1.3); ctx.lineTo(sx(c.x), sy(L.T[Math.floor(c.x)]) - B); ctx.closePath(); ctx.fill(); ctx.fillRect(sx(c.x) - 2, sy(L.T[Math.floor(c.x)]) - B * 1.6, 3, B * 1.6); }
+    ctx.fill();
+    // randen langs de tunnels en blokken (zonder schaduw-effect: een brede, zachte lijn en een scherpe lijn)
+    ctx.strokeStyle = rand; ctx.lineCap = 'butt';
+    for (const breed of [B * 0.18, Math.max(2, B * 0.05)]) {
+      ctx.lineWidth = breed; ctx.globalAlpha = breed > B * 0.1 ? 0.18 + puls * 0.25 : 1; ctx.beginPath();
+      for (let i = x0; i <= x1; i++) {
+        if (L.F[i] > -99) { ctx.moveTo(sx(i), sy(L.F[i])); ctx.lineTo(sx(i + 1), sy(L.F[i])); ctx.moveTo(sx(i), sy(L.C[i])); ctx.lineTo(sx(i + 1), sy(L.C[i])); if (L.F[i - 1] !== undefined && L.F[i - 1] !== L.F[i] && L.F[i - 1] > -99) { ctx.moveTo(sx(i), sy(L.F[i - 1])); ctx.lineTo(sx(i), sy(L.F[i])); ctx.moveTo(sx(i), sy(L.C[i - 1])); ctx.lineTo(sx(i), sy(L.C[i])); } }
+      }
+      for (const b of L.blokken) { if (b.x + b.w < x0 || b.x > x1) continue; ctx.rect(sx(b.x), sy(b.h), b.w * B, b.h * B); }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // spijkers, met een gloed op de maat
+    const sp = PL.spijker, spg = PL.spijkerGloed, p = PL.spijkerP;
+    for (const s of L.spijkers) { if (s.x < x0 - 1 || s.x > x1 + 1) continue; const px = sx(s.x) - B / 2 - p, py = sy(s.y) - B - p; if (puls > 0.05 && spg) { ctx.globalAlpha = Math.min(1, 0.25 + puls); ctx.drawImage(spg, px, py); ctx.globalAlpha = 1; } ctx.drawImage(sp, px, py); }
+    // springringen en kussens
+    const rr = PL.ringR;
+    L.ringen.forEach((r, n) => { if (r.x < x0 - 1 || r.x > x1 + 1) return; const op = st.gebruikt && st.gebruikt.has(n), sc = 1 + puls * 0.2; ctx.globalAlpha = op ? 0.3 : 1; ctx.drawImage(PL.ring, sx(r.x) - rr * sc, sy(r.y) - rr * sc, rr * 2 * sc, rr * 2 * sc); ctx.globalAlpha = 1; if (!op && !reduce) { const a = performance.now() / 300 + n; ctx.fillStyle = '#FFFFFF'; ctx.fillRect(sx(r.x) + Math.cos(a) * B * 0.38 - 2, sy(r.y) + Math.sin(a) * B * 0.38 - 2, 4, 4); } });
+    for (const k of L.kussens) { if (k.x < x0 - 1 || k.x > x1 + 1) continue; const sc = 1 + puls * 0.12; ctx.drawImage(PL.kussen, sx(k.x) - B * 0.65 * sc, sy(k.y) - B * 0.45 * sc, B * 1.3 * sc, B * 0.6 * sc); }
+    for (const q of L.poorten) { if (q.x < x0 - 2 || q.x > x1 + 2) continue; const img = q.soort === 'schip' ? PL.poortSchip : PL.poortKubus; ctx.drawImage(img, sx(q.x) - B * 0.8, sy(2.2) - B * 2.1); }
+    if (S.oefen) for (const c of L.checks) if (c.x > x0 && c.x < x1) { const yy = sy(L.T[Math.floor(c.x)]); ctx.fillStyle = S.check && S.check.x >= c.x ? '#8AFF6A' : 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.moveTo(sx(c.x), yy - B * 1.6); ctx.lineTo(sx(c.x) + B * 0.45, yy - B * 1.35); ctx.lineTo(sx(c.x), yy - B * 1.1); ctx.closePath(); ctx.fill(); ctx.fillRect(sx(c.x) - 1.5, yy - B * 1.6, 3, B * 1.6); }
     // poging-tekst aan het begin
-    if (S.st && st.x < 30) { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = `800 ${Math.round(B * 0.7)}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'left'; ctx.fillText((S.oefen ? 'Oefenen · ' : '') + 'Poging ' + S.poging, sx(6), sy(5)); }
-    // speler
+    if (S.st && st.x < 30) { ctx.fillStyle = 'rgba(255,255,255,.88)'; ctx.font = `800 ${Math.round(B * 0.7)}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'left'; ctx.fillText((S.oefen ? 'Oefenen · ' : '') + 'Poging ' + S.poging, sx(6), sy(5)); }
+    // lichtflitsen op de baan na een goede sprong
+    ctx.globalCompositeOperation = 'lighter';
+    for (const s of S.strepen) { s.t -= dt; if (s.t <= 0) continue; const f = s.t / s.t0; ctx.globalAlpha = f; ctx.drawImage(gloedDot(s.kleur), 0, 20, 64, 24, sx(s.x) - B * s.breed * (1.6 - f * 0.6), sy(s.y) - B * 0.25, B * s.breed * 2 * (1.6 - f * 0.6), B * 0.5); }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; S.strepen = S.strepen.filter(s => s.t > 0);
+    // de speler, met een spoor (dat gaat gloeien als je ingedrukt houdt: een lange noot)
     if (S.st && !st.dood) {
       if (st.modus === 'kubus') { if (st.grond) S.rot = Math.round(S.rot / (Math.PI / 2)) * (Math.PI / 2); else S.rot += dt * 7.6; }
       else S.rot = -Math.atan2(st.vy, L.v) * 0.8;
-      if (st.modus === 'schip') { S.spoor.push({ x: st.x - 0.3, y: st.y + 0.35, t: 0.35 }); }
-      for (const p of S.spoor) { p.t -= dt; if (p.t <= 0) continue; ctx.fillStyle = `rgba(255,${120 + Math.round(p.t * 300)},80,${Math.max(0, p.t * 2.4)})`; ctx.beginPath(); ctx.arc(sx(p.x), sy(p.y), Math.max(0.5, B * 0.14 * (p.t * 3)), 0, 7); ctx.fill(); } S.spoor = S.spoor.filter(p => p.t > 0);
+      const vast = S.druk && S.scherm === 'spel', kleur = st.modus === 'schip' ? '#FF9A5A' : K[2];
+      S.spoor.push({ x: st.x - 0.05, y: st.y + RRM.BH / 2, t: 0.32, vast });
+      if (combo >= 25 && !reduce && Math.random() < veelheid()) S.deeltjes.push({ x: st.x - 0.35, y: st.y + 0.3 + Math.random() * 0.4, vx: -2 - Math.random() * 2, vy: 2 + Math.random() * 3, t: 0.45, t0: 0.45, k: Math.random() < 0.5 ? '#FFB040' : '#FF5A2A', r: 0.16, vlam: true });
+      ctx.globalCompositeOperation = 'lighter';
+      const dot = gloedDot(kleur);
+      for (let i = 0; i < S.spoor.length; i++) { const q = S.spoor[i]; q.t -= dt; if (q.t <= 0) continue; const f = q.t / 0.32, r = B * (q.vast ? 0.42 : 0.26) * f; ctx.globalAlpha = f * (q.vast ? 0.75 : 0.4); ctx.drawImage(dot, sx(q.x) - r, sy(q.y) - r, r * 2, r * 2); }
+      if (st.modus === 'schip') { ctx.globalAlpha = 0.55 + (vast ? 0.4 : 0); const r = B * (vast ? 0.55 : 0.35); ctx.drawImage(gloedDot('#FFB040'), sx(st.x - 0.55) - r, sy(st.y + RRM.BH / 2) - r, r * 2, r * 2); }
+      ctx.globalAlpha = 0.35 + puls * 0.35 + (S.gloei || 0) * 0.4; { const r = B * (0.9 + gloei * 0.3); ctx.drawImage(gloedDot(K[2]), sx(st.x) - r, sy(st.y + RRM.BH / 2) - r, r * 2, r * 2); }
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; S.spoor = S.spoor.filter(q => q.t > 0);
       ctx.save(); ctx.translate(sx(st.x), sy(st.y + RRM.BH / 2)); ctx.rotate(S.rot);
-      const s = B * 0.92;
-      if (st.modus === 'schip') { ctx.fillStyle = K[1]; ctx.strokeStyle = '#0A0A12'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(s * 0.7, 0); ctx.quadraticCurveTo(s * 0.2, -s * 0.5, -s * 0.6, -s * 0.35); ctx.lineTo(-s * 0.45, 0); ctx.lineTo(-s * 0.6, s * 0.35); ctx.quadraticCurveTo(s * 0.2, s * 0.5, s * 0.7, 0); ctx.fill(); ctx.stroke(); ctx.translate(-s * 0.05, -s * 0.12); ctx.scale(0.5, 0.5); }
-      ctx.fillStyle = K[2]; ctx.strokeStyle = '#0A0A12'; ctx.lineWidth = 3; ctx.shadowColor = K[2]; ctx.shadowBlur = 10; ctx.fillRect(-s / 2, -s / 2, s, s); ctx.shadowBlur = 0; ctx.strokeRect(-s / 2, -s / 2, s, s);
-      ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(-s / 2 + 4, -s / 2 + 4, s * 0.35, s * 0.35);
-      ctx.fillStyle = '#0A0A12'; ctx.fillRect(-s * 0.26, -s * 0.18, s * 0.15, s * 0.2); ctx.fillRect(s * 0.1, -s * 0.18, s * 0.15, s * 0.2); ctx.fillRect(-s * 0.22, s * 0.14, s * 0.44, s * 0.08);
+      if (st.modus === 'schip') { const img = PL.schip; ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.translate(-B * 0.05, -B * 0.12); ctx.scale(0.5, 0.5); }
+      // het gezichtje: knipperen, blij bij een combo, geconcentreerd in een raket
+      S.gezicht += dt; const knip = (S.gezicht % 3.1) < 0.12, gz = st.modus === 'schip' ? 'focus' : knip ? 'knipper' : combo >= 10 || (S.gloei || 0) > 0.5 ? 'blij' : 'gewoon', img = PL.kubus[gz];
+      const sq = st.modus === 'kubus' && st.grond && !reduce ? 1 - BEAT.kick * 0.06 : 1;
+      ctx.scale(1 / sq, sq); ctx.drawImage(img, -img.width / 2, -img.height / 2);
       ctx.restore();
     }
-    for (const d of S.deeltjes) { d.t -= dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy -= (d.confetti ? 4 : 22) * dt; ctx.globalAlpha = Math.max(0, Math.min(1, d.t * 2)); ctx.fillStyle = d.k; ctx.fillRect(sx(d.x) - d.r * B / 2, sy(d.y) - d.r * B / 2, d.r * B, d.r * B * (d.confetti ? 0.5 : 1)); } ctx.globalAlpha = 1; S.deeltjes = S.deeltjes.filter(d => d.t > 0);
-    if (S.flits > 0) { S.flits -= dt; ctx.fillStyle = `rgba(255,255,255,${S.flits * 2})`; ctx.fillRect(0, 0, W, H); }
-    // voortgangsbalk
-    if (S.st) { const pct = Math.min(1, st.x / L.eind); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(W * 0.25, 14, W * 0.5, 12); ctx.fillStyle = K[2]; ctx.fillRect(W * 0.25, 14, W * 0.5 * pct, 12); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2; ctx.strokeRect(W * 0.25, 14, W * 0.5, 12); ctx.fillStyle = '#fff'; ctx.font = `800 ${Math.round(B * 0.42)}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.fillText(Math.floor(pct * 100) + '%', W / 2, 14 + 12 + B * 0.5); }
+    // deeltjes: vonken, confetti, vlammetjes en de brokjes van je blokje
+    for (const d of S.deeltjes) {
+      d.t -= dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vy -= (d.confetti ? 4 : d.vlam ? -2 : 22) * dt; if (d.t <= 0) continue;
+      const f = Math.max(0, Math.min(1, d.t / (d.t0 || 1) * 2));
+      if (d.scherf !== undefined) { d.a += d.va * dt; const c = PL.scherf[d.scherf], s = B * 0.31; ctx.globalAlpha = f; ctx.save(); ctx.translate(sx(d.x), sy(d.y)); ctx.rotate(d.a); ctx.drawImage(c, -s / 2, -s / 2, s, s); ctx.restore(); continue; }
+      if (d.vonk || d.vlam) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = f; const r = d.r * B * (d.vlam ? 1.5 : 1.2); ctx.drawImage(gloedDot(d.k), sx(d.x) - r, sy(d.y) - r, r * 2, r * 2); ctx.globalCompositeOperation = 'source-over'; continue; }
+      ctx.globalAlpha = f; ctx.fillStyle = d.k;
+      if (d.confetti) { d.a += dt * 6; const w = d.r * B, h = w * 0.5 * Math.abs(Math.cos(d.a)) + 1; ctx.fillRect(sx(d.x) - w / 2, sy(d.y) - h / 2, w, h); }
+      else ctx.fillRect(sx(d.x) - d.r * B / 2, sy(d.y) - d.r * B / 2, d.r * B, d.r * B);
+    }
+    ctx.globalAlpha = 1; S.deeltjes = S.deeltjes.filter(d => d.t > 0);
+    if (S.deeltjes.length > 500) S.deeltjes.splice(0, S.deeltjes.length - 500);
+    // woordjes: Perfect!, Goed!, Net!, Gemist, en mijlpalen van je combo
+    for (const tx of S.teksten) {
+      tx.t -= dt; if (tx.t <= 0) continue; const f = 1 - tx.t / tx.t0, groot = tx.soort === 'perfect' ? 0.78 : tx.soort === 'mijlpaal' ? 1.0 : tx.soort === 'goed' ? 0.62 : 0.48;
+      let sc = 1, x, y;
+      if (!reduce) sc = tx.soort === 'perfect' ? (f < 0.15 ? 1.7 - f / 0.15 * 0.7 : 1) : f < 0.12 ? 1.3 - f / 0.12 * 0.3 : 1;
+      if (tx.soort === 'mijlpaal') { x = W / 2; y = H * 0.24 - (reduce ? 0 : f * B * 0.5); } else { x = sx(tx.x) + (tx.soort === 'gemist' ? 0 : B * 1.1); y = sy(tx.y) - (reduce ? 0 : f * B * (tx.soort === 'gemist' ? 0.2 : 0.9)); }
+      ctx.font = `900 ${Math.round(B * groot * sc)}px "Bricolage Grotesque", system-ui, sans-serif`; const half = ctx.measureText(tx.tekst).width / 2 + B * 0.2; x = Math.max(half, Math.min(W - half, x));
+      if (tx.soort === 'gemist' && !reduce) x += Math.sin(f * 40) * B * 0.06 * (1 - f);
+      ctx.globalAlpha = Math.min(1, (1 - f) * 2.5); ctx.font = `900 ${Math.round(B * groot * sc)}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(3, B * 0.12); ctx.strokeStyle = 'rgba(10,8,20,.85)'; ctx.strokeText(tx.tekst, x, y);
+      if (tx.rand && tx.soort === 'perfect') { ctx.lineWidth = Math.max(2, B * 0.05); ctx.strokeStyle = tx.rand; ctx.strokeText(tx.tekst, x, y); }
+      ctx.fillStyle = tx.kleur; ctx.fillText(tx.tekst, x, y);
+    }
+    ctx.globalAlpha = 1; S.teksten = S.teksten.filter(t => t.t > 0);
+    // een kleurgolf bij 50 op rij
+    if (S.golf > 0) { S.golf -= dt * 0.9; const x = (1 - S.golf) * W * 1.4 - W * 0.2; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.max(0, S.golf) * 0.5; ctx.drawImage(gloedDot(K[1]), x - W * 0.25, 0, W * 0.5, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+    if (S.flits > 0) S.flits -= dt;
+    // voortgangsbalk met je record, en de combo
+    if (S.st) {
+      const d = dpr(), pct = Math.min(1, st.x / L.eind), bx = W * 0.25, by = 12 * d, bw = W * 0.5, bh = 11 * d, best = (opslag.best[lev.spec.id] || 0) / 100;
+      ctx.fillStyle = 'rgba(0,0,0,.45)'; rondRect(ctx, bx, by, bw, bh, bh / 2); ctx.fill();
+      ctx.save(); rondRect(ctx, bx, by, bw, bh, bh / 2); ctx.clip(); const bv = ctx.createLinearGradient(bx, 0, bx + bw, 0); bv.addColorStop(0, K[1]); bv.addColorStop(1, K[2]); ctx.fillStyle = bv; ctx.fillRect(bx, by, bw * pct, bh); ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5 * d; rondRect(ctx, bx, by, bw, bh, bh / 2); ctx.stroke();
+      if (best > 0 && best < 1 && !S.oefen) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx + bw * best - d, by - 3 * d, 2 * d, bh + 6 * d); }
+      ctx.fillStyle = '#fff'; ctx.font = `800 ${Math.round(Math.max(13 * d, B * 0.42))}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4 * d; ctx.strokeStyle = 'rgba(10,8,20,.6)'; const pt = Math.floor(pct * 100) + '%'; ctx.strokeText(pt, W / 2, by + bh + Math.max(15 * d, B * 0.5)); ctx.fillText(pt, W / 2, by + bh + Math.max(15 * d, B * 0.5));
+      S.comboPop = Math.max(0, (S.comboPop || 0) - dt * 5); S.comboBreuk = Math.max(0, (S.comboBreuk || 0) - dt);
+      if (combo >= 2 || S.comboBreuk > 0) {
+        const cx = bx + bw + Math.max(30 * d, B * 0.95), cy = by + Math.max(22 * d, B * 0.62), sc = reduce ? 1 : 1 + S.comboPop * 0.25, kl = combo >= 50 ? K[1] : combo >= 25 ? '#FF9A3A' : combo >= 10 ? '#FFE76A' : '#FFFFFF';
+        ctx.save(); ctx.translate(cx + (S.comboBreuk > 0 && !reduce ? Math.sin(S.comboBreuk * 60) * 3 * d : 0), cy); ctx.scale(sc, sc);
+        ctx.font = `900 ${Math.round(Math.max(18 * d, B * 0.62))}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 5 * d; ctx.strokeStyle = 'rgba(10,8,20,.75)'; const ct = S.comboBreuk > 0 && combo === 0 ? '0' : '×' + combo; ctx.strokeText(ct, 0, 0); ctx.fillStyle = S.comboBreuk > 0 && combo === 0 ? '#FF6A6A' : kl; ctx.fillText(ct, 0, 0);
+        ctx.font = `800 ${Math.round(Math.max(10 * d, B * 0.26))}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.lineWidth = 3 * d; ctx.strokeText('combo', 0, Math.max(13 * d, B * 0.36)); ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText('combo', 0, Math.max(13 * d, B * 0.36));
+        ctx.restore();
+      }
+    }
   }
-  let vorig = performance.now();
-  function lus(t) { const dt = Math.min(0.05, (t - vorig) / 1000); vorig = t; requestAnimationFrame(lus); update(); try { teken(dt); } catch (e) { console.error(e); } }
+  // de lus: elk beeld kijkt het spel naar je invoer (dus de timing blijft precies gelijk); Zuinig en Normaal tekenen op schermen
+  // van 120 Hz alleen elk tweede beeld, in het menu en op het eindscherm zo'n 30 keer per seconde, en tijdens de pauze helemaal niet
+  let vorig = performance.now(), laatsteTeken = 0, meetW = 0, meetG = 0, meetN = 0;
+  function lus(t) {
+    requestAnimationFrame(lus); const gat = t - vorig; vorig = t;
+    const a = performance.now(); update();
+    const kw = KW(), fps = S.scherm === 'spel' ? kw.fps : 30, min = fps ? 1000 / fps - 2 : 0;
+    if (S.scherm === 'pauze' && S.getekend) return;
+    if (t - laatsteTeken < min) return;
+    const dt = Math.min(0.05, (t - (laatsteTeken || t)) / 1000); laatsteTeken = t;
+    try { teken(dt); S.getekend = S.scherm === 'pauze'; } catch (e) { console.error(e); }
+    // houdt het apparaat het niet bij (gemiddeld meer dan 9 ms werk, of minder dan 45 beelden per seconde)? Dan zakt Automatisch een stand, tussen twee pogingen in
+    if (S.scherm === 'spel' && app.k === 'auto' && !document.hidden && gat < 200) { meetW += performance.now() - a; meetG += gat; if (++meetN >= 150) { if ((meetW / meetN > 9 || meetG / meetN > 22) && kwNaam() !== 'zuinig') S.omlaag = true; meetW = meetG = meetN = 0; } }
+  }
+  function kwaliteitOmlaag() { if (!S.omlaag) return; S.omlaag = false; const n = kwNaam(); app.a = n === 'mooi' ? 'normaal' : 'zuinig'; bewaarApp(); maat(); }
 
   // ---------------- schermen
   function tekenMenu() {
-    $('rr-levels').innerHTML = LEVELS.map((l, i) => { const id = l.spec.id, b = opslag.best[id] || 0, K = l.spec.kleuren; return `<div class="rr-level" style="--k0:${K[0]};--k1:${K[1]};--k2:${K[2]}"><div class="rr-lkop"><b>${l.spec.naam}</b><span>${'★'.repeat(l.spec.sterren)}${'☆'.repeat(5 - l.spec.sterren)}</span></div><span class="rr-info">${l.spec.bpm} BPM · ${Math.round(l.L.eind / l.L.v)} seconden</span><div class="rr-balk"><i style="width:${b}%"></i></div><span class="rr-info">${opslag.gehaald[id] ? 'Gehaald! ' : ''}Beste: ${b}% · ${opslag.pogingen[id] || 0} pogingen</span><div class="rr-knoppen"><button class="rr-knop hoofd" type="button" data-speel="${i}">Spelen</button><button class="rr-knop" type="button" data-oefen="${i}">Oefenen</button></div></div>`; }).join('');
+    $('rr-levels').innerHTML = LEVELS.map((l, i) => { const id = l.spec.id, b = opslag.best[id] || 0, K = l.spec.kleuren, rs = isObj(opslag.ritme) ? opslag.ritme[id] : undefined, cb = isObj(opslag.combo) ? opslag.combo[id] || 0 : 0; return `<div class="rr-level" style="--k0:${K[0]};--k1:${K[1]};--k2:${K[2]}"><div class="rr-lkop"><b>${l.spec.naam}</b><span aria-label="${l.spec.sterren} van 5 sterren moeilijk">${'★'.repeat(l.spec.sterren)}${'☆'.repeat(5 - l.spec.sterren)}</span></div><span class="rr-info">${l.spec.bpm} BPM · ${Math.round(l.L.eind / l.L.v)} seconden</span><div class="rr-balk"><i style="width:${b}%"></i></div><span class="rr-info">${opslag.gehaald[id] ? 'Gehaald! ' : ''}Beste: ${b}% · ${opslag.pogingen[id] || 0} pogingen</span>${rs !== undefined || cb ? `<span class="rr-info rr-best">${rs !== undefined ? `<span class="rr-minist">${stempelVan(rs)}</span> ritmescore ${rs}` : ''}${cb ? `${rs !== undefined ? ' · ' : ''}langste combo ${cb}` : ''}</span>` : ''}<div class="rr-knoppen"><button class="rr-knop hoofd" type="button" data-speel="${i}">Spelen</button><button class="rr-knop" type="button" data-oefen="${i}">Oefenen</button></div></div>`; }).join('');
   }
   document.addEventListener('click', e => {
     const s = e.target.closest('[data-speel]'); if (s) { begin(+s.dataset.speel, false); return; }
     const o = e.target.closest('[data-oefen]'); if (o) { begin(+o.dataset.oefen, true); return; }
     if (e.target.closest('[data-naarmenu]')) naarMenu();
     if (e.target.closest('#rr-verder')) pauze(false);
-    if (e.target.closest('#rr-opnieuw')) { const i = LEVELS.indexOf(S.lev); begin(i, S.oefen); }
+    if (e.target.closest('#rr-opnieuw') || e.target.closest('#rr-weer')) { const i = LEVELS.indexOf(S.lev); begin(i, S.oefen); }
+    if (e.target.closest('#rr-inst-knop')) openInstellingen();
+    if (e.target.closest('#rr-inst-dicht')) sluitInstellingen();
   });
-  function naarMenu() { stopMuziek(); S.scherm = 'menu'; S.st = null; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; tekenMenu(); $('rr-menu').hidden = false; }
-  function pauze(aan) { if (aan && S.scherm === 'spel' && S.st && !S.st.dood) { S.scherm = 'pauze'; S.pauzeT = nu(); stopMuziek(); $('rr-pauze').hidden = false; } else if (!aan && S.scherm === 'pauze') { $('rr-pauze').hidden = true; S.scherm = 'spel'; const m = startMuziek(S.lev, S.sim); S.klok0 = m ? null : performance.now() / 1000 - S.sim; } }
+  function naarMenu() { stopMuziek(); stopProef(); S.scherm = 'menu'; S.st = null; $('rr-einde').hidden = true; $('rr-pauze').hidden = true; $('rr-inst').hidden = true; kwaliteitOmlaag(); tekenMenu(); $('rr-menu').hidden = false; scene.style.transform = ''; }
+  function pauze(aan) { if (aan && S.scherm === 'spel' && S.st && !S.st.dood) { S.scherm = 'pauze'; S.getekend = false; S.pauzeT = nu(); stopMuziek(); $('rr-pauze').hidden = false; } else if (!aan && S.scherm === 'pauze') { $('rr-pauze').hidden = true; S.scherm = 'spel'; const m = startMuziek(S.lev, S.sim); S.klok0 = m ? null : performance.now() / 1000 - S.sim; } }
   const druk = aan => { if (aan) { audio(); S.druk = true; S.tikBuffer = true; } else S.druk = false; };
-  addEventListener('keydown', e => { if (e.repeat) { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) e.preventDefault(); return; } if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) { e.preventDefault(); if (S.scherm === 'spel') druk(true); } if (e.code === 'Escape' || e.code === 'KeyP') pauze(S.scherm === 'spel'); if (e.code === 'KeyR' && S.scherm === 'spel') { S.poging++; herstart(); } });
+  addEventListener('keydown', e => { if (S.scherm === 'proef' && (e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); if (!e.repeat) proefTik(e); return; } if (e.target.closest && e.target.closest('input, select, textarea')) return; if (e.repeat) { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) e.preventDefault(); return; } if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) { e.preventDefault(); if (S.scherm === 'spel') druk(true); } if (e.code === 'Escape' || e.code === 'KeyP') { if (S.scherm === 'instellingen' || S.scherm === 'proef') sluitInstellingen(); else pauze(S.scherm === 'spel'); } if (e.code === 'KeyR' && S.scherm === 'spel') { S.poging++; herstart(); } });
   addEventListener('keyup', e => { if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) druk(false); });
   veld.addEventListener('pointerdown', e => { if (e.target.closest('.rr-kaart')) return; e.preventDefault(); if (S.scherm === 'spel') druk(true); });
   addEventListener('pointerup', () => druk(false)); addEventListener('pointercancel', () => druk(false));
@@ -1904,9 +2695,82 @@ if (typeof module !== 'undefined') module.exports = RRM;
   const zetGeluid = () => { $('rr-geluid').textContent = opslag.geluid ? 'Muziek aan' : 'Muziek uit'; $('rr-geluid').setAttribute('aria-pressed', String(opslag.geluid)); };
   const meld = $('rr-melding'); let meldT = null;
   function melding(t) { meld.textContent = t; meld.hidden = false; clearTimeout(meldT); meldT = setTimeout(() => { meld.hidden = true; }, 1400); }
+
+  // ---------------- de uitslag: getallen die oplopen, en een stempel die met een klap neerkomt
+  function toonUitslag(u) {
+    const lev = S.lev, naam = lev.spec.naam;
+    $('rr-einde-kop').textContent = u.oefen ? 'Oefenronde gehaald!' : 'Level gehaald!';
+    $('rr-einde-tekst').textContent = u.oefen ? `${naam}: knap! Probeer het nu zonder checkpoints; dan telt het mee.` : `${naam} in ${u.poging} ${u.poging === 1 ? 'poging' : 'pogingen'}.`;
+    const rijen = [['Perfect', u.perfect], ['Goed', u.goed], ['Net', u.net], ['Gemist', u.gemist]].concat(lev.L.schip.length ? [['Raketstukken', u.door]] : []).concat([['Langste combo', u.max], ['Ritmescore', u.score]]);
+    $('rr-cijfers').innerHTML = rijen.map(([k, v], i) => `<div class="rr-cijfer${i === rijen.length - 1 ? ' groot' : ''}"><span>${k}</span><b data-doel="${v}">0</b></div>`).join('');
+    const st = $('rr-stempel'); st.hidden = true; st.className = 'rr-stempel'; st.textContent = stempelVan(u.score);
+    const nieuw = [];
+    if (!u.oefen) { if (u.eerst) nieuw.push('Voor het eerst gehaald!'); else if (u.beterRitme && u.oudRitme !== undefined) nieuw.push('Nieuwe beste ritmescore!'); if (u.beterCombo && !u.eerst) nieuw.push('Nieuwe langste combo!'); }
+    $('rr-nieuw').innerHTML = nieuw.map(t => `<span>${t}</span>`).join(''); $('rr-nieuw').hidden = true;
+    $('rr-einde').hidden = false; S.scherm = 'einde';
+    const rk = document.createElement('div'); $('eind-reclame').innerHTML = ''; $('eind-reclame').appendChild(rk);
+    if (window.Scorebord && Scorebord.banner) { Scorebord.banner(rk, { vorm: 'blok', soms: true }); if (rk.style.minHeight) rk.style.marginTop = '1rem'; }
+    const bs = [...document.querySelectorAll('#rr-cijfers b')], eind = () => { bs.forEach(b => { b.textContent = b.dataset.doel; }); st.hidden = false; st.classList.add(reduce ? 'zacht' : 'klap'); GELUIDJES.stempel(); if (nieuw.length) setTimeout(() => { $('rr-nieuw').hidden = false; if (!u.oefen) { GELUIDJES.feest(); feestje(); } }, reduce ? 100 : 450); };
+    if (reduce) { eind(); return; }
+    let k = 0, t0 = performance.now(), laatsteTik = 0;
+    const stap = () => { if (S.scherm !== 'einde') return; const b = bs[k]; if (!b) { eind(); return; } const doel = +b.dataset.doel, f = Math.min(1, (performance.now() - t0) / (doel > 20 ? 520 : 260)), v = Math.round(doel * (1 - Math.pow(1 - f, 3))); if (+b.textContent !== v) { b.textContent = v; if (performance.now() - laatsteTik > 45) { GELUIDJES.tik(); laatsteTik = performance.now(); } } if (f >= 1) { k++; t0 = performance.now(); } requestAnimationFrame(stap); };
+    requestAnimationFrame(stap);
+  }
+  function feestje() { const n = Math.round(140 * veelheid()); for (let i = 0; i < n; i++) S.deeltjes.push({ x: CAM.x + Math.random() * W / B, y: CAM.y + 6 + Math.random() * 4, vx: (Math.random() - 0.5) * 5, vy: -Math.random() * 3, t: 3, t0: 3, k: ['#FF5AA8', '#5EE6FF', '#FFE76A', '#8AFF6A', '#FF7A3A'][i % 5], r: 0.14, confetti: true, a: Math.random() * 6 }); }
+
+  // ---------------- instellingen: beeld, en de vertraging van je scherm of koptelefoon
+  function openInstellingen() {
+    S.voorInst = S.scherm; S.scherm = 'instellingen'; $('rr-inst').hidden = false; $('rr-menu').hidden = true;
+    for (const r of document.querySelectorAll('input[name="rr-kw"]')) r.checked = r.value === app.k;
+    $('rr-kw-auto').textContent = KWNAAM[autoKwal()]; $('rr-vert').value = app.v; zetVert(); $('rr-proef-uit').textContent = ''; $('rr-proef-neem').hidden = true;
+    setTimeout(() => { const f = document.querySelector('input[name="rr-kw"]:checked'); if (f) f.focus(); }, 30);
+  }
+  function sluitInstellingen() { stopProef(); $('rr-inst').hidden = true; S.scherm = 'menu'; $('rr-menu').hidden = false; tekenMenu(); const k = $('rr-inst-knop'); if (k) k.focus(); }
+  const KWNAAM = { zuinig: 'Zuinig', normaal: 'Normaal', mooi: 'Mooi' };
+  document.addEventListener('change', e => {
+    if (e.target.name === 'rr-kw') { app.k = e.target.value; delete app.a; bewaarApp(); maat(); $('rr-kw-auto').textContent = KWNAAM[autoKwal()]; }
+  });
+  document.addEventListener('input', e => { if (e.target.id === 'rr-vert') { app.v = +e.target.value; bewaarApp(); zetVert(); } });
+  function zetVert() { $('rr-vert-w').textContent = (app.v > 0 ? '+' : '') + app.v + ' ms'; }
+  // de proef: acht tikjes op de maat; tik mee, en het spel rekent uit hoeveel later je ze hoort en tikt
+  const PROEF = { tikken: [], klikken: [], timer: null };
+  function startProef() {
+    const a = audio(); if (!a) { $('rr-proef-uit').textContent = 'Zet eerst de muziek aan (bovenaan), want de proef gebruikt geluid.'; return; }
+    stopProef(); S.scherm = 'proef'; PROEF.tikken = []; PROEF.klikken = []; $('rr-proef-neem').hidden = true;
+    const t0 = a.currentTime + 0.6, slag = 0.5; for (let i = 0; i < 12; i++) { const t = t0 + i * slag; PROEF.klikken.push(t); GELUIDJES.klik(t); }
+    $('rr-proef-uit').textContent = 'Luister… en tik mee vanaf de vijfde tik (spatie, of op de grote knop).'; $('rr-proef-tik').hidden = false; $('rr-proef-tik').focus();
+    PROEF.timer = setTimeout(rondProefAf, (0.6 + 12 * slag + 0.4) * 1000);
+  }
+  function proefTik(e) {
+    if (S.scherm !== 'proef' || !ac) return; const terug = e && e.timeStamp ? Math.max(0, (performance.now() - e.timeStamp) / 1000) : 0, t = ac.currentTime - terug;
+    let beste = null; for (const k of PROEF.klikken.slice(4)) if (beste === null || Math.abs(t - k) < Math.abs(t - beste)) beste = k;
+    if (beste !== null && Math.abs(t - beste) < 0.32) PROEF.tikken.push(t - beste);
+    const b = $('rr-proef-tik'); b.classList.remove('tik'); void b.offsetWidth; b.classList.add('tik');
+  }
+  function rondProefAf() {
+    $('rr-proef-tik').hidden = true; S.scherm = 'instellingen';
+    const t = PROEF.tikken.slice().sort((x, y) => x - y);
+    if (t.length < 4) { $('rr-proef-uit').textContent = 'Dat waren te weinig tikken om iets te meten. Probeer het nog eens.'; return; }
+    const mid = t[Math.floor(t.length / 2)], ms = Math.max(-50, Math.min(300, Math.round(mid * 1000 / 5) * 5)), spreid = Math.round((t[t.length - 1] - t[0]) * 1000);
+    PROEF.uitkomst = ms;
+    $('rr-proef-uit').textContent = `Gemeten: ${ms > 0 ? '+' : ''}${ms} ms${spreid > 120 ? ' (je tikken lagen ver uit elkaar, dus het is een schatting)' : ''}.`;
+    $('rr-proef-neem').hidden = false; $('rr-proef-neem').focus();
+  }
+  function stopProef() { clearTimeout(PROEF.timer); if (S.scherm === 'proef') S.scherm = 'instellingen'; const b = $('rr-proef-tik'); if (b) b.hidden = true; }
+  $('rr-proef').addEventListener('click', e => { e.stopPropagation(); startProef(); });
+  $('rr-proef-tik').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); proefTik(e); });
+  $('rr-proef-neem').addEventListener('click', e => { e.stopPropagation(); if (PROEF.uitkomst === undefined) return; app.v = PROEF.uitkomst; bewaarApp(); $('rr-vert').value = app.v; zetVert(); $('rr-proef-neem').hidden = true; $('rr-proef-uit').textContent = 'Opgeslagen voor dit apparaat.'; });
+  $('rr-vert-nul').addEventListener('click', e => { e.stopPropagation(); app.v = 0; bewaarApp(); $('rr-vert').value = 0; zetVert(); });
+
   zetGeluid(); maat(); tekenMenu(); requestAnimationFrame(lus);
   if (window.Scorebord) { stuurScore(); Scorebord.blokje($('sb-ritme'), 'je beste procenten bij elkaar'); }
-  window.__rr = { S, LEVELS, begin, druk, nu, opslag };
+  // testhaak: spring in een lopend level naar tijd T (de robot speelt de bedoelde sprongen tot daar)
+  function springNaar(T) {
+    if (!S.lev || !S.st) return; const L = S.lev.L, st = nieuweStaat(); let t = 0;
+    while (t < T && !st.dood && !st.klaar) { let d = false; if (st.modus === 'schip') { const z = L.schip.find(z => st.x >= z.x0 - 2 && st.x <= z.x1 + 2); d = !!z && st.y + st.vy * 0.11 < z.midden(st.x + 1.2) - RRM.BH / 2; } else for (const t0 of L.invoer) if (t >= t0 - 1e-9 && t < t0 + 0.06) d = true; RRM.stap(st, L, d, RRM.DT); t += RRM.DT; }
+    S.st = st; S.sim = t; S.camY = st.modus === 'schip' ? 3 : Math.max(2.5, st.y - 1); ooStart(L, t, st.x); const m = startMuziek(S.lev, t); S.klok0 = m ? null : performance.now() / 1000 - t;
+  }
+  window.__rr = { S, LEVELS, begin, druk, nu, opslag, OO, app, KW, kwNaam, WER, BEAT, ritmeScore, toonUitslag, maat, springNaar, naarMenu };
 })();
 
 </script>

@@ -2467,9 +2467,27 @@ if (typeof module !== 'undefined') module.exports = RRM;
   // ---------------- het oordeel: viel je sprong op de bedoelde tel? (verandert niets aan het spel)
   const PERFECT = 0.030, GOED = 0.070, VENSTER = 0.16, SPRONG_VY = RRM.V0 - RRM.G * RRM.DT;
   const OO = { n: 0, i: 0, klaar: new Uint8Array(0), perfect: 0, goed: 0, net: 0, gemist: 0, combo: 0, max: 0, door: 0, schip: 0, noten: 0, laatsteDruk: -9, vorigDruk: false };
+  // de echte noten: de bedoelde route één keer meelopen (zoals de levelbouwer) en alleen de sprongen en springringen tellen die echt gebeuren
+  // (een tik die in de lucht valt, zoals bij snelle dubbele noten, is geen sprong)
+  function notenVan(L) {
+    if (L._noten) return L._noten;
+    const st = nieuweStaat(), uit = []; let t = 0;
+    while (!st.dood && !st.klaar && t < L.eind / L.v + 2) {
+      let d = false, t0 = -1;
+      if (st.modus === 'schip') { const z = L.schip.find(z => st.x >= z.x0 - 2 && st.x <= z.x1 + 2); d = !!z && st.y + st.vy * 0.11 < z.midden(st.x + 1.2) - RRM.BH / 2; }
+      else for (const ti of L.invoer) if (t >= ti - 1e-9 && t < ti + 0.06) { d = true; t0 = ti; }
+      const grond = st.grond, ring = st.gebruikt ? st.gebruikt.size : 0;
+      RRM.stap(st, L, d, RRM.DT);
+      if (st.gebruikt && st.gebruikt.size > ring) uit.push(t0 >= 0 ? t0 : t);
+      else if (st.modus === 'kubus' && grond && !st.grond && st.vy === SPRONG_VY) uit.push(t);
+      t += RRM.DT;
+    }
+    return (L._noten = Float64Array.from(uit));
+  }
   function ooStart(L, vanaf, x0) {
-    Object.assign(OO, { n: L.invoer.length, i: 0, klaar: new Uint8Array(L.invoer.length), perfect: 0, goed: 0, net: 0, gemist: 0, combo: 0, max: 0, door: 0, laatsteDruk: -9, vorigDruk: false });
-    let noten = 0; for (let k = 0; k < OO.n; k++) { if (L.invoer[k] < vanaf - 1e-6) OO.klaar[k] = 2; else noten++; }
+    const N = notenVan(L); OO.t = N;
+    Object.assign(OO, { n: N.length, i: 0, klaar: new Uint8Array(N.length), perfect: 0, goed: 0, net: 0, gemist: 0, combo: 0, max: 0, door: 0, laatsteDruk: -9, vorigDruk: false });
+    let noten = 0; for (let k = 0; k < OO.n; k++) { if (N[k] < vanaf - 1e-6) OO.klaar[k] = 2; else noten++; }
     OO.noten = noten; OO.schip = L.schip.filter(z => z.x0 >= x0 - 0.5).length;
   }
   const ooVoor = st => ({ grond: st.grond, n: st.gebruikt ? st.gebruikt.size : 0, modus: st.modus });
@@ -2480,14 +2498,14 @@ if (typeof module !== 'undefined') module.exports = RRM;
     if (ring) ooDruk(L, OO.laatsteDruk, 'ring');
     else if (st.modus === 'kubus' && voor.grond && !st.grond) { if (st.vy === SPRONG_VY) ooDruk(L, t, 'sprong'); else kussenFx(); }
     if (voor.modus !== st.modus) { if (st.modus === 'schip') poortFx('#FF5AA8', 'Raket!'); else { OO.door++; ooCombo(1); poortFx('#8AFF6A', 'Doorgevlogen!'); } }
-    while (OO.i < OO.n && (OO.klaar[OO.i] || L.invoer[OO.i] < t - VENSTER)) { if (!OO.klaar[OO.i]) { OO.klaar[OO.i] = 1; ooGemist(L, L.invoer[OO.i]); } OO.i++; }
+    while (OO.i < OO.n && (OO.klaar[OO.i] || OO.t[OO.i] < t - VENSTER)) { if (!OO.klaar[OO.i]) { OO.klaar[OO.i] = 1; ooGemist(L, OO.t[OO.i]); } OO.i++; }
   }
   function ooDruk(L, t, soort) {
     let beste = -1, bd = 9;
-    for (let j = OO.i; j < OO.n && L.invoer[j] <= t + VENSTER; j++) if (!OO.klaar[j]) { const dd = Math.abs(t - L.invoer[j]); if (dd <= VENSTER && dd < bd) { bd = dd; beste = j; } }
+    for (let j = OO.i; j < OO.n && OO.t[j] <= t + VENSTER; j++) if (!OO.klaar[j]) { const dd = Math.abs(t - OO.t[j]); if (dd <= VENSTER && dd < bd) { bd = dd; beste = j; } }
     if (beste < 0) { if (soort === 'sprong') stofje(); return; }
     OO.klaar[beste] = 1;
-    const dlt = t - L.invoer[beste];
+    const dlt = t - OO.t[beste];
     if (bd <= PERFECT) { OO.perfect++; ooCombo(1); oordeelFx('perfect', dlt); }
     else if (bd <= GOED) { OO.goed++; ooCombo(1); oordeelFx('goed', dlt); }
     else { OO.net++; oordeelFx('net', dlt); }

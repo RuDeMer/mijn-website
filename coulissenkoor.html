@@ -71,7 +71,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 6px 16px 48px; }
 .publiek .handen { opacity: 0; }
 .publiek.klapt .handen { opacity: 1; }
 .bloem { position: absolute; z-index: 3; width: 34px; height: 34px; pointer-events: none; }
-.bord { position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%); margin: 0; z-index: 5; color: #FBF6E9; font-weight: 700; text-align: center; white-space: nowrap; text-shadow: 0 2px 6px rgba(0,0,0,.6); pointer-events: none; max-width: 86%; overflow: hidden; text-overflow: ellipsis; }
+.bord { position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%); margin: 0; z-index: 5; color: #FBF6E9; font-weight: 700; text-align: center; white-space: nowrap; text-shadow: 0 2px 6px rgba(0,0,0,.6); background: rgba(14,9,16,.62); border-radius: 12px; padding: 2px 14px 3px; pointer-events: none; max-width: 86%; overflow: hidden; text-overflow: ellipsis; }
 .bord small { display: block; font-weight: 400; opacity: .82; font-size: .85rem; min-height: 1.2em; overflow: hidden; text-overflow: ellipsis; }
 .rec { position: absolute; top: 30px; left: 7%; z-index: 5; color: #fff; background: #C8323C; border-radius: 999px; padding: 2px 10px; font-weight: 800; font-size: .85rem; font-variant-numeric: tabular-nums; pointer-events: none; }
 .groot { position: absolute; inset: 0; margin: auto; width: max-content; height: max-content; max-width: 86%; z-index: 7; padding: 16px 26px; border: 3px solid #1A1320; border-radius: 999px; background: var(--goud); color: #1A1320; font-weight: 800; font-size: 1.1rem; box-shadow: 0 6px 0 #1A1320; text-align: center; }
@@ -2646,6 +2646,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
     const f = rij.querySelector('.figuur'); if (!f) return;
     const H = podium.clientHeight, hf = f.offsetHeight || 200, rust = H * 0.85 - hf + GREEP * hf;
     Object.assign(geo, { H, hf, boven: (26 + GREEP * hf) / H, onder: Math.max((26 + GREEP * hf) / H + 0.2, rust / H - 0.03) });
+    // de schaarlift: armen van een vaste lengte en een vast aantal kruisen, net genoeg voor de hoogste noot (dan staan ze
+    // nog een beetje schuin). Zo schuift hij uit als een echte schaarlift, zonder dat er ineens een kruis bij komt.
+    const lw = Math.round(hf * (hf < 140 ? 0.68 : 0.57)), extra = Math.round(hf * 0.035), max = H * 0.85 - hf - 26 + extra;
+    const L = lw * 0.8, n = Math.max(2, Math.ceil((max - 14) / (L * 0.93)));
+    Object.assign(geo, { lw, extra, armL: L, armN: n });
+    const pb = $('publiek'), b = pb.getBoundingClientRect();
+    if (Math.abs(b.width - (geo.pw || 0)) > 8 || Math.abs(b.height - (geo.ph || 0)) > 4) { geo.pw = b.width; geo.ph = b.height; pb.innerHTML = publiekSVG(b.width, b.height); }
   }
   ZANGER.VOLGORDE.forEach(id => STEM.kleur(id, ZANGER.P[id].stem, ZANGER.P[id].klank));
 
@@ -2945,12 +2952,53 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
         ${[-90, -60, -30, 0, 30, 60, 90].map((x, i) => `<line x1="${x}" y1="${i % 2 ? 58 : 40}" x2="${x}" y2="${i % 2 ? 46 : 28}" stroke="#F4EFD6" stroke-width="5"/><circle cx="${x}" cy="${i % 2 ? 42 : 24}" r="5" fill="#FFE8A0"/>`).join('')}<circle cy="78" r="8" fill="#E9B949"/></g>
     </svg>`;
   }
-  function publiekSVG() {
-    let s = '<svg viewBox="0 0 1000 120" preserveAspectRatio="none"><g fill="#0F0A12">';
-    for (let i = 0; i < 26; i++) { const x = 20 + i * 38 + (i % 2) * 9, y = 64 + (i % 3) * 5, r = 15 + (i % 4); s += `<g class="hoofd" style="animation-delay:-${(i * 0.11) % 0.32}s"><circle cx="${x}" cy="${y}" r="${r}"/><path d="M${x - 26} 130 Q${x - 24} ${y + 14} ${x} ${y + 12} Q${x + 24} ${y + 14} ${x + 26} 130 Z"/></g>`; }
-    for (let i = 0; i < 20; i++) { const x = 10 + i * 52, y = 96, r = 17; s += `<g class="hoofd" style="animation-delay:-${(i * 0.07) % 0.32}s"><circle cx="${x}" cy="${y}" r="${r}"/><path d="M${x - 30} 130 Q${x - 28} ${y + 14} ${x} ${y + 12} Q${x + 28} ${y + 14} ${x + 30} 130 Z"/></g>`; }
-    s += '</g><g class="handen" fill="#E8D6C0">';
-    for (let i = 0; i < 18; i++) { const x = 40 + i * 54, y = 56 + (i % 3) * 8; s += `<ellipse cx="${x - 5}" cy="${y}" rx="5" ry="7" transform="rotate(-20 ${x - 5} ${y})"/><ellipse cx="${x + 5}" cy="${y}" rx="5" ry="7" transform="rotate(20 ${x + 5} ${y})"/>`; }
+  // het publiek, van achteren gezien: twee rijen mensen in rode pluche stoelen, met het licht van het toneel op hun hoofd.
+  // Op de echte maat getekend (opnieuw als het podium van maat verandert), zodat hoofden rond blijven.
+  function publiekSVG(W, H) {
+    W = Math.max(200, Math.round(W || 1000)); H = Math.max(40, Math.round(H || 80));
+    let x = 9; const rnd = () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+    const HAAR = ['#22161A', '#33201A', '#4A3122', '#2A2630', '#6B5234', '#55505A', '#3A1E1A'], JAS = ['#191018', '#1F1428', '#22141A', '#141824', '#2A1A14'];
+    const HUID = ['#C99E7E', '#A87656', '#E2BC9A', '#8A5A3E', '#D6A884'], klap = [];
+    const mens = (cx, y, r, rij, k) => {
+      const kl = HAAR[Math.floor(rnd() * HAAR.length)], jas = JAS[Math.floor(rnd() * JAS.length)], soort = Math.floor(rnd() * 7), kant = (rnd() - 0.5) * 10;
+      const licht = rij ? 0.5 : 0.32, d = (rij ? 0.06 : 0.12) * (k % 3);
+      let s = `<g class="hoofd" style="animation-delay:-${((k * 0.13) % 0.32).toFixed(2)}s"><g transform="rotate(${kant.toFixed(1)} ${cx.toFixed(1)} ${(y + r).toFixed(1)})">`;
+      s += `<path d="M${(cx - r * 1.75).toFixed(1)} ${H + 2} Q${(cx - r * 1.7).toFixed(1)} ${(y + r * 1.25).toFixed(1)} ${cx.toFixed(1)} ${(y + r * 1.05).toFixed(1)} Q${(cx + r * 1.7).toFixed(1)} ${(y + r * 1.25).toFixed(1)} ${(cx + r * 1.75).toFixed(1)} ${H + 2} Z" fill="${jas}"/>`;
+      s += `<rect x="${(cx - r * 0.36).toFixed(1)}" y="${(y + r * 0.6).toFixed(1)}" width="${(r * 0.72).toFixed(1)}" height="${(r * 0.6).toFixed(1)}" fill="${kl}"/>`;
+      s += `<circle cx="${cx.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${kl}"/>`;
+      if (soort === 1) s += `<circle cx="${cx.toFixed(1)}" cy="${(y - r * 0.95).toFixed(1)}" r="${(r * 0.42).toFixed(1)}" fill="${kl}"/>`;
+      if (soort === 2) s += `<ellipse cx="${cx.toFixed(1)}" cy="${(y - r * 0.45).toFixed(1)}" rx="${(r * 1.35).toFixed(1)}" ry="${(r * 0.22).toFixed(1)}" fill="#0E0A0E"/><path d="M${(cx - r * 0.75).toFixed(1)} ${(y - r * 0.45).toFixed(1)} Q${cx.toFixed(1)} ${(y - r * 1.55).toFixed(1)} ${(cx + r * 0.75).toFixed(1)} ${(y - r * 0.45).toFixed(1)} Z" fill="#0E0A0E"/>`;
+      if (soort === 3) s += `<path d="M${(cx + r * 0.5).toFixed(1)} ${(y + r * 0.2).toFixed(1)} q${(r * 0.7).toFixed(1)} ${(r * 0.5).toFixed(1)} ${(r * 0.25).toFixed(1)} ${(r * 1.5).toFixed(1)}" stroke="${kl}" stroke-width="${(r * 0.45).toFixed(1)}" stroke-linecap="round" fill="none"/>`;
+      if (soort === 4) for (const [dx, dy] of [[-0.7, -0.55], [0, -0.85], [0.7, -0.55], [-0.95, 0.1], [0.95, 0.1]]) s += `<circle cx="${(cx + dx * r).toFixed(1)}" cy="${(y + dy * r).toFixed(1)}" r="${(r * 0.5).toFixed(1)}" fill="${kl}"/>`;
+      if (soort === 5) s += `<ellipse cx="${(cx - r * 1.02).toFixed(1)}" cy="${(y + r * 0.1).toFixed(1)}" rx="${(r * 0.18).toFixed(1)}" ry="${(r * 0.3).toFixed(1)}" fill="${kl}"/><ellipse cx="${(cx + r * 1.02).toFixed(1)}" cy="${(y + r * 0.1).toFixed(1)}" rx="${(r * 0.18).toFixed(1)}" ry="${(r * 0.3).toFixed(1)}" fill="${kl}"/>`;
+      // het licht van het toneel op het hoofd en de schouders
+      s += `<ellipse cx="${(cx - r * 0.15).toFixed(1)}" cy="${(y - r * 0.45).toFixed(1)}" rx="${(r * 0.62).toFixed(1)}" ry="${(r * 0.34).toFixed(1)}" fill="#FFD58A" opacity="${((licht - d) * 0.28).toFixed(2)}"/>`;
+      s += `<path d="M${(cx - r * 0.82).toFixed(1)} ${(y - r * 0.5).toFixed(1)} A${r.toFixed(1)} ${r.toFixed(1)} 0 0 1 ${(cx + r * 0.82).toFixed(1)} ${(y - r * 0.5).toFixed(1)}" stroke="#FFD58A" stroke-width="${Math.max(1, r * 0.16).toFixed(1)}" fill="none" stroke-linecap="round" opacity="${(licht - d).toFixed(2)}"/>`;
+      s += `<path d="M${(cx - r * 1.55).toFixed(1)} ${(y + r * 1.5).toFixed(1)} Q${cx.toFixed(1)} ${(y + r * 0.95).toFixed(1)} ${(cx + r * 1.55).toFixed(1)} ${(y + r * 1.5).toFixed(1)}" stroke="#FFD58A" stroke-width="${Math.max(0.8, r * 0.1).toFixed(1)}" fill="none" opacity="${((licht - d) * 0.5).toFixed(2)}"/>`;
+      if (!rij && k % 3 !== 2) klap.push([cx, y, r, jas, HUID[Math.floor(rnd() * HUID.length)]]);
+      return s + '</g></g>';
+    };
+    const stoelen = (y, b, n0, stap, h) => { let s = ''; for (let i = 0; i < n0; i++) { const cx = i * stap + stap / 2 - stap * 0.25 * (y > H * 0.7 ? 0 : 1); s += `<rect x="${(cx - b / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${b.toFixed(1)}" height="${(h + 6).toFixed(1)}" rx="${(b * 0.28).toFixed(1)}" fill="url(#pluche)" stroke="#2A0A12" stroke-width="1"/><path d="M${(cx - b / 2 + 3).toFixed(1)} ${(y + 1.5).toFixed(1)} H${(cx + b / 2 - 3).toFixed(1)}" stroke="#E9B949" stroke-width="1.2" opacity=".55"/>`; } return s; };
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="pluche" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9E2330"/><stop offset=".55" stop-color="#6A1220"/><stop offset="1" stop-color="#3A0812"/></linearGradient><linearGradient id="zaalschaduw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A1320" stop-opacity="0"/><stop offset=".35" stop-color="#1A1320" stop-opacity=".75"/><stop offset="1" stop-color="#0B070C"/></linearGradient></defs>`;
+    s += `<rect y="${(H * 0.3).toFixed(1)}" width="${W}" height="${(H * 0.7).toFixed(1)}" fill="url(#zaalschaduw)"/>`;
+    // achterste rij: kleiner, iets meer licht
+    const rb = H * 0.15, stapA = rb * 3.1, nA = Math.ceil(W / stapA) + 1;
+    for (let i = 0; i < nA; i++) s += mens(i * stapA + stapA * 0.25 + (rnd() - 0.5) * rb * 0.5, H * 0.36 + (rnd() - 0.5) * rb * 0.3, rb * (0.92 + rnd() * 0.16), 1, i);
+    s += stoelen(H * 0.6, stapA * 0.84, nA, stapA, H * 0.15);
+    // voorste rij: groter en donkerder
+    const rf = H * 0.21, stapV = rf * 3.05, nV = Math.ceil(W / stapV) + 1;
+    for (let i = 0; i < nV; i++) s += mens(i * stapV + stapV / 2 + (rnd() - 0.5) * rf * 0.4, H * 0.6 + (rnd() - 0.5) * rf * 0.25, rf * (0.94 + rnd() * 0.12), 0, i + 7);
+    s += stoelen(H * 0.86, stapV * 0.86, nV, stapV, H * 0.14);
+    // armen omhoog en handen die klappen (alleen te zien als het publiek klapt)
+    s += '<g class="handen">';
+    for (const [cx, y, r, jas, huid] of klap) {
+      const hy = y - r * 1.55, sw = (r * 0.42).toFixed(1);
+      s += `<path d="M${(cx - r * 1.05).toFixed(1)} ${(y + r * 1.3).toFixed(1)} Q${(cx - r * 1.2).toFixed(1)} ${(y - r * 0.4).toFixed(1)} ${(cx - r * 0.2).toFixed(1)} ${(hy + r * 0.25).toFixed(1)}" stroke="${jas}" stroke-width="${sw}" stroke-linecap="round" fill="none"/>`;
+      s += `<path d="M${(cx + r * 1.05).toFixed(1)} ${(y + r * 1.3).toFixed(1)} Q${(cx + r * 1.2).toFixed(1)} ${(y - r * 0.4).toFixed(1)} ${(cx + r * 0.2).toFixed(1)} ${(hy + r * 0.25).toFixed(1)}" stroke="${jas}" stroke-width="${sw}" stroke-linecap="round" fill="none"/>`;
+      s += `<ellipse cx="${(cx - r * 0.13).toFixed(1)}" cy="${hy.toFixed(1)}" rx="${(r * 0.2).toFixed(1)}" ry="${(r * 0.3).toFixed(1)}" fill="${huid}" transform="rotate(-14 ${(cx - r * 0.13).toFixed(1)} ${hy.toFixed(1)})"/>`;
+      s += `<ellipse cx="${(cx + r * 0.13).toFixed(1)}" cy="${hy.toFixed(1)}" rx="${(r * 0.2).toFixed(1)}" ry="${(r * 0.3).toFixed(1)}" fill="${huid}" transform="rotate(14 ${(cx + r * 0.13).toFixed(1)} ${hy.toFixed(1)})"/>`;
+      s += `<path d="M${(cx - r * 0.3).toFixed(1)} ${(hy - r * 0.18).toFixed(1)} Q${cx.toFixed(1)} ${(hy - r * 0.42).toFixed(1)} ${(cx + r * 0.3).toFixed(1)} ${(hy - r * 0.18).toFixed(1)}" stroke="#FFE2A8" stroke-width="${Math.max(0.8, r * 0.08).toFixed(1)}" fill="none" opacity=".6"/>`;
+    }
     return s + '</g></svg>';
   }
   function zetDecor(id) { podium.dataset.decor = id; $('decor').innerHTML = decorSVG(id); }
@@ -3020,22 +3068,34 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
   // hoe hoog de lift moet staan (in px) om de zanger met zijn borst op de hoogte van noot n te zetten
   function liftVoor(v, n) { const [lo, hi] = bereik(v); return Math.max(0, geo.H * 0.85 - geo.hf + GREEP * geo.hf - yVan(v, Math.max(lo, Math.min(hi, n))) * geo.H); }
   // de schaarlift tekenen: een voetplaat op de vloer, gekruiste armen en een plateau onder de zanger
+  // de schaarlift tekenen: een voet met wieltjes op de vloer, gekruiste armen en een plateau onder de zanger. De armen houden
+  // dezelfde lengte: hoe hoger, hoe steiler (en smaller) ze staan, zoals bij een echte schaarlift.
   function tekenLift(el, h) {
     if (h < 3) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
-    const w = Math.round(geo.hf * 0.62 * 240 / 262), extra = Math.round(geo.hf * 0.035), H = Math.round(h + extra);
+    const w = geo.lw, H = Math.round(h + geo.extra);
     if (el.dataset.h === String(H) && el.dataset.w === String(w)) return;
     el.dataset.h = H; el.dataset.w = w; el.style.display = '';
     el.setAttribute('width', w); el.setAttribute('height', H); el.setAttribute('viewBox', `0 0 ${w} ${H}`);
-    const top = 7, bodem = H - 6, n = Math.max(1, Math.round((bodem - top) / (w * 0.75))), seg = (bodem - top) / n, x0 = w * 0.16, x1 = w * 0.84;
-    let armen = '', pennen = '';
+    const top = 6, voet = 8, bodem = H - voet, n = geo.armN, seg = Math.max(0.01, (bodem - top) / n);
+    const span = Math.sqrt(Math.max(0, geo.armL * geo.armL - Math.min(seg, geo.armL * 0.995) ** 2)), x0 = w / 2 - span / 2, x1 = w / 2 + span / 2;
+    let armen = '', pennen = '', glans = ''; const kp = Math.max(0.6, Math.min(1, w / 124));
     for (let i = 0; i < n; i++) {
-      const a = top + i * seg, b = a + seg;
-      armen += `M${x0} ${a}L${x1} ${b}M${x1} ${a}L${x0} ${b}`;
-      pennen += `<circle cx="${w / 2}" cy="${(a + b) / 2}" r="2.6"/>`;
+      const a = top + i * seg, b = a + seg, m = (a + b) / 2;
+      armen += `M${x0.toFixed(1)} ${a.toFixed(1)}L${x1.toFixed(1)} ${b.toFixed(1)}M${x1.toFixed(1)} ${a.toFixed(1)}L${x0.toFixed(1)} ${b.toFixed(1)}`;
+      glans += `M${x0.toFixed(1)} ${(a - 0.8).toFixed(1)}L${x1.toFixed(1)} ${(b - 0.8).toFixed(1)}`;
+      pennen += `<circle cx="${(w / 2).toFixed(1)}" cy="${m.toFixed(1)}" r="${(2.2 * kp).toFixed(2)}"/>`;
+      if (i) pennen += `<circle cx="${x0.toFixed(1)}" cy="${a.toFixed(1)}" r="${(1.9 * kp).toFixed(2)}"/><circle cx="${x1.toFixed(1)}" cy="${a.toFixed(1)}" r="${(1.9 * kp).toFixed(2)}"/>`;
     }
-    el.innerHTML = `<path d="${armen}" stroke="#1A1320" stroke-width="5" stroke-linecap="round"/><path d="${armen}" stroke="#C9A23A" stroke-width="2.6" stroke-linecap="round"/>
-      <g fill="#1A1320">${pennen}</g><rect x="${w * 0.08}" y="${bodem}" width="${w * 0.84}" height="6" rx="2" fill="#2A2030" stroke="#1A1320" stroke-width="1.5"/>
-      <rect x="0.75" y="0.75" width="${w - 1.5}" height="${top}" rx="2.5" fill="#3A2A3E" stroke="#1A1320" stroke-width="1.5"/><rect x="2" y="1.5" width="${w - 4}" height="2" rx="1" fill="#E9B949" opacity=".85"/>`;
+    const rr = Math.max(2, voet * 0.42), k = Math.max(0.55, Math.min(1, w / 124));   // dunnere armen op een kleine lift
+    el.innerHTML = `<rect x="${(w * 0.14).toFixed(1)}" y="${top - 1}" width="${(w * 0.72).toFixed(1)}" height="2.4" rx="1" fill="#1A1320"/>
+      <path d="${armen}" stroke="#1A1320" stroke-width="${(5 * k).toFixed(2)}" stroke-linecap="round" fill="none"/><path d="${armen}" stroke="#B88A20" stroke-width="${(2.8 * k).toFixed(2)}" stroke-linecap="round" fill="none"/>
+      <path d="${glans}" stroke="#F4D27A" stroke-width="${(0.9 * k).toFixed(2)}" stroke-linecap="round" fill="none" opacity=".75"/>
+      <g fill="#1A1320">${pennen}</g>
+      <rect x="${(w * 0.1).toFixed(1)}" y="${bodem}" width="${(w * 0.8).toFixed(1)}" height="${(voet - rr).toFixed(1)}" rx="2" fill="#2A2030" stroke="#1A1320" stroke-width="1.4"/>
+      <rect x="${(w * 0.1 + 1).toFixed(1)}" y="${bodem + 0.8}" width="${(w * 0.8 - 2).toFixed(1)}" height="1.4" rx=".7" fill="#E9B949" opacity=".6"/>
+      <circle cx="${(w * 0.2).toFixed(1)}" cy="${(H - rr).toFixed(1)}" r="${rr.toFixed(1)}" fill="#1A1320"/><circle cx="${(w * 0.8).toFixed(1)}" cy="${(H - rr).toFixed(1)}" r="${rr.toFixed(1)}" fill="#1A1320"/>
+      <circle cx="${(w * 0.2).toFixed(1)}" cy="${(H - rr).toFixed(1)}" r="${(rr * 0.4).toFixed(1)}" fill="#8A6A3A"/><circle cx="${(w * 0.8).toFixed(1)}" cy="${(H - rr).toFixed(1)}" r="${(rr * 0.4).toFixed(1)}" fill="#8A6A3A"/>
+      <rect x="0.7" y="0.7" width="${w - 1.4}" height="${top}" rx="2.5" fill="#3A2A3E" stroke="#1A1320" stroke-width="1.4"/><rect x="2" y="1.4" width="${w - 4}" height="1.8" rx=".9" fill="#E9B949" opacity=".85"/>`;
   }
   function klinkerVan(dx, v) {
     const w = plekken[v] ? plekken[v].getBoundingClientRect().width : 100;
@@ -3485,7 +3545,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
 
   // ---- beginnen
   zetDecor(O.inst.decor);
-  $('publiek').innerHTML = publiekSVG();
   bouwZangers(); tekenKoor(); tekenLiedjes(); tekenOpnames();
   leesLink();
   // de filters van de stemmen alvast uitrekenen, als de pagina niets te doen heeft
@@ -3494,7 +3553,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
   ZANGER.VOLGORDE.forEach(id => [48000, 44100].forEach(fs => rijtje.push([id, fs])));
   (function volgende() { const x = rijtje.shift(); if (!x) return; later(() => { STEM.voorbereid(x[0], x[1]); volgende(); }); })();
   // testhaak
-  window.__koor = { STEM, ZANGER, HARM, LIEDJES, O, maakSpeler, codeer, decodeer, teBytes, uitBytes, applaus, doe, speelAf, speelLied, stopAlles, startOpname, stopOpname,
+  window.__koor = { STEM, ZANGER, HARM, LIEDJES, O, geo, tekenLift, publiekSVG, maakSpeler, codeer, decodeer, teBytes, uitBytes, applaus, doe, speelAf, speelLied, stopAlles, startOpname, stopOpname,
     get sp() { return sp; }, get ctx() { return ctx; }, get lied() { return lied; }, get afspelen() { return afspelen; }, get opname() { return opname; }, get laatste() { return laatste; } };
 })();
 // ==== SPEL eind

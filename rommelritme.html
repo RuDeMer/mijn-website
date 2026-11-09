@@ -2153,15 +2153,19 @@ if (typeof module !== 'undefined') module.exports = RRM;
     if (WER.sleutel === sl) return; WER.sleutel = sl; WER.lev = lev;
     const def = WERELD[id] || WERELD.zolder; WER.def = def;
     const d = dpr(), Wc = W / d, Hc = H / d, Bc = B / d, U = Math.max(22, Math.min(Hc, Wc * 1.3) / 10);
-    const basis = Math.min(H, (H + 13 * B) / 2), hor0 = (basis - (0 - CAMY0 + 4.2) * B) / d, ld = Math.min(kw.laagDpr, devicePixelRatio || 1);
+    const basis = Math.min(H, (H + 13 * B) / 2), hor0 = (basis - (0 - CAMY0 + 4.2) * B) / d; let ld = Math.min(kw.laagDpr, devicePixelRatio || 1);
     WER.U = U; WER.hor = hor0; WER.Wc = Wc; WER.Hc = Hc; WER.Bc = Bc; WER.ld = ld; WER.glad = !kw.weinig && kw.fps === 0; WER.mooi = kwNaam() === 'mooi';
     const el = $('rr-wereld'); el.innerHTML = ''; WER.lagen = [];
-    // het achtergronddoekje (niet doorzichtig: dat kan de browser het snelst neerzetten)
-    const ac2 = document.createElement('canvas'); ac2.id = 'rr-achter'; ac2.width = Math.round(Wc * ld); ac2.height = Math.round(Hc * ld); ac2.style.width = '100%'; ac2.style.height = '100%';
-    el.appendChild(ac2); WER.achter = ac2; WER.ag = ac2.getContext('2d', { alpha: false }); WER.g = WER.ag;
+    // het achtergronddoekje (niet doorzichtig: dat kan de browser het snelst neerzetten); heeft het dezelfde scherpte als het speelveld,
+    // dan tekenen we alles op één doekje (dan hoeft de browser maar één laag neer te zetten)
+    WER.een = ld >= d - 0.01;
+    if (WER.een) { WER.achter = null; WER.ag = ctx; ld = d; WER.ld = d; }
+    else { const ac2 = document.createElement('canvas'); ac2.id = 'rr-achter'; ac2.width = Math.round(Wc * ld); ac2.height = Math.round(Hc * ld); ac2.style.width = '100%'; ac2.style.height = '100%'; el.appendChild(ac2); WER.achter = ac2; WER.ag = ac2.getContext('2d', { alpha: false }); }
+    WER.g = WER.ag;
     $('rr-scene').style.background = def.lucht[1];
     // de lucht: één keer als plaatje
-    { const { c, g } = maakDoek(Wc, Hc, ld), v = g.createLinearGradient(0, 0, 0, Hc); v.addColorStop(0, def.lucht[0]); v.addColorStop(0.55, def.lucht[1]); v.addColorStop(1, def.lucht[2]); g.fillStyle = v; g.fillRect(0, 0, Wc, Hc); WER.lucht = c; }
+    { const { c, g } = maakDoek(Wc, Hc, ld), v = g.createLinearGradient(0, 0, 0, Hc); v.addColorStop(0, def.lucht[0]); v.addColorStop(0.55, def.lucht[1]); v.addColorStop(1, def.lucht[2]); g.fillStyle = v; g.fillRect(0, 0, Wc, Hc); WER.lucht = c; WER.luchtG = g; }
+    const BASIS = reduce ? 0.45 : 0.22; WER.basis = BASIS; let inLucht = false;
     WER.dynNa = def.dynNa;
     def.lagen.forEach((L0, n) => {
       if (kw.weinig && L0.soort === 'gloed' && L0.bron === 'achtste' && L0.fase) return; // Zuinig: één groep lampjes
@@ -2170,7 +2174,13 @@ if (typeof module !== 'undefined') module.exports = RRM;
       const rnd = zaad(1000 + n * 77 + id.length * 13), hor = hor0 - top;
       const o = { w: wL, h: hL, P, hor, U, Bc, rnd, rep: (x, f) => { for (let k = -1; x + k * P < wL + P; k++) f(x + k * P); } };
       try { L0.teken(g, o); } catch (e) { console.error(e); }
-      const vorige = WER.lagen[WER.lagen.length - 1];
+      // lagen die bijna stil staan (de zon, sterren, heuvels in de verte) gaan vast in de lucht: dat scheelt elk beeld een hele laag
+      if (L0.f <= 0.05 && !L0.molen && (L0.soort !== 'gloed' || (inLucht && L0.bron === 'bas' && !WER.mooi))) { const lg = WER.luchtG; lg.save(); if (L0.soort === 'gloed') { lg.globalAlpha = 0.6; lg.globalCompositeOperation = 'lighter'; } lg.drawImage(c, 0, 0, c.width, c.height, 0, top, c.width / ld, c.height / ld); lg.restore(); inLucht = true; return; }
+      inLucht = false;
+      const vorige = WER.lagen[WER.lagen.length - 1], basisLaag = WER.lagen.slice().reverse().find(q => q.def.soort !== 'gloed');
+      // het zwakke licht van de lampjes zit vast in de laag eronder; los komt alleen het felle licht op de maat
+      if (L0.soort === 'gloed' && L0.bron !== 'bas' && basisLaag && basisLaag.def.f === L0.f && basisLaag.P === P && basisLaag.top === top) { const bg = basisLaag.c.getContext('2d'); bg.save(); bg.globalAlpha = BASIS; bg.globalCompositeOperation = 'lighter'; bg.drawImage(c, 0, 0); bg.restore(); basisLaag.stukken = bijsnijden(basisLaag.c) || basisLaag.stukken; L0._gebakken = true; }
+      else L0._gebakken = false;
       if (L0.soort === 'gloed' && L0.bron === 'bas' && !WER.mooi && vorige && vorige.def.f === L0.f && vorige.P === P && vorige.top === top) { const vg = vorige.c.getContext('2d'); vg.save(); vg.globalAlpha = 0.6; vg.globalCompositeOperation = 'lighter'; vg.drawImage(c, 0, 0); vg.restore(); vorige.stukken = bijsnijden(vorige.c) || vorige.stukken; return; }
       const laag = { def: L0, P, glans: 0, top, n, draaiers: [] };
       const stukken = bijsnijden(c); if (!stukken && !L0.molen) return; laag.c = c; laag.y = top; laag.stukken = stukken || [];
@@ -2206,6 +2216,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
     let dynGedaan = false;
     const dyn = () => { if (!dynGedaan) { dynGedaan = true; tekenDyn(camX, camY, dt, tel, kracht, kw); } };
     for (const l of WER.lagen) {
+      if (l.n > WER.dynNa && !PR.dyn) dyn();
       const off = camX * Bc * l.def.f, tx = rond(-(((off % l.P) + l.P) % l.P)), ty = rondY(l.y + ty0 * l.def.fy);
       if (l.def.soort === 'gloed' && PR.gloed) continue;
       if (l.def.soort === 'gloed') {
@@ -2214,16 +2225,17 @@ if (typeof module !== 'undefined') module.exports = RRM;
         else { const stap = reduce ? Math.floor(tel) : Math.floor(tel * 2); v = (stap % 2 === l.def.fase) ? 1 : 0; }
         const doel = reduce ? 0.45 + v * 0.25 : 0.22 + v * 0.78 + BEAT.bekken * 0.3;
         l.glans += (doel - l.glans) * Math.min(1, dt * (s === 'achtste' ? 30 : 18));
-        g.globalAlpha = Math.max(0, Math.min(1, l.glans)); g.globalCompositeOperation = 'lighter';
+        const a = Math.min(1, l.glans) - (l.def._gebakken ? WER.basis : 0); if (a < 0.03) continue;
+        g.globalAlpha = a; g.globalCompositeOperation = 'lighter';
       }
       const Wc = WER.Wc;
       if (PR.heel) { if (!PR.lagen) g.drawImage(l.c, 0, 0, l.c.width, l.c.height, tx, ty, l.c.width / ld, l.c.height / ld); } else if (!PR.lagen) for (const q of l.stukken) { let x = tx + q.sx / ld, sx = q.sx, sw = q.sw, sh = q.sh; const y = ty + q.sy / ld; if (y >= gyC || y + sh / ld <= 0) continue; if (y + sh / ld > gyC) sh = Math.min(sh, Math.ceil((gyC - y) * ld) + 2); if (x + sw / ld <= 0 || x >= Wc) continue; if (x < 0) { const knip = Math.ceil(-x * ld); sx += knip; sw -= knip; x += knip / ld; } if (x + sw / ld > Wc) sw = Math.ceil((Wc - x) * ld); if (sw < 1) continue; g.drawImage(l.c, sx, q.sy, sw, sh, x, y, sw / ld, sh / ld); }
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
       if (l.draaiers.length) { l.hoek = (l.hoek || 0) + dt * (reduce ? 0.5 : 1.1 + BEAT.bas * 2.4); for (const q of l.draaiers) { const x = tx + q.x; if (x < -q.r * 2 || x > WER.Wc + q.r * 2) continue; g.save(); g.translate(x, ty + (q.y - l.y)); g.rotate(l.hoek); g.drawImage(q.c, -q.r, -q.r, q.r * 2, q.r * 2); g.restore(); } }
-      if (l.n === WER.dynNa && !PR.dyn) dyn();
     }
     if (!PR.dyn) dyn();
     if (WER.grond && !PR.grond) { const gy = rond(sy(0) / dpr()), tx = rond(-((((camX * Bc) % WER.grondP) + WER.grondP) % WER.grondP)); g.drawImage(WER.grond, 0, 0, WER.grond.width, WER.grond.height, tx, gy, WER.grond.width / ld, WER.grond.height / ld); }
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
   }
   // het bewegende doekje achter de baan: per wereld iets anders, altijd met weinig tekenwerk
   function tekenDyn(camX, camY, dt, tel, kracht, kw) {
@@ -2235,7 +2247,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
       g.globalAlpha = 1;
     } else if (soort === 'ballon') {
       // het reuzenrad, met de lampjes op de maat
-      const L0 = WER.lagen[0], P = L0 ? L0.P : 1100, off = camX * Bc * 0.04, cx0 = P * 0.68 - (((off % P) + P) % P), r = Math.min(U * 3.3, hor * 0.42), cy = hor - r - U * 0.5, hoek = t * (reduce ? 0.05 : 0.12);
+      const P = Math.round(Math.max(1100 * U / 60, Wc * 0.5)) * 2, off = camX * Bc * 0.04, cx0 = P * 0.68 - (((off % P) + P) % P), r = Math.min(U * 3.3, hor * 0.42), cy = hor - r - U * 0.5, hoek = t * (reduce ? 0.05 : 0.12);
       for (let cx = cx0; cx < Wc + r + P; cx += P) { if (cx < -r - 10) continue;
         g.strokeStyle = '#2A1232'; g.lineWidth = U * 0.16; g.beginPath(); g.moveTo(cx - r * 0.5, hor + 2); g.lineTo(cx, cy); g.lineTo(cx + r * 0.5, hor + 2); g.stroke();
         g.lineWidth = 2; g.strokeStyle = 'rgba(60,24,70,1)'; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke(); g.beginPath(); g.arc(cx, cy, r * 0.72, 0, 7); g.stroke();
@@ -2535,7 +2547,7 @@ if (typeof module !== 'undefined') module.exports = RRM;
     // een nieuw stuk van het level: bij de liedjes zonder refreinen (of zonder muziek) geeft een refrein of een raketstuk een accent
     if (S.st && deel.van !== undefined && S.vorigDeel !== deel.van) { if (S.vorigDeel !== null && (deel.m === 'B' || deel.soort === 'schip') && (!muziek || !(LIEDJES[lev.spec.id] || {}).secties)) accent(); S.vorigDeel = deel.van; }
     const puls = reduce ? BEAT.kick * 0.3 : Math.max(BEAT.kick, Math.pow(1 - fase, 3) * 0.4);
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); if (!WER.een) ctx.clearRect(0, 0, W, H);
     // camera (precies zoals altijd)
     const doelY = st.modus === 'schip' ? 3 : Math.max(2.5, st.y - 1); S.camY += (doelY - S.camY) * Math.min(1, dt * 4);
     const zicht = W / B, camX = st.x - (zicht < 21 ? 3.6 : 7), basis = Math.min(H, (H + 13 * B) / 2);

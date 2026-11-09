@@ -544,6 +544,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 ## De scoreserver die draait (stand 30 oktober 2026)
 
+- **Stand 9 november 2026, 's avonds: versie 2026-11-11 (Rommelritme met meer pit, zie "Rommelritme: meer pit") ligt bij Ruben.** Gebouwd op 2026-11-10: alleen `combo: elk(max)` en `ritme: elk(max)` bij `rommelritme-v1` in de REGELS, en `BLOK_NU = 13`. Tot hij hem in Cloudflare zet, is 2026-11-10 het uitgangspunt, en blijft de nieuwe `rommelritme.html` op zijn branch (een oude server kent `combo` en `ritme` niet: bij een botsing wint dan de laatste in zijn geheel, en kan een hogere combo of ritmescore wegvallen).
 - **Stand 9 november 2026: in Cloudflare draait versie 2026-11-10** (het Coulissenkoor, zie "Coulissenkoor"; gebouwd op 2026-11-09; `/status` geeft `"versie":"2026-11-10"` en `"koor":1`). Dit is nu het uitgangspunt voor veranderingen aan de scoreserver. Wat hieronder staat, is de stand van daarvoor.
 - **Stand 8 november 2026, 's avonds: in Cloudflare draait versie 2026-11-09** (Helpdesk Hopeloos, zie "Helpdesk Hopeloos"; gebouwd op 2026-11-08, dus met de Gildewinkel erin; `/status` geeft `"versie":"2026-11-09"` en `"helpdesk":1`). Dit is nu het uitgangspunt voor veranderingen aan de scoreserver. Wat hieronder staat, is de stand van daarvoor.
 - **Stand 8 november 2026: versie 2026-11-08 (de Gildewinkel in de Vlaaienbakker) ligt bij Ruben.** Tot hij hem in Cloudflare zet, is 2026-11-06 het uitgangspunt (zie "Vlaaienbakker: de Gildewinkel").

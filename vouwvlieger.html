@@ -1548,7 +1548,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   const grof = matchMedia('(pointer: coarse)').matches;
   const KWAL = {
     zuinig: { naam: 'Zuinig', dpr: 1, ld: 0.6, deeltjes: 0.4, weer: 0.4, fps: 60, mooi: false },
-    normaal: { naam: 'Normaal', dpr: 2, ld: grof ? 1 : 1.5, deeltjes: 0.75, weer: 0.75, fps: 60, mooi: false },
+    normaal: { naam: 'Normaal', dpr: grof ? 1.75 : 2, ld: grof ? 0.75 : 1, deeltjes: 0.75, weer: 0.75, fps: 60, mooi: false },
     mooi: { naam: 'Mooi', dpr: 2, ld: grof ? 1.25 : 2, deeltjes: 1, weer: 1, fps: 0, mooi: true },
   };
   function autoKwal() { const c = navigator.hardwareConcurrency || 4, m = navigator.deviceMemory || 4; if (grof && (c < 6 || m < 4)) return 'zuinig'; if (c <= 2) return 'zuinig'; return 'normaal'; }
@@ -1561,7 +1561,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   function maat() {
     const r = veld.getBoundingClientRect(), d0 = Math.min(2, devicePixelRatio || 1);
     W = Math.round(r.width * d0) / (Math.round(r.height * d0) / H);
-    dpr = Math.min(KW.dpr, d0); ld = Math.min(KW.ld, dpr); een = ld >= dpr - 0.01;
+    const KO = Object.assign({}, KW, window.__vkKW || {});   // __vkKW: alleen voor metingen
+    dpr = Math.min(KO.dpr, d0); ld = Math.min(KO.ld, dpr); een = ld >= dpr - 0.01;
     cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr)); schaal = cv.height / H;
     achter.hidden = een;
     if (!een) { achter.width = Math.max(1, Math.round(r.width * ld)); achter.height = Math.max(1, Math.round(r.height * ld)); }
@@ -1774,8 +1775,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   $('vk-weer').addEventListener('click', e => { e.stopPropagation(); nieuw(); });
   veld.addEventListener('pointerdown', e => { if (e.target.closest('.vk-kaart') || !dicht()) return; e.preventDefault(); tik(); });
   addEventListener('keydown', e => {
-    if (e.target.closest && e.target.closest('input')) return;
     if (e.code === 'Escape') { if (!$('vk-inst').hidden) $('vk-inst').hidden = true; else if (!$('vk-winkel').hidden) $('vk-winkel').hidden = true; return; }
+    if (e.target.closest && e.target.closest('input')) return;
     if (!dicht()) return;
     const knopT = e.target.closest && e.target.closest('.vk-kaart button'); if (knopT && knopT.offsetParent !== null) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); if (S.staat === 'neer' && !$('vk-einde').hidden) nieuw(); else tik(); }
@@ -1950,6 +1951,23 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
         g.lineWidth = 2; g.strokeStyle = '#9AA6C2'; for (let y = onder + 20; y < dak - 40; y += 26) { g.beginPath(); g.moveTo(-10, y + 10); g.lineTo(10, y); g.stroke(); }
       },
     },
+    // het stuk van een obstakel dat een plaatje wordt: [van y, tot y, halve breedte]
+    deelBoven(o) { return o.boven === 'kraan' ? [o.top - 30 < 14 ? 0 : o.top - 30, o.top + 4, 18] : [o.top - 58 < 4 ? 0 : o.top - 58, o.top + 4, 48]; },
+    deelOnder(o) { return o.beneden === 'schoorsteen' ? [o.onder - 2, DAK + 2, 28] : o.beneden === 'watertoren' ? [o.onder - 2, o.onder + 58, 32] : [DAK - 32, DAK + 2, 36]; },
+    // en wat er buiten die plaatjes valt: kabels, touwen, poten en de antennestaaf, als gewone lijnen
+    lijnen(g, o) {
+      const x = o.x, [by] = this.deelBoven(o);
+      if (o.boven === 'kraan') { if (by > 0) { g.fillStyle = '#E9B949'; g.fillRect(x - 26, 0, 52, 5); g.fillStyle = '#3A3D46'; g.fillRect(x - 10, 3, 20, 9); g.strokeStyle = '#9AA6C2'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x - 1.5, 10); g.lineTo(x - 1.5, by + 1); g.moveTo(x + 1.5, 10); g.lineTo(x + 1.5, by + 1); g.stroke(); } }
+      else if (by > 0) { g.strokeStyle = '#5F6470'; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - 28, 0); g.lineTo(x - 28, by + 2); g.moveTo(x + 28, 0); g.lineTo(x + 28, by + 2); g.stroke(); }
+      if (o.beneden === 'watertoren') {
+        const y = o.onder; g.lineCap = 'round';
+        const poten = () => { g.beginPath(); g.moveTo(x - 22, y + 54); g.lineTo(x - 26, DAK); g.moveTo(x + 22, y + 54); g.lineTo(x + 26, DAK); g.moveTo(x - 24, DAK - 20); g.lineTo(x + 24, y + 70); g.moveTo(x + 24, DAK - 20); g.lineTo(x - 24, y + 70); };
+        poten(); g.strokeStyle = INKT; g.lineWidth = 6; g.stroke(); poten(); g.strokeStyle = '#6C4428'; g.lineWidth = 3.5; g.stroke();
+      } else if (o.beneden === 'antenne') {
+        g.lineCap = 'round'; g.beginPath(); g.moveTo(x, DAK - 30); g.lineTo(x, o.onder + 6); g.strokeStyle = INKT; g.lineWidth = 6; g.stroke(); g.strokeStyle = '#B4BCD0'; g.lineWidth = 3.5; g.stroke();
+        g.lineWidth = 2; g.strokeStyle = '#9AA6C2'; g.beginPath(); for (let yy = o.onder + 20; yy < DAK - 40; yy += 26) { g.moveTo(x - 10, yy + 10); g.lineTo(x + 10, yy); } g.stroke();
+      }
+    },
     live(g, o, t) {
       const x = o.x;
       if (o.boven === 'kraan') { const aan = Math.sin(t * 4 + o.nr) > 0; g.fillStyle = aan ? '#FF4A4A' : '#5A1414'; g.beginPath(); g.arc(x + 22, 3, 2.5, 0, 7); g.fill(); if (aan) gloed(g, '#FF4A4A', x + 22, 3, 10); }
@@ -2065,21 +2083,23 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     if (!b) { b = WER.cache[i] = { klaar: false, stap: 0, lagen: [], sch }; }
     const r = rndVan(1000 + i * 77 + b.stap * 13);
     if (b.stap === 0) { const c = doekje(W * sch, H * sch), g = c.getContext('2d'); g.setTransform(sch, 0, 0, sch, 0, 0); w.lucht(g, r); b.lucht = c; }
-    else if (b.stap <= w.lagen.length) { const l = w.lagen[b.stap - 1], h = l.y1 - l.y0, c = doekje(l.P * sch, h * sch), g = c.getContext('2d'); g.setTransform(sch, 0, 0, sch, 0, -l.y0 * sch); l.teken(g, l.P, r); b.lagen.push({ c, P: l.P, f: l.f, y0: l.y0, h, st: stukken(c) }); }
-    else { const c = doekje(w.gP * sch, 44 * sch), g = c.getContext('2d'); g.setTransform(sch, 0, 0, sch, 0, -556 * sch); w.grond(g, w.gP); b.grond = c; b.klaar = true; }
+    else if (b.stap <= w.lagen.length) { const l = w.lagen[b.stap - 1], h = l.y1 - l.y0;
+      if (!KW.mooi && l.f <= 0.05) { const g = b.lucht.getContext('2d'); g.setTransform(sch, 0, 0, sch, 0, 0); g.save(); g.beginPath(); g.rect(0, l.y0, W, h); g.clip(); l.teken(g, l.P, r); g.restore(); }
+      else { const pw = Math.max(1, Math.round(l.P * sch)), c = doekje(pw, h * sch), g = c.getContext('2d'); g.setTransform(pw / l.P, 0, 0, sch, 0, -l.y0 * sch); l.teken(g, l.P, r); b.lagen.push({ c, P: l.P, f: l.f, y0: l.y0, h, st: stukken(c) }); } }
+    else { const gw = Math.max(1, Math.round(w.gP * sch)), c = doekje(gw, 44 * sch), g = c.getContext('2d'); g.setTransform(gw / w.gP, 0, 0, sch, 0, -556 * sch); w.grond(g, w.gP); b.grond = c; b.klaar = true; }
     b.stap++;
     return b;
   }
   function wereld(i, nu) { let b = WER.cache[i]; if (nu) while (!b || !b.klaar) b = bouwStap(i); return b && b.klaar ? b : null; }
   function bouwVooruit() { if (!wereld(0)) wereld(0, true); }
   function zetLaag(b, L, off, x0, x1) {
-    const s = L.c.width / L.P;
+    const s = L.c.width / L.P, sv = L.c.height / L.h;
     for (let k = Math.floor((x0 + off) / L.P) * L.P - off; k < x1; k += L.P) {
       if (!L.st) { b.drawImage(L.c, 0, 0, L.c.width, L.c.height, k, L.y0, L.P, L.h); continue; }
       for (const [sy0, sy1, reeks] of L.st) for (const [sx0, sx1] of reeks) {
         let dx0 = k + sx0 / s, dx1 = k + sx1 / s; if (dx1 <= x0 || dx0 >= x1) continue;
         const a = Math.max(dx0, x0), z = Math.min(dx1, x1), ssx = (a - k) * s, ssw = (z - a) * s; if (ssw <= 0.5) continue;
-        b.drawImage(L.c, ssx, sy0, ssw, sy1 - sy0, a, L.y0 + sy0 / s, z - a, (sy1 - sy0) / s);
+        b.drawImage(L.c, ssx, sy0, ssw, sy1 - sy0, a, L.y0 + sy0 / sv, z - a, (sy1 - sy0) / sv);
       }
     }
   }
@@ -2087,7 +2107,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     const bw = wereld(i) || wereld(i, true), w = WERELDEN[i];
     const s = bw.lucht.width / W;
     b.drawImage(bw.lucht, x0 * s, 0, (x1 - x0) * s, bw.lucht.height, x0, 0, x1 - x0, H);
-    for (const L of bw.lagen) zetLaag(b, L, (S.achter * L.f) % L.P, x0, x1);
+    if (!(window.__vkProef || {}).lagen) for (const L of bw.lagen) zetLaag(b, L, (S.achter * L.f) % L.P, x0, x1);
     dynWereld(b, i, x0, x1, t);
     const P = w.gP, off = S.achter % P, gs = bw.grond.width / P;
     if (!bw.patroon || bw.patroonCtx !== b) { bw.patroon = b.createPattern(bw.grond, 'repeat-x'); bw.patroonCtx = b; }
@@ -2167,12 +2187,11 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   const SPRS = new Map();
   function sprite(o) {
     let s = SPRS.get(o); if (s) return s;
-    const w = WERELDEN[wereldVan(o.nr)], r = rndVan(o.nr * 7919 + 13), d = dpr;
-    const bx = o.boven === 'kraan' ? 24 : 52, bh = o.top + 4;
-    const cb = doekje(bx * 2 * d, bh * d), gb = cb.getContext('2d'); gb.setTransform(d, 0, 0, d, bx * d, 0); w.ob[o.boven](gb, o.top, o, r);
-    const ox = 40, oy0 = o.onder - 8, oh = DAK + 4 - oy0;
-    const co = doekje(ox * 2 * d, oh * d), go = co.getContext('2d'); go.setTransform(d, 0, 0, d, ox * d, -oy0 * d); w.ob[o.beneden](go, o.onder, DAK, o, r);
-    s = { b: cb, bx, bh, o: co, ox, oy0, oh, w };
+    const w = WERELDEN[wereldVan(o.nr)], d = dpr;
+    const [by0, by1, bx] = w.deelBoven(o), bh = by1 - by0, [oy0, oy1, ox] = w.deelOnder(o), oh = oy1 - oy0;
+    const cb = doekje(bx * 2 * d, bh * d), gb = cb.getContext('2d'); gb.setTransform(d, 0, 0, d, bx * d, -by0 * d); w.ob[o.boven](gb, o.top, o, rndVan(o.nr * 7919 + 13));
+    const co = doekje(ox * 2 * d, oh * d), go = co.getContext('2d'); go.setTransform(d, 0, 0, d, ox * d, -oy0 * d); w.ob[o.beneden](go, o.onder, DAK, o, rndVan(o.nr * 7919 + 13));
+    s = { b: cb, bx, by0, bh, o: co, ox, oy0, oh, w };
     if (SPRS.size > 24) { for (const k of SPRS.keys()) if (!S.obstakels.includes(k)) SPRS.delete(k); }
     SPRS.set(o, s); return s;
   }
@@ -2181,7 +2200,8 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   function tekenObstakel(o, t) {
     if (o.x < -120 || o.x > W + 120) return;
     const s = sprite(o);
-    ctx.drawImage(s.b, o.x - s.bx, 0, s.bx * 2, s.bh);
+    s.w.lijnen(ctx, o);
+    ctx.drawImage(s.b, o.x - s.bx, s.by0, s.bx * 2, s.bh);
     ctx.drawImage(s.o, o.x - s.ox, s.oy0, s.ox * 2, s.oh);
     s.w.live(ctx, o, t);
     if (o.ster && !o.ster.gepakt) { ctx.save(); ctx.translate(o.x, o.ster.y + Math.sin(t * 3 + o.nr) * 4); ctx.rotate(t * 1.5); ctx.drawImage(STER, -24, -24, 48, 48); ctx.restore(); }
@@ -2261,7 +2281,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     const g = ctx, schuif = V.schuif || 0;
     if (!een) { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); }
     g.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
-    for (const o of S.obstakels) tekenObstakel(o, t);
+    if (!(window.__vkProef || {}).obst) for (const o of S.obstakels) tekenObstakel(o, t);
     // het spoor
     if (S.staat === 'spel' || S.staat === 'start') {
       for (const p of V.spoor) p.x -= schuif + (S.staat === 'start' ? 40 * dtv : 0);
@@ -2285,7 +2305,7 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
     // confetti bij een record
     for (let i = V.confetti.length - 1; i >= 0; i--) { const p = V.confetti[i]; p.t -= dtv; p.x += p.vx * dtv + Math.sin(p.t * 3 + p.r) * 0.6; p.y += p.vy * dtv; p.r += p.vr * dtv; if (p.t <= 0 || p.y > H + 20) { V.confetti.splice(i, 1); continue; } g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.fillStyle = p.k; g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2 * Math.abs(Math.cos(p.r * 2)) + 1); g.restore(); }
     // het scorebordje
-    if (S.staat !== 'start') hud(g, t, dtv);
+    if (S.staat !== 'start' && !(window.__vkProef || {}).hud) hud(g, t, dtv);
   }
   function tekst(g, s, x, y, maat, kleur, rand) { g.font = `800 ${maat}px "Bricolage Grotesque", system-ui, sans-serif`; g.lineJoin = 'round'; g.lineWidth = Math.max(4, maat / 7); g.strokeStyle = rand || 'rgba(11,14,42,.85)'; g.strokeText(s, x, y); g.fillStyle = kleur; g.fillText(s, x, y); }
   function hud(g, t, dtv) {
@@ -2307,8 +2327,9 @@ body > .kop :focus-visible, .ar-kop :focus-visible, .rl-kop :focus-visible, .rr-
   function teken(t, dtv) {
     V.schuif = V.dxSom || 0; V.dxSom = 0;
     bouwVooruit();
-    tekenAchter(t);
-    tekenVoor(t, dtv);
+    const PR = window.__vkProef || {};
+    if (!PR.achter) tekenAchter(t);
+    if (!PR.voor) tekenVoor(t, dtv);
     // schudden en de flits gaan via de laag erboven (alleen transform en opacity)
     if (V.schudT > 0) { V.schudT = Math.max(0, V.schudT - dtv); const m = V.schudT * 22; scene.style.transform = V.schudT ? `translate(${(R() - 0.5) * m}px,${(R() - 0.5) * m}px)` : ''; }
     if (V.flitsT > 0) { V.flitsT = Math.max(0, V.flitsT - dtv); flits.style.opacity = (V.flitsT * 2.4).toFixed(2); }

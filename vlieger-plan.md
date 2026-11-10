@@ -2,6 +2,8 @@
 
 Ruben vroeg om een flinke upgrade van de graphics en veel meer pit, zonder dat de records iets anders gaan betekenen. Dit is het plan. Pas als Ruben het goedkeurt, ga ik bouwen.
 
+> **Later gekozen (9 november 2026)**: Ruben keurde het plan goed met keuze 1A en 2A. Na de eerste versie vond hij de overgangen tussen de werelden niet mooi, en koos hij voor **alleen de stad**, maar veel mooier. Hoofdstuk 1 hieronder (de reis langs zes werelden) is daarom niet gebouwd; de rest wel. Zie "Vouwvlieger: meer pit" in CLAUDE.md.
+
 ## Wat ik zag (speelronde en meting)
 
 - Een robot vloog door de gaten, op computer- en telefoonformaat.

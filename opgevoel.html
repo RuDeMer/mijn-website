@@ -538,7 +538,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
     // dezelfde dag op twee apparaten gespeeld: dan telt een teller voor die dag maar één keer
     const dagTeller = (b, s, i, c, zelfdeNieuweDag) => { const t = teller(b, s, i, c); return num(t) && c.basis && num(b) && zelfdeNieuweDag ? Math.max(t - 1, getal(s), getal(i)) : t; };
     const MEDAILLE = { goud: 3, zilver: 2, brons: 1 };
-    const VV_PRIJS = { wit: 0, krant: 25, kraan: 50, neon: 90, goud: 150, regenboog: 300, startvouw: 40, magneet: 70, dubbel: 140 };
+    const VV_PRIJS = { wit: 0, krant: 25, kraan: 50, neon: 90, goud: 150, regenboog: 300, startvouw: 40, magneet: 70, dubbel: 140, ruitjes: 35, muziek: 60, kaart: 110, sterrenkaart: 200, lijntje: 0, vonkjes: 30, wolkjes: 45, sterretjes: 80, kleurspoor: 160 };
     // Mengelmoes: dezelfde naam is dezelfde sticker (zoals norm() in het spel)
     const mmNaam = x => String(x || '').normalize('NFKC').toLocaleLowerCase('nl').trim().replace(/\s+/g, ' ');
     // de Vlaaienbakker: een getal boven 10^300 staat als tekst in groot[pad]; als 10-log (zoals vbLog in de scoreserver)
@@ -717,12 +717,13 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
         races: elk((b, s, i) => (isObj(s) && isObj(i) ? Object.assign({}, s, { tijd: snelste(undefined, s.tijd, i.tijd), medaille: (MEDAILLE[i.medaille] || 0) > (MEDAILLE[s.medaille] || 0) ? i.medaille : s.medaille }) : isObj(s) ? s : i)) } },
       'rommelbel-v1': { velden: { open: max, sterren: elk(max), scores: elk(max), eindeloos: max, gespeeld: teller, voortgangTotaal: max } },
       'rommelritme-v1': { velden: { best: elk(max), pogingen: elk(teller), gehaald: elk(of), combo: elk(max), ritme: elk(max), voortgangTotaal: max } },
-      'vouwvlieger-v1': { velden: { best: max, sterren: teller, gespeeld: teller, spaar: saldo, skins: samenLijst, upg: samenLijst },
+      'vouwvlieger-v1': { velden: { best: max, sterren: teller, gespeeld: teller, spaar: saldo, skins: samenLijst, upg: samenLijst, sporen: samenLijst, rakelings: teller },
         // sterren uitgeven op twee apparaten tegelijk: kocht je op allebei hetzelfde, dan krijg je één keer je sterren terug.
         // Gaf je samen meer uit dan je had, dan voegen we niet samen (anders kreeg je iets gratis): dan wint de meeste voortgang.
         na: (r, b, s, i, c) => {
           if (!c.basis || !isObj(b) || !num(r.spaar)) return null;
-          const oud = new Set([...lijst(b.skins), ...lijst(b.upg)]), beide = [...lijst(s.skins), ...lijst(s.upg)].filter(x => !oud.has(x) && [...lijst(i.skins), ...lijst(i.upg)].includes(x));
+          const alles = x => [...lijst(x.skins), ...lijst(x.upg), ...lijst(x.sporen)];
+          const oud = new Set(alles(b)), beide = alles(s).filter(x => !oud.has(x) && alles(i).includes(x));
           r.spaar = getal(r.spaar) + beide.reduce((a, x) => a + getal(VV_PRIJS[x]), 0);
           return r.spaar >= 0 ? r : null;
         } },
@@ -926,7 +927,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.6rem; }
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 13;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 14;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));

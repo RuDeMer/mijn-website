@@ -1669,6 +1669,59 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
     if (Math.abs(x) > hw - 0.09) return 1;
     // licht en schaduw in het rode fluweel
     return x > 0.12 ? 2 : 0; }) });
+  // ================= Uit de kerstkalender (feestdagen 2026): patronen achter een deurtje van de kerstkalender. Ook in de groep Feest,
+  // en ook alleen te zien als ze van jou zijn. Nieuwe altijd achteraan, en nooit een id veranderen.
+  { // de kerstster: vijf grote rode schutbladen en vijf kleine erin, groene bladeren ertussen en een geel hartje.
+    // Elk blad heeft een lichte en een donkere helft, zoals een gevouwen blad.
+    const N = 28, stap = Math.PI * 2 / 5, h0 = -Math.PI / 2;
+    // in welk blad (x, y) ligt: het nummer, en v (dwars op het blad: aan welke kant van de nerf)
+    const blad = (x, y, hoek0, L, W, p) => { const r = Math.hypot(x, y), a = Math.atan2(y, x); let best = null;
+      for (let k = 0; k < 5; k++) { let d = a - (hoek0 + k * stap); d = Math.atan2(Math.sin(d), Math.cos(d)); const u = r * Math.cos(d), v = r * Math.sin(d);
+        if (u > 0 && u < L) { const w = W * Math.pow(Math.sin(Math.PI * Math.pow(u / L, p)), 1.1); if (Math.abs(v) < w && (!best || Math.abs(v) / w < best.f)) best = { k, v, f: Math.abs(v) / w }; } }
+      return best; };
+    PATRONEN.push({ id: 'kerstster', naam: 'Kerstster', groep: 'feest', feest: 'rs-kerstster', seizoen: 'kerst', kleuren: ['#C8565C', '#8E3A48', '#2D6A4F', '#6FA88A', '#E9C46A', '#E56B6F'], raster: maak(N, (x, y, i, j) => {
+      if (Math.hypot(x, y) < 0.13) return (i + j) % 2 ? 2 : 4;
+      let b = blad(x, y, h0 + stap / 2, 0.46, 0.17, 0.7); if (b) return b.v > 0 ? 5 : 0;
+      b = blad(x, y, h0, 1.0, 0.31, 0.75); if (b) return b.v > 0 ? 0 : 1;
+      b = blad(x, y, h0 + stap / 2, 1.08, 0.2, 0.6); if (b) return b.v > 0 ? 3 : 2;
+      return -1; }) });
+  }
+  { // de sneeuwpop: hoge hoed, wortelneus, rode sjaal en een bezem, op een sneeuwheuvel onder de sterren
+    const MX = 0.04, BOLLEN = [[MX, 0.4, 0.33], [MX, -0.01, 0.245], [MX, -0.34, 0.175]];   // buik, lijf en hoofd: midden en straal
+    const STER = [[-0.48, -0.8], [0.56, -0.64], [0.76, -0.14], [-0.76, -0.16], [0.36, -0.82]], VLOK = [[0.62, 0.24], [-0.7, 0.34], [-0.2, -0.7], [0.84, -0.42], [-0.66, -0.52], [0.36, 0.14]];
+    // in een bol? null als erbuiten; langs de rand hoe ver naar rechtsonder (de schaduwkant), anders -1
+    const bol = (x, y, b) => { const dx = x - b[0], dy = y - b[1], r = Math.hypot(dx, dy); return r < b[2] ? (r > b[2] * 0.62 ? (dx * 0.6 + dy * 0.8) / r : -1) : null; };
+    PATRONEN.push({ id: 'sneeuwpop', naam: 'Sneeuwpop', groep: 'feest', feest: 'rs-sneeuwpop', seizoen: 'kerst', kleuren: ['#F6FFF8', '#A9B8E0', '#5B6FA8', '#231942', '#C8565C', '#F4A261', '#E9C46A'], raster: maak(28, (x, y) => {
+      if (Math.hypot(x, y) > 0.98) return -1;
+      const u = x - MX;
+      // de hoge hoed: rand, rode band en bol
+      if (y > -0.57 && y < -0.5 && Math.abs(u) < 0.25) return 3;
+      if (y > -0.86 && y <= -0.57 && Math.abs(u) < 0.155) return y > -0.65 ? 4 : 3;
+      // de rode sjaal om de nek, met een slip die naar beneden hangt (met franje)
+      if (Math.abs(y + 0.155) < 0.05 && Math.abs(u) < 0.22) return 4;
+      if (u > 0.08 && u < 0.19 && y > -0.11 && y < 0.17) return y > 0.12 ? 6 : 4;
+      // het hoofd: twee kooltjes en een wortelneus die naar rechts wijst
+      const kop = bol(x, y, BOLLEN[2]);
+      if (kop !== null || (u > 0.1 && u < 0.32 && y > -0.35 && y < -0.26)) {
+        if (u > 0.02 && u < 0.32 && Math.abs(y + 0.305) < 0.03 + (0.32 - u) * 0.07) return 5;
+        if (kop === null) return 2;
+        if (Math.abs(y + 0.39) < 0.04 && Math.abs(Math.abs(u) - 0.075) < 0.04) return 3;
+        return kop > 0.45 ? 1 : 0;
+      }
+      // drie knopen, en de sneeuw (met een lichtblauwe schaduw rechtsonder)
+      if (Math.abs(u) < 0.04 && [-0.03, 0.09, 0.33].some(k => Math.abs(y - k) < 0.04)) return 3;
+      for (const b of BOLLEN) { const z = bol(x, y, b); if (z !== null) return z > 0.45 ? 1 : 0; }
+      // de bezem in de sneeuw: een steel met stro bovenaan
+      if (y > -0.3 && y < 0.66 && Math.abs(x + 0.4 + (y + 0.3) * 0.16) < 0.045) return 3;
+      if (y > -0.64 && y <= -0.3 && Math.abs(x + 0.4) < 0.045 + (-0.3 - y) * 0.42) return 5;
+      // de sneeuwheuvel, met schaduw aan de onderkant
+      const top = 0.6 + 0.07 * Math.sin(x * 2.6 + 0.5);
+      if (y > top) return y > top + 0.2 && x > -0.2 ? 1 : 0;
+      // sterretjes en vlokjes in de avondlucht
+      for (const [a, b] of STER) { const dx = Math.abs(x - a), dy = Math.abs(y - b); if ((dx < 0.04 && dy < 0.11) || (dy < 0.04 && dx < 0.11)) return 6; }
+      for (const [a, b] of VLOK) if (Math.abs(x - a) < 0.04 && Math.abs(y - b) < 0.04) return 0;
+      return 2; }) });
+  }
   // wat van de speler is (feest.js; tot de stand er is, een paar seconden, heeft de speler niets). Wat je al begon of afmaakte, was van jou.
   let feestHeb = () => false;
   const zichtbaar = p => !p.feest || feestHeb(p.feest) || !!opslag.af[p.id] || !!opslag.werk[p.id];
@@ -1792,7 +1845,7 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
     if (!groepen.some(([id]) => id === groep)) groep = 'alles';
     $('groepen').innerHTML = groepen.map(([id, naam]) => `<button class="knop" type="button" role="tab" data-groep="${id}" aria-selected="${id === groep}">${naam}</button>`).join('');
     const lijst = PATRONEN.filter(p => zichtbaar(p) && (groep === 'alles' || p.groep === groep || (groep === 'klein' && !p.groot && !p.feest)));
-    $('patronen').innerHTML = lijst.map(p => { const n = p.raster.length, w = opslag.werk[p.id] || '', klaar = w.split('').filter(c => c === '1').length, tot = telTotaal(p); return `<button class="patroon" type="button" data-p="${p.id}"><canvas width="160" height="160" data-mini="${p.id}"></canvas><b>${p.naam}</b><small>${p.feest ? 'Van de Sint · ' : ''}${opslag.af[p.id] ? '✿ klaar' + (opslag.af[p.id] > 1 ? ' (' + opslag.af[p.id] + '×)' : '') : klaar ? Math.round(klaar / tot * 100) + '% geborduurd' : p.vandaag ? 'nieuw vandaag' : tot + ' steekjes'}</small></button>`; }).join('');
+    $('patronen').innerHTML = lijst.map(p => { const n = p.raster.length, w = opslag.werk[p.id] || '', klaar = w.split('').filter(c => c === '1').length, tot = telTotaal(p); return `<button class="patroon" type="button" data-p="${p.id}"><canvas width="160" height="160" data-mini="${p.id}"></canvas><b>${p.naam}</b><small>${p.feest ? (p.seizoen === 'kerst' ? 'Uit de kerstkalender · ' : 'Van de Sint · ') : ''}${opslag.af[p.id] ? '✿ klaar' + (opslag.af[p.id] > 1 ? ' (' + opslag.af[p.id] + '×)' : '') : klaar ? Math.round(klaar / tot * 100) + '% geborduurd' : p.vandaag ? 'nieuw vandaag' : tot + ' steekjes'}</small></button>`; }).join('');
     const minis = [...document.querySelectorAll('[data-mini]')], stap = () => { const deel = minis.splice(0, 8); deel.forEach(c => { const p = PATRONEN.find(x => x.id === c.dataset.mini), n = p.raster.length, w = opslag.werk[p.id] || '', gz = []; for (let y = 0; y < n; y++) { gz.push([]); for (let x = 0; x < n; x++) gz[y].push(w[y * n + x] === '1'); } miniatuur(c.getContext('2d'), p, gz, 160, !!opslag.af[p.id] && !w.includes('0')); }); if (minis.length) setTimeout(stap, 16); }; stap();
     $('s-patronen').hidden = false;
   }
@@ -1828,7 +1881,7 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
   zetKnop('b-geluid', opslag.geluid); zetKnop('b-muziek', opslag.muziek); zetKnop('b-adem', opslag.adem); $('adem').hidden = !opslag.adem;
   addEventListener('resize', () => { maat(); teken(); });
   laadPatroon(opslag.huidig);
-  // de feestdagen: wat je van de Sint kreeg (feest.js; hier alleen lezen)
+  // de feestdagen: wat je van de Sint en uit de kerstkalender kreeg (feest.js; hier alleen lezen)
   if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
     feestHeb = id => !!(s && s.heb && s.heb(id));
     if (!$('s-patronen').hidden) toonPatronen();

@@ -3501,6 +3501,17 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         teken: () => '<path d="M17 50L16 27Q17 17 32 10Q47 17 48 27L47 50Z" fill="#E9B949" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><path d="M32 10Q25 19 24.5 30L24 50M32 10Q39 19 39.5 30L40 50" fill="none" stroke="#B8862C" stroke-width="1.8"/><path d="M16.3 42H47.7V50H17Z" fill="#C8323C" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M32 19V37M25.5 26H38.5" stroke="#C8323C" stroke-width="4" stroke-linecap="round"/><path d="M32 19V37M25.5 26H38.5" stroke="#FFE7A0" stroke-width="1.3" stroke-linecap="round"/><circle cx="24" cy="46" r="1.8" fill="#FFE7A0"/><circle cx="32" cy="46" r="1.8" fill="#FFE7A0"/><circle cx="40" cy="46" r="1.8" fill="#FFE7A0"/><path d="M20 30Q21 21 29 15.5" fill="none" stroke="#FFF3C4" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>',
         sch: '<path d="M17 50L16 27Q17 17 32 10Q47 17 48 27L47 50Z"/>', hit: '<rect class="hit fijn" x="14" y="8" width="36" height="45"/><rect class="hit grof" x="9" y="3" width="46" height="55"/>',
         label: 'Gouden Mijter, voor wie elke dag zijn schoen zette. Tik om hem te laten glanzen.' },
+      // (de kerst) uit de kerstkalender en van onder de boom: ook in de rommelkast
+      kerstbal: { naam: 'Kerstbal', klank: 'glas', vorm: () => Fysica.cirkel(16.5, 0.4), dichtheid: 1.4, wrijving: 0.4, stuit: 0.42, rol: 150, dempA: 0.06,
+        teken: () => '<path d="M28.5 12q3.5-6.5 7 0" fill="none" stroke="#231A26" stroke-width="2.2"/><rect x="27.5" y="12" width="9" height="5.5" rx="1.4" fill="#C9CED6" stroke="#231A26" stroke-width="2.2"/><circle cx="32" cy="33" r="16.5" fill="#C8323C" stroke="#231A26" stroke-width="3"/><path d="M16 31Q32 40 48 31" fill="none" stroke="#E9B949" stroke-width="3.4"/><path d="M18 38.5Q32 46 46 38.5" fill="none" stroke="#FFE7A0" stroke-width="2" stroke-dasharray="1.5 4" stroke-linecap="round"/><path d="M22.5 27q2-6 8-8" fill="none" stroke="#FFB0B0" stroke-width="3" stroke-linecap="round"/>',
+        sch: '<circle cx="32" cy="33" r="18"/>', hit: '<circle class="hit fijn" cx="32" cy="32" r="20"/><circle class="hit grof" cx="32" cy="32" r="24"/>',
+        glans: n => `<defs><clipPath id="rm-kbl${n}"><circle cx="32" cy="33" r="15"/></clipPath></defs><g clip-path="url(#rm-kbl${n})"><rect class="streep" x="-12" y="0" width="9" height="64" fill="#FFFFFF" opacity="0" transform="rotate(25 32 32)"/></g>`,
+        label: 'Kerstbal, uit de kerstkalender. Tik om hem te laten rollen.' },
+      sneeuwbol: { naam: 'Sneeuwbol', klank: 'glas', vorm: () => Fysica.poly([[-16, -3], [-11, -14], [0, -18], [11, -14], [16, -3], [17, 20], [-17, 20]]), dichtheid: 1.6, wrijving: 0.6, stuit: 0.25,
+        teken: () => '<path d="M15 52L18 42H46L49 52Z" fill="#7A4E2D" stroke="#231A26" stroke-width="2.6" stroke-linejoin="round"/><path d="M17 47H47" stroke="#E9B949" stroke-width="2.4"/><circle cx="32" cy="29" r="15" fill="#DCEEFA" stroke="#231A26" stroke-width="2.8"/><path d="M18.5 34Q32 29 45.5 34Q42 41 32 43Q22 41 18.5 34Z" fill="#FFFFFF"/><path d="M27 36V30L32 25.5L37 30V36Z" fill="#C8323C" stroke="#231A26" stroke-width="1.4"/><path d="M25.5 30.5L32 24.5L38.5 30.5" fill="none" stroke="#FFFFFF" stroke-width="1.6"/><rect x="30.5" y="32" width="3" height="4" fill="#6E4A30"/><path d="M41 36L38.5 31H40L37.5 26.5L41 22L44.5 26.5H42L44.5 31H43Z" fill="#2E8B62" stroke="#231A26" stroke-width="1"/>' +
+          [[24, 20], [30, 17], [38, 19], [42, 25], [22, 27], [35, 22], [27, 23], [40, 30]].map(p => `<circle class="sb-vlok" cx="${p[0]}" cy="${p[1]}" r="1.15" fill="#FFFFFF" stroke="#A9C6DE" stroke-width=".5"/>`).join('') + '<path d="M21 22q2-6 8-8" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>',
+        sch: '<path d="M15 52L18 42H46L49 52Z"/><circle cx="32" cy="29" r="16.4"/>', hit: '<rect class="hit fijn" x="13" y="11" width="38" height="43"/><rect class="hit grof" x="8" y="6" width="48" height="53"/>',
+        label: 'Sneeuwbol, van onder de kerstboom. Tik, of schud je telefoon, en het sneeuwt erin.' },
     };
     // ---------- de knipoogjes in de rommelkast: hebbedingetjes uit series en films, als eigen tekeningen
     // (geen namen, logo's of personages; een hamer, een kubus, een kopje ...). romp: de botsvorm (bol, in tekencoördinaten).
@@ -4495,6 +4506,12 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       d.style.transform = k[1].transform;
       try { const an = d.animate(RUSTIG ? [{ opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: 1, offset: .85 }, { opacity: 0 }] : k, { duration: 1500, easing: 'ease-out' }); an.onfinish = () => d.remove(); } catch (e) { setTimeout(() => d.remove(), 1500); }
     }
+    // de sneeuwbol: de vlokjes dwarrelen even rond
+    function sneeuwen(r) {
+      Klank.tik('glas', 900, 'sneeuwbol-tik');
+      if (RUSTIG) { aankondig('Sneeuwbol: het sneeuwt!'); return; }
+      r.el.querySelectorAll('.sb-vlok').forEach((c, i) => { try { c.animate([{ transform: 'translate(0px,0px)' }, { transform: `translate(${(i % 3 - 1) * 4}px,-7px)`, offset: 0.25 }, { transform: `translate(${i % 2 ? 3 : -3}px,${7 + (i % 3) * 2}px)`, offset: 0.7 }, { transform: 'translate(0px,0px)' }], { duration: 2000 + i * 130, easing: 'ease-in-out' }); } catch (e) {} });
+    }
     function hupje(r) { r.el.classList.remove('hup'); void r.el.offsetWidth; r.el.classList.add('hup'); }
 
     // ---------- aanraken: oppakken, gooien, tikken
@@ -4595,7 +4612,8 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       }
       if (r.b.kin) return;
       if (r.soort === 'dobbelsteen') gooi(r);
-      else if (r.soort === 'knikker' || r.soort === 'pepernoot' || r.soort === 'worteltje') tikKnikker(r, vanX);
+      else if (r.soort === 'knikker' || r.soort === 'pepernoot' || r.soort === 'worteltje' || r.soort === 'kerstbal') tikKnikker(r, vanX);
+      else if (r.soort === 'sneeuwbol') { const b = r.b; wereld.wek(b); b.vy = -300; b.w = (Math.random() < 0.5 ? -1 : 1) * 1.5; sneeuwen(r); wek(); }
       else if (r.soort === 'potlood') krabbel(r);
       else if (r.soort === 'chocoletter' || r.soort === 'goudmijter') { // een sprongetje met een draai
         const b = r.b; wereld.wek(b); b.vy = -560; b.vx = (vanX == null ? (Math.random() - 0.5) : vanX < b.x ? 0.5 : -0.5) * 120; b.w = (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 3);
@@ -4622,6 +4640,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         const m = Math.hypot(a.x, a.y, a.z || 0), nu = performance.now();
         if (m < 15 || nu - kantel.schudKlok < 250) return; kantel.schudKlok = nu;
         for (const r of rommels) { const b = r.b; if (b.kin || r.weg || teZwaar(r)) continue; wereld.wek(b); b.vx += (Math.random() - 0.5) * 1600 - a.x * 60; b.vy += -400 - Math.random() * 900; b.w += (Math.random() - 0.5) * 30; }
+        for (const r of rommels) if (r.soort === 'sneeuwbol' && !r.weg) sneeuwen(r);
         tril(10); wek();
       },
       uit() {
@@ -4735,7 +4754,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const telS = {};
       BRIEF.forEach(s => { telS[s] = (telS[s] || 0); maak(s, 'brief', telS[s]++); });
       // wat je met de feestdagen kreeg, staat meteen in de kast (anders groeit hij zichtbaar als feest.js later binnenkomt)
-      try { const fz = JSON.parse(localStorage.getItem('rommelhoekje-feest-v1') || 'null'), st = fz && Array.isArray(fz.st) ? fz.st : [], ID = { chocoletter: 'hp-chocoletter', worteltje: 'hp-worteltje', goudmijter: 'mijter26' }; FEESTSPUL.forEach(s => { if (st.indexOf(ID[s]) >= 0 && KAST_VAK.indexOf(s) < 0) KAST_VAK.push(s); }); } catch (e) {}
+      try { const fz = JSON.parse(localStorage.getItem('rommelhoekje-feest-v1') || 'null'), st = fz && Array.isArray(fz.st) ? fz.st : [], ID = { chocoletter: 'hp-chocoletter', worteltje: 'hp-worteltje', goudmijter: 'mijter26', kerstbal: 'hp-kerstbal', sneeuwbol: 'hp-sneeuwbol' }; FEESTSPUL.forEach(s => { if (st.indexOf(ID[s]) >= 0 && KAST_VAK.indexOf(s) < 0) KAST_VAK.push(s); }); } catch (e) {}
       KAST_VAK.forEach(s => maak(s, 'kast', 0));
       // de rommelkast: een lege plek in de pagina (tussen de advertentie en Alle spellen), of in de kantlijn
       kastSec = document.createElement('section'); kastSec.className = 'tg-kast'; kastSec.setAttribute('aria-hidden', 'true'); kastSec.hidden = true;
@@ -4775,7 +4794,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     }
     // (de feestdagen) wat je op pakjesavond uitpakte (de chocoladeletter, het marsepeinen worteltje en de Gouden Mijter): voor altijd in de
     // rommelkast, in een eigen vakje achter de knipoogjes (de kast groeit mee). feest-home.js geeft de lijst met wat je hebt.
-    const FEESTSPUL = ['chocoletter', 'worteltje', 'goudmijter'];
+    const FEESTSPUL = ['chocoletter', 'worteltje', 'goudmijter', 'kerstbal', 'sneeuwbol'];
     function feestRommels(lijst) {
       if (!laag) return;
       const nieuw = FEESTSPUL.filter(s => lijst.indexOf(s) >= 0 && KAST_VAK.indexOf(s) < 0);

@@ -4277,6 +4277,100 @@ function voorwerpPix(o) {
   VW_BUF.set(sl, v); return v;
 }
 
+// ===================== DE KERSTBOOM (uit de kerstkalender, alleen voor de lol) =====================
+// Wie het deurtje hs-kerstboom heeft (de feestverzameling van feest.js, gelezen met Scorebord.feest onderaan), krijgt bij vrij spelen
+// in de woonkamer een kerstboom op de vrije plek tussen de radiator en de monstera. Hij staat helemaal buiten de motor: geen platform,
+// geen voorwerp, geen punten, geen streken, en hij gebruikt S.rnd niet (alleen kijken waar de katten zijn). Lopen of springen de katten
+// ertegenaan, dan wiebelt hij en rinkelen de ballen; bij een flinke stoot valt er soms een bal af die over de vloer rolt (en die de
+// katten verder kunnen trappen). In de uitdaging van vandaag staat hij er nooit, zodat het scorebord eerlijk blijft. Niets wordt bewaard.
+let kerstboomHeb = false;
+const BOOM_RUSTIG = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+// midden, maat van het plaatje, waar de stam begint, hoe breed je hem raakt (de helft) en hoe hoog
+const BOOM = { x: 199, W: 32, H: 56, voet: 44, breed: 9, hoog: 46 };
+const BOOM_KLEUR = { r: '#C8323C', g: '#E3A82E', b: '#3E6FB8', w: '#EEF2F6' };
+const BOOM_BALLEN = [[12, 15, 'r'], [19, 13, 'g'], [10, 27, 'b'], [16, 24, 'r'], [22, 28, 'w'], [7, 40, 'g'], [14, 37, 'b'], [20, 40, 'r'], [26, 41, 'w']];
+// de lichtjes: drie slingers schuin over de boom
+const BOOM_LICHT = [[12, 13, 20, 16, 4], [10, 22, 23, 29, 6], [9, 33, 27, 42, 8]].flatMap(([xa, ya, xb, yb, n]) => Array.from({ length: n }, (_, i) => [Math.round(xa + (xb - xa) * i / (n - 1)), Math.round(ya + (yb - ya) * i / (n - 1))]));
+let BOOM_DOEK = null;
+function boomPix() {
+  const P = laagPix(BOOM.W, BOOM.H), D = '#1F4A2C', M = '#2E6A3C', L = '#4A8A4A', H = '#6AA65A';
+  for (const [a, b, h] of [[5, 18, 8], [12, 31, 12], [21, 44, 15]]) {
+    for (let y = a; y <= b; y++) {
+      const w = h * (y - a) / (b - a), x0 = Math.round(16 - w), x1 = Math.round(15 + w);
+      for (let x = x0; x <= x1; x++) { const f = (x - x0) / Math.max(1, x1 - x0), n = hashf(x, y, 12); P.p(x, y, f < .3 ? (n > .55 ? H : L) : f > .78 ? D : n > .8 ? L : n < .12 ? D : M); }
+      if (y === b) for (let x = x0 + 1; x <= x1; x += 2) P.p(x, y + 1, D); // de takken hangen een beetje over
+    }
+  }
+  P.blok(15, 46, 17, 47, '#5A3A22'); P.p(15, 46, '#7A5634');
+  // een rieten mand
+  P.blok(9, 48, 23, 55, '#A87A44'); P.rij(48, 8, 24, '#C89A5E'); P.rij(49, 8, 24, '#8A6036');
+  for (let y = 50; y <= 54; y++) for (let x = 9; x <= 23; x++) if ((x + (y >> 1) * 2) % 4 === 0) P.p(x, y, '#8A6036');
+  P.rij(55, 10, 22, '#6E4A2A');
+  // de piek: een gouden ster
+  ['..#..', '.###.', '#####', '.###.', '.#.#.'].forEach((r, y) => { for (let x = 0; x < 5; x++) if (r[x] === '#') P.p(14 + x, y, y < 2 ? '#F6DE6A' : '#E3A82E'); });
+  P.p(16, 1, '#FFF6C8');
+  return P.omlijn();
+}
+function maakBoom() { return { x: BOOM.x, s: 0, v: 0, r: rng((Date.now() ^ 0x5eed) >>> 0), raak: {}, cd: 0, gevallen: 0, ballen: BOOM_BALLEN.map(([ox, oy, k]) => ({ ox, oy, k, los: false })) }; }
+// hoe ver een rij van de boom opzij zwaait (de mand en de stam staan stil)
+const boomDx = (B, y) => y >= BOOM.voet ? 0 : Math.round(B.s * Math.pow((BOOM.voet - y) / BOOM.voet, 1.3));
+function boomStoot(B, kracht, kant, kat) {
+  kracht = klem(kracht, .12, 1);
+  if (!BOOM_RUSTIG) B.v += kant * kracht * 70;
+  if (B.cd <= 0) { GELUID.sfx('rinkel', .4 + kracht * .6); B.cd = .2; }
+  // bij een flinke stoot valt er soms een bal af (hooguit drie per potje)
+  if (!kat || BOOM_RUSTIG || kracht < .5 || B.gevallen >= 3 || B.r() >= .45) return;
+  const l = B.ballen.filter(b => !b.los); if (!l.length) return;
+  const b = l[Math.floor(B.r() * l.length)];
+  b.los = true; b.op = false; b.x = B.x - 16 + b.ox + boomDx(B, b.oy); b.y = STAAN + 1 - BOOM.H + b.oy; b.vx = kant * (25 + B.r() * 30); b.vy = -30 - B.r() * 20; B.gevallen++;
+}
+// een harde klap vlakbij (de monstera die omvalt, iets dat breekt) laat hem ook even wiebelen
+function boomHoort(B, e) { if (B && e && e.hard > .45 && Math.abs(e.x - B.x) < 70 && /^(boem|breek|bons|klang|splat)$/.test(e.soort)) boomStoot(B, e.hard * .4, Math.sign(B.x - e.x) || 1, false); }
+function stapBoom(B, S, dt) {
+  if (!B || !S || !(dt > 0)) return;
+  B.cd = Math.max(0, B.cd - dt);
+  for (const id of ['moeki', 'floortje']) {
+    const c = S.katten[id]; if (!c) continue;
+    const vrij = !c.gedragen && !c.verstopt && !c.klimt, vx = c.vx || 0;
+    const raak = vrij && Math.abs(c.x - B.x) < c.d.w / 2 + BOOM.breed && c.y > STAAN - BOOM.hoog && c.y <= STAAN + 2;
+    if (raak && !B.raak[id]) { const v = Math.hypot(vx, (c.vy || 0) * .5); if (v > 22) boomStoot(B, v / 110 * (c.d.zwaar ? 1.35 : 1), Math.sign(vx || c.x - B.x) || 1, true); }
+    B.raak[id] = raak;
+    // een bal die op de vloer ligt, trap je verder
+    if (vrij && c.y >= STAAN - 3 && Math.abs(vx) > 12) for (const b of B.ballen) if (b.los && b.op && !(b.trap > 0) && Math.abs(c.x - b.x) < c.d.w / 2) { b.vx = vx * 1.4 + Math.sign(vx) * 10; b.vy = -40 - B.r() * 30; b.op = false; b.trap = .4; GELUID.sfx('tikbal', .7); }
+  }
+  // de boom veert terug
+  if (!BOOM_RUSTIG) { B.v += (-60 * B.s - 3.2 * B.v) * dt; B.s = klem(B.s + B.v * dt, -7, 7); if (Math.abs(B.s) < .02 && Math.abs(B.v) < .05) B.s = B.v = 0; }
+  // ballen die vallen, stuiteren en rollen
+  const K = S.kamer;
+  for (const b of B.ballen) {
+    if (!b.los) continue; b.trap = Math.max(0, (b.trap || 0) - dt);
+    if (!b.op) { b.vy += ZW * dt; b.x += b.vx * dt; b.y += b.vy * dt; if (b.y >= STAAN - 1) { b.y = STAAN - 1; if (b.vy > 70) { GELUID.sfx('tikbal', Math.min(1, b.vy / 220)); b.vy = -b.vy * .35; b.vx *= .8; } else { b.vy = 0; b.op = true; } } }
+    else { b.x += b.vx * dt; b.vx *= Math.max(0, 1 - 2.2 * dt); if (Math.abs(b.vx) < 3) b.vx = 0; }
+    b.rol = (b.rol || 0) + b.vx * dt / 1.6;
+    if (b.x < K.randL + 2) { b.x = K.randL + 2; b.vx = Math.abs(b.vx) * .5; }
+    if (b.x > K.randR - 2) { b.x = K.randR - 2; b.vx = -Math.abs(b.vx) * .5; }
+  }
+}
+// een bal: 3 bij 3 met donkere hoekjes en een glimmertje; het gouden dopje draait mee als hij rolt
+function boomBal(T, x, y, k, rol) {
+  const c = BOOM_KLEUR[k], d = tint(c, -.35);
+  T.rect(x - 1, y - 1, 3, 3, c); for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) T.px(x + dx, y + dy, d);
+  T.px(x - 1, y - 1, tint(c, .1)); T.px(x, y - 1, tint(c, .55));
+  const [kx, ky] = rol == null ? [0, -2] : [[0, -2], [2, 0], [0, 2], [-2, 0]][((Math.round(rol) % 4) + 4) % 4];
+  T.px(x + kx, y + ky, '#C9A040');
+}
+function tekenBoom(T, B, cam, t) {
+  if (!BOOM_DOEK) BOOM_DOEK = boomPix().doek();
+  const ctx = T.ctx, x0 = Math.round(B.x - 16 - cam.x), y0 = Math.round(STAAN + 1 - BOOM.H - cam.y);
+  ctx.save(); ctx.globalAlpha = .2; T.rect(x0 + 6, y0 + BOOM.H - 1, 21, 2, '#14121A'); ctx.restore();
+  for (let y = 0; y < BOOM.H; y++) ctx.drawImage(BOOM_DOEK, 0, y, BOOM.W, 1, x0 + boomDx(B, y), y0 + y, BOOM.W, 1);
+  // de lichtjes gaan om de beurt fel aan (met minder beweging branden ze gewoon)
+  const KL = ['#FFF2A8', '#FF9A8A', '#A8D8FF', '#FFC46A'];
+  BOOM_LICHT.forEach(([x, y], i) => { const aan = BOOM_RUSTIG || ((t * .9 + i * .29) % 1) < .62; T.px(x0 + x + boomDx(B, y), y0 + y, aan ? KL[i % 4] : '#7A7A4A'); });
+  for (const b of B.ballen) if (!b.los) boomBal(T, x0 + b.ox + boomDx(B, b.oy), y0 + b.oy, b.k, null);
+  for (const b of B.ballen) if (b.los) boomBal(T, Math.round(b.x - cam.x), Math.round(b.y - cam.y), b.k, b.rol || 0);
+}
+
 // ===================== DE WEERGAVE: een kamer met alles erin tekenen =====================
 // De achtergrond en de voorgrond worden één keer per kamer gemaakt. Elk beeldje komen daar de voorwerpen, Ruben, de katten,
 // de deeltjes, het licht en de tekstballonnetjes overheen.
@@ -4469,6 +4563,7 @@ function tekenSpel(ctx, S, B, cam, t, opt = {}) {
   ctx.drawImage(B.achter, Math.round(-cam.x), Math.round(-cam.y));
   tekenScherm(T, S, t, cam);
   tekenRommel(T, S, cam);
+  if (opt.boom) tekenBoom(T, opt.boom, cam, t);
   for (const o of S.obj) tekenVoorwerp(T, S, o, cam);
   const rp = tekenRuben(T, S, t, cam);
   const koppen = {};
@@ -4555,6 +4650,9 @@ const GELUID = (() => {
     klik: () => { const t = ac.currentTime; toon(900, t, .03, 'square', .05); },
     ster: () => { const t = ac.currentTime; toon(1047, t, .3, 'triangle', .14); toon(1568, t + .08, .4, 'triangle', .1); },
     foto: () => { const t = ac.currentTime; ruis(t, .05, 3000, 1, .2, 'highpass'); ruis(t + .07, .12, 1800, 1, .12, 'bandpass'); },
+    // de kerstboom: glazen ballen die tegen elkaar tikken, en een bal die op de vloer stuitert
+    rinkel: v => { const t = ac.currentTime; for (let i = 0; i < 4; i++) toon(1900 + Math.random() * 1900, t + i * .05 + Math.random() * .02, .28, 'sine', .07 * v); ruis(t, .1, 6500, 2, .03 * v, 'highpass'); },
+    tikbal: v => { const t = ac.currentTime; toon(2500 + Math.random() * 700, t, .09, 'triangle', .07 * v, 1900); },
   };
   const sfx = (naam, v = 1) => { if (!ac || !aan || !SFX[naam]) return; try { SFX[naam](v); } catch (e) {} };
   // het sluipmuziekje: een pizzicato-bas en plukjes, met hihats en een snellere maat als Ruben iets vermoedt
@@ -4764,6 +4862,7 @@ function kamerIntro(id) {
     <p>${k ? sterRij(k.s) : ster(0)} <span class="klein">${k && k.t ? 'snelste keer: ' + tijdTekst(k.t) : ''}</span></p>
     <p class="klein">Sterren: alle streken gedaan · binnen ${tijdTekst(K.richttijd)} · nooit betrapt.</p>
     <h3>Het lijstje</h3>${lijstHtml(K.streken)}
+    ${id === 'woonkamer' && kerstboomHeb ? '<p class="klein">🎄 Uit de kerstkalender: in de woonkamer staat je kerstboom. Laat de katten er gerust tegenaan lopen. Dat is alleen voor de lol: het geeft geen punten en telt niet voor je sterren, en in de uitdaging van vandaag staat hij er niet.</p>' : ''}
     <div class="rij"><button class="knop hoofd" id="k-begin" type="button">Begin</button><button class="knop" id="k-terug" type="button">Terug</button></div>`, { breed: true });
   $('k-begin').onclick = () => { GELUID.sfx('klik'); startSpel(id); };
   $('k-terug').onclick = huis;
@@ -4778,6 +4877,7 @@ function startSpel(id, dag = null) {
   SPEL.samen = !!O.inst.samen; SPEL.dag = d ? d.n : null;
   SPEL.S = maakSpel(id, d ? { zaad: d.zaad, streken: d.streken, tijd: d.tijd, dag: d.n, samen: SPEL.samen } : { zaad: (Math.random() * 1e9) | 0, samen: SPEL.samen });
   SPEL.tijd = d ? (['dag', 'avond', 'nacht'][d.zaad % 3]) : K.tijd;
+  SPEL.boom = !d && id === 'woonkamer' && kerstboomHeb ? maakBoom() : null; // de kerstboom: nooit in de uitdaging van vandaag
   SPEL.B = bouwKamerBeeld(K, SPEL.tijd);
   SPEL.zwevers = []; SPEL.acc = 0; SPEL.gepauzeerd = false; SPEL.einde = false; SPEL.laatst = performance.now();
   for (const kat of ['moeki', 'floortje']) { HELD[kat] = {}; for (const k of KNOPPEN) { INV[kat][k] = 0; INV[kat][k + 'N'] = 0; } }
@@ -4828,6 +4928,7 @@ function verwerkUit(S) {
         const zicht = Math.abs(e.x - (SPEL.cam.x + BEELD.W / 2)) < BEELD.W, v = zicht ? 1 : .5;
         const naam = { tik: 'tik', duw: 'duw', bons: 'bons', boem: 'boem', breek: 'breek', splat: 'splat', klang: 'klang', stuiter: 'stuiter', ritsel: 'ritsel', kraak: 'kraak', plof: 'plof', land: 'land', sprong: 'sprong', pak: 'pak', lik: 'lik' }[e.soort];
         if (e.soort === 'miauw') GELUID.miauw(e.kat); else if (naam) GELUID.sfx(naam, v * Math.max(.4, e.hard * 1.6));
+        if (SPEL.boom && SPEL.S === S) boomHoort(SPEL.boom, e);
         break;
       }
       case 'punten': if (e.n > 0 && e.x != null) SPEL.zwevers.push({ tekst: '+' + e.n, x: e.x, y: e.y, t: S.t, kl: e.n >= 100 ? '#9FE0A0' : '#F2C85A' }); if (e.n < 0 && e.x != null) SPEL.zwevers.push({ tekst: String(e.n), x: e.x, y: e.y, t: S.t, kl: '#FF8A8A' }); break;
@@ -4859,7 +4960,7 @@ function camVolg(S, dt) {
 }
 function tekenSpelBeeld(t) {
   const S = SPEL.S, cam = { x: Math.round(SPEL.cam.x), y: Math.round(SPEL.cam.y) };
-  tekenSpel(CTX, S, SPEL.B, cam, S.t, { markeer: SPEL.samen ? ['moeki', 'floortje'] : [S.actief], nummer: SPEL.samen ? { moeki: '1', floortje: '2' } : null, zwevers: SPEL.zwevers });
+  tekenSpel(CTX, S, SPEL.B, cam, S.t, { markeer: SPEL.samen ? ['moeki', 'floortje'] : [S.actief], nummer: SPEL.samen ? { moeki: '1', floortje: '2' } : null, zwevers: SPEL.zwevers, boom: SPEL.boom });
   SPEL.zwevers = SPEL.zwevers.filter(z => S.t - z.t < 1.3);
   // een pijltje naar een kat die buiten beeld is
   for (const id of ['moeki', 'floortje']) { const c = S.katten[id]; if (c.gedragen) continue; const x = c.x - cam.x; if (x < 0 || x > BEELD.W) { const T = tekenaar(CTX), px = x < 0 ? 4 : BEELD.W - 10, py = Math.max(30, Math.min(BEELD.H - 30, c.y - cam.y - 10)); const kl = id === 'moeki' ? '#E9B949' : '#E8A0C0'; T.rect(px, py, 6, 6, kl); T.rect(px, py, 6, 1, '#231A26'); letters(CTX, x < 0 ? '<' : '>', px, py - 1, '#231A26'); } }
@@ -4871,6 +4972,7 @@ function spelStap(dt) {
   SPEL.acc += Math.min(dt, .1);
   let klaar = null;
   while (SPEL.acc >= 1 / 60) { SPEL.acc -= 1 / 60; klaar = stap(S, 1 / 60, inv) || klaar; wisNieuw(); verwerkUit(S); if (klaar) break; }
+  if (SPEL.boom) stapBoom(SPEL.boom, S, Math.min(dt, .1));
   camVolg(S, dt);
   // de klok en de punten
   const tijd = S.tijd ? Math.max(0, S.tijd - S.t) : S.t;
@@ -5000,7 +5102,14 @@ function lus(nu) {
 }
 bouwAanraak();
 // testhaak
-window.__huis = { get S() { return SPEL.S; }, get O() { return O; }, startSpel, titel, huis, album, dagIntro, wissel, INV, SPEL, BEELD, stap, KAMERS, STREKEN };
+window.__huis = { get S() { return SPEL.S; }, get O() { return O; }, startSpel, titel, huis, album, dagIntro, wissel, INV, SPEL, BEELD, stap, KAMERS, STREKEN, maakBoom, stapBoom, BOOM, get kerstboom() { return kerstboomHeb; } };
+// de feestverzameling (feest.js): heb je de kerstboom uit de kerstkalender? Ben je al aan het spelen in de woonkamer (vrij spelen), dan
+// komt hij er meteen bij. Het spel schrijft nooit in de verzameling en bewaart er zelf niets van.
+if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
+  kerstboomHeb = !!(s && s.heb && s.heb('hs-kerstboom'));
+  if (!kerstboomHeb) SPEL.boom = null;
+  else if (!SPEL.boom && SPEL.S && !SPEL.dag && !SPEL.einde && SPEL.S.kamer.id === 'woonkamer') SPEL.boom = maakBoom();
+});
 const tq = new URLSearchParams(location.search).get('test');
 if (tq && KAMERS[tq]) startSpel(tq); else titel();
 requestAnimationFrame(lus);

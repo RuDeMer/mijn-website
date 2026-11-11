@@ -2350,6 +2350,21 @@ const BT = (function () {
   const tandwiel = (x, y, r, kl) => { let d = ''; for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8, rr = i % 2 ? r * 0.78 : r; d += (i ? 'L' : 'M') + f1(x + Math.cos(a) * rr) + ' ' + f1(y + Math.sin(a) * rr); } return pa(d + 'z', kl || '#9AA6C2') + ci(x, y, r * 0.3, licht(kl || '#9AA6C2', 0.4)); };
   const kroon = (x, y, s, kl) => pa(`M${x - 16 * s} ${y}l${-4 * s} ${-18 * s}l${10 * s} ${8 * s}l${10 * s} ${-14 * s}l${10 * s} ${14 * s}l${10 * s} ${-8 * s}l${-4 * s} ${18 * s}z`, kl || '#F6CB2F') + ci(x, y - 6 * s, 3 * s, '#C8323C') + ci(x - 10 * s, y - 4 * s, 2 * s, '#2F8BD6') + ci(x + 10 * s, y - 4 * s, 2 * s, '#2E8B62');
   const wolkje = (x, y, s, kl) => pl(`M${x - 14 * s} ${y}a${8 * s} ${8 * s} 0 0 1 ${4 * s} ${-14 * s}a${10 * s} ${10 * s} 0 0 1 ${18 * s} ${-4 * s}a${8 * s} ${8 * s} 0 0 1 ${10 * s} ${14 * s}a${5 * s} ${5 * s} 0 0 1 0 ${4 * s}z`, kl || '#fff', `stroke="${lijnK('#9FC6E8')}" stroke-width="2"`);
+  // Feestset (kerst): een hulstblad (langs +x, met stekelige randen; rot draait het) en een sneeuwvlokje met zes armen en takjes
+  const hulstBlad = (x, y, s, rot, kl) => {
+    const P0 = [[0, 0], [7, -6.5], [14, -8], [21, -6], [28, 0], [21, 6], [14, 8], [7, 6.5]];
+    let d = 'M0 0';
+    for (let i = 1; i <= P0.length; i++) { const [ax, ay] = P0[i - 1], [bx, by] = P0[i % P0.length]; d += `Q${f1((ax + bx) / 2)} ${f1((ay + by) / 2 * 0.3)} ${bx} ${by}`; }
+    return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${rot}) scale(${(+s).toFixed(2)})">` + pa(d + 'z', kl) + st('M2 0H25', donker(kl, 0.35), 1.2) + '</g>';
+  };
+  const vlok = (x, y, r, kl, w) => {
+    let d = '';
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3 - Math.PI / 2, c = Math.cos(a), sn = Math.sin(a), bx = x + c * r * 0.58, by = y + sn * r * 0.58, z = r * 0.36;
+      d += `M${f1(x)} ${f1(y)}L${f1(x + c * r)} ${f1(y + sn * r)}M${f1(bx + Math.cos(a + 0.85) * z)} ${f1(by + Math.sin(a + 0.85) * z)}L${f1(bx)} ${f1(by)}L${f1(bx + Math.cos(a - 0.85) * z)} ${f1(by + Math.sin(a - 0.85) * z)}`;
+    }
+    return st(d, kl, w || Math.max(0.9, r * 0.2));
+  };
 
   // accessoires: [soort, plek, parameter]
   function accessoire(a, A, k, laag) {
@@ -2357,7 +2372,7 @@ const BT = (function () {
     const p = plek === 'staart' ? A.staart : plek === 'rug' ? A.rug : plek === 'vrij' ? [x0, y0] : A.kop;
     if (!p) return '';
     const [x, y] = p, s = s0 || A.s || 1;
-    const achter = ['spotstraal', 'cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken'];
+    const achter = ['spotstraal', 'cape', 'vleugels', 'vleermuisvleugels', 'insectvleugels', 'drakenvleugels', 'aura', 'halo', 'rugkristallen', 'rugvlammen', 'rugstekels', 'vinnen', 'schaduwsliert', 'wolken', 'sterrengewei', 'sterrenstof'];
     if ((laag === 'achter') !== achter.includes(soort)) return '';
     switch (soort) {
       case 'vlam': return vlam(x, y + 4, s, k);
@@ -2431,6 +2446,50 @@ const BT = (function () {
       case 'baret': { const kb = k.baret || '#C8323C', kv = k.veer || '#F6CB2F'; return pa(`M${x + 8 * s} ${y + 2}q${6 * s} ${-22 * s} ${26 * s} ${-30 * s}q${-6 * s} ${18 * s} ${-20 * s} ${32 * s}z`, kv) + st(`M${x + 9 * s} ${y + 1}q${8 * s} ${-16 * s} ${22 * s} ${-26 * s}`, donker(kv, 0.3), 1.2) + pa(`M${x - 22 * s} ${y + 4}q${-2 * s} ${-16 * s} ${22 * s} ${-17 * s}q${22 * s} 0 ${22 * s} ${15 * s}q${-22 * s} ${6 * s} ${-44 * s} ${2 * s}z`, kb) + pa(`M${x - 21 * s} ${y + 3}q${21 * s} ${5 * s} ${42 * s} ${-1 * s}l${1 * s} ${4 * s}q${-22 * s} ${6 * s} ${-44 * s} ${1 * s}z`, donker(kb, 0.25)) + ci(x, y - 12 * s, 2.2 * s, donker(kb, 0.2)) + glim(x - 10 * s, y - 6 * s, 5 * s, 2.4 * s, -15); }
       case 'pepernoten': { const kn = k.noot || '#A9642E'; let r = ''; for (const [dx, dy, q] of [[-40, 18, 1], [42, 6, 0.9], [-30, -14, 0.75], [34, -22, 0.8], [50, 40, 0.7]]) { const px = x + dx * s, py = y + dy * s, rr = 5 * q * s; r += ci(px, py, rr, kn) + st(`M${f1(px - rr * 0.45)} ${f1(py - rr * 0.1)}q${f1(rr * 0.3)} ${f1(-rr * 0.35)} ${f1(rr * 0.6)} 0`, licht(kn, 0.4), 1.1) + st(`M${f1(px - rr * 0.1)} ${f1(py + rr * 0.45)}l${f1(rr * 0.4)} ${f1(-rr * 0.2)}`, donker(kn, 0.35), 1); } return r; }
       case 'sjaal': { const ks = k.sjaal || '#C8323C', kw = k.sjaal2 || '#FBF6E9'; return pa(`M${x + 4 * s} ${y + 4 * s}l${10 * s} ${-1 * s}l${2 * s} ${24 * s}l${-10 * s} ${2 * s}z`, ks) + st(`M${x + 5 * s} ${y + 12 * s}l${10 * s} ${-1 * s}M${x + 6 * s} ${y + 20 * s}l${10 * s} ${-1 * s}`, kw, 2.6 * s) + st(`M${x + 6 * s} ${y + 30 * s}v${4 * s}M${x + 10 * s} ${y + 30 * s}v${4 * s}M${x + 14 * s} ${y + 29 * s}v${4 * s}`, ks, 1.4) + pa(`M${x - 20 * s} ${y - 4 * s}q${20 * s} ${10 * s} ${40 * s} ${-2 * s}l${1 * s} ${9 * s}q${-21 * s} ${12 * s} ${-42 * s} ${2 * s}z`, ks) + st(`M${x - 13 * s} ${y + 1 * s}l${5 * s} ${1.5 * s}M${x - 1 * s} ${y + 3.5 * s}l${5 * s} ${0.2 * s}M${x + 11 * s} ${y + 2 * s}l${5 * s} ${-1.2 * s}`, kw, 2.6 * s); }
+      // Feestset (kerst): hulst bij het dopje, een gebreide sjaal, een gewei met sterretjes, een belletje aan een lint en een spoor van sterrenstof
+      case 'hulst': { const kb = k.blad || '#2E7D4A', kr = k.bes || '#E0303A'; return hulstBlad(x - 2 * s, y + 3 * s, 0.85 * s, 198, kb) + hulstBlad(x + 2 * s, y + 3 * s, 0.85 * s, -18, licht(kb, 0.14)) + [[-4, -1, 3.8], [3, -3, 3.4], [1, 4, 3.6]].map(([dx, dy, r]) => ci(x + dx * s, y + dy * s, r * s, kr) + `<circle cx="${f1(x + (dx - 1.2) * s)}" cy="${f1(y + (dy - 1.2) * s)}" r="${f1(r * 0.32 * s)}" fill="#fff" opacity=".75"/>`).join(''); }
+      case 'breisjaal': {
+        const ks = k.sjaal || '#2E7D4A', kw = k.sjaal2 || '#FBF6E9', kd = donker(ks, 0.32);
+        const band = `M${x - 30 * s} ${y - 6 * s}Q${x} ${y + 10 * s} ${x + 30 * s} ${y - 6 * s}q${4 * s} ${6 * s} ${2 * s} ${10 * s}Q${x} ${y + 24 * s} ${x - 32 * s} ${y + 4 * s}q${-2 * s} ${-6 * s} ${2 * s} ${-10 * s}z`;
+        // een punt op de band: t van links naar rechts, f van de bovenrand (0) naar de onderrand (1)
+        const op = (t, f) => [x - 31 * s + 62 * s * t, y - 6 * s + 32 * s * t * (1 - t) + f * (10 * s + 8 * s * t * (1 - t))];
+        let steek = '', zig = '';
+        for (const f of [0.26, 0.76]) for (let i = 1; i < 12; i++) { const [px, py] = op(i / 12, f); steek += `M${f1(px - 1.5 * s)} ${f1(py - 1.2 * s)}l${f1(1.5 * s)} ${f1(2.2 * s)}l${f1(1.5 * s)} ${f1(-2.2 * s)}`; }
+        for (let i = 0; i <= 16; i++) { const [px, py] = op(0.05 + i / 16 * 0.9, 0.5); zig += (i ? 'L' : 'M') + f1(px) + ' ' + f1(py + (i % 2 ? 1.7 : -1.7) * s); }
+        // het hangende eind, met twee strepen, steekjes en franjes
+        const ex = x + 7 * s, ey = y + 9 * s, eind = `M${f1(ex)} ${f1(ey)}l${f1(12 * s)} ${f1(-1 * s)}l${f1(4 * s)} ${f1(30 * s)}l${f1(-12 * s)} ${f1(2 * s)}z`;
+        let es = ''; for (let j = 0; j < 4; j++) { const t = (j + 0.5) / 4, ax = ex + t * 4 * s, ay = ey + 1 * s + t * 28 * s; es += `M${f1(ax + 1.8 * s)} ${f1(ay - 1.1 * s)}l${f1(1.5 * s)} ${f1(2.1 * s)}l${f1(1.5 * s)} ${f1(-2.1 * s)}M${f1(ax + 6.8 * s)} ${f1(ay - 1.3 * s)}l${f1(1.5 * s)} ${f1(2.1 * s)}l${f1(1.5 * s)} ${f1(-2.1 * s)}`; }
+        let franje = ''; for (let j = 0; j < 5; j++) franje += `M${f1(ex + 4.8 * s + j * 2.6 * s)} ${f1(ey + 30.6 * s - j * 0.4 * s)}l${f1(0.5 * s)} ${f1(5 * s)}`;
+        return pa(band, ks) + st(steek, kd, 1.1, 'opacity=".7"') + st(zig, kw, 1.7 * s)
+          + st(franje, ks, 1.8 * s) + pa(eind, ks) + st(es, kd, 1.1, 'opacity=".7"')
+          + st(`M${f1(ex + 1.2 * s)} ${f1(ey + 10.6 * s)}l${f1(12.6 * s)} ${f1(-1 * s)}M${f1(ex + 2.6 * s)} ${f1(ey + 20.6 * s)}l${f1(12.6 * s)} ${f1(-1 * s)}`, kw, 2.4 * s)
+          + el(ex + 6 * s, ey - 1 * s, 7 * s, 5.5 * s, ks) + st(`M${f1(ex + 2 * s)} ${f1(ey - 2 * s)}q${f1(4 * s)} ${f1(3 * s)} ${f1(8 * s)} 0`, kd, 1.1, 'opacity=".7"');
+      }
+      case 'sterrengewei': {
+        const kg = k.gewei || '#E6CFA0', ks = k.ster || '#FFE27A';
+        const tak = z => `M${f1(x - 6 * z * s)} ${f1(y + 4 * s)}Q${f1(x - 8 * z * s)} ${f1(y - 10 * s)} ${f1(x - 20 * z * s)} ${f1(y - 16 * s)}Q${f1(x - 30 * z * s)} ${f1(y - 22 * s)} ${f1(x - 32 * z * s)} ${f1(y - 34 * s)}M${f1(x - 14 * z * s)} ${f1(y - 12 * s)}Q${f1(x - 12 * z * s)} ${f1(y - 22 * s)} ${f1(x - 6 * z * s)} ${f1(y - 28 * s)}M${f1(x - 25 * z * s)} ${f1(y - 19 * s)}Q${f1(x - 34 * z * s)} ${f1(y - 18 * s)} ${f1(x - 40 * z * s)} ${f1(y - 24 * s)}`;
+        const d = tak(1) + tak(-1);
+        let r = st(d, lijnK(kg), 6.4 * s) + st(d, kg, 3.8 * s) + st(d, licht(kg, 0.45), 1.2 * s, 'opacity=".6" transform="translate(-0.8 -0.8)"');
+        for (const [dx, dy, q] of [[-32, -34, 4.8], [-6, -28, 3.6], [-40, -24, 4.2]]) for (const z of [1, -1]) {
+          const px = x + dx * z * s, py = y + dy * s;
+          r += `<circle cx="${f1(px)}" cy="${f1(py)}" r="${f1(q * 1.8 * s)}" fill="${ks}" opacity=".25"/>` + ster(px, py, q * s, ks);
+        }
+        return r;
+      }
+      case 'belletje': {
+        const kl = k.lint || '#C8323C', kb = k.bel || '#E9B949';
+        return pa(`M${f1(x - 13 * s)} ${f1(y - 3 * s)}q${f1(13 * s)} ${f1(7 * s)} ${f1(27 * s)} ${f1(1 * s)}l${f1(1 * s)} ${f1(5 * s)}q${f1(-14 * s)} ${f1(7 * s)} ${f1(-29 * s)} ${f1(-1 * s)}z`, kl)
+          + st(`M${f1(x - 12 * s)} ${f1(y - 0.5 * s)}q${f1(13 * s)} ${f1(6 * s)} ${f1(25 * s)} ${f1(1 * s)}`, licht(kl, 0.35), 1, 'opacity=".7"')
+          + `<circle cx="${f1(x)}" cy="${f1(y + 6 * s)}" r="${f1(1.8 * s)}" fill="none" stroke="${donker(kb, 0.35)}" stroke-width="1.4"/>`
+          + ci(x, y + 11 * s, 5.2 * s, kb) + st(`M${f1(x - 3 * s)} ${f1(y + 12.5 * s)}h${f1(6 * s)}`, donker(kb, 0.45), 1.2)
+          + `<circle cx="${f1(x)}" cy="${f1(y + 14.2 * s)}" r="${f1(1.3 * s)}" fill="${donker(kb, 0.5)}"/>` + glim(x - 2 * s, y + 9 * s, 1.6 * s, 1 * s);
+      }
+      case 'sterrenstof': {
+        const ks = k.ster || '#FFE27A', baan = `M${x} ${y}q${f1(26 * s)} ${f1(-2 * s)} ${f1(52 * s)} ${f1(-18 * s)}`;
+        let r = `<path d="${baan}" fill="none" stroke="${ks}" stroke-width="${f1(8 * s)}" stroke-linecap="round" opacity=".16"/><path d="${baan}" fill="none" stroke="#fff" stroke-width="${f1(2 * s)}" stroke-linecap="round" opacity=".35"/>`;
+        [[6, -1, 3.6], [16, -3, 1.6], [26, -6, 3.2], [36, -10, 1.4], [45, -14, 2.6], [52, -18, 1.2]].forEach(([dx, dy, q], i) => { r += i % 2 ? `<circle cx="${f1(x + dx * s)}" cy="${f1(y + (dy - 3) * s)}" r="${f1(q * s)}" fill="#fff" opacity=".9"/>` : ster(x + dx * s, y + dy * s, q * s, i ? '#FFFFFF' : ks); });
+        return r;
+      }
       default: return '';
     }
   }
@@ -2446,6 +2505,7 @@ const BT = (function () {
       case 'sterretjes': return [[-20, -10], [16, -16], [22, 10], [-10, 16], [2, -2]].map(([dx, dy], i) => `<circle cx="${f1(A.mx + dx)}" cy="${f1(A.my + dy)}" r="${i % 2 ? 1.6 : 2.4}" fill="#fff" opacity=".9"/>`).join('');
       case 'ruit': return [-20, 0, 20].map(dx => `<path d="M${f1(A.mx + dx)} ${f1(A.my - 12)}l8 12l-8 12l-8-12z" fill="${kl}"/>`).join('');
       case 'hex': { let r = ''; for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const cx = A.mx + i * 18 + (j % 2 ? 9 : 0), cy = A.my + j * 14 - 8; r += `<path d="M${f1(cx - 8)} ${f1(cy)}l4 -7h8l4 7l-4 7h-8z" fill="none" stroke="${kl}" stroke-width="2.4"/>`; } return r; }
+      case 'vlokken': return [[-28, 6, 6.5], [26, 14, 6], [24, -8, 4], [-23, -10, 4], [0, -66, 4.5], [-15, -59, 3], [15, -59, 3]].map(([dx, dy, r]) => vlok(A.mx + dx, A.my + dy, r, kl, 1.4)).join('');
       case 'masker': return `<path d="M${f1(A.gx - 30)} ${f1(A.gy - 6)}q30 -14 60 0q-4 14 -14 12q-16 -6 -32 0q-10 2 -14 -12z" fill="${kl}"/>`;
       default: return '';
     }
@@ -2695,11 +2755,141 @@ const BT = (function () {
     const snoet = el(100, 100, 14, 10, k.c2) + el(95, 100, 2.6, 3.6, k.c3) + el(105, 100, 2.6, 3.6, k.c3) + glim(94, 95, 4, 2, -10);
     return { achter: staart(140, 112, 'krul', k, 0.55) + oor(70, 70, 'punt', k, -1, 0.95) + oor(130, 70, 'punt', k, 1, 0.95), romp: pa(lijf, k.c1) + glim(76, 78, 11, 7), clip: `<path d="${lijf}"/>`, buik: `<ellipse cx="100" cy="122" rx="26" ry="9"/>`, voor: snoet + poten, gezicht: { x: 100, y: 84, a: 16, m: 6.5, my: 112, mm: 5 }, kop: [100, 62], rug: [100, 66], staart: [140, 112], mx: 100, my: 98, gx: 100, gy: 84 };
   };
+  // ================= FEESTSET (kerst): nieuwe vormen
+  // een kerstbal met een gezicht: een glimmende glazen bal met een sierband, een metalen dopje en een lusje, aan een draadje in de boom.
+  // Hij hangt, dus geef hem p.zweef (dan tekent kunstRuw geen schaduw op de grond).
+  V.kerstbal = (P, k) => {
+    const bal = 'M100 54a40 40 0 1 1 -0.1 0z', id = 'kb' + (++uid), kd = k.dop || '#D9B24C', kb = k.c2 || '#E9B949', kz = k.c3 || donker(k.c1, 0.35);
+    const yb = t => 111 + 36 * t * (1 - t);   // het midden van de band (die met de bal meebuigt); x = 50 + 100t
+    let zig = ''; for (let i = 0; i <= 20; i++) { const t = i / 20; zig += (i ? 'L' : 'M') + f1(50 + 100 * t) + ' ' + f1(yb(t) + (i % 2 ? 3.6 : -3.6)); }
+    let stip = ''; for (let i = 1; i < 20; i += 2) { const t = i / 20; stip += `<circle cx="${f1(50 + 100 * t)}" cy="${f1(yb(t) - 3.4)}" r="1.1" fill="#FFF6D8" opacity=".9"/>`; }
+    const band = `<path d="M50 104Q100 122 150 104L150 118Q100 136 50 118z" fill="${kb}"/>` + st('M50 104Q100 122 150 104M50 118Q100 136 150 118', donker(kb, 0.35), 1.3)
+      + st('M50 106.5Q100 124.5 150 106.5', licht(kb, 0.5), 1, 'opacity=".7"') + `<path d="${zig}" fill="none" stroke="${kz}" stroke-width="2.2" stroke-linejoin="round"/>` + stip;
+    // glans: een raampje dat in het glas spiegelt, een lichtpuntje, en een paar gekleurde lichtjes uit de boom
+    const glans = pl('M66 78Q68 62 84 57Q75 66 73 80Q69 84 66 78z', '#fff', 'opacity=".55"') + `<ellipse cx="90" cy="62" rx="3.2" ry="2.1" fill="#fff" opacity=".8" transform="rotate(-30 90 62)"/>`
+      + [[131, 92, '#FFE27A'], [135, 100, '#9BE8B4'], [126, 103, '#FFB0C8'], [123, 92, '#A8D8FF']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="1.9" fill="${c}" opacity=".75"/>`).join('');
+    const dop = pa('M88 59v-8q0-5 5-5h14q5 0 5 5v8q-12 4-24 0z', kd) + st('M93 48v10.5M98 47v12M102 47v12M107 48v10.5', donker(kd, 0.32), 1.1) + `<rect x="89.6" y="48.5" width="2.4" height="8.5" rx="1.2" fill="#fff" opacity=".5"/>`;
+    const lus = `<ellipse cx="100" cy="41" rx="4.2" ry="5" fill="none" stroke="${donker(kd, 0.3)}" stroke-width="2.2"/>`;
+    return { achter: st('M100 36V12', '#E9DCA8', 1.6) + lus, romp: pa(bal, k.c1) + `<defs><clipPath id="${id}"><path d="${bal}"/></clipPath></defs><g clip-path="url(#${id})">${band}</g>` + glans, clip: `<path d="${bal}"/>`, voor: dop, gezicht: { x: 100, y: 80, a: 15, m: 8, my: 94, mm: 7 }, kop: [100, 50], rug: [100, 56], staart: [138, 118], mx: 100, my: 96, gx: 100, gy: 80 };
+  };
+  // een kat die rechtop zit, van voren: puntoren, een snoetje met snorharen, twee voorpootjes en een staart die omhoog krult
+  V.kat = (P, k) => {
+    const lijf = 'M66 134q-8-38 16-54q18-8 36 0q24 16 16 54z', kc = k.c1, ko = k.oor || k.c2 || '#F6C6D0';
+    const oren = pa('M74 52Q70 32 75 17Q89 25 97 38z', kc) + pl('M78 45Q76 33 78.5 25Q87 30 91 38z', ko) + pa('M126 52Q130 32 125 17Q111 25 103 38z', kc) + pl('M122 45Q124 33 121.5 25Q113 30 109 38z', ko);
+    const sd = 'M130 126q30 2 30-28q0-14 10-22';
+    const staart0 = st(sd, lijnK(kc), 12) + st(sd, kc, 7.6) + st('M164.9 81.3Q167 78 170 76', k.c3 || donker(kc, 0.15), 7.6);
+    const poten = el(87, 132, 10, 6, kc) + el(113, 132, 10, 6, kc) + st('M84 129.5v4M90 129.5v4M110 129.5v4M116 129.5v4', lijnK(kc), 1.2);
+    const snoet = `<ellipse cx="94" cy="72" rx="7" ry="5.5" fill="${licht(kc, 0.6)}"/><ellipse cx="106" cy="72" rx="7" ry="5.5" fill="${licht(kc, 0.6)}"/>`
+      + pa('M96 66.5h8q-1 3.2-4 5q-3-1.8-4-5z', k.neus || '#F28CA0', 'stroke-width="1.4"') + st('M87 71l-20-4M87 75l-20 1M113 71l20-4M113 75l20 1', k.snorhaar || '#9AA8BC', 1.2);
+    return { achter: staart0 + oren, romp: pa(lijf, kc) + ci(100, 60, 27, kc) + glim(86, 47, 7, 4.5), clip: `<path d="${lijf}"/><circle cx="100" cy="60" r="27"/>`, buik: `<ellipse cx="100" cy="108" rx="18" ry="22"/>`, voor: poten + snoet, gezicht: { x: 100, y: 57, a: 11, m: 6.5, my: 76, mm: 4 }, kop: [100, 33], rug: [100, 85], staart: [168, 78], mx: 100, my: 104, gx: 100, gy: 57 };
+  };
+  // een rendier dat door de lucht springt, in driekwart van voren: een kop met een lichte snuit en een neus die zacht licht geeft,
+  // oren opzij, gevouwen voorpoten, gestrekte achterpoten en een wit staartje (zet p.zweef: hij vliegt, dus geen schaduw op de grond)
+  V.rendier = (P, k) => {
+    const id = 'rn' + (++uid), kc = k.c1, kl = k.c2 || '#F2E2C8', kn = k.neus || '#FFE9A0', kv = donker(kc, 0.18);
+    const lijf = 'M84 104q-2-24 30-30q32-6 44 12q10 18-18 28q-34 10-56-10z', nek = 'M84 100q-10-22-4-40l22 2q-6 20 12 30z';
+    const been = (d, c) => st(d, lijnK(c), 10) + st(d, c, 6.4);
+    const hoef = (x, y, r) => el(x, y, 4.6, 3.4, k.c3 || donker(kc, 0.5), `transform="rotate(${r} ${x} ${y})"`);
+    const oren = pa('M71 47q-17-1-25-11q16-6 28 4z', kc) + pl('M69 45q-12-1-19-7q11-3 20 2z', kl) + pa('M105 47q17-1 25-11q-16-6-28 4z', kc) + pl('M107 45q12-1 19-7q-11-3-20 2z', kl);
+    const gloed = `<defs><radialGradient id="${id}"><stop offset="0" stop-color="${kn}" stop-opacity=".95"/><stop offset=".3" stop-color="${kn}" stop-opacity=".45"/><stop offset="1" stop-color="${kn}" stop-opacity="0"/></radialGradient></defs><circle cx="88" cy="64" r="22" fill="url(#${id})"/>`;
+    const neus = ci(88, 64, 6.2, kn) + '<circle cx="86" cy="62" r="2" fill="#fff" opacity=".9"/><path d="M96 55.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z" fill="#fff"/>';
+    return {
+      achter: been('M110 111q-4 10-12 13q4 5 11 6', kv) + hoef(110, 130, 20) + been('M140 112q10 8 20 9q7 1 12 6', kv) + hoef(173, 128, 35) + pa('M156 82q8-12 18-9q-3 9-15 12z', kl) + oren,
+      romp: pa(lijf, kc) + pa(nek, kc) + el(88, 52, 20, 18, kc) + el(88, 68, 13, 10, kl) + glim(76, 42, 6, 4) + glim(118, 81, 10, 4, -12),
+      clip: `<path d="${lijf}"/><path d="${nek}"/><ellipse cx="88" cy="52" rx="20" ry="18"/>`,
+      buik: `<ellipse cx="91" cy="93" rx="9" ry="8"/>`,
+      voor: been('M98 110q-6 10-14 12q4 6 12 8', kc) + hoef(97, 130, 15) + been('M148 108q12 4 22 2q8-1 14 4', kc) + hoef(185, 115, 40) + gloed + neus,
+      gezicht: { x: 88, y: 50, a: 9.5, m: 5.6, my: 74, mm: 4 }, kop: [88, 36], rug: [120, 76], staart: [160, 82], mx: 120, my: 96, gx: 88, gy: 50
+    };
+  };
 
   // Feestset: elke kaart een eigen feestelijke achtergrond (bg): 'haard' (een open haard met een schoen, de standaard), 'dak' (op het dak
-  // bij de schoorsteen, 's nachts) of 'papier' (cadeaupapier met pepernoten). a = de kleuren van het element, h = 150 (of 280 bij een volle kaart).
+  // bij de schoorsteen, 's nachts) of 'papier' (cadeaupapier met pepernoten), en voor de kerst 'boom' (in de kerstboom), 'tuin' (een
+  // besneeuwd tuintje bij avond) en 'sterren' (een sterrennacht boven de daken). a = de kleuren van het element, h = 150 (of 280 bij een volle kaart).
   function feestAchter(a, h, id, bg) {
     const noot = (x, y, r) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#A9642E" stroke="#5A3214" stroke-width="1"/><path d="M${f1(x - r * 0.45)} ${f1(y - r * 0.15)}q${f1(r * 0.3)} ${f1(-r * 0.35)} ${f1(r * 0.6)} 0" fill="none" stroke="#E2AA6C" stroke-width="1" stroke-linecap="round"/>`;
+    // ---------- de kerst
+    if (bg === 'boom') {
+      // midden in de kerstboom: donkere takken met naaldjes, zachte lichtvlekken, een lichtsnoer met lampjes en een paar kerstballen verderop.
+      // De tak van rechtsboven houdt net boven het midden op: daar hangt het beest aan zijn draadje.
+      const tak = (x0, y0, len, dir, kl, w, op) => {
+        let d = `M${x0} ${y0}Q${f1(x0 + dir * len * 0.5)} ${f1(y0 + len * 0.06)} ${f1(x0 + dir * len)} ${f1(y0 + len * 0.22)}`;
+        for (let i = 1; i <= 11; i++) { const t = i / 12, x = x0 + dir * len * t, y = y0 + len * (0.12 * t + 0.1 * t * t), n = 8 * (1 - t * 0.5); d += `M${f1(x)} ${f1(y)}l${f1(dir * n * 0.45)} ${f1(n)}M${f1(x)} ${f1(y)}l${f1(dir * n * 0.75)} ${f1(-n * 0.5)}`; }
+        return `<path d="${d}" fill="none" stroke="${kl}" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
+      };
+      const KL = ['#FFD86A', '#FF7A6A', '#7AB8FF', '#9AF0A8', '#FFA8D8'];
+      let vlek = ''; for (const [x, y, r, c] of [[30, 30, 14, 0], [170, 24, 11, 2], [58, 118, 12, 3], [150, 120, 15, 1], [18, 96, 9, 4], [186, 74, 10, 0], [112, 22, 8, 1]]) vlek += `<circle cx="${x}" cy="${y}" r="${r}" fill="${KL[c]}" opacity=".1"/><circle cx="${x}" cy="${y}" r="${f1(r * 0.55)}" fill="${KL[c]}" opacity=".16"/>`;
+      let ver = ''; for (const [x, y, l, d] of [[0, 34, 70, 1], [200, 52, 76, -1], [0, 88, 62, 1], [200, 104, 72, -1], [10, 128, 84, 1], [196, 18, 58, -1], [64, 62, 50, -1], [138, 78, 48, 1]]) ver += tak(x, y, l, d, '#163E2A', 2.2, 0.95);
+      const snoer = t => { const u = t * 2, n = u < 1 ? 0 : 1, f = u - n, [ax, ay, cx, cy, bx, by] = n ? [100, 50, 150, 82, 204, 54] : [-4, 46, 48, 80, 100, 50]; return [(1 - f) * (1 - f) * ax + 2 * f * (1 - f) * cx + f * f * bx, (1 - f) * (1 - f) * ay + 2 * f * (1 - f) * cy + f * f * by]; };
+      let lamp = ''; for (let i = 1; i < 14; i++) { const [x, y] = snoer(i / 14), c = KL[i % 5]; lamp += `<circle cx="${f1(x)}" cy="${f1(y + 4)}" r="7.5" fill="${c}" opacity=".22"/><rect x="${f1(x - 1.3)}" y="${f1(y + 0.2)}" width="2.6" height="1.8" fill="#2A3A2A"/><ellipse cx="${f1(x)}" cy="${f1(y + 4.6)}" rx="2.1" ry="3.1" fill="${c}" stroke="${meng(c, '#000000', 0.45)}" stroke-width=".7"/><ellipse cx="${f1(x - 0.6)}" cy="${f1(y + 3.6)}" rx=".6" ry="1" fill="#fff" opacity=".85"/>`; }
+      const bal = (x, y, r, c, dr) => `<path d="M${x} ${y - r - 2}V${y - r - dr}" stroke="#C9B87A" stroke-width=".8" opacity=".7"/><rect x="${f1(x - r * 0.3)}" y="${f1(y - r - 2.4)}" width="${f1(r * 0.6)}" height="2.8" rx=".6" fill="#B89A4A"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id}b)"/><ellipse cx="${f1(x - r * 0.35)}" cy="${f1(y - r * 0.38)}" rx="${f1(r * 0.28)}" ry="${f1(r * 0.18)}" fill="#fff" opacity=".7" transform="rotate(-30 ${f1(x - r * 0.35)} ${f1(y - r * 0.38)})"/>`;
+      let voor = ''; for (const [x, y, l, d] of [[0, 112, 58, 1], [200, 130, 64, -1], [0, 140, 70, 1]]) voor += tak(x, y, l, d, '#2E6B3E', 2.6, 1) + tak(x, y - 2, l * 0.9, d, '#4E9A5A', 1.4, 0.7);
+      const hang = tak(206, -12, 120, -1, '#2E6B3E', 2.8, 1) + tak(206, -14, 112, -1, '#4E9A5A', 1.5, 0.75);
+      return `<defs><radialGradient id="${id}" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="${meng('#2E6A44', a[0], 0.15)}"/><stop offset="1" stop-color="#081A10"/></radialGradient>
+          <radialGradient id="${id}b" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient></defs>
+        <rect width="200" height="${h}" fill="url(#${id})"/>${vlek}${ver}
+        ${bal(28, 76, 8, '#2F6FC8', 30)}${bal(176, 98, 7, '#E9B949', 40)}${bal(136, 40, 5, '#C9CED6', 24)}
+        <path d="M-4 46Q48 80 100 50Q150 82 204 54" fill="none" stroke="#1A2A1A" stroke-width="1.1"/>${lamp}
+        ${voor}${hang}`;
+    }
+    if (bg === 'tuin') {
+      // een besneeuwd tuintje bij avond: een lucht die donker wordt, vallende sneeuw, een huis met een warm raam, een schutting met
+      // sneeuwkapjes, een lantaarn, een struik met bessen en pootafdrukjes in de sneeuw
+      const gr = h - 30;
+      let sneeuw = ''; for (let i = 0; i < 36; i++) { const x = (i * 59 + 13) % 200, y = (i * 37 + 7) % (gr + 8), r = 0.7 + (i % 3) * 0.55; sneeuw += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${(0.55 + (i % 4) * 0.1).toFixed(2)}"/>`; }
+      for (const [x, y, r] of [[22, 22, 3.4], [128, 10, 2.6], [150, 64, 2.2], [40, 66, 2.8], [182, 124, 2.6]]) sneeuw += vlok(x, y, r, '#fff', 0.9);
+      let sterren = ''; for (const [x, y, r] of [[60, 8, 0.8], [96, 16, 0.6], [112, 6, 0.9], [8, 44, 0.6], [140, 26, 0.7]]) sterren += `<circle cx="${x}" cy="${y}" r="${r}" fill="#FFF6D8" opacity=".8"/>`;
+      const huis = `<path d="M146 ${gr - 30}V42l28-21 30 21V${gr - 30}z" fill="#3A3256"/><path d="M146 ${gr - 30}V42l28-21 30 21" fill="none" stroke="#231C3A" stroke-width="1.4"/>
+        <rect x="186" y="14" width="9" height="16" fill="#4A3A5E" stroke="#231C3A" stroke-width="1"/><path d="M184.5 14h12l-1-3h-10z" fill="#F4F8FF"/>
+        <path d="M188 9q-4-5 1-9M192 6q4-5 0-9" fill="none" stroke="#C9CDE0" stroke-width="2" stroke-linecap="round" opacity=".3"/>
+        <path d="M141 44L174 18L208 44l-4 4L174 24L146 47z" fill="#F4F8FF" stroke="#B8C8E0" stroke-width=".8"/>
+        <circle cx="171" cy="62" r="20" fill="#FFD27A" opacity=".2"/><rect x="160" y="52" width="22" height="20" rx="1.5" fill="#FFD98A" stroke="#231C3A" stroke-width="1.6"/>
+        <path d="M171 52v20M160 62h22" stroke="#7A4E2D" stroke-width="1.6"/><rect x="161.5" y="53.5" width="8" height="7" fill="#FFF0C4" opacity=".55"/>
+        <path d="M157 72.5h28l-2 3h-24z" fill="#F4F8FF" stroke="#B8C8E0" stroke-width=".7"/>`;
+      let planken = `<rect y="${gr - 30}" width="200" height="4" fill="#6A4226"/><rect y="${gr - 12}" width="200" height="4" fill="#6A4226"/><path d="M0 ${gr - 30.5}H200" stroke="#F4F8FF" stroke-width="1.4"/>`;
+      for (let x = 2; x < 200; x += 15) {
+        const top = gr - 40 + ((x * 7) % 5);
+        planken += `<path d="M${x} ${gr + 2}V${top + 4}l6.5-5 6.5 5V${gr + 2}z" fill="#7A4E2D" stroke="#3A2414" stroke-width="1"/><path d="M${x + 2.4} ${top + 6}V${gr}" stroke="#9A6A44" stroke-width="1.2" opacity=".6"/>`
+          + `<path d="M${x - 1} ${top + 4.6}L${x + 6.5} ${top - 2.2}L${x + 14} ${top + 4.6}q-3.6 2.2-7.5 .6q-3.9 1.6-7.5-.6z" fill="#F4F8FF" stroke="#B8C8E0" stroke-width=".7"/>`;
+      }
+      const lantaarn = `<circle cx="38" cy="${gr - 58}" r="18" fill="#FFD27A" opacity=".22"/><circle cx="38" cy="${gr - 58}" r="9" fill="#FFE6A8" opacity=".3"/>
+        <rect x="36.6" y="${gr - 50}" width="2.8" height="52" fill="#23252B"/><path d="M31 ${gr - 50}h14l-2-14h-10z" fill="#FFE3A0" stroke="#23252B" stroke-width="1.6"/>
+        <path d="M38 ${gr - 64}v14" stroke="#23252B" stroke-width="1"/><path d="M29.5 ${gr - 64}h17l-8.5-6z" fill="#23252B"/><path d="M29 ${gr - 64.5}q9-7.5 18 0q-9 2-18 0z" fill="#F4F8FF"/>`;
+      const struik = `<ellipse cx="14" cy="${gr - 2}" rx="18" ry="13" fill="#2E5A3E"/><ellipse cx="34" cy="${gr + 1}" rx="12" ry="9" fill="#26503A"/>
+        <path d="M-3 ${gr - 8}q8-10 18-8q8-4 14 2q6-2 9 4q-12-3-20 1q-10-4-21 1z" fill="#F4F8FF"/>
+        ${[[8, gr - 2], [14, gr + 3], [22, gr - 4], [30, gr + 2], [36, gr - 2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="#C8323C" stroke="#6A1014" stroke-width=".6"/>`).join('')}`;
+      let poot = ''; for (const [x, y] of [[12, gr + 22], [26, gr + 17], [40, gr + 23], [54, gr + 18]]) poot += `<g fill="#9FB2CE" opacity=".85"><ellipse cx="${x}" cy="${y}" rx="2.2" ry="1.6"/><circle cx="${x - 2.2}" cy="${y - 2.4}" r=".8"/><circle cx="${x - 0.7}" cy="${y - 3.2}" r=".8"/><circle cx="${x + 0.9}" cy="${y - 3.2}" r=".8"/><circle cx="${x + 2.3}" cy="${y - 2.4}" r=".8"/></g>`;
+      return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141C44"/><stop offset=".55" stop-color="${meng('#4A3E86', a[1], 0.2)}"/><stop offset="1" stop-color="#C79AC2"/></linearGradient></defs>
+        <rect width="200" height="${h}" fill="url(#${id})"/>${sterren}
+        <circle cx="160" cy="14" r="7" fill="#FFF6D8" opacity=".18"/><path d="M160 9.5l1 3.5 3.5 1-3.5 1-1 3.5-1-3.5-3.5-1 3.5-1z" fill="#FFF6D8"/>
+        ${huis}${planken}${lantaarn}
+        <path d="M0 ${gr}q30-6 60-1t70 2t70-3V${h}H0z" fill="#E6EEF8"/><path d="M0 ${gr + 6}q40-4 90 1t110-2" fill="none" stroke="#C8D6EA" stroke-width="5" opacity=".7"/>
+        ${struik}${poot}${sneeuw}`;
+    }
+    if (bg === 'sterren') {
+      // een sterrennacht boven de daken: heel veel sterren, de melkweg, een verzonnen sterrenbeeld met lijntjes, een vallende ster,
+      // een maansikkel, en laag de besneeuwde daken van een stadje met schoorstenen, een torentje en ramen met licht
+      const dl = h - 22;
+      let hemel = ''; for (let i = 0; i < 64; i++) { const x = (i * 47 + 11) % 200, y = (i * 29 + 5) % (dl - 4), r = i % 7 === 0 ? 1.5 : i % 3 === 0 ? 1 : 0.6; hemel += `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 5 ? '#FFFFFF' : '#FFE9A8'}" opacity="${(0.45 + (i % 4) * 0.15).toFixed(2)}"/>`; }
+      const glinster = (x, y, r) => `<path d="M${x} ${y - r}Q${f1(x + r * 0.16)} ${f1(y - r * 0.16)} ${x + r} ${y}Q${f1(x + r * 0.16)} ${f1(y + r * 0.16)} ${x} ${y + r}Q${f1(x - r * 0.16)} ${f1(y + r * 0.16)} ${x - r} ${y}Q${f1(x - r * 0.16)} ${f1(y - r * 0.16)} ${x} ${y - r}z" fill="#FFF6D8"/>`;
+      const beeld = [[156, 16], [168, 26], [182, 22], [190, 36], [176, 44], [164, 40]];
+      const lijn = `<path d="M${beeld.map(p => p.join(' ')).join('L')}" fill="none" stroke="#BFD0FF" stroke-width=".7" stroke-dasharray="2 2" opacity=".55"/>` + beeld.map(([x, y], i) => glinster(x, y, i % 2 ? 2.4 : 3.2)).join('');
+      let huizen = '', ramen = '', dak = '';
+      [[-4, 30, dl + 4, 12], [24, 24, dl + 9, 10], [70, 26, dl + 8, 9], [94, 30, dl + 3, 12], [122, 24, dl + 7, 10], [144, 30, dl + 1, 13], [172, 32, dl + 6, 11]].forEach(([x, w, top, rh], i) => {
+        huizen += `<path d="M${x} ${h}V${top}l${w / 2} ${-rh}l${w / 2} ${rh}V${h}z" fill="${i % 2 ? '#1A2250' : '#151C44'}"/>`;
+        dak += `<path d="M${x - 2} ${top + 1}l${w / 2 + 2} ${-rh - 2}l${w / 2 + 2} ${rh + 2}l-2.6 1.6l${-w / 2 + 0.6} ${-rh + 0.4}l${-w / 2 + 0.6} ${rh - 0.4}z" fill="#EEF4FF"/>`;
+        for (let c = 0; c < 2; c++) { const wx = x + w * (c ? 0.62 : 0.2), wy = top + 5; ramen += `<rect x="${f1(wx)}" y="${wy}" width="4.5" height="5" fill="${(i + c) % 3 ? '#FFD86A' : '#2A3462'}"/>`; }
+      });
+      const toren = `<path d="M54 ${h}V${dl - 12}h10V${h}z" fill="#141A40"/><path d="M52.5 ${dl - 12}L59 ${dl - 42}L65.5 ${dl - 12}z" fill="#141A40"/><path d="M52.5 ${dl - 12}L59 ${dl - 42}L61 ${dl - 33}L56 ${dl - 12}z" fill="#EEF4FF" opacity=".85"/><rect x="57" y="${dl - 6}" width="4" height="6" rx="2" fill="#FFD86A"/>`;
+      const schoor = `<rect x="104" y="${dl - 6}" width="5" height="8" fill="#151C44"/><rect x="183" y="${dl - 4}" width="5" height="9" fill="#151C44"/><path d="M106 ${dl - 9}q-5-6 1-11M185 ${dl - 7}q5-6-1-11" fill="none" stroke="#C9CDE0" stroke-width="2.2" stroke-linecap="round" opacity=".25"/>`;
+      return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070C26"/><stop offset=".7" stop-color="${meng('#22306E', a[1], 0.15)}"/><stop offset="1" stop-color="#3A4A8E"/></linearGradient></defs>
+        <rect width="200" height="${h}" fill="url(#${id})"/>
+        <path d="M-10 96Q90 40 214 6" fill="none" stroke="#DDE6FF" stroke-width="38" stroke-linecap="round" opacity=".06"/><path d="M-10 92Q90 42 214 10" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity=".05"/>
+        ${hemel}${lijn}
+        <path d="M134 70L166 58" stroke="#FFF6D8" stroke-width="1.3" stroke-linecap="round" opacity=".6"/><circle cx="166" cy="58" r="1.6" fill="#fff"/>
+        <circle cx="22" cy="22" r="15" fill="#FFF3C4" opacity=".1"/><path d="M27 12a11 11 0 1 0 0 20a8.5 8.5 0 1 1 0-20z" fill="#FFF3C4"/>
+        ${toren}${huizen}${schoor}${dak}${ramen}`;
+    }
     if (bg === 'dak') {
       const dh = h - 24;
       let sterren = ''; for (const [x, y, r] of [[16, 14, 1.4], [40, 30, 1], [64, 10, 1.2], [92, 24, 0.9], [118, 12, 1.4], [140, 34, 1], [190, 50, 1.2], [26, 52, 0.9]]) sterren += `<circle cx="${x}" cy="${y}" r="${r}" fill="#FFF6D8" opacity=".85"/>`;
@@ -2874,7 +3064,7 @@ const BT = (function () {
     const P = spec.p || {};
     const vb = opties.vol ? '0 0 200 280' : '0 0 200 150';
     const verschuif = opties.vol ? `<g transform="translate(-10 38) scale(1.1)">` : '<g>';
-    return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${opties.silhouet || opties.zonder ? '' : achtergrond(spec.e, opties.vol, spec.set, spec.bg)}${verschuif}${opties.silhouet || opties.zonder ? '' : schaduwGrond(P)}${beest(spec, opties)}</g></svg>`;
+    return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${opties.silhouet || opties.zonder ? '' : achtergrond(spec.e, opties.vol, spec.set, spec.bg)}${verschuif}${opties.silhouet || opties.zonder || P.zweef ? '' : schaduwGrond(P)}${beest(spec, opties)}</g></svg>`;
   }
   return { kunst, beest, achtergrond, meng, donker, licht, VORMEN: Object.keys(V) };
 })();
@@ -3275,14 +3465,19 @@ const GRIEZEL = [
 const GRIEZEL_KR = { g: 45, o: 80, z: 115, h: 155, u: 200, x: 250 };
 GRIEZEL.forEach((k, i) => { k.set = 'griezel'; k.kr = k.kr || GRIEZEL_KR[k.z]; k.nr = i + 1; k.id = 'gz' + String(i + 1).padStart(3, '0'); KAARTEN.push(k); });
 
-// Rommelbeesten, Feestset: kaarten die je alleen met de feestdagen krijgt (feest.js, op de homepage), nummers x/3 (en verder).
+// Rommelbeesten, Feestset: kaarten die je alleen met de feestdagen krijgt (feest.js, op de homepage), nummers x/6 (en verder).
 // Ze staan bewust NIET in KAARTEN en niet in je opslag (bezit): je hebt er een als de verzameling van de feestdagen (rommelhoekje-feest-v1)
 // het ding 'fid' heeft. Daarom zitten ze niet in pakjes, zijn ze niet te verkopen of te ruilen, en tellen ze niet mee voor de mijlpalen,
-// het scorebord of voortgangTotaal. bg = de achtergrond: 'haard', 'dak' of 'papier'. Nieuwe kaarten (de kerst) altijd achteraan: fs004 en verder.
+// het scorebord of voortgangTotaal. bg = de achtergrond: 'haard', 'dak', 'papier', 'boom', 'tuin' of 'sterren'. Nieuwe kaarten altijd achteraan
+// (fs001 tot fs003 Sinterklaas, fs004 tot fs006 de kerst; bijz: het bijzondere kerstcadeau, voor wie alle deurtjes opende).
 const FEESTSET = [
   { n: "Pepernotenuil", fid: "rb-pepernotenuil", e: "wind", z: "z", st: 0, v: "uil", bg: "dak", p: sch(S2), pat: "vlekken", k: {"c1": "#B06A34", "c2": "#F2D4A4", "c3": "#6E3A18", "iris": "#2A1D14", "patroon": "#8A4E22", "baret": "#2F4C8F", "veer": "#F6CB2F", "noot": "#A9642E"}, a: [["baret", "kop", 0, 4, 0.92], ["pepernoten", "kop", 0, 30, 1]], o: "glim", m: "snavel", aan: [["Strooiregen", 2, 60], ["Pepernotenstorm", 3, 90]], t: "Zit op de schoorsteen en vangt elke pepernoot die mis wordt gegooid." },
   { n: "Speculaasvos", fid: "rb-speculaasvos", e: "vuur", z: "z", st: 0, v: "vos", bg: "haard", p: sch(S2), tex: "speculaas", k: {"c1": "#B8722E", "c2": "#EBB77E", "c3": "#6E3A14", "iris": "#2A1D14", "sjaal": "#C8323C", "sjaal2": "#FBF6E9"}, a: [["sjaal", "vrij", 90, 98, 0.85]], o: "lief", m: "lach", aan: [["Kaneelwolk", 2, 60], ["Ovenwarm", 3, 90]], t: "Komt zo uit de oven en ruikt naar kaneel. Wie hem aait, krijgt kruimels." },
   { n: "Marsepeinen Varkentje", fid: "rb-marsepeinvarken", e: "rommel", z: "h", st: 0, v: "varken", bg: "papier", p: sch(S2), k: {"c1": "#F49AB2", "c2": "#FCD4DE", "c3": "#C8607A", "iris": "#2A1D14", "aura": "#FFD0DC", "strik": "#C8323C", "wang": "#E8577A"}, a: [["aura", "kop"], ["strik", "vrij", 128, 64, 1.1]], o: "glim", m: "lach", aan: [["Zoete snuit", 3, 90], ["Knorrende knuffel", 3, 120]], t: "Het mooiste cadeautje uit de zak. Niemand durft hem op te eten, want hij kijkt zo lief." },
+  // de kerst (achter de deurtjes van de kerstkalender, en het bijzondere kerstcadeau)
+  { n: "Kerstbalbeest", fid: "rb-kerstbalbeest", e: "bliksem", z: "z", st: 0, v: "kerstbal", bg: "boom", p: sch(S2, { zweef: true }), k: {"c1": "#C8323C", "c2": "#E9B949", "c3": "#7A1420", "iris": "#2A1D14", "dop": "#D9B24C", "blad": "#2E7D4A", "bes": "#FF3B4A", "wang": "#FF9AA8"}, a: [["hulst", "kop", 0, 0, 0.9]], o: "glim", m: "lach", aan: [["Slingerzwaai", 2, 60], ["Glimmerflits", 3, 90]], t: "Hangt altijd vooraan in de boom. Wiebelt hij als je langsloopt, dan was het de wind." },
+  { n: "Sneeuwvlokkat", fid: "rb-sneeuwvlokkat", e: "water", z: "z", st: 0, v: "kat", bg: "tuin", p: sch(S2), pat: "vlokken", k: {"c1": "#EEF3FA", "c2": "#F6C2CF", "c3": "#B8C9DE", "iris": "#4FA3E0", "patroon": "#9CC8EE", "buik": "#FFFFFF", "sjaal": "#2E7D4A", "sjaal2": "#FBF6E9", "neus": "#F28CA0", "wang": "#F7A8B8"}, a: [["breisjaal", "vrij", 100, 85, 1]], o: "glim", m: "kat", aan: [["Poederpoot", 2, 60], ["Winterspinnen", 3, 90]], t: "Geen twee vlokjes op haar vacht zijn hetzelfde. Ze heeft ze allemaal geteld, twee keer." },
+  { n: "Sterrenrendier", fid: "rb-sterrenrendier", e: "wind", z: "h", st: 0, bijz: 1, v: "rendier", bg: "sterren", p: { schaal: 0.92, dy: 6, zweef: true }, k: {"c1": "#9A6A44", "c2": "#F2E2C8", "c3": "#4A2E1A", "iris": "#2A1D14", "gewei": "#E6CFA0", "ster": "#FFE27A", "neus": "#FFE9A0", "lint": "#C8323C", "bel": "#E9B949", "aura": "#BFD4FF"}, a: [["aura", "kop", 0, 0, 1.05], ["sterrenstof", "vrij", 150, 112, 1], ["sterrengewei", "kop", 0, 0, 1], ["belletje", "vrij", 90, 81, 1]], o: "glim", m: "lach", aan: [["Neuslicht", 3, 90], ["Sterrenspoor", 3, 130]], t: "Vliegt alleen in heldere nachten. Elk sterretje in zijn gewei is een wens die uitkwam." },
 ];
 const FEEST_KR = { g: 50, o: 80, z: 120, h: 160, u: 200, x: 250 };
 FEESTSET.forEach((k, i) => { k.set = 'feest'; k.kr = k.kr || FEEST_KR[k.z]; k.nr = i + 1; k.id = 'fs' + String(i + 1).padStart(3, '0'); });
@@ -4318,7 +4513,7 @@ FEESTSET.forEach((k, i) => { k.set = 'feest'; k.kr = k.kr || FEEST_KR[k.z]; k.nr
     const lijst = gefilterd(), per = perSpreiding(), pagina = Math.max(0, Math.min(blad, Math.ceil(lijst.length / per) - 1));
     blad = pagina;
     const stuk = lijst.slice(pagina * per, pagina * per + per);
-    const vak = k => { const b = hebA(k), n = b[0] + b[1]; return n ? `<div class="vak">${kaartHTML(k, { glim: b[1] > 0, auto: true, aantal: n })}</div>` : `<div class="vak leeg" title="${k.set === 'feest' ? 'Alleen met de feestdagen' : 'Nog niet gevonden'}">${silhouet(k)}<span>${k.nr > 120 ? '?' : k.nr}</span></div>`; };
+    const vak = k => { const b = hebA(k), n = b[0] + b[1]; return n ? `<div class="vak">${kaartHTML(k, { glim: b[1] > 0, auto: true, aantal: n })}</div>` : `<div class="vak leeg" title="${k.set === 'feest' ? (k.bijz ? 'Het bijzondere kerstcadeau' : 'Alleen met de feestdagen') : 'Nog niet gevonden'}">${silhouet(k)}<span>${k.nr > 120 ? '?' : k.nr}</span></div>`; };
     const helften = per === 18 ? [stuk.slice(0, 9), stuk.slice(9)] : [stuk];
     $('map').innerHTML = lijst.length ? helften.map(h => `<div class="blad">${h.map(vak).join('')}</div>`).join('') : '<div class="blad" style="grid-column:1/-1"><p style="grid-column:1/-1;margin:0">Geen kaarten met dit filter.</p></div>';
     const totaal = Math.max(1, Math.ceil(lijst.length / per));
@@ -4495,7 +4690,7 @@ FEESTSET.forEach((k, i) => { k.set = 'feest'; k.kr = k.kr || FEEST_KR[k.z]; k.nr
     if (wasDicht) { stopSensor(); Object.assign(DRAAI, { x: 0, y: 0, vx: 0, vy: 0, bx: 0, by: 0, hx: 0, hy: 0, sleep: null }); }
     d.innerHTML = `<div class="groot" style="--kl:${gloed}"><div class="draaibaar">${kaartHTML(k, { glim })}<div class="kaart achterkant" aria-hidden="true"><div class="k-achter"><div class="ak"><b>Rommelbeesten</b></div></div></div></div></div>
       <div class="info"><h2>${esc(k.n)}</h2><p>${fs ? 'Feestkaart · ' : ''}${ZNAAM[k.z]} · ${ELEMENTEN[k.e].naam} · nummer ${k.nr}</p>
-      <p>${fs ? (feestHeb(k.fid) ? 'Deze feestkaart is van jou, een cadeautje van de feestdagen. Je kunt hem niet verkopen of ruilen, dus je houdt hem altijd.' : 'Deze feestkaart heb je nog niet. Je krijgt hem alleen met de feestdagen, op de homepage.') : n ? `Je hebt er ${n}${b[1] ? ` (waarvan ${b[1]} glimmend)` : ''}.` : 'Deze heb je nog niet.'}</p>
+      <p>${fs ? (feestHeb(k.fid) ? (k.bijz ? 'Deze feestkaart is van jou: het bijzondere kerstcadeau, omdat je alle deurtjes van de kerstkalender opende.' : 'Deze feestkaart is van jou, een cadeautje van de feestdagen.') + ' Je kunt hem niet verkopen of ruilen, dus je houdt hem altijd.' : k.bijz ? 'Deze feestkaart heb je nog niet. Het is het bijzondere kerstcadeau: je krijgt hem alleen als je alle deurtjes van de kerstkalender op de homepage opent, elk op zijn eigen dag.' : 'Deze feestkaart heb je nog niet. Je krijgt hem alleen met de feestdagen, op de homepage.') : n ? `Je hebt er ${n}${b[1] ? ` (waarvan ${b[1]} glimmend)` : ''}.` : 'Deze heb je nog niet.'}</p>
       ${n ? `<p>Waarde: ${WAARDE[k.z]} munten${b[1] ? `, glimmend ${WAARDE[k.z] * 3}` : ''}.</p>` : ''}
       <div class="rij-knoppen">${b[0] ? `<button class="knop goud" data-v="0" type="button">Verkoop 1 voor ${WAARDE[k.z]}</button>` : ''}${b[1] ? `<button class="knop goud" data-v="1" type="button">Verkoop 1 glimmende voor ${WAARDE[k.z] * 3}</button>` : ''}<button class="knop" data-v="om" type="button">Omdraaien</button>${b[0] && b[1] ? `<button class="knop" data-v="wissel" type="button">${glim ? 'Bekijk de gewone' : 'Bekijk de glimmende'}</button>` : ''}${sensor ? '<button class="knop" data-v="kantel" type="button" aria-pressed="false">Kantel je telefoon</button>' : ''}<button class="knop" data-v="dicht" type="button">Sluiten</button></div>
       <p class="draai-uitleg">Sleep de kaart om hem rond te draaien${sensor ? ', of kantel je telefoon' : ', of gebruik de pijltjestoetsen'}.</p>${evo}</div>`;

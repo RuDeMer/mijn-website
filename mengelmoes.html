@@ -520,8 +520,22 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
       if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
       bannerLaad.then(ga);
     },
+    // de feestdagen (feest.js, zie daar): f(stand) zodra bekend is welke feestdag het is (Nederlandse tijd), en opnieuw als het verandert.
+    // stand = { feest: 'sint', 'kerst', 'oud', 'nieuwjaar' of null, fase, jaar, dag, versiering, heb(id): kreeg je dit al? }.
+    // Zonder f: de stand nu (of null, als feest.js er nog niet is).
+    feest(f) {
+      if (window.RommelFeest) { if (typeof f === 'function') window.RommelFeest.klaar(f); return window.RommelFeest.nu(); }
+      if (typeof f === 'function') (window.__feestWacht = window.__feestWacht || []).push(f);
+      laadFeest(); return null;
+    },
   };
   let bannerLaad = null;
+  // feest.js op elke pagina met dit blok (één keer; de werkplaats heeft geen scripts van de site)
+  function laadFeest() {
+    if (window.__feestLaad || window.RommelFeest || (document.body && document.body.getAttribute('data-pagina') === 'werkplaats')) return;
+    window.__feestLaad = 1; const s = document.createElement('script'); s.src = 'feest.js'; s.async = true; document.head.appendChild(s);
+  }
+  laadFeest();
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -689,6 +703,8 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
       // het Coulissenkoor: liedjes meegezongen, dan je opnames
       'coulissenkoor-v1': s => [aantal(s.gezongen), aantal(s.liedjes)],
       'rommelhoekje-speler': s => [s && s.naam ? 1 : 0],
+      // de feestdagen (2026-11-13): hoeveel dingen je kreeg, dan alle cijfers van de dagen samen
+      'rommelhoekje-feest-v1': s => [lijst(s.st).length, Object.values(isObj(s.d) ? s.d : {}).reduce((a, x) => a + String(x).split('').reduce((b, c) => b + (+c || 0), 0), 0)],
     };
     const maatVan = (sleutel, s) => { try { return MAAT[sleutel] && isObj(s) ? MAAT[sleutel](s).map(x => getal(x)) : []; } catch (e) { return []; } };
     const vergelijk = (a, b) => { for (let k = 0; k < Math.max(a.length, b.length); k++) { const x = getal(a[k]), y = getal(b[k]); if (x !== y) return x > y ? 1 : -1; } return 0; };
@@ -844,6 +860,10 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
       // meezong (wat op een van de twee gelukt is, blijft), en per stem wie er zingt en je instellingen (de laatste keuze wint). Geen geld of spullen.
       'coulissenkoor-v1': { velden: { v: max, koor: elk(keuze), inst: keuze, liedjes: elk(keuze), gezongen: elk(max), voortgangTotaal: max },
         na: r => { if (isObj(r.liedjes)) { const k = Object.keys(r.liedjes).sort((x, y) => getal(lijst(r.liedjes[y])[1]) - getal(lijst(r.liedjes[x])[1])); for (const x of k.slice(30)) delete r.liedjes[x]; } return r; } },
+      // de feestdagen (2026-11-13): wat je met Sinterklaas, de kerst en oud en nieuw kreeg. Per seizoen per dag het hoogste cijfer (je schoen,
+      // een cadeautje uit je schoen, uitgepakt, een deurtje van de kerstkalender: een cijfer gaat alleen omhoog), en de dingen die je kreeg
+      // samen. Elk ding heeft een vaste naam (een dag, een deurtje of een verzamelstuk): met twee apparaten krijg je niets dubbel, en raak je niets kwijt.
+      'rommelhoekje-feest-v1': { velden: { v: max, d: elk(cijfers), st: samenLijst } },
       'rommelhoekje-eitjes': { velden: elk(samenLijst) },
       'rommelhoekje-speler': { heel: true },
       'gereedschap-v2': { heel: true },
@@ -901,7 +921,7 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
   }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'helpdesk-v1', 'coulissenkoor-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'helpdesk-v1', 'coulissenkoor-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2', 'rommelhoekje-feest-v1'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -996,7 +1016,7 @@ kbd { font: 800 .8rem "Gabarito"; border: 2px solid var(--lijn); border-bottom-w
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 14;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 15;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));

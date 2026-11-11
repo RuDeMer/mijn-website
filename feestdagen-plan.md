@@ -1,6 +1,6 @@
 # Plan: de feestdagen op Ruben's rommelhoekje (Sinterklaas, kerst, oud en nieuw)
 
-Stand: woensdag 11 november 2026. **Wacht op Rubens goedkeuring.** Onderaan staan zes keuzes en één ding dat Ruben nu al kan doen.
+Stand: woensdag 11 november 2026. **Goedgekeurd door Ruben** (zijn keuzes staan in hoofdstuk 9). Deel 1 is gebouwd.
 
 ## In het kort
 
@@ -39,9 +39,9 @@ Stand: woensdag 11 november 2026. **Wacht op Rubens goedkeuring.** Onderaan staa
 | Een cadeautje uit je schoen halen | zo 15 nov | za 5 dec |
 | **Pakjesavond**: uitpakken | za 5 dec, 17:00 | wo 6 jan (wat je dan nog niet uitpakte, gaat vanzelf open: je raakt niets kwijt) |
 | Sinterklaas neemt afscheid | za 5 dec, na het uitpakken | (op zo 6 dec is hij weg) |
-| **Kerstkalender** (19 deurtjes, 6 tot en met 24) | zo 6 dec | do 24 dec (gemiste deurtjes inhalen kan tot en met wo 6 jan) |
+| **Kerstkalender** (19 deurtjes, 6 tot en met 24) | zo 6 dec | do 24 dec (elk deurtje alleen op zijn eigen dag; een gemist deurtje blijft dicht) |
 | **Winterse versiering**: lichtjes, een beetje sneeuw, de kerstboom | zo 6 dec | wo 6 jan |
-| **Het bijzondere kerstcadeau** (met minstens 17 van de 19 deurtjes) | do 24 dec | wo 6 jan |
+| **Het bijzondere kerstcadeau** (alleen met alle 19 deurtjes) | do 24 dec | wo 6 jan |
 | **Kerstdagen**: een cadeau onder de boom en een kerstgroet | vr 25 dec | za 26 dec |
 | **Oudjaar**: oliebollen | do 31 dec | do 31 dec |
 | **Aftellen** | do 31 dec, 23:55 | vr 1 jan, 00:00 |
@@ -84,7 +84,7 @@ Alle tekeningen, gedichtjes, deuntjes en animaties zijn eigen werk.
 
 - **De Sint**: een rode mantel, een mijter en een staf, met een witte baard.
 - **De Pieten** zijn **roetveegpieten**: een gewone huidskleur met een paar roetvegen van de schoorsteen op de wangen, een kleurig pak met een pofbroek en een baret met een veer.
-- **De boot** heet **Stoomboot Rommelhoek**: eigen naam, geen bestaande boot, geen namen of figuren uit tv-programma's.
+- **De boot** heet **de Stoomboot** (besluit van Ruben): een eigen tekening, geen bestaande boot, geen namen of figuren uit tv-programma's.
 - **Liedjes**: alleen oude liedjes die vrij zijn van rechten.
 
 ### De intocht (za 14 november)
@@ -111,7 +111,7 @@ Alle tekeningen, gedichtjes, deuntjes en animaties zijn eigen werk.
 - **Op het feestbord**: de boot ligt aan de kade, een Piet zit op een dak naast de schoorsteen, je **schoen** staat bij de kachel, en ernaast groeit je **stapel ingepakte cadeautjes**. Erboven staat "Nog 12 nachtjes slapen tot pakjesavond".
 - **Elke dag zet je met één tik je schoen** (met een wortel voor het paard).
   - Kom je de volgende dag (of later) terug, dan zit er een ingepakt cadeautje in. Met een tik gaat dat naar je stapel, en dan kun je de schoen opnieuw zetten.
-  - Dag gemist? Dan is er voor die dag geen cadeautje, maar verder gebeurt er niets: geen straf.
+  - Dag gemist? Dan is er voor die dag geen cadeautje, en dat haal je ook niet meer in (besluit van Ruben: je moet elke dag komen om alles te krijgen). Verder gebeurt er niets: geen straf, en wat je al in je schoen had, blijft van jou.
 - **De pepernoten**: een paar pepernoten liggen tussen de rommeltjes, als echte rommeltjes die rollen en stuiteren. Ze zijn niet zichtbaar als de versiering uit staat.
 - **De Sinterklaasbanner** is het feestbord zelf, op de plek van het casinobord.
 - **Op de andere pagina's**: alleen een rustig slingertje vlaggetjes bovenaan (alleen op de pagina's met het papier van 0.6, nooit over een spel heen). De spellen doen zelf wat ze willen.
@@ -123,7 +123,7 @@ Alle tekeningen, gedichtjes, deuntjes en animaties zijn eigen werk.
   - je tikt (of trekt) aan het lint, en het papier scheurt open en vliegt in snippers rond;
   - dan verschijnt wat erin zit, met een **eigen gedichtje** (met je scorebordnaam als je meedoet: "Sint zag {naam} elke dag…");
   - bij elk ding staat in welk spel je het vindt, met een knop "Naar het spel".
-- Wie **elke dag** kwam (zie keuze 2), houdt als laatste een groot, glimmend pakje over: **de Gouden Mijter**.
+- Wie **alle 21 dagen** zijn schoen zette (zie keuze 2), houdt als laatste een groot, glimmend pakje over: **de Gouden Mijter**.
 - **Daarna neemt de Sint afscheid**: de boot vaart weg, met "Dag Sinterklaasje! Tot volgend jaar".
 - Wat je nog niet uitpakte, kun je tot en met 6 januari uitpakken.
 
@@ -138,10 +138,10 @@ Alle tekeningen, gedichtjes, deuntjes en animaties zijn eigen werk.
 ```
 
 - **Elke dag gaat één deurtje open** (in de vorm van een cadeautje, een raampje of een ster), met iets voor een van de spellen erin.
-  - Een deurtje van een gemiste dag kun je later nog openen, tot en met 6 januari.
+  - Een deurtje gaat alleen op zijn eigen dag open. Een gemist deurtje blijft dicht (besluit van Ruben).
   - Deurtjes van morgen zitten nog dicht.
 - **De kerstboom** naast de kalender wordt voller met elk deurtje dat je opent.
-- **Op 24 december**, met minstens **17 van de 19** deurtjes open: het bijzondere kerstcadeau. Er komt een gouden piek op je boom, en je krijgt iets bijzonders (zie de lijst).
+- **Op 24 december**, met **alle 19** deurtjes open: het bijzondere kerstcadeau. Er komt een gouden piek op je boom, en je krijgt iets bijzonders (zie de lijst).
 - **25 en 26 december**: een cadeau onder de boom (voor iedereen die die dagen komt), met een warme kerstgroet.
 - **Winterse versiering** op de homepage en de pagina's met het papier van 0.6:
   - een slinger lichtjes bovenaan, die zacht om de beurt branden;
@@ -211,7 +211,7 @@ Wat er in welk pakje of deurtje zit, ligt vast per dag en is voor iedereen hetze
 | Casino | **vuurwerkfiches** (bij de nieuwjaarsmunt) |
 | Homepage | de **nieuwjaarsmunt 2027** als rommeltje dat rolt |
 
-**Rommelblok** (een kerstboom en pakjes als blokken): die pagina wordt gebouwd in RuDeMer/rommelblok. Dat doe ik apart, na deel 3 (zie keuze 6).
+**Rommelblok** doet niet mee (besluit van Ruben, keuze 6).
 
 **De opslag van de spellen**: bijna alles komt in velden die er al zijn (`mooi.heb`, `kast`, `inst`, `recepten`, `bezit`). De REGELS van de spellen hoeven dus niet te veranderen; alleen de verzameling krijgt een nieuwe regel. Verandert er bij het bouwen toch iets aan de opslag van een spel, dan krijgt dat een regel in de REGELS en zet ik het in de overdracht.
 
@@ -267,13 +267,15 @@ Elk deel komt via een pull request. Zodra Ruben die samenvoegt, staat het live.
 
 Niet te testen: Safari op een echte iPhone.
 
-## 9. Keuzes voor Ruben
+## 9. Keuzes van Ruben (11 november 2026)
 
-1. **De lijst met dingen per spel** (hoofdstuk 5). (A) Zo, zoals voorgesteld. (B) Minder spellen, dan is het sneller klaar. Zeg dan welke weg mogen. *Ik raad A aan.*
-2. **De Gouden Mijter**. (A) Alleen als je alle 21 dagen je schoen zette (zoals gevraagd). (B) Ook met 19 van de 21, voor wie een dag ziek was of geen internet had. *Ik raad B aan.*
-3. **Het bijzondere kerstcadeau** met minstens 17 van de 19 deurtjes, en gemiste deurtjes kun je inhalen. *Ik raad dit aan.* Of wil je een ander aantal?
-4. **Buiten de feestdagen**, op de plek van het casinobord: (A) niets, (B) een tweede advertentie. *Ik raad A aan.*
-5. **De schoen**: (A) zetten met een tik (dat voelt als zelf je schoen zetten), (B) vanzelf bij elk bezoek. *Ik raad A aan.*
-6. **Rommelblok** (kerstboom en pakjes als blokken): (A) apart in RuDeMer/rommelblok, na deel 3, (B) overslaan. *Ik raad A aan.*
+Ruben zei: "Doe maar wat jij aanraadt, behalve dat je cadeaus die je miste nog steeds kunt krijgen. Je MOET iedere dag komen om alles te krijgen. Laat Rommelblok maar achterwege." Daarna: de boot heet de Stoomboot, en de tekeningen van de intocht en de schoen moesten mooier (gedaan).
 
-**Wat Ruben nu al kan doen**: plak de code van de scoreserver die nu in Cloudflare draait (versie 2026-11-12). Dan maak ik de nieuwe versie meteen. Kan hij er vóór zaterdag in, dan gaat de schoen ook meteen mee met koppelen.
+1. **De lijst met dingen per spel**: (A) zoals voorgesteld.
+2. **De Gouden Mijter**: (A) alleen als je alle 21 dagen je schoen zette.
+3. **Het bijzondere kerstcadeau**: alleen met alle 19 deurtjes, en een deurtje gaat alleen op zijn eigen dag open. Gemiste cadeautjes en deurtjes haal je niet in.
+4. **Buiten de feestdagen**, op de plek van het casinobord: (A) niets.
+5. **De schoen**: (A) zetten met een tik.
+6. **Rommelblok**: (B) overslaan.
+
+De scoreserver: Ruben plakte versie 2026-11-12; daarop is versie 2026-11-13 gemaakt (zie de overdracht van deel 1).

@@ -654,8 +654,11 @@ document.getElementById('sok').addEventListener('click', function () { const s =
     if (uur < 5) {
       const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
       uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
-      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
-      document.body.appendChild(uil);
+      // een vrij plekje dat nooit iets bedekt: de homepage zet hem bovenop de rommelkast (window.__uilPlek, in de homepage-onderdelen);
+      // is die er (nog) niet, dan na een paar seconden in de voet, naast het versienummer
+      uil.hidden = true; document.body.appendChild(uil);
+      if (window.__uilPlek) window.__uilPlek(uil); else window.__uilWacht = uil;
+      setTimeout(() => { if (!uil.hidden) return; const v = document.querySelector('footer .versie') || document.querySelector('footer'); if (!v) return; const r = v.getBoundingClientRect(); uil.style.left = (r.left + scrollX - 64) + 'px'; uil.style.top = (r.top + scrollY + r.height - 64) + 'px'; uil.hidden = false; }, 4000);
       const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
       uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
     }
@@ -686,6 +689,8 @@ document.getElementById('sok').addEventListener('click', function () { const s =
   const pas = () => { let k = 'auto'; try { k = localStorage.getItem(THEMA) || 'auto'; } catch (e) {} const d = k === 'donker' || (k !== 'licht' && mq.matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); };
   pas(); if (mq.addEventListener) mq.addEventListener('change', pas); else if (mq.addListener) mq.addListener(pas);
   addEventListener('storage', e => { if (e.key === THEMA) pas(); });
+  // de feestdagen (feest.js): ook op de pagina's zonder scorebord-blok (één keer; niet in de werkplaats, de 404-pagina met /)
+  if (!window.__feestLaad && !window.RommelFeest && document.body && document.body.getAttribute('data-pagina') !== 'werkplaats') { window.__feestLaad = 1; const fs = document.createElement('script'); fs.src = (document.body.getAttribute('data-pagina') === '404' ? '/' : '') + 'feest.js'; fs.async = true; document.head.appendChild(fs); }
   // ================= de rommeltjes: echte natuurkunde (zie "Rommeltjes met echte natuurkunde" in CLAUDE.md)
   // Dezelfde kleine natuurkundemotor als op de homepage (Fysica, hieronder), met vier rommeltjes op plankjes in de
   // kantlijn: links de dobbelsteen en de knoop, rechts het sterretje en het potlood. Elke kantlijn is een eigen put

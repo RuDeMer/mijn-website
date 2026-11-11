@@ -135,7 +135,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   </header>
   <main>
 <p class="inleiding">Op deze pagina lees je welke gegevens het rommelhoekje bewaart, waarom, hoe lang, en hoe je ze laat weghalen. In gewone taal, zodat iedereen het kan lezen: kinderen en ouders.</p>
-<p class="bijgewerkt">Laatst bijgewerkt: 9 november 2026</p>
+<p class="bijgewerkt">Laatst bijgewerkt: 11 november 2026</p>
 
 <section class="kaart" aria-labelledby="h-kort">
   <h2 id="h-kort"><span class="rond" aria-hidden="true">⭐</span>In het kort</h2>
@@ -180,6 +180,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     <li>Bij de <b>woordspellen</b> (alleen op dit apparaat): welke mijlpalen je al gezien hebt (<code>woordspellen-mijl</code>), en van welke dag je je uitslag al naar de server stuurde om te vergelijken (<code>woordspellen-gestuurd</code>, zie <a href="#h-woord">Woordspellen</a>). Dat zijn alleen een getal en dagnummers.</li>
     <li>Waar de <b>rommeltjes</b> op de homepage en de andere pagina's liggen, en of hun geluid aan staat (<code>rommeltjes-v1</code>). Dat gaat nergens heen. Zet je <b>Kantel</b> aan, dan leest de pagina hoe je telefoon gekanteld is, zodat de rommeltjes de goede kant op rollen. Dat wordt niet bewaard en niet verstuurd.</li>
     <li>Bij de <b>advertenties</b> (de nep-reclame voor de spellen van het rommelhoekje zelf, alleen op dit apparaat): welke spellen en teksten je onlangs zag, welke je wegklikte met ✕, en wanneer je er een zag na afloop van een spel (<code>rommelbanner-v1</code>). Zo wisselen ze elkaar af, en zie je een weggeklikte advertentie twee weken niet. Om een spel te kiezen kijken ze ook naar wat de spellen op je apparaat bewaren (of je een spel al eens speelde, of de puzzel van vandaag nog wacht). Dat gaat nergens heen: er is geen advertentiebedrijf, en niemand houdt bij wat je ziet of aanklikt.</li>
+    <li>Bij de <b>feestdagen</b> (Sinterklaas, de kerst en oud en nieuw): wat je met de feestdagen kreeg, zoals de dagen dat je je schoen zette, welke cadeautjes je uitpakte en welke deurtjes van de kerstkalender je opende (<code>rommelhoekje-feest-v1</code>). Dat gaat mee met <a href="#h-account">je account</a>, zodat je het op al je apparaten hebt. Alleen op dit apparaat staan of je de versiering uit hebt gezet en of je de intocht al zag (<code>rommelhoekje-feest-apparaat</code>), en de laatste feestkalender (<code>rommelhoekje-feest-kal</code>). Om te weten hoe laat het echt is, vraagt de site de tijd op bij de site zelf (bij GitHub): daarbij wordt niets over jou verstuurd.</li>
     <li><b>Om ook zonder internet te kunnen spelen</b> (een <i>service worker</i>, <code>rommelhoekje-sw.js</code>): een kopie van de pagina's die je opende (hooguit 80), en van plaatjes, geluiden en lettertypes. Daar zit niets in over jou: het zijn dezelfde bestanden die iedereen krijgt.</li>
     <li>Speel je zonder internet, dan staat <b>wat nog verstuurd moet worden</b> even in <code>rommelhoekje</code> (de tabel <code>uit</code>). Zodra er weer internet is, gaat het naar de server en is het weg. Is het na 7 dagen nog niet verstuurd, dan gooit de service worker het weg (je voortgang zelf blijft gewoon op je apparaat).</li>
   </ul>
@@ -359,6 +360,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     <thead><tr><th scope="col">Wat</th><th scope="col">Hoe lang</th></tr></thead>
     <tbody>
       <tr><td>Opslag op je apparaat</td><td>Tot je het zelf wist in je browser</td></tr>
+      <tr><td>Wat je met de feestdagen kreeg</td><td>Op je apparaat tot je het zelf wist; op de server zolang je account bestaat (zie Je account)</td></tr>
       <tr><td>Welke advertenties je onlangs zag of wegklikte (op je apparaat)</td><td>De laatste 10 spellen en 16 teksten; wat je wegklikte twee weken</td></tr>
       <tr><td>Bewaarde pagina's om zonder internet te spelen</td><td>Tot je het zelf wist in je browser (hooguit 80 pagina's)</td></tr>
       <tr><td>Wat nog verstuurd moet worden (als je zonder internet speelde)</td><td>Tot het verstuurd is, hooguit 7 dagen</td></tr>
@@ -437,6 +439,8 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   const pas = () => { let k = 'auto'; try { k = localStorage.getItem(THEMA) || 'auto'; } catch (e) {} const d = k === 'donker' || (k !== 'licht' && mq.matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); };
   pas(); if (mq.addEventListener) mq.addEventListener('change', pas); else if (mq.addListener) mq.addListener(pas);
   addEventListener('storage', e => { if (e.key === THEMA) pas(); });
+  // de feestdagen (feest.js): ook op de pagina's zonder scorebord-blok (één keer; niet in de werkplaats, de 404-pagina met /)
+  if (!window.__feestLaad && !window.RommelFeest && document.body && document.body.getAttribute('data-pagina') !== 'werkplaats') { window.__feestLaad = 1; const fs = document.createElement('script'); fs.src = (document.body.getAttribute('data-pagina') === '404' ? '/' : '') + 'feest.js'; fs.async = true; document.head.appendChild(fs); }
   // ================= de rommeltjes: echte natuurkunde (zie "Rommeltjes met echte natuurkunde" in CLAUDE.md)
   // Dezelfde kleine natuurkundemotor als op de homepage (Fysica, hieronder), met vier rommeltjes op plankjes in de
   // kantlijn: links de dobbelsteen en de knoop, rechts het sterretje en het potlood. Elke kantlijn is een eigen put

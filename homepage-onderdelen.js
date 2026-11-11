@@ -375,8 +375,22 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       if (!bannerLaad) bannerLaad = new Promise(ok => { const s = document.createElement('script'); s.src = 'banners.js'; s.async = true; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
       bannerLaad.then(ga);
     },
+    // de feestdagen (feest.js, zie daar): f(stand) zodra bekend is welke feestdag het is (Nederlandse tijd), en opnieuw als het verandert.
+    // stand = { feest: 'sint', 'kerst', 'oud', 'nieuwjaar' of null, fase, jaar, dag, versiering, heb(id): kreeg je dit al? }.
+    // Zonder f: de stand nu (of null, als feest.js er nog niet is).
+    feest(f) {
+      if (window.RommelFeest) { if (typeof f === 'function') window.RommelFeest.klaar(f); return window.RommelFeest.nu(); }
+      if (typeof f === 'function') (window.__feestWacht = window.__feestWacht || []).push(f);
+      laadFeest(); return null;
+    },
   };
   let bannerLaad = null;
+  // feest.js op elke pagina met dit blok (één keer; de werkplaats heeft geen scripts van de site)
+  function laadFeest() {
+    if (window.__feestLaad || window.RommelFeest || (document.body && document.body.getAttribute('data-pagina') === 'werkplaats')) return;
+    window.__feestLaad = 1; const s = document.createElement('script'); s.src = 'feest.js'; s.async = true; document.head.appendChild(s);
+  }
+  laadFeest();
   function tekenBlok(el) {
     el.hidden = false; el.innerHTML = '';
     el.classList.add('sb-blok');
@@ -544,6 +558,8 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       // het Coulissenkoor: liedjes meegezongen, dan je opnames
       'coulissenkoor-v1': s => [aantal(s.gezongen), aantal(s.liedjes)],
       'rommelhoekje-speler': s => [s && s.naam ? 1 : 0],
+      // de feestdagen (2026-11-13): hoeveel dingen je kreeg, dan alle cijfers van de dagen samen
+      'rommelhoekje-feest-v1': s => [lijst(s.st).length, Object.values(isObj(s.d) ? s.d : {}).reduce((a, x) => a + String(x).split('').reduce((b, c) => b + (+c || 0), 0), 0)],
     };
     const maatVan = (sleutel, s) => { try { return MAAT[sleutel] && isObj(s) ? MAAT[sleutel](s).map(x => getal(x)) : []; } catch (e) { return []; } };
     const vergelijk = (a, b) => { for (let k = 0; k < Math.max(a.length, b.length); k++) { const x = getal(a[k]), y = getal(b[k]); if (x !== y) return x > y ? 1 : -1; } return 0; };
@@ -699,6 +715,10 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
       // meezong (wat op een van de twee gelukt is, blijft), en per stem wie er zingt en je instellingen (de laatste keuze wint). Geen geld of spullen.
       'coulissenkoor-v1': { velden: { v: max, koor: elk(keuze), inst: keuze, liedjes: elk(keuze), gezongen: elk(max), voortgangTotaal: max },
         na: r => { if (isObj(r.liedjes)) { const k = Object.keys(r.liedjes).sort((x, y) => getal(lijst(r.liedjes[y])[1]) - getal(lijst(r.liedjes[x])[1])); for (const x of k.slice(30)) delete r.liedjes[x]; } return r; } },
+      // de feestdagen (2026-11-13): wat je met Sinterklaas, de kerst en oud en nieuw kreeg. Per seizoen per dag het hoogste cijfer (je schoen,
+      // een cadeautje uit je schoen, uitgepakt, een deurtje van de kerstkalender: een cijfer gaat alleen omhoog), en de dingen die je kreeg
+      // samen. Elk ding heeft een vaste naam (een dag, een deurtje of een verzamelstuk): met twee apparaten krijg je niets dubbel, en raak je niets kwijt.
+      'rommelhoekje-feest-v1': { velden: { v: max, d: elk(cijfers), st: samenLijst } },
       'rommelhoekje-eitjes': { velden: elk(samenLijst) },
       'rommelhoekje-speler': { heel: true },
       'gereedschap-v2': { heel: true },
@@ -756,7 +776,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   }
   // ---------- betrouwbaarheid: verzoeken met een tijdslimiet, zodat een trage server niets laat hangen
   const metTijd = (u, opties, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 12000); return fetch(u, Object.assign({}, opties || {}, { signal: c.signal })).finally(() => clearTimeout(t)); };
-  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'helpdesk-v1', 'coulissenkoor-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2'];
+  const SLEUTELS = ['vlaaienbakker-v1', 'rommelwoord-stats-v1', 'rommelwoord-dag-v1', 'rommelpoker-record', 'rommelpoker-spel-v2', 'rommelbeesten-v1', 'rommelhotel-v1', 'rommelland-v1', 'rommelblok-v2', 'rommelblok-v3', 'rommelblok-taal', 'vouwvlieger-v1', 'rommelritme-v1', 'rommelkroon-v1', 'rommelarend-v1', 'rommelrob-v1', 'rommelbel-v1', 'rommelsteek-v1', 'productiefiets-v1', 'steiger-v1', 'rommelwheels-v1', 'mengelmoes-v1', 'opgevoel-v1', 'rommelrecht-v1', 'rubendeduiker-v1', 'huisopstelten-v1', 'reclame-v1', 'rommelgroepjes-v1', 'rommelcasino-v1', 'rommelwoord-extra-v1', 'cryptisch-v1', 'letterval-v1', 'klinkermijnen-v1', 'helpdesk-v1', 'coulissenkoor-v1', 'rommelhoekje-thema', 'vlaaienbakker-week-v1', 'rommelhoekje-speler', 'rommelhoekje-eitjes', 'gereedschap-v2', 'rommelhoekje-feest-v1'];
   const MAX = 380000;
   const leesK = () => { try { return JSON.parse(localStorage.getItem(KKEY) || 'null'); } catch (e) { return null; } };
   const schrijfK = K => { try { if (K) localStorage.setItem(KKEY, JSON.stringify(K)); else localStorage.removeItem(KKEY); } catch (e) {} };
@@ -851,7 +871,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 14;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 15;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
@@ -2465,8 +2485,11 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     if (uur < 5) {
       const uil = document.createElement('div'); uil.className = 'gr-uil'; uil.setAttribute('role', 'button'); uil.tabIndex = 0; uil.setAttribute('aria-label', 'Een uil');
       uil.innerHTML = '<svg viewBox="0 0 56 64" aria-hidden="true"><path d="M8 20l6-14 8 10h12l8-10 6 14v26q0 14-20 14T8 46z" fill="#8C6A44" stroke="#3A2414" stroke-width="2.5"/><ellipse cx="28" cy="46" rx="12" ry="11" fill="#E8D5A8"/><circle cx="19" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="37" cy="27" r="8" fill="#FBF6E9" stroke="#3A2414" stroke-width="2"/><circle cx="20" cy="28" r="4" fill="#1F2333"/><circle cx="36" cy="28" r="4" fill="#1F2333"/><path d="M25 34l3 5 3-5z" fill="#E9B949"/><path d="M20 58v4M36 58v4" stroke="#E9B949" stroke-width="3"/></svg>';
-      const held = document.querySelector('.held') || main; const r = held.getBoundingClientRect(); uil.style.left = (r.left + scrollX + Math.min(r.width - 70, 460)) + 'px'; uil.style.top = (r.top + scrollY + 150) + 'px';
-      document.body.appendChild(uil);
+      // een vrij plekje dat nooit iets bedekt: de homepage zet hem bovenop de rommelkast (window.__uilPlek, in de homepage-onderdelen);
+      // is die er (nog) niet, dan na een paar seconden in de voet, naast het versienummer
+      uil.hidden = true; document.body.appendChild(uil);
+      if (window.__uilPlek) window.__uilPlek(uil); else window.__uilWacht = uil;
+      setTimeout(() => { if (!uil.hidden) return; const v = document.querySelector('footer .versie') || document.querySelector('footer'); if (!v) return; const r = v.getBoundingClientRect(); uil.style.left = (r.left + scrollX - 64) + 'px'; uil.style.top = (r.top + scrollY + r.height - 64) + 'px'; uil.hidden = false; }, 4000);
       const oehoe = () => { vind('uil'); toon(392, 0, 0.35, 'sine', 0.06); toon(330, 0.4, 0.5, 'sine', 0.06); const b = document.createElement('div'); b.className = 'gr-ballon'; b.textContent = 'Oehoe! Jij bent ook laat op, hè?'; b.style.left = (parseFloat(uil.style.left) - 60) + 'px'; b.style.top = (parseFloat(uil.style.top) - 34) + 'px'; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); };
       uil.addEventListener('click', oehoe); uil.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') oehoe(); });
     }
@@ -2663,6 +2686,21 @@ html[data-thema="donker"] { --rm-sch-k: #FFF0C8; --rm-sch-a: .13; --rm-kast-acht
 .rm-kast-voet { bottom: 0; width: 16px; height: 12px; background: var(--rm-hout-donker); border: 2.5px solid var(--tg-rand); border-top: 0; border-radius: 0 0 4px 4px; }
 .rm-kast-voet.l { left: 10px; } .rm-kast-voet.r { right: 10px; }
 .rm-kast-tape { left: 50%; top: -21px; transform: translateX(-50%) rotate(-3deg); background: #23252B; color: #F4F1EC; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; line-height: 1; padding: 5px 10px 4px; border-radius: 3px; white-space: nowrap; font-stretch: 75%; box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+/* de rij: op een smal scherm één lange plank in een schuifvenster (de rommeltjes zelf staan in #rm-laag en worden aan de randen afgeknipt) */
+.tg-kast { position: relative; }
+.tg-kast.met-uil { padding-top: 70px; }
+.tg-kast.rij { padding-top: 30px; }
+.tg-kast.rij.met-uil { padding-top: 74px; }
+.rm-kast-rol { position: relative; overflow-x: auto; overflow-y: hidden; pointer-events: auto; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; padding: 0 0 9px; -webkit-overflow-scrolling: touch; }
+.rm-kast-rol::-webkit-scrollbar { display: none; }
+.tg-kast.rij .rm-kast { margin: 0; }
+.tg-kast.rij .rm-kast > .rm-kast-tape { display: none; }
+.rm-kast-tape.los { position: absolute; display: block; top: 7px; z-index: 1; }
+.tg-kast.rij.met-uil .rm-kast-tape.los { top: 51px; }
+.rm-kast-pijlen { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; margin-top: .35rem; font-size: .8rem; font-weight: 700; color: var(--tg-zacht); }
+.rm-kast-pijlen button { width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--tg-knop-rand); background: var(--tg-knop); color: var(--tg-knop-tekst); display: grid; place-items: center; padding: 0; cursor: pointer; }
+.rm-kast-pijlen svg { width: 18px; height: 18px; }
+.gr-uil.op-kast { z-index: 3; }
 .rm-kaart { position: absolute; left: 0; top: 0; z-index: 7; max-width: 220px; box-sizing: border-box; padding: 8px 11px 9px; background: var(--tg-knop); color: var(--tg-tekst); border: 2.5px solid var(--tg-knop-rand); border-radius: 10px; box-shadow: 3px 4px 0 rgba(35,26,38,.18); pointer-events: none; opacity: 0; transition: opacity .15s ease; line-height: 1.25; text-align: left; }
 .rm-kaart.zichtbaar { opacity: 1; }
 .rm-kaart b { display: block; font-weight: 800; font-size: .95rem; }
@@ -2705,39 +2743,10 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
 .tg-reclame { display: block; margin: 0 0 2.6rem; }
 .tg-reclame-hoog, .tg-reclame-hoog.ra-plek { position: absolute; left: 0; top: 0; width: 160px; z-index: 2; }
 @media (max-width: 640px) { .tg-reclame { margin-bottom: 2rem; } }
-/* het casino: een uithangbord met neon en lampjes (bovenaan, zolang er een kaartje voor rommelcasino.html is) */
-.tg-casino { margin: 0 0 2.6rem; }
-.tg-cas-bord { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tekst plaat" "knop plaat"; align-items: center; gap: .7rem 1.6rem; padding: 2.2rem 2.1rem 2.1rem; border-radius: 1.75rem; border: 3px solid var(--tg-rand); text-decoration: none; color: #FFF4DA; overflow: hidden; background: radial-gradient(120% 150% at 88% 18%, #9A2079 0%, #4E1463 40%, #1C0B36 80%) #1C0B36; box-shadow: inset 0 0 0 3px #E9B949, inset 0 0 0 7px rgba(28,11,54,.85), inset 0 0 0 8.5px rgba(233,185,73,.5); }
-.tg-cas-bord::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 18% 115%, rgba(255,80,190,.3), transparent 48%), radial-gradient(circle at 8% 22%, rgba(255,255,255,.55) 0 1.2px, transparent 1.6px), radial-gradient(circle at 31% 12%, rgba(255,255,255,.4) 0 1px, transparent 1.4px), radial-gradient(circle at 47% 30%, rgba(255,255,255,.35) 0 1.2px, transparent 1.6px), radial-gradient(circle at 63% 14%, rgba(255,255,255,.5) 0 1px, transparent 1.4px); }
-.tg-cas-lamp { position: absolute; left: 1.3rem; right: 1.3rem; display: flex; justify-content: space-between; pointer-events: none; z-index: 1; }
-.tg-cas-lamp.boven { top: .6rem; } .tg-cas-lamp.onder { bottom: .6rem; }
-.tg-cas-lamp i { width: 8px; height: 8px; border-radius: 50%; background: #FFE9A8; box-shadow: 0 0 6px 2px rgba(255,214,110,.7); }
-.tg-cas-tekst { grid-area: tekst; position: relative; z-index: 1; min-width: 0; }
-.tg-cas-label { display: inline-block; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #2A1300; background: linear-gradient(180deg, #FFF0B8, #F4C752 55%, #D99A22); border-radius: 999px; padding: .2rem .75rem; }
-.tg-cas-neon { margin: .5rem 0 .4rem; font-size: clamp(1.85rem, 5.4vw, 3.2rem); font-weight: 800; line-height: 1.02; color: #FFF0F8; text-shadow: 0 0 4px #FFB6E6, 0 0 12px #FF4FB8, 0 0 30px rgba(255,63,160,.75); overflow-wrap: anywhere; }
-.tg-cas-zin { display: block; font-size: 1.02rem; line-height: 1.45; color: #F1E4FF; max-width: 35rem; }
-.tg-cas-status { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
-.tg-cas-status span { font-size: .82rem; font-weight: 800; color: #FFE9A8; background: rgba(255,255,255,.08); border: 1.5px solid rgba(233,185,73,.55); border-radius: 999px; padding: .2rem .65rem; }
-.tg-cas-knop { grid-area: knop; justify-self: start; position: relative; z-index: 1; white-space: nowrap; font-weight: 800; font-size: 1.05rem; color: #3A2300; background: linear-gradient(180deg, #FFF0B8 0%, #F4C752 45%, #D99A22 100%); border-radius: 999px; padding: .72rem 1.45rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 0 0 2px #8A5A12, 0 10px 22px -10px rgba(217,154,34,.9); }
-.tg-cas-bord:hover .tg-cas-knop, .tg-cas-bord:focus-visible .tg-cas-knop { background: linear-gradient(180deg, #FFF8DC, #FFD45C 50%, #EBAA2C); }
-.tg-cas-bord:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 4px; }
-.tg-cas-plaat { grid-area: plaat; position: relative; z-index: 1; width: clamp(10rem, 25vw, 16rem); }
-.tg-cas-plaat svg { display: block; width: 100%; height: auto; overflow: visible; }
-@media (max-width: 640px) {
-  .tg-casino { margin-bottom: 2rem; }
-  .tg-cas-bord { grid-template-columns: minmax(0, 1fr) 6.6rem; grid-template-areas: "tekst tekst" "knop plaat"; padding: 1.8rem 1.25rem 1.6rem; gap: .9rem .6rem; }
-  .tg-cas-plaat { width: 6.6rem; align-self: end; margin: -1.6rem -.3rem -.4rem 0; }
-  .tg-cas-zin { font-size: .94rem; } .tg-cas-lamp { left: 1rem; right: 1rem; }
-}
-@media (max-width: 400px) { .tg-cas-bord { grid-template-columns: minmax(0, 1fr) 5.6rem; } .tg-cas-plaat { width: 5.6rem; } .tg-cas-knop { font-size: .98rem; padding: .66rem 1.05rem; } }
-@media (prefers-reduced-motion: no-preference) {
-  .tg-cas-lamp i { animation: tg-lamp 1.3s steps(1) infinite; } .tg-cas-lamp i:nth-child(2n) { animation-delay: -.65s; }
-  .tg-cas-neon { animation: tg-neon 8s linear infinite; }
-  .tg-cas-wiel { animation: tg-wiel 16s linear infinite; transform-origin: 138px 66px; transform-box: view-box; }
-}
-@keyframes tg-lamp { 0% { opacity: 1; } 50% { opacity: .25; } }
-@keyframes tg-neon { 0%, 60%, 62.5%, 65%, 100% { opacity: 1; } 61%, 64% { opacity: .55; } }
-@keyframes tg-wiel { to { transform: rotate(360deg); } }
+/* de feestdagen (feest.js en feest-home.js): het feestbord bovenaan, op de plek waar het casinobord stond (alleen in de feestperiodes) */
+.tg-feest { margin: 0 0 2.6rem; }
+.tg-feest[hidden] { display: none; }
+@media (max-width: 640px) { .tg-feest { margin-bottom: 2rem; } }
 `;
 
   // ================= de puzzels van vandaag: elke dag nieuw, met je reeks
@@ -2846,44 +2855,12 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     document.addEventListener('visibilitychange', () => { if (!document.hidden) vernieuw(); });
   }
 
-  // ================= het casino: een uithangbord bovenaan (alleen als er een kaartje voor rommelcasino.html op de homepage staat)
-  function casinoPlaat() {
-    let s = '<svg viewBox="0 0 200 150" aria-hidden="true" focusable="false"><g class="tg-cas-wiel"><circle cx="138" cy="66" r="58" fill="#E9B949" stroke="#6B4210" stroke-width="2.5"/><circle cx="138" cy="66" r="51" fill="#5A2A14"/>';
-    for (let k = 0; k < 19; k++) { const a0 = k / 19 * Math.PI * 2, a1 = (k + 1) / 19 * Math.PI * 2, p = (r, a) => (138 + Math.cos(a) * r).toFixed(1) + ' ' + (66 + Math.sin(a) * r).toFixed(1); s += '<path d="M' + p(49, a0) + ' A49 49 0 0 1 ' + p(49, a1) + ' L' + p(33, a1) + ' A33 33 0 0 0 ' + p(33, a0) + 'Z" fill="' + (k === 0 ? '#138A4A' : k % 2 ? '#B3122E' : '#1D1A24') + '" stroke="#E9C46A" stroke-width=".8"/>'; }
-    s += '<circle cx="138" cy="66" r="31" fill="#7A3E1E" stroke="#E9B949" stroke-width="1.5"/><path d="M138 50v32M122 66h32" stroke="#F4C752" stroke-width="4" stroke-linecap="round"/><circle cx="138" cy="66" r="6" fill="#F4C752"/></g>';
-    s += '<circle cx="138" cy="15.5" r="4.2" fill="#FFFFFF" stroke="#9C9384" stroke-width="1"/>';
-    // twee kaarten en een stapel fiches
-    s += '<g transform="rotate(-15 52 98)"><rect x="30" y="66" width="44" height="62" rx="5" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><text x="36" y="81" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="13" fill="#1F2333">A</text><path d="M52 88c-6 6-12 9-12 14a5 5 0 0 0 9 3l-2 6h10l-2-6a5 5 0 0 0 9-3c0-5-6-8-12-14z" fill="#1F2333"/></g>';
-    s += '<g transform="rotate(9 74 102)"><rect x="52" y="70" width="44" height="62" rx="5" fill="#FBF6E9" stroke="#231A26" stroke-width="2"/><text x="58" y="85" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="13" fill="#C8323C">H</text><path d="M74 118c-9-5.5-13-10-13-14.5a6.5 6.5 0 0 1 13-1.6 6.5 6.5 0 0 1 13 1.6c0 4.5-4 9-13 14.5z" fill="#C8323C"/></g>';
-    [['#C8323C', 0], ['#2F4C8F', 1], ['#23865A', 2], ['#E5A425', 3]].forEach(([k, i]) => { const y = 136 - i * 7; s += '<ellipse cx="118" cy="' + (y + 3) + '" rx="20" ry="7" fill="#231A26"/><ellipse cx="118" cy="' + y + '" rx="20" ry="7" fill="' + k + '" stroke="#231A26" stroke-width="1.6"/><ellipse cx="118" cy="' + y + '" rx="12" ry="4" fill="none" stroke="#FBF6E9" stroke-width="2" stroke-dasharray="4 4"/>'; });
-    return s + '</svg>';
-  }
-  function maakCasino(tegels, blok) {
-    const t = tegels.find(x => x.href === 'rommelcasino.html'); if (!t) return;
-    const sec = document.createElement('section'); sec.className = 'tg-casino'; sec.setAttribute('aria-labelledby', 'tg-casino-kop');
-    const lampjes = n => '<i></i>'.repeat(n);
-    sec.innerHTML = `<a class="tg-cas-bord" href="rommelcasino.html">
-        <span class="tg-cas-lamp boven" aria-hidden="true">${lampjes(16)}</span><span class="tg-cas-lamp onder" aria-hidden="true">${lampjes(16)}</span>
-        <span class="tg-cas-tekst"><span class="tg-cas-label">${t.nieuw ? 'Nieuw · nu open' : 'Nu open'}</span>
-          <h2 class="tg-cas-neon" id="tg-casino-kop">Casino Rommelroyaal</h2>
-          <span class="tg-cas-zin">Veertien spellen in zes zalen: blackjack met een rekenuil, roulette, kien, krasloten en meer. Alleen speelfiches, nooit echt geld.</span>
-          <span class="tg-cas-status"></span></span>
-        <span class="tg-cas-plaat" aria-hidden="true">${casinoPlaat()}</span>
-        <span class="tg-cas-knop">Ga naar binnen <span aria-hidden="true">›</span></span>
-      </a>`;
+  // ================= de feestdagen: een lege plek bovenaan (waar het casinobord stond). feest-home.js (geladen door feest.js, via het
+  // scorebord-blok) tekent daar het feestbord, alleen in de feestperiodes uit feestdagen.json. Buiten de feestdagen blijft de plek leeg.
+  function maakFeestPlek(blok) {
+    if ($('#feest')) return;
+    const sec = document.createElement('section'); sec.className = 'tg-feest'; sec.id = 'feest'; sec.hidden = true; sec.setAttribute('aria-label', 'Feest');
     const vd = document.getElementById('vandaag'); (vd || blok).before(sec);
-    // de lampjes: zoveel als er passen
-    const bord = sec.querySelector('.tg-cas-bord'), pas = () => { const n = Math.max(8, Math.min(30, Math.round(bord.clientWidth / 34))); sec.querySelectorAll('.tg-cas-lamp').forEach(l => { if (l.children.length !== n) l.innerHTML = lampjes(n); }); };
-    pas(); addEventListener('resize', pas);
-    // wat je in het casino al deed: de hand van de dag van vandaag, en je sterren
-    const status = () => {
-      const s = lees('rommelcasino-v1'), d = s && s.dag && typeof s.dag === 'object' ? s.dag[nlDag()] : null, uit = [];
-      if (!s) uit.push('Elke dag de hand van de dag');
-      else uit.push(Array.isArray(d) ? 'Hand van de dag: ' + Math.round(+d[0] || 0) + ' van 100' : 'De hand van de dag staat klaar');
-      if (s && +s.ster > 0) uit.push(Math.round(+s.ster) + ' van ' + (+s.voortgangTotaal > 0 ? s.voortgangTotaal : 67) + ' sterren');
-      const html = uit.map(x => '<span>' + veilig(x) + '</span>').join(''), el = sec.querySelector('.tg-cas-status'); if (el.innerHTML !== html) el.innerHTML = html;
-    };
-    status(); addEventListener('pageshow', status); addEventListener('focus', status); addEventListener('storage', status); addEventListener('rommelhoekje-bijgewerkt', status);
   }
 
   // ================= nep-reclame (banners.js, via Scorebord.banner in het scorebord-blok): rouleert vanzelf, en nieuwe spellen komen
@@ -2952,7 +2929,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       <div class="tg-raster">${tegels.map(tegelHTML).join('')}</div>`;
     v8.before(blok);
     try { maakDag(tegels, blok); } catch (e) {}
-    try { maakCasino(tegels, blok); } catch (e) {}
+    try { maakFeestPlek(blok); } catch (e) {}
     try { maakReclame(blok); } catch (e) {}
     // de coulissen staan na de eerste rij kaartjes, dus in de oude weergave van home_v8: eerst eruit halen, dan pas verbergen
     const coul = $('.coulissen'); if (coul && v8.contains(coul)) blok.after(coul);
@@ -3506,6 +3483,11 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         sch: '<path d="M4.5 23.5h42l13.5 8.5-13.5 8.5h-42z"/>',
         hit: '<path class="hit fijn" d="M2 20h45l16 12-16 12H2z"/><path class="hit grof" d="M-2 16h50l18 16-18 16H-2z"/>',
         label: 'Potlood. Sleep om te tekenen, tik voor een krabbel.' },
+      // (de feestdagen) een pepernoot: alleen met Sinterklaas, aangezet door feest-home.js (RM.pepernoten)
+      pepernoot: { naam: 'Pepernoot', klank: 'hout', vorm: () => Fysica.cirkel(10.6, 0.45), dichtheid: 1.1, wrijving: 0.55, stuit: 0.3, rol: 120, dempA: 0.08,
+        teken: () => '<ellipse cx="32" cy="34" rx="13" ry="11.5" fill="#B5733A" stroke="#231A26" stroke-width="3"/><path d="M21 31c3-5 8-7.5 11-7.5s8 2.5 11 7.5" fill="none" stroke="#D99A5B" stroke-width="3" stroke-linecap="round"/><circle cx="27" cy="36" r="1.6" fill="#6E3F1A"/><circle cx="35" cy="39" r="1.4" fill="#6E3F1A"/><circle cx="38" cy="33" r="1.3" fill="#6E3F1A"/><circle cx="30" cy="41" r="1.1" fill="#6E3F1A"/>',
+        sch: '<ellipse cx="32" cy="34" rx="14.5" ry="13"/>', hit: rond(15, 20),
+        label: 'Pepernoot. Tik om hem te laten rollen.' },
     };
     // ---------- de knipoogjes in de rommelkast: hebbedingetjes uit series en films, als eigen tekeningen
     // (geen namen, logo's of personages; een hamer, een kubus, een kopje ...). romp: de botsvorm (bol, in tekencoördinaten).
@@ -3840,10 +3822,10 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       else pb.hidden = true;
     }
 
-    // ---------- de rommelkast: in de linker kantlijn als daar ruimte is (de hoge advertentie staat rechts),
-    // anders als kast in de pagina, tussen de advertentie en Alle spellen. Maten in px.
-    const KAST = { cel: 58, wand: 13, binnen: 20, vak: 72, plank: 10, voet: 8 };
-    let kastEl = null, kastSec = null, kastSig = '', kastMaat = null;
+    // ---------- de rommelkast: liggend in de pagina, tussen de advertentie en Alle spellen. Past hij niet met 8 kolommen (een telefoon),
+    // dan wordt het één lange plank die je opzij schuift (de rij, RJ). Maten in px.
+    const KAST = { cel: 58, wand: 13, binnen: 20, vak: 72, plank: 10, voet: 8, rijCel: 64 };
+    let kastEl = null, kastSec = null, kastSig = '', kastMaat = null, rol = null, rolTape = null, RJ = null, uil = null;
     function kastTeken(cols, cel) {
       const rijen = Math.ceil(KAST_ALLES.length / cols), w = cols * cel + 2 * KAST.wand, h = KAST.binnen + rijen * (KAST.vak + KAST.plank) + KAST.voet, sig = cols + ':' + cel;
       if (kastEl.dataset.sig !== sig) {
@@ -3856,19 +3838,81 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     }
     function zetKast() {
       const main = $('main'); if (!main || !kastEl) return null;
-      kastSec.hidden = true;
-      const m = rect(main), ruimte = m.l + 24, boven = $('#vandaag') || $('.tg-reclame') || $('#spellen');
-      if (ruimte >= 208 && boven) {
-        const k = kastTeken(3, Math.max(52, Math.min(KAST.cel, Math.floor((ruimte - 46) / 3))));
-        if (kastEl.parentNode !== document.body) document.body.appendChild(kastEl);
-        kastEl.classList.add('rm-zij');
-        kastEl.style.transform = `translate(${Math.round((ruimte - k.w) / 2)}px,${Math.round(rect(boven).t + 26)}px)`;
-        k.modus = 'zij'; return k;
+      kastSec.hidden = false; kastSec.classList.toggle('met-uil', !!uil);
+      const bw = kastSec.clientWidth || rect(main).w - 48, smal = bw - 26 < 8 * KAST.cel;
+      kastSec.classList.toggle('rij', smal);
+      if (smal) {
+        if (!rol) maakRol();
+        if (rolTape.parentNode !== kastSec) kastSec.appendChild(rolTape);
+        if (rol.parentNode !== kastSec) kastSec.appendChild(rol);
+        if (rolPijlen.parentNode !== kastSec) kastSec.appendChild(rolPijlen);
+        if (kastEl.parentNode !== rol) rol.appendChild(kastEl);
+        const k = kastTeken(KAST_ALLES.length, KAST.rijCel); k.modus = 'rij'; return k;
       }
-      kastSec.hidden = false; kastEl.classList.remove('rm-zij'); kastEl.style.transform = '';
+      if (rol) { rol.remove(); rolTape.remove(); rolPijlen.remove(); }
       if (kastEl.parentNode !== kastSec) kastSec.appendChild(kastEl);
-      const bw = kastSec.clientWidth || m.w - 48, cols = Math.max(3, Math.min(8, Math.floor((bw - 26) / KAST.cel))), cel = Math.min(84, Math.floor((bw - 26) / cols));
+      const cols = Math.max(3, Math.min(8, Math.floor((bw - 26) / KAST.cel))), cel = Math.min(84, Math.floor((bw - 26) / cols));
       const k = kastTeken(cols, cel); k.modus = 'plank'; return k;
+    }
+    // de rij: een schuifvenster (native opzij scrollen), een losse tape erboven en twee pijltjes eronder (voor een muis)
+    let rolPijlen = null, rolRaf = 0, rolGlij = 0;
+    function maakRol() {
+      rol = document.createElement('div'); rol.className = 'rm-kast-rol';
+      rolTape = document.createElement('span'); rolTape.className = 'rm-kast-tape los'; rolTape.textContent = 'Rommelkast';
+      rolPijlen = document.createElement('div'); rolPijlen.className = 'rm-kast-pijlen';
+      rolPijlen.innerHTML = '<button type="button" tabindex="-1" data-r="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6l-6 6 6 6"/></svg></button><span>Veeg voor meer</span><button type="button" tabindex="-1" data-r="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button>';
+      rolPijlen.addEventListener('click', e => { const k = e.target.closest('button[data-r]'); if (!k) return; stopGlij(); rol.scrollBy({ left: +k.dataset.r * Math.max(120, rol.clientWidth * 0.7), behavior: RUSTIG ? 'auto' : 'smooth' }); });
+      rol.addEventListener('scroll', () => { if (!rolRaf) rolRaf = requestAnimationFrame(() => { rolRaf = 0; schuifRij(); }); }, { passive: true });
+    }
+    function stopGlij() { cancelAnimationFrame(rolGlij); rolGlij = 0; }
+    // een rommeltje in de rij: zijn plek is r.rij (in px vanaf het begin van de kast). Wat buiten het venster valt, doet even niet mee
+    // (geparkeerd: r.park, en r.weg zodat de natuurkunde het overslaat); het blijft wel te bereiken met het toetsenbord.
+    function parkeer(r, aan) {
+      const i = wereld.lichamen.indexOf(r.b);
+      if (aan && !r.park) { r.park = true; r.weg = true; if (i >= 0) wereld.lichamen.splice(i, 1); }
+      else if (!aan && r.park) { r.park = false; r.weg = false; if (i < 0) wereld.lichamen.push(r.b); r.b.slaap = true; r.b.rust = 0; r.b.vx = r.b.vy = r.b.w = 0; }
+    }
+    function plaatsInRij(r) {
+      const b = r.b, x = RJ.x0 + r.rij, dx = x - b.x;
+      if (Math.abs(dx) > 0.01) { b.x = x; b.px = x; wereld.werk(b); }
+      parkeer(r, x < RJ.winL + 22 || x > RJ.winR - 22);
+      if (r.park) tekenEen(r, 1);
+    }
+    // wie ligt er in de rij (op de plank of bovenop de kast)?
+    function rijLeden() {
+      if (!RJ) return;
+      for (const r of rommels) { if (r.park || (greep && greep.r === r)) continue; if (r.weg) { r.rij = null; continue; } const s = draagVlak(r.b); r.rij = s && s.data.rij ? r.b.x - RJ.x0 : null; }
+    }
+    function schuifRij() {
+      if (!RJ || !rol) return;
+      const off = rol.scrollLeft; if (Math.abs(off - RJ.off) < 0.01) return;
+      // wat net bewoog en op de plank (of bovenop de kast) belandde, schuift ook mee (gemeten met de oude stand van de plank)
+      for (const r of rommels) if (!r.park && !r.weg && (r.rij == null || !r.b.slaap) && !(greep && greep.r === r && greep.sleept)) { const s = draagVlak(r.b); r.rij = s && s.data.rij ? r.b.x - RJ.x0 : null; }
+      RJ.off = off; RJ.x0 = RJ.winL - off;
+      rijLichamen();
+      for (const r of rommels) if (r.rij != null) plaatsInRij(r);
+      teken(1);
+      if (kaartVan) toonKaart(kaartVan);
+    }
+    // de vaste delen van de kast in de rij: alleen wat in (of vlak naast) het venster staat
+    function rijLichamen() {
+      wereld.leegVast(s => s.data.rij);
+      const { winL, winR, x0, w, h, y0 } = RJ, L = Math.max(2, winL - 30), R = Math.min(docB - 2, winR + 30);
+      const tL = Math.max(L, x0 - 6), tR = Math.min(R, x0 + w + 6);
+      if (tR - tL > 20) wereld.vastDoos(tL, y0, tR, y0 + KAST.binnen, { schuin: 2, wrijving: 0.7, el: kastEl.querySelector('.rm-kast-kroon'), data: { naam: 'kast', klank: 'hout', anker: 'kast-rij', rij: 1 } });
+      const pL = Math.max(L, x0 + KAST.wand), pR = Math.min(R, x0 + w - KAST.wand), py = RJ.plankY;
+      if (pR - pL > 20) wereld.vastDoos(pL, py, pR, py + KAST.plank, { wrijving: 0.7, el: kastEl.querySelector('.rm-kast-plank'), data: { naam: 'kast', klank: 'hout', anker: 'kast-rij', kast: 0, rij: 1 } });
+      if (x0 + KAST.wand > L) wereld.vastDoos(x0, y0 + 12, x0 + KAST.wand, y0 + h, { wrijving: 0.6, data: { naam: 'kastwand', klank: 'hout', rij: 1 } });
+      if (x0 + w - KAST.wand < R) wereld.vastDoos(x0 + w - KAST.wand, y0 + 12, x0 + w, y0 + h, { wrijving: 0.6, data: { naam: 'kastwand', klank: 'hout', rij: 1 } });
+    }
+    // het uiltje (tussen middernacht en vijf uur, uit het grapjesblok): rechts bovenop de kast, op een plekje dat de kast voor hem vrijhoudt
+    // (.tg-kast.met-uil). In de natuurkunde een klein vast blokje: wat je op de kast gooit, botst tegen hem op.
+    window.__uilPlek = el => { uil = el; el.classList.add('op-kast'); if (laag) { bouwWereld(); teken(1); } };
+    function zetUil() {
+      if (!uil || !kastMaat) return;
+      const q = rect(kastEl), rechts = RJ ? Math.min(RJ.winR, q.l + kastMaat.w) : q.l + kastMaat.w, x = Math.round(rechts - 60), y = Math.round(q.t - 62);
+      uil.style.left = x + 'px'; uil.style.top = y + 'px'; uil.hidden = false;
+      wereld.vastDoos(x + 8, y + 14, x + 48, q.t, { schuin: 6, wrijving: 0.6, data: { naam: 'uil', klank: 'hout' } });
     }
     // de bovenkant van iets vasts onder x (ook als het een beetje scheef staat)
     function topVan(s, x) {
@@ -3879,7 +3923,13 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     // waar een rommeltje thuishoort: op het plankje naast het briefje, of op zijn plek in de kast
     function thuis(r) {
       if (r.plek === 'brief') return legOp(r, 'plank:brief', [0.2, 0.5, 0.8][BRIEF.indexOf(r.soort)]);
+      if (r.plek === 'feest') return legOp(r, r.thuisAnker || 'plank:brief', r.thuisF == null ? 0.5 : r.thuisF) || legOp(r, 'plank:brief', 0.5);
       const k = kastMaat; if (!k) return false;
+      if (k.modus === 'rij') {
+        if (!RJ) return false; parkeer(r, false);
+        const x = RJ.x0 + KAST.wand + k.cel * (KAST_ALLES.indexOf(r.soort) + 0.5);
+        opRust(r, x + r.b.vorm.ox, RJ.plankY, 0); r.rij = r.b.x - RJ.x0; plaatsInRij(r); return true;
+      }
       const i = KAST_ALLES.indexOf(r.soort), rij = Math.floor(i / k.cols), j = i % k.cols, n = Math.min(k.cols, KAST_ALLES.length - rij * k.cols);
       const s = ankerVast('kast' + k.cols + ':' + rij); if (!s) return false;
       const x = s.aabb[0] + (k.cols - n) * k.cel / 2 + k.cel * (j + 0.5);
@@ -3895,7 +3945,8 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       return false;
     }
     function bouwWereld() {
-      const oud = rommels.filter(r => !r.weg).map(r => { const s = draagVlak(r.b); return s ? [r, s.el, s.aabb[0], s.aabb[1], s.data.kast != null] : null; }).filter(Boolean);
+      rijLeden(); const geparkeerd = rommels.filter(r => r.park), oudRJ = RJ && { y0: RJ.y0, plankY: RJ.plankY };
+      const oud = rommels.filter(r => !r.weg && r.rij == null).map(r => { const s = draagVlak(r.b); return s ? [r, s.el, s.aabb[0], s.aabb[1], s.data.kast != null] : null; }).filter(Boolean);
       docB = document.documentElement.clientWidth;
       const voet = $('footer'), main = $('main');
       const vb = voet ? rect(voet) : null, mb = main ? rect(main) : { b: document.documentElement.scrollHeight };
@@ -3905,6 +3956,8 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const naastBrief = breed(); plaatsKnopjes(naastBrief);
       // eerst de kast (die kan de pagina eronder verschuiven), dan het plankje en de hoge advertentie
       const k = zetKast(), sig = k ? k.modus + k.cols + ':' + k.cel : '', anders = !!kastSig && sig !== kastSig; kastSig = sig; kastMaat = k;
+      if (k && k.modus === 'rij') { const q = rect(rol), kq = rect(kastEl); RJ = { winL: q.l, winR: q.r, off: rol.scrollLeft, x0: q.l - rol.scrollLeft, w: k.w, h: k.h, y0: kq.t, plankY: kq.t + KAST.binnen + KAST.vak }; }
+      else RJ = null;
       zetPlanken(naastBrief); plaatsHoog();
       wereld.leegVast(s => !s.data.lijn);
       wereld.vastDoos(-600, -600, 0, docH + 600, { rand: true, data: { naam: 'muur' } });
@@ -3916,7 +3969,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const st = $('.sticker'); if (zichtbaar(st) && getComputedStyle(st).visibility !== 'hidden') stickerVast(st);
       const brief = $('.briefje'); if (zichtbaar(brief)) vastVan(brief, { schuin: 3, naam: 'briefje', anker: 'briefje', tik: true });
       const blad = $('.tg-blad'); if (zichtbaar(blad)) vastVan(blad, { schuin: 6, naam: 'blad', anker: 'blad', tik: true });
-      const cas = $('.tg-cas-bord'); if (zichtbaar(cas)) vastVan(cas, { schuin: 12, hoek: 0, naam: 'casino', anker: 'casino' });
+      const fb = $('.tg-feest-bord'); if (zichtbaar(fb)) vastVan(fb, { schuin: 12, hoek: 0, naam: 'feest', anker: 'feest' });
       // de advertenties (die rouleren, dus het blok hangt aan de vaste plek eromheen)
       const rb = $('.tg-reclame'), ra = rb && rb.querySelector('.ra'); if (zichtbaar(ra)) vastVan(ra, { hoek: 0, naam: 'reclame', anker: 'reclame', el: rb });
       const rh = reclameHoog, rha = rh && !rh.hidden && rh.querySelector('.ra'); if (zichtbaar(rha)) vastVan(rha, { hoek: 0, naam: 'reclame', anker: 'reclame-hoog', el: rh });
@@ -3937,8 +3990,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         wereld.vastDoos(x0 - 2.5, y - 10, x0 + 4.5, y + 1, { schuin: 1.5, wrijving: 0.6, data: { naam: 'randje', klank: 'hout' } });
         wereld.vastDoos(x0 + w - 4.5, y - 10, x0 + w + 2.5, y + 1, { schuin: 1.5, wrijving: 0.6, data: { naam: 'randje', klank: 'hout' } });
       }
-      // de kast: een bovenkant om iets op te leggen, twee zijwanden en de planken
-      if (kastMaat) {
+      // de kast: een bovenkant om iets op te leggen, twee zijwanden en de planken (in de rij alleen wat in het venster staat)
+      if (RJ) rijLichamen();
+      else if (kastMaat) {
         const q = rect(kastEl), x0 = q.l, y0 = q.t, w = kastMaat.w, h = kastMaat.h;
         wereld.vastDoos(x0 - 6, y0, x0 + w + 6, y0 + KAST.binnen, { schuin: 2, wrijving: 0.7, el: kastEl.querySelector('.rm-kast-kroon'), data: { naam: 'kast', klank: 'hout', anker: 'kast-top' } });
         wereld.vastDoos(x0, y0 + 12, x0 + KAST.wand, y0 + h, { wrijving: 0.6, data: { naam: 'kastwand', klank: 'hout' } });
@@ -3948,6 +4002,16 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
           wereld.vastDoos(x0 + KAST.wand, y, x0 + w - KAST.wand, y + KAST.plank, { wrijving: 0.7, el: p, data: { naam: 'kast', klank: 'hout', anker: 'kast' + kastMaat.cols + ':' + i, kast: i } });
         });
       }
+      zetUil();
+      // wat in de rij lag, blijft op zijn plek in de rij (of gaat terug naar zijn plek in de kast, als de kast nu anders is)
+      for (const r of rommels) {
+        if (r.rij == null && !r.park) continue;
+        if (anders || !RJ) { parkeer(r, false); r.rij = null; thuis(r); continue; }
+        // schoof de kast omhoog of omlaag (bijvoorbeeld toen het uiltje kwam), dan schuift alles in de rij mee, ook wat buiten beeld staat
+        if (oudRJ) { const dy = r.b.y < oudRJ.y0 + KAST.binnen ? RJ.y0 - oudRJ.y0 : RJ.plankY - oudRJ.plankY; if (Math.abs(dy) > 0.01) { r.b.y += dy; r.b.py += dy; wereld.werk(r.b); } }
+        plaatsInRij(r);
+      }
+      void geparkeerd;
       // wat ergens op lag, schuift mee met dat ding (en wat in een kast stond die nu anders is, gaat terug naar zijn plek)
       for (const o of oud) {
         if (anders && o[4]) { thuis(o[0]); continue; }
@@ -3955,7 +4019,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         const dx = nieuw.data.naam === 'vloer' ? 0 : nieuw.aabb[0] - o[2], dy = nieuw.aabb[1] - o[3], b = o[0].b;
         if (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2) { b.x += dx; b.y += dy; b.px = b.x; b.py = b.y; }
       }
-      for (const r of rommels) { if (r.weg) continue; const b = r.b; if (b.x > docB - 12) b.x = docB - 30; if (b.x < 12) b.x = 30; if (b.y > vloerY) b.y = vloerY - 30; wereld.werk(b); }
+      for (const r of rommels) { if (r.weg || r.rij != null) continue; const b = r.b; if (b.x > docB - 12) b.x = docB - 30; if (b.x < 12) b.x = 30; if (b.y > vloerY) b.y = vloerY - 30; wereld.werk(b); }
     }
     function zetWeg(r, weg) {
       r.weg = weg; r.el.hidden = weg;
@@ -3979,7 +4043,14 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const bewaard = opslag.p || {};
       for (const r of rommels) {
         if (r.weg) continue;
-        const p = bewaard[r.id], s = p && ankerVast(p[0]);
+        const p = bewaard[r.id];
+        if (p && p[0] === 'kast-rij') {
+          if (!RJ) { thuis(r); continue; }
+          const b = r.b; r.rij = Math.max(KAST.wand + 10, Math.min(RJ.w - KAST.wand - 10, +p[1] || 0)); b.x = RJ.x0 + r.rij; b.y = RJ.plankY + (+p[2] || 0); b.a = +p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; b.vx = b.vy = b.w = 0;
+          if (r.soort === 'dobbelsteen' && p[4]) zetVlak(r, p[4]);
+          wereld.werk(b); plaatsInRij(r); continue;
+        }
+        const s = p && ankerVast(p[0]);
         if (s) {
           const w = s.aabb[2] - s.aabb[0], b = r.b;
           b.x = s.aabb[0] + Math.max(8, Math.min(w - 8, p[1])); b.y = s.aabb[1] + p[2]; b.a = p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; b.vx = b.vy = b.w = 0;
@@ -3992,8 +4063,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       teken(1);
     }
     function bewaar() {
-      const p = {};
+      const p = {}; rijLeden();
       for (const r of rommels) {
+        if (r.rij != null && RJ) { p[r.id] = ['kast-rij', Math.round(r.rij * 10) / 10, Math.round((r.b.y - RJ.plankY) * 10) / 10, Math.round(r.b.a * 1000) / 1000, r.soort === 'dobbelsteen' ? r.face : 0]; continue; }
         if (r.weg) continue; const s = draagVlak(r.b); if (!s || !s.data.anker) continue;
         p[r.id] = [s.data.anker, Math.round((r.b.x - s.aabb[0]) * 10) / 10, Math.round((r.b.y - s.aabb[1]) * 10) / 10, Math.round(r.b.a * 1000) / 1000, r.soort === 'dobbelsteen' ? r.face : 0];
       }
@@ -4001,9 +4073,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     }
 
     // ---------- tekenen: alleen transform (en opacity)
-    function teken(alfa) {
-      for (const r of rommels) {
-        if (r.weg) continue;
+    function teken(alfa) { for (const r of rommels) if (!r.weg) tekenEen(r, alfa); }
+    function tekenEen(r, alfa) {
+      {
         const b = r.b, x = b.px + (b.x - b.px) * alfa, y = b.py + (b.y - b.py) * alfa, a = b.pa + (b.a - b.pa) * alfa, m = wereld.midden(b, x, y, a);
         r.lift += (r.liftDoel - r.lift) * 0.3; if (Math.abs(r.lift - r.liftDoel) < 0.01) r.lift = r.liftDoel;
         const sl = r.lift, sc = 1 + 0.1 * sl, gr = (a * 180 / Math.PI).toFixed(2);
@@ -4014,6 +4086,10 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         if (td !== r.td) { r.draai.style.transform = td; r.td = td; }
         const ts = `translate(${(1 + 2 * sl).toFixed(2)}px,${(3 + 8 * sl).toFixed(2)}px) rotate(${gr}deg) scale(${sc.toFixed(3)},${sy.toFixed(3)})`;
         if (ts !== r.ts) { r.sch.style.transform = ts; r.ts = ts; }
+        // in de rij: alleen wat binnen het venster valt is te zien
+        let cp = '';
+        if (RJ && r.rij != null) { const L = m[0] - 33, cl = Math.max(0, RJ.winL - L), cr = Math.max(0, L + 66 - RJ.winR); cp = cl >= 66 || cr >= 66 ? 'inset(50%)' : cl || cr ? `polygon(${cl.toFixed(1)}px -80px,${(66 - cr).toFixed(1)}px -80px,${(66 - cr).toFixed(1)}px 146px,${cl.toFixed(1)}px 146px)` : ''; }
+        if (cp !== (r.clip || '')) { r.el.style.clipPath = cp; r.clip = cp; }
       }
     }
 
@@ -4198,7 +4274,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const b = r.b; wereld.wek(b);
       const kant = vanX == null ? (Math.random() < 0.5 ? -1 : 1) : vanX < b.x ? 1 : -1;
       b.vx = kant * (380 + Math.random() * 180); b.vy = -110; b.w = b.vx / 17.7;
-      Klank.tik('glas', 700, 'knikker-tik'); glans(r); wek();
+      Klank.tik(r.d.klank, 700, r.soort + '-tik'); glans(r); wek();
     }
     function glans(r) { const s = r.el.querySelector('.streep'); if (!s || RUSTIG) return; try { s.animate([{ opacity: 0, transform: 'translateX(0px)' }, { opacity: 0.75, offset: 0.3 }, { opacity: 0, transform: 'translateX(70px)' }], { duration: 650, easing: 'ease-out' }); } catch (e) {} }
 
@@ -4412,20 +4488,28 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const el = r.el;
       el.addEventListener('pointerdown', e => {
         if (greep || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        if (r.park) { e.preventDefault(); stopGlij(); greep = { r, id: e.pointerId, x0: e.pageX, y0: e.pageY, t0: performance.now(), cx: e.clientX, cy: e.clientY, sleept: false, veer: null, park: true }; try { el.setPointerCapture(e.pointerId); } catch (x) {} return; }
         e.preventDefault(); Klank.start(); bouwWereld(); clearTimeout(r.kaartKlok);
         try { (e.target.setPointerCapture ? e.target : el).setPointerCapture(e.pointerId); } catch (x) {}
+        stopGlij();
         greep = { r, id: e.pointerId, x0: e.pageX, y0: e.pageY, t0: performance.now(), cx: e.clientX, cy: e.clientY, sleept: false, veer: null };
       });
       el.addEventListener('pointermove', e => {
         if (!greep || greep.id !== e.pointerId) return;
         greep.cx = e.clientX; greep.cy = e.clientY;
         const x = e.pageX, y = e.pageY;
-        if (!greep.sleept && Math.hypot(x - greep.x0, y - greep.y0) > 6) startSlepen(x, y);
+        if (greep.schuif) { const S = greep.schuif, nu = performance.now(); rol.scrollLeft = S.s0 - (x - greep.x0); S.v = 0.7 * S.v + 0.3 * (x - S.lx) / Math.max(8, nu - S.t); S.t = nu; S.lx = x; return; }
+        if (!greep.sleept && Math.hypot(x - greep.x0, y - greep.y0) > 6) {
+          if (RJ && rol && greep.r.rij != null && (greep.park || (e.pointerType !== 'mouse' && Math.abs(x - greep.x0) > Math.abs(y - greep.y0) * 1.15))) { verbergKaart(); greep.schuif = { s0: rol.scrollLeft + (x - greep.x0), t: performance.now(), v: 0, lx: x }; rol.scrollLeft = greep.schuif.s0 - (x - greep.x0); return; }
+          startSlepen(x, y);
+        }
         if (greep.sleept) volg(x, y);
       });
       const los = e => {
         if (!greep || greep.id !== e.pointerId) return;
         const g = greep; greep = null;
+        if (g.schuif) { glij(-g.schuif.v * 16); return; }
+        if (g.park) { if (RJ && rol && g.r.rij != null) rol.scrollTo({ left: Math.max(0, g.r.rij - (RJ.winR - RJ.winL) / 2), behavior: RUSTIG ? 'auto' : 'smooth' }); return; }
         if (!g.sleept) { if (e.type === 'pointerup' && performance.now() - g.t0 < 400) actie(g.r, e.pageX); return; }
         if (g.r.soort === 'potlood') stopTekenen(true);
         else if (g.veer) {
@@ -4449,6 +4533,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         el.addEventListener('focus', () => { let z = true; try { z = el.matches(':focus-visible'); } catch (x) {} if (z) toonKaart(r); });
         el.addEventListener('blur', () => verbergKaart(r));
       }
+      el.addEventListener('focus', () => { if (!RJ || !rol || r.rij == null) return; const w = RJ.winR - RJ.winL, x = r.rij - RJ.off; if (x < 40 || x > w - 40) rol.scrollTo({ left: Math.max(0, r.rij - w / 2), behavior: RUSTIG ? 'auto' : 'smooth' }); });
       el.addEventListener('keydown', e => {
         const b = r.b;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); Klank.start(); bouwWereld(); actie(r, null); return; }
@@ -4459,8 +4544,14 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         if (b.kin) return; bouwWereld(); wereld.wek(b); b.vx += duw[0]; b.vy += duw[1]; if (duw[0]) b.w += duw[0] / 60; wek();
       });
     }
+    // na het vegen: de plank glijdt nog even door (zoals gewoon scrollen)
+    function glij(v) {
+      stopGlij(); if (RUSTIG || !rol || Math.abs(v) < 1) return;
+      const stap = () => { rol.scrollLeft += v; v *= 0.93; if (Math.abs(v) > 0.4) rolGlij = requestAnimationFrame(stap); else rolGlij = 0; };
+      rolGlij = requestAnimationFrame(stap);
+    }
     function startSlepen(x, y) {
-      const g = greep, r = g.r; g.sleept = true; tril(4); verbergKaart();
+      const g = greep, r = g.r; g.sleept = true; tril(4); verbergKaart(); r.rij = null;
       if (teZwaar(r) && !probeerHamer(r)) { g.vast = true; return; }
       if (pad && pad.r === r) stopPad();
       if (r.soort === 'potlood') { beginTekenen(r, x, y); return; }
@@ -4489,7 +4580,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       }
       if (r.b.kin) return;
       if (r.soort === 'dobbelsteen') gooi(r);
-      else if (r.soort === 'knikker') tikKnikker(r, vanX);
+      else if (r.soort === 'knikker' || r.soort === 'pepernoot') tikKnikker(r, vanX);
       else if (r.soort === 'potlood') krabbel(r);
     }
 
@@ -4601,6 +4692,8 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       if (greep) return;
       if (tekenaar) stopTekenen(false); if (pad) stopPad();
       for (const s of stroken.slice()) haalWeg(s);
+      for (const r of rommels) { if (r.park) parkeer(r, false); r.rij = null; }
+      if (rol) { stopGlij(); rol.scrollLeft = 0; }
       bouwWereld();
       for (const r of rommels) {
         if (r.weg) continue; const b = r.b;
@@ -4628,6 +4721,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const spellen = $('#spellen'); if (spellen) spellen.before(kastSec); else document.body.appendChild(kastSec);
       kastEl = document.createElement('div'); kastEl.className = 'rm-kast'; kastEl.setAttribute('aria-hidden', 'true');
       knopjes();
+      if (window.__uilWacht) { uil = window.__uilWacht; uil.classList.add('op-kast'); window.__uilWacht = null; }
       bouwWereld();
       beginPlek();
       for (const r of rommels) if (!r.weg && !r.b.slaap) { wek(); break; }
@@ -4640,8 +4734,26 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       if ('ResizeObserver' in window) { let eerste = true; new ResizeObserver(() => { if (eerste) { eerste = false; return; } herbouw(); }).observe(document.body); }
       document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.tg-filters button')) setTimeout(herbouw, 30); });
     }
+    // (de feestdagen) pepernoten tussen de rommeltjes, alleen met Sinterklaas (feest-home.js zet ze aan en uit)
+    const PEPERNOOT = [['plank:brief', 0.35], ['plank:brief', 0.65], ['feest', 0.84], ['feest', 0.9]];
+    function pepernoten(aan) {
+      if (!laag) return;
+      const er = rommels.filter(r => r.soort === 'pepernoot');
+      if (aan && !er.length) {
+        bouwWereld(); const bewaard = opslag.p || {};
+        PEPERNOOT.forEach((x, i) => {
+          const r = maak('pepernoot', 'feest', i); r.thuisAnker = x[0]; r.thuisF = x[1];
+          const p = bewaard[r.id], s = p && p[0] !== 'kast-rij' && ankerVast(p[0]);
+          if (s) { const b = r.b; b.x = s.aabb[0] + Math.max(8, Math.min(s.aabb[2] - s.aabb[0] - 8, p[1])); b.y = s.aabb[1] + p[2]; b.a = p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; wereld.werk(b); } else thuis(r);
+          wereld.vrijMaken(r.b); r.b.slaap = steunt(r.b); if (!r.b.slaap) wek();
+        });
+        teken(1);
+      } else if (!aan && er.length) {
+        for (const r of er) { if (greep && greep.r === r) greep = null; r.el.remove(); r.sch = null; const i = wereld.lichamen.indexOf(r.b); if (i >= 0) wereld.lichamen.splice(i, 1); rommels.splice(rommels.indexOf(r), 1); }
+      }
+    }
     function naVerspringen() { for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); if (!r.b.kin && !steunt(r.b)) { wereld.wek(r.b); wek(); } } teken(1); }
-    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, wek, legTerug, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
+    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, wek, legTerug, pepernoten, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
   })();
   function zetRommeltjes() { try { RM.start(); window.__rommeltjes = RM; } catch (e) { if (window.reportError) reportError(e); } }
 

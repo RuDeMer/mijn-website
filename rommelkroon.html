@@ -2847,15 +2847,40 @@ const KM2 = (() => {
   };
   const FEEST_KLEUREN = ['#E9B949', '#C8323C', '#2F4C8F', '#F2DDA0', '#B8E0A0', '#C9B3F2'];
 
-  // de seizoenen: in die tijd voor iedereen te kiezen; los je dan een puzzel van de dag op (op de dag zelf), dan blijft het van jou
+  // de seizoenen: in die tijd voor iedereen te kiezen; los je dan een puzzel van de dag op (op de dag zelf), dan blijft het van jou.
+  // cadeau en vind: de tekst in de kast voor wat je met de feestdagen kreeg (feest), of waar je het nog kunt vinden.
   const SEIZOEN = {
-    sint: { naam: 'Sinterklaastijd', van: 1114, tot: 1205, wanneer: '14 november tot en met 5 december', icoon: 'mijter', dingen: 'Sinterklaaskleuren, een mijter en een pepernoot als kroontje, en een pepernotenregen als feestje' },
-    kerst: { naam: 'kersttijd', van: 1206, tot: 106, wanneer: '6 december tot en met 6 januari', icoon: 'kerstbal', dingen: 'kerstkleuren, een kerstbal als kroontje, een sneeuwvlokje als kruisje en sneeuw als feestje' },
+    sint: { naam: 'Sinterklaastijd', van: 1114, tot: 1205, wanneer: '14 november tot en met 5 december', icoon: 'mijter', dingen: 'Sinterklaaskleuren, een mijter en een pepernoot als kroontje, en een pepernotenregen als feestje', cadeau: 'Van jou: een cadeau van de Sint, uit je schoen.', vind: ', of vind hem op pakjesavond in je schoen,' },
+    kerst: { naam: 'kersttijd', van: 1206, tot: 106, wanneer: '6 december tot en met 6 januari', icoon: 'kerstbal', dingen: 'kerstkleuren, een kerstbal als kroontje, een sneeuwvlokje als kruisje en sneeuw als feestje', cadeau: 'Van jou: uit de kerstkalender.', vind: ', of vind hem in de kerstkalender op de homepage,' },
   };
   const maandDag = d => { const x = new Date(d * 86400000); return (x.getUTCMonth() + 1) * 100 + x.getUTCDate(); };
-  const inSeizoen = (s, d) => { const z = SEIZOEN[s], v = maandDag(d); return z.van <= z.tot ? v >= z.van && v <= z.tot : v >= z.van || v <= z.tot; };
+  // de vaste data (van en tot hierboven, maand en dag): zo werkte het altijd, en zo werkt het zonder feestkalender
+  const inVast = (s, d) => { const z = SEIZOEN[s], v = maandDag(d); return z.van <= z.tot ? v >= z.van && v <= z.tot : v >= z.van || v <= z.tot; };
+  // De feestkalender van de site (feest.js en feestdagen.json; FKAL wordt gezet zodra de stand van de feestdagen bekend is, onderaan bij
+  // Scorebord.feest): Sinterklaastijd van de intocht tot en met de dag van pakjesavond, kersttijd van het eerste deurtje (kalenderVan) tot
+  // en met het eind van de versiering (versieringTot), elk feestjaar met zijn eigen data. Staat het feestjaar van een dag niet in de
+  // kalender (of is er nog geen kalender), dan gelden de vaste data.
+  let FKAL = null;   // { kern: RommelFeest.KERN, kal: de feestkalender }
+  const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+  const datumNL = d => { const x = new Date(d * 86400000); return x.getUTCDate() + ' ' + MAANDEN[x.getUTCMonth()]; };
+  const vakJ = (s, J) => { const K = FKAL.kern, v = K.dagNr(String(s === 'sint' ? J.intocht : J.kalenderVan).slice(0, 10)), w = K.dagNr(String(s === 'sint' ? J.pakjesavond : J.versieringTot).slice(0, 10)); return isFinite(v) && isFinite(w) && v <= w ? [v, w] : null; };
+  // het seizoen in het feestjaar van dag d (een feestjaar loopt van juli tot en met juni), als de kalender dat jaar kent; anders null
+  const vakVan = (s, d) => {
+    if (!FKAL) return null;
+    try {
+      const x = new Date(d * 86400000), fj = x.getUTCMonth() >= 6 ? x.getUTCFullYear() : x.getUTCFullYear() - 1, J = FKAL.kern.jaarVan(FKAL.kal, d * 86400000 + 43200000);
+      return J && +J.jaar === fj ? vakJ(s, J) : null;
+    } catch (e) { return null; }
+  };
+  const inSeizoen = (s, d) => { const v = vakVan(s, d); return v ? d >= v[0] && d <= v[1] : inVast(s, d); };
   const seizoenNu = () => Object.keys(SEIZOEN).find(s => inSeizoen(s, dagNr())) || null;
-  const verdiend = s => Object.entries(opslag.dag).some(([d, e]) => Array.isArray(e) && e[2] && inSeizoen(s, +d));
+  // wat je al verdiende, blijft: een dag die volgens de vaste data in het seizoen viel, telt altijd mee (ook als de kalender anders zegt)
+  const verdiend = s => Object.entries(opslag.dag).some(([d, e]) => Array.isArray(e) && e[2] && (inSeizoen(s, +d) || inVast(s, +d)));
+  // wanneer het seizoen is (nu, of anders de volgende keer): uit de feestkalender als die het weet, anders de vaste tekst
+  const wanneer = s => {
+    if (FKAL) try { const J = FKAL.kern.jaarVan(FKAL.kal, Date.now()), v = J && vakJ(s, J); if (v && v[1] >= dagNr()) return datumNL(v[0]) + ' tot en met ' + datumNL(v[1]); } catch (e) {}
+    return SEIZOEN[s].wanneer;
+  };
 
   // alles in de kast (zeld = zeldzaam, seiz = seizoen); eis: [wat je moet doen, meten, doel]
   const H1 = HOOFDSTUKKEN[0].tot - HOOFDSTUKKEN[0].van;
@@ -2881,11 +2906,11 @@ const KM2 = (() => {
     { id: 'diamant', s: 'kroon', naam: 'Diamant', zeld: 1, eis: ['Dertig dagen achter elkaar de puzzel van de dag.', st => st.beste, 30] },
     { id: 'mijter', s: 'kroon', naam: 'Mijter', seiz: 'sint', feest: 'rk-mijter' },
     { id: 'pepernoot', s: 'kroon', naam: 'Pepernoot', seiz: 'sint', feest: 'rk-pepernoot' },
-    { id: 'kerstbal', s: 'kroon', naam: 'Kerstbal', seiz: 'kerst' },
+    { id: 'kerstbal', s: 'kroon', naam: 'Kerstbal', seiz: 'kerst', feest: 'rk-kerstbal' },
     { id: 'kruis', s: 'kruis', naam: 'Kruisje', tekst: 'Het gewone kruisje.' },
     { id: 'stip', s: 'kruis', naam: 'Stip', eis: ['Los 5 puzzels op.', st => st.opgelost, 5] },
     { id: 'streep', s: 'kruis', naam: 'Streepje', eis: ['Los 3 puzzels van de dag op.', st => st.aantal, 3] },
-    { id: 'vlok', s: 'kruis', naam: 'Sneeuwvlokje', seiz: 'kerst' },
+    { id: 'vlok', s: 'kruis', naam: 'Sneeuwvlokje', seiz: 'kerst', feest: 'rk-sneeuwvlok' },
     { id: 'papier', s: 'bord', naam: 'Papier', tekst: 'Het gewone bord.' },
     { id: 'hout', s: 'bord', naam: 'Hout', tekst: 'Klinkt als een houten blokje.', eis: ['Los 50 puzzels op zonder hint.', st => st.zonder, 50] },
     { id: 'krijt', s: 'bord', naam: 'Krijtbord', tekst: 'Tikt als krijt.', eis: ['Los 5 puzzels uit het archief op.', st => st.archief, 5] },
@@ -2950,7 +2975,7 @@ const KM2 = (() => {
   function kastKnop(x, st, b, nieuw) {
     const heeft = b.has(x.id), mag = magKiezen(x, b), gekozen = KASTNU[x.s] === x.id;
     let wat, balk = '';
-    if (x.seiz) { const z = SEIZOEN[x.seiz]; wat = x.feest && feestHeb(x.feest) ? 'Van jou: een cadeau van de Sint, uit je schoen.' : heeft ? `Van jou: je speelde in de ${z.naam}.` : mag ? `Nu te kiezen, in de ${z.naam}. Los een puzzel van de dag op${x.feest ? ', of vind hem op pakjesavond in je schoen,' : ''} en hij blijft van jou.` : `Komt terug in de ${z.naam} (${z.wanneer}).`; }
+    if (x.seiz) { const z = SEIZOEN[x.seiz]; wat = x.feest && feestHeb(x.feest) ? z.cadeau : heeft ? `Van jou: je speelde in de ${z.naam}.` : mag ? `Nu te kiezen, in de ${z.naam}. Los een puzzel van de dag op${x.feest ? z.vind : ''} en hij blijft van jou.` : `Komt terug in de ${z.naam} (${wanneer(x.seiz)}).`; }
     else if (!x.eis) wat = x.tekst;
     else if (heeft) wat = (x.tekst ? x.tekst + ' ' : '') + '✓ ' + x.eis[0];
     else { wat = x.eis[0]; const nu = Math.min(x.eis[2], x.eis[1](st)); if (x.eis[2] > 1) balk = `<span class="voortgang" role="img" aria-label="${nu} van ${x.eis[2]}"><i style="width:${(100 * nu / x.eis[2]).toFixed(1)}%"></i></span><small>${nu} van ${x.eis[2]}</small>`; }
@@ -2981,7 +3006,7 @@ const KM2 = (() => {
     if (!s) { el.hidden = true; return; }
     const z = SEIZOEN[s], al = verdiend(s);
     el.hidden = false;
-    el.innerHTML = `<svg viewBox="0 0 40 40" aria-hidden="true">${KROONTJES[z.icoon]}</svg><div><b>Het is ${z.naam}!</b><p class="klein">Tot en met ${z.wanneer.split('tot en met ')[1]} liggen er extra dingen in je kast: ${z.dingen}. ${al ? 'Ze zijn van jou, want je speelde de puzzel van de dag in deze tijd.' : 'Los de puzzel van de dag op, dan blijven ze van jou.'}</p></div><button class="knop" type="button" data-naartab="kast">Naar de kast</button>`;
+    el.innerHTML = `<svg viewBox="0 0 40 40" aria-hidden="true">${KROONTJES[z.icoon]}</svg><div><b>Het is ${z.naam}!</b><p class="klein">Tot en met ${wanneer(s).split('tot en met ')[1]} liggen er extra dingen in je kast: ${z.dingen}. ${al ? 'Ze zijn van jou, want je speelde de puzzel van de dag in deze tijd.' : 'Los de puzzel van de dag op, dan blijven ze van jou.'}</p></div><button class="knop" type="button" data-naartab="kast">Naar de kast</button>`;
   }
 
   // ---------------- feestjes
@@ -4105,10 +4130,14 @@ const KM2 = (() => {
   tekenOverzicht();
   // de feestdagen: komt de stand binnen (of verandert hij, en kreeg je er iets bij), dan de kast opnieuw uitrekenen en zo nodig opnieuw tekenen.
   // Wie niets van de feestdagen heeft, merkt hier niets van.
-  let feestNu = '';
+  // De seizoenen komen dan uit de feestkalender (FKAL); met de kalender van nu zijn dat dezelfde data, dus dan verandert er niets.
+  const seizoenSig = () => [seizoenNu(), wanneer('sint'), wanneer('kerst'), [...bezit()].join()].join('|');
+  let feestNu = '|' + seizoenSig();
   if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
     feestHeb = fid => !!(s && s.heb && s.heb(fid));
-    const nu = KAST.filter(x => x.feest && feestHeb(x.feest)).map(x => x.id).join();
+    const RF = window.RommelFeest;
+    FKAL = RF && RF.KERN && typeof RF.KERN.jaarVan === 'function' && typeof RF.kalender === 'function' ? { kern: RF.KERN, kal: RF.kalender() } : null;
+    const nu = KAST.filter(x => x.feest && feestHeb(x.feest)).map(x => x.id).join() + '|' + seizoenSig();
     if (nu === feestNu) return;
     feestNu = nu;
     const was = Object.assign({}, KASTNU), b = bezit(); pasKastToe(b);

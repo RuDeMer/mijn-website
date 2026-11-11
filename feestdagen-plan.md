@@ -1,6 +1,6 @@
 # Plan: de feestdagen op Ruben's rommelhoekje (Sinterklaas, kerst, oud en nieuw)
 
-Stand: woensdag 11 november 2026. **Goedgekeurd door Ruben** (zijn keuzes staan in hoofdstuk 9). Deel 1 en deel 2 zijn gebouwd.
+Stand: woensdag 11 november 2026. **Goedgekeurd door Ruben** (zijn keuzes staan in hoofdstuk 9). Deel 1, deel 2 en deel 3 zijn gebouwd.
 
 ## In het kort
 

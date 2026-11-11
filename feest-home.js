@@ -9,7 +9,11 @@
    (afscheidVaart, per apparaat één keer vanzelf: rommelhoekje-feest-apparaat.weg). Na pakjesavond staat het bord er nog zolang er iets uit
    te pakken is (tot en met uitpakkenTot). Wat je uitpakte op de homepage (de chocoladeletter, het worteltje, de Gouden Mijter) komt als
    rommeltje in een eigen vakje van de rommelkast (spul, RM.feestRommels in homepage-onderdelen.js).
-   Versiering uit (per apparaat, rommelhoekje-feest-apparaat.uit): geen pepernoten en niets dat beweegt; het bord blijft.
+   Deel 3 (de kerst, vanaf 6 december): de kerstkalender met 19 deurtjes (elk alleen op zijn eigen dag; tekenKerst, deurKlik, deurVenster),
+   een boom die met elk deurtje voller wordt (kerstScene, ORN), met alle deurtjes het bijzondere kerstcadeau (de gouden piek en het
+   Sterrenrendier, kerstKado), en op de kerstdagen voor iedereen een cadeau onder de boom (de sneeuwbol). De kerstbal en de sneeuwbol
+   worden rommeltjes in de rommelkast.
+   Versiering uit (per apparaat, rommelhoekje-feest-apparaat.uit): geen pepernoten, geen vallende sneeuw en niets dat beweegt; het bord blijft.
    Testhaak: window.RommelFeestHome. */
 (function () {
   'use strict';
@@ -45,7 +49,30 @@
     'rd-letters': { naam: 'Chocoladeletters op de bar', spel: 'Ruben de Duiker', pagina: 'rubendeduiker.html', wat: 'Iets moois voor in het restaurant', feest: 'Sinterklaas 2026', teken: function () { return plaat(icLetters()); } },
     'rs-stoomboot': { naam: 'Borduurpatroon Stoomboot', spel: 'Rommelsteek', pagina: 'rommelsteek.html', wat: 'Een patroon in de groep Feest', feest: 'Sinterklaas 2026', teken: function () { return plaat(icRing('boot')); } },
     'rs-mijter': { naam: 'Borduurpatroon Mijter', spel: 'Rommelsteek', pagina: 'rommelsteek.html', wat: 'Een patroon in de groep Feest', feest: 'Sinterklaas 2026', teken: function () { return plaat(icRing('mijter')); } },
-    mijter26: { naam: 'De Gouden Mijter', spel: 'je homepage en in Rommelkroon', knop: 'Rommelkroon', pagina: 'rommelkroon.html', wat: 'Voor wie elke dag zijn schoen zette', feest: 'Sinterklaas 2026', teken: function () { return plaat(icGoudmijter()); } }
+    mijter26: { naam: 'De Gouden Mijter', spel: 'je homepage en in Rommelkroon', knop: 'Rommelkroon', pagina: 'rommelkroon.html', wat: 'Voor wie elke dag zijn schoen zette', feest: 'Sinterklaas 2026', teken: function () { return plaat(icGoudmijter()); } },
+    // ---------- kerst 2026: de deurtjes van de kerstkalender (feest.js, DEURTJES), het bijzondere kerstcadeau en het cadeau onder de boom
+    'hp-kerstbal': { naam: 'Kerstbal', spel: 'je homepage', wat: 'Een rommeltje in je rommelkast', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKerstbal()); } },
+    'vb-kerstschort': { naam: 'Kerstschort', spel: 'de Vlaaienbakker', pagina: 'vlaaienbakker.html', wat: 'Een schort in de Gildewinkel', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icSchort()); } },
+    'ck-tezamen': { naam: 'Komt allen tezamen', spel: 'het Coulissenkoor', pagina: 'coulissenkoor.html', wat: 'Een liedje voor het koor', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icLied('ster')); } },
+    'rk-kerstbal': { naam: 'Kerstbalkroontje', spel: 'Rommelkroon', pagina: 'rommelkroon.html', wat: 'Een kroontje in de kast, voor altijd', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKroonKerst('kerstbal')); } },
+    'rb-kerstbalbeest': { naam: 'Kerstbalbeest', spel: 'Rommelbeesten', pagina: 'rommelbeesten.html', wat: 'Een feestkaart in je album', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKaartKerst('bal')); } },
+    'rc-kerstfiches': { naam: 'Kerstfiches', spel: 'Casino Rommelroyaal', pagina: 'rommelcasino.html', wat: 'Fiches in je kluisje', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKerstfiches()); } },
+    'rs-kerstster': { naam: 'Borduurpatroon Kerstster', spel: 'Rommelsteek', pagina: 'rommelsteek.html', wat: 'Een patroon in de groep Feest', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icRingKerst('ster')); } },
+    'rd-kerstdiner': { naam: 'Kerstdiner', spel: 'Ruben de Duiker', pagina: 'rubendeduiker.html', wat: 'Een hoofdgerecht voor het Rommelkombuis', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icDiner()); } },
+    'rp-sneeuwrug': { naam: 'Kaartrug Sneeuwvlokken', spel: 'Rommelpoker', pagina: 'rommelpoker.html', wat: 'Een kaartrug bij de instellingen', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icSneeuwrug()); } },
+    'hs-kerstboom': { naam: 'Kerstboom in de woonkamer', spel: 'Huis op stelten', pagina: 'huisopstelten.html', wat: 'Om te laten wiebelen, als je vrij speelt', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icHuisboom()); } },
+    'vb-kerstmarkt': { naam: 'Kerstmarkt', spel: 'de Vlaaienbakker', pagina: 'vlaaienbakker.html', wat: 'Een decor in de Gildewinkel', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKerstmarkt()); } },
+    'ck-engelen': { naam: 'Hoor de engelen zingen', spel: 'het Coulissenkoor', pagina: 'coulissenkoor.html', wat: 'Een liedje voor het koor', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icLied('klok')); } },
+    'rk-sneeuwvlok': { naam: 'Sneeuwvlokkruisje', spel: 'Rommelkroon', pagina: 'rommelkroon.html', wat: 'Een kruisje in de kast, voor altijd', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKroonKerst('vlok')); } },
+    'rb-sneeuwvlokkat': { naam: 'Sneeuwvlokkat', spel: 'Rommelbeesten', pagina: 'rommelbeesten.html', wat: 'Een feestkaart in je album', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icKaartKerst('kat')); } },
+    'rc-kerstmutsen': { naam: 'Kerstmutsen voor Moeki en Floortje', spel: 'Casino Rommelroyaal', pagina: 'rommelcasino.html', wat: 'Petjes voor de portiers, in je kluisje', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icMutsen()); } },
+    'rs-sneeuwpop': { naam: 'Borduurpatroon Sneeuwpop', spel: 'Rommelsteek', pagina: 'rommelsteek.html', wat: 'Een patroon in de groep Feest', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icRingKerst('pop')); } },
+    'rd-kerstboompje': { naam: 'Kerstboompje', spel: 'Ruben de Duiker', pagina: 'rubendeduiker.html', wat: 'Iets moois voor in het restaurant', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icBoompje()); } },
+    'vb-sneeuwkorst': { naam: 'Sneeuwkorst', spel: 'de Vlaaienbakker', pagina: 'vlaaienbakker.html', wat: 'Een korst in de Gildewinkel', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icSneeuwvlaai()); } },
+    'ck-roos': { naam: 'Er is een roos ontloken', spel: 'het Coulissenkoor', pagina: 'coulissenkoor.html', wat: 'Een liedje voor het koor', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icLied('roos')); } },
+    piek26: { naam: 'De gouden piek', spel: 'je kerstboom', wat: 'Voor wie alle 19 deurtjes opende', feest: 'Kerst 2026', van: 'Fijne feestdagen!', teken: function () { return plaat(icPiek()); } },
+    'rb-sterrenrendier': { naam: 'Sterrenrendier', spel: 'Rommelbeesten', pagina: 'rommelbeesten.html', wat: 'Een holo-feestkaart in je album', feest: 'Kerst 2026', van: 'Fijne feestdagen!', teken: function () { return plaat(icKaartKerst('rendier')); } },
+    'hp-sneeuwbol': { naam: 'Sneeuwbol', spel: 'je homepage', wat: 'Een rommeltje in je rommelkast', feest: 'Kerst 2026', van: 'Vrolijk kerstfeest!', teken: function () { return plaat(icSneeuwbol()); } }
   };
   var GEDICHT = {
     intocht26: ['De stoomboot is er, kijk eens aan,', 'de Sint en zijn Pieten zijn net aan land gegaan.', 'Dit vlaggetje is voor jou, als welkomstgroet:', 'zet elke dag je schoen, dan komt het goed!'],
@@ -70,7 +97,30 @@
     'rd-letters': ['Chocoladeletters op de bar, in goud en zilver gepakt:', 'daar heeft Ruben al een paar keer stiekem van gesnackt.', 'Zet ze neer in het Rommelkombuis, in Ruben de Duiker, daar:', 'dan weet elke gast die binnenkomt: de Sint was hier, echt waar!'],
     'rs-stoomboot': ['Een stoomboot van kruisjes, met rook en een vlag,', 'om rustig te borduren, op een stille dag.', 'Hij staat in Rommelsteek, bij de patronen van Feest:', 'steekje voor steekje, en dan is de Sint er geweest.'],
     'rs-mijter': ['Een mijter van kruisjes, met goud en met rood,', 'heel rustig geborduurd, steek voor steek, niet te groot.', 'Hij staat in Rommelsteek, bij Feest, en weet je wat het fijnste is?', 'Je hoeft je nergens te haasten, en je steekt nooit mis.'],
-    mijter26: ['Eenentwintig keer stond je schoen bij het vuur,', 'geen dag vergeten, op geen enkel uur.', 'Daarom de Gouden Mijter, de mooiste die er is:', 'op je homepage, en als kroontje in Rommelkroon, gewis!']
+    mijter26: ['Eenentwintig keer stond je schoen bij het vuur,', 'geen dag vergeten, op geen enkel uur.', 'Daarom de Gouden Mijter, de mooiste die er is:', 'op je homepage, en als kroontje in Rommelkroon, gewis!'],
+    // ---------- kerst 2026
+    'hp-kerstbal': ['Een kerstbal van glas, rood met een randje van goud,', 'zo een die je voorzichtig bij het touwtje vasthoudt.', 'Hij staat op je homepage, in je rommelkast, kijk maar:', 'tik hem aan, dan rolt hij, en hij breekt nooit, echt waar.'],
+    'vb-kerstschort': ['Een schort voor de bakker, rood met een randje van wit,', 'met hulst op de zak, waar een besje in zit.', 'In de Vlaaienbakker hang je hem aan het haakje, daar:', 'dan bak je de hele winter, en de kerstvlaai is klaar.'],
+    'ck-tezamen': ['Komt allen tezamen: dat zingt men al heel lang,', 'en nu zingt het koor het voor je, met een warme klank.', 'Je vindt het bij de liedjes in het Coulissenkoor, kijk maar:', 'sleep een zanger omhoog, en de kerstnacht is daar.'],
+    'rk-kerstbal': ['Een kroontje als een kerstbal, rood met een gouden strik,', 'in Rommelkroon voor altijd van jou, vanaf dit ogenblik.', 'Kies het in de kast, ook als de kerstboom weer gaat:', 'dan hangt er een kerstbal waar anders een kroontje staat.'],
+    'rb-kerstbalbeest': ['Een beestje als een kerstbal, rond en glimmend rood:', 'het hing in de kerstboom, en het werd daar al te groot.', 'Nu staat het in Rommelbeesten, in de Feestset, kijk maar:', 'een kaart die je nergens koopt, alleen uit de kalender, echt waar.'],
+    'rc-kerstfiches': ['Fiches met kerstballen, met hulst en met een ster:', 'speel ermee in het casino, dichtbij of van ver.', 'Je vindt ze in je kluisje, in Casino Rommelroyaal:', 'het zijn speelfiches, geen geld, en ze glimmen allemaal.'],
+    'rs-kerstster': ['Een kerstster van kruisjes, rood met een hartje van geel,', 'om rustig te borduren: het is niet veel, en toch heel veel.', 'Hij staat in Rommelsteek, bij de patronen van Feest:', 'steek voor steek, met rust in je hoofd en in je geest.'],
+    'rd-kerstdiner': ['Een kreeft vol lekkers, met spruitjes erbij:', 'het kerstdiner van Ruben, wat worden de gasten blij!', 'Zet het op het menu in het Rommelkombuis, daar:', 'met een kaarsje op tafel is het kerstdiner klaar.'],
+    'rp-sneeuwrug': ['Een kaartrug vol sneeuwvlokjes, donkerblauw en wit:', 'in Rommelpoker kies je hem nu, en kijk hoe mooi het zit.', 'Elke kaart die je trekt, dwarrelt neer als sneeuw:', 'zou het een aas zijn, of de hoogste hand van de eeuw?'],
+    'hs-kerstboom': ['Een kerstboom in de woonkamer, met ballen en met licht:', 'Moeki en Floortje kijken ernaar, met een heel ondeugend gezicht.', 'In Huis op stelten staat hij klaar, als je vrij speelt, kijk maar:', 'een tikje, en hij wiebelt, en de ballen rinkelen, daar.'],
+    'vb-kerstmarkt': ['Een kerstmarkt met kraampjes, met lichtjes in de nacht:', 'daar bak je toch het liefst je vlaaien, wat had je dan gedacht?', 'Zet hem in de Vlaaienbakker achter je vlaai, als decor:', 'dan is het in je bakkerij gezellig, het hele jaar door.'],
+    'ck-engelen': ['Hoor de engelen zingen: hoog, helder en blij,', 'het koor zingt het voor je, en jij bent erbij.', 'Je vindt het bij de liedjes, in het Coulissenkoor:', 'de tenor zingt de hoge noten, en de bas bromt ervoor.'],
+    'rk-sneeuwvlok': ['Een kruisje als een sneeuwvlok, zes puntjes, wit en fijn,', 'in Rommelkroon voor altijd van jou, ook in de zonneschijn.', 'Kies het in de kast, en zet je kruisjes neer:', 'dan sneeuwt het op je puzzel, keer op keer.'],
+    'rb-sneeuwvlokkat': ['Een kat vol sneeuwvlokjes, zacht en wit en stil,', 'met een sjaal om haar nek, want buiten is het kil.', 'In Rommelbeesten staat ze nu in de Feestset, heel fijn:', 'de enige kat die het liefst in de sneeuw wil zijn.'],
+    'rc-kerstmutsen': ['Moeki en Floortje staan bij de deur, de hele nacht,', 'en ze hebben het koud: daar is aan gedacht!', 'Twee kerstmutsen voor de portiers, rood met een bol van wit:', 'kies ze in je kluisje, en kijk hoe goed het zit.'],
+    'rs-sneeuwpop': ['Een sneeuwpop met een hoed, een wortel en een sjaal,', 'die smelt nooit, want hij is van garen, helemaal.', 'Hij staat in Rommelsteek, bij Feest, klaar om te beginnen:', 'een sneeuwpop die je borduurt, gewoon lekker binnen.'],
+    'rd-kerstboompje': ['Een kerstboompje voor het restaurant, met lichtjes en een bal,', 'zo gezellig dat de gasten blijven zitten, allemaal.', 'Zet het neer in het Rommelkombuis, bij de ramen aan zee:', 'dan viert het hele restaurant de kerst gezellig mee.'],
+    'vb-sneeuwkorst': ['Een korst met een laagje sneeuw, van poedersuiker zacht,', 'met sterretjes erop, zo wit als een winternacht.', 'In de Vlaaienbakker kies je hem als korst, en weet je wat?', 'Deze sneeuw smelt nooit, en je vlaai wordt er niet eens nat.'],
+    'ck-roos': ['Er is een roos ontloken, midden in de kou:', 'een lied van heel lang geleden, nu gezongen voor jou.', 'Het staat bij de liedjes in het Coulissenkoor, heel stil:', 'laat de zangers zacht beginnen, zo zacht als je wil.'],
+    piek26: ['Negentien deurtjes, en elke dag was jij er weer:', 'je miste er niet een, geen enkele keer.', 'Daarom een gouden piek, bovenop je boom, zo fijn:', 'dat is de beloning voor wie zo trouw kan zijn.'],
+    'rb-sterrenrendier': ['Een rendier met sterren in zijn gewei, en een neus die gloeit:', 'het vloog over de daken, en het was nooit vermoeid.', 'In Rommelbeesten staat het in de Feestset, en het is holo, kijk:', 'de mooiste kaart van de kerst, en jij kreeg hem: wat ben je rijk!'],
+    'hp-sneeuwbol': ['Een sneeuwbol onder de boom, met een huisje en een dennenboom,', 'schud hem zachtjes, en de sneeuw dwarrelt, net als in een droom.', 'Hij staat op je homepage, in je rommelkast, kijk maar:', 'tik hem aan, of schud je telefoon: het sneeuwt, echt waar.']
   };
   // een tekening (viewBox 0 0 120 120) als los plaatje
   function plaat(binnen) { return '<svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">' + binnen + '</svg>'; }
@@ -132,9 +182,12 @@
     var s = '<g transform="rotate(-6 58 58)">' + p3('M20 12H90V100H20Z', '#FFFDF6', 3);
     [36, 64].forEach(function (y0) { for (var k = 0; k < 5; k++) s += lijn('M28 ' + (y0 + k * 4) + 'H82', '#8A8794', 1.2); });
     [[36, 48, 1], [48, 44, 1], [60, 40, 0], [72, 46, 1], [40, 76, 0], [54, 72, 1], [68, 68, 1]].map(function (n) { s += '<ellipse cx="' + n[0] + '" cy="' + n[1] + '" rx="4.4" ry="3.3" transform="rotate(-20 ' + n[0] + ' ' + n[1] + ')" fill="' + (n[2] ? I : WIT) + '" stroke="' + I + '" stroke-width="1.8"/>' + lijn('M' + (n[0] + 4) + ' ' + n[1] + 'V' + (n[1] - 18), I, 1.8); });
-    s += '</g><circle cx="88" cy="90" r="22" fill="' + (sym === 'boom' ? '#2E8B62' : sym === 'deur' ? '#6A4C9C' : '#2F4C8F') + '" stroke="' + I + '" stroke-width="3"/>';
+    s += '</g><circle cx="88" cy="90" r="22" fill="' + ({ boom: '#2E8B62', deur: '#6A4C9C', ster: '#1F3A6A', klok: '#A3232E', roos: '#2E8B62' }[sym] || '#2F4C8F') + '" stroke="' + I + '" stroke-width="3"/>';
     if (sym === 'boot') s += p3('M72 94H104L99 103H77Z', ROOD, 2.2) + p3('M80 94V86H96V94Z', WIT, 2) + p3('M88 86V77H94V86Z', '#1F2333', 2) + pd('M91 75q-4 -6 2 -9q5 2 2 7', 'none', 'stroke="#E9E4DA" stroke-width="2.4" stroke-linecap="round"');
     else if (sym === 'deur') s += p3('M78 108V78Q78 72 88 72Q98 72 98 78V108Z', '#A0733F', 2.2) + '<circle cx="94" cy="92" r="1.8" fill="' + GOUD + '"/>' + lijn('M82 80h12M82 86h12', '#7A4E2D', 1.4);
+    else if (sym === 'ster') s += pd(sterPad(88, 90, 13), GOUD, 'stroke="' + I + '" stroke-width="2" stroke-linejoin="round"') + '<circle cx="76" cy="78" r="1.6" fill="#FFF3C4"/><circle cx="100" cy="100" r="1.4" fill="#FFF3C4"/>';
+    else if (sym === 'klok') s += p3('M78 98Q78 78 88 78Q98 78 98 98Z', GOUD, 2.2) + p3('M75 98H101V102H75Z', '#B8862C', 1.8) + '<circle cx="88" cy="104" r="2.6" fill="#B8862C" stroke="' + I + '" stroke-width="1.2"/>' + lijn('M88 78v-4', I, 2) + lijn('M81 84q2 -3 5 -4', '#FFF3C4', 2);
+    else if (sym === 'roos') s += lijn('M88 108V96', '#7ACB7F', 2.6) + p3('M88 97Q78 94 80 84Q86 80 88 86Q90 80 96 84Q98 94 88 97Z', '#E5484D', 2) + p3('M84 88Q88 84 92 88Q90 92 88 92Q86 92 84 88Z', '#B8232E', 1.4) + p3('M88 102Q80 100 78 104Q84 106 88 103Z', '#7ACB7F', 1.4);
     else s += p3('M88 104V94', '#6E4A30', 3) + p3('M88 72L100 92H76Z', '#7ACB7F', 2.2) + lijn('M70 78q6 -3 10 0M66 86q8 -3 12 0', '#FFFFFF', 2.2);
     return s;
   }
@@ -211,6 +264,150 @@
     s += p3('M29 88H91V104H30Z', ROOD, 2.8) + lijn('M60 36V72M46 52H74', ROOD, 7) + lijn('M60 36V72M46 52H74', '#FFE7A0', 2.4);
     s += [42, 60, 78].map(function (x) { return '<circle cx="' + x + '" cy="96" r="3.6" fill="#FFE7A0" stroke="' + I + '" stroke-width="1.4"/>'; }).join('') + '<circle cx="60" cy="52" r="5" fill="#4FA3E0" stroke="' + I + '" stroke-width="1.6"/>';
     return s + lijn('M36 60Q38 40 54 28', '#FFF3C4', 4, 'opacity=".9"') + pd('M96 18l3 7 7 3-7 3-3 7-3-7-7-3 7-3z', '#FFF3C4', 'stroke="' + I + '" stroke-width="1.6" stroke-linejoin="round"');
+  }
+  // ---------- de tekeningen van de kerstdingen (viewBox 0 0 120 120)
+  var GROEN = '#2E8B62', DGROEN = '#1F6B47', BLAUW = '#2F4C8F';
+  var sterPad = function (x, y, r, k) { var d = ''; k = k || 0.45; for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * k : r; d += (i ? 'L' : 'M') + r1(x + Math.cos(a) * q) + ' ' + r1(y + Math.sin(a) * q); } return d + 'Z'; };
+  var fonkel = function (x, y) { return pd('M' + x + ' ' + (y - 8) + 'l3 5 5 3-5 3-3 5-3-5-5-3 5-3z', '#FFF3C4', 'stroke="' + I + '" stroke-width="1.6" stroke-linejoin="round"'); };
+  // een sneeuwvlokje (zes armen met takjes)
+  function vlokje(x, y, r, kl, w) {
+    var d = '';
+    for (var i = 0; i < 6; i++) {
+      var a = i * Math.PI / 3, cx = Math.cos(a), sy = Math.sin(a), mx = x + cx * r * 0.55, my = y + sy * r * 0.55;
+      d += 'M' + r1(x) + ' ' + r1(y) + 'L' + r1(x + cx * r) + ' ' + r1(y + sy * r);
+      d += 'M' + r1(mx) + ' ' + r1(my) + 'L' + r1(mx + Math.cos(a + 0.8) * r * 0.32) + ' ' + r1(my + Math.sin(a + 0.8) * r * 0.32);
+      d += 'M' + r1(mx) + ' ' + r1(my) + 'L' + r1(mx + Math.cos(a - 0.8) * r * 0.32) + ' ' + r1(my + Math.sin(a - 0.8) * r * 0.32);
+    }
+    return lijn(d, kl || WIT, w || 2.4);
+  }
+  // een kerstbal (midden x, y, straal r, kleur)
+  function bal(x, y, r, kl, band) {
+    return p3('M' + r1(x - r * 0.3) + ' ' + r1(y - r * 1.02) + 'h' + r1(r * 0.6) + 'v' + r1(-r * 0.32) + 'h' + r1(-r * 0.6) + 'z', '#C9CED6', Math.max(1.4, r / 9)) +
+      '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + kl + '" stroke="' + I + '" stroke-width="' + r1(Math.max(1.6, r / 7)) + '"/>' +
+      (band ? lijn('M' + r1(x - r * 0.96) + ' ' + r1(y - r * 0.1) + 'Q' + x + ' ' + r1(y + r * 0.42) + ' ' + r1(x + r * 0.96) + ' ' + r1(y - r * 0.1), band, r1(r / 5.5)) : '') +
+      lijn('M' + r1(x - r * 0.56) + ' ' + r1(y - r * 0.2) + 'Q' + r1(x - r * 0.5) + ' ' + r1(y - r * 0.62) + ' ' + r1(x - r * 0.12) + ' ' + r1(y - r * 0.7), '#FFFFFF', r1(Math.max(1.2, r / 6)), 'opacity=".6"');
+  }
+  function hulst(x, y, k) {
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + (k || 1) + ')">' + p3('M0 0Q-8 -10 -20 -8Q-17 -3 -19 2Q-10 4 0 0Z', GROEN, 1.8) + p3('M0 0Q8 -10 20 -8Q17 -3 19 2Q10 4 0 0Z', GROEN, 1.8) +
+      lijn('M-3 -3L-15 -5M3 -3L15 -5', '#7ACB7F', 1.2) + '<circle cx="-3" cy="2" r="3.4" fill="' + ROOD + '" stroke="' + I + '" stroke-width="1.4"/><circle cx="3.5" cy="3" r="3.4" fill="' + ROOD + '" stroke="' + I + '" stroke-width="1.4"/><circle cx="0" cy="-2.5" r="3.4" fill="' + ROOD + '" stroke="' + I + '" stroke-width="1.4"/></g>';
+  }
+  function icKerstbal() {
+    return lijn('M54 10q6 -9 12 0', I, 2.4) + bal(60, 68, 40, ROOD, GOUD) + lijn('M24 82Q60 100 96 82', '#FFE7A0', 2.6, 'stroke-dasharray="1.5 6"') +
+      vlokje(60, 50, 9, '#FFE7A0', 1.8) + fonkel(100, 30);
+  }
+  function icSchort() {
+    return lijn('M46 24Q60 4 74 24', I, 3.4) + lijn('M46 24Q60 7 74 24', '#E0505A', 1.6) +
+      p3('M42 22H78V46Q86 48 104 46L106 54Q90 56 86 54L94 104Q60 114 26 104L34 54Q30 56 14 54L16 46Q34 48 42 46Z', ROOD, 3) +
+      p3('M27 98Q60 108 93 98L95 108Q60 119 25 108Z', WIT, 2.4) + lijn('M34 101q2 -2 4 0M50 104q2 -2 4 0M66 104q2 -2 4 0M82 101q2 -2 4 0', '#D8D2C6', 1.6) +
+      p3('M44 62H76V80Q60 88 44 80Z', '#A3232E', 2.2) + lijn('M44 62H76', '#E0505A', 1.6) + hulst(60, 64, 0.8) + lijn('M46 28V44', '#E0505A', 2, 'opacity=".6"');
+  }
+  // een kleine kerstbal en een vlokje voor het kroontjesbord
+  function icKroonKerst(soort) {
+    var kl = ['#F6C3B5', '#BFE0C9', '#C9D6F2', '#F2DE9B'], s = '';
+    for (var r = 0; r < 2; r++) for (var c = 0; c < 2; c++) s += '<rect x="' + (14 + c * 46) + '" y="' + (14 + r * 46) + '" width="46" height="46" fill="' + kl[r * 2 + c] + '"/>';
+    s += '<rect x="14" y="14" width="92" height="92" rx="6" fill="none" stroke="' + I + '" stroke-width="3.4"/>' + lijn('M60 14V106M14 60H106', I, 2);
+    if (soort === 'kerstbal') return s + bal(37, 41, 12, ROOD, GOUD) + vlokje(83, 37, 11, BLAUW, 2.2) + vlokje(37, 83, 11, BLAUW, 2.2) + vlokje(83, 83, 11, BLAUW, 2.2);
+    return s + vlokje(37, 37, 13, BLAUW, 2.6) + vlokje(83, 83, 13, BLAUW, 2.6) + vlokje(37, 83, 13, BLAUW, 2.6) + bal(83, 41, 11, ROOD, GOUD);
+  }
+  function icKaartKerst(dier) {
+    var rand = dier === 'bal' ? ROOD : dier === 'kat' ? '#5E9CCF' : '#E9B949', s = '';
+    s += '<rect x="24" y="8" width="72" height="104" rx="9" fill="' + rand + '" stroke="' + I + '" stroke-width="3.2"/><rect x="30" y="14" width="60" height="92" rx="5" fill="#FFF8E8" stroke="' + I + '" stroke-width="2"/>';
+    s += '<rect x="34" y="20" width="52" height="50" rx="3" fill="' + (dier === 'bal' ? '#E4F0E6' : dier === 'kat' ? '#DCEAF6' : '#283766') + '" stroke="' + I + '" stroke-width="1.8"/>';
+    if (dier === 'bal') s += lijn('M58 22q2 -4 4 0', I, 1.6) + bal(60, 48, 17, ROOD, GOUD) + '<circle cx="54" cy="46" r="2.4" fill="' + I + '"/><circle cx="66" cy="46" r="2.4" fill="' + I + '"/>' + lijn('M55 53q5 4 10 0', I, 1.8) + p3('M50 63q-3 4 1 5M70 63q3 4 -1 5', 'none', 1.8);
+    else if (dier === 'kat') s += p3('M44 36L46 26L54 32Q60 30 66 32L74 26L76 36Q80 48 74 58Q60 66 46 58Q40 48 44 36Z', '#FFFFFF', 2.4) + vlokje(60, 37, 4.2, '#7FB3D8', 1.4) + '<ellipse cx="53" cy="46" rx="2.4" ry="3" fill="#3A6FD8"/><ellipse cx="67" cy="46" rx="2.4" ry="3" fill="#3A6FD8"/>' + p3('M58 52h4l-2 2.4z', '#F49AB0', 1.2) + lijn('M48 52h-7M48 55l-6 2M72 52h7M72 55l6 2', '#B8C4D4', 1.2) + p3('M44 60Q60 68 76 60L78 66Q60 74 42 66Z', '#3A6FD8', 2) + lijn('M50 63v4M58 65v4M66 64v4', WIT, 2);
+    else { s += [[40, 30], [52, 24], [70, 26], [80, 34], [62, 22]].map(function (p) { return pd(sterPad(p[0], p[1], 2.4), '#FFF3C4', ''); }).join('');
+      s += lijn('M52 40Q46 30 50 22M50 30l-6 -3M68 40Q74 30 70 22M70 30l6 -3', '#B5733A', 2.4) + pd(sterPad(50, 21, 3.6), GOUD, 'stroke="' + I + '" stroke-width="1"') + pd(sterPad(70, 21, 3.6), GOUD, 'stroke="' + I + '" stroke-width="1"') +
+        p3('M48 42Q48 34 60 34Q72 34 72 42L70 58Q66 66 60 66Q54 66 50 58Z', '#A66A3A', 2.4) + '<circle cx="55" cy="46" r="2.2" fill="' + I + '"/><circle cx="65" cy="46" r="2.2" fill="' + I + '"/>' +
+        '<circle cx="60" cy="58" r="7" fill="#FF6B5E" opacity=".35"/><circle cx="60" cy="58" r="4.2" fill="#E5484D" stroke="' + I + '" stroke-width="1.6"/>'; }
+    s += '<rect x="34" y="76" width="52" height="10" rx="2" fill="' + rand + '" opacity=".35"/>' + lijn('M38 81h30', I, 2.2, 'opacity=".55"');
+    if (dier === 'rendier') s += lijn('M26 30L94 96M26 54L72 100M44 10L96 62', '#FFFFFF', 7, 'opacity=".28"') + lijn('M26 38L86 98', '#B8E0FF', 4, 'opacity=".35"');
+    return s + [48, 60, 72].map(function (x) { return pd('M' + x + ' 92l2.4 4.6 5 .7-3.6 3.5.9 5-4.7-2.4-4.7 2.4.9-5-3.6-3.5 5-.7z', GOUD, 'stroke="' + I + '" stroke-width="1.2" stroke-linejoin="round"'); }).join('');
+  }
+  function icKerstfiches() {
+    var KL = [[ROOD, '#8E1F28'], [GROEN, DGROEN], ['#F4F1EA', '#C9C2B8']];
+    var fiche = function (y, k) { var c = KL[k], g = '<ellipse cx="60" cy="' + (y + 6) + '" rx="34" ry="13" fill="' + c[1] + '" stroke="' + I + '" stroke-width="3"/><ellipse cx="60" cy="' + y + '" rx="34" ry="13" fill="' + c[0] + '" stroke="' + I + '" stroke-width="3"/>'; for (var j = 0; j < 8; j++) { var a = j * Math.PI / 4; g += '<rect x="' + r1(60 + Math.cos(a) * 28 - 3) + '" y="' + r1(y + Math.sin(a) * 10.5 - 2) + '" width="6" height="4" rx="1" fill="' + (k === 2 ? ROOD : WIT) + '" transform="rotate(' + r1(a * 57.3) + ' ' + r1(60 + Math.cos(a) * 28) + ' ' + r1(y + Math.sin(a) * 10.5) + ')"/>'; } return g + '<ellipse cx="60" cy="' + y + '" rx="20" ry="7.5" fill="none" stroke="' + GOUD + '" stroke-width="2"/>'; };
+    return fiche(88, 1) + fiche(70, 2) + fiche(52, 0) + '<g transform="translate(60 52) scale(1 .38)">' + pd(sterPad(0, 0, 13), GOUD, 'stroke="' + I + '" stroke-width="3"') + '</g>' + fonkel(98, 24);
+  }
+  // twee kerstmutsen op de oren van twee katten
+  function icMutsen() {
+    var muts = function (x, y, kl, k) {
+      return '<g transform="translate(' + x + ' ' + y + ') scale(' + k + ')">' + p3('M-20 26L-16 8L-8 18Z', kl, 2.2) + p3('M20 26L16 8L8 18Z', kl, 2.2) + p3('M-24 30Q-24 4 0 -2Q22 -6 34 14Q26 12 20 16Q14 4 0 6Q-16 8 -16 30Z', ROOD, 2.6) +
+        '<circle cx="34" cy="16" r="6" fill="' + WIT + '" stroke="' + I + '" stroke-width="2"/>' + p3('M-27 26Q0 20 27 26L26 35Q0 29 -26 35Z', WIT, 2.4) + '<path d="M-26 40Q0 34 26 40Q22 56 0 58Q-22 56 -26 40Z" fill="' + kl + '" stroke="' + I + '" stroke-width="2.4"/>' +
+        '<circle cx="-9" cy="46" r="2.6" fill="' + I + '"/><circle cx="9" cy="46" r="2.6" fill="' + I + '"/>' + p3('M-2 51h4l-2 2.4z', '#F49AB0', 1.2) + '</g>';
+    };
+    return muts(36, 34, '#9A8F86', 0.95) + muts(84, 48, '#5A4436', 0.95) + lijn('M70 70q6 2 10 0', '#E07A2E', 3, 'opacity=".8"') + lijn('M90 76l6 -2', '#E07A2E', 3, 'opacity=".8"');
+  }
+  function icSneeuwrug() {
+    var s = '<rect x="28" y="10" width="64" height="100" rx="9" fill="#1F3A6A" stroke="' + I + '" stroke-width="3.2"/><rect x="34" y="16" width="52" height="88" rx="5" fill="none" stroke="#7FB3D8" stroke-width="1.6"/>';
+    [[46, 32, 7], [74, 30, 5], [60, 52, 9], [44, 72, 5], [76, 74, 7], [56, 92, 6], [80, 96, 4]].forEach(function (v) { s += vlokje(v[0], v[1], v[2], '#FFFFFF', 1.8); });
+    return s;
+  }
+  function icRingKerst(soort) {
+    var s = '<circle cx="60" cy="62" r="48" fill="#C08A4E" stroke="' + I + '" stroke-width="3"/><circle cx="60" cy="62" r="42" fill="#FBF6E9" stroke="' + I + '" stroke-width="2"/>' + p3('M52 10H68V18H52Z', '#8A8794', 2) + '<circle cx="60" cy="14" r="2" fill="' + I + '"/>';
+    var raster = soort === 'ster' ?
+      ['.....rr.....', '.r...rr...r.', '.rr.rrrr.rr.', '..rrryyrrr..', 'rrrryyyyrrrr', '..rrryyrrr..', '.rr.rrrr.rr.', '.g...rr...g.', 'gg...gg...gg'] :
+      ['....kkkk....', '...kkkkkk...', '....wkwk....', '....wwwwo...', '...bbbbbbb..', '....wwwwbb..', '...wwkwww...', '..wwwkwwww..', 'llllllllllll'];
+    var kl = { r: ROOD, y: '#F2C744', g: GROEN, k: '#23252B', w: '#E4EEF8', o: '#E07A2E', b: '#3A6FD8', l: '#BFD6EC' }, y0 = 34;
+    raster.forEach(function (rij, j) { for (var i = 0; i < rij.length; i++) { var c = rij[i]; if (c !== '.') s += '<rect x="' + (24 + i * 6) + '" y="' + (y0 + j * 6) + '" width="6" height="6" fill="' + kl[c] + '"/>' + lijn('M' + (24.8 + i * 6) + ' ' + (y0 + j * 6 + 0.8) + 'l4.4 4.4M' + (29.2 + i * 6) + ' ' + (y0 + j * 6 + 0.8) + 'l-4.4 4.4', I, 0.8, 'opacity=".35"'); } });
+    return s;
+  }
+  function icDiner() {
+    var s = '<ellipse cx="60" cy="72" rx="52" ry="30" fill="#E8EEF2" stroke="' + I + '" stroke-width="3"/><ellipse cx="60" cy="70" rx="40" ry="21" fill="#FFFFFF" stroke="#C9D2DA" stroke-width="2"/>';
+    s += p3('M30 68Q34 56 52 56L74 58Q84 60 86 68Q84 76 74 78L52 80Q34 80 30 68Z', '#D8402E', 2.6) + lijn('M58 57V79M66 58V78M74 59V77', '#A82A22', 1.8);
+    s += p3('M30 68L18 60L20 68L18 76Z', '#C8322A', 2) + p3('M84 62Q96 50 104 54Q100 60 92 60Q100 62 102 66Q94 70 86 66Z', '#D8402E', 2) + p3('M84 74Q96 86 104 82Q100 76 92 76Q100 74 102 70Q94 66 86 70Z', '#D8402E', 2);
+    s += p3('M40 64Q46 60 54 62Q54 70 44 72Q38 70 40 64Z', '#F3E1C2', 1.6) + '<circle cx="47" cy="66" r="1.4" fill="' + GROEN + '"/><circle cx="51" cy="64" r="1.2" fill="#E07A2E"/>';
+    [[36, 86], [48, 90], [62, 90], [76, 88], [88, 82]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="6.4" fill="#6FAE4E" stroke="' + I + '" stroke-width="2"/>' + lijn('M' + (p[0] - 4) + ' ' + p[1] + 'q4 -4 8 0M' + p[0] + ' ' + (p[1] - 5) + 'v9', '#3F7A2C', 1.4); });
+    return s + hulst(96, 42, 0.7) + fonkel(20, 30);
+  }
+  // een boom in lagen (midden x, onder y, hoogte h); met lampjes en ballen
+  function boompje(x, y, h, versier) {
+    var b = h * 0.42, s = p3('M' + r1(x - h * 0.06) + ' ' + y + 'h' + r1(h * 0.12) + 'v' + r1(-h * 0.14) + 'h' + r1(-h * 0.12) + 'z', '#6E4A30', 2);
+    [[0.86, 1], [0.6, 0.78], [0.34, 0.54]].forEach(function (t) { var yb = y - h * 0.14 - (1 - t[0]) * h * 0.55, bt = b * t[1], top = yb - h * 0.42; s += p3('M' + r1(x - bt) + ' ' + r1(yb) + 'Q' + x + ' ' + r1(yb + h * 0.05) + ' ' + r1(x + bt) + ' ' + r1(yb) + 'L' + x + ' ' + r1(top) + 'Z', GROEN, 2.6) + lijn('M' + r1(x - bt * 0.8) + ' ' + r1(yb - 2) + 'Q' + x + ' ' + r1(yb + 2) + ' ' + r1(x + bt * 0.8) + ' ' + r1(yb - 2), '#7ACB7F', 1.6, 'opacity=".6"'); });
+    if (versier) versier.forEach(function (v) { s += v[3] === 'l' ? '<circle cx="' + r1(x + v[0] * b) + '" cy="' + r1(y - v[1] * h) + '" r="' + r1(h * 0.025) + '" fill="' + v[2] + '" stroke="' + I + '" stroke-width="1"/>' : bal(r1(x + v[0] * b), r1(y - v[1] * h), r1(h * 0.045), v[2]); });
+    return s;
+  }
+  function icBoompje() {
+    return p3('M40 112L44 92H76L80 112Z', ROOD, 2.6) + lijn('M42 100H78', GOUD, 3) + boompje(60, 94, 84, [[-0.55, 0.3, GOUD], [0.5, 0.36, BLAUW], [-0.2, 0.52, '#E07A2E'], [0.3, 0.62, GOUD], [0, 0.78, ROOD], [-0.4, 0.45, '#FFF1C9', 'l'], [0.15, 0.44, '#F2C744', 'l'], [0.42, 0.56, '#FFF1C9', 'l'], [-0.1, 0.68, '#F2C744', 'l']]) +
+      pd(sterPad(60, 10, 8), GOUD, 'stroke="' + I + '" stroke-width="2" stroke-linejoin="round"');
+  }
+  function icHuisboom() {
+    return boompje(54, 110, 100, [[-0.6, 0.28, ROOD], [0.55, 0.32, GOUD], [-0.25, 0.5, BLAUW], [0.3, 0.58, ROOD], [0, 0.74, GOUD], [-0.45, 0.42, '#FFF1C9', 'l'], [0.2, 0.44, '#F2C744', 'l'], [0.45, 0.52, '#FFF1C9', 'l']]) +
+      pd(sterPad(54, 12, 7), GOUD, 'stroke="' + I + '" stroke-width="2" stroke-linejoin="round"') +
+      p3('M120 60Q100 58 92 64Q88 70 94 74Q102 74 120 70Z', '#9A8F86', 2.4) + lijn('M95 66l-3 -2M96 70l-4 1', I, 1.6) + bal(84, 92, 6, GOUD) + lijn('M78 104l-4 2M90 104l4 2', '#B8C4D4', 1.6);
+  }
+  function icKerstmarkt() {
+    var s = '<rect x="6" y="10" width="108" height="100" rx="10" fill="#1F2B52" stroke="' + I + '" stroke-width="3"/>';
+    [[20, 22], [44, 18], [90, 24], [104, 40], [70, 16]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.6" fill="#FFF3C4"/>'; });
+    s += p3('M8 92Q60 84 112 92V108H8Z', '#EEF4FA', 2.2) + p3('M20 92V56H72V92Z', '#A0733F', 2.4) + lijn('M24 64H68M24 74H68', '#7A4E2D', 1.6) + p3('M24 92V78H68V92Z', '#6E4A30', 2);
+    s += p3('M14 58L28 38H64L78 58Z', ROOD, 2.6) + lijn('M24 46L34 58M38 40L46 58M52 40L56 58M66 46L64 58', WIT, 4, 'opacity=".9"') + p3('M26 38Q46 30 66 38Q46 34 26 38Z', WIT, 2);
+    s += lijn('M16 60Q30 66 46 60Q60 66 76 60', '#3A3A40', 1.2) + [[22, 62], [32, 64], [42, 62], [52, 63], [62, 63], [72, 61]].map(function (p, i) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.4" fill="' + ['#F2C744', '#E5484D', '#3FB37F', '#FFF1C9'][i % 4] + '"/>'; }).join('');
+    s += '<circle cx="34" cy="84" r="4" fill="#C98A4E" stroke="' + I + '" stroke-width="1.4"/><circle cx="46" cy="84" r="4" fill="#C98A4E" stroke="' + I + '" stroke-width="1.4"/><circle cx="58" cy="84" r="4" fill="#C98A4E" stroke="' + I + '" stroke-width="1.4"/>';
+    return s + boompje(94, 96, 56, [[-0.4, 0.4, ROOD], [0.35, 0.55, GOUD], [0, 0.72, BLAUW]]) + pd(sterPad(94, 38, 5), GOUD, 'stroke="' + I + '" stroke-width="1.4"');
+  }
+  function icSneeuwvlaai() {
+    var s = '<circle cx="60" cy="62" r="46" fill="#C98A4E" stroke="' + I + '" stroke-width="3.2"/><circle cx="60" cy="62" r="36" fill="#A3232E" stroke="' + I + '" stroke-width="2.2"/>';
+    for (var k = -2; k <= 2; k++) s += lijn('M' + (40 + (k + 2) * 10) + ' 30V94M28 ' + (42 + (k + 2) * 10) + 'H92', '#E0B27A', 5, 'opacity=".95"');
+    s += '<circle cx="60" cy="62" r="36" fill="none" stroke="' + I + '" stroke-width="2.2"/>';
+    [[44, 46, 10], [70, 40, 8], [78, 66, 11], [52, 76, 12], [34, 64, 7], [62, 58, 7], [88, 52, 6]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + p[2] + '" fill="#FFFFFF" opacity=".82"/>'; });
+    for (var a = 0; a < 16; a++) { var t = a * Math.PI / 8; s += '<circle cx="' + r1(60 + Math.cos(t) * 42) + '" cy="' + r1(62 + Math.sin(t) * 42) + '" r="3" fill="#FFFFFF" opacity=".75"/>'; }
+    return s + pd(sterPad(98, 22, 7), '#FFF3C4', 'stroke="' + I + '" stroke-width="1.4"') + pd(sterPad(22, 100, 5), '#FFF3C4', 'stroke="' + I + '" stroke-width="1.2"');
+  }
+  function icPiek() {
+    var s = '';
+    for (var k = 0; k < 12; k++) { var a = k * Math.PI / 6; s += lijn('M' + r1(60 + Math.cos(a) * 28) + ' ' + r1(70 + Math.sin(a) * 28) + 'L' + r1(60 + Math.cos(a) * 46) + ' ' + r1(70 + Math.sin(a) * 46), '#F6CB2F', 3.4, 'opacity=".5"'); }
+    s += p3('M60 6L66 40H54Z', '#E9B949', 2.6) + lijn('M60 10L57 38', '#FFF3C4', 2);
+    s += '<circle cx="60" cy="54" r="15" fill="#E9B949" stroke="' + I + '" stroke-width="3"/>' + lijn('M50 48q4 -6 10 -7', '#FFF3C4', 3);
+    s += p3('M52 68Q60 74 68 68L66 96Q60 102 54 96Z', '#E9B949', 2.6) + lijn('M57 74V94', '#FFF3C4', 2) + p3('M50 98H70V110H50Z', '#C9CED6', 2.4) + lijn('M55 98v12M60 98v12M65 98v12', '#8E929C', 1.2);
+    return s + fonkel(94, 26) + fonkel(24, 40);
+  }
+  function icSneeuwbol() {
+    var s = p3('M26 96Q60 108 94 96L100 112H20Z', '#7A4E2D', 2.8) + lijn('M24 104Q60 114 96 104', GOUD, 3);
+    s += '<circle cx="60" cy="56" r="42" fill="#DCEEFA" stroke="' + I + '" stroke-width="3.2"/>';
+    s += p3('M22 76Q60 64 98 76Q90 92 60 98Q30 92 22 76Z', '#FFFFFF', 2);
+    s += p3('M42 78V62L56 50L70 62V78Z', '#C8323C', 2.2) + p3('M38 63L56 46L74 63L70 63L56 51L42 63Z', '#FFFFFF', 1.8) + '<rect x="52" y="66" width="8" height="12" fill="#6E4A30" stroke="' + I + '" stroke-width="1.4"/><rect x="62" y="62" width="6" height="6" fill="#F6CB2F" stroke="' + I + '" stroke-width="1.2"/>';
+    s += boompje(84, 80, 28) + boompje(30, 82, 22);
+    [[40, 30], [62, 22], [80, 36], [34, 50], [88, 54], [52, 40], [72, 46], [46, 60]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2" fill="#FFFFFF" stroke="#A9C6DE" stroke-width=".8"/>'; });
+    return s + lijn('M30 36Q34 22 48 16', '#FFFFFF', 4, 'opacity=".85"');
   }
   // ---------- de Sint (x, y: zijn voeten). Een eigen tekening: een rode mantel met een gouden rand, een witte albe, een mijter en een staf.
   function sint(x, y, s) {
@@ -638,6 +835,9 @@
   function teken() {
     var s = F.nu(); spul();
     var p = F.kern.pakjes(), rest = p.dicht + (p.mijter === 'dicht' ? 1 : 0);
+    // de kersttijd (en tot en met versieringTot, zolang het bijzondere kerstcadeau nog klaarligt)
+    var kk = F.kern.kerst(), kmodus = s.feest === 'kerst' ? s.fase : s.winter && kk.kanBijzonder ? 'na' : '';
+    if (kmodus) { tekenKerst(s, kk, p, rest, kmodus); return; }
     var sint = s.feest === 'sint' && (s.fase === 'intocht' || s.fase === 'schoen' || s.fase === 'pakjesavond-straks' || s.fase === 'pakjesavond');
     var modus = sint ? s.fase : s.uitpakken && rest ? 'nog' : '';
     if (!modus) { if (bord) { bord.remove(); bord = null; } sec.hidden = true; pepernoten(false); laatsteSig = ''; laatsteFase = ''; return; }
@@ -719,7 +919,7 @@
   }
 
   // ================= de feestrommeltjes op de homepage (voor altijd, als je ze uitpakte): in de rommelkast
-  var RSPUL = { 'hp-chocoletter': 'chocoletter', 'hp-worteltje': 'worteltje', mijter26: 'goudmijter' }, spulKlok = 0, spulVorig = '';
+  var RSPUL = { 'hp-chocoletter': 'chocoletter', 'hp-worteltje': 'worteltje', mijter26: 'goudmijter', 'hp-kerstbal': 'kerstbal', 'hp-sneeuwbol': 'sneeuwbol' }, spulKlok = 0, spulVorig = '';
   function spul() {
     var l = []; for (var id in RSPUL) if (F.kern.heb(id)) l.push(RSPUL[id]);
     var sig = l.join(); if (sig === spulVorig) return;
@@ -727,6 +927,277 @@
     if (!R || !R.feestRommels) { clearTimeout(spulKlok); spulKlok = setTimeout(spul, 400); return; }
     spulVorig = sig;
     try { R.feestRommels(l); } catch (e) { if (window.reportError) reportError(e); }
+  }
+
+  // ================= kerst: de kerstkalender (6 tot en met 24 december), de boom, de kerstdagen en de dagen erna
+  // De deurtjes staan in feest.js (DEURTJES, K.kerst, K.openDeur); elk geopend deurtje hangt iets in de boom. Met alle 19 deurtjes het
+  // bijzondere kerstcadeau (de gouden piek en het Sterrenrendier), en op de kerstdagen voor iedereen een cadeau onder de boom.
+  var KX = 600;   // het midden van de boom in de scène
+  // waar het ding van elk deurtje in de boom hangt: rijen van boven naar onder, een vaste volgorde over de boom verspreid
+  var ORN = (function () {
+    var rijen = [[96, 2], [132, 3], [168, 4], [206, 4], [244, 6]], plek = [], z = zaad(11);
+    rijen.forEach(function (r) { var hw = (r[0] - 40) * 0.56; for (var k = 0; k < r[1]; k++) { var u = r[1] === 1 ? 0 : -0.72 + 1.44 * k / (r[1] - 1); plek.push([r1(KX + u * hw + (z() - 0.5) * 8), r1(r[0] + (z() - 0.5) * 8)]); } });
+    var volg = [9, 2, 15, 5, 12, 0, 17, 7, 13, 3, 10, 16, 1, 8, 18, 4, 11, 14, 6];
+    return volg.map(function (p) { return plek[p]; });
+  })();
+  var KL_BAL = [ROOD, GOUD, '#3A6FD8', '#E07A2E', '#C9CED6', '#6A4C9C', '#2E8B62'];
+  function ornament(i) {
+    var p = ORN[i], x = p[0], y = p[1], kl = KL_BAL[i % KL_BAL.length], soort = i % 5;
+    var s = '<g class="fk-orn" data-o="' + i + '">';
+    if (soort === 1) s += lijn('M' + x + ' ' + (y - 13) + 'v4', '#C9CED6', 1.4) + pd(sterPad(x, y, 10), GOUD, 'stroke="' + I + '" stroke-width="1.6" stroke-linejoin="round"');
+    else if (soort === 2) s += lijn('M' + (x - 3) + ' ' + (y + 11) + 'V' + (y - 2) + 'Q' + (x - 3) + ' ' + (y - 9) + ' ' + (x + 3) + ' ' + (y - 9) + 'Q' + (x + 9) + ' ' + (y - 9) + ' ' + (x + 9) + ' ' + (y - 3), I, 6.5) +
+      lijn('M' + (x - 3) + ' ' + (y + 11) + 'V' + (y - 2) + 'Q' + (x - 3) + ' ' + (y - 9) + ' ' + (x + 3) + ' ' + (y - 9) + 'Q' + (x + 9) + ' ' + (y - 9) + ' ' + (x + 9) + ' ' + (y - 3), '#FFFFFF', 4) +
+      lijn('M' + (x - 3) + ' ' + (y + 11) + 'V' + (y - 2) + 'Q' + (x - 3) + ' ' + (y - 9) + ' ' + (x + 3) + ' ' + (y - 9) + 'Q' + (x + 9) + ' ' + (y - 9) + ' ' + (x + 9) + ' ' + (y - 3), ROOD, 4, 'stroke-dasharray="3 3.2" stroke-linecap="butt"');
+    else if (soort === 3) s += lijn('M' + x + ' ' + (y - 13) + 'v3', '#C9CED6', 1.4) + p3('M' + (x - 8) + ' ' + (y + 6) + 'Q' + (x - 8) + ' ' + (y - 10) + ' ' + x + ' ' + (y - 10) + 'Q' + (x + 8) + ' ' + (y - 10) + ' ' + (x + 8) + ' ' + (y + 6) + 'Z', GOUD, 1.8) + '<circle cx="' + x + '" cy="' + (y + 7.5) + '" r="2.4" fill="#B8862C" stroke="' + I + '" stroke-width="1.2"/>';
+    else s += lijn('M' + x + ' ' + (y - 16) + 'v4', '#C9CED6', 1.4) + bal(x, y, 8.5, kl, soort === 0 ? WIT : null);
+    return s + '</g>';
+  }
+  function kerstHuis(x, w, h, kl, dak, z) {
+    var Y = 236, top = Y - h, s = '<rect x="' + x + '" y="' + top + '" width="' + w + '" height="' + h + '" fill="' + kl + '"/>';
+    if (dak === 0) s += '<path d="M' + (x - 3) + ' ' + top + 'L' + (x + w / 2) + ' ' + (top - w * 0.45) + 'L' + (x + w + 3) + ' ' + top + 'Z" fill="' + kl + '"/><path d="M' + (x - 4) + ' ' + (top + 1) + 'L' + (x + w / 2) + ' ' + (top - w * 0.45 - 1) + 'L' + (x + w + 4) + ' ' + (top + 1) + 'L' + (x + w - 4) + ' ' + (top + 2) + 'L' + (x + w / 2) + ' ' + (top - w * 0.3) + 'L' + (x + 4) + ' ' + (top + 2) + 'Z" fill="var(--fk-sneeuw)" opacity=".95"/>';
+    else { for (var k = 0; k < 3; k++) s += '<rect x="' + (x + k * w / 6) + '" y="' + (top - (k + 1) * 9) + '" width="' + (w - k * w / 3) + '" height="9" fill="' + kl + '"/><rect x="' + (x + k * w / 6 - 1) + '" y="' + (top - (k + 1) * 9 - 2) + '" width="' + (w - k * w / 3 + 2) + '" height="3" fill="var(--fk-sneeuw)" opacity=".95"/>'; }
+    for (var r = 0; r < Math.floor((h - 14) / 22); r++) for (var c = 0; c < Math.floor((w - 8) / 14); c++) if (z() < 0.62) s += '<rect class="fk-raam" x="' + (x + 7 + c * 14) + '" y="' + (top + 10 + r * 22) + '" width="7" height="10" fill="var(--fk-raam)" opacity="' + (0.55 + z() * 0.45).toFixed(2) + '"/>';
+    return s;
+  }
+  function kerstScene() {
+    var z = zaad(5), s = '<svg class="fb-svg" viewBox="0 0 960 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false"><defs><linearGradient id="fk-lucht" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--fk-l1)"/><stop offset="1" style="stop-color:var(--fk-l2)"/></linearGradient></defs>';
+    s += '<rect width="960" height="300" fill="url(#fk-lucht)"/>';
+    for (var k = 0; k < 34; k++) s += '<circle class="fk-ster" cx="' + r1(z() * 960) + '" cy="' + r1(z() * 150) + '" r="' + r1(0.7 + z() * 1.3) + '" fill="#FFF8DE" opacity="' + (0.4 + z() * 0.5).toFixed(2) + '" style="--i:' + k % 7 + '"/>';
+    s += '<circle cx="120" cy="64" r="44" fill="#FFF4D6" opacity=".14"/><circle cx="120" cy="64" r="24" fill="#FFF4D6"/><circle cx="111" cy="58" r="4.5" fill="#EBDDB6"/><circle cx="127" cy="72" r="3" fill="#EBDDB6"/><circle cx="126" cy="55" r="2" fill="#EBDDB6"/>';
+    // de stad in de verte, met sneeuw op de daken
+    var x = -14, hz = zaad(9);
+    while (x < 970) { var w = 30 + Math.floor(hz() * 34), h = 46 + Math.floor(hz() * 70); s += kerstHuis(x, w, h, hz() < 0.5 ? 'var(--fk-huis)' : 'var(--fk-huis2)', hz() < 0.5 ? 0 : 1, hz); x += w + 2 + Math.floor(hz() * 6); }
+    s += '<path d="M0 238Q240 222 480 236T960 232V300H0Z" fill="var(--fk-sneeuw2)"/>';
+    // dennetjes in de sneeuw
+    [[34, 236, 0.6], [910, 234, 0.75], [946, 240, 0.5], [470, 238, 0.45]].forEach(function (d) { s += '<g transform="translate(' + d[0] + ' ' + d[1] + ') scale(' + d[2] + ')">' + p3('M0 -80L26 -26H14L34 0H-34L-14 -26H-26Z', '#24684A', 2.4) + lijn('M-20 -27H-8M8 -27H20M-28 -2H-10M10 -2H28', '#FFFFFF', 4, 'opacity=".9"') + '</g>'; });
+    s += '<path d="M0 262Q300 248 600 264T960 256V300H0Z" fill="var(--fk-sneeuw)"/>';
+    // de lantaarn met een krans
+    s += lijn('M360 272V150', I, 6) + lijn('M360 272V150', '#4A4A52', 3.4) + p3('M350 150H370L374 132H346Z', '#3A3A40', 2) + '<circle class="fk-gloed" cx="360" cy="140" r="26" fill="#FFD77A" opacity=".28"/>' + p3('M349 132L352 112H368L371 132Z', '#FFE7A0', 2) + p3('M346 112H374L360 100Z', '#3A3A40', 2) +
+      '<circle cx="360" cy="196" r="13" fill="none" stroke="#24684A" stroke-width="7"/><circle cx="360" cy="196" r="13" fill="none" stroke="#3FA372" stroke-width="3" stroke-dasharray="2 4"/><circle cx="353" cy="188" r="2" fill="' + ROOD + '"/><circle cx="368" cy="192" r="2" fill="' + ROOD + '"/><circle cx="356" cy="207" r="2" fill="' + ROOD + '"/>' + p3('M360 184L352 178V188ZM360 184L368 178V188Z', ROOD, 1.4);
+    // de sneeuwpop
+    s += '<ellipse cx="200" cy="284" rx="34" ry="6" fill="#231A26" opacity=".08"/><circle cx="200" cy="262" r="24" fill="#FFFFFF" stroke="' + I + '" stroke-width="2.6"/><circle cx="200" cy="228" r="17" fill="#FFFFFF" stroke="' + I + '" stroke-width="2.6"/><circle cx="200" cy="202" r="12.5" fill="#FFFFFF" stroke="' + I + '" stroke-width="2.6"/>' +
+      p3('M186 193H214V189H209V172H191V189H186Z', '#23252B', 2) + lijn('M191 186H209', ROOD, 3) + '<circle cx="195" cy="200" r="1.8" fill="' + I + '"/><circle cx="205" cy="200" r="1.8" fill="' + I + '"/>' + p3('M200 204L214 207L200 208Z', '#E07A2E', 1.4) +
+      p3('M186 214Q200 220 214 214L215 220Q200 226 185 220Z', ROOD, 2) + p3('M207 219L213 236L206 236L203 221Z', ROOD, 1.8) + lijn('M184 226L164 212M168 215L162 216M216 226L236 214M232 217L238 214', '#6E4A30', 2.6) + '<circle cx="200" cy="230" r="1.8" fill="' + I + '"/><circle cx="200" cy="240" r="1.8" fill="' + I + '"/>';
+    // de grote boom: lagen van onder naar boven, met sneeuw op de takken
+    s += '<ellipse cx="' + KX + '" cy="294" rx="150" ry="8" fill="#231A26" opacity=".1"/>' + p3('M' + (KX - 13) + ' 262H' + (KX + 13) + 'V286H' + (KX - 13) + 'Z', '#6E4A30', 2.4) +
+      p3('M' + (KX - 36) + ' 282H' + (KX + 36) + 'L' + (KX + 30) + ' 300H' + (KX - 30) + 'Z', '#7A4E2D', 2.6) + lijn('M' + (KX - 34) + ' 289H' + (KX + 34), GOUD, 3);
+    for (var t = 4; t >= 0; t--) {
+      var tp = 40 + t * 40, bt = tp + 66, hw = 32 + t * 25;
+      s += p3('M' + (KX - hw) + ' ' + bt + 'Q' + KX + ' ' + (bt + 10) + ' ' + (KX + hw) + ' ' + bt + 'L' + KX + ' ' + tp + 'Z', '#2E8B62', 2.8) +
+        pd('M' + KX + ' ' + (tp + 4) + 'L' + (KX + hw - 6) + ' ' + (bt - 2) + 'Q' + (KX + hw * 0.4) + ' ' + (bt + 5) + ' ' + KX + ' ' + (bt + 5) + 'Z', '#1F6B47', 'opacity=".55"') +
+        lijn('M' + (KX - hw + 4) + ' ' + (bt - 1) + 'Q' + (KX - hw * 0.5) + ' ' + (bt + 7) + ' ' + KX + ' ' + (bt + 6) + 'Q' + (KX + hw * 0.5) + ' ' + (bt + 7) + ' ' + (KX + hw - 4) + ' ' + (bt - 1), '#FFFFFF', 4.5, 'opacity=".92"');
+    }
+    // lichtjes in slingers om de boom
+    [1, 2, 3, 4].forEach(function (t) {
+      var tp = 40 + t * 40, bt = tp + 66, hw = 32 + t * 25, y0 = bt - 22, a = [KX - hw * 0.72, y0 - 6], b = [KX, y0 + 8], c = [KX + hw * 0.72, y0 - 6];
+      s += lijn('M' + r1(a[0]) + ' ' + r1(a[1]) + 'Q' + b[0] + ' ' + b[1] + ' ' + r1(c[0]) + ' ' + r1(c[1]), '#3A3A40', 1.2);
+      for (var k = 0, n = 3 + t; k <= n; k++) { var u = k / n, lx = (1 - u) * (1 - u) * a[0] + 2 * u * (1 - u) * b[0] + u * u * c[0], ly = (1 - u) * (1 - u) * a[1] + 2 * u * (1 - u) * b[1] + u * u * c[1], kl = ['#FFE27A', '#FF8A7A', '#9FD7FF', '#FFF1C9'][(k + t) % 4];
+        s += '<g class="fk-lamp ' + ((k + t) % 2 ? 'fk-b' : 'fk-a') + '"><circle cx="' + r1(lx) + '" cy="' + r1(ly + 2) + '" r="6" fill="' + kl + '" opacity=".3"/><circle cx="' + r1(lx) + '" cy="' + r1(ly + 2) + '" r="2.6" fill="' + kl + '" stroke="rgba(0,0,0,.35)" stroke-width=".8"/></g>'; }
+    });
+    for (var i = 0; i < 19; i++) s += ornament(i);
+    // de gouden piek (het bijzondere kerstcadeau)
+    s += '<g class="fk-piek"><circle cx="' + KX + '" cy="30" r="30" fill="#FFE27A" opacity=".25"/>';
+    for (var q = 0; q < 8; q++) { var an = q * Math.PI / 4; s += lijn('M' + r1(KX + Math.cos(an) * 19) + ' ' + r1(30 + Math.sin(an) * 19) + 'L' + r1(KX + Math.cos(an) * 30) + ' ' + r1(30 + Math.sin(an) * 30), '#F6CB2F', 2.6, 'opacity=".7"'); }
+    s += pd(sterPad(KX, 30, 17), GOUD, 'stroke="' + I + '" stroke-width="2.4" stroke-linejoin="round"') + lijn('M' + (KX - 6) + ' 24L' + (KX - 2) + ' 18', '#FFF3C4', 2.6) + '</g>';
+    // cadeautjes onder de boom (op de kerstdagen en daarna), en het cadeau voor jou
+    s += '<g class="fk-deco">' + p3('M640 272H676V296H640Z', '#3A6FD8', 2.2) + lijn('M658 272V296M640 284H676', GOUD, 3) + p3('M680 280H706V296H680Z', '#E9B949', 2) + lijn('M693 280V296', ROOD, 2.6) + '</g>';
+    s += '<g class="fk-kado" data-actie="onderboom"><ellipse cx="538" cy="297" rx="30" ry="4" fill="#231A26" opacity=".15"/>' + p3('M512 262H564V296H512Z', ROOD, 2.6) + p3('M508 254H568V266H508Z', '#E0505A', 2.4) + pd('M534 254V296H542V254Z', GOUD, 'stroke="' + I + '" stroke-width="1.6"') +
+      p3('M538 254Q522 238 516 246Q516 256 538 254Z', GOUD, 2) + p3('M538 254Q554 238 560 246Q560 256 538 254Z', GOUD, 2) + p3('M556 268L576 262L580 272L560 278Z', '#FFF8E8', 1.6) + lijn('M563 270h10', ROOD, 1.4) + '</g>';
+    // sneeuw die valt (alleen als de versiering aan staat en bij beweging)
+    var vz = zaad(13);
+    for (var v = 0; v < 26; v++) s += '<circle class="fk-vlok" cx="' + r1(vz() * 960) + '" cy="-6" r="' + r1(1.4 + vz() * 1.8) + '" fill="#FFFFFF" opacity=".85" style="animation-duration:' + (6 + vz() * 7).toFixed(1) + 's;animation-delay:-' + (vz() * 12).toFixed(1) + 's"/>';
+    return s + '</svg>';
+  }
+  // een deurtje van de kalender: een cadeautje, een raampje of een ster, met de datum
+  function deurVoor(nr, soort) {
+    var s = '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">';
+    if (soort === 0) s += '<rect width="48" height="48" fill="#C8323C"/><path d="M20 0h8v48h-8zM0 20h48v8H0z" fill="#E9B949"/><path d="M24 20Q14 8 10 13Q9 20 24 20ZM24 20Q34 8 38 13Q39 20 24 20Z" fill="#F2C744" stroke="#231A26" stroke-width="1.4"/>';
+    else if (soort === 1) s += '<rect width="48" height="48" fill="#2B3D78"/><rect x="9" y="8" width="30" height="30" rx="2" fill="#FFD77A"/><path d="M24 8v30M9 23h30" stroke="#5A3A20" stroke-width="3"/><rect x="9" y="8" width="30" height="30" rx="2" fill="none" stroke="#5A3A20" stroke-width="3"/><path d="M6 40h36v3H6z" fill="#FFFFFF"/>';
+    else s += '<rect width="48" height="48" fill="#2E8B62"/><path d="' + sterPad(24, 25, 19, 0.46) + '" fill="#E9B949" stroke="#231A26" stroke-width="1.4" stroke-linejoin="round"/>';
+    return s + '<text x="24" y="31" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="19" fill="#FFFFFF" stroke="#231A26" stroke-width="3.4" paint-order="stroke">' + nr + '</text></svg>';
+  }
+  function datumNr(nr) { return nr + ' december'; }
+  function kerstTeksten(s, k, p, rest, modus) {
+    var t = { label: '', kop: '', zin: '', knoppen: [] }, zin = [], n = naam(), J = F.kern.nu().J, vd = null;
+    k.deurtjes.forEach(function (d) { if (d.i === k.vandaag) vd = d; });
+    var nachtjes = Math.max(0, F.KERN.dagNr(String(J.kerstdagenVan).slice(0, 10)) - F.KERN.dagNr(s.dag));
+    var offline = navigator.onLine === false ? 'Zonder internet kun je het deurtje nog niet openen. Dat kan straks weer.' : 'Even kijken hoe laat het echt is…';
+    if (modus === 'kalender') {
+      t.label = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'][new Date(s.dag + 'T12:00:00Z').getUTCDay()] + ' ' + datumTekst(s.dag);
+      if (vd && !vd.open) { t.kop = 'Deurtje ' + vd.nr + ' wacht op je!'; zin.push('Elke dag gaat er één deurtje open, met iets voor een van de spellen. Een deurtje dat je mist, blijft dicht.'); if (s.zeker) t.knoppen.push(['deur-vandaag', 'Open deurtje ' + vd.nr]); else zin.push(offline); }
+      else {
+        t.kop = nachtjes > 1 ? 'Nog ' + nachtjes + ' nachtjes tot kerst' : 'Morgen is het kerst!';
+        if (k.vandaag < k.tot) zin.push('Morgen gaat deurtje ' + (vd ? vd.nr + 1 : '') + ' open. Kom je dan weer kijken?');
+        else zin.push('Dat was het laatste deurtje. Je opende er dit jaar ' + k.open + ' van de ' + k.aantal + '.');
+      }
+    } else if (modus === 'kerstdagen') {
+      t.label = s.dag === String(J.kerstdagenVan).slice(0, 10) ? 'Eerste kerstdag' : 'Tweede kerstdag';
+      t.kop = 'Vrolijk kerstfeest' + (n ? ', ' + n : '') + '!';
+      if (k.onderBoom === 'dicht') { zin.push('Onder de boom ligt een cadeautje voor je.'); if (s.zeker) t.knoppen.push(['onderboom', 'Kijk onder de boom']); else zin.push(offline.replace('het deurtje', 'het cadeautje')); }
+      else zin.push('Fijne kerstdagen! Geniet ervan, en tot snel.');
+    } else {
+      t.label = 'Fijne feestdagen'; t.kop = 'Wat een mooie boom!';
+      zin.push(k.open ? 'Je opende dit jaar ' + k.open + ' van de ' + k.aantal + ' deurtjes. Alles staat in Mijn feestspullen, en in de spellen.' : 'Volgend jaar is er weer een kerstkalender, met elke dag een deurtje.');
+    }
+    if (k.kanBijzonder) { zin.push('Je opende alle ' + k.aantal + ' deurtjes! Er ligt een bijzonder kerstcadeau voor je.'); t.knoppen.push(['bijzonder', 'Pak je bijzondere kerstcadeau uit']); }
+    if (rest && s.uitpakken) { zin.push('En er ' + (rest === 1 ? 'ligt nog één cadeautje' : 'liggen nog ' + rest + ' cadeautjes') + ' van de Sint voor je.'); t.knoppen.push(['uitpakken', 'Pak je Sint-cadeautjes uit']); }
+    t.zin = zin.join(' ');
+    t.knoppen.forEach(function (b, i) { b[2] = i === 0 ? 1 : 0; });
+    t.knoppen.push(['spullen', 'Mijn feestspullen', 0]);
+    return t;
+  }
+  function deurHtml(d) {
+    var soort = d.nr % 3, st = d.open ? 'fk-open' : d.kan ? 'fk-kan' : d.gemist ? 'fk-gemist' : 'fk-later', x = d.id && SPUL[d.id];
+    var lab = 'Deurtje ' + d.nr + (d.open ? ', open: ' + (x ? x.naam : '') : d.kan ? ', vandaag: open hem' : d.gemist ? ', gemist' : ', gaat open op ' + datumNr(d.nr));
+    return '<button type="button" class="fk-deur ' + st + '" data-actie="deur" data-i="' + d.i + '" aria-label="' + esc(lab) + '"><span class="fk-binnen">' + (d.open && x ? x.teken() : '') + '</span><span class="fk-voor">' + deurVoor(d.nr, soort) + '</span></button>';
+  }
+  function bijzHtml(k) {
+    var st = k.bijzonder === 'open' ? 'fk-open' : k.kanBijzonder ? 'fk-kan' : 'fk-later', mis = k.deurtjes.some(function (d) { return d.gemist; });
+    var tekst = k.bijzonder === 'open' ? 'Bijzonder cadeau' : k.kanBijzonder ? 'Pak uit!' : mis ? 'Volgend jaar' : 'Alle 19 open?';
+    var lab = k.bijzonder === 'open' ? 'Het bijzondere kerstcadeau: de gouden piek, uitgepakt' : k.kanBijzonder ? 'Het bijzondere kerstcadeau: pak het uit' : mis ? 'Het bijzondere kerstcadeau is voor wie alle 19 deurtjes opent. Je miste er een; volgend jaar weer een kans.' : 'Het bijzondere kerstcadeau: open alle 19 deurtjes';
+    return '<button type="button" class="fk-bijz ' + st + '" data-actie="bijzonder" aria-label="' + esc(lab) + '"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">' + (k.bijzonder === 'open' ? '<path d="' + sterPad(24, 24, 18) + '" fill="#E9B949" stroke="#231A26" stroke-width="1.6" stroke-linejoin="round"/>' :
+      '<rect x="8" y="18" width="32" height="24" fill="#E9B949" stroke="#231A26" stroke-width="2"/><rect x="5" y="12" width="38" height="8" fill="#F2C744" stroke="#231A26" stroke-width="2"/><path d="M21 12v30h6V12z" fill="#C8323C"/><path d="M24 12Q14 2 11 7Q11 13 24 12ZM24 12Q34 2 37 7Q37 13 24 12Z" fill="#C8323C" stroke="#231A26" stroke-width="1.4"/>') + '</svg><span>' + esc(tekst) + '</span></button>';
+  }
+  // het bord in de kersttijd (zoals teken() voor de Sint)
+  function tekenKerst(s, k, p, rest, modus) {
+    var t = kerstTeksten(s, k, p, rest, modus), piek = F.kern.heb('piek26');
+    var sig = JSON.stringify([t, k.deurtjes.map(function (d) { return d.open ? 1 : d.kan ? 2 : d.gemist ? 3 : 0; }), k.bijzonder, k.kanBijzonder, k.onderBoom, s.versiering, piek]);
+    sec.hidden = false; stijl(); kerstStijl();
+    if (!bord || laatsteFase !== 'k-' + modus) {
+      if (bord) bord.remove();
+      bord = document.createElement('div'); bord.className = 'tg-feest-bord fb-kerst'; bord.setAttribute('role', 'region'); bord.setAttribute('aria-labelledby', 'fb-kop');
+      bord.innerHTML = '<div class="fb-scene fk-scene">' + kerstScene() + '</div>' +
+        '<div class="fb-tekst"><span class="fb-label"></span><h2 class="fb-kop" id="fb-kop"></h2><p class="fb-zin" aria-live="polite"></p><div class="fb-knoppen"></div><div class="fb-kleintjes"><button type="button" class="fb-klein fb-uitknop" aria-pressed="false"></button></div></div>' +
+        '<div class="fk-kal"><div class="fk-kalkop"><span class="fk-tape">Kerstkalender</span><span class="fk-teller"></span></div><div class="fk-raster"></div><p class="fk-hint" aria-live="polite"></p></div>';
+      sec.appendChild(bord); laatsteFase = 'k-' + modus; laatsteSig = '';
+      bord.addEventListener('click', klik);
+      kijkhoek();
+    }
+    bord.classList.toggle('fb-stil', !s.versiering);
+    if (sig !== laatsteSig) {
+      var a = document.activeElement, focus = a && bord.contains(a) ? [a.getAttribute('data-actie'), a.getAttribute('data-i')] : null;
+      bord.querySelector('.fb-label').textContent = t.label;
+      bord.querySelector('.fb-kop').textContent = t.kop;
+      bord.querySelector('.fb-zin').textContent = t.zin;
+      bord.querySelector('.fb-knoppen').innerHTML = t.knoppen.map(knopHtml).join('');
+      var u = bord.querySelector('.fb-uitknop'); u.textContent = s.versiering ? 'Versiering uit' : 'Versiering aan'; u.setAttribute('aria-pressed', String(!s.versiering));
+      bord.querySelector('.fk-teller').textContent = k.open + ' van de ' + k.aantal + ' open';
+      bord.querySelector('.fk-raster').innerHTML = k.deurtjes.map(deurHtml).join('') + bijzHtml(k);
+      k.deurtjes.forEach(function (d, i) { var o = bord.querySelector('.fk-orn[data-o="' + i + '"]'); if (o) o.classList.toggle('fk-aan', d.open); });
+      bord.querySelector('.fk-piek').classList.toggle('fk-aan', piek);
+      bord.querySelector('.fk-kado').classList.toggle('fk-aan', k.onderBoom === 'dicht' && s.zeker);
+      bord.querySelector('.fk-deco').classList.toggle('fk-aan', modus !== 'kalender');
+      if (focus && focus[0]) { var f = bord.querySelector('[data-actie="' + focus[0] + '"]' + (focus[1] ? '[data-i="' + focus[1] + '"]' : '')) || bord.querySelector('.fk-kan') || bord.querySelector('.fb-knop'); if (f && f.focus) f.focus(); }
+      laatsteSig = sig;
+      herbouw();
+    }
+    pepernoten(false);
+  }
+  var bel = function () { toon(1046.5, 0, 0.6, 'sine', 0.045); toon(1568, 0.07, 0.7, 'sine', 0.03); toon(2093, 0.14, 0.6, 'sine', 0.02); };
+  var waarTekst = function (x) { return x.wat + (x.spel ? (/^je /.test(x.spel) ? ', op ' : ', in ') + x.spel : ''); };
+  // een deurtje openen of nog eens bekijken
+  function deurKlik(i) {
+    var k = F.kern.kerst(), d = null, hint = bord && bord.querySelector('.fk-hint');
+    k.deurtjes.forEach(function (x) { if (x.i === i) d = x; });
+    if (!d) return;
+    if (d.open) { deurVenster(d.id, d.nr, false); return; }
+    if (d.later) { if (hint) hint.textContent = 'Deurtje ' + d.nr + ' gaat open op ' + datumNr(d.nr) + '.'; return; }
+    if (d.gemist) { if (hint) hint.textContent = 'Deurtje ' + d.nr + ' heb je gemist. Een gemist deurtje blijft dicht, maar morgen is er weer een nieuw.'; return; }
+    if (!d.kan) { if (hint) hint.textContent = navigator.onLine === false ? 'Zonder internet kun je het deurtje nog niet openen.' : 'Even kijken hoe laat het echt is…'; return; }
+    var r = F.kern.openDeur(i); if (!r) { if (hint) hint.textContent = 'Dat lukte even niet. Probeer het zo nog eens.'; return; }
+    var knop = bord && bord.querySelector('.fk-deur[data-i="' + i + '"]'), x = SPUL[r.id];
+    if (knop) { knop.classList.remove('fk-kan'); knop.querySelector('.fk-binnen').innerHTML = x ? x.teken() : ''; knop.classList.add('fk-open'); }
+    bel(); F.melden();
+    setTimeout(function () { deurVenster(r.id, r.nr, true); }, minder ? 0 : 620);
+  }
+  function deurVenster(id, nr, nieuw, label) {
+    var x = SPUL[id] || { naam: 'Een kerstverrassing', wat: 'Om lekker van te genieten', teken: function () { return plaat(icKerstbal()); } };
+    var d = venster('<span class="fb-label">' + esc(label || 'Deurtje ' + nr) + '</span><span class="fb-plaat' + (nieuw ? ' fk-nieuw' : '') + '">' + x.teken() + '</span><h2>' + esc(x.naam) + '</h2><p class="fb-voor">' + esc(waarTekst(x)) + '</p>' + gedichtHtml(id) +
+      '<div class="fb-knoppen"><button type="button" class="fb-knop fb-hoofd" data-dicht>' + (nieuw ? 'Fijn!' : 'Sluiten') + '</button>' + (x.pagina ? '<a class="fb-knop" href="' + esc(x.pagina) + '">Naar ' + esc(x.knop || x.spel) + '</a>' : '') + '</div>', 'fk-deurvenster');
+    d.addEventListener('close', function () { teken(); });
+  }
+  // het bijzondere kerstcadeau ('bijzonder') of het cadeau onder de boom ('boom'): een groot pakje om open te maken
+  function kerstKado(soort) {
+    if (UP) return;
+    var goud = soort === 'bijzonder', ob = (F.KERN.ONDERBOOM || {})[F.nu().jaar], id0 = goud ? 'piek26' : ob, x0 = SPUL[id0];
+    if (!x0) return;
+    var d = venster('<div class="fb-up" aria-live="polite"></div>', 'fb-uitpak');
+    UP = { d: d, staat: 'dicht' };
+    var box = d.querySelector('.fb-up');
+    box.innerHTML = '<span class="fb-label">' + (goud ? 'Het bijzondere kerstcadeau' : 'Onder de boom') + '</span>' +
+      '<div class="fb-podium"><button type="button" class="fb-groot fb-wacht" data-pak aria-label="Pak het cadeau uit">' + grootPakje(2, goud, x0.teken().replace('<svg ', '<svg x="40" y="34" width="120" height="120" ')) + '</button><div class="fb-snippers" aria-hidden="true"></div></div>' +
+      '<div class="fb-onder"><h2>' + (goud ? 'Voor wie alle 19 deurtjes opende' : 'Er ligt iets onder de boom!') + '</h2><p class="fb-hint">Tik op het pakje, of trek aan het lint.</p>' +
+      '<div class="fb-knoppen"><button type="button" class="fb-knop fb-hoofd" data-pak>Pak uit!</button><button type="button" class="fb-knop" data-dicht>Later</button></div></div>';
+    box.querySelector('.fb-knop[data-pak]').focus();
+    function open() {
+      if (!UP || UP.staat !== 'dicht') return;
+      var r = goud ? F.kern.pakBijzonder() : F.kern.pakOnderBoom();
+      if (!r) { var h = box.querySelector('.fb-hint'); if (h) h.textContent = navigator.onLine === false ? 'Zonder internet kun je het nog niet uitpakken. Probeer het straks nog eens.' : 'Dat lukte even niet. Probeer het zo nog eens.'; return; }
+      UP.staat = 'open';
+      var pod = box.querySelector('.fb-podium'), knop = pod.querySelector('.fb-groot');
+      knop.classList.remove('fb-wacht'); knop.setAttribute('tabindex', '-1'); knop.removeAttribute('data-pak'); knop.setAttribute('aria-label', x0.naam);
+      pod.classList.add('fb-open'); snippers(pod); scheur(); setTimeout(bel, 380);
+      var extra = '';
+      if (goud) { var rd = SPUL['rb-sterrenrendier']; if (rd) extra = '<div class="fk-extra">' + rd.teken() + '<p><b>En een holo-feestkaart: ' + esc(rd.naam) + '</b><br>In de Feestset van Rommelbeesten.</p></div>'; }
+      box.querySelector('.fb-onder').innerHTML = '<h2 tabindex="-1">' + esc(x0.naam) + '</h2><p class="fb-voor">' + esc(waarTekst(x0)) + '</p>' + gedichtHtml(id0) + extra +
+        '<div class="fb-knoppen"><button type="button" class="fb-knop fb-hoofd" data-dicht>' + (goud ? 'Wat mooi!' : 'Fijn!') + '</button>' + (goud ? '<a class="fb-knop" href="rommelbeesten.html">Naar Rommelbeesten</a>' : '') + '</div>';
+      box.querySelector('.fb-onder h2').focus();
+      F.melden();
+    }
+    d.addEventListener('close', function () { UP = null; F.melden(); teken(); });
+    d.addEventListener('click', function (e) { var k = e.target.closest && e.target.closest('[data-pak]'); if (k) open(); });
+    var van = null;
+    d.addEventListener('pointerdown', function (e) { if (e.target.closest && e.target.closest('.fb-groot')) van = [e.clientX, e.clientY]; });
+    d.addEventListener('pointermove', function (e) { if (van && Math.hypot(e.clientX - van[0], e.clientY - van[1]) > 28) { van = null; open(); } });
+    d.addEventListener('pointerup', function () { van = null; });
+  }
+  function kerstStijl() {
+    if (document.getElementById('fk-stijl')) return;
+    var st = document.createElement('style'); st.id = 'fk-stijl';
+    st.textContent = [
+      ':root{--fk-l1:#2B3D78;--fk-l2:#8098D2;--fk-sneeuw:#FAFCFF;--fk-sneeuw2:#DDE7F3;--fk-huis:#3A4A7E;--fk-huis2:#46568C;--fk-raam:#FFD77A;--fk-hout:#F7EBD2}',
+      'html[data-thema="donker"]{--fk-l1:#0A1130;--fk-l2:#2B3B70;--fk-sneeuw:#E2EAF5;--fk-sneeuw2:#B7C5D9;--fk-huis:#18214A;--fk-huis2:#1F2A56;--fk-raam:#F6CB2F;--fk-hout:#2E2A36}',
+      '.tg-feest-bord.fb-kerst{grid-template-columns:minmax(0,1fr) 410px;grid-template-areas:"scene scene" "tekst kal"}',
+      '.fk-scene{background:var(--fk-l2)}',
+      '.fk-orn,.fk-piek,.fk-kado,.fk-deco{display:none}.fk-orn.fk-aan,.fk-piek.fk-aan,.fk-kado.fk-aan,.fk-deco.fk-aan{display:inline}',
+      '.fk-kado{cursor:pointer}',
+      '.fk-vlok{display:none}',
+      '.fk-kal{grid-area:kal;padding:1rem 1.1rem 1.1rem 0;min-width:0}',
+      '.fk-kalkop{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.55rem}',
+      '.fk-tape{display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:#2E8B62;color:#FFF;padding:.28rem .6rem .24rem;border-radius:4px;transform:rotate(1.5deg)}',
+      '.fk-teller{font-size:.85rem;font-weight:800;color:var(--tg-zacht)}',
+      '.fk-raster{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:8px;background:var(--fk-hout);border:2.5px solid #231A26;border-radius:12px;box-shadow:inset 0 2px 0 rgba(255,255,255,.5)}',
+      'html[data-thema="donker"] .fk-raster{border-color:#F6F2EA}',
+      '.fk-deur,.fk-bijz{position:relative;aspect-ratio:1/1;min-height:36px;padding:0;margin:0;border:2.5px solid #231A26;border-radius:9px;background:#FFF8E8;cursor:pointer;perspective:320px;font:inherit;color:inherit}',
+      'html[data-thema="donker"] .fk-deur,html[data-thema="donker"] .fk-bijz{border-color:#F6F2EA;background:#3A3546}',
+      '.fk-voor{position:absolute;inset:0;border-radius:6px;overflow:hidden;transform-origin:0 50%;backface-visibility:hidden}.fk-voor svg,.fk-binnen svg{display:block;width:100%;height:100%}',
+      '.fk-binnen{position:absolute;inset:3px;opacity:0}',
+      '.fk-open .fk-binnen{opacity:1}.fk-open .fk-voor{transform:rotateY(-112deg);opacity:0}',
+      '.fk-gemist .fk-voor{filter:grayscale(.9);opacity:.45}.fk-gemist{cursor:default}.fk-later{cursor:default}',
+      '.fk-kan::after,.fk-bijz.fk-kan::after{content:"";position:absolute;inset:-6px;border-radius:13px;border:3px solid #F2C744;pointer-events:none}',
+      '.fk-deur:focus-visible,.fk-bijz:focus-visible{outline:3px solid var(--tg-focus,#2F4C8F);outline-offset:3px}',
+      '.fk-bijz{grid-column:span 2;aspect-ratio:auto;display:flex;align-items:center;gap:.35rem;padding:0 .45rem;font-size:.78rem;font-weight:800;line-height:1.1;text-align:left}',
+      '.fk-bijz svg{width:30px;height:30px;flex:none}.fk-bijz.fk-later{opacity:.7}.fk-bijz.fk-kan{background:#FFF1C2}html[data-thema="donker"] .fk-bijz.fk-kan{background:#5A4A22}',
+      '.fk-hint{margin:.45rem 0 0;font-size:.85rem;color:var(--tg-zacht);min-height:1.2em}',
+      '.fk-extra{display:grid;grid-template-columns:64px 1fr;gap:.7rem;align-items:center;text-align:left;margin:.2rem 0 .9rem}.fk-extra svg{width:64px;height:64px}.fk-extra p{margin:0}',
+      '@media (max-width:640px){.tg-feest-bord.fb-kerst{grid-template-columns:minmax(0,1fr);grid-template-areas:"scene" "tekst" "kal"}.fk-kal{padding:0 1rem 1rem}.fk-raster{gap:4px;padding:6px}.fk-bijz{font-size:.62rem;gap:.2rem;padding:0 .25rem}.fk-bijz svg{width:20px;height:20px}}',
+      '@media (prefers-reduced-motion:no-preference){',
+      '  .fb-kerst:not(.fb-stil) .fk-vlok{display:inline;animation:fk-val linear infinite}',
+      '  .fb-kerst:not(.fb-stil) .fk-lamp.fk-a{animation:fk-brand 2.4s ease-in-out infinite}',
+      '  .fb-kerst:not(.fb-stil) .fk-lamp.fk-b{animation:fk-brand 2.4s ease-in-out -1.2s infinite}',
+      '  .fb-kerst:not(.fb-stil) .fk-ster{animation:fk-brand 3.6s ease-in-out infinite;animation-delay:calc(var(--i)*-.5s)}',
+      '  .fb-kerst:not(.fb-stil) .fk-gloed{animation:fb-gloei 2.4s ease-in-out infinite alternate}',
+      '  .fb-kerst:not(.fb-stil) .fk-kado.fk-aan{animation:fb-wiebel 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}',
+      '  .fk-voor{transition:transform .6s ease-in,opacity .25s ease .4s}',
+      '  .fk-kan::after{animation:fk-puls 1.8s ease-in-out infinite}',
+      '  .fb-kerst:not(.fb-stil) .fk-kan .fk-voor{animation:fb-wiebel 2.6s ease-in-out infinite;transform-origin:50% 100%}',
+      '  .fk-nieuw svg{animation:fb-inhoud .6s cubic-bezier(.2,1.4,.4,1) both}',
+      '}',
+      '@keyframes fk-val{from{transform:translateY(0)}to{transform:translateY(312px)}}',
+      '@keyframes fk-brand{0%,100%{opacity:1}50%{opacity:.4}}',
+      '@keyframes fk-puls{0%,100%{opacity:.55}50%{opacity:1}}'
+    ].join('\n');
+    document.head.appendChild(st);
   }
 
   // ================= pakjesavond: de cadeautjes een voor een uitpakken
@@ -832,7 +1303,7 @@
   function gedichtHtml(id) {
     var g = GEDICHT[id]; if (!g) return '';
     var n = naam();
-    return '<p class="fb-gedicht">' + (n ? '<span>Lieve ' + esc(n) + ',</span>' : '') + g.map(function (r) { return '<span>' + esc(r) + '</span>'; }).join('') + '<span class="fb-ondert">Sint en Piet</span></p>';
+    return '<p class="fb-gedicht">' + (n ? '<span>Lieve ' + esc(n) + ',</span>' : '') + g.map(function (r) { return '<span>' + esc(r) + '</span>'; }).join('') + '<span class="fb-ondert">' + esc((SPUL[id] && SPUL[id].van) || 'Sint en Piet') + '</span></p>';
   }
   function cadeauVenster(id) {
     var x = SPUL[id];
@@ -843,7 +1314,8 @@
     var s = F.kern.lees(), sch = F.kern.schoen(), heb = s.st.filter(function (id) { return SPUL[id]; });
     var lijst = heb.length ? '<ul class="fb-spullen">' + heb.map(function (id) { var x = SPUL[id]; return '<li>' + x.teken() + '<span><b>' + esc(x.naam) + '</b><small>' + esc(x.wat + ' · ' + x.feest) + '</small></span></li>'; }).join('') + '</ul>' : '<p class="fb-leeg">Nog niets. Kom op de feestdagen langs, dan vult je feestkast zich vanzelf.</p>';
     var schoen = sch.gezet ? '<p>Je schoen stond ' + meer(sch.gezet, 'keer', 'keer') + ' klaar. ' + (sch.stapel ? meer(sch.stapel, 'cadeautje ligt', 'cadeautjes liggen') + ' op je stapel' : '') + (sch.inSchoen ? (sch.stapel ? ', en ' : '') + meer(sch.inSchoen, 'cadeautje zit', 'cadeautjes zitten') + ' nog in je schoen' : '') + '. ' + (F.nu().uitpakken ? 'Je pakt ze uit op het feestbord.' : 'Op pakjesavond pak je ze uit.') + '</p>' : '';
-    venster('<span class="fb-label">Mijn feestspullen</span><h2>Wat je met de feestdagen kreeg</h2>' + lijst + schoen +
+    var kk = F.kern.kerst(), kerst = kk.open ? '<p>Je opende ' + kk.open + ' van de ' + kk.aantal + ' deurtjes van de kerstkalender' + (kk.bijzonder === 'open' ? ', en kreeg het bijzondere kerstcadeau' : '') + '.</p>' : '';
+    venster('<span class="fb-label">Mijn feestspullen</span><h2>Wat je met de feestdagen kreeg</h2>' + lijst + schoen + kerst +
       '<p class="fb-leeg">Wat je krijgt, gaat mee naar je andere apparaten als je ze hebt gekoppeld.</p><div class="fb-knoppen"><button type="button" class="fb-knop" data-dicht>Sluiten</button></div>');
   }
 
@@ -861,6 +1333,15 @@
     else if (a === 'nog') intocht(true);
     else if (a === 'uitpakken') uitpakVenster();
     else if (a === 'afscheid') afscheidVaart(true);
+    else if (a === 'deur') deurKlik(+k.getAttribute('data-i'));
+    else if (a === 'deur-vandaag') deurKlik(F.kern.kerst().vandaag);
+    else if (a === 'onderboom') { if (F.kern.kerst().kanOnderBoom) kerstKado('boom'); }
+    else if (a === 'bijzonder') {
+      var kb = F.kern.kerst(), hint = bord.querySelector('.fk-hint');
+      if (kb.kanBijzonder) kerstKado('bijzonder');
+      else if (kb.bijzonder === 'open') deurVenster('piek26', 0, false, 'Het bijzondere kerstcadeau');
+      else if (hint) hint.textContent = kb.deurtjes.some(function (d) { return d.gemist; }) ? 'Het bijzondere kerstcadeau is voor wie alle 19 deurtjes opent. Je miste er een, dus dit jaar niet. Volgend jaar is er een nieuwe kalender!' : 'Open alle 19 deurtjes, elke dag één, dan krijg je op 24 december een bijzonder kerstcadeau.';
+    }
   }
 
   // ================= starten (feest.js roept dit aan, zodra de stand bekend is)

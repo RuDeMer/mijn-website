@@ -2001,6 +2001,10 @@ const RECEPTEN = {
   // een cadeautje van de Sint (de feestdagen, feest.js): feest = de id in de feestverzameling. Je kent het zolang je dat cadeautje
   // hebt (kentRecept); het komt nooit in ST.recepten. Alles uit de voorraadkast, net als de poffertjes.
   pepernotentaart: { naam: 'Pepernotentaartje', soort: 'toetje', nodig: [], groente: [], stappen: ['bakken', 'opmaken'], prijs: 5, plaatje: 'pepernotentaart', feest: 'rd-pepernotentaart' },
+  // uit de kerstkalender (feest.js), net als het pepernotentaartje: van jou zolang je dat deurtje hebt, nooit in ST.recepten (dus
+  // ook geen sterren). Een hoofdgerecht met kreeft uit je koeling (deelt de porties met Kreeft uit de oven); de spruitjes komen uit
+  // de voorraadkast, die altijd vol is (geen nieuwe groente in de moestuin, niets erbij in de proefkeuken). met = wat erachter staat.
+  kerstdiner: { naam: 'Kerstdiner: gevulde kreeft met spruitjes', nodig: ['kreeft'], stappen: ['openen', 'opmaken', 'bakken'], prijs: 34, plaatje: 'kerstdiner', feest: 'rd-kerstdiner', kerst: true, met: 'spruitjes uit de voorraadkast' },
 };
 const soortVan = id => (RECEPTEN[id] && RECEPTEN[id].soort) || 'hoofd';
 const START_RECEPTEN = ['haring', 'kibbeling', 'schol', 'mosselen', 'vissoep', 'makreel'];
@@ -2063,6 +2067,8 @@ const VONDSTEN = {
   // een cadeautje van de Sint (feest.js): van jou zolang je dat cadeautje hebt (feest = de id in de feestverzameling), nooit in
   // ST.vondsten. Niet te koop; neerzetten gaat zoals altijd via ST.decor.
   chocoletters: { naam: 'Chocoladeletters op de bar', waarde: 0, sfeer: 4, kg: .6, cadeau: true, feest: 'rd-letters' },
+  // uit de kerstkalender (feest.js), net als de chocoladeletters. De lichtjes knipperen in het restaurant (KERSTLICHT, tekenKerstLichtjes).
+  kerstboompje: { naam: 'Kerstboompje', waarde: 0, sfeer: 5, kg: 1, cadeau: true, feest: 'rd-kerstboompje', kerst: true },
 };
 
 // ---- cadeautjes van de Sint: de spellen lezen de feestverzameling (rommelhoekje-feest-v1, via Scorebord.feest onderaan) alleen.
@@ -2075,6 +2081,8 @@ const bekendeRecepten = () => Object.keys(ST.recepten).filter(id => RECEPTEN[id]
 // wat er echt staat: een feestvondst die (op dit apparaat nog) niet van je is, zie je niet en telt niet mee, maar zijn plek in ST.decor blijft
 const hangt = id => !!VONDSTEN[id] && (!VONDSTEN[id].feest || feestVan(VONDSTEN[id]));
 const feestInKast = () => Object.keys(VONDSTEN).filter(id => feestVan(VONDSTEN[id]) && !ST.decor.includes(id));
+// waar een cadeautje vandaan komt: van de Sint, of (met kerst: true) uit de kerstkalender. klein: met een kleine letter vooraan.
+const feestLabel = (d, klein) => { const s = d && d.kerst ? 'Uit de kerstkalender' : 'Een cadeautje van de Sint'; return klein ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
 
 // ---- verbeteringen: niveaus met prijs en waarde
 const UITRUSTING = {
@@ -2741,6 +2749,17 @@ function gerechtPix(id) {
       for (const [x, y] of [[5, 4], [8, 3], [11, 4], [13, 5], [7, 6], [10, 5]]) { R.blok(x, y, x + 1, y + 1, '#7A4420'); R.p(x, y, '#B87A44'); }
       break;
     }
+    // het kerstdiner: een halve kreeft met een goudbruin gegratineerd vulsel, spruitjes ernaast en een takje hulst, op een wit bord
+    case 'kerstdiner': {
+      R.ovaal(10, 10.6, 9.4, 3.4, '#F4F1E8'); R.ovaal(10, 10.2, 7.8, 2.4, '#E9E3D6'); R.rij(14, 4, 16, '#D8D2C2');
+      R.veelhoek([[3.5, 7.5], [0, 4.6], [0, 10.4]], '#C8322A'); R.p(1, 6, '#E8604A'); R.p(1, 9, '#A82A22');
+      R.ovaal(8, 7.5, 5.2, 2.3, '#D8402E'); R.rij(10, 5, 11, '#A82A22'); R.p(4, 6, '#F06A50');
+      R.ovaal(8.4, 7.1, 3.8, 1.1, '#E9C27A'); for (const [x, y] of [[6, 7], [8, 8], [10, 7], [11, 8]]) R.p(x, y, '#C98A3A'); R.p(7, 6, '#F6DE9C'); R.p(10, 6, '#F6DE9C');
+      R.ovaal(14.6, 6.4, 1.7, 1.2, '#D8402E'); R.p(16.4, 5.6, '#D8402E'); R.p(16.4, 7.2, '#C8322A'); R.p(14, 6, '#F49A7A'); R.p(13, 7, '#A82A22');
+      for (const [x, y] of [[12.6, 11.2], [16.2, 11], [14.4, 13]]) { R.ovaal(x, y, 1.4, 1.1, '#2E5A22'); R.ovaal(x, y, .8, .6, '#5E9A3A'); R.p(x - .5, y - .5, '#9CD06A'); }
+      R.veelhoek([[2, 12.8], [4.2, 11.4], [4.8, 13]], '#2E6A2E'); R.veelhoek([[4.8, 13], [7.2, 11.6], [7.8, 13.2]], '#3A7A34'); R.p(5, 12, '#C8323C'); R.p(6, 13, '#E8414E'); R.p(5, 11, '#FF8A8A');
+      break;
+    }
     case 'kalkrots': R.ovaal(9, 12, 8, 2.6, '#E8E2D6'); R.veelhoek([[3, 12], [5, 5], [8, 3], [11, 4], [14, 6], [15, 12]], '#FBF8F0'); R.lijn(5, 9, 13, 8, '#E4DCCC'); R.p(7, 6, '#FFFFFF'); R.ovaal(9, 3, 2, 1.6, '#E8414E'); R.ovaal(12, 4, 1.6, 1.2, '#C8323C'); R.p(9, 2, '#FF9A9A'); R.p(10, 1, groen); break;
     default: R.ovaal(9, 8, 7, 4, '#C9A060');
   }
@@ -3094,6 +3113,17 @@ function vondstPix(id) {
       letter(['bbbbb..', 'ba..ba.', 'ba...ac', 'ba..ac.', 'baaac..', 'ba.ac..', 'ba..ac.', 'ba...ac', 'ca...cc'], 5, 5, { a: '#9C6236', b: '#C99462', c: '#744320' });
       break;
     }
+    // het kerstboompje: drie lagen groen in een rood potje, met ballen, een gouden ster en lichtjes (KERSTLICHT; die knipperen in het restaurant)
+    case 'kerstboompje': {
+      R.blok(6, 13, 11, 15, '#B8402E'); R.rij(13, 5, 12, '#D8604A'); R.rij(15, 7, 10, '#8A2A22'); R.p(6, 14, '#E8806A'); R.blok(8, 11, 9, 12, '#6A4220');
+      R.veelhoek([[8.5, 5], [16.5, 11.6], [0.5, 11.6]], '#26632F'); R.veelhoek([[8.5, 2.6], [14.5, 8.8], [2.5, 8.8]], '#2A6E34'); R.veelhoek([[8.5, 0.6], [12.3, 5.6], [4.7, 5.6]], '#2E7A3A');
+      for (const [x, y] of [[7, 3], [6, 4], [5, 7], [4, 8], [3, 10], [2, 11]]) R.p(x, y, '#4A9A4A');
+      for (const [x, y] of [[10, 4], [11, 5], [12, 7], [13, 8], [14, 10], [15, 11]]) R.p(x, y, '#1E5226');
+      for (const [x, y, k] of [[7, 6, '#C8323C'], [11, 7, '#E9B949'], [5, 10, '#E9B949'], [9, 9, '#C8323C'], [13, 10, '#2F6FB5'], [10, 3, '#2F6FB5']]) R.p(x, y, k);
+      for (const [x, y] of KERSTLICHT) R.p(x, y, '#E9C27A');
+      R.blok(8, 0, 9, 1, '#F6CB2F'); R.p(8, 0, '#FFF2B8'); R.p(7, 1, '#E9B949'); R.p(10, 1, '#E9B949');
+      break;
+    }
     case 'vaas': R.veelhoek([[6, 15], [12, 15], [13, 11], [11, 8], [7, 8], [5, 11]], '#2E5AA8'); R.rij(11, 6, 12, '#F4F1E8'); R.lijn(9, 8, 9, 3, '#4A7A3A'); R.lijn(8, 8, 5, 4, '#4A7A3A'); R.lijn(10, 8, 13, 4, '#4A7A3A'); R.ovaal(9, 2, 1.6, 1.6, '#E9B949'); R.ovaal(5, 3, 1.6, 1.6, '#C8323C'); R.ovaal(13, 3, 1.6, 1.6, '#F4F1F8'); R.p(4, 6, '#7A3A9A'); R.p(14, 6, '#7A3A9A'); break;
     default: R.blok(4, 4, 13, 13, '#C9B48A');
   }
@@ -3101,6 +3131,19 @@ function vondstPix(id) {
   return R;
 }
 function vondstDoek(id) { return zeeBuf('v|' + id, () => vondstPix(id).doek()); }
+// de lichtjes van het kerstboompje (in het plaatje van 18 x 16): een slinger van linksboven naar rechtsonder
+const KERSTLICHT = [[8, 2], [9, 4], [6, 5], [8, 6], [10, 6], [4, 8], [7, 8], [12, 8], [6, 9], [11, 10], [3, 11], [8, 11], [14, 11]];
+// in het restaurant: elk lichtje gaat om de beurt fel aan (met minder beweging branden ze gewoon)
+function tekenKerstLichtjes(L, t) {
+  const T = tekenaar(L), KL = ['#FFF2A8', '#FF9A8A', '#A8D8FF'];
+  ST.decor.slice(0, DECOR_PLEKKEN.length).forEach((id, i) => {
+    if (id !== 'kerstboompje' || !hangt(id)) return;
+    const [x0, y0] = DECOR_PLEKKEN[i];
+    KERSTLICHT.forEach(([x, y], n) => { if (REDUCE || ((t * .9 + n * .37) % 1) < .62) T.px(x0 - 9 + x, y0 - 15 + y, KL[n % 3]); });
+  });
+}
+// en 's avonds een zacht warm licht om het boompje
+const kerstLampen = () => ST.decor.slice(0, DECOR_PLEKKEN.length).map((id, i) => id === 'kerstboompje' && hangt(id) ? { x: DECOR_PLEKKEN[i][0], y: DECOR_PLEKKEN[i][1] - 8, r: 18, kl: '#FFD58A', a: .28 } : null).filter(Boolean);
 
 // ---- Ruben in duikpak: masker met de pilotenbril erachter, haar dat meewappert, rode bies en een gele fles
 function duikHoofd(beeld = 0, uitdr = 'gewoon') {
@@ -7206,7 +7249,7 @@ function tekenAvond(ctx, W, H) {
   A.camY = H >= 360 ? -Math.round((H - 360) / 2) : Math.round((360 - H) * .85);
   const L = A.laag.ctx, T = tekenaar(L);
   L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, KB.BREED, 360); L.translate(OX, 0);
-  L.drawImage(A.zaal, -OX, 0); L.drawImage(A.wand, 0, 0); tekenAquarium(L, t);
+  L.drawImage(A.zaal, -OX, 0); L.drawImage(A.wand, 0, 0); tekenKerstLichtjes(L, t); tekenAquarium(L, t);
   tekenWarmlampen(L, t);
   // fornuis: vlammetjes en pannen
   const kookt = (R.taak && R.taak.soort === 'koken' && R.taak.gestart) || (A.sem && A.sem.bezig);
@@ -7234,7 +7277,7 @@ function tekenAvond(ctx, W, H) {
   const lampen = [...zaalLampLicht(), { x: 136, y: 205, r: 30, kl: '#FF9A5A', a: .4 }, { x: 70, y: 150, r: 40, kl: '#FFB070', a: .3 }, { x: 377, y: 26, r: 60, kl: '#FFE0A0', a: .15 }, { x: 214, y: 124, r: 34, kl: '#FFD9A0', a: .35 }, { x: 562, y: 124, r: 34, kl: '#FFD9A0', a: .35 }];
   for (const tf of A.tafels) if (!tf.dicht) lampen.push({ x: tf.x + 1, y: tf.y - 38, r: 22, kl: '#FFC070', kaars: true, a: .4 });
   for (let x = 192; x < 640; x += 24) { const f = ((x - 186) % 76) / 76; lampen.push({ x, y: 41 + Math.round(Math.sin(f * Math.PI) * 6), r: 13, kl: '#FFD58A', a: .22 }); }
-  lampen.push({ x: 440, y: 168, r: 30, kl: '#7FE0F0', a: .3 });
+  lampen.push({ x: 440, y: 168, r: 30, kl: '#7FE0F0', a: .3 }, ...kerstLampen());
   if (A.tafels.length > 6) for (const lx of [690, 790]) lampen.push({ x: lx, y: 60, r: 50, kl: '#FFE08A', a: .2 });
   if (A.water) { const x0 = KB.W + KB.RECHTS; for (const lx of [x0 + 5, x0 + KB.WATER - 7]) lampen.push({ x: lx, y: 68, r: 34, kl: '#FFE08A', a: .35 }); for (let x = x0 + 13; x < x0 + KB.WATER - 6; x += 14) { const f = (x - x0 - 6) / (KB.WATER - 12); lampen.push({ x, y: 76 + Math.round(Math.sin(f * Math.PI) * 18), r: 14, kl: '#FFD58A', a: .25 }); } }
   for (const l of lampen) l.x += OX;
@@ -8550,7 +8593,7 @@ const DAG = {
     if (!gekozen.length) gekozen = lijst.filter(id => port[id] > 0).sort((a, b) => port[b] - port[a]).slice(0, max);
     const totaal = Object.values(pool).reduce((a, b) => a + b, 0);
     return new Promise(res => {
-      const k = paneel(`<h2>Het menu van vanavond</h2><p class="klein">Kies tot ${max} gerechten. Wat je kunt koken hangt af van je vangst (porties). Gerechten met dezelfde vis delen hun porties.</p><div class="lijst">${lijst.map(id => `<div class="regel kies ${port[id] ? '' : 'uit'}" role="button" tabindex="0" data-id="${id}" aria-pressed="${gekozen.includes(id)}">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${RECEPTEN[id].nodig.length ? RECEPTEN[id].nodig.map(s => SOORTEN[s].naam).join(' of ') : 'uit de voorraadkast'}</div></div><div class="meer">${geldTekst(prijsVan(id))}<div class="klein">${port[id] >= 99 ? 'genoeg' : port[id] + ' porties'}</div></div></div>`).join('')}</div>${totaal < 1 && !lijst.some(id => port[id] >= 99) ? '<p><b>Je hebt nog geen vis.</b> Ga eerst duiken met Trien.</p>' : ''}<p class="klein" id="m-borden"></p>${extraKeus('bij', bijL, bij)}${extraKeus('toe', toeL, toe)}<div class="rij"><button class="knop hoofd" type="button" id="m-open">Open de deur (17:00)</button><button class="knop" type="button" id="m-terug">Terug</button></div>`, { breed: true });
+      const k = paneel(`<h2>Het menu van vanavond</h2><p class="klein">Kies tot ${max} gerechten. Wat je kunt koken hangt af van je vangst (porties). Gerechten met dezelfde vis delen hun porties.</p><div class="lijst">${lijst.map(id => `<div class="regel kies ${port[id] ? '' : 'uit'}" role="button" tabindex="0" data-id="${id}" aria-pressed="${gekozen.includes(id)}">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${RECEPTEN[id].nodig.length ? RECEPTEN[id].nodig.map(s => SOORTEN[s].naam).join(' of ') : 'uit de voorraadkast'}${RECEPTEN[id].met ? ', met ' + RECEPTEN[id].met : ''}</div></div><div class="meer">${geldTekst(prijsVan(id))}<div class="klein">${port[id] >= 99 ? 'genoeg' : port[id] + ' porties'}</div></div></div>`).join('')}</div>${totaal < 1 && !lijst.some(id => port[id] >= 99) ? '<p><b>Je hebt nog geen vis.</b> Ga eerst duiken met Trien.</p>' : ''}<p class="klein" id="m-borden"></p>${extraKeus('bij', bijL, bij)}${extraKeus('toe', toeL, toe)}<div class="rij"><button class="knop hoofd" type="button" id="m-open">Open de deur (17:00)</button><button class="knop" type="button" id="m-terug">Terug</button></div>`, { breed: true });
       vulPlaatjes(k, lijst.concat(bijL, toeL).map(id => gerechtPix(RECEPTEN[id].plaatje)));
       const zetExtra = () => { k.querySelectorAll('[data-bij]').forEach(b => b.setAttribute('aria-checked', (b.dataset.bij || null) === bij)); k.querySelectorAll('[data-toe]').forEach(b => b.setAttribute('aria-checked', (b.dataset.toe || null) === toe)); };
       k.querySelectorAll('[data-bij]').forEach(b => b.onclick = () => { bij = b.dataset.bij || null; GELUID.sfx('klik'); zetExtra(); });
@@ -8560,7 +8603,7 @@ const DAG = {
       k.querySelectorAll('.regel.kies').forEach(r => { const f = () => { const id = r.dataset.id; if (!port[id]) return; if (gekozen.includes(id)) gekozen = gekozen.filter(x => x !== id); else if (gekozen.length < max) gekozen.push(id); else { melding('Je menukaart is vol (' + max + ').', 'rood'); return; } GELUID.sfx('klik'); zet(); }; r.onclick = f; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } }; });
       zet();
       $('m-terug').onclick = () => { sluitPaneel(); res(); };
-      $('m-open').onclick = async () => { ST.menu = gekozen.slice(); ST.menuBij = bij; ST.menuToe = toe || (feestWacht && !toeGekozen ? ST.menuToe : null); sluitPaneel(); bewaar(); if (typeof verhaalVoorAvond === 'function') await verhaalVoorAvond(); await overgang(() => naarScene('restaurant', gekozen.slice())); res(); };
+      $('m-open').onclick = async () => { ST.menu = (ST.menu || []).filter(id => RECEPTEN[id] && RECEPTEN[id].feest && soortVan(id) === 'hoofd' && !kentRecept(id) && !gekozen.includes(id)).concat(gekozen); ST.menuBij = bij; ST.menuToe = toe || (feestWacht && !toeGekozen ? ST.menuToe : null); sluitPaneel(); bewaar(); if (typeof verhaalVoorAvond === 'function') await verhaalVoorAvond(); await overgang(() => naarScene('restaurant', gekozen.slice())); res(); };
     });
   },
   // ---- na het duiken: de vangst en de duik zelf in één keer bewaren; daarna pas de vensters (DAG.hervat)
@@ -8834,12 +8877,12 @@ DAG.museum = async function (tab = 'boek') {
       }
       if (tab === 'vondsten') {
         const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && !VONDSTEN[id].verhaal).concat(feestInKast());
-        inhoud = ids.length ? `<p>“Rommel uit zee neem ik graag van je over, dan ruim ik het netjes op. Mooie dingen koop ik voor het museum.”</p><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${aantal(id)}</div><div class="klein">${VONDSTEN[id].trofee ? 'Een trofee: hang hem op!' : VONDSTEN[id].feest ? 'Een cadeautje van de Sint: zet het neer in je restaurant (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].cadeau ? 'Een cadeau: hang hem op (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].sfeer ? 'Sfeer +' + VONDSTEN[id].sfeer + ' als je hem ophangt' : 'Rommel'}</div></div><div class="meer">${VONDSTEN[id].trofee || VONDSTEN[id].cadeau ? '' : `<button class="knop" type="button" data-verkoop="${id}">${VONDSTEN[id].rommel ? 'Inleveren' : 'Verkopen'} ${geldTekst(vondstPrijs(id))}</button>`}</div></div>`).join('')}</div>` : '<p>Je hebt nog geen vondsten. Kijk tijdens het duiken goed naar de bodem: daar glinstert soms iets.</p>';
+        inhoud = ids.length ? `<p>“Rommel uit zee neem ik graag van je over, dan ruim ik het netjes op. Mooie dingen koop ik voor het museum.”</p><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${aantal(id)}</div><div class="klein">${VONDSTEN[id].trofee ? 'Een trofee: hang hem op!' : VONDSTEN[id].feest ? feestLabel(VONDSTEN[id]) + ': zet het neer in je restaurant (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].cadeau ? 'Een cadeau: hang hem op (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].sfeer ? 'Sfeer +' + VONDSTEN[id].sfeer + ' als je hem ophangt' : 'Rommel'}</div></div><div class="meer">${VONDSTEN[id].trofee || VONDSTEN[id].cadeau ? '' : `<button class="knop" type="button" data-verkoop="${id}">${VONDSTEN[id].rommel ? 'Inleveren' : 'Verkopen'} ${geldTekst(vondstPrijs(id))}</button>`}</div></div>`).join('')}</div>` : '<p>Je hebt nog geen vondsten. Kijk tijdens het duiken goed naar de bodem: daar glinstert soms iets.</p>';
         plaatjes = ids.map(id => vondstDoek(id));
       }
       if (tab === 'inrichten') {
         const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && VONDSTEN[id].sfeer > 0).concat(feestInKast());
-        inhoud = `<p class="klein">Hang mooie vondsten op in Het Rommelkombuis (${ST.decor.filter(hangt).length} van ${DECOR_PLEKKEN.length} plekken). Elke vondst maakt het gezelliger: dan komen er meer gasten.</p><div class="lijst">${ST.decor.map((id, i) => hangt(id) ? `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div class="naam">${VONDSTEN[id].naam}</div><div class="meer"><button class="knop" type="button" data-af="${i}">Haal eraf</button></div></div>` : '').join('') || '<p class="klein">Er hangt nog niks.</p>'}</div><h3>In je kast</h3><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${aantal(id)}</div><div class="klein">${VONDSTEN[id].feest ? 'Een cadeautje van de Sint · s' : 'S'}feer +${VONDSTEN[id].sfeer}</div></div><div class="meer"><button class="knop goud" type="button" data-hang="${id}" ${ST.decor.length >= DECOR_PLEKKEN.length ? 'disabled' : ''}>${VONDSTEN[id].feest ? 'Neerzetten' : 'Ophangen'}</button></div></div>`).join('') || '<p class="klein">Geen mooie vondsten in je kast.</p>'}</div>`;
+        inhoud = `<p class="klein">Hang mooie vondsten op in Het Rommelkombuis (${ST.decor.filter(hangt).length} van ${DECOR_PLEKKEN.length} plekken). Elke vondst maakt het gezelliger: dan komen er meer gasten.</p><div class="lijst">${ST.decor.map((id, i) => hangt(id) ? `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div class="naam">${VONDSTEN[id].naam}</div><div class="meer"><button class="knop" type="button" data-af="${i}">Haal eraf</button></div></div>` : '').join('') || '<p class="klein">Er hangt nog niks.</p>'}</div><h3>In je kast</h3><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${aantal(id)}</div><div class="klein">${VONDSTEN[id].feest ? feestLabel(VONDSTEN[id]) + ' · s' : 'S'}feer +${VONDSTEN[id].sfeer}</div></div><div class="meer"><button class="knop goud" type="button" data-hang="${id}" ${ST.decor.length >= DECOR_PLEKKEN.length ? 'disabled' : ''}>${VONDSTEN[id].feest ? 'Neerzetten' : 'Ophangen'}</button></div></div>`).join('') || '<p class="klein">Geen mooie vondsten in je kast.</p>'}</div>`;
         plaatjes = ST.decor.filter(hangt).map(id => vondstDoek(id)).concat(ids.map(id => vondstDoek(id)));
       }
       const k = paneel(`<h2>Het Zilte Huis</h2><p class="klein">Museum en werkkamer van professor Wieke Wier · <b>${geldTekst(ST.geld)}</b></p><div class="tabs" role="tablist">${tabs.map(([id, n]) => `<button role="tab" type="button" data-tab="${id}" aria-selected="${tab === id}">${n}</button>`).join('')}</div>${inhoud}<div class="rij"><button class="knop hoofd" type="button" id="z-klaar">Klaar</button></div>`, { breed: true });
@@ -8868,10 +8911,10 @@ function silhouet(s) { return zeeBuf('sil|' + s, () => { const b = zeedierDoek(s
 DAG.recepten = async function () {
   const volg = { hoofd: 0, bij: 1, toetje: 2 };
   const bekend = bekendeRecepten().sort((a, b) => volg[soortVan(a)] - volg[soortVan(b)]), rest = Object.keys(RECEPTEN).filter(id => !bekend.includes(id) && !RECEPTEN[id].verhaal);
-  const waaruit = id => { const r = RECEPTEN[id]; if (r.groente && r.groente.length) return r.groente.map(g => GEWASSEN[g].naam.toLowerCase()).join(' en ') + ' uit de moestuin'; return r.nodig.map(s => ST.boek[s] ? SOORTEN[s].naam : '???').join(' of ') || 'uit de voorraadkast'; };
+  const waaruit = id => { const r = RECEPTEN[id]; if (r.groente && r.groente.length) return r.groente.map(g => GEWASSEN[g].naam.toLowerCase()).join(' en ') + ' uit de moestuin'; return (r.nodig.map(s => ST.boek[s] ? SOORTEN[s].naam : '???').join(' of ') || 'uit de voorraadkast') + (r.met ? ', met ' + r.met : ''); };
   const label = id => soortVan(id) === 'bij' ? '<span class="klein">bijgerecht</span> ' : soortVan(id) === 'toetje' ? '<span class="klein">toetje</span> ' : '';
-  const hoeLeren = id => { const r = RECEPTEN[id]; if (r.feest) return 'Een cadeautje van de Sint'; if (r.koop) return 'Te koop bij Bep uit het Rommelhotel'; if (r.proef) return 'Te ontdekken in de proefkeuken'; if (r.vriend) return 'Een geheim recept van een vriend'; return 'Vang eerst: ' + (ST.boek[r.leer] ? SOORTEN[r.leer].naam : 'een onbekende soort (' + SOORTEN[r.leer].diepte[0] + ' m of dieper)'); };
-  const k = paneel(`<h2>Je receptenschrift</h2><p class="klein">Elke 10 keer dat je een gerecht kookt, krijgt het een ster (tot 5): dan mag het 10% duurder.</p><div class="lijst">${bekend.map(id => `<div class="regel">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${label(id)}${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${waaruit(id)}${RECEPTEN[id].stappen.length ? ' · ' + RECEPTEN[id].stappen.join(', ') : ''} · ${RECEPTEN[id].feest ? 'een cadeautje van de Sint' : ST.recepten[id] + '× ' + (soortVan(id) === 'bij' ? 'meegegeven' : 'gekookt')}</div></div><div class="meer">${geldTekst(prijsVan(id))}</div></div>`).join('')}</div>${rest.length ? `<h3>Nog te leren</h3><div class="lijst">${rest.map(id => `<div class="regel uit"><div><div class="naam">${RECEPTEN[id].naam}</div><div class="klein">${hoeLeren(id)}</div></div>${RECEPTEN[id].koop && ST.vlag.bepGeweest ? `<div class="meer"><button class="knop goud" type="button" data-leer="${id}" ${ST.geld >= RECEPTEN[id].koop ? '' : 'disabled'}>${geldTekst(RECEPTEN[id].koop)}</button></div>` : ''}</div>`).join('')}</div>` : ''}<div class="rij"><button class="knop hoofd" type="button" id="r-klaar">Klaar</button></div>`, { breed: true });
+  const hoeLeren = id => { const r = RECEPTEN[id]; if (r.feest) return feestLabel(r); if (r.koop) return 'Te koop bij Bep uit het Rommelhotel'; if (r.proef) return 'Te ontdekken in de proefkeuken'; if (r.vriend) return 'Een geheim recept van een vriend'; return 'Vang eerst: ' + (ST.boek[r.leer] ? SOORTEN[r.leer].naam : 'een onbekende soort (' + SOORTEN[r.leer].diepte[0] + ' m of dieper)'); };
+  const k = paneel(`<h2>Je receptenschrift</h2><p class="klein">Elke 10 keer dat je een gerecht kookt, krijgt het een ster (tot 5): dan mag het 10% duurder.</p><div class="lijst">${bekend.map(id => `<div class="regel">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${label(id)}${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${waaruit(id)}${RECEPTEN[id].stappen.length ? ' · ' + RECEPTEN[id].stappen.join(', ') : ''} · ${RECEPTEN[id].feest ? feestLabel(RECEPTEN[id], true) : ST.recepten[id] + '× ' + (soortVan(id) === 'bij' ? 'meegegeven' : 'gekookt')}</div></div><div class="meer">${geldTekst(prijsVan(id))}</div></div>`).join('')}</div>${rest.length ? `<h3>Nog te leren</h3><div class="lijst">${rest.map(id => `<div class="regel uit"><div><div class="naam">${RECEPTEN[id].naam}</div><div class="klein">${hoeLeren(id)}</div></div>${RECEPTEN[id].koop && ST.vlag.bepGeweest ? `<div class="meer"><button class="knop goud" type="button" data-leer="${id}" ${ST.geld >= RECEPTEN[id].koop ? '' : 'disabled'}>${geldTekst(RECEPTEN[id].koop)}</button></div>` : ''}</div>`).join('')}</div>` : ''}<div class="rij"><button class="knop hoofd" type="button" id="r-klaar">Klaar</button></div>`, { breed: true });
   vulPlaatjes(k, bekend.map(id => gerechtPix(RECEPTEN[id].plaatje)));
   return new Promise(res => {
     k.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { const id = b.dataset.leer; if (ST.geld < RECEPTEN[id].koop) return; ST.geld -= RECEPTEN[id].koop; ST.recepten[id] = 0; bewaar(); GELUID.sfx('nieuw'); sluitPaneel(); res(DAG.recepten()); });
@@ -9451,7 +9494,8 @@ DAG.bijzondereGast = function (voorKrant) {
   else if (ST.hfd >= 4 && !ST.vlag.bepGeweest) b = { wie: 'bep', krant: 'Bep van het Rommelhotel is op vakantie in Zeeland. Ze is dol op vis... en op vlaai.', aankondiging: 'Bep uit het Rommelhotel komt binnen!', na: () => { ST.vlag.bepGeweest = 1; } };
   else if (ST.hfd >= 2 && ST.dag % 7 === 3) b = { wie: 'wieke', krant: 'Professor Wieke Wier komt vanavond eten. Ze heeft vast weer nieuwe weetjes.', aankondiging: 'Wieke komt eten!' };
   else if (ST.hfd >= 2 && ST.dag % 7 === 6) b = { wie: 'trien', krant: 'Trien heeft vanavond vrij en komt bij je eten. Ze houdt van kibbeling.', aankondiging: 'Trien komt eten!', wil: 'kibbeling' };
-  if (b && !b.wil && ST.menu && ST.menu.length) b.wil = ST.menu.slice().sort((x, y) => prijsVan(y) - prijsVan(x))[0];
+  // (een gerecht uit de feestverzameling dat op dit apparaat niet van je is, staat wel in ST.menu maar niet op de kaart)
+  if (b && !b.wil && ST.menu && ST.menu.length) { const m = ST.menu.filter(id => RECEPTEN[id] && (!RECEPTEN[id].feest || kentRecept(id))); if (m.length) b.wil = m.sort((x, y) => prijsVan(y) - prijsVan(x))[0]; }
   return b;
 };
 // vondsten die het verhaal nodig heeft
@@ -9761,10 +9805,11 @@ window.__duiker = {
   get DK() { return DK; }, get HV() { return HV; }, get HG() { return HG; }, get SC() { return SC; }, tuinNacht, bedStand, tuinBed, getij, proefZoek, proefHint, dorpVandaag, klusLever, klusHeb, harten, geefVriend, groentePorties, GEWASSEN, KAST, VRIENDEN, kweekActie, oogst, geefWater, proefkeuken, prikbord, gerritSchuur,
   get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), kaartStart, kaartCode, kaartLees, kaartRoute, plan: () => A ? planVolgorde().map(b => b.nr) : [],
   testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },
-  kentRecept, bekendeRecepten, feestInKast, VONDSTEN,
+  kentRecept, bekendeRecepten, feestInKast, VONDSTEN, feestLabel, gerechtPix, vondstPix, KERSTLICHT,
 };
-// de feestverzameling (feest.js): zodra die bekend is, en als hij verandert, weet het spel welke cadeautjes van de Sint van jou zijn.
-// Staat het restaurant al open, dan komen de chocoladeletters meteen op hun plek, en het pepernotentaartje als je dat als toetje koos.
+// de feestverzameling (feest.js): zodra die bekend is, en als hij verandert, weet het spel welke cadeautjes van de Sint en uit de
+// kerstkalender van jou zijn. Staat het restaurant al open, dan komen de chocoladeletters en het kerstboompje meteen op hun plek, en
+// het pepernotentaartje als je dat als toetje koos. (Het kerstdiner staat pas op de kaart als je het bij het menu kiest.)
 if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
   feestHeb = id => !!(s && s.heb && s.heb(id));
   if (SCENE.naam !== 'restaurant' || !A || !A.wand) return;

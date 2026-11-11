@@ -3846,10 +3846,31 @@ const pakjesRug = () => PX.maak('rug~pakjes', KAART_W, KAART_H, g => {
   g.ellips(13.5, 27.5, 2.4, 1.4, goudd, { vlak: true }); g.ellips(25.5, 27.5, 2.4, 1.4, goudd, { vlak: true });
   g.rond(17, 25, 5, 5, 1.2, goudd, { vlak: true }); g.rect(18, 26, 3, 3, PX.licht(KL.munt, 0.35), { vlak: true });
 }, { rand: false });
-// welke rug de kaarten op tafel hebben: die van je stok, of het pakjespapier (als je het van de Sint kreeg en het koos bij de instellingen)
+// de kaartrug Sneeuwvlokken (uit de kerstkalender): donkerblauw met witte pixelsneeuwvlokjes in drie maten, wat stuifsneeuw en een
+// sneeuwduintje onderaan, met in het midden een grote vlok (op de plek van het embleem van de stokken)
+const sneeuwRug = () => PX.maak('rug~sneeuw', KAART_W, KAART_H, g => {
+  const W = KAART_W, H = KAART_H, wit = KL.papier, ijs = '#BFD6F2', binnen = (x, y) => x > 3 && x < W - 3 && y > 3 && y < H - 3;
+  g.rond(0, 0, W, H, 3, KL.inkt, { vlak: true });
+  g.rond(1, 1, W - 2, H - 2, 2.2, ijs, { vlak: true });
+  g.rond(3, 3, W - 6, H - 6, 2, '#1E3263', { vlak: true });
+  g.vorm((x, y) => binnen(x, y) && (y < H * 0.4 || (y < H * 0.5 && (Math.floor(x) + Math.floor(y)) % 2 === 0)), '#22397A', { vlak: true });
+  g.vorm((x, y) => binnen(x, y) && (Math.floor(x) * 7 + Math.floor(y) * 13) % 23 === 0, '#5C78B8', { vlak: true });
+  g.vorm((x, y) => binnen(x, y) && y > H - 9 + Math.sin(x * 0.42) * 1.6 + Math.sin(x * 0.17 + 1) * 1.2, '#DCE8F7', { vlak: true });
+  g.vorm((x, y) => binnen(x, y) && y > H - 6 + Math.sin(x * 0.42 + 2) * 1.2, wit, { vlak: true });
+  const groot = ['...#...', '.#.#.#.', '..###..', '#######', '..###..', '.#.#.#.', '...#...'], mid = ['..#..', '#.#.#', '.###.', '#.#.#', '..#..'], klein = ['.#.', '###', '.#.'];
+  g.bitmap(16, 24, groot, wit, { vlak: true }); g.pix(19, 27, ijs, { vlak: true });
+  for (const [x, y] of [[6, 7], [27, 9], [8, 37], [28, 38]]) g.bitmap(x, y, mid, wit, { vlak: true });
+  for (const [x, y] of [[17, 6], [5, 21], [31, 23], [15, 40], [24, 18]]) g.bitmap(x, y, klein, ijs, { vlak: true });
+  for (const [x, y] of [[12, 13], [33, 15], [22, 12], [10, 29], [30, 31], [5, 14], [21, 35], [34, 45], [11, 46]]) g.pix(x, y, wit, { vlak: true });
+}, { rand: false });
+// welke rug de kaarten op tafel hebben: die van je stok, het pakjespapier (van de Sint) of de sneeuwvlokken (uit de kerstkalender), als
+// je die hebt en ze koos met de knop in de balk. rec.inst.rug: 'stok', 'pakjes' of 'sneeuw'; heb je de gekozen rug niet, dan die van je stok.
 let feestHeb = () => false;
 const pakjesKan = () => feestHeb('rp-pakjesrug');
-const rugBeeld = stok => (rec.inst.rug === 'pakjes' && pakjesKan() ? pakjesRug() : stokRug(stok));
+const sneeuwKan = () => feestHeb('rp-sneeuwrug');
+const RUGGEN = [['stok', 'van je stok', () => true], ['pakjes', 'Pakjespapier', pakjesKan], ['sneeuw', 'Sneeuwvlokken', sneeuwKan]];
+const rugNu = () => { const r = RUGGEN.find(x => x[0] === rec.inst.rug); return r && r[2]() ? r[0] : 'stok'; };
+const rugBeeld = stok => { const r = rugNu(); return r === 'pakjes' ? pakjesRug() : r === 'sneeuw' ? sneeuwRug() : stokRug(stok); };
 
 // ----- de gezichten van alle bazen
 const BAAS_GEZICHT = {
@@ -4182,7 +4203,7 @@ R.innerHTML = `
     <button class="sk" id="b-snel" title="Hoe snel het scoren gaat">Snelheid 1×</button>
     <button class="sk" id="b-geluid" aria-pressed="true">Geluid aan</button>
     <button class="sk" id="b-tv" aria-pressed="false">Oude tv uit</button>
-    <button class="sk" id="b-rug" aria-pressed="false" title="Van de Sint: de achterkant van je kaarten" hidden>Kaartrug: van je stok</button>
+    <button class="sk" id="b-rug" aria-pressed="false" title="De achterkant van je kaarten (van de Sint of uit de kerstkalender)" hidden>Kaartrug: van je stok</button>
   </div>
   <div class="kast" id="kast">
     <canvas class="kast-bg" id="kast-bg" aria-hidden="true"></canvas>
@@ -4270,9 +4291,9 @@ function zetInstellingen() {
   $('b-geluid').textContent = rec.inst.g ? 'Geluid aan' : 'Geluid uit'; $('b-geluid').setAttribute('aria-pressed', String(!!rec.inst.g));
   kast.classList.toggle('tv-aan', !!rec.inst.tv);
   $('b-tv').textContent = rec.inst.tv ? 'Oude tv aan' : 'Oude tv uit'; $('b-tv').setAttribute('aria-pressed', String(!!rec.inst.tv));
-  const pakjes = rec.inst.rug === 'pakjes';
-  $('b-rug').hidden = !pakjesKan();
-  $('b-rug').textContent = pakjes ? 'Kaartrug: Pakjespapier' : 'Kaartrug: van je stok'; $('b-rug').setAttribute('aria-pressed', String(pakjes));
+  const r = RUGGEN.find(x => x[0] === rugNu());
+  $('b-rug').hidden = !RUGGEN.some(x => x[0] !== 'stok' && x[2]());
+  $('b-rug').textContent = 'Kaartrug: ' + r[1]; $('b-rug').setAttribute('aria-pressed', String(r[0] !== 'stok'));
 }
 // de kaarten op tafel en de stapel krijgen de rug die nu geldt
 function zetRugNu() {
@@ -4282,7 +4303,8 @@ function zetRugNu() {
 $('b-snel').addEventListener('click', () => { snel = snel === 1 ? 2 : snel === 2 ? 4 : 1; rec.inst.s = snel; bewaarRec(); zetInstellingen(); });
 $('b-geluid').addEventListener('click', () => { rec.inst.g = rec.inst.g ? 0 : 1; bewaarRec(); zetInstellingen(); if (rec.inst.g) GELUID.kies(); });
 $('b-tv').addEventListener('click', () => { rec.inst.tv = rec.inst.tv ? 0 : 1; bewaarRec(); zetInstellingen(); });
-$('b-rug').addEventListener('click', () => { if (!pakjesKan()) return; rec.inst.rug = rec.inst.rug === 'pakjes' ? 'stok' : 'pakjes'; bewaarRec(); zetInstellingen(); zetRugNu(); });
+// de volgende rug die je hebt (de rug van je stok heb je altijd), in de volgorde van RUGGEN
+$('b-rug').addEventListener('click', () => { const kan = RUGGEN.filter(x => x[2]()); if (kan.length < 2) return; const i = kan.findIndex(x => x[0] === rugNu()); rec.inst.rug = kan[(i + 1) % kan.length][0]; bewaarRec(); zetInstellingen(); zetRugNu(); });
 $('b-menu').addEventListener('click', () => { if (bezig) return; verbergTip(); sluitDialoog(); beeld = 'start'; render(); });
 $('b-verz').addEventListener('click', () => { if (bezig) return; toonVerzameling('s'); });
 

@@ -1,6 +1,6 @@
 # Plan: de feestdagen op Ruben's rommelhoekje (Sinterklaas, kerst, oud en nieuw)
 
-Stand: woensdag 11 november 2026. **Goedgekeurd door Ruben** (zijn keuzes staan in hoofdstuk 9). Deel 1 is gebouwd.
+Stand: woensdag 11 november 2026. **Goedgekeurd door Ruben** (zijn keuzes staan in hoofdstuk 9). Deel 1 en deel 2 zijn gebouwd.
 
 ## In het kort
 
@@ -191,7 +191,7 @@ Wat er in welk pakje of deurtje zit, ligt vast per dag en is voor iedereen hetze
 | Rommelbeesten | feestkaarten **Kerstbalbeest** en **Sneeuwvlokkat** |
 | Casino | **kerstfiches**, en **kerstmutsen** voor Moeki en Floortje bij de deur |
 | Rommelpoker | kaartrug **Sneeuwvlokken** |
-| Coulissenkoor | **Stille nacht**, **Komt allen tezamen**, **Hoor de engelen zingen** (alle drie oud en vrij van rechten) |
+| Coulissenkoor | **Stille nacht** (let op: dat staat al in `LIEDJES` als `stillenacht`, kies dus een ander kerstlied), **Komt allen tezamen**, **Hoor de engelen zingen** (alle drie oud en vrij van rechten) |
 | Ruben de Duiker | hoofdgerecht **Kerstdiner** (gevulde kreeft met spruitjes), en een **kerstboompje** voor in het restaurant |
 | Huis op stelten | een **kerstboom** om te laten wiebelen in de woonkamer: alleen bij vrij spelen, niet in de uitdaging van de dag (zodat het scorebord eerlijk blijft) |
 | Rommelkroon | de **kerstbal** en het **sneeuwvlokje** voor altijd van jou |

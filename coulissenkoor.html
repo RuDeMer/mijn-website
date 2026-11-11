@@ -123,6 +123,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 6px 16px 48px; }
 .lijst .klein { border: 2px solid var(--inkt); border-radius: 999px; background: var(--kaart); font-weight: 700; padding: 5px 12px; min-height: 36px; }
 .lijst .klein.goud { background: var(--goud); color: #1F2333; }
 .vink { color: var(--groen); font-weight: 800; }
+.lijst .titel small .sint { display: inline-block; margin-left: 4px; padding: 1px 8px; border-radius: 999px; background: var(--rood); color: #fff; font-size: .72rem; font-weight: 800; white-space: nowrap; }
 .leeg { color: var(--zacht); margin: 0; }
 .uitleg { line-height: 1.5; }
 .uitleg ul { margin: 0; padding-left: 1.2em; }
@@ -2577,9 +2578,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = HARM;
 // De zangers zingen klinkers, dus er zijn geen teksten nodig. Tenor 1 zingt de melodie, de anderen de harmonie.
 // Per liedje: toon (de toonsoort: t = grondtoon, m = mineur), basis (de MIDI-noot van de grondtoon in de melodie),
 // tempo (tellen per minuut), maat (tellen per maat), canon (als het ook als canon kan: na hoeveel tellen de volgende stem inzet),
+// feest (alleen te zien als dat ding in de verzameling van de feestdagen staat, rommelhoekje-feest-v1),
 // en de noten als tekst: 'toon:duur:akkoord', met
 //   toon  = halve tonen boven de basis (r is een rust),
-//   duur  = in tellen (een kwart),
+//   duur  = in tellen (een kwart; 1/3 en 2/3 voor triolen),
 //   akkoord = het akkoord (zoals in HARM.AKK); zonder akkoord blijft het vorige staan.
 // Een | is alleen een maatstreep om te lezen. Klinkers per frase: de zangers wisselen vanzelf tussen a, o en oe.
 // Nieuwe liedjes altijd achteraan (de opslag onthoudt welke je hebt gezongen, op id).
@@ -2627,7 +2629,40 @@ const LIEDJES = (() => {
         '0:1:I 0:1 0:1 -5:1 | -3:1:IV -3:1 -5:2:I | 4:1:I 4:1 2:1:V7 2:1 | 0:4:I' },
     { id: 'auldlangsyne', naam: 'Auld Lang Syne (oud en nieuw)', wie: 'traditioneel, Schotland', toon: { t: 0, m: 0 }, basis: 60, tempo: 84, maat: 4,
       noten: '-5:1:V | 0:1.5:I 0:.5 0:1 4:1 | 2:1.5:V7 0:.5 2:1 4:1 | 0:1.5:I 0:.5 4:1 7:1 | 9:3:IV 9:1 | ' +
-        '7:1.5:I 4:.5 4:1 0:1 | 2:1.5:V7 0:.5 2:1 4:1 | 0:1.5:vi -3:.5 -3:1:IV -5:1:V | 0:3:I' }
+        '7:1.5:I 4:.5 4:1 0:1 | 2:1.5:V7 0:.5 2:1 4:1 | 0:1.5:vi -3:.5 -3:1:IV -5:1:V | 0:3:I' },
+    // ---- Van de Sint (feestdagen 2026): alleen te zien als ze in de verzameling staan (feest: het id in rommelhoekje-feest-v1).
+    // Alle drie oud en vrij van rechten, en van G of F naar C gezet (zoals de andere liedjes, voor het bereik van tenor 1).
+    // Zie ginds komt de stoomboot: tekst Jan Schenkman (1806-1863, 'Sint Nikolaas en zijn knecht', 1850); de wijs is traditioneel
+    // (verwant aan 'Im Märzen der Bauer', een volksliedje uit Moravië). Melodie uit twee bronnen die precies gelijk zijn: de
+    // bladmuziek van het St. Nicholas Center (3/4, G groot) en de transcriptie in de Nederlandse Liederenbank van het Meertens
+    // Instituut (recordnr. 170306, uit 'Een mandje vol amandelen', 1963; 3/8, F groot).
+    { id: 'stoomboot', feest: 'ck-stoomboot', naam: 'Zie ginds komt de stoomboot', wie: 'traditioneel, tekst Jan Schenkman (1850)', toon: { t: 0, m: 0 }, basis: 60, tempo: 126, maat: 3,
+      noten: '-5:1:V | 0:1:I 0:1 4:1 | 2:1:V 2:1 5:1:V7 | -1:1:V7 -1:1 2:1 | 0:2:I -5:1 | 0:1:I 0:1 4:1 | 2:.5:V 2:.5 2:1 5:1:V7 | -1:1:V7 -1:1 2:1 | 0:2:I 7:1 | ' +
+        '2:1:V 2:1 7:1 | 4:1:I 4:1 7:1 | 5:1:ii 5:1:V7 4:1:I | 2:2:V -5:1 | 0:1:I 0:.5 2:.5 4:.5 5:.5 | 7:1:I 4:1 0:1 | 5:1:ii 2:1:V7 -1:1 | 0:2:I' },
+    // Sinterklaasje, kom maar binnen: anoniem, de oudste bekende bron is 'St. Nicolaasliedjes met pianobegeleiding' van R.A. van Pelt
+    // en J.H. Boon (Den Haag, [1927]). Melodie uit de Nederlandse Liederenbank van het Meertens Instituut (recordnr. 170314, transcriptie
+    // uit 'Een mandje vol amandelen', 1963; 4/4, G groot), met het refrein twee keer zoals daar. De akkoorden volgen grotendeels een
+    // akkoordenblad (C, G7, F, G; bij 'zitten' ii in plaats van F). De fermate halverwege houdt de noot twee tellen aan.
+    { id: 'kommaarbinnen', feest: 'ck-binnen', naam: 'Sinterklaasje, kom maar binnen', wie: 'traditioneel', toon: { t: 0, m: 0 }, basis: 60, tempo: 112, maat: 4,
+      noten: '7:1:I 7:1 7:.5:V7 5:.5 4:.5 2:.5 | 0:.5:I 0:.5 0:.5 0:.5 0:1 4:.5 4:.5 | 2:1:ii -5:1:V -5:.5 -5:.5 -5:1 | 4:1:I 0:1 0:1.5 4:.5 | ' +
+        '2:1.5:V7 4:.5 2:1.5 4:.5 | 2:1:V7 7:1:I 2:1.5:V7 4:.5 | 2:1.5:V7 4:.5 2:1.5 4:.5 | 2:1:V7 2:1 7:2:I | ' +
+        '7:1:I 7:1 7:.5:V7 5:.5 4:.5 2:.5 | 0:.5:I 0:.5 0:.5 0:.5 0:1 4:1 | 2:1:ii -5:1:V -5:.5 -5:.5 -5:1 | 4:1:I 0:1 0:1 -5:.5:V -5:.5 | ' +
+        '-5:.5:V7 -5:.5 -5:.5 -5:.5 -5:.5 -5:.5 -5:.5 -5:.5 | -5:1:V7 4:1:I 4:1 4:.5 4:.5 | 2:1:ii 5:1 -3:1 -1:1:V7 | 2:1:V7 0:1:I 0:2 -5:.5:V -5:.5 | ' +
+        '-5:.5:V7 -5:.5 -5:.5 -5:.5 -5:.5 -5:.5 -5:.5 -5:.5 | -5:1:V7 4:1:I 4:1 4:.5 4:.5 | 2:1:ii 5:1 -3:1 -1:1:V7 | 2:1:V7 0:1:I 0:3' },
+    // Hoor de wind waait door de bomen: anoniem, de oudste bekende bronnen zijn 'Vroolijk St. Nicolaas-feest' van H.A. Almoes (192x)
+    // en Van Pelt en Boon ([1927]). Melodie uit een oude uitgave met pianobegeleiding (in de spelling van vóór 1934, 'zoo leelijk'),
+    // bladmuziek van het St. Nicholas Center (F groot): het couplet, 'Hoort wie klopt daar, kind'ren' en 'Sint Nicolaas, Sint Nicolaas'
+    // (daar in 4/4 met triolen), één keer. Een latere uitgave (ook St. Nicholas Center, 'Hoor wie stapt daar kinderen') wijkt op een paar
+    // plekken af ('tegen 't raam'); we volgen de oudste. De akkoorden volgen grotendeels de pianobegeleiding. Een r is een rust; 1/3 en 2/3 zijn triolen.
+    { id: 'hoordewind', feest: 'ck-wind', naam: 'Hoor de wind waait door de bomen', wie: 'traditioneel', toon: { t: 0, m: 0 }, basis: 60, tempo: 100, maat: 3,
+      noten: '-5:.75:V -5:.25 | 4:1:I 0:1 -5:1/3 0:1/3 4:1/3 | 7:1:I 4:1 2:.75 4:.25 | 5:1:V7 2:1 -3:.75 -1:.25 | 0:1:I r:1 -5:.75:V -5:.25 | ' +
+        '4:1:I 0:1 -5:1/3 0:1/3 4:1/3 | 7:1:I 4:1 2:.75 4:.25 | 5:1:V7 9:1 7:.75 5:.25 | 4:1:I r:1 2:.75:V 4:.25 | 5:1:V7 2:1 -3:.75 -1:.25 | 0:1:I r:2 | ' +
+        '4:.75:I 4:.25 4:.5 4:.5 4:.5 4:.5 | 9:1:vi 4:1 4:.75 2:.25 | 0:1.5:I 4:.5 2:.75 0:.25 | 7:1:V r:1 -5:.75 -5:.25 | ' +
+        '4:1:I 0:1 -5:1/3 0:1/3 4:1/3 | 7:1:V 4:1:I 2:.75 4:.25 | 5:1:ii 9:1 7:.75:V7 5:.25 | 4:1:vi r:1 2:.75:V 4:.25 | 5:1:V7 2:1 -3:.75 -1:.25 | 0:1:I r:1 -5:.5 -5:.5 | ' +
+        '4:.5:I 0:.5 0:.5 0:.5 -5:.5 -5:.5 | 4:.5:I 0:.5 0:.5 0:.5 -5:.5 -5:.5 | 2:.5:V7 1:.5 2:.5 1:.5 2:.5 3:.5 | 4:1:III7 r:1 -5:.5:V -5:.5 | ' +
+        '4:.5:I 0:.5 0:.5 0:.5 -5:.5 -5:.5 | 4:.5:I 0:.5 0:.5 0:.5 -5:.5 -5:.5 | 2:.5:V7 1:.5 2:.5 1:.5 2:.5 4:.5 | 0:2:I r:.5 -5:.5:V | ' +
+        '-3:2/3:ii 5:1/3 5:2/3 5:1/3 4:2/3:I 0:1/3 0:2/3 4:1/3 | 2:2/3:V 1:1/3 2:2/3 3:1/3 4:1/3:I 0:1/3 -3:1/3 -5:2/3:V -5:1/3 | ' +
+        '-3:2/3:ii 5:1/3 5:2/3 5:1/3 4:1:I 0:2/3 4:1/3 | 2:2/3:V7 1:1/3 2:2/3 4:1/3 0:3:I' }
   ];
   // de noten uit de tekst halen: [{ t (begin in tellen), d (duur), n (MIDI of null), a (akkoord) }]
   function noten(l) {
@@ -2636,7 +2671,7 @@ const LIEDJES = (() => {
       if (!w || w === '|') return;
       const [n, d, ak] = w.split(':');
       if (ak) a = ak;
-      const duur = +d;
+      const duur = d.indexOf('/') > 0 ? d.split('/')[0] / d.split('/')[1] : +d;   // 1/3 en 2/3: triolen
       uit.push({ t, d: duur, n: n === 'r' ? null : l.basis + (+n), a });
       t += duur;
     });
@@ -2679,11 +2714,16 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
 
   // ================================================================ opslag
   const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+  // de liedjes van de Sint (feest in LIEDJES): pas in de lijst als ze van de speler zijn. Tot feest.js de stand geeft (een paar
+  // seconden), heeft de speler niets; een liedje dat al meegezongen is, was van hem en blijft dus staan.
+  let feestHeb = () => false;
+  const heeftLied = l => !l.feest || feestHeb(l.feest) || !!O.gezongen[l.id];
+  const mijnLiedjes = () => LIEDJES.L.filter(heeftLied);
   function leesOpslag() {
     let o = null;
     try { o = JSON.parse(localStorage.getItem(SLEUTEL) || 'null'); } catch (e) { o = null; }
     if (!isObj(o)) o = {};
-    const uit = { v: 1, koor: {}, inst: {}, liedjes: {}, gezongen: {}, voortgangTotaal: LIEDJES.L.length };
+    const uit = { v: 1, koor: {}, inst: {}, liedjes: {}, gezongen: {}, voortgangTotaal: typeof o.voortgangTotaal === 'number' ? o.voortgangTotaal : LIEDJES.L.filter(l => !l.feest).length };
     STEMMEN.forEach(s => { const id = isObj(o.koor) ? o.koor[s] : null; uit.koor[s] = ZANGER.PER_STEM[s].indexOf(id) >= 0 ? id : ZANGER.KOOR[s]; });
     const i = isObj(o.inst) ? o.inst : {};
     uit.inst.decor = DECORS.some(d => d[0] === i.decor) ? i.decor : 'opera';
@@ -2699,7 +2739,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
     return uit;
   }
   const O = leesOpslag();
-  function bewaar() { try { O.voortgangTotaal = LIEDJES.L.length; localStorage.setItem(SLEUTEL, JSON.stringify(O)); } catch (e) {} }
+  // het totaal voor 'x van y liedjes meegezongen' op de homepage: de liedjes die de speler heeft (dus nooit minder dan wat hij zong)
+  function bewaar() { try { O.voortgangTotaal = mijnLiedjes().length; localStorage.setItem(SLEUTEL, JSON.stringify(O)); } catch (e) {} }
 
   // ================================================================ het applaus (zelf gemaakt, met een vast toeval)
   // Een zaal vol mensen die elk in hun eigen tempo klappen (2,5 tot 5 keer per seconde, net niet gelijk). Een klap is
@@ -3505,14 +3546,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
   function uitslag(kop, tekst) { const u = $('uitslag'); u.innerHTML = `${kop}<small>${tekst}</small>`; u.hidden = false; voorlezen.textContent = kop + ' ' + tekst; clearTimeout(uitslagKlok); uitslagKlok = setTimeout(() => { u.hidden = true; }, 4200); }
   function tekenLiedjes() {
     const ul = $('liedjes'); ul.innerHTML = '';
-    LIEDJES.L.forEach(l => {
+    const mijn = mijnLiedjes();
+    mijn.forEach(l => {
       const li = document.createElement('li');
-      li.innerHTML = `<div class="titel"><b>${l.naam} ${O.gezongen[l.id] ? '<span class="vink" aria-label="gezongen">✓</span>' : ''}</b><small>${l.wie}</small></div>
+      li.innerHTML = `<div class="titel"><b>${l.naam} ${O.gezongen[l.id] ? '<span class="vink" aria-label="gezongen">✓</span>' : ''}</b><small>${l.wie}${l.feest ? ' <span class="sint">Van de Sint</span>' : ''}</small></div>
         <button class="klein" type="button" data-doe="luister">▶ Luister</button>${l.canon ? '<button class="klein" type="button" data-doe="canon">🔁 Als canon</button>' : ''}<button class="klein goud" type="button" data-doe="mee">🎤 Zing mee</button>`;
       li.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (lied && lied.l === l) { stopLied(); return; } speelLied(l, b.dataset.doe === 'mee', b.dataset.doe === 'canon'); podium.scrollIntoView({ behavior: minder.matches ? 'auto' : 'smooth', block: 'center' }); });
       ul.appendChild(li);
     });
-    $('liedTel').textContent = `${Object.keys(O.gezongen).length} van ${LIEDJES.L.length} meegezongen`;
+    $('liedTel').textContent = `${Object.keys(O.gezongen).length} van ${mijn.length} meegezongen`;
   }
   // de baan met stippen bij meezingen
   const stippen = [];
@@ -3628,6 +3670,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LIEDJES;
   // ---- beginnen
   zetDecor(O.inst.decor);
   bouwZangers(); tekenKoor(); tekenLiedjes(); tekenOpnames();
+  // de feestdagen: wat de speler van de Sint kreeg (feest.js; hier alleen lezen)
+  if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
+    feestHeb = id => !!(s && s.heb && s.heb(id));
+    tekenLiedjes();
+    if (O.voortgangTotaal !== mijnLiedjes().length) bewaar();
+  });
   leesLink();
   // de filters van de stemmen alvast uitrekenen, als de pagina niets te doen heeft
   const later = window.requestIdleCallback || (f => setTimeout(f, 200));

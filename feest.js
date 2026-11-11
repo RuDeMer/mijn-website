@@ -9,7 +9,7 @@
        { v: 1, d: { sint26: '0000000000000123…', kerst26: '…' }, st: ['intocht26', …] }
      d: per seizoen één cijfer per dag, dag 0 is 1 november van dat jaar. Sinterklaas: 1 schoen gezet, 2 cadeautje uit de schoen
      gehaald (op de stapel), 3 uitgepakt. Kerst: 1 deurtje geopend. st: alles wat je kreeg (verzamelstukken en dingen voor de spellen).
-   - Per apparaat (bewust niet in SLEUTELS): rommelhoekje-feest-apparaat ({ uit: versiering uit, zag: de intocht al gezien; het geluid volgt rommeltjes-v1.g }) en
+   - Per apparaat (bewust niet in SLEUTELS): rommelhoekje-feest-apparaat ({ uit: versiering uit, zag: de intocht al gezien, weg: het afscheid al gezien; het geluid volgt rommeltjes-v1.g }) en
      rommelhoekje-feest-kal (de laatste kalender, zodat een spel het meteen weet).
    - Voor de spellen: Scorebord.feest(f) (in het gedeelde blok) of window.RommelFeest.klaar(f): f(stand) zodra het bekend is, en
      opnieuw als het verandert. stand = { feest: 'sint' | 'kerst' | 'oud' | 'nieuwjaar' | null, fase, jaar, dag, winter, schoen,
@@ -28,6 +28,13 @@
     oudjaar: '2026-12-31', aftellen: '2026-12-31 23:55', middernacht: '2027-01-01 00:00', vuurwerkTot: '2027-01-01 00:20', muntVan: '2026-12-31 23:00', muntTot: '2027-01-01 03:00', nieuwjaarTot: '2027-01-06' }] };
   var VELDEN = ['intocht', 'schoenVan', 'schoenTot', 'pakjesavond', 'uitpakkenTot', 'kalenderVan', 'kalenderTot', 'kerstdagenVan', 'kerstdagenTot', 'versieringTot', 'oudjaar', 'aftellen', 'middernacht', 'vuurwerkTot', 'muntVan', 'muntTot', 'nieuwjaarTot'];
   var MET_TIJD = { pakjesavond: 1, aftellen: 1, middernacht: 1, vuurwerkTot: 1, muntVan: 1, muntTot: 1 };
+  // Sinterklaas: wat er in de pakjes zit, per feestjaar, op volgorde van de schoendagen (de eerste is de dag van schoenVan). Voor iedereen
+  // hetzelfde. Nieuwe jaren krijgen nieuwe dingen; verander nooit een id (de spellen kijken ernaar met heb). MIJTER: het pakje voor wie
+  // elke dag zijn schoen zette (een verzamelstuk; de homepage en Rommelkroon zetten er iets mee vrij).
+  var PAKJES = { '2026': ['hp-chocoletter', 'vb-letter', 'ck-stoomboot', 'rk-pepernoot', 'rb-pepernotenuil', 'rc-pepernootfiches', 'rs-stoomboot',
+    'rd-pepernotentaart', 'rp-pakjesrug', 'vb-speculaas', 'ck-binnen', 'rk-mijter', 'rb-speculaasvos', 'hp-worteltje', 'rs-mijter', 'rc-pakjeskleed',
+    'vb-schoorsteen', 'rd-letters', 'ck-wind', 'rb-marsepeinvarken', 'rk-pepernotenregen'] };
+  var MIJTER = { '2026': 'mijter26' };
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   var NLF = null;
   function nlDelen(t) {
@@ -131,9 +138,40 @@
       if (n) o.opslag.schrijf(s);
       return n;
     };
+    // ---------- Sinterklaas: uitpakken (vanaf pakjesavond, tot uitpakkenTot)
+    // de pakjes: wat er nog dicht op je stapel ligt (ook wat nog in je schoen zat), hoeveel er open zijn, en de Gouden Mijter
+    // ('dicht' als je alle schoendagen je schoen zette en hem nog niet hebt, 'open' als je hem hebt, anders null)
+    K.pakjes = function () {
+      var F = K.nu(), J = F.J, s = K.lees(), sz = seizoen('sint', J), van = plek(J.schoenVan, J), tot = plek(J.schoenTot, J), vandaag = plek(F.dag, J), l = PAKJES[J.jaar] || [];
+      var uit = { lijst: [], dicht: 0, open: 0, gezet: 0, dagen: tot - van + 1, mijter: null, kan: !!(F.uitpakken && o.zeker()) };
+      for (var i = van; i <= tot; i++) {
+        var w = cijfer(s, sz, i); if (w >= 1) uit.gezet++;
+        if (w === 3) uit.open++;
+        else if (w === 2 || (w === 1 && i < vandaag)) { uit.dicht++; uit.lijst.push({ i: i, id: l[i - van] || null }); }
+      }
+      var m = MIJTER[J.jaar];
+      if (m && uit.gezet === uit.dagen) uit.mijter = s.st.indexOf(m) >= 0 ? 'open' : 'dicht';
+      return uit;
+    };
+    // één pakje uitpakken (i: de dag, zoals in K.pakjes): het cijfer wordt 3, en wat erin zit komt in de verzameling. Geeft { i, id } of null.
+    K.pakUit = function (i) {
+      if (!o.zeker() || typeof i !== 'number' || i !== Math.floor(i)) return null;
+      var F = K.nu(); if (!F.uitpakken) return null;
+      var J = F.J, s = K.lees(), sz = seizoen('sint', J), van = plek(J.schoenVan, J), tot = plek(J.schoenTot, J);
+      if (!(i >= van && i <= tot && i < plek(F.dag, J))) return null;
+      var w = cijfer(s, sz, i); if (w !== 1 && w !== 2) return null;
+      zetCijfer(s, sz, i, 3);
+      var id = (PAKJES[J.jaar] || [])[i - van] || null; if (id && s.st.indexOf(id) < 0) s.st.push(id);
+      return o.opslag.schrijf(s) ? { i: i, id: id } : null;
+    };
+    // de Gouden Mijter: als laatste, na alle andere pakjes. Geeft het id of null.
+    K.pakMijter = function () {
+      var p = K.pakjes(); if (!p.kan || p.mijter !== 'dicht' || p.dicht) return null;
+      var m = MIJTER[K.nu().J.jaar]; return K.krijg(m) ? m : null;
+    };
     return K;
   }
-  var KERN = { KALENDER: KALENDER, VELDEN: VELDEN, MET_TIJD: MET_TIJD, nlDag: nlDag, nlDelen: nlDelen, dagNr: dagNr, moment: moment, jaarVan: jaarVan, jaren: jaren, fase: fase, seizoen: seizoen, plek: plek, schoon: schoon, cijfer: cijfer, zetCijfer: zetCijfer, Kern: Kern, geldigJaar: geldigJaar };
+  var KERN = { KALENDER: KALENDER, VELDEN: VELDEN, MET_TIJD: MET_TIJD, PAKJES: PAKJES, MIJTER: MIJTER, nlDag: nlDag, nlDelen: nlDelen, dagNr: dagNr, moment: moment, jaarVan: jaarVan, jaren: jaren, fase: fase, seizoen: seizoen, plek: plek, schoon: schoon, cijfer: cijfer, zetCijfer: zetCijfer, Kern: Kern, geldigJaar: geldigJaar };
   if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') { module.exports = KERN; return; }
   // ==== KERN eind
 

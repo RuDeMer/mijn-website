@@ -1998,6 +1998,9 @@ const RECEPTEN = {
   wrakbaars: { naam: 'Wrakbaars op de huid gebakken', nodig: ['wrakbaars'], stappen: ['snijden', 'bakken', 'opmaken'], prijs: 25, plaatje: 'wrakbaars', leer: 'wrakbaars' },
   garnalenpan: { naam: 'Grotgarnalen uit de pan', nodig: ['grotgarnaal', 'garnaal'], stappen: ['bakken'], prijs: 9, plaatje: 'garnalenpan', leer: 'grotgarnaal' },
   kalkrots: { naam: 'Witte kalkrots', soort: 'toetje', nodig: [], groente: ['aardbei'], proef: ['ei', 'suiker', 'aardbei'], raad: 'Zo wit als de kalkrots: opgeklopt eiwit met suiker, en iets roods erbovenop.', stappen: ['opmaken'], prijs: 8, plaatje: 'kalkrots' },
+  // een cadeautje van de Sint (de feestdagen, feest.js): feest = de id in de feestverzameling. Je kent het zolang je dat cadeautje
+  // hebt (kentRecept); het komt nooit in ST.recepten. Alles uit de voorraadkast, net als de poffertjes.
+  pepernotentaart: { naam: 'Pepernotentaartje', soort: 'toetje', nodig: [], groente: [], stappen: ['bakken', 'opmaken'], prijs: 5, plaatje: 'pepernotentaart', feest: 'rd-pepernotentaart' },
 };
 const soortVan = id => (RECEPTEN[id] && RECEPTEN[id].soort) || 'hoofd';
 const START_RECEPTEN = ['haring', 'kibbeling', 'schol', 'mosselen', 'vissoep', 'makreel'];
@@ -2057,7 +2060,21 @@ const VONDSTEN = {
   logboek3: { naam: 'Blikken koker met een bladzijde', waarde: 0, sfeer: 0, kg: .2, verhaal: true },
   netboei: { naam: 'Oude netboei', waarde: 0, sfeer: 0, kg: .3, verhaal: true },
   netknoop: { naam: 'De laatste knoop', waarde: 0, sfeer: 6, kg: .1, trofee: true },
+  // een cadeautje van de Sint (feest.js): van jou zolang je dat cadeautje hebt (feest = de id in de feestverzameling), nooit in
+  // ST.vondsten. Niet te koop; neerzetten gaat zoals altijd via ST.decor.
+  chocoletters: { naam: 'Chocoladeletters op de bar', waarde: 0, sfeer: 4, kg: .6, cadeau: true, feest: 'rd-letters' },
 };
+
+// ---- cadeautjes van de Sint: de spellen lezen de feestverzameling (rommelhoekje-feest-v1, via Scorebord.feest onderaan) alleen.
+// Een recept of vondst met feest: '<id>' is van de speler zolang heb('<id>'). Tot de stand bekend is, heeft de speler niets.
+let feestHeb = () => false;
+const feestVan = d => !!(d && d.feest && feestHeb(d.feest));
+const kentRecept = id => !!RECEPTEN[id] && (id in ST.recepten || feestVan(RECEPTEN[id]));
+// alle recepten die je kent: eerst die uit je receptenschrift (in de oude volgorde), dan de cadeautjes
+const bekendeRecepten = () => Object.keys(ST.recepten).filter(id => RECEPTEN[id]).concat(Object.keys(RECEPTEN).filter(id => !(id in ST.recepten) && feestVan(RECEPTEN[id])));
+// wat er echt staat: een feestvondst die (op dit apparaat nog) niet van je is, zie je niet en telt niet mee, maar zijn plek in ST.decor blijft
+const hangt = id => !!VONDSTEN[id] && (!VONDSTEN[id].feest || feestVan(VONDSTEN[id]));
+const feestInKast = () => Object.keys(VONDSTEN).filter(id => feestVan(VONDSTEN[id]) && !ST.decor.includes(id));
 
 // ---- verbeteringen: niveaus met prijs en waarde
 const UITRUSTING = {
@@ -2715,6 +2732,15 @@ function gerechtPix(id) {
     case 'lipvis': R.ovaal(9, 10, 8.5, 3.6, '#F4F1E8'); R.ovaal(9, 8, 7, 3, goud); R.ovaal(9, 7.5, 5, 1.8, goudL); R.veelhoek([[2, 8], [-1, 5], [-1, 11]], goudD); for (const [x, y] of [[6, 7], [10, 8], [13, 7]]) R.p(x, y, '#A8642A'); R.p(14, 7, '#2A201C'); R.p(5, 11, groen); R.p(12, 11, '#C8323C'); R.p(13, 11, '#C8323C'); partje(15, 11); break;
     case 'wrakbaars': R.ovaal(9, 10, 8.5, 3.6, '#2A2C34'); R.ovaal(9, 9, 6.5, 2.6, '#F4E8D0'); R.ovaal(9, 8, 5, 1.8, goud); R.rij(7, 6, 12, goudD); for (let x = 5; x < 14; x += 3) R.p(x, 7, '#5A4A3A'); R.ovaal(14, 11, 2, 1.2, '#F4ECC8'); R.p(4, 11, groenL); R.p(5, 12, groen); break;
     case 'garnalenpan': R.ovaal(9, 10, 8, 3.6, '#2A2A30'); R.ovaal(9, 9.5, 6.6, 2.4, '#3A3A42'); for (const [x, y] of [[5, 9], [8, 8], [11, 9], [13, 10], [7, 11], [10, 11]]) { R.ovaal(x, y, 1.6, 1, '#F0A08A'); R.p(x, y, '#F8C8B4'); } R.lijn(17, 9, 20, 7, '#5A3A22', 2); R.p(9, 7, groen); R.p(12, 7, groenL); break;
+    // een rond taartje van speculaasdeeg met een laagje room, botercrème bovenop en pepernoten, op een bordje
+    case 'pepernotentaart': {
+      R.ovaal(9.5, 12.4, 8.4, 1.6, '#F4F1E8'); R.rij(13, 3, 16, '#E8E2D6'); R.rij(14, 4, 15, '#D8D2C2');
+      R.ovaal(9.5, 10, 6.5, 1.6, '#7A4826'); R.blok(3, 5, 16, 10, '#A8693A'); R.rij(5, 3, 16, '#B87A44');
+      for (const [x, y] of [[5, 9], [9, 10], [13, 9], [15, 6], [4, 6]]) R.p(x, y, '#8A5226');
+      R.rij(8, 3, 16, '#F4ECD8'); R.ovaal(9.5, 5, 6.5, 2, '#F2E2C4'); R.rij(3, 7, 12, '#FBF4E2');
+      for (const [x, y] of [[5, 4], [8, 3], [11, 4], [13, 5], [7, 6], [10, 5]]) { R.blok(x, y, x + 1, y + 1, '#7A4420'); R.p(x, y, '#B87A44'); }
+      break;
+    }
     case 'kalkrots': R.ovaal(9, 12, 8, 2.6, '#E8E2D6'); R.veelhoek([[3, 12], [5, 5], [8, 3], [11, 4], [14, 6], [15, 12]], '#FBF8F0'); R.lijn(5, 9, 13, 8, '#E4DCCC'); R.p(7, 6, '#FFFFFF'); R.ovaal(9, 3, 2, 1.6, '#E8414E'); R.ovaal(12, 4, 1.6, 1.2, '#C8323C'); R.p(9, 2, '#FF9A9A'); R.p(10, 1, groen); break;
     default: R.ovaal(9, 8, 7, 4, '#C9A060');
   }
@@ -3059,6 +3085,15 @@ function vondstPix(id) {
     case 'schilderij': R.blok(1, 2, 16, 14, '#C99A2E'); R.blok(2, 3, 15, 13, '#7FB8D8'); R.blok(2, 10, 15, 13, '#2E5A8A'); R.veelhoek([[5, 10], [12, 10], [11, 11], [6, 11]], '#5A3A22'); R.lijn(8, 4, 8, 10, '#3A2A22'); R.veelhoek([[8, 4], [12, 9], [8, 9]], '#F4F1E8'); R.veelhoek([[8, 5], [5, 9], [8, 9]], '#E8E4DA'); R.p(13, 4, '#FFE9A8'); R.rij(12, 4, 7, '#7FB8D8'); break;
     case 'barometer': R.ovaal(9, 8, 7, 7, '#C99A2E'); R.ovaal(9, 8, 5.4, 5.4, '#F4F1E8'); R.lijn(9, 8, 12, 4, '#23252B'); R.lijn(9, 8, 6, 5, '#C8323C'); R.p(9, 8, '#8A6A2A'); for (const [x, y] of [[4, 8], [14, 8], [9, 3], [5, 4], [13, 4]]) R.p(x, y, '#8A7A5A'); R.p(6, 11, '#FFFFFF'); break;
     case 'gieter': R.blok(4, 6, 12, 14, '#E9B949'); R.blok(5, 7, 6, 13, '#FFE9A8'); R.lijn(12, 9, 16, 4, '#E9B949', 2); R.blok(15, 3, 17, 5, '#C99A2E'); R.lijn(4, 6, 2, 9, '#C99A2E'); R.lijn(2, 9, 4, 12, '#C99A2E'); R.rij(5, 4, 12, '#C99A2E'); R.p(17, 6, '#7FB8D8'); R.p(16, 8, '#7FB8D8'); break;
+    // een gouden S en een zilveren P achteraan, en vooraan een R van melkchocola, op het blad van de bar
+    case 'chocoletters': {
+      const letter = (rijen, ox, oy, k) => rijen.forEach((r, y) => { for (let x = 0; x < r.length; x++) if (r[x] !== '.') R.p(ox + x, oy + y, k[r[x]]); });
+      R.rij(14, 0, 17, '#A8743E'); R.rij(15, 0, 17, '#6A4220'); R.p(3, 14, '#C8945A'); R.p(12, 14, '#C8945A');
+      letter(['.bbbb', 'ba..a', 'ba...', '.aaa.', '...ac', 'c..ac', '.ccc.'], 0, 2, { a: '#E2A23C', b: '#F7D982', c: '#B87428' }); R.p(1, 4, '#FFF2B8'); R.p(3, 5, '#FFF2B8');
+      letter(['bbbb.', 'ba.bc', 'ba..c', 'ba.ac', 'aaac.', 'ac...', 'ac...', 'cc...'], 13, 2, { a: '#B7BEC8', b: '#EEF1F5', c: '#7E8794' }); R.p(14, 4, '#FFFFFF');
+      letter(['bbbbb..', 'ba..ba.', 'ba...ac', 'ba..ac.', 'baaac..', 'ba.ac..', 'ba..ac.', 'ba...ac', 'ca...cc'], 5, 5, { a: '#9C6236', b: '#C99462', c: '#744320' });
+      break;
+    }
     case 'vaas': R.veelhoek([[6, 15], [12, 15], [13, 11], [11, 8], [7, 8], [5, 11]], '#2E5AA8'); R.rij(11, 6, 12, '#F4F1E8'); R.lijn(9, 8, 9, 3, '#4A7A3A'); R.lijn(8, 8, 5, 4, '#4A7A3A'); R.lijn(10, 8, 13, 4, '#4A7A3A'); R.ovaal(9, 2, 1.6, 1.6, '#E9B949'); R.ovaal(5, 3, 1.6, 1.6, '#C8323C'); R.ovaal(13, 3, 1.6, 1.6, '#F4F1F8'); R.p(4, 6, '#7A3A9A'); R.p(14, 6, '#7A3A9A'); break;
     default: R.blok(4, 4, 13, 13, '#C9B48A');
   }
@@ -6648,7 +6683,7 @@ function bordenVoor(menu, pool) {
 const nogBestellen = () => A.gasten.filter(g => !g.bon && (g.staat === 'loopt' || g.staat === 'zit')).length + A.wacht.reduce((n, w) => n + (w.max || 1), 0);
 // borden die nog niet besproken zijn
 const bordenOver = () => bordenVoor(A.menu, voorraadPorties()) - nogBestellen();
-function sfeer() { return ST.decor.reduce((a, id) => a + (VONDSTEN[id] ? VONDSTEN[id].sfeer : 0), 0) + ST.rest.linnen * 4 + inrichtSfeer(); }
+function sfeer() { return ST.decor.reduce((a, id) => a + (hangt(id) ? VONDSTEN[id].sfeer : 0), 0) + ST.rest.linnen * 4 + inrichtSfeer(); }
 const inrichtSfeer = () => Object.keys(INRICHTING).reduce((a, k) => a + inrNu(k).sfeer, 0);
 
 function startAvond(menu) {
@@ -6663,7 +6698,7 @@ function startAvond(menu) {
     sem: ST.pers.sem ? { x: 60, y: KB.KEUKEN_Y - 2, bezig: null, t: 0 } : null,
     kat: null, katGeweest: false, snel: 1, op: [], omzet: 0, fooi: 0, bediend: 0, boos: 0, tevreden: [], vertrokken: 0, mini: null, tempo: 1,
     deurOpen: 0, munten: [], teksten: [], klaar: false, bijzonder: DAG.bijzondereGast ? DAG.bijzondereGast() : null,
-    bij: ST.menuBij && ST.menuBij in ST.recepten && groentePorties(ST.menuBij) > 0 ? ST.menuBij : null, toe: ST.menuToe && ST.menuToe in ST.recepten && groentePorties(ST.menuToe) > 0 ? ST.menuToe : null, metBij: 0, toetjes: 0, toeOmzet: 0,
+    bij: ST.menuBij && ST.menuBij in ST.recepten && groentePorties(ST.menuBij) > 0 ? ST.menuBij : null, toe: ST.menuToe && kentRecept(ST.menuToe) && groentePorties(ST.menuToe) > 0 ? ST.menuToe : null, metBij: 0, toetjes: 0, toeOmzet: 0,
     zaal: null, hulp: maakDoek(KB.BREED, 360), buiten: maakDoek(KB.BREED, 360), laag: maakDoek(KB.BREED, 360), wand: null,
   };
   const pool = voorraadPorties();
@@ -6689,7 +6724,7 @@ function bouwWand() {
 // vondsten aan de muur en op de vensterbanken
 const DECOR_PLEKKEN = [[244, 166], [292, 166], [358, 166], [406, 166], [472, 166], [520, 166], [212, 112], [562, 158]];
 function tekenDecor(ctx) {
-  ST.decor.slice(0, DECOR_PLEKKEN.length).forEach((id, i) => { if (!VONDSTEN[id]) return; const [x, y] = DECOR_PLEKKEN[i]; ctx.drawImage(vondstDoek(id), x - 9, y - 15); });
+  ST.decor.slice(0, DECOR_PLEKKEN.length).forEach((id, i) => { if (!hangt(id)) return; const [x, y] = DECOR_PLEKKEN[i]; ctx.drawImage(vondstDoek(id), x - 9, y - 15); });
 }
 // vrije stoel zoeken
 function vrijeTafel(n) { const vrij = A.tafels.filter(t => !t.dicht && !t.stoel[0] && !t.stoel[1]); if (vrij.length) return vrij[Math.floor(A.r() * vrij.length)]; if (n === 1) { const half = A.tafels.filter(t => !t.dicht && (!t.stoel[0] || !t.stoel[1])); if (half.length) return half[0]; } return null; }
@@ -6882,7 +6917,7 @@ function betaal(g) {
   const fooi = Math.round(prijs * tevr * .45 * (1 + ST.rest.linnen * .25) * (g.bijzonder ? 1.5 : 1) * (b.doorNoor && persNv('noor') >= 3 ? 1.15 : 1) * (ST.pers.noor && harten('noor') >= 4 ? 1.05 : 1) * (inrNu('lamp').fooi || 1));
   A.omzet += prijs; A.fooi += fooi;
   if (b.toetje) { A.toetjes++; A.toeOmzet += prijs + fooi; } else { A.bediend++; A.tevreden.push(tevr); }
-  ST.recepten[b.id] = (ST.recepten[b.id] || 0) + 1; if (b.bij) ST.recepten[b.bij] = (ST.recepten[b.bij] || 0) + 1;
+  if (!RECEPTEN[b.id].feest) ST.recepten[b.id] = (ST.recepten[b.id] || 0) + 1; if (b.bij) ST.recepten[b.bij] = (ST.recepten[b.bij] || 0) + 1; // een cadeautje van de Sint komt nooit in ST.recepten
   for (let i = 0; i < Math.min(6, 2 + Math.round(tevr * 4)); i++) A.munten.push({ x: g.x, y: g.y - 40, vx: (Math.random() - .5) * 40, vy: -60 - Math.random() * 40, t: 0 });
   tekstR(g.x, g.y - 72, '+' + geldTekst(prijs + fooi).replace('€ ', '€'), '#FFE9A8');
   GELUID.sfx('munt');
@@ -8503,9 +8538,12 @@ const DAG = {
   // ---- het menu kiezen en de deur openen
   async avondKiezen() {
     const max = restW('menu'), pool = voorraadPorties();
-    const lijst = Object.keys(ST.recepten).filter(id => RECEPTEN[id] && soortVan(id) === 'hoofd');
-    const bijL = Object.keys(ST.recepten).filter(id => RECEPTEN[id] && soortVan(id) === 'bij'), toeL = Object.keys(ST.recepten).filter(id => RECEPTEN[id] && soortVan(id) === 'toetje');
+    const kent = bekendeRecepten(), lijst = kent.filter(id => soortVan(id) === 'hoofd');
+    const bijL = kent.filter(id => soortVan(id) === 'bij'), toeL = kent.filter(id => soortVan(id) === 'toetje');
     let bij = ST.menuBij && bijL.includes(ST.menuBij) && groentePorties(ST.menuBij) > 0 ? ST.menuBij : null, toe = ST.menuToe && toeL.includes(ST.menuToe) && groentePorties(ST.menuToe) > 0 ? ST.menuToe : null;
+    // een cadeautje van de Sint als toetje dat (op dit apparaat nog) niet van je is: vanavond geen toetje, maar je keuze blijft staan
+    const feestWacht = !!(ST.menuToe && RECEPTEN[ST.menuToe] && RECEPTEN[ST.menuToe].feest && !kentRecept(ST.menuToe));
+    let toeGekozen = false;
     const extraKeus = (soort, l, nu) => !l.length ? '' : `<h3>${soort === 'bij' ? 'Bijgerecht van de dag' : 'Toetje van de dag'}</h3><p class="klein" style="margin:.1rem 0 .3rem">${soort === 'bij' ? 'Gaat vanzelf mee met elk hoofdgerecht, zolang je groente hebt: dat bord kost meer en gasten worden blijer.' : 'Na het hoofdgerecht bestelt ongeveer een op de drie gasten nog een toetje.'}</p><div class="keuzes" role="radiogroup">${[null].concat(l).map(id => { const p = id ? groentePorties(id) : 99, kan = !id || p > 0; return `<button type="button" class="keuze ${kan ? '' : 'uit'}" role="radio" data-${soort}="${id || ''}" aria-checked="${nu === id}" ${kan ? '' : 'disabled'}>${id ? plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 1) : ''}<span>${id ? RECEPTEN[id].naam : 'Geen'}${id ? `<small>+${geldTekst(prijsVan(id)).replace('€ ', '€')} · ${p >= 99 ? 'genoeg' : p + ' ' + (p === 1 ? 'portie' : 'porties')}</small>` : ''}</span></button>`; }).join('')}</div>`;
     const port = Object.fromEntries(lijst.map(id => [id, portiesVoor(id, pool)]));
     let gekozen = (ST.menu || []).filter(id => port[id] > 0).slice(0, max);
@@ -8516,13 +8554,13 @@ const DAG = {
       vulPlaatjes(k, lijst.concat(bijL, toeL).map(id => gerechtPix(RECEPTEN[id].plaatje)));
       const zetExtra = () => { k.querySelectorAll('[data-bij]').forEach(b => b.setAttribute('aria-checked', (b.dataset.bij || null) === bij)); k.querySelectorAll('[data-toe]').forEach(b => b.setAttribute('aria-checked', (b.dataset.toe || null) === toe)); };
       k.querySelectorAll('[data-bij]').forEach(b => b.onclick = () => { bij = b.dataset.bij || null; GELUID.sfx('klik'); zetExtra(); });
-      k.querySelectorAll('[data-toe]').forEach(b => b.onclick = () => { toe = b.dataset.toe || null; GELUID.sfx('klik'); zetExtra(); });
+      k.querySelectorAll('[data-toe]').forEach(b => b.onclick = () => { toe = b.dataset.toe || null; toeGekozen = true; GELUID.sfx('klik'); zetExtra(); });
       const zet = () => { k.querySelectorAll('.regel.kies').forEach(r => r.setAttribute('aria-pressed', gekozen.includes(r.dataset.id))); $('m-open').disabled = !gekozen.length;
         const n = gekozen.length ? bordenVoor(gekozen, pool) : 0; $('m-borden').textContent = !gekozen.length ? '' : n >= 99 ? 'Genoeg voor de hele avond.' : `Genoeg voor ${n} ${n === 1 ? 'bord' : 'borden'}. Er komen ongeveer zoveel gasten als je borden hebt; is alles op, dan kun je meteen sluiten.`; };
       k.querySelectorAll('.regel.kies').forEach(r => { const f = () => { const id = r.dataset.id; if (!port[id]) return; if (gekozen.includes(id)) gekozen = gekozen.filter(x => x !== id); else if (gekozen.length < max) gekozen.push(id); else { melding('Je menukaart is vol (' + max + ').', 'rood'); return; } GELUID.sfx('klik'); zet(); }; r.onclick = f; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } }; });
       zet();
       $('m-terug').onclick = () => { sluitPaneel(); res(); };
-      $('m-open').onclick = async () => { ST.menu = gekozen.slice(); ST.menuBij = bij; ST.menuToe = toe; sluitPaneel(); bewaar(); if (typeof verhaalVoorAvond === 'function') await verhaalVoorAvond(); await overgang(() => naarScene('restaurant', gekozen.slice())); res(); };
+      $('m-open').onclick = async () => { ST.menu = gekozen.slice(); ST.menuBij = bij; ST.menuToe = toe || (feestWacht && !toeGekozen ? ST.menuToe : null); sluitPaneel(); bewaar(); if (typeof verhaalVoorAvond === 'function') await verhaalVoorAvond(); await overgang(() => naarScene('restaurant', gekozen.slice())); res(); };
     });
   },
   // ---- na het duiken: de vangst en de duik zelf in één keer bewaren; daarna pas de vensters (DAG.hervat)
@@ -8777,6 +8815,7 @@ DAG.winkel = async function (tab = 'duik') {
   });
 };
 DAG.museum = async function (tab = 'boek') {
+  const aantal = id => VONDSTEN[id].feest ? '' : ' × ' + ST.vondsten[id]; // een cadeautje van de Sint heb je één keer
   return new Promise(res => {
     const toon = () => {
       const tabs = [['boek', 'Zeeboek'], ['opdr', 'Foto-opdrachten'], ['vondsten', 'Vondsten'], ['inrichten', 'Ophangen in het restaurant']];
@@ -8794,22 +8833,23 @@ DAG.museum = async function (tab = 'boek') {
         inhoud = `<p>“Ik betaal je voor goede foto's. Sommige dieren mag je niet vangen, maar een foto mag altijd.”</p><p class="klein">${n} van de ${FOTO_OPDR.length} opdrachten klaar.${ST.uit.camera ? ' Maak een foto met C of de knop Foto.' : ' Je hebt nog geen camera: die verkoopt Trien.'}</p><div class="lijst">${FOTO_OPDR.map(o => `<div class="regel ${ST.opdr[o.id] ? '' : ''}"><div><div class="naam">${ST.opdr[o.id] ? '✓ ' : ''}${o.naam}</div><div class="klein">${o.tekst}</div></div><div class="meer">${ST.opdr[o.id] ? '<span class="klein">klaar</span>' : geldTekst(o.beloning)}</div></div>`).join('')}</div>`;
       }
       if (tab === 'vondsten') {
-        const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && !VONDSTEN[id].verhaal);
-        inhoud = ids.length ? `<p>“Rommel uit zee neem ik graag van je over, dan ruim ik het netjes op. Mooie dingen koop ik voor het museum.”</p><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam} × ${ST.vondsten[id]}</div><div class="klein">${VONDSTEN[id].trofee ? 'Een trofee: hang hem op!' : VONDSTEN[id].cadeau ? 'Een cadeau: hang hem op (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].sfeer ? 'Sfeer +' + VONDSTEN[id].sfeer + ' als je hem ophangt' : 'Rommel'}</div></div><div class="meer">${VONDSTEN[id].trofee || VONDSTEN[id].cadeau ? '' : `<button class="knop" type="button" data-verkoop="${id}">${VONDSTEN[id].rommel ? 'Inleveren' : 'Verkopen'} ${geldTekst(vondstPrijs(id))}</button>`}</div></div>`).join('')}</div>` : '<p>Je hebt nog geen vondsten. Kijk tijdens het duiken goed naar de bodem: daar glinstert soms iets.</p>';
+        const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && !VONDSTEN[id].verhaal).concat(feestInKast());
+        inhoud = ids.length ? `<p>“Rommel uit zee neem ik graag van je over, dan ruim ik het netjes op. Mooie dingen koop ik voor het museum.”</p><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${aantal(id)}</div><div class="klein">${VONDSTEN[id].trofee ? 'Een trofee: hang hem op!' : VONDSTEN[id].feest ? 'Een cadeautje van de Sint: zet het neer in je restaurant (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].cadeau ? 'Een cadeau: hang hem op (sfeer +' + VONDSTEN[id].sfeer + ')' : VONDSTEN[id].sfeer ? 'Sfeer +' + VONDSTEN[id].sfeer + ' als je hem ophangt' : 'Rommel'}</div></div><div class="meer">${VONDSTEN[id].trofee || VONDSTEN[id].cadeau ? '' : `<button class="knop" type="button" data-verkoop="${id}">${VONDSTEN[id].rommel ? 'Inleveren' : 'Verkopen'} ${geldTekst(vondstPrijs(id))}</button>`}</div></div>`).join('')}</div>` : '<p>Je hebt nog geen vondsten. Kijk tijdens het duiken goed naar de bodem: daar glinstert soms iets.</p>';
         plaatjes = ids.map(id => vondstDoek(id));
       }
       if (tab === 'inrichten') {
-        const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && VONDSTEN[id].sfeer > 0);
-        inhoud = `<p class="klein">Hang mooie vondsten op in Het Rommelkombuis (${ST.decor.length} van ${DECOR_PLEKKEN.length} plekken). Elke vondst maakt het gezelliger: dan komen er meer gasten.</p><div class="lijst">${ST.decor.map((id, i) => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div class="naam">${VONDSTEN[id].naam}</div><div class="meer"><button class="knop" type="button" data-af="${i}">Haal eraf</button></div></div>`).join('') || '<p class="klein">Er hangt nog niks.</p>'}</div><h3>In je kast</h3><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam} × ${ST.vondsten[id]}</div><div class="klein">Sfeer +${VONDSTEN[id].sfeer}</div></div><div class="meer"><button class="knop goud" type="button" data-hang="${id}" ${ST.decor.length >= DECOR_PLEKKEN.length ? 'disabled' : ''}>Ophangen</button></div></div>`).join('') || '<p class="klein">Geen mooie vondsten in je kast.</p>'}</div>`;
-        plaatjes = ST.decor.map(id => vondstDoek(id)).concat(ids.map(id => vondstDoek(id)));
+        const ids = Object.keys(ST.vondsten).filter(id => ST.vondsten[id] > 0 && VONDSTEN[id].sfeer > 0).concat(feestInKast());
+        inhoud = `<p class="klein">Hang mooie vondsten op in Het Rommelkombuis (${ST.decor.filter(hangt).length} van ${DECOR_PLEKKEN.length} plekken). Elke vondst maakt het gezelliger: dan komen er meer gasten.</p><div class="lijst">${ST.decor.map((id, i) => hangt(id) ? `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div class="naam">${VONDSTEN[id].naam}</div><div class="meer"><button class="knop" type="button" data-af="${i}">Haal eraf</button></div></div>` : '').join('') || '<p class="klein">Er hangt nog niks.</p>'}</div><h3>In je kast</h3><div class="lijst">${ids.map(id => `<div class="regel">${plaatjeHtml(vondstDoek(id), 2)}<div><div class="naam">${VONDSTEN[id].naam}${aantal(id)}</div><div class="klein">${VONDSTEN[id].feest ? 'Een cadeautje van de Sint · s' : 'S'}feer +${VONDSTEN[id].sfeer}</div></div><div class="meer"><button class="knop goud" type="button" data-hang="${id}" ${ST.decor.length >= DECOR_PLEKKEN.length ? 'disabled' : ''}>${VONDSTEN[id].feest ? 'Neerzetten' : 'Ophangen'}</button></div></div>`).join('') || '<p class="klein">Geen mooie vondsten in je kast.</p>'}</div>`;
+        plaatjes = ST.decor.filter(hangt).map(id => vondstDoek(id)).concat(ids.map(id => vondstDoek(id)));
       }
       const k = paneel(`<h2>Het Zilte Huis</h2><p class="klein">Museum en werkkamer van professor Wieke Wier · <b>${geldTekst(ST.geld)}</b></p><div class="tabs" role="tablist">${tabs.map(([id, n]) => `<button role="tab" type="button" data-tab="${id}" aria-selected="${tab === id}">${n}</button>`).join('')}</div>${inhoud}<div class="rij"><button class="knop hoofd" type="button" id="z-klaar">Klaar</button></div>`, { breed: true });
       vulPlaatjes(k, plaatjes);
       k.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; GELUID.sfx('klik'); toon(); });
       k.querySelectorAll('[data-soort]').forEach(b => b.onclick = async () => { GELUID.sfx('klik'); await soortKaart(b.dataset.soort); toon(); });
       k.querySelectorAll('[data-verkoop]').forEach(b => b.onclick = () => { const id = b.dataset.verkoop; if (!ST.vondsten[id]) return; ST.vondsten[id]--; ST.geld += vondstPrijs(id); bewaar(); GELUID.sfx('munt'); toon(); });
-      k.querySelectorAll('[data-hang]').forEach(b => b.onclick = () => { const id = b.dataset.hang; if (!ST.vondsten[id] || ST.decor.length >= DECOR_PLEKKEN.length) return; ST.vondsten[id]--; ST.decor.push(id); bewaar(); GELUID.sfx('pak'); toon(); });
-      k.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { const id = ST.decor.splice(+b.dataset.af, 1)[0]; ST.vondsten[id] = (ST.vondsten[id] || 0) + 1; bewaar(); toon(); });
+      // een cadeautje van de Sint zit niet in ST.vondsten: neerzetten en weghalen verandert alleen ST.decor
+      k.querySelectorAll('[data-hang]').forEach(b => b.onclick = () => { const id = b.dataset.hang, feest = !!(VONDSTEN[id] && VONDSTEN[id].feest); if ((feest ? !feestInKast().includes(id) : !ST.vondsten[id]) || ST.decor.length >= DECOR_PLEKKEN.length) return; if (!feest) ST.vondsten[id]--; ST.decor.push(id); bewaar(); GELUID.sfx('pak'); toon(); });
+      k.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { const id = ST.decor.splice(+b.dataset.af, 1)[0]; if (!(VONDSTEN[id] && VONDSTEN[id].feest)) ST.vondsten[id] = (ST.vondsten[id] || 0) + 1; bewaar(); toon(); });
       $('z-klaar').onclick = () => { sluitPaneel(); res(); };
     };
     toon();
@@ -8827,11 +8867,11 @@ function soortKaart(s) {
 function silhouet(s) { return zeeBuf('sil|' + s, () => { const b = zeedierDoek(s, 1), { cv, ctx } = maakDoek(b.width, b.height); ctx.drawImage(b, 0, 0); ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = '#5E5643'; ctx.fillRect(0, 0, cv.width, cv.height); return cv; }); }
 DAG.recepten = async function () {
   const volg = { hoofd: 0, bij: 1, toetje: 2 };
-  const bekend = Object.keys(ST.recepten).filter(id => RECEPTEN[id]).sort((a, b) => volg[soortVan(a)] - volg[soortVan(b)]), rest = Object.keys(RECEPTEN).filter(id => !bekend.includes(id) && !RECEPTEN[id].verhaal);
+  const bekend = bekendeRecepten().sort((a, b) => volg[soortVan(a)] - volg[soortVan(b)]), rest = Object.keys(RECEPTEN).filter(id => !bekend.includes(id) && !RECEPTEN[id].verhaal);
   const waaruit = id => { const r = RECEPTEN[id]; if (r.groente && r.groente.length) return r.groente.map(g => GEWASSEN[g].naam.toLowerCase()).join(' en ') + ' uit de moestuin'; return r.nodig.map(s => ST.boek[s] ? SOORTEN[s].naam : '???').join(' of ') || 'uit de voorraadkast'; };
   const label = id => soortVan(id) === 'bij' ? '<span class="klein">bijgerecht</span> ' : soortVan(id) === 'toetje' ? '<span class="klein">toetje</span> ' : '';
-  const hoeLeren = id => { const r = RECEPTEN[id]; if (r.koop) return 'Te koop bij Bep uit het Rommelhotel'; if (r.proef) return 'Te ontdekken in de proefkeuken'; if (r.vriend) return 'Een geheim recept van een vriend'; return 'Vang eerst: ' + (ST.boek[r.leer] ? SOORTEN[r.leer].naam : 'een onbekende soort (' + SOORTEN[r.leer].diepte[0] + ' m of dieper)'); };
-  const k = paneel(`<h2>Je receptenschrift</h2><p class="klein">Elke 10 keer dat je een gerecht kookt, krijgt het een ster (tot 5): dan mag het 10% duurder.</p><div class="lijst">${bekend.map(id => `<div class="regel">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${label(id)}${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${waaruit(id)}${RECEPTEN[id].stappen.length ? ' · ' + RECEPTEN[id].stappen.join(', ') : ''} · ${ST.recepten[id]}× ${soortVan(id) === 'bij' ? 'meegegeven' : 'gekookt'}</div></div><div class="meer">${geldTekst(prijsVan(id))}</div></div>`).join('')}</div>${rest.length ? `<h3>Nog te leren</h3><div class="lijst">${rest.map(id => `<div class="regel uit"><div><div class="naam">${RECEPTEN[id].naam}</div><div class="klein">${hoeLeren(id)}</div></div>${RECEPTEN[id].koop && ST.vlag.bepGeweest ? `<div class="meer"><button class="knop goud" type="button" data-leer="${id}" ${ST.geld >= RECEPTEN[id].koop ? '' : 'disabled'}>${geldTekst(RECEPTEN[id].koop)}</button></div>` : ''}</div>`).join('')}</div>` : ''}<div class="rij"><button class="knop hoofd" type="button" id="r-klaar">Klaar</button></div>`, { breed: true });
+  const hoeLeren = id => { const r = RECEPTEN[id]; if (r.feest) return 'Een cadeautje van de Sint'; if (r.koop) return 'Te koop bij Bep uit het Rommelhotel'; if (r.proef) return 'Te ontdekken in de proefkeuken'; if (r.vriend) return 'Een geheim recept van een vriend'; return 'Vang eerst: ' + (ST.boek[r.leer] ? SOORTEN[r.leer].naam : 'een onbekende soort (' + SOORTEN[r.leer].diepte[0] + ' m of dieper)'); };
+  const k = paneel(`<h2>Je receptenschrift</h2><p class="klein">Elke 10 keer dat je een gerecht kookt, krijgt het een ster (tot 5): dan mag het 10% duurder.</p><div class="lijst">${bekend.map(id => `<div class="regel">${plaatjeHtml(gerechtPix(RECEPTEN[id].plaatje), 2)}<div><div class="naam">${label(id)}${RECEPTEN[id].naam} ${'★'.repeat(receptSterren(id))}</div><div class="klein">${waaruit(id)}${RECEPTEN[id].stappen.length ? ' · ' + RECEPTEN[id].stappen.join(', ') : ''} · ${RECEPTEN[id].feest ? 'een cadeautje van de Sint' : ST.recepten[id] + '× ' + (soortVan(id) === 'bij' ? 'meegegeven' : 'gekookt')}</div></div><div class="meer">${geldTekst(prijsVan(id))}</div></div>`).join('')}</div>${rest.length ? `<h3>Nog te leren</h3><div class="lijst">${rest.map(id => `<div class="regel uit"><div><div class="naam">${RECEPTEN[id].naam}</div><div class="klein">${hoeLeren(id)}</div></div>${RECEPTEN[id].koop && ST.vlag.bepGeweest ? `<div class="meer"><button class="knop goud" type="button" data-leer="${id}" ${ST.geld >= RECEPTEN[id].koop ? '' : 'disabled'}>${geldTekst(RECEPTEN[id].koop)}</button></div>` : ''}</div>`).join('')}</div>` : ''}<div class="rij"><button class="knop hoofd" type="button" id="r-klaar">Klaar</button></div>`, { breed: true });
   vulPlaatjes(k, bekend.map(id => gerechtPix(RECEPTEN[id].plaatje)));
   return new Promise(res => {
     k.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { const id = b.dataset.leer; if (ST.geld < RECEPTEN[id].koop) return; ST.geld -= RECEPTEN[id].koop; ST.recepten[id] = 0; bewaar(); GELUID.sfx('nieuw'); sluitPaneel(); res(DAG.recepten()); });
@@ -9721,7 +9761,17 @@ window.__duiker = {
   get DK() { return DK; }, get HV() { return HV; }, get HG() { return HG; }, get SC() { return SC; }, tuinNacht, bedStand, tuinBed, getij, proefZoek, proefHint, dorpVandaag, klusLever, klusHeb, harten, geefVriend, groentePorties, GEWASSEN, KAST, VRIENDEN, kweekActie, oogst, geefWater, proefkeuken, prikbord, gerritSchuur,
   get W() { return BEELD.W; }, get H() { return BEELD.H; }, padNaar: (a, b) => padNaar(a, b), kaartStart, kaartCode, kaartLees, kaartRoute, plan: () => A ? planVolgorde().map(b => b.nr) : [],
   testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },
+  kentRecept, bekendeRecepten, feestInKast, VONDSTEN,
 };
+// de feestverzameling (feest.js): zodra die bekend is, en als hij verandert, weet het spel welke cadeautjes van de Sint van jou zijn.
+// Staat het restaurant al open, dan komen de chocoladeletters meteen op hun plek, en het pepernotentaartje als je dat als toetje koos.
+if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
+  feestHeb = id => !!(s && s.heb && s.heb(id));
+  if (SCENE.naam !== 'restaurant' || !A || !A.wand) return;
+  bouwWand();
+  const toe = ST.menuToe;
+  if (!A.toe && !A.gesloten && toe && RECEPTEN[toe] && RECEPTEN[toe].feest && kentRecept(toe)) A.toe = toe;
+});
 begin();
 
 })();

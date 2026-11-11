@@ -3828,6 +3828,28 @@ function stokRug(id) {
     (STOK_EMBLEEM[id] || STOK_EMBLEEM.gewoon)(g, kleur);
   }, { rand: false });
 }
+// de kaartrug Pakjespapier (van de Sint): rood cadeaupapier met stipjes, een gouden lint en een strik
+const pakjesRug = () => PX.maak('rug~pakjes', KAART_W, KAART_H, g => {
+  const W = KAART_W, H = KAART_H, goud = KL.munt, goudd = PX.donker(KL.munt, 0.35), binnen = (x, y) => x > 3 && x < W - 3 && y > 3 && y < H - 3;
+  g.rond(0, 0, W, H, 3, KL.inkt, { vlak: true });
+  g.rond(1, 1, W - 2, H - 2, 2.2, KL.papier, { vlak: true });
+  g.rond(3, 3, W - 6, H - 6, 2, KL.rood, { vlak: true });
+  g.vorm((x, y) => binnen(x, y) && (Math.floor(x) + Math.floor(y) * 3) % 8 === 0, PX.donker(KL.rood, 0.2), { vlak: true });
+  g.vorm((x, y) => binnen(x, y) && Math.floor(x) % 6 === 1 && Math.floor(y) % 6 === 2, '#F6B8BC', { vlak: true });
+  // het lint: kruislings over het papier, met een donker randje
+  g.rect(17, 3, 5, H - 6, goud, { vlak: true }); g.rect(3, 29, W - 6, 5, goud, { vlak: true });
+  g.rect(17, 3, 1, H - 6, goudd, { vlak: true }); g.rect(21, 3, 1, H - 6, goudd, { vlak: true });
+  g.rect(3, 29, W - 6, 1, goudd, { vlak: true }); g.rect(3, 33, W - 6, 1, goudd, { vlak: true });
+  // de strik: twee lussen, twee slippen en een knoop
+  g.lijn(18, 32, 14, 39, 2.2, goud, { vlak: true }); g.lijn(21, 32, 25, 39, 2.2, goud, { vlak: true });
+  g.ellips(13.5, 27.5, 5, 3.4, goud, { vlak: true }); g.ellips(25.5, 27.5, 5, 3.4, goud, { vlak: true });
+  g.ellips(13.5, 27.5, 2.4, 1.4, goudd, { vlak: true }); g.ellips(25.5, 27.5, 2.4, 1.4, goudd, { vlak: true });
+  g.rond(17, 25, 5, 5, 1.2, goudd, { vlak: true }); g.rect(18, 26, 3, 3, PX.licht(KL.munt, 0.35), { vlak: true });
+}, { rand: false });
+// welke rug de kaarten op tafel hebben: die van je stok, of het pakjespapier (als je het van de Sint kreeg en het koos bij de instellingen)
+let feestHeb = () => false;
+const pakjesKan = () => feestHeb('rp-pakjesrug');
+const rugBeeld = stok => (rec.inst.rug === 'pakjes' && pakjesKan() ? pakjesRug() : stokRug(stok));
 
 // ----- de gezichten van alle bazen
 const BAAS_GEZICHT = {
@@ -4079,7 +4101,7 @@ const TAFEL = (() => {
   function zetBeeld(K) {
     const c = K.c;
     K.img.src = kaartSprite(c).url();
-    K.rug.src = stokRug(rug).url();
+    K.rug.src = rugBeeld(rug).url();
     K.el.classList.toggle('dicht', !!c.dicht);
     K.editie.className = 'tk-editie' + (c.e ? ' e-' + c.e : '');
     if (c.z) { K.zegel.src = zegelSprite(c.z).url(); K.zegel.hidden = false; } else K.zegel.hidden = true;
@@ -4134,7 +4156,8 @@ const TAFEL = (() => {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) start(); });
   return {
     init(el) { veld = el; }, zetMaat, maak, weg, naar, stoot, start, zetBeeld,
-    zetRug(id) { rug = id; for (const K of kaarten.values()) K.rug.src = stokRug(rug).url(); },
+    zetRug(id) { rug = id; for (const K of kaarten.values()) K.rug.src = rugBeeld(rug).url(); },
+    get rug() { return rug; },
     get kb() { return kb; }, get kh() { return kh; },
     kaart: id => kaarten.get(id), alle: () => [...kaarten.values()],
     set opDruk(f) { opDruk = f; }, set opWijs(f) { opWijs = f; },
@@ -4159,6 +4182,7 @@ R.innerHTML = `
     <button class="sk" id="b-snel" title="Hoe snel het scoren gaat">Snelheid 1×</button>
     <button class="sk" id="b-geluid" aria-pressed="true">Geluid aan</button>
     <button class="sk" id="b-tv" aria-pressed="false">Oude tv uit</button>
+    <button class="sk" id="b-rug" aria-pressed="false" title="Van de Sint: de achterkant van je kaarten" hidden>Kaartrug: van je stok</button>
   </div>
   <div class="kast" id="kast">
     <canvas class="kast-bg" id="kast-bg" aria-hidden="true"></canvas>
@@ -4246,10 +4270,19 @@ function zetInstellingen() {
   $('b-geluid').textContent = rec.inst.g ? 'Geluid aan' : 'Geluid uit'; $('b-geluid').setAttribute('aria-pressed', String(!!rec.inst.g));
   kast.classList.toggle('tv-aan', !!rec.inst.tv);
   $('b-tv').textContent = rec.inst.tv ? 'Oude tv aan' : 'Oude tv uit'; $('b-tv').setAttribute('aria-pressed', String(!!rec.inst.tv));
+  const pakjes = rec.inst.rug === 'pakjes';
+  $('b-rug').hidden = !pakjesKan();
+  $('b-rug').textContent = pakjes ? 'Kaartrug: Pakjespapier' : 'Kaartrug: van je stok'; $('b-rug').setAttribute('aria-pressed', String(pakjes));
+}
+// de kaarten op tafel en de stapel krijgen de rug die nu geldt
+function zetRugNu() {
+  TAFEL.zetRug(TAFEL.rug);
+  const st = document.querySelector('#z-stapel img'); if (st && S) st.src = rugBeeld(S.stok).url();
 }
 $('b-snel').addEventListener('click', () => { snel = snel === 1 ? 2 : snel === 2 ? 4 : 1; rec.inst.s = snel; bewaarRec(); zetInstellingen(); });
 $('b-geluid').addEventListener('click', () => { rec.inst.g = rec.inst.g ? 0 : 1; bewaarRec(); zetInstellingen(); if (rec.inst.g) GELUID.kies(); });
 $('b-tv').addEventListener('click', () => { rec.inst.tv = rec.inst.tv ? 0 : 1; bewaarRec(); zetInstellingen(); });
+$('b-rug').addEventListener('click', () => { if (!pakjesKan()) return; rec.inst.rug = rec.inst.rug === 'pakjes' ? 'stok' : 'pakjes'; bewaarRec(); zetInstellingen(); zetRugNu(); });
 $('b-menu').addEventListener('click', () => { if (bezig) return; verbergTip(); sluitDialoog(); beeld = 'start'; render(); });
 $('b-verz').addEventListener('click', () => { if (bezig) return; toonVerzameling('s'); });
 
@@ -4395,7 +4428,7 @@ function rondeOnderHTML() {
       <button class="pk rood groot" data-a="speel" ${!n || (baas.precies5 && n !== 5) ? 'disabled' : ''}>Speel hand</button>
       <div class="sorteer"><span>Sorteer</span><button class="pk klein" data-a="sorteer" data-op="waarde" aria-pressed="${S.sorteer !== 'kleur'}">Waarde</button><button class="pk klein" data-a="sorteer" data-op="kleur" aria-pressed="${S.sorteer === 'kleur'}">Kleur</button></div>
       <button class="pk blauw groot" data-a="weg" ${!n || !S.weggooien ? 'disabled' : ''}>Gooi weg</button>
-      <div class="stapel-plek" id="z-stapel">${PX.img(stokRug(S.stok), '', '')}<span>${S.stapel.length}/${S.deck.length}</span></div>
+      <div class="stapel-plek" id="z-stapel">${PX.img(rugBeeld(S.stok), '', '')}<span>${S.stapel.length}/${S.deck.length}</span></div>
     </div>`;
 }
 const handGekozen = () => (S && S.hand ? S.hand.filter(c => gekozen.has(c.id)).map(c => c.id) : []);
@@ -5168,6 +5201,9 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) ACHT
 window.addEventListener('pagehide', () => { bewaarSpel(); bewaarRec(); });
 render();
 renderHanden();
+// wat je van de Sint kreeg (de feestverzameling, rommelhoekje-feest-v1): tot die er is, heb je het nog niet; je keuze (rec.inst.rug)
+// blijft staan en komt terug zodra de verzameling er is
+if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => { feestHeb = id => !!(s && s.heb && s.heb(id)); zetInstellingen(); zetRugNu(); });
 // testhaak
 window.__poker = { get S() { return S; }, set S(v) { S = v; }, render, speel, gooiWegUI, kiesKraamUI, nieuwSpelStart, hervat, rec: () => rec, gekozen, koop: koopUI, zetToeval, beeld: v => { beeld = v; render(); } };
 

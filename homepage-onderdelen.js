@@ -3488,6 +3488,19 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         teken: () => '<ellipse cx="32" cy="34" rx="13" ry="11.5" fill="#B5733A" stroke="#231A26" stroke-width="3"/><path d="M21 31c3-5 8-7.5 11-7.5s8 2.5 11 7.5" fill="none" stroke="#D99A5B" stroke-width="3" stroke-linecap="round"/><circle cx="27" cy="36" r="1.6" fill="#6E3F1A"/><circle cx="35" cy="39" r="1.4" fill="#6E3F1A"/><circle cx="38" cy="33" r="1.3" fill="#6E3F1A"/><circle cx="30" cy="41" r="1.1" fill="#6E3F1A"/>',
         sch: '<ellipse cx="32" cy="34" rx="14.5" ry="13"/>', hit: rond(15, 20),
         label: 'Pepernoot. Tik om hem te laten rollen.' },
+      // (de feestdagen) wat je op pakjesavond uitpakte: voor altijd bovenop de rommelkast (feest-home.js roept RM.feestRommels aan)
+      chocoletter: { naam: 'Chocoladeletter', klank: 'hout', vorm: () => Fysica.poly([[-14, -18], [12, -18], [15, -9], [15, 18], [-14, 18]]), dichtheid: 1, wrijving: 0.6, stuit: 0.18,
+        teken: () => '<path d="M18 14H34Q46 14 46 25Q46 33 38.5 35.5L46.5 50H36.5L29.5 37H27V50H18ZM27 21.5V30H33Q37.5 30 37.5 25.75Q37.5 21.5 33 21.5Z" fill="#7A4526" fill-rule="evenodd" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><path d="M21.5 18V46.5M29 17.5H34Q42 17.5 42.5 24" fill="none" stroke="#A96B3F" stroke-width="2.2" stroke-linecap="round"/><path d="M39 38.5l4.5 8.5" stroke="#5A3018" stroke-width="2" stroke-linecap="round"/><path d="M16 50.5H48" stroke="#C9C2B8" stroke-width="2.6" stroke-linecap="round"/>',
+        sch: '<path d="M18 14H34Q46 14 46 25Q46 33 38.5 35.5L46.5 50H18Z"/>', hit: '<rect class="hit fijn" x="15" y="11" width="34" height="42"/><rect class="hit grof" x="10" y="6" width="44" height="52"/>',
+        label: 'Chocoladeletter R, van de Sint. Tik om hem te laten wiebelen.' },
+      worteltje: { naam: 'Marsepeinen worteltje', klank: 'hout', vorm: () => Fysica.poly([[-22, 0], [10, -9], [26, -8], [26, 8], [10, 9]]), dichtheid: 0.9, wrijving: 0.55, stuit: 0.2,
+        teken: () => '<path d="M48 27Q54 18 59 20Q55 24 50 29ZM48 30Q57 27 60 31Q54 33 49 32ZM47 33Q53 38 51 43Q47 39 46 35Z" fill="#4DA35A" stroke="#231A26" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 33Q26 23.5 44 25Q51 32 44 40Q26 41.5 9 33Z" fill="#F08A2E" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><path d="M20 30.5l4 4.5M28 28l3.5 5M36 26.5l3 5.5M24 37.5l3-3.5" stroke="#C1601A" stroke-width="1.8" stroke-linecap="round"/><path d="M15 31.5Q27 26.5 41 27.5" fill="none" stroke="#FFC48A" stroke-width="2" stroke-linecap="round" opacity=".8"/>',
+        sch: '<path d="M9 33Q26 23.5 44 25Q51 32 44 40Q26 41.5 9 33Z"/>', hit: '<rect class="hit fijn" x="6" y="20" width="54" height="24"/><rect class="hit grof" x="2" y="14" width="62" height="36"/>',
+        label: 'Marsepeinen worteltje, van de Sint. Tik om het te laten rollen.' },
+      goudmijter: { naam: 'Gouden Mijter', klank: 'metaal', vorm: () => Fysica.poly([[-15, 18], [-16, -4], [0, -22], [16, -4], [15, 18]]), dichtheid: 1.3, wrijving: 0.5, stuit: 0.22,
+        teken: () => '<path d="M17 50L16 27Q17 17 32 10Q47 17 48 27L47 50Z" fill="#E9B949" stroke="#231A26" stroke-width="3" stroke-linejoin="round"/><path d="M32 10Q25 19 24.5 30L24 50M32 10Q39 19 39.5 30L40 50" fill="none" stroke="#B8862C" stroke-width="1.8"/><path d="M16.3 42H47.7V50H17Z" fill="#C8323C" stroke="#231A26" stroke-width="2.4" stroke-linejoin="round"/><path d="M32 19V37M25.5 26H38.5" stroke="#C8323C" stroke-width="4" stroke-linecap="round"/><path d="M32 19V37M25.5 26H38.5" stroke="#FFE7A0" stroke-width="1.3" stroke-linecap="round"/><circle cx="24" cy="46" r="1.8" fill="#FFE7A0"/><circle cx="32" cy="46" r="1.8" fill="#FFE7A0"/><circle cx="40" cy="46" r="1.8" fill="#FFE7A0"/><path d="M20 30Q21 21 29 15.5" fill="none" stroke="#FFF3C4" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>',
+        sch: '<path d="M17 50L16 27Q17 17 32 10Q47 17 48 27L47 50Z"/>', hit: '<rect class="hit fijn" x="14" y="8" width="36" height="45"/><rect class="hit grof" x="9" y="3" width="46" height="55"/>',
+        label: 'Gouden Mijter, voor wie elke dag zijn schoen zette. Tik om hem te laten glanzen.' },
     };
     // ---------- de knipoogjes in de rommelkast: hebbedingetjes uit series en films, als eigen tekeningen
     // (geen namen, logo's of personages; een hamer, een kubus, een kopje ...). romp: de botsvorm (bol, in tekencoördinaten).
@@ -3685,6 +3698,8 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     })();
     const KAST_RIJ = [['hamer', 'kubus', 'stenen'], ['klok', 'foto', 'meter'], ['computer', 'wafel', 'vingerval'], ['bordje', 'koekjes', 'donutdoos'], ['glaasjes', 'kopje', 'hert']];
     const KAST_ALLES = [].concat.apply([], KAST_RIJ);
+    // wat er in de vakjes van de kast staat: de knipoogjes, en daarachter wat je met de feestdagen kreeg (RM.feestRommels)
+    const KAST_VAK = KAST_ALLES.slice();
     // een bolle vorm iets groter maken (voor waar je hem kunt pakken)
     function uitzet(romp, d) {
       let cx = 0, cy = 0; romp.forEach(p => { cx += p[0]; cy += p[1]; }); cx /= romp.length; cy /= romp.length;
@@ -3827,7 +3842,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     const KAST = { cel: 58, wand: 13, binnen: 20, vak: 72, plank: 10, voet: 8, rijCel: 64 };
     let kastEl = null, kastSec = null, kastSig = '', kastMaat = null, rol = null, rolTape = null, RJ = null, uil = null;
     function kastTeken(cols, cel) {
-      const rijen = Math.ceil(KAST_ALLES.length / cols), w = cols * cel + 2 * KAST.wand, h = KAST.binnen + rijen * (KAST.vak + KAST.plank) + KAST.voet, sig = cols + ':' + cel;
+      const rijen = Math.ceil(KAST_VAK.length / cols), w = cols * cel + 2 * KAST.wand, h = KAST.binnen + rijen * (KAST.vak + KAST.plank) + KAST.voet, sig = cols + ':' + cel + ':' + rijen;
       if (kastEl.dataset.sig !== sig) {
         kastEl.dataset.sig = sig; kastEl.style.width = w + 'px'; kastEl.style.height = h + 'px';
         let html = '<span class="rm-kast-kast"></span><span class="rm-kast-achter"></span>';
@@ -3847,7 +3862,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         if (rol.parentNode !== kastSec) kastSec.appendChild(rol);
         if (rolPijlen.parentNode !== kastSec) kastSec.appendChild(rolPijlen);
         if (kastEl.parentNode !== rol) rol.appendChild(kastEl);
-        const k = kastTeken(KAST_ALLES.length, KAST.rijCel); k.modus = 'rij'; return k;
+        const k = kastTeken(KAST_VAK.length, KAST.rijCel); k.modus = 'rij'; return k;
       }
       if (rol) { rol.remove(); rolTape.remove(); rolPijlen.remove(); }
       if (kastEl.parentNode !== kastSec) kastSec.appendChild(kastEl);
@@ -3927,10 +3942,10 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const k = kastMaat; if (!k) return false;
       if (k.modus === 'rij') {
         if (!RJ) return false; parkeer(r, false);
-        const x = RJ.x0 + KAST.wand + k.cel * (KAST_ALLES.indexOf(r.soort) + 0.5);
+        const x = RJ.x0 + KAST.wand + k.cel * (KAST_VAK.indexOf(r.soort) + 0.5);
         opRust(r, x + r.b.vorm.ox, RJ.plankY, 0); r.rij = r.b.x - RJ.x0; plaatsInRij(r); return true;
       }
-      const i = KAST_ALLES.indexOf(r.soort), rij = Math.floor(i / k.cols), j = i % k.cols, n = Math.min(k.cols, KAST_ALLES.length - rij * k.cols);
+      const i = KAST_VAK.indexOf(r.soort), rij = Math.floor(i / k.cols), j = i % k.cols, n = Math.min(k.cols, KAST_VAK.length - rij * k.cols);
       const s = ankerVast('kast' + k.cols + ':' + rij); if (!s) return false;
       const x = s.aabb[0] + (k.cols - n) * k.cel / 2 + k.cel * (j + 0.5);
       opRust(r, x + r.b.vorm.ox, topVan(s, x), 0); return true;
@@ -3955,7 +3970,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       lijnen.setAttribute('width', docB); lijnen.setAttribute('height', docH);
       const naastBrief = breed(); plaatsKnopjes(naastBrief);
       // eerst de kast (die kan de pagina eronder verschuiven), dan het plankje en de hoge advertentie
-      const k = zetKast(), sig = k ? k.modus + k.cols + ':' + k.cel : '', anders = !!kastSig && sig !== kastSig; kastSig = sig; kastMaat = k;
+      const k = zetKast(), sig = k ? k.modus + k.cols + ':' + k.cel + ':' + k.rijen : '', anders = !!kastSig && sig !== kastSig; kastSig = sig; kastMaat = k;
       if (k && k.modus === 'rij') { const q = rect(rol), kq = rect(kastEl); RJ = { winL: q.l, winR: q.r, off: rol.scrollLeft, x0: q.l - rol.scrollLeft, w: k.w, h: k.h, y0: kq.t, plankY: kq.t + KAST.binnen + KAST.vak }; }
       else RJ = null;
       zetPlanken(naastBrief); plaatsHoog();
@@ -4580,8 +4595,12 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       }
       if (r.b.kin) return;
       if (r.soort === 'dobbelsteen') gooi(r);
-      else if (r.soort === 'knikker' || r.soort === 'pepernoot') tikKnikker(r, vanX);
+      else if (r.soort === 'knikker' || r.soort === 'pepernoot' || r.soort === 'worteltje') tikKnikker(r, vanX);
       else if (r.soort === 'potlood') krabbel(r);
+      else if (r.soort === 'chocoletter' || r.soort === 'goudmijter') { // een sprongetje met een draai
+        const b = r.b; wereld.wek(b); b.vy = -560; b.vx = (vanX == null ? (Math.random() - 0.5) : vanX < b.x ? 0.5 : -0.5) * 120; b.w = (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 3);
+        Klank.tik(r.d.klank, 700, r.soort + '-tik'); wek();
+      }
     }
 
     // ---------- kantelen en schudden (telefoon en tablet)
@@ -4715,7 +4734,9 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       document.body.appendChild(lijnen); document.body.appendChild(laag); document.body.appendChild(meldEl); document.body.appendChild(toastEl);
       const telS = {};
       BRIEF.forEach(s => { telS[s] = (telS[s] || 0); maak(s, 'brief', telS[s]++); });
-      KAST_ALLES.forEach(s => maak(s, 'kast', 0));
+      // wat je met de feestdagen kreeg, staat meteen in de kast (anders groeit hij zichtbaar als feest.js later binnenkomt)
+      try { const fz = JSON.parse(localStorage.getItem('rommelhoekje-feest-v1') || 'null'), st = fz && Array.isArray(fz.st) ? fz.st : [], ID = { chocoletter: 'hp-chocoletter', worteltje: 'hp-worteltje', goudmijter: 'mijter26' }; FEESTSPUL.forEach(s => { if (st.indexOf(ID[s]) >= 0 && KAST_VAK.indexOf(s) < 0) KAST_VAK.push(s); }); } catch (e) {}
+      KAST_VAK.forEach(s => maak(s, 'kast', 0));
       // de rommelkast: een lege plek in de pagina (tussen de advertentie en Alle spellen), of in de kantlijn
       kastSec = document.createElement('section'); kastSec.className = 'tg-kast'; kastSec.setAttribute('aria-hidden', 'true'); kastSec.hidden = true;
       const spellen = $('#spellen'); if (spellen) spellen.before(kastSec); else document.body.appendChild(kastSec);
@@ -4752,8 +4773,26 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
         for (const r of er) { if (greep && greep.r === r) greep = null; r.el.remove(); r.sch = null; const i = wereld.lichamen.indexOf(r.b); if (i >= 0) wereld.lichamen.splice(i, 1); rommels.splice(rommels.indexOf(r), 1); }
       }
     }
+    // (de feestdagen) wat je op pakjesavond uitpakte (de chocoladeletter, het marsepeinen worteltje en de Gouden Mijter): voor altijd in de
+    // rommelkast, in een eigen vakje achter de knipoogjes (de kast groeit mee). feest-home.js geeft de lijst met wat je hebt.
+    const FEESTSPUL = ['chocoletter', 'worteltje', 'goudmijter'];
+    function feestRommels(lijst) {
+      if (!laag) return;
+      const nieuw = FEESTSPUL.filter(s => lijst.indexOf(s) >= 0 && KAST_VAK.indexOf(s) < 0);
+      if (!nieuw.length) return;
+      for (const s of nieuw) KAST_VAK.push(s);
+      const rs = nieuw.map(s => maak(s, 'kast', 0));
+      bouwWereld(); const bewaard = opslag.p || {};
+      for (const r of rs) {
+        const p = bewaard[r.id], b = r.b;
+        if (p && p[0] === 'kast-rij' && RJ) { r.rij = Math.max(KAST.wand + 10, Math.min(RJ.w - KAST.wand - 10, +p[1] || 0)); b.x = RJ.x0 + r.rij; b.y = RJ.plankY + (+p[2] || 0); b.a = +p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; wereld.werk(b); plaatsInRij(r); }
+        else { const s = p && p[0] !== 'kast-rij' && ankerVast(p[0]); if (s) { b.x = s.aabb[0] + Math.max(8, Math.min(s.aabb[2] - s.aabb[0] - 8, p[1])); b.y = s.aabb[1] + p[2]; b.a = p[3] || 0; b.px = b.x; b.py = b.y; b.pa = b.a; wereld.werk(b); } else thuis(r); }
+        wereld.vrijMaken(b); b.slaap = steunt(b); if (!b.slaap) wek();
+      }
+      teken(1);
+    }
     function naVerspringen() { for (const r of rommels) { if (r.weg) continue; wereld.vrijMaken(r.b); if (!r.b.kin && !steunt(r.b)) { wereld.wek(r.b); wek(); } } teken(1); }
-    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, wek, legTerug, pepernoten, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
+    return { start, wereld, rommels, get raf() { return raf; }, bouwWereld, stap, teken, wek, legTerug, pepernoten, feestRommels, actie: (id, x) => actie(rommels.find(r => r.id === id), x), debug, botsing: Fysica.botsing };
   })();
   function zetRommeltjes() { try { RM.start(); window.__rommeltjes = RM; } catch (e) { if (window.reportError) reportError(e); } }
 

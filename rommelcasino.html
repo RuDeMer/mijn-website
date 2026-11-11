@@ -3018,6 +3018,9 @@ const CASINO = (() => {
     { id: 'neon-eend', soort: 'neon', naam: 'Eendje' }, { id: 'pet-matroos', soort: 'pet', naam: 'Matrozenpet', kleur: '#1E3A8A' }, { id: 'kleed-zee', soort: 'kleed', naam: 'Zeeblauw', kleur: ['#3AA7D6', '#1D6F9E', '#0B3A5C'] },
     { id: 'neon-kien', soort: 'neon', naam: 'Kien!' }, { id: 'pet-groen', soort: 'pet', naam: 'Groen', kleur: '#1E8A4F' }, { id: 'rug-kras', soort: 'rug', naam: 'Zilverkras' },
     { id: 'kleed-zilver', soort: 'kleed', naam: 'Zilvergrijs', kleur: ['#AEB5C0', '#737B88', '#383D46'] }, { id: 'neon-beker', soort: 'neon', naam: 'Bekertje' }, { id: 'kleed-straat', soort: 'kleed', naam: 'Stoeptegel', kleur: ['#9A9488', '#6E695F', '#3A3731'] },
+    // (pakjesavond 2026) van de Sint: geen uitdaging. Van jou als het in je feestverzameling staat (rommelhoekje-feest-v1, feest het id
+    // daar; de weergave kijkt dat na). Ze komen nooit in S.kast en tellen niet mee voor de sterren of het aantal dingen in je kluisje.
+    { id: 'fiche-pepernoot', soort: 'fiche', naam: 'Pepernootfiches', feest: 'rc-pepernootfiches' }, { id: 'kleed-pakjes', soort: 'kleed', naam: 'Pakjesavond', kleur: ['#D2393F', '#9E1F28', '#4E0C12'], patroon: 'pakjes', feest: 'rc-pakjeskleed' },
   ];
   const KAST_SOORT = { fiche: 'Fiches', rug: 'Kaartruggen', kleed: 'Tafelkleden', neon: 'Neonborden', pet: 'Petjes voor de portiers' };
   const STANDAARD = KAST.filter(x => x.std).map(x => x.id);
@@ -3126,8 +3129,9 @@ const CASINO = (() => {
     S.f = Math.floor(getal(r.f, START, 0, 1e12)); S.wg = getal(r.wg, 0, 0, .999999); S.kassa = Math.floor(getal(r.kassa, 0, 0, 1e7)); S.n = Math.floor(getal(r.n, 0, 0, 1e12));
     for (const k of ['st', 'bijna']) if (isObj(r[k])) for (const [id, a] of Object.entries(r[k])) if (SPELIDS.includes(id) && Array.isArray(a)) S[k][id] = a.slice(0, 4).map(x => getal(x, 0, 0, 1e15));
     if (isObj(r.u)) for (const u of UITDAGINGEN) if (r.u[u.id]) S.u[u.id] = Math.floor(getal(r.u[u.id], 1, 1, 1e7));
-    if (Array.isArray(r.kast)) S.kast = [...new Set([...STANDAARD, ...r.kast.filter(id => KAST.some(x => x.id === id))])];
-    if (isObj(r.kies)) for (const [k, v] of Object.entries(r.kies)) if (KAST_SOORT[k] && S.kast.includes(v) && KAST.find(x => x.id === v).soort === k) S.kies[k] = v;
+    if (Array.isArray(r.kast)) S.kast = [...new Set([...STANDAARD, ...r.kast.filter(id => KAST.some(x => x.id === id && !x.feest))])];
+    // een keuze van de Sint blijft staan, ook als de feestverzameling er (nog) niet is: dan laat de weergave het gewone zien
+    if (isObj(r.kies)) for (const [k, v] of Object.entries(r.kies)) { const x = KAST.find(y => y.id === v); if (KAST_SOORT[k] && x && x.soort === k && (S.kast.includes(v) || x.feest)) S.kies[k] = v; }
     if (isObj(r.dag)) for (const [d, a] of Object.entries(r.dag)) if (/^\d{5}$/.test(d) && Array.isArray(a)) S.dag[d] = [getal(a[0], 0, 0, 100), getal(a[1], 0, -1e4, 1e4), getal(a[2], 0, 0, 999), getal(a[3], 0, 0, 999)].map(Math.round);
     if (isObj(r.dagb) && /^\d{5}$/.test(String(r.dagb.d))) S.dagb = r.dagb;
     if (isObj(r.inst)) { const i = r.inst; S.inst = { g: i.g === 0 ? 0 : 1, m: i.m === 0 ? 0 : 1, c: i.c === 0 ? 0 : 1, echt: i.echt ? 1 : 0, p: [20, 30, 45, 60].includes(i.p) ? i.p : 30 }; }
@@ -3323,8 +3327,15 @@ const FSET = {
   goud: { kleur: ['#F4E3B2', '#E9C46A', '#D9A93B', '#B8862A', '#8C6418', '#5E3F0A'], rand: ['#8C6418', '#FFF7DA', '#FFF7DA', '#FFF7DA', '#FFE9A8', '#FFE9A8'], binnen: ['#FFF4D0', '#F7D98A', '#ECC25C', '#CF9E3E', '#A57A26', '#7A5512'], inkt: ['#6E4A0E', '#5A3A00', '#5A3A00', '#FFF7DA', '#FFF7DA', '#FFE9A8'], emb: ['ster', 'vlaai', 'kroon', 'kat', 'rr', 'diamant'] },
   carnaval: { kleur: ['#FFF4D6', '#D8262E', '#F2C230', '#22914A', '#D8262E', '#22914A'], rand: ['#D8262E', '#F2C230', '#22914A', '#F2C230', '#22914A', '#F2C230'], binnen: ['#FFFDF4', '#EE4B52', '#FFDA5C', '#3DB066', '#F2C230', '#F2C230'], inkt: ['#D8262E', '#FFF6E6', '#3A2300', '#FFF6E6', '#3A2300', '#3A2300'], emb: ['ster', 'vlaai', 'kroon', 'kat', 'rr', 'hart'] },
   neon: { kleur: ['#1A1630', '#1A1630', '#1A1630', '#1A1630', '#1A1630', '#1A1630'], rand: ['#7FE6FF', '#FF4FA3', '#4DFF9A', '#FFD45C', '#B38CFF', '#FF8A3D'], binnen: ['#241E44', '#2A1636', '#14302A', '#302A14', '#241A3E', '#30200F'], inkt: ['#7FE6FF', '#FF7FC0', '#7DFFB8', '#FFE28A', '#CDB0FF', '#FFB07A'], emb: ['ster', 'vlaai', 'kroon', 'kat', 'rr', 'diamant'], neon: true },
+  // van de Sint (pakjesavond): pepernootkleuren, met pepernoten, een mijter en een cadeautje
+  pepernoot: { kleur: ['#F2E2C4', '#C8323C', '#B8732F', '#4A2A14', '#8A1C26', '#E5A425'], rand: ['#8E5326', '#F2E2C4', '#FBF3E2', '#E9B949', '#E9B949', '#5A2A00'], binnen: ['#FBF3E2', '#F6E3C2', '#F6E3BE', '#EBD3A6', '#FBF3E2', '#F6C557'], inkt: ['#6B3A1A', '#6B3A1A', '#6B3A1A', '#6B3A1A', '#8A1C26', '#5A2A00'], emb: ['pepernoot', 'pepernoot', 'pepernoten', 'pepernoten', 'mijter', 'cadeau'] },
 };
-const fset = () => FSET[(S.kies.fiche || 'fiche-klassiek').replace('fiche-', '')] || FSET.klassiek;
+// wat je van de Sint kreeg (de feestverzameling, Scorebord.feest onderaan): tot die er is, heb je het nog niet. Dan zie je het gewone,
+// maar je keuze blijft in S.kies staan en komt terug zodra de verzameling er is.
+let feestHeb = () => false;
+const kiesNu = soort => { const id = S.kies[soort], x = id && C.KAST.find(y => y.id === id); return x && x.soort === soort && (!x.feest || feestHeb(x.feest)) ? id : (C.KAST.find(y => y.soort === soort && y.std) || {}).id; };
+const KAST_TELT = C.KAST.filter(x => !x.feest).length;   // de dingen die je met uitdagingen verdient (zonder die van de Sint)
+const fset = () => FSET[(kiesNu('fiche') || 'fiche-klassiek').replace('fiche-', '')] || FSET.klassiek;
 function ficheStijl(w, set) {
   const s = set || fset(), k = FSET.klassiek, i = Math.max(0, WAARDEN.indexOf(w));
   return { w, kleur: (s.kleur || k.kleur)[i], rand: (s.rand || k.rand)[i], binnen: (s.binnen || k.binnen)[i], inkt: (s.inkt || k.inkt)[i], embleem: (s.emb || k.emb)[i], neon: !!s.neon };
@@ -3335,6 +3346,17 @@ function sterPad(c, x, y, r, punten = 5, binnen = .45) { c.beginPath(); for (let
 function kroonPad(c, x, y, s) { c.beginPath(); c.moveTo(x - s * .5, y + s * .32); c.lineTo(x - s * .56, y - s * .2); c.lineTo(x - s * .26, y + s * .02); c.lineTo(x, y - s * .38); c.lineTo(x + s * .26, y + s * .02); c.lineTo(x + s * .56, y - s * .2); c.lineTo(x + s * .5, y + s * .32); c.closePath(); }
 function hartPad(c, x, y, h) { const w = h; c.beginPath(); c.moveTo(x, y + h * .44); c.bezierCurveTo(x - w * .7, y - h * .02, x - w * .44, y - h * .58, x, y - h * .2); c.bezierCurveTo(x + w * .44, y - h * .58, x + w * .7, y - h * .02, x, y + h * .44); }
 function mooiVast(i) { const x = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return x - Math.floor(x); }
+// een pepernoot: een bolletje met barstjes en een paar suikerspikkels (s = straal)
+function pepernootTek(c, x, y, s) {
+  c.save(); c.translate(x, y);
+  const g = c.createRadialGradient(-s * .3, -s * .35, s * .1, 0, 0, s); g.addColorStop(0, '#D99A52'); g.addColorStop(.6, '#A8652B'); g.addColorStop(1, '#6E3E17');
+  c.beginPath(); for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, rr = s * (1 + (mooiVast(i + 7) - .5) * .12); c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr * .92); } c.closePath();
+  c.fillStyle = g; c.fill(); c.lineWidth = Math.max(1, s * .08); c.strokeStyle = '#4A2410'; c.lineJoin = 'round'; c.stroke();
+  c.strokeStyle = 'rgba(74,36,16,.55)'; c.lineWidth = Math.max(.8, s * .07); c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-s * .35, -s * .1); c.lineTo(-s * .05, -s * .22); c.lineTo(s * .22, -s * .02); c.moveTo(-s * .12, s * .28); c.lineTo(s * .26, s * .3); c.stroke();
+  c.fillStyle = 'rgba(255,236,200,.6)'; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc((mooiVast(i + 31) - .5) * s * 1.1, (mooiVast(i + 41) - .5) * s * 1.1, Math.max(.6, s * .06), 0, 7); c.fill(); }
+  c.restore();
+}
 function katKop(c, r, vacht, oranje) {
   c.fillStyle = vacht; c.beginPath(); c.moveTo(-r * .62, -r * .05); c.lineTo(-r * .56, -r * .7); c.lineTo(-r * .18, -r * .42); c.lineTo(r * .18, -r * .42); c.lineTo(r * .56, -r * .7); c.lineTo(r * .62, -r * .05); c.closePath(); c.fill();
   c.beginPath(); c.ellipse(0, r * .08, r * .66, r * .54, 0, 0, 7); c.fill();
@@ -3369,11 +3391,26 @@ const EMBLEEM = {
   dobbelsteen(c, r) { c.fillStyle = '#FFFDF7'; c.beginPath(); c.roundRect ? c.roundRect(-r * .55, -r * .55, r * 1.1, r * 1.1, r * .2) : c.rect(-r * .55, -r * .55, r * 1.1, r * 1.1); c.fill(); c.fillStyle = '#C8323C'; for (const [x, y] of [[-.28, -.28], [.28, -.28], [0, 0], [-.28, .28], [.28, .28]]) { c.beginPath(); c.arc(x * r, y * r, r * .1, 0, 7); c.fill(); } },
   kroonkurk(c, r) { c.fillStyle = '#D6DBE2'; sterPad(c, 0, 0, r * .66, 14, .86); c.fill(); c.beginPath(); c.arc(0, 0, r * .46, 0, 7); c.fillStyle = '#C8323C'; c.fill(); c.fillStyle = '#FFF6E6'; sterPad(c, 0, 0, r * .22); c.fill(); },
   maan(c, r, f) { c.fillStyle = f.inkt; c.beginPath(); c.arc(0, 0, r * .55, 0, 7); c.fill(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(r * .24, -r * .14, r * .46, 0, 7); c.fill(); c.globalCompositeOperation = 'source-over'; },
+  // van de Sint: een pepernoot, drie pepernoten, een mijter en een cadeautje
+  pepernoot(c, r) { pepernootTek(c, 0, r * .04, r * .56); },
+  pepernoten(c, r) { pepernootTek(c, -r * .3, r * .2, r * .33); pepernootTek(c, r * .3, r * .2, r * .33); pepernootTek(c, 0, -r * .27, r * .33); },
+  mijter(c, r) {
+    c.beginPath(); c.moveTo(-r * .42, r * .5); c.quadraticCurveTo(-r * .54, -r * .1, 0, -r * .64); c.quadraticCurveTo(r * .54, -r * .1, r * .42, r * .5); c.closePath();
+    c.fillStyle = '#C8323C'; c.fill(); c.lineWidth = r * .07; c.strokeStyle = '#E9B949'; c.lineJoin = 'round'; c.stroke();
+    c.fillStyle = '#F4C752'; c.fillRect(-r * .43, r * .34, r * .86, r * .16); c.fillRect(-r * .06, -r * .46, r * .12, r * .8); c.fillRect(-r * .2, -r * .16, r * .4, r * .11);
+  },
+  cadeau(c, r) {
+    c.lineWidth = r * .06; c.strokeStyle = '#5A1218';
+    c.fillStyle = '#C8323C'; c.fillRect(-r * .48, -r * .18, r * .96, r * .66); c.strokeRect(-r * .48, -r * .18, r * .96, r * .66);
+    c.fillStyle = '#E04650'; c.fillRect(-r * .56, -r * .36, r * 1.12, r * .2); c.strokeRect(-r * .56, -r * .36, r * 1.12, r * .2);
+    c.fillStyle = '#F4C752'; c.fillRect(-r * .08, -r * .36, r * .16, r * .84);
+    c.beginPath(); c.ellipse(-r * .19, -r * .48, r * .19, r * .11, -.5, 0, 7); c.moveTo(r * .38, -r * .48); c.ellipse(r * .19, -r * .48, r * .19, r * .11, .5, 0, 7); c.fill(); c.lineWidth = r * .045; c.strokeStyle = '#9A6A0B'; c.stroke();
+  },
 };
 // een fiche van boven, als plaatje (d = doorsnede in schermpunten)
 const ficheCache = new Map();
 function ficheBeeld(w, d, dpr, set) {
-  const f = ficheStijl(w, set), sleutel = (set ? JSON.stringify(set.emb) : S.kies.fiche) + '|' + w + '|' + Math.round(d * dpr);
+  const f = ficheStijl(w, set), sleutel = (set ? JSON.stringify(set.emb) : kiesNu('fiche')) + '|' + w + '|' + Math.round(d * dpr);
   if (ficheCache.has(sleutel)) return ficheCache.get(sleutel);
   const px = Math.max(8, Math.ceil(d * dpr)), cv = document.createElement('canvas'); cv.width = cv.height = px;
   const c = cv.getContext('2d'), r = px / 2; c.translate(r, r);
@@ -3518,7 +3555,29 @@ function schaduwBeeld(cw, dpr) {
   return cv;
 }
 // het vilt van een tafel: de kleur van de zaal, of het tafelkleed uit je kluisje
-function vilt() { const k = C.KAST.find(x => x.id === S.kies.kleed); return k && k.kleur ? k.kleur : ZAAL().vilt; }
+function vilt() { const k = C.KAST.find(x => x.id === kiesNu('kleed')); return k && k.kleur ? k.kleur : ZAAL().vilt; }
+// het tafelkleed Pakjesavond (van de Sint): cadeautjes, in goud gedrukt, en pepernoten op het vilt. Eén tegel van 150 bij 150, op dubbele
+// scherpte getekend; viltExtra legt hem over het vilt als dat kleed gekozen is (anders doet hij niets).
+let pakjesTegel = null;
+function pakjesPatroon() {
+  if (pakjesTegel) return pakjesTegel;
+  const p = document.createElement('canvas'); p.width = p.height = 300; const k = p.getContext('2d'); k.scale(2, 2);
+  const pakje = (x, y, w, h, rot) => {
+    k.save(); k.translate(x, y); k.rotate(rot); k.strokeStyle = 'rgba(255,214,120,.42)'; k.lineWidth = 1.5; k.lineJoin = 'round';
+    k.strokeRect(-w / 2, -h / 2, w, h); k.beginPath(); k.moveTo(0, -h / 2); k.lineTo(0, h / 2); k.moveTo(-w / 2, 0); k.lineTo(w / 2, 0); k.stroke();
+    k.beginPath(); k.ellipse(-4, -h / 2 - 3, 4.2, 2.4, -.5, 0, 7); k.moveTo(8.2, -h / 2 - 3); k.ellipse(4, -h / 2 - 3, 4.2, 2.4, .5, 0, 7); k.stroke(); k.restore();
+  };
+  pakje(36, 40, 24, 18, -.2); pakje(112, 110, 22, 20, .18); pakje(116, 32, 14, 12, .1); pakje(34, 120, 14, 12, -.12);
+  for (const [x, y, s] of [[76, 18, 3.6], [14, 76, 3.2], [136, 70, 3.8], [72, 138, 3.4], [74, 74, 4], [142, 140, 3]]) pepernootTek(k, x, y, s);
+  return (pakjesTegel = p);
+}
+function viltExtra(k, x, y, w, h) {
+  const kl = C.KAST.find(i => i.id === kiesNu('kleed'));
+  if (!kl || kl.patroon !== 'pakjes') return;
+  const pat = k.createPattern(pakjesPatroon(), 'repeat'); if (!pat) return;
+  try { if (pat.setTransform && window.DOMMatrix) pat.setTransform(new DOMMatrix().scale(.5)); } catch (e) {}
+  k.save(); k.fillStyle = pat; k.fillRect(x, y, w, h); k.restore();
+}
 let viltPatroon = null;
 function draadjes() {
   if (viltPatroon) return viltPatroon;
@@ -3999,7 +4058,7 @@ const TAFEL = (() => {
     const vg = k.createRadialGradient(cx, G.top + G.ch * .8, 10, cx, G.top + G.ch, Math.max(G.w, G.bot) * .85);
     const vk = vilt(); vg.addColorStop(0, vk[0]); vg.addColorStop(.5, vk[1]); vg.addColorStop(1, vk[2]);
     k.fillStyle = vg; k.fillRect(0, 0, W, H);
-    k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H);
+    k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); viltExtra(k, 0, 0, W, H);
     // gedrukt in goud: de regels in een boog, het inzetvak en het wapen van het casino
     const goud = 'rgba(255,214,120,.78)', R = G.w * .6, gat = klem(cw * .26, 13, 26);
     const boogY = ((G.bankY + ch * .5 + 30) + (G.spelerY - ch * .5)) / 2 - gat / 2;
@@ -4617,7 +4676,7 @@ const HOGER = (() => {
   function tekenVilt() {
     bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height; const k = bg.getContext('2d'); k.scale(dpr, dpr);
     const [a, b, d] = vilt(), g = k.createRadialGradient(W / 2, H * .45, 10, W / 2, H * .5, Math.max(W, H) * .75); g.addColorStop(0, a); g.addColorStop(.55, b); g.addColorStop(1, d);
-    k.fillStyle = g; k.fillRect(0, 0, W, H); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); k.globalAlpha = 1;
+    k.fillStyle = g; k.fillRect(0, 0, W, H); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); k.globalAlpha = 1; viltExtra(k, 0, 0, W, H);
     // een gouden boog met de regels, zoals gedrukt op het vilt
     const fz = Math.max(10, Math.min(15, W / 48)), tw = fz * .62 * 46, r = Math.max(W * .8, 300), rijs = r * (1 - Math.cos(tw / r / 2)), onder = G.y + G.cw * .7 + Math.min(34, H * .07) + Math.max(20, Math.min(28, W / 30)) + 16 + rijs, cy = onder - r;
     if (onder < H - 8) { tekstOpBoog(k, 'GELIJK IS VERLOREN · AAS IS LAAG · HEER IS HOOG', W / 2, cy, r, Math.PI / 2, fz, 'rgba(255,226,150,.5)'); k.strokeStyle = 'rgba(255,226,150,.35)'; k.lineWidth = 1.5; k.beginPath(); k.arc(W / 2, cy, r + 14, Math.PI / 2 - tw / r / 2 - .04, Math.PI / 2 + tw / r / 2 + .04); k.stroke(); }
@@ -4965,7 +5024,7 @@ const ROULETTE = (() => {
   function tekenTafel() {
     tafelBg = document.createElement('canvas'); tafelBg.width = cv.width; tafelBg.height = cv.height; const k = tafelBg.getContext('2d'); k.scale(dpr, dpr);
     const [a, b, d] = vilt(), g = k.createRadialGradient(W * .6, H * .5, 10, W / 2, H / 2, Math.max(W, H) * .8); g.addColorStop(0, a); g.addColorStop(.6, b); g.addColorStop(1, d);
-    k.fillStyle = g; k.fillRect(0, 0, W, H); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); k.globalAlpha = 1;
+    k.fillStyle = g; k.fillRect(0, 0, W, H); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); k.globalAlpha = 1; viltExtra(k, 0, 0, W, H);
     const fs = Math.max(10, Math.min(L.cu, L.cv) * .42), lijn = 'rgba(255,230,160,.85)';
     k.textAlign = 'center'; k.textBaseline = 'middle';
     for (const v of VAKKEN) {
@@ -5488,7 +5547,7 @@ const VIJF = (() => {
     c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     // de kast: donker vilt met lampjes
     const [a, b, d] = vilt(), g = c.createRadialGradient(W / 2, H * .6, 10, W / 2, H * .6, Math.max(W, H) * .8); g.addColorStop(0, a); g.addColorStop(.55, b); g.addColorStop(1, d);
-    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.fillStyle = g; c.fillRect(0, 0, W, H); viltExtra(c, 0, 0, W, H);
     tekenTabel(nu); if (uitslag && nu - uitslag.t < 2600 && !STIL()) bezig = true;
     // de kaarten
     G.kaarten.forEach((p, i) => {
@@ -5640,7 +5699,7 @@ const NEGEN = (() => {
   function tekenVilt() {
     bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height; const k = bg.getContext('2d'); k.scale(dpr, dpr);
     const [a, b, d] = vilt(), g = k.createRadialGradient(W / 2, H * .4, 10, W / 2, H * .5, Math.max(W, H) * .8); g.addColorStop(0, a); g.addColorStop(.55, b); g.addColorStop(1, d);
-    k.fillStyle = g; k.fillRect(0, 0, W, H); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); k.globalAlpha = 1;
+    k.fillStyle = g; k.fillRect(0, 0, W, H); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(0, 0, W, H); k.globalAlpha = 1; viltExtra(k, 0, 0, W, H);
   }
   // de plek van kaart i in een hand: twee naast elkaar, een derde kaart dwars eronder
   const plek = (hand, i) => {
@@ -5859,7 +5918,7 @@ const DOBBEL = (() => {
     // de houten rand
     rondRect(k, B.x - 6, B.y - 6, B.w + 12, B.h + 12, 22); const gh = k.createLinearGradient(0, B.y, 0, B.y + B.h); gh.addColorStop(0, '#8A5530'); gh.addColorStop(1, '#4A2A14'); k.fillStyle = gh; k.fill();
     rondRect(k, B.x, B.y, B.w, B.h, 16); const g = k.createRadialGradient(B.x + B.w / 2, B.y + B.h * .45, 10, B.x + B.w / 2, B.y + B.h / 2, Math.max(B.w, B.h) * .7); g.addColorStop(0, a); g.addColorStop(.6, b); g.addColorStop(1, d); k.fillStyle = g; k.fill();
-    k.save(); k.clip(); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(B.x, B.y, B.w, B.h); k.restore();
+    k.save(); k.clip(); k.globalAlpha = .9; k.fillStyle = k.createPattern(draadjes(), 'repeat'); k.fillRect(B.x, B.y, B.w, B.h); k.globalAlpha = 1; viltExtra(k, B.x, B.y, B.w, B.h); k.restore();
     k.strokeStyle = 'rgba(255,226,150,.35)'; k.lineWidth = 1.5; k.setLineDash([6, 6]); rondRect(k, B.x + 10, B.y + 10, B.w - 20, B.h - 20, 12); k.stroke(); k.setLineDash([]);
     k.fillStyle = 'rgba(255,226,150,.25)'; k.font = `800 ${Math.max(12, Math.min(22, B.w / 20))}px ${FONT}`; k.textAlign = 'center'; k.textBaseline = 'middle'; k.fillText('DRIEDOBBEL', B.x + B.w / 2, B.y + B.h / 2);
   }
@@ -7043,7 +7102,7 @@ const LOBBY = (() => {
     const st = zaalTabs(), z = ZAAL();
     $('#lobby-neon').textContent = z.naam; $('#lobby-neon').className = 'neon ' + z.neon; $('#zaal-sub').textContent = `Zaal ${C.ZALEN.indexOf(z) + 1} van ${C.ZALEN.length} · ${z.sub}`;
     $('#l-sterren').innerHTML = `<span aria-hidden="true" style="font-size:1.1rem;padding-left:.3rem">★</span><span>${st} van ${C.STERREN_TOTAAL}<span class="sr"> sterren</span></span>`;
-    $('#lk-kluis-zin').textContent = `${Object.keys(S.u).length} van ${C.UITDAGINGEN.length} uitdagingen · ${S.kast.length} van ${C.KAST.length} dingen`;
+    $('#lk-kluis-zin').textContent = `${Object.keys(S.u).length} van ${C.UITDAGINGEN.length} uitdagingen · ${S.kast.length} van ${KAST_TELT} dingen`;
     volgende(); dagkaart(); raster(); toonFiches(undefined, true);
   }
   // de scores voor het scorebord: alleen als de scoreserver het casino kent
@@ -7061,18 +7120,21 @@ const KLUIS = (() => {
   let tab = 'uit';
   const GEZIEN = 'rommelcasino-kast';   // wat dit apparaat al gezien heeft (alleen voor het "nieuw"-stickertje; bewust niet in SLEUTELS)
   const gezien = () => { try { return JSON.parse(localStorage.getItem(GEZIEN) || '[]'); } catch (e) { return []; } };
+  // wat van jou is: wat je verdiende (S.kast), en wat je van de Sint kreeg (de feestverzameling)
+  const vanSint = () => C.KAST.filter(x => x.feest && feestHeb(x.feest)).map(x => x.id);
+  const mijn = id => S.kast.includes(id) || vanSint().includes(id);
   function plaatje(ding) {
     const cv = document.createElement('canvas'); cv.width = cv.height = 144; const c = cv.getContext('2d');
     if (ding.soort === 'fiche') { const set = FSET[ding.id.replace('fiche-', '')]; c.drawImage(ficheBeeld(10, 60, 2, Object.assign({}, FSET.klassiek, set)), 6, 6, 100, 100); c.drawImage(ficheBeeld(100, 60, 2, Object.assign({}, FSET.klassiek, set)), 40, 40, 100, 100); }
     else if (ding.soort === 'rug') { c.save(); c.translate(72, 72); c.rotate(-.12); c.drawImage(rugBeeld(70, 2, ding.id.replace('rug-', '')), -38, -54, 76, 106); c.restore(); }
-    else if (ding.soort === 'kleed') { const k = ding.kleur || ZAAL().vilt, g = c.createRadialGradient(72, 50, 6, 72, 72, 80); g.addColorStop(0, k[0]); g.addColorStop(.6, k[1]); g.addColorStop(1, k[2]); c.beginPath(); c.arc(72, 72, 64, 0, 7); c.fillStyle = g; c.fill(); c.lineWidth = 8; c.strokeStyle = '#5A1A22'; c.stroke(); c.lineWidth = 2; c.strokeStyle = '#E9B949'; c.stroke(); c.fillStyle = 'rgba(255,214,120,.7)'; c.font = '800 16px ' + FONT; c.textAlign = 'center'; c.fillText(ding.kleur ? '' : 'zaal', 72, 78); }
+    else if (ding.soort === 'kleed') { const k = ding.kleur || ZAAL().vilt, g = c.createRadialGradient(72, 50, 6, 72, 72, 80); g.addColorStop(0, k[0]); g.addColorStop(.6, k[1]); g.addColorStop(1, k[2]); c.beginPath(); c.arc(72, 72, 64, 0, 7); c.fillStyle = g; c.fill(); if (ding.patroon === 'pakjes') { c.save(); c.clip(); c.drawImage(pakjesPatroon(), 4, 4, 136, 136); c.restore(); c.beginPath(); c.arc(72, 72, 64, 0, 7); } c.lineWidth = 8; c.strokeStyle = '#5A1A22'; c.stroke(); c.lineWidth = 2; c.strokeStyle = '#E9B949'; c.stroke(); c.fillStyle = 'rgba(255,214,120,.7)'; c.font = '800 16px ' + FONT; c.textAlign = 'center'; c.fillText(ding.kleur ? '' : 'zaal', 72, 78); }
     else if (ding.soort === 'neon') { c.fillStyle = '#140D2B'; c.beginPath(); c.arc(72, 72, 64, 0, 7); c.fill(); c.lineWidth = 6; c.strokeStyle = '#E9B949'; c.stroke(); c.font = '400 40px Yellowtail, cursive'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.shadowColor = '#FF4FA3'; c.shadowBlur = 16; c.fillStyle = '#FFE0F2'; c.fillText({ 'neon-ster': '★', 'neon-dobbelsteen': '⚄', 'neon-geluk': 'Geluk?', 'neon-kroon': '♛', 'neon-kat': '🐱', 'neon-vlaai': '◎', 'neon-hart': '♥', 'neon-maan': '☾', 'neon-schop': '♠', 'neon-negen': '9', 'neon-eend': '🦆' }[ding.id] || '★', 72, 76); }
     else { c.fillStyle = ding.kleur; c.beginPath(); if (ding.id === 'pet-kroon') { kroonPad(c, 72, 78, 90); c.fill(); c.lineWidth = 4; c.strokeStyle = '#7A4E12'; c.stroke(); } else { c.moveTo(34, 96); c.lineTo(42, 46); c.quadraticCurveTo(72, 36, 102, 46); c.lineTo(110, 96); c.closePath(); c.fill(); c.fillStyle = '#F4C752'; c.fillRect(34, 80, 76, 12); c.fillStyle = '#1F2333'; c.beginPath(); c.ellipse(72, 98, 44, 9, 0, 0, Math.PI); c.fill(); } }
     return cv.toDataURL();
   }
   function teken() {
-    const st = C.sterren(S), nieuw = S.kast.filter(x => !gezien().includes(x));
-    let html = `<h1>Je kluisje</h1><p class="intro">${st} van de ${C.STERREN_TOTAAL} sterren · ${Object.keys(S.u).length} van de ${C.UITDAGINGEN.length} uitdagingen · ${S.kast.length} van de ${C.KAST.length} dingen</p>
+    const st = C.sterren(S), nieuw = S.kast.concat(vanSint()).filter(x => !gezien().includes(x));
+    let html = `<h1>Je kluisje</h1><p class="intro">${st} van de ${C.STERREN_TOTAAL} sterren · ${Object.keys(S.u).length} van de ${C.UITDAGINGEN.length} uitdagingen · ${S.kast.length} van de ${KAST_TELT} dingen</p>
       <div class="tabs"><button class="knop klein" type="button" data-tab="uit" aria-pressed="${tab === 'uit'}">Uitdagingen</button><button class="knop klein" type="button" data-tab="kast" aria-pressed="${tab === 'kast'}">Verzameling${nieuw.length ? ` (${nieuw.length} nieuw)` : ''}</button><button class="knop klein" type="button" id="k-terug">‹ Terug naar de zaal</button></div>`;
     if (tab === 'uit') {
       html += `<div class="vel"><h2>De zalen</h2>${C.ZALEN.map(z => `<div class="schakel"><span><b>${esc(z.naam)}</b><small>${z.sterren ? `open bij ${z.sterren} sterren` : 'altijd open'}</small></span><span>${C.zaalOpen(S, z) ? '✔ open' : `${Math.max(0, z.sterren - st)} ★ te gaan`}</span></div>`).join('')}</div>`;
@@ -7081,20 +7143,21 @@ const KLUIS = (() => {
       }
     } else {
       for (const [soort, naam] of Object.entries(C.KAST_SOORT)) {
-        html += `<div class="vel"><h2>${esc(naam)}</h2><div class="kast-raster">${C.KAST.filter(x => x.soort === soort).map(x => { const heb = S.kast.includes(x.id), u = C.UITDAGINGEN.find(y => y.kast === x.id); return `<button class="kast-ding${heb ? '' : ' dicht'}" type="button" data-id="${x.id}" aria-pressed="${S.kies[soort] === x.id}" ${heb ? '' : `aria-disabled="true" title="${esc(u ? 'Haal de uitdaging: ' + u.naam : '')}"`}>${heb && nieuw.includes(x.id) ? '<span class="nieuw">nieuw</span>' : ''}<img src="${plaatje(x)}" alt=""><span>${esc(x.naam)}</span>${heb ? '' : `<small style="opacity:.8;font-weight:600">${esc(u ? u.naam : '')}</small>`}</button>`; }).join('')}</div></div>`;
+        html += `<div class="vel"><h2>${esc(naam)}</h2><div class="kast-raster">${C.KAST.filter(x => x.soort === soort && (!x.feest || mijn(x.id))).map(x => { const heb = mijn(x.id), u = C.UITDAGINGEN.find(y => y.kast === x.id); return `<button class="kast-ding${heb ? '' : ' dicht'}" type="button" data-id="${x.id}" aria-pressed="${kiesNu(soort) === x.id}" ${heb ? '' : `aria-disabled="true" title="${esc(u ? 'Haal de uitdaging: ' + u.naam : '')}"`}>${heb && nieuw.includes(x.id) ? '<span class="nieuw">nieuw</span>' : ''}<img src="${plaatje(x)}" alt=""><span>${esc(x.naam)}</span>${x.feest ? '<small style="opacity:.8;font-weight:600">Van de Sint</small>' : heb ? '' : `<small style="opacity:.8;font-weight:600">${esc(u ? u.naam : '')}</small>`}</button>`; }).join('')}</div></div>`;
       }
-      try { localStorage.setItem(GEZIEN, JSON.stringify(S.kast)); } catch (e) {}
+      // wat dit apparaat gezien heeft: je kluisje, en wat je van de Sint kreeg (ook als de verzameling er nu even niet is)
+      try { const oud = gezien(); localStorage.setItem(GEZIEN, JSON.stringify(S.kast.concat(C.KAST.filter(x => x.feest && (mijn(x.id) || oud.includes(x.id))).map(x => x.id)))); } catch (e) {}
     }
     $('#kluis-in').innerHTML = html;
     $$('#kluis-in [data-tab]').forEach(b => (b.onclick = () => { tab = b.dataset.tab; teken(); }));
     $('#k-terug').onclick = () => naar('lobby');
-    $$('#kluis-in .kast-ding').forEach(b => (b.onclick = () => { if (!S.kast.includes(b.dataset.id)) { const u = C.UITDAGINGEN.find(y => y.kast === b.dataset.id); toast(u ? `Haal eerst de uitdaging <b>${esc(u.naam)}</b>.` : 'Nog niet verdiend.'); return; } const x = C.KAST.find(y => y.id === b.dataset.id); S.kies[x.soort] = x.id; bewaar(); GELUID.fiche(); ficheCache.clear(); kaartCache.clear(); INGANG.opnieuw(); teken(); }));
+    $$('#kluis-in .kast-ding').forEach(b => (b.onclick = () => { if (!mijn(b.dataset.id)) { const u = C.UITDAGINGEN.find(y => y.kast === b.dataset.id); toast(u ? `Haal eerst de uitdaging <b>${esc(u.naam)}</b>.` : 'Nog niet verdiend.'); return; } const x = C.KAST.find(y => y.id === b.dataset.id); S.kies[x.soort] = x.id; bewaar(); GELUID.fiche(); ficheCache.clear(); kaartCache.clear(); INGANG.opnieuw(); teken(); }));
   }
   function voortgang(u) {
     const t = S.tel;
     return { sim3: Object.keys(t).filter(k => /^s[a-z]{2,3}$/.test(k)).length, kansen6: C.SPELIDS.filter(s => t['k' + s]).length, bjcoach: t.bjc || 0, bjtien: t.bjr || 0, bj3: t.bjbj || 0, dag5: Object.keys(S.dag).length, hl5: t.hlb || 0, klein: t.kl || 0, zalen: C.ZALEN.filter(z => t['z' + z.id]).length, alles: C.SPELIDS.filter(s => t['g' + s]).length, kluis: S.kast.length, vpcoach: t.vpc || 0, vpslim: t.vpr || 0, negreeks: t.negr || 0, duw100: t.duwn || 0, kra10: t.kraz || 0, bal5: t.balr || 0, bal10: t.balr || 0 }[u.id] || 0;
   }
-  return { teken, nieuw: () => S.kast.filter(x => !gezien().includes(x)).length };
+  return { teken, nieuw: () => S.kast.concat(vanSint()).filter(x => !gezien().includes(x)).length };
 })();
 
 // ================================================================ WAAROM HET HUIS ALTIJD WINT
@@ -7230,7 +7293,7 @@ const BEHEER = (() => {
         <div class="rij"><button class="knop" type="button" data-erbij="1000">+ 1.000</button><button class="knop" type="button" data-erbij="10000">+ 10.000</button><button class="knop" type="button" data-erbij="100000">+ 100.000</button></div>
         <form class="rij bh-rij" id="bh-zet"><input class="bh-veld" id="bh-aantal" type="number" inputmode="numeric" min="0" max="1000000000" step="1" placeholder="Bijvoorbeeld 5000" aria-label="Aantal fiches"><button class="knop goud" type="submit">Zet op dit aantal</button></form>
         <div class="rij"><button class="knop" type="button" id="bh-kassa">Laat de kassa nu kijken</button></div></div>
-      <div class="bh-blok"><h3>Zalen en uitdagingen</h3><p>${C.sterren(S)} van ${C.STERREN_TOTAAL} sterren, ${Object.keys(S.u).length} van ${C.UITDAGINGEN.length} uitdagingen, ${S.kast.length} van ${C.KAST.length} dingen in je kluisje.</p>
+      <div class="bh-blok"><h3>Zalen en uitdagingen</h3><p>${C.sterren(S)} van ${C.STERREN_TOTAAL} sterren, ${Object.keys(S.u).length} van ${C.UITDAGINGEN.length} uitdagingen, ${S.kast.length} van ${KAST_TELT} dingen in je kluisje.</p>
         <div class="rij"><button class="knop" type="button" id="bh-alles">Alle uitdagingen halen</button><button class="knop" type="button" id="bh-nul">Uitdagingen terugzetten</button></div>
         <p class="klein">Alle uitdagingen halen zet alle zalen open en alles in je kluisje. Terugzetten maakt het weer zoals bij een nieuwe speler (je fiches en je handen van de dag blijven).</p></div>
       <div class="bh-blok"><h3>Verder</h3><div class="rij">${bezig ? `<button class="knop" type="button" id="bh-stop">Stop ${esc(bezig)} en geef de inzet terug</button>` : ''}<button class="knop" type="button" id="bh-pauze">Laat Moeki om pauze vragen</button></div></div>
@@ -7328,6 +7391,14 @@ document.body.dataset.zaal = zaalId;
 stapperen(); toonFiches(undefined, true);
 naar('ingang');
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { kaartCache.clear(); ficheCache.clear(); if (scherm === 'rol') ROLLEN.start(); if (scherm === 'bj') TAFEL.opnieuwTekenen(); });
+// de feestverzameling (wat je van de Sint kreeg): zodra hij er is, en als hij verandert, het kluisje en de fiches opnieuw
+if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
+  const stand = () => [kiesNu('fiche'), kiesNu('kleed'), ...C.KAST.filter(x => x.feest && feestHeb(x.feest)).map(x => x.id)].join(), voor = stand();
+  feestHeb = id => !!(s && s.heb && s.heb(id));
+  if (stand() === voor) return;   // er veranderde niets (zoals bij iemand zonder iets van de Sint)
+  ficheCache.clear(); kaartCache.clear(); INGANG.opnieuw();
+  if (scherm === 'kluis') KLUIS.teken(); else if (scherm === 'lobby') LOBBY.vernieuw();
+});
 window.__casino = { C, get S() { return S; }, naar, BEHEER, BJS, ROLLEN, TAFEL, SPELEN, HOGER, KNIKKER, ROULETTE, RAD_S, VIJF, NEGEN, DOBBEL, RACE, DUWER, KIEN, KRAS, BALLETJE, ROU_PLEK: id => ROULETTE.plek(id), ROU_INZET: () => ROULETTE.inzetten, LOBBY, WAAROM, KLUIS, toonFiches, kiesZaal: LOBBY.kiesZaal, haal, bewaar, TOEVAL, get scherm() { return scherm; } };
 })();
 

@@ -1504,7 +1504,9 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
   let opslag = { huidig: 'vlaai', werk: {}, af: {}, geluid: true, muziek: false, adem: false };
   try { opslag = Object.assign(opslag, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
   // het aantal vaste patronen (zonder die van de dag) gaat mee in de opslag, voor de voortgang op de homepage (Verder spelen)
-  const bewaar = () => { try { opslag.voortgangTotaal = PATRONEN.filter(p => !/^dag/.test(p.id)).length; } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  const bewaar = () => { try { opslag.voortgangTotaal = vasteTotaal(); } catch (e) {} try { localStorage.setItem(KEY, JSON.stringify(opslag)); } catch (e) {} };
+  // de vaste patronen, plus de patronen van de feestdagen die van jou zijn (zo komt de voortgang nooit boven het totaal)
+  const vasteTotaal = () => PATRONEN.filter(p => !/^dag/.test(p.id) && zichtbaar(p)).length;
   // ================= patronen, getekend met kleine rekenregels
   const maak = (n, f) => { const r = []; for (let y = 0; y < n; y++) { const rij = []; for (let x = 0; x < n; x++) { const px = (x + 0.5) / n * 2 - 1, py = (y + 0.5) / n * 2 - 1; rij.push(Math.hypot(px, py) > 1.12 ? -1 : f(px, py, x, y)); } r.push(rij); } return r; };
   const rand = (r, binnen, kleur) => { const n = r.length, u = r.map(rij => rij.slice()); for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (binnen(r[y][x]) && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => !r[y + b] || r[y + b][x + a] === undefined || !binnen(r[y + b][x + a]))) u[y][x] = kleur; return u; };
@@ -1637,7 +1639,40 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
   });
   // in de patronenlijst: 100 grote, elk pas uitgerekend als het nodig is
   GROTE.forEach((p, i) => { const id = 'g' + String(i + 1).padStart(3, '0'), obj = { id, naam: p.naam, groep: p.groep, groot: true }; Object.defineProperty(obj, 'raster', { get() { if (!this._r) { const m = p.maker(); this._r = m.raster; this._k = m.kleuren; } return this._r; } }); Object.defineProperty(obj, 'kleuren', { get() { if (!this._k) void this.raster; return this._k; } }); PATRONEN.push(obj); });
-  const GROEPEN = [['alles', 'Alles'], ['klein', 'Klein'], ['mandala', "Mandala's"], ['quilt', 'Quilts'], ['bloemen', 'Bloemen'], ['landschap', 'Landschappen'], ['dingen', 'Dieren & dingen'], ['golven', 'Golven']];
+  // ================= Van de Sint (feestdagen 2026): patronen die je op pakjesavond uitpakt. Ze staan in de groep Feest, en zijn alleen
+  // te zien als ze van jou zijn (feest: het id in rommelhoekje-feest-v1). Nieuwe altijd achteraan, en nooit een id veranderen.
+  PATRONEN.push({ id: 'stoomboot', naam: 'Stoomboot', groep: 'feest', feest: 'rs-stoomboot', kleuren: ['#36457A', '#F4EFE6', '#C8565C', '#CFC8BD', '#7FB7BE', '#3D7A8A', '#E9C46A'], raster: maak(24, (x, y) => {
+    // de romp: de boeg rechts loopt schuin op, met een gouden rand en patrijspoortjes
+    if (y > 0.16 && y < 0.56 && x > -0.78 + (y - 0.16) * 0.35 && x < 0.84 - (y - 0.16) * 0.95) {
+      if (y < 0.25) return 6;
+      for (const cx of [-0.42, -0.12, 0.18]) if (Math.hypot(x - cx, y - 0.37) < 0.07) return 6;
+      return 0;
+    }
+    // de zee: rustige golven in twee tinten
+    if (y > 0.48 + 0.04 * Math.sin(x * 8)) return Math.floor((y + 0.05 * Math.sin(x * 7 + 1)) * 7) % 2 ? 5 : 4;
+    // de kajuit met raampjes, de schoorsteen met een donkere rand, de mast met een vlag
+    if (y > -0.12 && y <= 0.16 && x > -0.56 && x < 0.4) return y > -0.03 && y < 0.08 && Math.floor((x + 0.56) * 6) % 2 ? 5 : 1;
+    if (y > -0.6 && y <= -0.12 && x > -0.14 && x < 0.12) return y < -0.5 ? 0 : 2;
+    if (x > 0.52 && x < 0.6 && y > -0.62 && y <= 0.16) return 0;
+    if (x >= 0.6 && y > -0.62 && y < -0.36 && x < 0.6 + (0.13 - Math.abs(y + 0.49)) * 3) return 2;
+    // rookwolkjes, schuin naar links omhoog
+    for (const [cx, cy, r] of [[-0.03, -0.72, 0.11], [-0.22, -0.82, 0.13], [-0.46, -0.84, 0.12], [-0.68, -0.74, 0.1]]) if (Math.hypot(x - cx, y - cy) < r) return 3;
+    return -1; }) });
+  PATRONEN.push({ id: 'mijter', naam: 'Mijter', groep: 'feest', feest: 'rs-mijter', kleuren: ['#C8565C', '#E9B949', '#9E3A44', '#F4EFE6'], raster: maak(24, (x, Y) => {
+    const y = Y - 0.15, hw = y < 0.5 ? 0.56 * Math.sqrt(Math.max(0, 1 - Math.pow((0.5 - y) / 1.45, 2))) : 0.56;
+    if (y < -0.95 || y > 0.68 || Math.abs(x) > hw) return -1;
+    // de gouden rand onderaan, met parels
+    if (y > 0.42) return Math.abs(y - 0.56) < 0.03 && Math.floor((x + 0.6) * 9) % 2 ? 3 : 1;
+    // het gouden kruis met een parel in het midden, en de gouden rand langs de zijkanten
+    if (Math.abs(x) < 0.07 && Math.abs(y + 0.12) < 0.07) return 3;
+    if ((Math.abs(x) < 0.07 && y > -0.5 && y < 0.28) || (Math.abs(y + 0.12) < 0.07 && Math.abs(x) < 0.27)) return 1;
+    if (Math.abs(x) > hw - 0.09) return 1;
+    // licht en schaduw in het rode fluweel
+    return x > 0.12 ? 2 : 0; }) });
+  // wat van de speler is (feest.js; tot de stand er is, een paar seconden, heeft de speler niets). Wat je al begon of afmaakte, was van jou.
+  let feestHeb = () => false;
+  const zichtbaar = p => !p.feest || feestHeb(p.feest) || !!opslag.af[p.id] || !!opslag.werk[p.id];
+  const GROEPEN = [['alles', 'Alles'], ['klein', 'Klein'], ['mandala', "Mandala's"], ['quilt', 'Quilts'], ['bloemen', 'Bloemen'], ['landschap', 'Landschappen'], ['dingen', 'Dieren & dingen'], ['golven', 'Golven'], ['feest', 'Feest']];
   const SYMBOLEN = ['●', '▲', '■', '◆', '✚', '★', '♥'];
   // ================= staat van het huidige werk
   let P = null, gezet = null, kleur = 0, animaties = [];
@@ -1753,9 +1788,11 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
   // ================= patronen kiezen
   let groep = 'alles';
   function toonPatronen() {
-    $('groepen').innerHTML = GROEPEN.map(([id, naam]) => `<button class="knop" type="button" role="tab" data-groep="${id}" aria-selected="${id === groep}">${naam}</button>`).join('');
-    const lijst = PATRONEN.filter(p => groep === 'alles' || p.groep === groep || (groep === 'klein' && !p.groot));
-    $('patronen').innerHTML = lijst.map(p => { const n = p.raster.length, w = opslag.werk[p.id] || '', klaar = w.split('').filter(c => c === '1').length, tot = telTotaal(p); return `<button class="patroon" type="button" data-p="${p.id}"><canvas width="160" height="160" data-mini="${p.id}"></canvas><b>${p.naam}</b><small>${opslag.af[p.id] ? '✿ klaar' + (opslag.af[p.id] > 1 ? ' (' + opslag.af[p.id] + '×)' : '') : klaar ? Math.round(klaar / tot * 100) + '% geborduurd' : p.vandaag ? 'nieuw vandaag' : tot + ' steekjes'}</small></button>`; }).join('');
+    const groepen = GROEPEN.filter(([id]) => id !== 'feest' || PATRONEN.some(p => p.feest && zichtbaar(p)));
+    if (!groepen.some(([id]) => id === groep)) groep = 'alles';
+    $('groepen').innerHTML = groepen.map(([id, naam]) => `<button class="knop" type="button" role="tab" data-groep="${id}" aria-selected="${id === groep}">${naam}</button>`).join('');
+    const lijst = PATRONEN.filter(p => zichtbaar(p) && (groep === 'alles' || p.groep === groep || (groep === 'klein' && !p.groot && !p.feest)));
+    $('patronen').innerHTML = lijst.map(p => { const n = p.raster.length, w = opslag.werk[p.id] || '', klaar = w.split('').filter(c => c === '1').length, tot = telTotaal(p); return `<button class="patroon" type="button" data-p="${p.id}"><canvas width="160" height="160" data-mini="${p.id}"></canvas><b>${p.naam}</b><small>${p.feest ? 'Van de Sint · ' : ''}${opslag.af[p.id] ? '✿ klaar' + (opslag.af[p.id] > 1 ? ' (' + opslag.af[p.id] + '×)' : '') : klaar ? Math.round(klaar / tot * 100) + '% geborduurd' : p.vandaag ? 'nieuw vandaag' : tot + ' steekjes'}</small></button>`; }).join('');
     const minis = [...document.querySelectorAll('[data-mini]')], stap = () => { const deel = minis.splice(0, 8); deel.forEach(c => { const p = PATRONEN.find(x => x.id === c.dataset.mini), n = p.raster.length, w = opslag.werk[p.id] || '', gz = []; for (let y = 0; y < n; y++) { gz.push([]); for (let x = 0; x < n; x++) gz[y].push(w[y * n + x] === '1'); } miniatuur(c.getContext('2d'), p, gz, 160, !!opslag.af[p.id] && !w.includes('0')); }); if (minis.length) setTimeout(stap, 16); }; stap();
     $('s-patronen').hidden = false;
   }
@@ -1791,6 +1828,12 @@ main { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: m
   zetKnop('b-geluid', opslag.geluid); zetKnop('b-muziek', opslag.muziek); zetKnop('b-adem', opslag.adem); $('adem').hidden = !opslag.adem;
   addEventListener('resize', () => { maat(); teken(); });
   laadPatroon(opslag.huidig);
+  // de feestdagen: wat je van de Sint kreeg (feest.js; hier alleen lezen)
+  if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
+    feestHeb = id => !!(s && s.heb && s.heb(id));
+    if (!$('s-patronen').hidden) toonPatronen();
+    if (opslag.voortgangTotaal !== vasteTotaal()) bewaar();
+  });
   if (!localStorage.getItem(KEY + '-gezien')) { try { localStorage.setItem(KEY + '-gezien', '1'); } catch (e) {} }
   window.__steek = { teken, zicht, get P() { return P; }, get kleur() { return kleur; }, get gezet() { return gezet; }, PATRONEN, laadPatroon, probeer, zetKleur: k => { kleur = k; tekenGaren(); }, opslag, celOnder };
 })();

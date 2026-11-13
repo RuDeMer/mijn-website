@@ -13,7 +13,7 @@
      rommelhoekje-feest-kal (de laatste kalender, zodat een spel het meteen weet).
    - Voor de spellen: Scorebord.feest(f) (in het gedeelde blok) of window.RommelFeest.klaar(f): f(stand) zodra het bekend is, en
      opnieuw als het verandert. stand = { feest: 'sint' | 'kerst' | 'oud' | 'nieuwjaar' | null, fase, jaar, dag, winter, schoen,
-     uitpakken, munt, versiering, heb(id) }. Een spel dat er niets mee doet, verandert niet.
+     uitpakken, munt, oudNacht (31 december 18:00 tot 1 januari 06:00), versiering, heb(id) }. Een spel dat er niets mee doet, verandert niet.
    - Het voorbeeld in de werkplaats zet window.__feestVoorbeeld = { moment: 'JJJJ-MM-DD UU:MM', kalender, verzameling }: dan geldt die tijd (Nederlandse
      tijd), en wordt er nooit iets bewaard (en het voorbeeld draait afgeschermd, zonder opslag).
    - De intocht heeft een tijd (rond het middaguur): op die dag is de fase eerst 'intocht-straks' (iedereen wacht op de kade), dan
@@ -46,6 +46,10 @@
     'rs-sneeuwpop', 'rd-kerstboompje', 'vb-sneeuwkorst', 'ck-roos'] };
   var BIJZONDER = { '2026': ['piek26', 'rb-sterrenrendier'] };
   var ONDERBOOM = { '2026': 'hp-sneeuwbol' };
+  // Oud en nieuw: op oudjaar een zak oliebollen om mee te nemen (voor wie die dag komt), en rond middernacht de nieuwjaarsmunt
+  // (van muntVan tot muntTot, met de echte tijd). Per feestjaar; nooit een id veranderen.
+  var OUDJAAR = { '2026': ['rd-oliebollen', 'vb-oliebollenkraam'] };
+  var MUNT = { '2026': ['munt2027', 'rc-vuurwerkfiches'] };
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   var NLF = null;
   function nlDelen(t) {
@@ -98,6 +102,8 @@
     r.uitpakken = t >= pa && dag <= datum(J.uitpakkenTot);
     r.winter = tussen(J.kalenderVan, J.versieringTot);
     r.munt = t >= moment(J.muntVan) && t < moment(J.muntTot);
+    // oudjaarsavond en die nacht (vuurwerk in de spellen): van 18:00 op oudjaar tot 06:00 op nieuwjaarsdag
+    r.oudNacht = t >= moment(datum(J.oudjaar) + ' 18:00') && t < moment(datum(J.middernacht) + ' 06:00');
     r.nachtjes = Math.max(0, dagNr(datum(J.pakjesavond)) - dagNr(dag));
     return r;
   }
@@ -226,9 +232,27 @@
       var k = K.kerst(); if (!k.kanOnderBoom) return null;
       var ob = ONDERBOOM[K.nu().J.jaar]; return K.krijg(ob) ? ob : null;
     };
+    // ---------- Oud en nieuw
+    // de zak oliebollen (op oudjaar, tot middernacht) en de nieuwjaarsmunt: 'dicht' als je hem nu kunt pakken, 'open' als je hem hebt,
+    // anders null; kanOudjaar en kanMunt alleen met de echte tijd
+    K.oud = function () {
+      var F = K.nu(), J = F.J, s = K.lees(), heb = function (l) { return !!l && l.length > 0 && l.every(function (x) { return s.st.indexOf(x) >= 0; }); };
+      var oj = OUDJAAR[J.jaar], mu = MUNT[J.jaar], vandaag = F.dag === datum(J.oudjaar) && F.t < moment(J.middernacht);
+      var uit = { jaar: +J.jaar + 1, zeker: !!o.zeker() };
+      uit.oudjaar = heb(oj) ? 'open' : oj && vandaag ? 'dicht' : null;
+      uit.munt = heb(mu) ? 'open' : mu && F.munt ? 'dicht' : null;
+      uit.kanOudjaar = uit.oudjaar === 'dicht' && uit.zeker;
+      uit.kanMunt = uit.munt === 'dicht' && uit.zeker;
+      return uit;
+    };
+    var pakLijst = function (l) { var s = K.lees(), n = 0; (l || []).forEach(function (x) { if (s.st.indexOf(x) < 0) { s.st.push(x); n++; } }); return n && o.opslag.schrijf(s) ? l.slice() : null; };
+    // de zak oliebollen: geeft de lijst ids of null
+    K.pakOudjaar = function () { return K.oud().kanOudjaar ? pakLijst(OUDJAAR[K.nu().J.jaar]) : null; };
+    // de nieuwjaarsmunt: geeft de lijst ids of null
+    K.pakMunt = function () { return K.oud().kanMunt ? pakLijst(MUNT[K.nu().J.jaar]) : null; };
     return K;
   }
-  var KERN = { KALENDER: KALENDER, VELDEN: VELDEN, MET_TIJD: MET_TIJD, PAKJES: PAKJES, MIJTER: MIJTER, DEURTJES: DEURTJES, BIJZONDER: BIJZONDER, ONDERBOOM: ONDERBOOM, nlDag: nlDag, nlDelen: nlDelen, dagNr: dagNr, moment: moment, jaarVan: jaarVan, jaren: jaren, fase: fase, seizoen: seizoen, plek: plek, schoon: schoon, cijfer: cijfer, zetCijfer: zetCijfer, Kern: Kern, geldigJaar: geldigJaar };
+  var KERN = { KALENDER: KALENDER, VELDEN: VELDEN, MET_TIJD: MET_TIJD, PAKJES: PAKJES, MIJTER: MIJTER, DEURTJES: DEURTJES, BIJZONDER: BIJZONDER, ONDERBOOM: ONDERBOOM, OUDJAAR: OUDJAAR, MUNT: MUNT, nlDag: nlDag, nlDelen: nlDelen, dagNr: dagNr, moment: moment, jaarVan: jaarVan, jaren: jaren, fase: fase, seizoen: seizoen, plek: plek, schoon: schoon, cijfer: cijfer, zetCijfer: zetCijfer, Kern: Kern, geldigJaar: geldigJaar };
   if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') { module.exports = KERN; return; }
   // ==== KERN eind
 
@@ -290,6 +314,8 @@
     // wie elke dag kwam, haalde het bijzondere kerstcadeau op de dag van het laatste deurtje, en het cadeau onder de boom op de eerste kerstdag
     if (F.dag > datum(J.kalenderTot)) (BIJZONDER[J.jaar] || []).forEach(function (id) { s.st.push(id); });
     if (F.dag > datum(J.kerstdagenVan) && ONDERBOOM[J.jaar]) s.st.push(ONDERBOOM[J.jaar]);
+    if (F.dag > datum(J.oudjaar) && OUDJAAR[J.jaar]) OUDJAAR[J.jaar].forEach(function (id) { s.st.push(id); });
+    if (F.t >= moment(J.muntTot) && MUNT[J.jaar]) MUNT[J.jaar].forEach(function (id) { s.st.push(id); });
     if (F.dag > datum(J.intocht)) s.st.unshift('intocht26');
     if (sd.replace(/0/g, '')) s.d[KERN.seizoen('sint', J)] = sd.replace(/0+$/, '');
     if (kd.replace(/0/g, '')) s.d[KERN.seizoen('kerst', J)] = kd.replace(/0+$/, '');
@@ -305,14 +331,14 @@
 
   // ---------- de stand voor de spellen, en wie er wil weten wanneer hij verandert
   function stand() {
-    var F = K.nu(), uit = { feest: F.feest, fase: F.fase, jaar: F.jaar, dag: F.dag, winter: F.winter, schoen: F.schoen, uitpakken: F.uitpakken, munt: F.munt, nachtjes: F.nachtjes, zeker: zeker(), voorbeeld: !!VB };
+    var F = K.nu(), uit = { feest: F.feest, fase: F.fase, jaar: F.jaar, dag: F.dag, winter: F.winter, schoen: F.schoen, uitpakken: F.uitpakken, munt: F.munt, oudNacht: F.oudNacht, nachtjes: F.nachtjes, zeker: zeker(), voorbeeld: !!VB };
     uit.versiering = !app().uit;
     uit.heb = function (id) { return K.heb(id); };
     return uit;
   }
   var luisteraars = [], isKlaar = false, vorige = '';
   function melden() {
-    var s = stand(), sig = [s.feest, s.fase, s.dag, s.versiering, s.zeker, JSON.stringify(K.lees())].join('|');
+    var s = stand(), sig = [s.feest, s.fase, s.dag, s.versiering, s.zeker, s.oudNacht, s.munt, JSON.stringify(K.lees())].join('|');
     if (sig === vorige) return; vorige = sig;
     luisteraars.slice().forEach(function (f) { try { f(s); } catch (e) { if (window.reportError) reportError(e); } });
     try { window.dispatchEvent(new CustomEvent('rommelhoekje-feest', { detail: s })); } catch (e) {}
@@ -344,6 +370,11 @@
     + '@keyframes fs-brand{0%,100%{opacity:1}50%{opacity:.42}}'
     + '.fs-sneeuw{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}'
     + '.fs-melding{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:60;max-width:min(26rem,calc(100% - 2rem));padding:.7rem 1rem;border-radius:12px;background:#23252B;color:#FBF6E9;font:600 .92rem/1.35 "Bricolage Grotesque",system-ui,sans-serif;box-shadow:0 4px 0 rgba(0,0,0,.25)}';
+  STIJL += '.fs-vuur{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}'
+    + '.fs-klok{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:60;pointer-events:none;padding:.38rem .8rem .36rem;border-radius:999px;background:#23252B;color:#FBF6E9;font:700 .86rem/1.2 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:.01em;box-shadow:0 3px 0 rgba(0,0,0,.25);opacity:.94}'
+    + '.fs-klok b{font-variant-numeric:tabular-nums;color:#F2C744}'
+    + '.fs-nj{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:60;pointer-events:none;width:min(250px,calc(100vw - 24px));border-radius:14px;overflow:hidden;background:#141A3A;color:#FBF6E9;border:2.5px solid #231A26;box-shadow:0 4px 0 rgba(0,0,0,.28);font:600 .9rem/1.3 "Bricolage Grotesque",system-ui,sans-serif;transition:opacity .6s ease}'
+    + '.fs-nj canvas,.fs-nj svg{display:block;width:100%;height:96px}.fs-nj p{margin:0;padding:.5rem .75rem .6rem}.fs-nj b{display:block;font-size:1.05rem;color:#F2C744}.fs-nj.fs-weg{opacity:0}';
   function stijl() { if (document.getElementById('fs-stijl')) return; var st = document.createElement('style'); st.id = 'fs-stijl'; st.textContent = STIJL; document.head.appendChild(st); }
   function melding(tekst) {
     var m = document.createElement('div'); m.className = 'fs-melding'; m.setAttribute('role', 'status'); m.textContent = tekst; document.body.appendChild(m);
@@ -423,9 +454,141 @@
     SN = { c: c, get raf() { return raf; }, weg: function () { EV.forEach(function (e) { window.removeEventListener(e, wek); }); document.removeEventListener('visibilitychange', wek); window.removeEventListener('resize', opnieuw); } };
     maat(); teken(); wek();
   }
+  // ---------- oud en nieuw: vuurwerk, het klokje bij het aftellen, de nieuwjaarsmelding en een knal
+  // De vuurwerkmotor tekent op een doekje (ook gebruikt door het feestbord, RommelFeest.vuurwerk): vuurpijlen met een staartje die
+  // openspatten als pioen, chrysant, ring, wilg of knetterend goud. Hooguit 30 beelden per seconde, stil als het tabblad niet in beeld is,
+  // en nooit bij minder beweging. o: { tempo: pijlen per seconde per miljoen pixels, max: hooguit zoveel pijlen per seconde, nacht: donkere
+  // lucht (dan lichter mengen), knal: f(kracht) bij elke knal }.
+  var VKL = [['#FF5A5F', '#FFD3D0'], ['#F2C744', '#FFF4C8'], ['#4C86F0', '#D2E2FF'], ['#3FD18A', '#D5F7E6'], ['#B36BFF', '#EBD9FF'], ['#FF9F43', '#FFE1C2'], ['#FFFFFF', '#FFFFFF']];
+  function maakVuurwerk(c, o) {
+    o = o || {};
+    var g = c.getContext('2d'), pijlen = [], vonk = [], W = 1, H = 1, dpr = 1, raf = 0, vorig = 0, wacht = 0, aan = false, tempo = o.tempo || 1;
+    function maat() { var r = c.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = Math.max(1, r.width); H = Math.max(1, r.height); c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    function pijl(x, hoogte) {
+      var kl = VKL[Math.floor(Math.random() * VKL.length)], soort = ['pioen', 'pioen', 'chrysant', 'ring', 'wilg', 'knetter'][Math.floor(Math.random() * 6)];
+      var doel = H * (hoogte || (0.14 + Math.random() * 0.32)), x0 = x == null ? W * (0.08 + Math.random() * 0.84) : x;
+      var duur = 0.9 + Math.random() * 0.5, vy = -(H - doel) / duur;
+      pijlen.push({ x: x0, y: H + 4, vx: (Math.random() - 0.5) * W * 0.04, vy: vy, doel: doel, kl: kl, soort: soort, k: Math.min(1.2, Math.max(0.55, H / 520)) });
+    }
+    function knal(p) {
+      var n = p.soort === 'ring' ? 36 : p.soort === 'knetter' ? 46 : 62, r = (p.soort === 'wilg' ? 150 : 190) * p.k * (0.8 + Math.random() * 0.4), tweede = Math.random() < 0.35 ? VKL[Math.floor(Math.random() * VKL.length)] : null;
+      for (var i = 0; i < n; i++) {
+        var a = (i / n) * 6.283 + Math.random() * 0.2, v = p.soort === 'ring' ? r : r * (0.35 + Math.random() * 0.65);
+        vonk.push({ x: p.x, y: p.y, px: p.x, py: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, max: (p.soort === 'wilg' ? 2.6 : 1.5) + Math.random() * 0.6, kl: tweede && i % 2 ? tweede : p.kl, soort: p.soort });
+      }
+      if (vonk.length > 900) vonk.splice(0, vonk.length - 900);
+      if (o.knal) try { o.knal(p.k); } catch (e) {}
+    }
+    function stap(nu) {
+      raf = 0; if (document.hidden) return;
+      raf = requestAnimationFrame(stap);
+      if (nu - vorig < 33) return;
+      var dt = Math.min(0.06, (nu - vorig) / 1000 || 0.033); vorig = nu;
+      if (aan) { wacht -= dt; if (wacht <= 0) { pijl(); var per = Math.min(o.max || 3, tempo * W * H / 1e6); wacht = (0.5 + Math.random()) / Math.max(0.05, per); } }
+      var zw = 120 * Math.min(1.2, Math.max(0.55, H / 520));
+      for (var i = pijlen.length - 1; i >= 0; i--) { var p = pijlen[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += zw * 0.25 * dt; if (p.y <= p.doel || p.vy >= 0) { knal(p); pijlen.splice(i, 1); } }
+      for (var j = vonk.length - 1; j >= 0; j--) {
+        var v = vonk[j]; v.t += dt; if (v.t >= v.max) { vonk.splice(j, 1); continue; }
+        var rem = v.soort === 'wilg' ? 0.9 : 0.94; v.px = v.x; v.py = v.y; v.vx *= Math.pow(rem, dt * 30); v.vy = v.vy * Math.pow(rem, dt * 30) + zw * (v.soort === 'wilg' ? 0.7 : 0.45) * dt; v.x += v.vx * dt; v.y += v.vy * dt;
+      }
+      teken();
+      if (!aan && !pijlen.length && !vonk.length) { cancelAnimationFrame(raf); raf = 0; }
+    }
+    function teken() {
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+      g.globalCompositeOperation = o.nacht ? 'lighter' : 'source-over'; g.lineCap = 'round';
+      for (var i = 0; i < pijlen.length; i++) { var p = pijlen[i]; g.strokeStyle = 'rgba(255,214,140,.8)'; g.lineWidth = 2; g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x - p.vx * 0.05, p.y - p.vy * 0.05); g.stroke(); }
+      for (var j = 0; j < vonk.length; j++) {
+        var v = vonk[j], a = 1 - v.t / v.max; if (v.soort === 'knetter' && Math.random() < 0.35) continue;
+        g.globalAlpha = Math.max(0, Math.min(1, a * 1.4)); g.strokeStyle = a > 0.75 ? v.kl[1] : v.kl[0]; g.lineWidth = v.soort === 'chrysant' || v.soort === 'wilg' ? 1.6 : 2.4;
+        g.beginPath(); g.moveTo(v.px - (v.x - v.px) * (v.soort === 'chrysant' || v.soort === 'wilg' ? 3 : 1), v.py - (v.y - v.py) * (v.soort === 'chrysant' || v.soort === 'wilg' ? 3 : 1)); g.lineTo(v.x, v.y); g.stroke();
+      }
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    }
+    function wek() { if (!raf && !document.hidden) { vorig = performance.now(); raf = requestAnimationFrame(stap); } }
+    var opMaat = function () { maat(); };
+    window.addEventListener('resize', opMaat); document.addEventListener('visibilitychange', wek);
+    maat();
+    return {
+      start: function (t) { if (t) tempo = t; aan = true; wacht = 0.2; wek(); },
+      stop: function () { aan = false; },
+      tempo: function (t) { tempo = t; },
+      pijl: function (x, h) { pijl(x, h); wek(); },
+      maat: maat,
+      weg: function () { aan = false; if (raf) cancelAnimationFrame(raf); raf = 0; window.removeEventListener('resize', opMaat); document.removeEventListener('visibilitychange', wek); },
+      get bezig() { return !!raf; }, get aantal() { return pijlen.length + vonk.length; }
+    };
+  }
+  // een knal (Web Audio): alleen op de homepage en de pagina's met het papier, als het geluid van de rommeltjes aanstaat, en pas als je
+  // al iets aanraakte (zo wil de browser het ook)
+  var KA = null;
+  function geluidAan() { try { var r = JSON.parse(localStorage.getItem('rommeltjes-v1') || 'null'); return !r || r.g !== 0; } catch (e) { return true; } }
+  function ontgrendel() { if (KA || !geluidAan()) return; try { KA = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { KA = null; } }
+  function luisterOntgrendel(aan) {
+    ['pointerdown', 'keydown'].forEach(function (e) { if (aan) window.addEventListener(e, ontgrendel, { passive: true }); else window.removeEventListener(e, ontgrendel); });
+  }
+  function knal(kracht) {
+    if (!KA || !geluidAan() || document.hidden) return;
+    try {
+      if (KA.state === 'suspended') KA.resume();
+      var nu = KA.currentTime + Math.random() * 0.05, duur = 0.9, buf = KA.createBuffer(1, Math.round(KA.sampleRate * duur), KA.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 5);
+      var bron = KA.createBufferSource(), f = KA.createBiquadFilter(), v = KA.createGain();
+      bron.buffer = buf; f.type = 'lowpass'; f.frequency.value = 900 + Math.random() * 900; v.gain.value = 0.16 * Math.min(1, kracht || 1);
+      bron.connect(f); f.connect(v); v.connect(KA.destination); bron.start(nu);
+    } catch (e) {}
+  }
+  // het vuurwerk achter de inhoud (de homepage en de pagina's met het papier), van middernacht tot vuurwerkTot
+  var VW = null;
+  function achterVuur(aan) {
+    if (!aan || minder || !window.requestAnimationFrame) { if (VW) { VW.w.weg(); VW.c.remove(); VW = null; } return; }
+    if (VW) return;
+    var c = document.createElement('canvas'); c.className = 'fs-vuur'; c.setAttribute('aria-hidden', 'true'); stijl();
+    document.body.insertBefore(c, document.body.firstChild);
+    VW = { c: c, w: maakVuurwerk(c, { tempo: 1.8, max: 2.4, nacht: donker(), knal: function (k) { if (!opHome() && Math.random() < 0.55) knal(k); } }) };   // op de homepage knalt het feestbord al
+    VW.w.start();
+  }
+  // het klokje bij het aftellen (niet op de homepage: daar telt het feestbord groot af), onderin, klein, zonder iets te blokkeren
+  var KLOK = null;
+  function klokje(aan) {
+    if (!aan) { if (KLOK) { clearInterval(KLOK.i); KLOK.el.remove(); KLOK = null; } return; }
+    if (KLOK) return; stijl();
+    var el = document.createElement('div'); el.className = 'fs-klok'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el);
+    var J = K.nu().J, mid = moment(J.middernacht), jaar = +J.jaar + 1;
+    function tik() {
+      var ms = mid - klok();
+      if (ms <= 0) { klokje(false); melden(); versier(); return; }
+      var s = Math.ceil(ms / 1000), m = Math.floor(s / 60);
+      el.innerHTML = 'Nog <b>' + m + ':' + pad(s % 60) + '</b> tot ' + jaar;
+    }
+    KLOK = { el: el, i: setInterval(tik, 1000) }; tik();
+  }
+  // de nieuwjaarsmelding (niet op de homepage: daar staat het op het feestbord), één keer per bezoek, linksonder, en na 14 seconden weg
+  var njGemeld = false;
+  function nieuwjaarMelding(s) {
+    if (njGemeld || window.__eigenNieuwjaar) return; njGemeld = true; stijl();   // een spel met een eigen nieuwjaarsmelding zet __eigenNieuwjaar
+    var el = document.createElement('div'), jaar = +s.jaar + 1, beweeg = !minder && s.versiering && window.requestAnimationFrame;
+    el.className = 'fs-nj'; el.setAttribute('role', 'status');
+    var sterren = '<svg viewBox="0 0 250 96" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><rect width="250" height="96" fill="#141A3A"/>' + [[34, 30, '#F2C744'], [88, 58, '#FF5A5F'], [140, 24, '#4C86F0'], [196, 50, '#3FD18A'], [228, 20, '#FFFFFF']].map(function (p) { var x = p[0], y = p[1], d = 'M' + x + ' ' + (y - 9) + 'L' + (x + 2.6) + ' ' + (y - 2.6) + 'L' + (x + 9) + ' ' + y + 'L' + (x + 2.6) + ' ' + (y + 2.6) + 'L' + x + ' ' + (y + 9) + 'L' + (x - 2.6) + ' ' + (y + 2.6) + 'L' + (x - 9) + ' ' + y + 'L' + (x - 2.6) + ' ' + (y - 2.6) + 'Z'; return '<path d="' + d + '" fill="' + p[2] + '"/>'; }).join('') + '<text x="125" y="84" text-anchor="middle" font-family="Bricolage Grotesque,system-ui,sans-serif" font-weight="800" font-size="22" fill="#F2C744">' + jaar + '</text></svg>';
+    el.innerHTML = (beweeg ? '<canvas aria-hidden="true"></canvas>' : sterren) + '<p><b>Gelukkig nieuwjaar!</b>Welkom in ' + jaar + '.</p>';
+    document.body.appendChild(el);
+    var w = null;
+    if (beweeg) { var c = el.querySelector('canvas'); w = maakVuurwerk(c, { tempo: 60, max: 2.2, nacht: true }); w.start(); }
+    setTimeout(function () { el.classList.add('fs-weg'); setTimeout(function () { if (w) w.weg(); el.remove(); }, 700); }, 14000);
+  }
+  function oudNieuw(s) {
+    var hier = papier() || opHome();
+    klokje(s.fase === 'aftellen' && !opHome() && !window.__eigenNieuwjaar);
+    var vuur = s.fase === 'vuurwerk';
+    achterVuur(vuur && hier && s.versiering);
+    if (vuur && !opHome()) nieuwjaarMelding(s);
+    luisterOntgrendel(hier && (s.feest === 'oud' || vuur));
+    return vuur && hier && s.versiering && !minder;
+  }
   function versier() {
     var s = stand(), hier = papier() || opHome(), sint = s.versiering && papier() && s.feest === 'sint', winter = s.versiering && hier && s.winter;
-    bgNaarHtml(sint || winter);
+    var vuur = oudNieuw(s);
+    bgNaarHtml(sint || winter || vuur);
     slinger(sint); lichtjes(winter); sneeuw(winter);
   }
   window.addEventListener('resize', function () { if (lichtEl) lichtjes(true); });
@@ -454,7 +617,7 @@
 
   window.RommelFeest = {
     klaar: klaar, nu: stand, kern: K, KERN: KERN, kalender: function () { return kal; }, klok: klok, zeker: zeker, haalTijd: haalTijd,
-    app: app, zetApp: zetApp, melden: melden, minder: minder, voorbeeld: !!VB, BASIS: BASIS, SLEUTEL: SLEUTEL,
+    app: app, zetApp: zetApp, melden: melden, minder: minder, voorbeeld: !!VB, BASIS: BASIS, SLEUTEL: SLEUTEL, vuurwerk: maakVuurwerk, knal: knal, ontgrendel: ontgrendel,
     get afwijking() { return afwijking; }
   };
   // wie al vroeg vroeg (Scorebord.feest, in het gedeelde blok), komt nu aan de beurt

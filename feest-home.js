@@ -517,6 +517,20 @@
     s += pd('M322 228Q310 250 304 262', 'none', 'stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" class="fb-boeggolf" opacity="0"');
     return s + '</g></g>';
   }
+  // ---------- de Stoomboot in de verte (vóór de intocht): klein, in het water tussen de kades, met rook uit de schoorsteen
+  function verreBoot() {
+    var s = '<g class="fb-verweg"><g transform="translate(612 238) scale(.17)"><g class="fb-dein">';
+    s += [0, 1, 2, 3].map(function (i) { return '<circle class="fb-wolk" style="--i:' + i + '" cx="75" cy="-140" r="' + (24 + i * 6) + '" fill="var(--fb-rook)"/>'; }).join('');
+    s += pd('M-124 2V-166', 'none', 'stroke="' + I + '" stroke-width="9" stroke-linecap="round"') + pd('M-122 -164h40l-10 9 10 9h-40z', ROOD, 'stroke="' + I + '" stroke-width="5"');
+    s += pd('M-196 -2Q-170 -90 -124 -164Q20 -150 190 -40', 'none', 'stroke="' + I + '" stroke-width="4" stroke-dasharray="14 10" opacity=".7"');
+    s += pd('M58 -40V-128H92V-40Z', ROOD, 'stroke="' + I + '" stroke-width="6"') + pd('M58 -116h34v12h-34z', WIT, 'stroke="' + I + '" stroke-width="5"') + pd('M53 -136h44v12h-44z', I);
+    s += pd('M-86 2V-36Q-86 -42 -80 -42H130Q136 -42 136 -36V2Z', WIT, 'stroke="' + I + '" stroke-width="6"');
+    for (var x = -70; x < 110; x += 30) s += '<rect class="fb-raam" x="' + x + '" y="-30" width="16" height="14" fill="var(--fb-glas)" stroke="' + I + '" stroke-width="5"/>';
+    s += pd('M-50 -42V-70H40V-42Z', WIT, 'stroke="' + I + '" stroke-width="6"') + pd('M-58 -68L-50 -80H40L48 -68Z', '#8E5A3A', 'stroke="' + I + '" stroke-width="5"');
+    s += pd('M-200 0L200 4L184 42Q0 60 -172 46Q-188 28 -200 0Z', '#1F2E57', 'stroke="' + I + '" stroke-width="7" stroke-linejoin="round"');
+    s += pd('M-181 34Q0 48 188 32L184 42Q0 60 -172 46Z', ROOD) + pd('M-196 8L197 12', 'none', 'stroke="#FFFFFF" stroke-width="8"');
+    return s + '</g></g></g>';
+  }
   // ---------- een grachtenhuis: een trapgevel, halsgevel, klokgevel of tuitgevel, met witte ramen, een deur en een hijsbalk
   function huis(x, b, h, kleur, soort, Y, deur) {
     var top = Y - h, t = '<g>', c = function (fx) { return r1(x + b * fx); };
@@ -573,7 +587,7 @@
     var R = [[700, 46, 110, '#9B4D38', 'trap'], [746, 42, 96, '#C7A06A', 'tuit', '#7A2430'], [788, 48, 124, '#8A5236', 'klok'], [836, 44, 104, '#B5533C', 'trap', '#1F3D6B'], [880, 46, 92, '#7C6A57', 'tuit'], [926, 44, 114, '#A9693E', 'hals']];
     s += '<g class="fb-stad">' + L.map(function (h) { return huis(h[0], h[1], h[2], h[3], h[4], 206, h[5]); }).join('') + R.map(function (h) { return huis(h[0], h[1], h[2], h[3], h[4], 214, h[5]); }).join('') + '</g>';
     // de Piet op het dak (als je je schoen zet): bij een schoorsteen op de tuitgevel aan de overkant
-    if (fase !== 'intocht' && fase !== 'nog') s += '<g class="fb-dak">' + pd('M893 112V96h12v16z', '#A0473A') + pd('M891 94h16v4h-16z', I) + piet(915, 117, PIET[3], 0.6, 'zak') + '</g>';
+    if (fase !== 'intocht' && fase !== 'intocht-straks' && fase !== 'nog') s += '<g class="fb-dak">' + pd('M893 112V96h12v16z', '#A0473A') + pd('M891 94h16v4h-16z', I) + piet(915, 117, PIET[3], 0.6, 'zak') + '</g>';
     // de kade links: stenen, lantaarns, de mensen, een spandoek en een meerpaal; de kade aan de overkant
     s += pd('M0 206H330V214H0Z', '#8A8790') + pd('M0 214H330V244H0Z', '#9C5B3E');
     for (var x = 0; x < 330; x += 22) s += pd('M' + x + ' 222h20M' + (x + 11) + ' 232h20', 'none', 'stroke="#7A4031" stroke-width="1" opacity=".6"');
@@ -585,7 +599,7 @@
     for (var i = 0; i < 15; i++) { var kind = rnd() < .38; mensen.push({ x: 26 + i * 19 + rnd() * 6, kind: kind, jas: jassen[Math.floor(rnd() * jassen.length)], huid: huiden[Math.floor(rnd() * huiden.length)], haar: haren[Math.floor(rnd() * haren.length)], muts: kind && rnd() < .55 ? 'mijter' : rnd() < .25 ? [ROOD, '#2F4C8F', '#2E8B62'][Math.floor(rnd() * 3)] : '', vlag: rnd() < .4, ballon: i === 4 ? ROOD : i === 11 ? GOUD : '' }); }
     // het spandoek, tussen twee palen (zichtbaar als de boot heeft aangelegd)
     s += '<g class="fb-spandoek">' + pd('M30 206V104M300 206V104', 'none', 'stroke="' + I + '" stroke-width="3.4"') + pd('M30 108Q165 120 300 108V134Q165 146 30 134Z', WIT, 'stroke="' + I + '" stroke-width="2.4"') + pd('M34 113Q165 125 296 113', 'none', 'stroke="' + ROOD + '" stroke-width="3"') +
-      '<text x="165" y="136" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="17" fill="' + ROOD + '" text-anchor="middle" letter-spacing=".6" class="fb-welkom">WELKOM SINTERKLAAS!</text>' +
+      '<text x="165" y="136" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="17" fill="' + ROOD + '" text-anchor="middle" letter-spacing=".6" class="fb-welkom">' + (/^pakjesavond/.test(fase) ? 'HEERLIJK AVONDJE!' : 'WELKOM SINTERKLAAS!') + '</text>' +
       '<text x="165" y="136" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="17" fill="' + ROOD + '" text-anchor="middle" letter-spacing=".6" class="fb-dagdag">DAG SINTERKLAASJE!</text></g>';
     s += '<g class="fb-mensen">' + mensen.map(function (m, i) { return mens(r1(m.x), 208, m, i); }).join('') + '</g>';
     s += pd('M300 208v-12h10v12z', I) + piet(276, 210, PIET[1], 0.66, 'zwaai');
@@ -596,7 +610,7 @@
     s += '<g class="fb-golf">' + pd(golf(258, 4, 0), 'none', 'stroke="var(--fb-golf)" stroke-width="2.2" opacity=".75"') + pd(golf(276, 5, -14), 'none', 'stroke="var(--fb-golf)" stroke-width="2.4" opacity=".55"') + pd(golf(294, 5, 8), 'none', 'stroke="var(--fb-golf)" stroke-width="2" opacity=".4"') + '</g>';
     // het touw van de boot naar de meerpaal (als hij heeft aangelegd)
     s += pd('M330 232Q318 222 306 202', 'none', 'stroke="#C9A267" stroke-width="2.6" stroke-linecap="round" class="fb-touw"');
-    return s + boot() + '</svg>';
+    return s + verreBoot() + boot() + '</svg>';
   }
   // ---------- het hoekje met de kachel, je schoen en je stapel cadeautjes
   var PAPIER = [['#C8323C', '#E9B949', 'streep'], ['#2F4C8F', '#FBF6E9', 'stip'], ['#2E8B62', '#C8323C', ''], ['#E9B949', '#6A4C9C', 'stip'], ['#6A4C9C', '#E9B949', 'streep'], ['#E07A2E', '#2F4C8F', ''], ['#FBF6E9', '#C8323C', 'stip']];
@@ -716,6 +730,8 @@
       '.fb-avond .fb-nacht,.fb-avond .fb-lgloed{display:inline}.fb-avond .fb-dag,.fb-avond .fb-meeuw{display:none}',
       '.fb-dagdag{display:none}.fb-afscheid .fb-welkom{display:none}.fb-afscheid .fb-dagdag{display:inline}',
       '.fb-weg .fb-boot,.fb-weg .fb-touw,.fb-afvaart .fb-touw{display:none}',
+      '.fb-verweg{display:none}.fb-wacht .fb-verweg{display:inline}.fb-wacht .fb-boot,.fb-wacht .fb-touw{display:none}.fb-wacht .fb-spandoek{opacity:1}',
+      '.fb-klok{display:inline-block;font-weight:800;white-space:nowrap}',
       '.fb-scene.fb-leeg .fb-boot,.fb-scene.fb-leeg .fb-touw,.fb-scene.fb-leeg .fb-spandoek,.fb-scene.fb-leeg .fb-mensen{display:none}',
       // het uitpakvenster
       '.fb-dialoog.fb-uitpak{max-width:30rem;text-align:center}',
@@ -788,11 +804,21 @@
 
   var MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
   function datumTekst(d) { var a = String(d || '').slice(0, 10).split('-'); return a.length === 3 ? (+a[2]) + ' ' + MAANDEN[+a[1] - 1] : ''; }
+  var WEEKDAG = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+  function dagLabel(d) { var a = String(d || '').slice(0, 10).split('-'); return a.length === 3 ? WEEKDAG[new Date(Date.UTC(+a[0], +a[1] - 1, +a[2])).getUTCDay()] + ' ' + datumTekst(d) : ''; }
+  // hoe lang nog tot de intocht
+  function nogTijd(ms) { var m = Math.ceil(ms / 60000); if (m <= 1) return 'Nog heel even!'; var u = Math.floor(m / 60), r = m % 60; return 'Nog ' + (u ? meer(u, 'uur', 'uur') + (r ? ' en ' + meer(r, 'minuut', 'minuten') : '') : meer(r, 'minuut', 'minuten')) + '.'; }
   function teksten(s, sch, p, modus) {
     var t = { label: '', kop: '', zin: '', knoppen: [], stapel: '' }, zin = [];
     var pakjesTekst = sch.stapel ? meer(sch.stapel, 'cadeautje', 'cadeautjes') + ' op je stapel voor pakjesavond' : '';
-    if (s.fase === 'intocht' || s.fase === 'schoen') {
-      t.label = s.fase === 'intocht' ? 'Zaterdag 14 november: de intocht' : 'Sinterklaas is in het land';
+    if (modus === 'intocht-straks') {
+      t.label = dagLabel(s.J.intocht) + ': de intocht';
+      t.kop = 'Vandaag komt Sinterklaas aan!';
+      zin.push('Om ' + String(s.J.intocht).slice(11, 16) + ' vaart de Stoomboot de haven binnen. De vlaggetjes hangen al, en iedereen staat klaar op de kade.');
+      zin.push('Kom dan terug: er ligt een cadeautje voor je klaar, en je mag voor het eerst je schoen zetten.');
+      t.klok = nogTijd(F.KERN.moment(s.J.intocht) - F.kern.nu().t);
+    } else if (s.fase === 'intocht' || s.fase === 'schoen') {
+      t.label = s.fase === 'intocht' ? dagLabel(s.J.intocht) + ': de intocht' : 'Sinterklaas is in het land';
       t.kop = s.fase === 'intocht' ? 'Sinterklaas is in het land!' : 'Nog ' + meer(s.nachtjes, 'nachtje', 'nachtjes') + ' slapen';
       if (s.fase === 'intocht') zin.push('De Stoomboot is net aangekomen. Welkom, Sint!');
       if (!s.zeker) zin.push(navigator.onLine === false ? 'Zonder internet kun je je schoen nog niet zetten. Dat kan straks weer.' : 'Even kijken hoe laat het echt is…');
@@ -804,14 +830,14 @@
       }
       t.stapel = pakjesTekst;
     } else if (modus === 'pakjesavond-straks') {
-      t.label = 'Zaterdag 5 december'; t.kop = 'Vanavond is het pakjesavond!';
+      t.label = dagLabel(s.J.pakjesavond); t.kop = 'Vanavond is het pakjesavond!';
       if (sch.inSchoen && s.zeker) { zin.push('Er zit nog iets in je schoen!'); t.knoppen.push(['uit-schoen', 'Haal je cadeautje eruit']); }
       if (sch.stapel || sch.inSchoen) zin.push((sch.stapel ? 'Je hebt ' + meer(sch.stapel, 'cadeautje', 'cadeautjes') + ' op je stapel. ' : '') + 'Om vijf uur mag je uitpakken.');
       else zin.push('Je zette dit jaar je schoen niet, maar om vijf uur kun je de Sint gerust mee uitzwaaien.');
       t.stapel = pakjesTekst;
     } else if (modus === 'pakjesavond' || modus === 'nog') {
       var nog = p.dicht || (p.mijter === 'dicht' ? 1 : 0);
-      t.label = modus === 'nog' ? 'Van de Sint' : 'Zaterdag 5 december';
+      t.label = modus === 'nog' ? 'Van de Sint' : dagLabel(s.J.pakjesavond);
       if (modus === 'nog') { t.kop = 'Er ligt nog iets voor je!'; zin.push('De Sint is alweer naar huis, maar je stapel ligt hier nog. Je kunt uitpakken tot en met ' + datumTekst(s.uitpakTot) + '.'); }
       else if (p.dicht) { t.kop = 'Het is pakjesavond!'; zin.push('Er ' + (p.dicht === 1 ? 'ligt één cadeautje' : 'liggen ' + p.dicht + ' cadeautjes') + ' op je stapel. Pak ze een voor een uit!'); }
       else if (nog) { t.kop = 'Het is pakjesavond!'; zin.push('Wacht eens… er ligt nog één groot, glimmend pakje voor je!'); }
@@ -838,16 +864,16 @@
     // de kersttijd (en tot en met versieringTot, zolang het bijzondere kerstcadeau nog klaarligt)
     var kk = F.kern.kerst(), kmodus = s.feest === 'kerst' ? s.fase : s.winter && kk.kanBijzonder ? 'na' : '';
     if (kmodus) { tekenKerst(s, kk, p, rest, kmodus); return; }
-    var sint = s.feest === 'sint' && (s.fase === 'intocht' || s.fase === 'schoen' || s.fase === 'pakjesavond-straks' || s.fase === 'pakjesavond');
+    var sint = s.feest === 'sint' && (s.fase === 'intocht-straks' || s.fase === 'intocht' || s.fase === 'schoen' || s.fase === 'pakjesavond-straks' || s.fase === 'pakjesavond');
     var modus = sint ? s.fase : s.uitpakken && rest ? 'nog' : '';
     if (!modus) { if (bord) { bord.remove(); bord = null; } sec.hidden = true; pepernoten(false); laatsteSig = ''; laatsteFase = ''; return; }
-    s.uitpakTot = F.kern.nu().J.uitpakkenTot;
+    s.J = F.kern.nu().J; s.uitpakTot = s.J.uitpakkenTot;
     var sch = F.kern.schoen(), t = teksten(s, sch, p, modus), afscheid = modus === 'pakjesavond' && !rest, sig = JSON.stringify([t, sch.dagen, sch.stapel, s.versiering, p.dicht, p.mijter]);
     sec.hidden = false; stijl();
     if (!bord || laatsteFase !== modus) {
       if (bord) bord.remove();
       bord = document.createElement('div'); bord.className = 'tg-feest-bord fb-sint'; bord.setAttribute('role', 'region'); bord.setAttribute('aria-labelledby', 'fb-kop');
-      bord.innerHTML = '<div class="fb-scene ' + (modus === 'nog' ? 'fb-leeg' : 'fb-aangemeerd') + '">' + scene(modus) + '<div class="fb-regen" aria-hidden="true"></div></div>' +
+      bord.innerHTML = '<div class="fb-scene ' + (modus === 'nog' ? 'fb-leeg' : modus === 'intocht-straks' ? 'fb-wacht' : 'fb-aangemeerd') + '">' + scene(modus) + '<div class="fb-regen" aria-hidden="true"></div></div>' +
         '<div class="fb-tekst"><span class="fb-label"></span><h2 class="fb-kop" id="fb-kop"></h2><p class="fb-zin" aria-live="polite"></p><div class="fb-knoppen"></div><div class="fb-kleintjes"><button type="button" class="fb-klein fb-nogknop" data-actie="nog" hidden></button><button type="button" class="fb-klein fb-uitknop" aria-pressed="false"></button></div></div>' +
         '<div class="fb-schoen"><div class="fb-schoen-plek"></div><p class="fb-stapel"></p></div>';
       sec.appendChild(bord); laatsteFase = modus; laatsteSig = '';
@@ -870,13 +896,17 @@
       var nog = bord.querySelector('.fb-nogknop'); nog.hidden = !t.nog; nog.textContent = t.nog || ''; nog.setAttribute('data-actie', t.nogActie || 'nog');
       var u = bord.querySelector('.fb-uitknop'); u.textContent = s.versiering ? 'Versiering uit' : 'Versiering aan'; u.setAttribute('aria-pressed', String(!s.versiering));
       bord.querySelector('.fb-schoen-plek').innerHTML = schoenPaneel(sch);
+      if (t.klok) { var zn = bord.querySelector('.fb-zin'), kl = document.createElement('span'); kl.className = 'fb-klok'; kl.textContent = t.klok; zn.appendChild(document.createTextNode(' ')); zn.appendChild(kl); }
       bord.querySelector('.fb-stapel').textContent = t.stapel || (sch.gezet || p.open ? '' : 'Nog geen cadeautjes op je stapel');
       if (focus) { var k = bord.querySelector('[data-actie="' + focus + '"]') || bord.querySelector('.fb-knop'); if (k) k.focus(); }
       laatsteSig = sig;
       herbouw();
     }
     pepernoten(s.versiering && s.feest === 'sint');
+    // vóór de intocht loopt de klok mee (en om de tijd van de intocht vaart de boot vanzelf binnen)
+    clearTimeout(wachtKlok); if (modus === 'intocht-straks') wachtKlok = setTimeout(teken, 15000);
   }
+  var wachtKlok = 0;
   // de rommeltjes weten dat het bord er is (een oppervlak om iets op te leggen), en de pepernoten
   var herbouwKlok = 0;
   function herbouw() { clearTimeout(herbouwKlok); herbouwKlok = setTimeout(function () { var R = window.__rommeltjes; if (R && R.bouwWereld) { R.bouwWereld(); R.teken(1); } }, 60); }
@@ -910,7 +940,7 @@
   function afscheidVaart(opnieuw) {
     if (!bord) return;
     var sc = bord.querySelector('.fb-scene'), dag = F.nu().dag, eerste = F.app().weg !== dag;
-    if (!opnieuw && !eerste) { sc.classList.add('fb-weg'); return; }
+    if (!opnieuw && !eerste) { if (!sc.classList.contains('fb-afvaart')) sc.classList.add('fb-weg'); return; }
     if (eerste) F.zetApp('weg', dag);
     clearTimeout(vaartKlok);
     if (minder || bord.classList.contains('fb-stil')) { sc.classList.add('fb-weg'); return; }

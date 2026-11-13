@@ -16,6 +16,8 @@
      uitpakken, munt, versiering, heb(id) }. Een spel dat er niets mee doet, verandert niet.
    - Het voorbeeld in de werkplaats zet window.__feestVoorbeeld = { moment: 'JJJJ-MM-DD UU:MM', kalender, verzameling }: dan geldt die tijd (Nederlandse
      tijd), en wordt er nooit iets bewaard (en het voorbeeld draait afgeschermd, zonder opslag).
+   - De intocht heeft een tijd (rond het middaguur): op die dag is de fase eerst 'intocht-straks' (iedereen wacht op de kade), dan
+     'intocht'. Je schoen zetten kan pas vanaf de intocht.
    - Op de homepage laadt dit bestand feest-home.js (het feestbord). Testhaak: window.RommelFeest. */
 (function () {
   'use strict';
@@ -23,11 +25,11 @@
 
   // ==== KERN begin
   // Alles wat met de kalender, de tijd en de verzameling te maken heeft, zonder pagina (in Node te testen: knip dit stuk eruit).
-  var KALENDER = { versie: 1, jaren: [{ jaar: '2026', intocht: '2026-11-14', schoenVan: '2026-11-14', schoenTot: '2026-12-04', pakjesavond: '2026-12-05 17:00', uitpakkenTot: '2027-01-06',
+  var KALENDER = { versie: 1, jaren: [{ jaar: '2026', intocht: '2026-11-14 12:00', schoenVan: '2026-11-14', schoenTot: '2026-12-04', pakjesavond: '2026-12-05 17:00', uitpakkenTot: '2027-01-06',
     kalenderVan: '2026-12-06', kalenderTot: '2026-12-24', kerstdagenVan: '2026-12-25', kerstdagenTot: '2026-12-26', versieringTot: '2027-01-06',
     oudjaar: '2026-12-31', aftellen: '2026-12-31 23:55', middernacht: '2027-01-01 00:00', vuurwerkTot: '2027-01-01 00:20', muntVan: '2026-12-31 23:00', muntTot: '2027-01-01 03:00', nieuwjaarTot: '2027-01-06' }] };
   var VELDEN = ['intocht', 'schoenVan', 'schoenTot', 'pakjesavond', 'uitpakkenTot', 'kalenderVan', 'kalenderTot', 'kerstdagenVan', 'kerstdagenTot', 'versieringTot', 'oudjaar', 'aftellen', 'middernacht', 'vuurwerkTot', 'muntVan', 'muntTot', 'nieuwjaarTot'];
-  var MET_TIJD = { pakjesavond: 1, aftellen: 1, middernacht: 1, vuurwerkTot: 1, muntVan: 1, muntTot: 1 };
+  var MET_TIJD = { intocht: 1, pakjesavond: 1, aftellen: 1, middernacht: 1, vuurwerkTot: 1, muntVan: 1, muntTot: 1 };
   // Sinterklaas: wat er in de pakjes zit, per feestjaar, op volgorde van de schoendagen (de eerste is de dag van schoenVan). Voor iedereen
   // hetzelfde. Nieuwe jaren krijgen nieuwe dingen; verander nooit een id (de spellen kijken ernaar met heb). MIJTER: het pakje voor wie
   // elke dag zijn schoen zette (een verzamelstuk; de homepage en Rommelkroon zetten er iets mee vrij).
@@ -82,7 +84,8 @@
     var J = jaarVan(kal, t), dag = nlDag(t), tussen = function (a, b) { return dag >= datum(a) && dag <= datum(b); };
     var r = { feest: null, fase: null, jaar: J.jaar, dag: dag, t: t, winter: false, schoen: false, uitpakken: false, munt: false, J: J };
     var pa = moment(J.pakjesavond), mid = moment(J.middernacht);
-    if (dag === datum(J.intocht)) { r.feest = 'sint'; r.fase = 'intocht'; }
+    // de intocht: de Stoomboot komt rond het middaguur (intocht met een tijd); daarvoor wacht iedereen op de kade ('intocht-straks')
+    if (dag === datum(J.intocht)) { r.feest = 'sint'; r.fase = t < moment(J.intocht) ? 'intocht-straks' : 'intocht'; }
     else if (tussen(J.schoenVan, J.schoenTot)) { r.feest = 'sint'; r.fase = 'schoen'; }
     else if (dag === datum(J.pakjesavond)) { r.feest = 'sint'; r.fase = t < pa ? 'pakjesavond-straks' : 'pakjesavond'; }
     else if (tussen(J.kalenderVan, J.kalenderTot)) { r.feest = 'kerst'; r.fase = 'kalender'; }
@@ -91,7 +94,7 @@
     else if (t >= mid && t < moment(J.vuurwerkTot)) { r.feest = 'nieuwjaar'; r.fase = 'vuurwerk'; }
     else if (t >= mid && dag <= datum(J.nieuwjaarTot)) { r.feest = 'nieuwjaar'; r.fase = 'groet'; }
     else if (dag > datum(J.kerstdagenTot) && dag < datum(J.oudjaar)) { r.feest = 'kerst'; r.fase = 'na'; }
-    r.schoen = tussen(J.schoenVan, J.schoenTot);
+    r.schoen = tussen(J.schoenVan, J.schoenTot) && t >= moment(J.intocht);   // je schoen zetten kan pas als de Sint er is
     r.uitpakken = t >= pa && dag <= datum(J.uitpakkenTot);
     r.winter = tussen(J.kalenderVan, J.versieringTot);
     r.munt = t >= moment(J.muntVan) && t < moment(J.muntTot);
@@ -268,24 +271,37 @@
   }
   // ---------- de verzameling
   var opslag = {
-    lees: function () { if (VB && VB.verzameling) return VB.verzameling === 'trouw' ? trouw() : VB.verzameling; return leesJ(SLEUTEL); },
+    lees: function () { if (VB && VB.verzameling) return VB.verzameling === 'trouw' || VB.verzameling === 'uitgepakt' ? trouw(VB.verzameling === 'uitgepakt') : VB.verzameling; return leesJ(SLEUTEL); },
     schrijf: function (s) { if (VB) return false; s.v = 1; var ok = schrijfJ(SLEUTEL, s); if (ok) melden(); return ok; }
   };
   // in het voorbeeld van de werkplaats ('trouw'): alsof je tot vandaag elke dag kwam (je schoen gezet, alle deurtjes open), zodat Ruben
-  // ziet wat een trouwe bezoeker ziet. Wordt nooit bewaard.
-  function trouw() {
+  // ziet wat een trouwe bezoeker ziet. Wordt nooit bewaard. Met 'uitgepakt' (het uitzwaaien) zijn de pakjes van de Sint al open.
+  function trouw(uitgepakt) {
     var F = KERN.fase(kal, klok()), J = F.J, vd = KERN.plek(F.dag, J), s = { v: 1, d: {}, st: [] }, sd = '', kd = '';
     var sv = KERN.plek(J.schoenVan, J), stt = KERN.plek(J.schoenTot, J), kv = KERN.plek(J.kalenderVan, J), kt = KERN.plek(J.kalenderTot, J), dl = DEURTJES[J.jaar] || [];
-    for (var i = 0; i < vd; i++) { sd += i >= sv && i <= stt ? '2' : '0'; kd += i >= kv && i <= kt ? '1' : '0'; if (i >= kv && i <= kt && dl[i - kv]) s.st.push(dl[i - kv]); }
-    if (F.dag > String(J.intocht)) s.st.unshift('intocht26');
+    var pl = PAKJES[J.jaar] || [];
+    if (F.dag > datum(J.pakjesavond)) uitgepakt = true;   // wie elke dag kwam, pakte alles uit op pakjesavond
+    for (var i = 0; i < vd; i++) {
+      sd += i >= sv && i <= stt ? (uitgepakt ? '3' : '2') : '0'; kd += i >= kv && i <= kt ? '1' : '0';
+      if (i >= kv && i <= kt && dl[i - kv]) s.st.push(dl[i - kv]);
+      if (uitgepakt && i >= sv && i <= stt && pl[i - sv]) s.st.push(pl[i - sv]);
+    }
+    if (uitgepakt && vd > stt && MIJTER[J.jaar]) s.st.push(MIJTER[J.jaar]);
+    // wie elke dag kwam, haalde het bijzondere kerstcadeau op de dag van het laatste deurtje, en het cadeau onder de boom op de eerste kerstdag
+    if (F.dag > datum(J.kalenderTot)) (BIJZONDER[J.jaar] || []).forEach(function (id) { s.st.push(id); });
+    if (F.dag > datum(J.kerstdagenVan) && ONDERBOOM[J.jaar]) s.st.push(ONDERBOOM[J.jaar]);
+    if (F.dag > datum(J.intocht)) s.st.unshift('intocht26');
     if (sd.replace(/0/g, '')) s.d[KERN.seizoen('sint', J)] = sd.replace(/0+$/, '');
     if (kd.replace(/0/g, '')) s.d[KERN.seizoen('kerst', J)] = kd.replace(/0+$/, '');
     return s;
   }
   var K = Kern({ kal: function () { return kal; }, klok: klok, zeker: zeker, opslag: opslag });
   // ---------- per apparaat: versiering aan of uit, en geluid (pas na een aanraking)
-  var app = function () { var a = leesJ(APP); return a && typeof a === 'object' ? a : {}; };
-  function zetApp(k, v) { var a = app(); a[k] = v; schrijfJ(APP, a); melden(); versier(); }
+  // (lukt bewaren niet, zoals in het voorbeeld van de werkplaats, dan onthoudt dit tabblad het zolang het openstaat: anders begint de
+  // intocht of het afscheid daar steeds opnieuw)
+  var appMem = {};
+  var app = function () { var a = leesJ(APP); a = a && typeof a === 'object' ? a : {}; for (var k in appMem) a[k] = appMem[k]; return a; };
+  function zetApp(k, v) { var a = app(); a[k] = v; if (schrijfJ(APP, a)) delete appMem[k]; else appMem[k] = v; melden(); versier(); }
 
   // ---------- de stand voor de spellen, en wie er wil weten wanneer hij verandert
   function stand() {

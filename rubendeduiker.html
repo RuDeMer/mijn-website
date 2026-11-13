@@ -2005,6 +2005,9 @@ const RECEPTEN = {
   // ook geen sterren). Een hoofdgerecht met kreeft uit je koeling (deelt de porties met Kreeft uit de oven); de spruitjes komen uit
   // de voorraadkast, die altijd vol is (geen nieuwe groente in de moestuin, niets erbij in de proefkeuken). met = wat erachter staat.
   kerstdiner: { naam: 'Kerstdiner: gevulde kreeft met spruitjes', nodig: ['kreeft'], stappen: ['openen', 'opmaken', 'bakken'], prijs: 34, plaatje: 'kerstdiner', feest: 'rd-kerstdiner', kerst: true, met: 'spruitjes uit de voorraadkast' },
+  // van oudjaar (feest.js: de zak oliebollen op 31 december), net als het pepernotentaartje: van jou zolang je hem hebt, nooit in
+  // ST.recepten. Alles uit de voorraadkast; eerst frituren, dan de poedersuiker erover. oud: true zegt waar hij vandaan komt (feestLabel).
+  oliebollen: { naam: 'Oliebollen met poedersuiker', soort: 'toetje', nodig: [], groente: [], stappen: ['frituren', 'opmaken'], prijs: 5, plaatje: 'oliebollen', feest: 'rd-oliebollen', oud: true },
 };
 const soortVan = id => (RECEPTEN[id] && RECEPTEN[id].soort) || 'hoofd';
 const START_RECEPTEN = ['haring', 'kibbeling', 'schol', 'mosselen', 'vissoep', 'makreel'];
@@ -2081,8 +2084,9 @@ const bekendeRecepten = () => Object.keys(ST.recepten).filter(id => RECEPTEN[id]
 // wat er echt staat: een feestvondst die (op dit apparaat nog) niet van je is, zie je niet en telt niet mee, maar zijn plek in ST.decor blijft
 const hangt = id => !!VONDSTEN[id] && (!VONDSTEN[id].feest || feestVan(VONDSTEN[id]));
 const feestInKast = () => Object.keys(VONDSTEN).filter(id => feestVan(VONDSTEN[id]) && !ST.decor.includes(id));
-// waar een cadeautje vandaan komt: van de Sint, of (met kerst: true) uit de kerstkalender. klein: met een kleine letter vooraan.
-const feestLabel = (d, klein) => { const s = d && d.kerst ? 'Uit de kerstkalender' : 'Een cadeautje van de Sint'; return klein ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+// waar een cadeautje vandaan komt: van de Sint, (met kerst: true) uit de kerstkalender, of (met oud: true) van oudjaar. klein: met
+// een kleine letter vooraan.
+const feestLabel = (d, klein) => { const s = d && d.kerst ? 'Uit de kerstkalender' : d && d.oud ? 'Van oudjaar' : 'Een cadeautje van de Sint'; return klein ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
 
 // ---- verbeteringen: niveaus met prijs en waarde
 const UITRUSTING = {
@@ -2758,6 +2762,21 @@ function gerechtPix(id) {
       R.ovaal(14.6, 6.4, 1.7, 1.2, '#D8402E'); R.p(16.4, 5.6, '#D8402E'); R.p(16.4, 7.2, '#C8322A'); R.p(14, 6, '#F49A7A'); R.p(13, 7, '#A82A22');
       for (const [x, y] of [[12.6, 11.2], [16.2, 11], [14.4, 13]]) { R.ovaal(x, y, 1.4, 1.1, '#2E5A22'); R.ovaal(x, y, .8, .6, '#5E9A3A'); R.p(x - .5, y - .5, '#9CD06A'); }
       R.veelhoek([[2, 12.8], [4.2, 11.4], [4.8, 13]], '#2E6A2E'); R.veelhoek([[4.8, 13], [7.2, 11.6], [7.8, 13.2]], '#3A7A34'); R.p(5, 12, '#C8323C'); R.p(6, 13, '#E8414E'); R.p(5, 11, '#FF8A8A');
+      break;
+    }
+    // oliebollen: drie goudbruine, bobbelige bollen met krenten op een bordje, met een kapje poedersuiker (en wat suiker op het bord)
+    case 'oliebollen': {
+      R.ovaal(10, 12.6, 9, 1.5, '#F4F1E8'); R.rij(14, 4, 16, '#D8D2C2');
+      const bol = (x, y, r, krenten) => {
+        R.ovaal(x, y, r, r * .9, '#8A4A1C'); R.ovaal(x - .3, y - .3, r - .8, r * .9 - .8, '#B8692A'); R.ovaal(x - .8, y - .9, r - 1.9, r * .9 - 1.9, '#D48A3E'); R.p(x - 1.5, y - 1.5, '#ECAE5E');
+        for (let yy = Math.floor(y - r); yy <= y; yy++) for (let xx = Math.floor(x - r); xx <= Math.ceil(x + r); xx++) {
+          const u = (xx - x) / (r - .3), v = (yy - y) / (r * .9 - .3);
+          if (u * u + v * v <= 1 && v < -.26 && (xx * 7 + yy * 3) % 7) R.p(xx, yy, (xx + yy) % 3 ? '#FFFFFF' : '#F2ECE0');
+        }
+        for (const [dx, dy] of krenten) R.p(x + dx, y + dy, '#3A1A10');
+      };
+      bol(5.6, 9.6, 3.9, [[-1, 1], [2, 0], [0, 2]]); bol(14.4, 9.6, 3.9, [[-2, 1], [1, 2], [2, -1]]); bol(10, 5, 3.9, [[-2, 1], [1, 0], [2, 2]]);
+      for (const [x, y] of [[1, 12], [18, 12], [3, 13], [16, 13], [10, 13], [19, 13]]) R.p(x, y, '#FFFFFF');
       break;
     }
     case 'kalkrots': R.ovaal(9, 12, 8, 2.6, '#E8E2D6'); R.veelhoek([[3, 12], [5, 5], [8, 3], [11, 4], [14, 6], [15, 12]], '#FBF8F0'); R.lijn(5, 9, 13, 8, '#E4DCCC'); R.p(7, 6, '#FFFFFF'); R.ovaal(9, 3, 2, 1.6, '#E8414E'); R.ovaal(12, 4, 1.6, 1.2, '#C8323C'); R.p(9, 2, '#FF9A9A'); R.p(10, 1, groen); break;
@@ -9807,9 +9826,10 @@ window.__duiker = {
   testMini(kw = .9) { if (!A || !A.mini || !A.mini.spel || A.mini.spel.klaar) return false; const M = A.mini; M.scores = [kw]; M.i = M.stappen.length - 1; stapKlaar(); return true; },
   kentRecept, bekendeRecepten, feestInKast, VONDSTEN, feestLabel, gerechtPix, vondstPix, KERSTLICHT,
 };
-// de feestverzameling (feest.js): zodra die bekend is, en als hij verandert, weet het spel welke cadeautjes van de Sint en uit de
-// kerstkalender van jou zijn. Staat het restaurant al open, dan komen de chocoladeletters en het kerstboompje meteen op hun plek, en
-// het pepernotentaartje als je dat als toetje koos. (Het kerstdiner staat pas op de kaart als je het bij het menu kiest.)
+// de feestverzameling (feest.js): zodra die bekend is, en als hij verandert, weet het spel welke cadeautjes van de Sint, uit de
+// kerstkalender en van oudjaar van jou zijn. Staat het restaurant al open, dan komen de chocoladeletters en het kerstboompje meteen op
+// hun plek, en het pepernotentaartje of de oliebollen als je dat als toetje koos. (Het kerstdiner staat pas op de kaart als je het bij
+// het menu kiest.)
 if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => {
   feestHeb = id => !!(s && s.heb && s.heb(id));
   if (SCENE.naam !== 'restaurant' || !A || !A.wand) return;

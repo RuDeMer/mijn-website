@@ -13,6 +13,11 @@
    een boom die met elk deurtje voller wordt (kerstScene, ORN), met alle deurtjes het bijzondere kerstcadeau (de gouden piek en het
    Sterrenrendier, kerstKado), en op de kerstdagen voor iedereen een cadeau onder de boom (de sneeuwbol). De kerstbal en de sneeuwbol
    worden rommeltjes in de rommelkast.
+   Deel 4 (oud en nieuw, 31 december tot en met 6 januari; tekenOud): een plein met een oliebollenkraam en een schaal oliebollen om van te
+   happen (hap), op oudjaar een zak oliebollen om mee te nemen (oudKado: het toetje voor Ruben de Duiker en de oliebollenkraam voor de
+   Vlaaienbakker), van muntVan tot muntTot de nieuwjaarsmunt op tafel (met de vuurwerkfiches voor het casino; de munt rolt daarna als
+   rommeltje over de homepage), vanaf 23:55 een klok die aftelt, om middernacht vuurwerk boven het plein (RommelFeest.vuurwerk) en
+   "Gelukkig nieuwjaar!", en daarna de nieuwjaarsgroet.
    Versiering uit (per apparaat, rommelhoekje-feest-apparaat.uit): geen pepernoten, geen vallende sneeuw en niets dat beweegt; het bord blijft.
    Testhaak: window.RommelFeestHome. */
 (function () {
@@ -72,7 +77,12 @@
     'ck-roos': { naam: 'Er is een roos ontloken', spel: 'het Coulissenkoor', pagina: 'coulissenkoor.html', wat: 'Een liedje voor het koor', feest: 'Kerst 2026', van: 'Fijne kerst!', teken: function () { return plaat(icLied('roos')); } },
     piek26: { naam: 'De gouden piek', spel: 'je kerstboom', wat: 'Voor wie alle 19 deurtjes opende', feest: 'Kerst 2026', van: 'Fijne feestdagen!', teken: function () { return plaat(icPiek()); } },
     'rb-sterrenrendier': { naam: 'Sterrenrendier', spel: 'Rommelbeesten', pagina: 'rommelbeesten.html', wat: 'Een holo-feestkaart in je album', feest: 'Kerst 2026', van: 'Fijne feestdagen!', teken: function () { return plaat(icKaartKerst('rendier')); } },
-    'hp-sneeuwbol': { naam: 'Sneeuwbol', spel: 'je homepage', wat: 'Een rommeltje in je rommelkast', feest: 'Kerst 2026', van: 'Vrolijk kerstfeest!', teken: function () { return plaat(icSneeuwbol()); } }
+    'hp-sneeuwbol': { naam: 'Sneeuwbol', spel: 'je homepage', wat: 'Een rommeltje in je rommelkast', feest: 'Kerst 2026', van: 'Vrolijk kerstfeest!', teken: function () { return plaat(icSneeuwbol()); } },
+    // ---------- oud en nieuw 2026: de zak oliebollen (op oudjaar) en de nieuwjaarsmunt (rond middernacht), feest.js OUDJAAR en MUNT
+    'rd-oliebollen': { naam: 'Oliebollen', spel: 'Ruben de Duiker', pagina: 'rubendeduiker.html', wat: 'Een toetje voor het Rommelkombuis', feest: 'Oud en nieuw 2026', van: 'Groetjes van Ruben', teken: function () { return plaat(icOliebollen()); } },
+    'vb-oliebollenkraam': { naam: 'Oliebollenkraam', spel: 'de Vlaaienbakker', pagina: 'vlaaienbakker.html', wat: 'Een decor in de Gildewinkel', feest: 'Oud en nieuw 2026', van: 'Groetjes van Ruben', teken: function () { return plaat(icKraam()); } },
+    munt2027: { naam: 'De nieuwjaarsmunt 2027', spel: 'je homepage', wat: 'Een rommeltje dat rolt, in je rommelkast', feest: 'Oud en nieuw 2026', van: 'Gelukkig nieuwjaar!', teken: function () { return plaat(icMunt()); } },
+    'rc-vuurwerkfiches': { naam: 'Vuurwerkfiches', spel: 'Casino Rommelroyaal', pagina: 'rommelcasino.html', wat: 'Fiches in je kluisje', feest: 'Oud en nieuw 2026', van: 'Gelukkig nieuwjaar!', teken: function () { return plaat(icVuurwerkfiches()); } }
   };
   var GEDICHT = {
     intocht26: ['De stoomboot is er, kijk eens aan,', 'de Sint en zijn Pieten zijn net aan land gegaan.', 'Dit vlaggetje is voor jou, als welkomstgroet:', 'zet elke dag je schoen, dan komt het goed!'],
@@ -120,7 +130,11 @@
     'ck-roos': ['Er is een roos ontloken, midden in de kou:', 'een lied van heel lang geleden, nu gezongen voor jou.', 'Het staat bij de liedjes in het Coulissenkoor, heel stil:', 'laat de zangers zacht beginnen, zo zacht als je wil.'],
     piek26: ['Negentien deurtjes, en elke dag was jij er weer:', 'je miste er niet een, geen enkele keer.', 'Daarom een gouden piek, bovenop je boom, zo fijn:', 'dat is de beloning voor wie zo trouw kan zijn.'],
     'rb-sterrenrendier': ['Een rendier met sterren in zijn gewei, en een neus die gloeit:', 'het vloog over de daken, en het was nooit vermoeid.', 'In Rommelbeesten staat het in de Feestset, en het is holo, kijk:', 'de mooiste kaart van de kerst, en jij kreeg hem: wat ben je rijk!'],
-    'hp-sneeuwbol': ['Een sneeuwbol onder de boom, met een huisje en een dennenboom,', 'schud hem zachtjes, en de sneeuw dwarrelt, net als in een droom.', 'Hij staat op je homepage, in je rommelkast, kijk maar:', 'tik hem aan, of schud je telefoon: het sneeuwt, echt waar.']
+    'hp-sneeuwbol': ['Een sneeuwbol onder de boom, met een huisje en een dennenboom,', 'schud hem zachtjes, en de sneeuw dwarrelt, net als in een droom.', 'Hij staat op je homepage, in je rommelkast, kijk maar:', 'tik hem aan, of schud je telefoon: het sneeuwt, echt waar.'],
+    // ---------- oud en nieuw 2026
+    'rd-oliebollen': ['Een zak vol oliebollen, nog warm uit de pan,', 'met poedersuiker erop, zoveel als je maar kan.', 'Ruben de Duiker zet ze voortaan op de kaart als toetje:', 'de gasten in het Rommelkombuis smullen ervan, elk hapje.'],
+    'vb-oliebollenkraam': ['Een kraam met een luifel, rood en wit gestreept,', 'waar het naar oliebollen ruikt, zo lekker dat je het weet.', 'Zet hem in de Vlaaienbakker achter je vlaai, als decor:', 'dan is het in je bakkerij oudjaar, het hele jaar door.'],
+    munt2027: ['Een munt van glimmend goud, met het nieuwe jaar erop,', 'hij lag tussen de oliebollen, en jij pakte hem op.', 'Hij rolt nu over je homepage, in je rommelkast, kijk maar:', 'een gelukkig, rommelig en vrolijk nieuwjaar!']
   };
   // een tekening (viewBox 0 0 120 120) als los plaatje
   function plaat(binnen) { return '<svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">' + binnen + '</svg>'; }
@@ -862,7 +876,11 @@
     var s = F.nu(); spul();
     var p = F.kern.pakjes(), rest = p.dicht + (p.mijter === 'dicht' ? 1 : 0);
     // de kersttijd (en tot en met versieringTot, zolang het bijzondere kerstcadeau nog klaarligt)
-    var kk = F.kern.kerst(), kmodus = s.feest === 'kerst' ? s.fase : s.winter && kk.kanBijzonder ? 'na' : '';
+    var kk = F.kern.kerst();
+    // oud en nieuw (31 december tot en met de nieuwjaarsgroet): een eigen bord, met wat er nog van de kerst en de Sint klaarligt
+    if (s.feest === 'oud' || s.feest === 'nieuwjaar') { tekenOud(s, kk, p, rest); return; }
+    if (OV) { OV.weg(); OV = null; } clearInterval(aftelKlok);
+    var kmodus = s.feest === 'kerst' ? s.fase : s.winter && kk.kanBijzonder ? 'na' : '';
     if (kmodus) { tekenKerst(s, kk, p, rest, kmodus); return; }
     var sint = s.feest === 'sint' && (s.fase === 'intocht-straks' || s.fase === 'intocht' || s.fase === 'schoen' || s.fase === 'pakjesavond-straks' || s.fase === 'pakjesavond');
     var modus = sint ? s.fase : s.uitpakken && rest ? 'nog' : '';
@@ -949,7 +967,7 @@
   }
 
   // ================= de feestrommeltjes op de homepage (voor altijd, als je ze uitpakte): in de rommelkast
-  var RSPUL = { 'hp-chocoletter': 'chocoletter', 'hp-worteltje': 'worteltje', mijter26: 'goudmijter', 'hp-kerstbal': 'kerstbal', 'hp-sneeuwbol': 'sneeuwbol' }, spulKlok = 0, spulVorig = '';
+  var RSPUL = { 'hp-chocoletter': 'chocoletter', 'hp-worteltje': 'worteltje', mijter26: 'goudmijter', 'hp-kerstbal': 'kerstbal', 'hp-sneeuwbol': 'sneeuwbol', munt2027: 'nieuwjaarsmunt' }, spulKlok = 0, spulVorig = '';
   function spul() {
     var l = []; for (var id in RSPUL) if (F.kern.heb(id)) l.push(RSPUL[id]);
     var sig = l.join(); if (sig === spulVorig) return;
@@ -1230,6 +1248,264 @@
     document.head.appendChild(st);
   }
 
+  // ================= oud en nieuw: oliebollen op oudjaar, aftellen, vuurwerk om middernacht, de nieuwjaarsmunt en de nieuwjaarsgroet
+  // De kern staat in feest.js (OUDJAAR, MUNT, K.oud, pakOudjaar, pakMunt); de vuurwerkmotor ook (RommelFeest.vuurwerk).
+  function oliebol(x, y, r, z) {
+    var s = '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#B8742F" stroke="' + I + '" stroke-width="' + r1(Math.max(1.2, r * .16)) + '"/>';
+    s += '<path d="M' + r1(x - r * .8) + ' ' + r1(y + r * .25) + 'Q' + x + ' ' + r1(y + r * 1.05) + ' ' + r1(x + r * .8) + ' ' + r1(y + r * .25) + 'Q' + x + ' ' + r1(y + r * .62) + ' ' + r1(x - r * .8) + ' ' + r1(y + r * .25) + 'Z" fill="#8A4F22" opacity=".55"/>';
+    s += '<circle cx="' + r1(x - r * .35) + '" cy="' + r1(y - r * .35) + '" r="' + r1(r * .28) + '" fill="#D9984F" opacity=".7"/>';
+    // rozijnen en poedersuiker
+    s += '<circle cx="' + r1(x + r * .38) + '" cy="' + r1(y + r * .12) + '" r="' + r1(r * .13) + '" fill="#3A1F14"/><circle cx="' + r1(x - r * .1) + '" cy="' + r1(y + r * .42) + '" r="' + r1(r * .11) + '" fill="#3A1F14"/>';
+    s += '<path d="M' + r1(x - r * .75) + ' ' + r1(y - r * .3) + 'Q' + r1(x - r * .5) + ' ' + r1(y - r * 1.02) + ' ' + x + ' ' + r1(y - r * .98) + 'Q' + r1(x + r * .6) + ' ' + r1(y - r * .98) + ' ' + r1(x + r * .78) + ' ' + r1(y - r * .25) + 'Q' + r1(x + r * .4) + ' ' + r1(y - r * .5) + ' ' + r1(x + r * .1) + ' ' + r1(y - r * .38) + 'Q' + r1(x - r * .3) + ' ' + r1(y - r * .55) + ' ' + r1(x - r * .75) + ' ' + r1(y - r * .3) + 'Z" fill="#FFFFFF" opacity=".93"/>';
+    var zz = zaad(z || 3);
+    for (var i = 0; i < 4; i++) s += '<circle cx="' + r1(x + (zz() - .5) * r * 1.3) + '" cy="' + r1(y - r * .2 + (zz() - .5) * r * .7) + '" r="' + r1(r * .07) + '" fill="#FFFFFF"/>';
+    return s;
+  }
+  function icOliebollen() {
+    return '<ellipse cx="60" cy="98" rx="44" ry="7" fill="#231A26" opacity=".14"/>' + pd('M14 64Q16 98 60 100Q104 98 106 64Z', '#F7EBD2', 'stroke="' + I + '" stroke-width="3"') + pd('M18 74Q60 86 102 74', 'none', 'stroke="#2F4C8F" stroke-width="3" opacity=".7"') +
+      oliebol(40, 60, 15, 1) + oliebol(78, 60, 15, 2) + oliebol(59, 46, 16, 3) + pd('M10 64H110', 'none', 'stroke="' + I + '" stroke-width="3" stroke-linecap="round"');
+  }
+  function kraam(x0, y0, k) {
+    // een houten kraam met een gestreepte luifel, een bord OLIEBOLLEN, een pan met stoom, een bak oliebollen en lampjes langs de luifel
+    var s = '<g transform="translate(' + x0 + ' ' + y0 + ') scale(' + k + ')">';
+    s += pd('M8 -8V-118M212 -8V-118', 'none', 'stroke="' + I + '" stroke-width="9"') + pd('M8 -8V-118M212 -8V-118', 'none', 'stroke="#8E5A3A" stroke-width="5.6"');
+    s += pd('M14 -96H206V-38H14Z', '#3A2A2E');   // binnen in de kraam
+    // de pan met olie en stoom, en de verkoper
+    s += '<g class="fo-stoom">' + [0, 1, 2].map(function (i) { return '<path class="fo-wolk" style="--i:' + i + '" d="M' + (150 + i * 12) + ' -66q-7 -9 0 -18q7 -9 0 -18" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>'; }).join('') + '</g>';
+    s += pd('M138 -62H186L182 -44H142Z', '#2A2A30', 'stroke="' + I + '" stroke-width="2"') + pd('M140 -60H184', 'none', 'stroke="#E9B949" stroke-width="3"');
+    s += mens(124, -36, { kind: false, jas: '#FBF6E9', huid: '#E8B48C', haar: '#3A2414', muts: '#FFFFFF' }, 0);
+    // de toonbank, met de bak oliebollen
+    s += pd('M0 -40H220V0H0Z', '#C8323C', 'stroke="' + I + '" stroke-width="3"') + pd('M0 -40H220V-32H0Z', '#C9A267', 'stroke="' + I + '" stroke-width="2.4"');
+    s += '<text x="110" y="-11" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="15" letter-spacing="1.4" fill="#FBF6E9">VERS UIT DE PAN</text>';
+    s += pd('M18 -56H112L106 -40H24Z', '#F7EBD2', 'stroke="' + I + '" stroke-width="2.2"');
+    [[34, -50, 2], [52, -52, 1], [70, -50, 3], [88, -52, 2], [44, -60, 3], [62, -61, 1], [80, -60, 2]].forEach(function (b, i) { s += oliebol(b[0], b[1], 9, i + 1); });
+    // de luifel: rood-wit gestreept, met een golfrand
+    s += pd('M-6 -118H226L232 -96H-12Z', '#FBF6E9', 'stroke="' + I + '" stroke-width="3" stroke-linejoin="round"');
+    for (var i = 0; i < 9; i++) if (i % 2 === 0) s += pd('M' + (-6 + i * 26) + ' -118H' + (20 + i * 26) + 'L' + (r1(18.2 + i * 26.9)) + ' -96H' + r1(-12 + i * 26.9) + 'Z', ROOD);
+    var rand = 'M-12 -96'; for (var j = 0; j < 9; j++) rand += 'q' + r1(244 / 18) + ' 14 ' + r1(244 / 9) + ' 0'; s += pd(rand + 'Z', '#FBF6E9', 'stroke="' + I + '" stroke-width="2.6" stroke-linejoin="round"');
+    for (var m = 0; m < 9; m++) if (m % 2 === 0) s += pd('M' + r1(-12 + m * 244 / 9) + ' -96q' + r1(244 / 18) + ' 14 ' + r1(244 / 9) + ' 0z', ROOD, 'stroke="' + I + '" stroke-width="1.6"');
+    // lampjes langs de luifel
+    for (var l = 0; l < 10; l++) s += '<circle class="fo-lamp ' + (l % 2 ? 'fo-b' : 'fo-a') + '" cx="' + r1(-4 + l * 25) + '" cy="-80" r="3.6" fill="' + ['#F2C744', '#FF5A5F', '#FFF1C9', '#3FD18A'][l % 4] + '" stroke="' + I + '" stroke-width="1"/>';
+    // het bord bovenop
+    s += pd('M40 -150H180V-122H40Z', '#FBF6E9', 'stroke="' + I + '" stroke-width="3"') + pd('M60 -122V-118M160 -122V-118', 'none', 'stroke="' + I + '" stroke-width="3"');
+    s += '<text x="110" y="-130" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="19" letter-spacing="1.6" fill="' + ROOD + '">OLIEBOLLEN</text>';
+    return s + '</g>';
+  }
+  function icKraam() { return '<ellipse cx="60" cy="106" rx="54" ry="5" fill="#231A26" opacity=".14"/>' + kraam(7, 104, .5); }
+  function muntSvg(cx, cy, r, jaar) {
+    return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#E0A92E" stroke="' + I + '" stroke-width="' + r1(r * .09) + '"/><circle cx="' + cx + '" cy="' + cy + '" r="' + r1(r * .82) + '" fill="#F6CB2F" stroke="#B9801E" stroke-width="' + r1(r * .05) + '"/>' +
+      '<path d="M' + r1(cx - r * .55) + ' ' + r1(cy - r * .4) + 'A' + r1(r * .7) + ' ' + r1(r * .7) + ' 0 0 1 ' + r1(cx + r * .2) + ' ' + r1(cy - r * .68) + '" stroke="#FFF4C2" stroke-width="' + r1(r * .1) + '" fill="none" stroke-linecap="round"/>' +
+      '<text x="' + cx + '" y="' + r1(cy + r * .2) + '" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="' + r1(r * .58) + '" fill="#8A5A12">' + jaar + '</text>' +
+      '<path d="' + sterPad(cx, r1(cy - r * .5), r1(r * .14)) + '" fill="#8A5A12"/><path d="' + sterPad(r1(cx - r * .42), r1(cy + r * .45), r1(r * .09)) + '" fill="#8A5A12"/><path d="' + sterPad(r1(cx + r * .42), r1(cy + r * .45), r1(r * .09)) + '" fill="#8A5A12"/>';
+  }
+  function icMunt() { return '<ellipse cx="60" cy="102" rx="36" ry="6" fill="#231A26" opacity=".14"/>' + muntSvg(60, 58, 40, 2027); }
+  function icVuurwerkfiches() {
+    var f = function (x, y, kl) { return '<circle cx="' + x + '" cy="' + y + '" r="24" fill="' + kl + '" stroke="' + I + '" stroke-width="3"/><circle cx="' + x + '" cy="' + y + '" r="24" fill="none" stroke="#F6CB2F" stroke-width="5" stroke-dasharray="7 8.1"/><circle cx="' + x + '" cy="' + y + '" r="14" fill="#1B2550" stroke="#F6CB2F" stroke-width="2"/>' +
+      [0, 1, 2, 3, 4, 5, 6, 7].map(function (i) { var a = i * Math.PI / 4; return '<path d="M' + r1(x + Math.cos(a) * 3) + ' ' + r1(y + Math.sin(a) * 3) + 'L' + r1(x + Math.cos(a) * 10) + ' ' + r1(y + Math.sin(a) * 10) + '" stroke="' + ['#F2C744', '#FF5A5F', '#FFFFFF', '#3FD18A'][i % 4] + '" stroke-width="2" stroke-linecap="round"/>'; }).join(''); };
+    return '<ellipse cx="60" cy="104" rx="44" ry="6" fill="#231A26" opacity=".14"/>' + f(38, 74, '#1B2550') + f(80, 72, '#1B2550') + f(59, 42, '#2F4C8F');
+  }
+  // de scène: een plein met grachtenhuizen, de oliebollenkraam, mensen, en in de lucht de klok of de nieuwjaarswens (het vuurwerk zelf op een doekje erover)
+  function oudScene(modus, jaar) {
+    var s = '<svg class="fb-svg" viewBox="0 0 960 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">';
+    s += '<defs><linearGradient id="fbg-lucht" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--fb-l1)"/><stop offset="1" style="stop-color:var(--fb-l2)"/></linearGradient>' +
+      '<radialGradient id="fbg-gloed"><stop offset="0" stop-color="#FFE9A8" stop-opacity=".9"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient></defs>';
+    s += '<rect width="960" height="300" fill="url(#fbg-lucht)"/>';
+    var wolk = function (x, y, k) { return '<g class="fb-wolkje" transform="translate(' + x + ' ' + y + ') scale(' + k + ')"><path d="M-40 10Q-44 -6 -26 -6Q-22 -22 -4 -18Q6 -30 22 -20Q40 -22 40 -4Q52 0 46 10Z" fill="#FFFFFF" stroke="#BFD6E6" stroke-width="2"/></g>'; };
+    s += '<g class="fb-dag"><circle cx="800" cy="50" r="44" fill="url(#fbg-gloed)"/><circle cx="800" cy="50" r="21" fill="#F6CB2F" stroke="#E0A92E" stroke-width="2"/>' + wolk(140, 44, .9) + wolk(620, 30, .7) + '</g>';
+    s += '<g class="fb-nacht"><circle cx="800" cy="50" r="40" fill="url(#fbg-gloed)" opacity=".35"/><circle cx="800" cy="50" r="18" fill="#FBF6E9"/><circle cx="808" cy="45" r="15" fill="var(--fb-l1)"/>' +
+      [[60, 30], [190, 64], [300, 22], [520, 18], [660, 40], [880, 58], [930, 20], [110, 90], [720, 96]].map(function (p) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.6" fill="#FFFFFF" opacity=".8"/>'; }).join('') + '</g>';
+    // de klok die aftelt, en de nieuwjaarswens
+    s += '<g class="fo-aftelbord"><rect x="345" y="18" width="200" height="84" rx="14" fill="#1B1830" stroke="#E9B949" stroke-width="4"/><text x="445" y="41" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="13" letter-spacing="2" fill="#E9B949">AFTELLEN NAAR ' + jaar + '</text>' +
+      '<text class="fo-aftel" x="445" y="90" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="46" fill="#FBF6E9" style="font-variant-numeric:tabular-nums">5:00</text></g>';
+    s += '<g class="fo-wens"><text x="460" y="58" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="34" letter-spacing="2" fill="#F2C744" stroke="#231A26" stroke-width="5" paint-order="stroke">GELUKKIG NIEUWJAAR!</text>' +
+      '<text x="460" y="112" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="52" letter-spacing="3" fill="#FBF6E9" stroke="#231A26" stroke-width="6" paint-order="stroke">' + jaar + '</text></g>';
+    // de huizen langs het plein
+    var H = [[0, 50, 112, '#B5533C', 'trap'], [50, 44, 96, '#8E5A3A', 'hals'], [94, 46, 120, '#C9A267', 'klok'], [140, 42, 100, '#A0473A', 'tuit', '#1F3D6B'], [500, 46, 104, '#7B6B5B', 'trap'], [546, 48, 118, '#B8823F', 'hals', '#7A2430'], [594, 44, 96, '#9B4D38', 'tuit'], [638, 46, 110, '#8A5236', 'klok'], [684, 44, 100, '#B5533C', 'trap', '#1F3D6B'], [728, 46, 92, '#7C6A57', 'tuit'], [774, 48, 116, '#A9693E', 'hals'], [822, 44, 104, '#9B4D38', 'trap'], [866, 46, 96, '#C7A06A', 'klok', '#7A2430'], [912, 48, 112, '#8E5A3A', 'trap']];
+    s += '<g class="fb-ver" fill="var(--fb-ver)"><path d="M180 236V200h22v-14h16v14h20v-34l10 -16 10 16v34h22v-18h26v18h30v-24h18v24h20V184l8 -24 8 24v52h34V236Z"/></g>';
+    s += '<g class="fb-stad">' + H.map(function (h) { return huis(h[0], h[1], h[2], h[3], h[4], 236, h[5]); }).join('') + '</g>';
+    // een vlaggenlijn met lampjes over het plein
+    var lijn = 'M0 150Q240 186 480 150Q720 186 960 150';
+    s += pd(lijn, 'none', 'stroke="' + I + '" stroke-width="1.4" opacity=".7"');
+    for (var i = 0; i < 24; i++) { var u = (i + .5) / 24, x = u * 960, v = (u * 2) % 1, y = 150 + 2 * v * (1 - v) * 36 * .5 * 2; s += '<circle class="fo-lamp ' + (i % 2 ? 'fo-b' : 'fo-a') + '" cx="' + r1(x) + '" cy="' + r1(y + 3) + '" r="3.4" fill="' + ['#F2C744', '#FF5A5F', '#4C86F0', '#FFF1C9', '#3FD18A'][i % 5] + '" stroke="' + I + '" stroke-width=".9"/>'; }
+    // het plein met kinderkopjes
+    s += pd('M0 236H960V300H0Z', 'var(--fo-plein)');
+    for (var r = 0; r < 4; r++) for (var c = 0; c < 40; c++) s += '<rect x="' + (c * 24 + (r % 2) * 12) + '" y="' + (242 + r * 15) + '" width="20" height="11" rx="4" fill="var(--fo-steen)"/>';
+    s += pd('M0 236H960', 'none', 'stroke="' + I + '" stroke-width="2" opacity=".5"');
+    // een lantaarn
+    s += '<g class="fb-lantaarn"><circle class="fb-lgloed" cx="900" cy="178" r="22" fill="url(#fbg-gloed)"/>' + pd('M900 236V188', 'none', 'stroke="' + I + '" stroke-width="3"') + pd('M894 188h12l-2 -10h-8z', 'var(--fb-glas)', 'stroke="' + I + '" stroke-width="1.6"') + '</g>';
+    // de kraam, en mensen in de rij en op het plein (die zwaaien en juichen)
+    s += kraam(150, 236, 1);
+    var rnd = zaad(17), jassen = ['#2F4C8F', ROOD, GOUD, '#2E8B62', '#6A4C9C', '#E07A2E', '#3A3A44'], huiden = ['#F1C9A5', '#C68C5E', '#8D5A3B', '#E8B48C', '#B97A52'], haren = ['#3A2414', '#7A4E2D', '#B9822F', '#2A1A10', '#C9C0B0'];
+    var mx = [418, 442, 470, 520, 548, 600, 640, 690, 732, 770];
+    s += '<g class="fb-mensen">' + mx.map(function (x, i) { var kind = rnd() < .35; return mens(x, 262 + (i % 2) * 8, { kind: kind, jas: jassen[Math.floor(rnd() * jassen.length)], huid: huiden[Math.floor(rnd() * huiden.length)], haar: haren[Math.floor(rnd() * haren.length)], muts: rnd() < .4 ? [ROOD, '#2F4C8F', '#2E8B62', '#FBF6E9'][Math.floor(rnd() * 4)] : '' }, i); }).join('') + '</g>';
+    return s + '</svg>';
+  }
+  // de tafel naast de tekst: een schaal oliebollen om van te happen, een busje poedersuiker, en rond middernacht de nieuwjaarsmunt
+  var HAP = { n: 0 }, ORDE = [5, 4, 3, 2, 1, 0, 6], BOLPLEK = [[86, 74], [130, 76], [174, 74], [106, 58], [152, 58], [128, 42], [98, 80]];
+  function tafelHtml(o) {
+    var s = '<button type="button" class="fo-schaal" data-actie="hap" aria-label="Neem een oliebol"><svg class="fo-tafel-svg" viewBox="0 0 330 180" aria-hidden="true" focusable="false">';
+    s += pd('M0 150H330V180H0Z', 'var(--fb-vloer)', 'stroke="none"') + pd('M20 112H310L300 150H30Z', '#FBF6E9', 'stroke="' + I + '" stroke-width="2.6"');
+    for (var i = 0; i < 14; i++) s += pd('M' + (24 + i * 20) + ' 112L' + (34 + i * 19.3) + ' 150', 'none', 'stroke="' + ROOD + '" stroke-width="5" opacity=".35"');
+    s += pd('M40 150V174M290 150V174', 'none', 'stroke="' + I + '" stroke-width="5"');
+    // het busje poedersuiker
+    s += pd('M232 112V70Q232 64 238 64H262Q268 64 268 70V112Z', '#FBF6E9', 'stroke="' + I + '" stroke-width="2.6"') + pd('M234 64Q250 50 266 64Z', '#C9CED6', 'stroke="' + I + '" stroke-width="2.4"') + '<circle cx="246" cy="58" r="1.6" fill="' + I + '"/><circle cx="254" cy="58" r="1.6" fill="' + I + '"/>' +
+      '<text x="250" y="96" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="10" fill="#2F4C8F">SUIKER</text>';
+    // de schaal met zeven oliebollen (wat je opat is weg; na de laatste komt er een nieuwe lading)
+    s += '<ellipse cx="130" cy="114" rx="80" ry="8" fill="#231A26" opacity=".14"/>' + pd('M52 82Q56 116 130 118Q204 116 208 82Z', '#F7EBD2', 'stroke="' + I + '" stroke-width="3"') + pd('M58 92Q130 106 202 92', 'none', 'stroke="#2F4C8F" stroke-width="3" opacity=".7"');
+    BOLPLEK.forEach(function (b, i) { var o2 = ORDE.indexOf(i); s += '<g class="fo-bol" data-b="' + i + '"' + (o2 >= 0 && o2 < HAP.n ? ' style="display:none"' : '') + '>' + oliebol(b[0], b[1], 17, i + 1) + '</g>'; });
+    s += pd('M46 82H214', 'none', 'stroke="' + I + '" stroke-width="3" stroke-linecap="round"');
+    s += '<g class="fo-suiker" aria-hidden="true"></g></svg></button>';
+    if (o.munt === 'dicht') s += '<button type="button" class="fo-munt" data-actie="munt" aria-label="Pak de nieuwjaarsmunt ' + o.jaar + '"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle cx="40" cy="40" r="38" fill="url(#fo-muntgloed)"/><defs><radialGradient id="fo-muntgloed"><stop offset="0" stop-color="#FFE9A8" stop-opacity=".9"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient></defs>' + muntSvg(40, 40, 26, o.jaar) + '</svg></button>';
+    return s;
+  }
+  function oudTeksten(s, o, k, rest, modus, uur) {
+    var t = { label: '', kop: '', zin: '', knoppen: [] }, zin = [], n = naam(), J = s.J, jaar = o.jaar;
+    var offline = navigator.onLine === false ? 'Zonder internet kun je het nog niet pakken. Dat kan straks weer.' : 'Even kijken hoe laat het echt is…';
+    if (modus === 'oudjaar') {
+      t.label = dagLabel(J.oudjaar) + (uur >= 18 ? ': oudjaarsavond' : ': oudjaar');
+      t.kop = 'Het is oudjaar' + (n ? ', ' + n : '') + '!';
+      zin.push('De oliebollen zijn net uit de pan. Neem er gerust een: tik op de schaal.');
+      if (s.t < F.KERN.moment(J.muntVan)) zin.push('Vanavond om ' + String(J.muntVan).slice(11, 16) + ' ligt er een gouden nieuwjaarsmunt op tafel, en om middernacht is er vuurwerk.');
+      else zin.push('Om middernacht begint ' + jaar + ', met vuurwerk.');
+    } else if (modus === 'aftellen') {
+      t.label = dagLabel(J.oudjaar) + ': oudjaarsavond';
+      t.kop = 'Aftellen naar ' + jaar + '!';
+      zin.push('Nog even, dan is het ' + jaar + '. Blijf kijken: om middernacht gaat het vuurwerk de lucht in.');
+    } else if (modus === 'vuurwerk') {
+      t.label = dagLabel(J.middernacht);
+      t.kop = 'Gelukkig nieuwjaar' + (n ? ', ' + n : '') + '!';
+      zin.push('Welkom in ' + jaar + '! Fijn dat je er bent.');
+    } else {
+      var eerste = s.dag === String(J.middernacht).slice(0, 10);
+      t.label = dagLabel(s.dag);
+      t.kop = eerste ? 'Gelukkig nieuwjaar' + (n ? ', ' + n : '') + '!' : 'Een goed ' + jaar + '!';
+      zin.push('De beste wensen van Ruben, voor een jaar vol spelletjes, puzzels en rommel.');
+    }
+    if (o.oudjaar === 'dicht') { zin.push('Neem ook een zak oliebollen mee voor onderweg: daar zit iets in voor Ruben de Duiker en de Vlaaienbakker.'); if (o.kanOudjaar) t.knoppen.push(['oudjaar', 'Neem een zak oliebollen mee']); else zin.push(offline); }
+    if (o.munt === 'dicht') { zin.push('Er ligt een gouden munt met ' + jaar + ' op tafel!'); if (o.kanMunt) t.knoppen.push(['munt', 'Pak de nieuwjaarsmunt']); else zin.push(offline); }
+    else if (o.munt === 'open' && modus !== 'oudjaar') zin.push('Je nieuwjaarsmunt rolt nu over je homepage.');
+    if (k.kanBijzonder) { zin.push('Er ligt nog een bijzonder kerstcadeau voor je.'); t.knoppen.push(['bijzonder', 'Pak je bijzondere kerstcadeau uit']); }
+    if (rest && s.uitpakken) { zin.push('En er ' + (rest === 1 ? 'ligt nog één cadeautje' : 'liggen nog ' + rest + ' cadeautjes') + ' van de Sint voor je.'); t.knoppen.push(['uitpakken', 'Pak je Sint-cadeautjes uit']); }
+    t.zin = zin.join(' ');
+    t.knoppen.forEach(function (b, i) { b[2] = i === 0 ? 1 : 0; });
+    t.knoppen.push(['spullen', 'Mijn feestspullen', 0]);
+    return t;
+  }
+  // het bord met oud en nieuw (zoals teken() voor de Sint)
+  var OV = null, aftelKlok = 0, oudVorig = '';
+  function tekenOud(s, k, p, rest) {
+    var modus = s.fase, o = F.kern.oud(), nu = F.kern.nu(), uur = F.KERN.nlDelen(nu.t).u;
+    s.J = nu.J; s.t = nu.t;
+    var avond = modus !== 'oudjaar' && modus !== 'groet' ? true : modus === 'oudjaar' ? uur >= 17 : uur < 8 || uur >= 17;
+    var t = oudTeksten(s, o, k, rest, modus, uur), sig = JSON.stringify([t, o.munt, o.oudjaar, s.versiering, avond]);
+    sec.hidden = false; stijl(); kerstStijl(); oudStijl();
+    if (!bord || laatsteFase !== 'o-' + modus) {
+      if (bord) bord.remove();
+      if (OV) { OV.weg(); OV = null; }
+      bord = document.createElement('div'); bord.className = 'tg-feest-bord fb-oud'; bord.setAttribute('role', 'region'); bord.setAttribute('aria-labelledby', 'fb-kop');
+      bord.innerHTML = '<div class="fb-scene fo-scene fo-' + modus + '">' + oudScene(modus, o.jaar) + '<canvas class="fo-vuur" aria-hidden="true"></canvas></div>' +
+        '<div class="fb-tekst"><span class="fb-label"></span><h2 class="fb-kop" id="fb-kop"></h2><p class="fb-zin" aria-live="polite"></p><div class="fb-knoppen"></div><div class="fb-kleintjes"><button type="button" class="fb-klein fb-uitknop" aria-pressed="false"></button></div></div>' +
+        '<div class="fo-tafel"></div>';
+      sec.appendChild(bord); laatsteFase = 'o-' + modus; laatsteSig = ''; oudVorig = '';
+      bord.addEventListener('click', klik);
+      kijkhoek();
+      if (modus === 'vuurwerk' && !minder) { setTimeout(function () { if (F) F.knal(1); }, 50); }
+    }
+    bord.classList.toggle('fb-stil', !s.versiering);
+    bord.classList.toggle('fb-avond', avond);
+    if (sig !== laatsteSig) {
+      var a = document.activeElement, focus = a && bord.contains(a) ? a.getAttribute('data-actie') : null;
+      bord.querySelector('.fb-label').textContent = t.label;
+      bord.querySelector('.fb-kop').textContent = t.kop;
+      bord.querySelector('.fb-zin').textContent = t.zin;
+      bord.querySelector('.fb-knoppen').innerHTML = t.knoppen.map(knopHtml).join('');
+      var u = bord.querySelector('.fb-uitknop'); u.textContent = s.versiering ? 'Versiering uit' : 'Versiering aan'; u.setAttribute('aria-pressed', String(!s.versiering));
+      var tsig = o.munt + '|' + o.jaar;
+      if (tsig !== oudVorig) { bord.querySelector('.fo-tafel').innerHTML = tafelHtml(o); oudVorig = tsig; }
+      if (focus) { var f = bord.querySelector('[data-actie="' + focus + '"]') || bord.querySelector('.fb-knop'); if (f && f.focus) f.focus(); }
+      laatsteSig = sig;
+      herbouw();
+    }
+    // het vuurwerk boven het plein: om middernacht volop, bij het aftellen af en toe, op oudjaarsavond en die nacht een enkele pijl
+    var tempo = modus === 'vuurwerk' ? 10 : modus === 'aftellen' ? 2.2 : s.oudNacht ? 1.1 : 0;
+    if (tempo && s.versiering && !minder && F.vuurwerk) {
+      if (!OV) OV = F.vuurwerk(bord.querySelector('.fo-vuur'), { tempo: tempo, max: modus === 'vuurwerk' ? 3.2 : 1, nacht: true, knal: function (kr) { if (modus === 'vuurwerk' && Math.random() < .6) F.knal(kr * .8); } });
+      OV.start(tempo);
+    } else if (OV) OV.stop();
+    // de klok bij het aftellen, elke seconde
+    clearInterval(aftelKlok);
+    if (modus === 'aftellen') {
+      var tik = function () {
+        var el = bord && bord.querySelector('.fo-aftel'); if (!el) { clearInterval(aftelKlok); return; }
+        var ms = F.KERN.moment(F.kern.nu().J.middernacht) - F.klok();
+        if (ms <= 0) { clearInterval(aftelKlok); F.melden(); teken(); return; }
+        var sec2 = Math.ceil(ms / 1000); el.textContent = Math.floor(sec2 / 60) + ':' + ('0' + sec2 % 60).slice(-2);
+      };
+      tik(); aftelKlok = setInterval(tik, 1000);
+    }
+    pepernoten(false);
+  }
+  // een hap van een oliebol: een wolkje poedersuiker, en na de laatste een nieuwe lading
+  function hap() {
+    var sv = bord && bord.querySelector('.fo-tafel-svg'); if (!sv) return;
+    if (HAP.n >= ORDE.length) return;
+    var nr = ORDE[HAP.n], b = sv.querySelector('.fo-bol[data-b="' + nr + '"]'), pos = BOLPLEK[nr];
+    if (b) b.style.display = 'none'; HAP.n++;
+    toon(220, 0, .09, 'triangle', .05, 140); toon(180, .08, .08, 'triangle', .04, 120);
+    var w = sv.querySelector('.fo-suiker');
+    if (w && !minder) {
+      var g = '';
+      for (var i = 0; i < 7; i++) { var x = pos[0] + (Math.random() - .5) * 26, y = pos[1] + (Math.random() - .5) * 12; g += '<circle class="fo-poeder" cx="' + r1(x) + '" cy="' + r1(y) + '" r="' + r1(4 + Math.random() * 5) + '" fill="#FFFFFF" style="--dx:' + Math.round((Math.random() - .5) * 30) + 'px;--dy:' + Math.round(-14 - Math.random() * 22) + 'px"/>'; }
+      w.innerHTML = g + '<text class="fo-mmm" x="' + pos[0] + '" y="' + (pos[1] - 22) + '" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="16" fill="' + ROOD + '">Mmm!</text>';
+      setTimeout(function () { if (w) w.innerHTML = ''; }, 1100);
+    }
+    if (HAP.n >= ORDE.length) setTimeout(function () { HAP.n = 0; var sv2 = bord && bord.querySelector('.fo-tafel-svg'), l = sv2 ? sv2.querySelectorAll('.fo-bol') : []; for (var i = 0; i < l.length; i++) l[i].style.display = ''; }, 1400);
+  }
+  // de zak oliebollen of de nieuwjaarsmunt: een venster met wat erin zit
+  function oudKado(soort) {
+    var r = soort === 'munt' ? F.kern.pakMunt() : F.kern.pakOudjaar();
+    if (!r) { F.melden(); return; }
+    tring(); F.melden();
+    var hoofd = SPUL[r[0]], extra = r.slice(1).map(function (id) { var x = SPUL[id]; return x ? '<div class="fk-extra">' + x.teken() + '<p><b>En ' + esc(x.naam.toLowerCase()) + '</b><br>' + esc(waarTekst(x)) + '</p></div>' : ''; }).join('');
+    var d = venster('<span class="fb-label">' + (soort === 'munt' ? 'De nieuwjaarsmunt' : 'Een zak oliebollen') + '</span><span class="fb-plaat fk-nieuw">' + hoofd.teken() + '</span><h2>' + esc(hoofd.naam) + '</h2><p class="fb-voor">' + esc(waarTekst(hoofd)) + '</p>' + gedichtHtml(r[0]) + extra +
+      '<div class="fb-knoppen"><button type="button" class="fb-knop fb-hoofd" data-dicht>' + (soort === 'munt' ? 'Gelukkig nieuwjaar!' : 'Lekker!') + '</button>' + (hoofd.pagina ? '<a class="fb-knop" href="' + esc(hoofd.pagina) + '">Naar ' + esc(hoofd.knop || hoofd.spel) + '</a>' : '') + '</div>', 'fk-deurvenster');
+    d.addEventListener('close', function () { teken(); });
+  }
+  function oudStijl() {
+    if (document.getElementById('fo-stijl')) return;
+    var st = document.createElement('style'); st.id = 'fo-stijl';
+    st.textContent = [
+      '.tg-feest-bord.fb-oud{--fo-plein:#A39488;--fo-steen:#B3A598;grid-template-areas:"scene scene" "tekst schoen"}',
+      'html[data-thema="donker"] .tg-feest-bord.fb-oud,.tg-feest-bord.fb-oud.fb-avond{--fo-plein:#3E3A4C;--fo-steen:#4A4558}',
+      '.fo-vuur{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}',
+      '.fo-aftelbord,.fo-wens{display:none}.fo-aftellen .fo-aftelbord{display:inline}.fo-vuurwerk .fo-wens{display:inline}',
+      '.fo-groet .fo-wens{display:inline;opacity:.92}',
+      '.fo-tafel{grid-area:schoen;position:relative;padding:.7rem 1rem .6rem 0;display:flex;flex-direction:column;justify-content:flex-end}',
+      '.fo-schaal{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;border-radius:14px}',
+      '.fo-schaal:focus-visible,.fo-munt:focus-visible{outline:3px solid var(--tg-focus,#2F4C8F);outline-offset:3px}',
+      '.fo-tafel-svg{display:block;width:100%;height:auto;overflow:visible}',
+      '.fo-munt{position:absolute;right:calc(1rem + 2%);bottom:calc(.6rem + 34%);width:22%;max-width:76px;aspect-ratio:1/1;padding:0;border:0;background:none;cursor:pointer;border-radius:50%}',
+      '.fo-munt svg{display:block;width:100%;height:100%}',
+      '@media (max-width:640px){.tg-feest-bord.fb-oud{grid-template-areas:"scene" "tekst" "schoen"}.fo-tafel{padding:0 1rem .8rem}.fo-schaal{max-width:290px;margin-left:auto}}',
+      '@media (prefers-reduced-motion:no-preference){',
+      '  .fb-oud:not(.fb-stil) .fo-lamp.fo-a{animation:fk-brand 2.4s ease-in-out infinite}',
+      '  .fb-oud:not(.fb-stil) .fo-lamp.fo-b{animation:fk-brand 2.4s ease-in-out -1.2s infinite}',
+      '  .fb-oud:not(.fb-stil) .fo-wolk{animation:fo-stoom 2.6s ease-out infinite;animation-delay:calc(var(--i)*-.85s)}',
+      '  .fb-oud:not(.fb-stil) .fo-munt svg{animation:fo-glim 2.2s ease-in-out infinite}',
+      '  .fo-poeder{animation:fo-poeder 1s ease-out forwards}.fo-mmm{animation:fo-mmm 1s ease-out forwards}',
+      '  .fo-vuurwerk .fo-wens{animation:fo-wens .9s cubic-bezier(.2,1.4,.4,1) both;transform-box:fill-box;transform-origin:center}',
+      '  .fo-schaal:active .fo-tafel-svg{transform:translateY(1px)}',
+      '}',
+      '@keyframes fo-stoom{0%{opacity:0;transform:translateY(6px)}30%{opacity:.75}100%{opacity:0;transform:translateY(-16px)}}',
+      '@keyframes fo-glim{0%,100%{transform:rotate(-6deg) scale(1)}50%{transform:rotate(6deg) scale(1.06)}}',
+      '@keyframes fo-poeder{from{opacity:.95;transform:translate(0,0)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.6)}}',
+      '@keyframes fo-mmm{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-14px)}}',
+      '@keyframes fo-wens{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}',
+      '@keyframes fk-brand{0%,100%{opacity:1}50%{opacity:.4}}'
+    ].join('\n');
+    document.head.appendChild(st);
+  }
+
   // ================= pakjesavond: de cadeautjes een voor een uitpakken
   // UP: het venster dat openstaat { d, staat: 'dicht' | 'open' | 'klaar', i, id, goud }
   var UP = null;
@@ -1364,6 +1640,9 @@
     else if (a === 'uitpakken') uitpakVenster();
     else if (a === 'afscheid') afscheidVaart(true);
     else if (a === 'deur') deurKlik(+k.getAttribute('data-i'));
+    else if (a === 'hap') hap();
+    else if (a === 'oudjaar') oudKado('oudjaar');
+    else if (a === 'munt') oudKado('munt');
     else if (a === 'deur-vandaag') deurKlik(F.kern.kerst().vandaag);
     else if (a === 'onderboom') { if (F.kern.kerst().kanOnderBoom) kerstKado('boom'); }
     else if (a === 'bijzonder') {

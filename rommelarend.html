@@ -7616,6 +7616,257 @@ const AL = (() => {
       const KERKEN = { parijs: [['notredame', 196], ['sacrecoeur', 233], ['madeleine', 262], ['invalides', 175]], amsterdam: [['a-westertoren', 220], ['a-oudekerk', 196], ['a-zuiderkerk', 247], ['a-nieuwekerk', 175], ['a-nicolaas', 262]], londen: [['l-bigben', 165], ['l-stpauls', 196], ['l-abbey', 233]], newyork: [['n-stpatrick', 196], ['n-woolworth', 233]] };
       const kerk = (KERKEN[STAD.id] || KERKEN.parijs).map(([id, f]) => { const b = B_(id); return b ? [Math.hypot(b.x - xm, b.z - zm), f] : null; }).filter(Boolean).sort((a, b) => a[0] - b[0])[0]; if (!kerk || kerk[0] > 2600) return; const vol = 0.09 * Math.max(0.15, 1 - kerk[0] / 2600), n = Math.min(6, ((uur + 11) % 12) + 1); for (let i = 0; i < n; i++) kerkklok(kerk[1], i * 1.6, vol); },
   };
+  // ---------------------------------------------------------------- vuurwerk op oudjaarsavond en die nacht
+  // Van 31 december 18:00 tot 1 januari 06:00 (Nederlandse tijd, de echte tijd uit feest.js: oudNacht), los van de klok in het spel. Vuurpijlen
+  // stijgen op vanuit de stad (of het water) en spatten open als pioen, chrysant, ring, knetter, wilg of dubbele pioen: overal, maar vooral binnen
+  // een paar km van de camera en voor je uit. Rustig op de avond, drukker naar middernacht, en van 00:00 tot 00:20 een groot vuurwerk.
+  // Eén vaste voorraad puntjes (THREE.Points, één tekenopdracht): elke pijl heeft een eigen vak puntjes, en de grafische kaart rekent zelf uit
+  // waar elk puntje is (uit de tijd). De processor schrijft alleen bij een nieuwe pijl zijn vak bij. Geen lampen, geen nieuwe vormen per beeld.
+  // Alleen voor het oog: niet botsen, geen punten, niets in de opslag. Niet bij minder beweging, en niet als de versiering van de site uit staat
+  // (de melding om middernacht komt er wel). Overdag in het spel minder pijlen, en gewoon gemengd in plaats van gloeiend (anders zie je ze
+  // niet tegen de lichte lucht); 's nachts tellen ze op en gloeien ze.
+  const VUUR_POOL = { zuinig: [14, 56, 2, 8], normaal: [36, 84, 3, 12], mooi: [48, 110, 3, 14] };   // pijlen tegelijk, sterren per pijl, puntjes per ster (de kop en zijn staart), vonkjes van de stijgende pijl
+  // soorten: 0 pioen, 1 chrysant, 2 ring, 3 knetter, 4 wilg, 5 dubbele pioen (een kern in een tweede kleur)
+  const VUUR_KANS = { rustig: [0.34, 0.14, 0.08, 0.22, 0.06, 0.16], groot: [0.22, 0.2, 0.13, 0.15, 0.14, 0.16] };
+  const VUUR_LEVEN = [1.9, 2.7, 1.8, 2.3, 4.2, 1.9];   // seconden (gelijk aan de shader; de gloed na de flits duurt 1,8 s)
+  const VUUR_KLEUR = [[1, 0.24, 0.3], [1, 0.8, 0.28], [0.3, 0.55, 1], [0.25, 0.95, 0.5], [0.78, 0.4, 1], [1, 0.55, 0.15], [0.96, 0.96, 1], [0.35, 0.95, 1], [1, 0.45, 0.78]];
+  const VUUR_GOUD = [1, 0.7, 0.32], VUUR_WIT = [1, 0.95, 0.85];
+  // de opening om middernacht in de kleuren van de vlag van de stad
+  const VUUR_VLAG = { parijs: [[0.25, 0.42, 1], [0.96, 0.96, 1], [1, 0.22, 0.28]], amsterdam: [[1, 0.24, 0.3], [0.96, 0.96, 1], [0.3, 0.5, 1], [1, 0.55, 0.12]], londen: [[1, 0.22, 0.3], [0.96, 0.96, 1], [0.25, 0.4, 1]], newyork: [[1, 0.22, 0.3], [0.96, 0.96, 1], [0.25, 0.42, 1]] };
+  const VUUR = { aan: false, mid: NaN, jaar: 0, t: 0, wacht: 0.4, pool: null, kwal: '', slots: [], vrij: 0, actief: 0, laatsteM: null, salvo: false, nj: false, njWacht: false, aftel: -1, lo: -1, hi: -1, klank: [], klankT: 6, flits: 0, ms: 0 };
+  const VUUR_V = new THREE.Vector3(), VUUR_K = new THREE.Color();
+  // pijlen per seconde, uit de minuten voor (min) of na middernacht
+  function vuurTempo(m) {
+    if (m < -360 || m >= 360) return 0;
+    if (m < -60) return 0.12 + 0.5 * (m + 360) / 300;   // de avond: hier en daar een pijl, steeds vaker
+    if (m < -5) return 0.62 + 0.6 * (m + 60) / 55;      // het laatste uur
+    if (m < 0) return 0.7;                               // het aftellen: iedereen wacht
+    if (m < 2) return 9;                                 // middernacht
+    if (m < 20) return 6 - 2.5 * (m - 2) / 18;           // het grote vuurwerk
+    if (m < 60) return 3.5 - 2.5 * (m - 20) / 40;
+    if (m < 180) return 1 - 0.75 * (m - 60) / 120;
+    return 0.25 - 0.2 * (m - 180) / 180;                 // tot 06:00 nog af en toe een pijl
+  }
+  let vuurMatC = null;
+  function vuurMat() {
+    if (vuurMatC) return vuurMatC;
+    // mengen: kleur * 1 + wat er al stond * (1 - alfa). 's Nachts is alfa 0 (alles telt op en gloeit), overdag gewoon eroverheen.
+    vuurMatC = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, depthTest: true, fog: false,
+      blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+      uniforms: { uT: { value: 0 }, uPx: { value: 600 }, uMin: { value: 1.5 }, uVer: { value: 2000 }, uS: { value: S }, uDag: { value: 0 } },
+      vertexShader: `uniform float uT; uniform float uPx; uniform float uMin; uniform float uVer; uniform float uS;
+        attribute vec3 aR; attribute vec4 aA; attribute vec4 aB; attribute vec4 aC; attribute vec4 aD;
+        varying vec3 vK; varying float vA; varying float vP;
+        // aA: het punt van de knal (wereld) en de starttijd; aB: kleur 1 en de soort (+ een zaadje); aC: kleur 2 en de straal (m);
+        // aD: de hoogte waar hij opsteeg, hoe lang hij stijgt, en waar hij vandaan kwam (x, z ten opzichte van de knal).
+        // aR: x toeval, y de rol (0..2 een ster en zijn staart, 10 een vonkje van de stijgende pijl, 20 de flits), z toeval. position: een richting.
+        void main() {
+          float t = uT - aA.w, rise = aD.y, rol = aR.y, soort = floor(aB.w + 0.001), zaad = fract(aB.w);
+          vec3 p = aA.xyz, k = aB.rgb; float a = 0.0, maat = 2.0, top = 40.0;
+          if (rol > 15.0) {
+            float age = t - rise;
+            // de flits van de knal, en daarna een zachte gloed in de kleur van de pijl (de rook, verlicht door de sterren)
+            if (age > 0.0 && age < 1.8) { float f = 1.0 - age / 0.4; a = age < 0.4 ? f * f * 0.5 : 0.0; a += 0.11 * smoothstep(0.0, 0.25, age) * (1.0 - smoothstep(0.5, 1.8, age)); maat = aC.w * mix(1.1, 1.9, smoothstep(0.0, 1.2, age)); top = 240.0; k = mix(aB.rgb, vec3(1.0), age < 0.4 ? 0.55 * f : 0.0); }
+          } else if (rol > 9.0) {
+            // elk vonkje blijft hangen waar het losliet en zakt een beetje; het eerste (lag 0) is de kop
+            float lag = aR.x * 0.45, te = t - lag;
+            if (te > 0.0 && te < rise) {
+              float f = te / rise; f = 1.0 - (1.0 - f) * (1.0 - f);
+              p = mix(vec3(aA.x - aD.z, aD.x, aA.z - aD.w), aA.xyz, f) + (position * 1.4 * lag - vec3(0.0, 9.0 * lag * lag, 0.0)) * uS;
+              float kop = 1.0 - step(0.001, aR.x);
+              a = mix(0.6 * (1.0 - aR.x), 1.0, kop); maat = mix(1.6, 3.4, kop); top = 16.0; k = vec3(1.0, 0.74, 0.42);
+            }
+          } else {
+            float lagS = 0.05, leven = 1.9, drag = 2.1, zw = 0.22, v = 0.9 + 0.12 * aR.x;
+            if (soort == 1.0) { lagS = 0.09; leven = 2.7; v = 0.82 + 0.22 * aR.x; }
+            else if (soort == 2.0) { v = 1.0; leven = 1.8; }
+            else if (soort == 3.0) { lagS = 0.04; leven = 2.3; v = 0.45 + 0.55 * aR.x; }
+            else if (soort == 4.0) { lagS = 0.13; leven = 4.2; drag = 1.35; zw = 0.55; v = 0.8 + 0.25 * aR.x; }
+            leven *= 0.82 + 0.36 * aR.z;
+            float age = t - rise - rol * lagS;
+            if (age > 0.0 && age < leven) {
+              // de richting: de bol, per pijl anders gedraaid; een ring in een schuin vlak; of een kern in een tweede kleur
+              float h1 = zaad * 6.2832, h2 = 0.3 + fract(zaad * 7.31) * 1.4, c1 = cos(h1), s1 = sin(h1);
+              vec3 d = vec3(c1 * position.x - s1 * position.z, position.y, s1 * position.x + c1 * position.z);
+              if (soort == 2.0) { vec3 n = vec3(s1 * sin(h2), cos(h2), c1 * sin(h2)); d = normalize(d - n * dot(d, n) + vec3(0.0001)); }
+              if (soort == 5.0 && fract(aR.x * 7.13) < 0.35) { v *= 0.48; k = aC.rgb; }
+              p = aA.xyz + d * (aC.w * v * (1.0 - exp(-drag * age)) * uS);
+              p.y -= 4.9 * zw * age * age * uS;
+              float f = age / leven;
+              a = (1.0 - smoothstep(0.6, 1.0, f)) * (1.0 - rol * 0.3) * 1.3;
+              maat = ((soort == 1.0 || soort == 4.0) ? 3.6 : 4.6) * (1.0 - rol * 0.22); top = 26.0;
+              k = mix(vec3(1.0, 0.97, 0.9), k, smoothstep(0.0, 0.2, age));   // eerst wit van de hitte
+              if (soort == 0.0 || soort == 2.0) k = mix(k, aC.rgb, smoothstep(0.45, 0.7, f));   // een pioen of ring verkleurt
+              if (soort == 1.0 || soort == 4.0) { if (rol > 0.5) k = aC.rgb; a *= 0.7 + 0.3 * sin(uT * 31.0 + aR.z * 40.0 + rol * 2.1); }   // glinsterende staarten
+              if (soort == 3.0 && f > 0.45) {   // knetteren: de sterren vallen uiteen in flikkerende witte vonkjes
+                float flik = fract(sin(floor(uT * 22.0) * 12.9898 + aR.x * 78.233 + aR.z * 37.719) * 43758.5453);
+                a *= step(0.5, flik) * (1.0 - step(0.5, rol)) * 1.6; k = vec3(1.0, 0.96, 0.86); maat *= 1.2;
+                p += position.yzx * (aC.w * 0.18 * (f - 0.45) * uS);
+              }
+            }
+          }
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          float dd = max(1.0, -mv.z), px = maat * uS * uPx / dd;
+          // heel ver weg: een klein puntje, iets zwakker; in de mist vervaagt het
+          a *= clamp(px / uMin, 0.45, 1.0) * (1.0 - 0.65 * smoothstep(uVer * 0.7, uVer * 1.2, dd));
+          vK = k; vA = a;
+          if (a < 0.003) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; vP = 0.0; }
+          else { gl_Position = projectionMatrix * mv; gl_PointSize = clamp(px, uMin, top); vP = gl_PointSize; }
+        }`,
+      fragmentShader: `uniform float uDag; varying vec3 vK; varying float vA; varying float vP;
+        void main() {
+          vec2 q = gl_PointCoord * 2.0 - 1.0; float r2 = dot(q, q);
+          float klein = 1.0 - smoothstep(2.5, 7.0, vP);   // een puntje van een paar pixels: een vol rondje, anders een gloed met een witte kern
+          float g = max(0.0, mix(exp(-r2 * 4.0) - 0.0183, 1.0 - r2, klein)), kern = exp(-r2 * 20.0) * (1.0 - klein);
+          gl_FragColor = vec4((vK * g + vec3(0.75) * kern) * vA, min(1.0, g + kern) * vA * uDag);
+        }` });
+    return vuurMatC;
+  }
+  // de voorraad puntjes: per pijl een vak (sterren met hun staart, de vonkjes van de stijgende pijl en de flits), alles vast; alleen de
+  // gegevens van de pijl (aA tot en met aD, in één buffer) worden bij het afsteken voor dat vak opnieuw geschreven
+  function vuurPool() {
+    if (VUUR.pool) { scene.remove(VUUR.pool.pts); VUUR.pool.g.dispose(); VUUR.pool = null; }
+    const [N, ST, SP, VO] = VUUR_POOL[kwal] || VUUR_POOL.normaal, P = ST * SP + VO + 1, n = N * P;
+    const dir = new Float32Array(n * 3), r = new Float32Array(n * 3), schelp = new Float32Array(n * 16);
+    for (let j = 0; j < N; j++) {
+      let i = j * P;
+      for (let s = 0; s < ST; s++) {
+        // gelijkmatig over een bol (een gulden spiraal), met een beetje toeval
+        const y = 1 - (s + 0.5) / ST * 2, rr = Math.sqrt(Math.max(0, 1 - y * y)), h = s * 2.39996 + Math.random() * 0.5;
+        const dx = Math.cos(h) * rr + (Math.random() - 0.5) * 0.12, dy = y + (Math.random() - 0.5) * 0.12, dz = Math.sin(h) * rr + (Math.random() - 0.5) * 0.12, l = Math.hypot(dx, dy, dz) || 1, r1 = Math.random(), r2 = Math.random();
+        for (let k = 0; k < SP; k++, i++) { dir[i * 3] = dx / l; dir[i * 3 + 1] = dy / l; dir[i * 3 + 2] = dz / l; r[i * 3] = r1; r[i * 3 + 1] = k; r[i * 3 + 2] = r2; }
+      }
+      for (let v = 0; v < VO; v++, i++) { const h = Math.random() * 6.283, y = Math.random() * 2 - 1, rr = Math.sqrt(1 - y * y); dir[i * 3] = Math.cos(h) * rr; dir[i * 3 + 1] = y; dir[i * 3 + 2] = Math.sin(h) * rr; r[i * 3] = v ? Math.min(1, (v - 0.5 + Math.random()) / VO) : 0; r[i * 3 + 1] = 10; r[i * 3 + 2] = Math.random(); }
+      dir[i * 3 + 1] = 1; r[i * 3] = 0.5; r[i * 3 + 1] = 20; r[i * 3 + 2] = 0.5;
+    }
+    for (let i = 0; i < n; i++) schelp[i * 16 + 3] = -1e5;   // nog leeg: lang geleden afgestoken
+    const g = new THREE.BufferGeometry(), ib = new THREE.InterleavedBuffer(schelp, 16); ib.setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute('position', new THREE.BufferAttribute(dir, 3)); g.setAttribute('aR', new THREE.BufferAttribute(r, 3));
+    ['aA', 'aB', 'aC', 'aD'].forEach((nm, k) => g.setAttribute(nm, new THREE.InterleavedBufferAttribute(ib, 4, k * 4)));
+    const pts = new THREE.Points(g, vuurMat()); pts.frustumCulled = false; pts.renderOrder = 6; pts.visible = false; scene.add(pts);
+    VUUR.pool = { pts, g, ib, schelp, N, ST, SP, VO, P, d: new Float32Array(16) }; VUUR.kwal = kwal;
+    VUUR.slots = Array.from({ length: N }, () => ({ eind: -1, knal: 0, klaar: true })); VUUR.vrij = 0; VUUR.actief = 0;
+  }
+  function vuurSoort(groot) { const kans = VUUR_KANS[groot ? 'groot' : 'rustig']; let r = Math.random(); for (let i = 0; i < kans.length; i++) { r -= kans[i]; if (r < 0) return i; } return 0; }
+  const vuurKleur = () => VUUR_KLEUR[Math.floor(Math.random() * VUUR_KLEUR.length)];
+  // een pijl afsteken. o (alles mag ontbreken): { x, z (meters), h (hoogte boven de grond), soort, kleur, groot, t (later, in seconden) }.
+  // Geeft de plek ({ x, z }) of null (geen vrij vak, buiten de kaart of de kaart is er nog niet).
+  function vuurPijl(o = {}) {
+    const P = VUUR.pool, kp = AK.kop; if (!P || !kp) return null;
+    let j = -1; for (let q = 0; q < P.N; q++) { const s = (VUUR.vrij + q) % P.N; if (VUUR.slots[s].eind < VUUR.t) { j = s; break; } } if (j < 0) return null;
+    const x0 = kp.x0 + 80, x1 = kp.x0 + kp.nx * kp.tegel - 80, z0 = kp.z0 + 80, z1 = kp.z0 + kp.nz * kp.tegel - 80, groot = !!o.groot;
+    let x = o.x, z = o.z;
+    if (x === undefined || z === undefined) {
+      // vooral binnen anderhalve km en voor je uit (dan zie je het terwijl je vliegt), maar ook verder weg, tot waar je kunt kijken
+      VUUR_V.set(0, 0, -1).applyQuaternion(camera.quaternion); const kijk = Math.atan2(VUUR_V.z, VUUR_V.x), ver = Math.min(4200, K.r[2] * 1.05), cx = camera.position.x / S, cz = camera.position.z / S;
+      const breed = Math.max(0.6, Math.min(1.6, 2.2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)));   // zo breed als je kijkt (een staande telefoon smal)
+      x = z = undefined;
+      for (let k = 0; k < 6 && x === undefined; k++) {
+        const dichtbij = Math.random() < (groot ? 0.78 : 0.62) || ver < 1700, r = dichtbij ? (groot ? 260 : 280) + Math.pow(Math.random(), 0.9) * (groot ? 1100 : 1350) : 1600 + Math.random() * (ver - 1600);
+        const h = Math.random() < 0.78 ? kijk + (Math.random() - 0.5) * breed : Math.random() * 6.283, px = cx + Math.cos(h) * r, pz = cz + Math.sin(h) * r;
+        if (px > x0 && px < x1 && pz > z0 && pz < z1) { x = px; z = pz; }
+      }
+      if (x === undefined) return null;
+    }
+    x = Math.max(x0, Math.min(x1, x)); z = Math.max(z0, Math.min(z1, z));
+    // vanaf de straat of het water (een rondvaartboot of een ponton); vanaf de straat is hij achter de huizen pas te zien als hij erboven komt
+    const peil = AK.waterPeil(x, z), grond = peil !== null ? peil : AK.hoogteM(x, z); if (!Number.isFinite(grond)) return null;
+    let h = o.h || (groot ? 85 + Math.random() * 150 : 45 + Math.random() * 75) + (STAD.id === 'newyork' ? 70 : 0);
+    // dichtbij niet boven de bovenrand van het beeld (anders zie je hem net niet), maar nooit lager dan 40 m boven de grond
+    if (!o.h) { VUUR_V.set(0, 0, -1).applyQuaternion(camera.quaternion); const boven = Math.asin(Math.max(-1, Math.min(1, VUUR_V.y))) + camera.fov * Math.PI / 360 * 0.8, r = Math.hypot(x - camera.position.x / S, z - camera.position.z / S);
+      if (boven < 1.4) { const max = AK.mVan(camera.position.y) + r * Math.tan(boven) - grond; if (h > max) h = Math.max(40, max * (0.75 + Math.random() * 0.25)); } }
+    const soort = o.soort !== undefined ? o.soort : vuurSoort(groot);
+    let R = (groot ? 38 + Math.random() * 40 : 17 + Math.random() * 20) * (soort === 2 ? 0.85 : 1); if (groot && Math.random() < 0.12) R *= 1.35;
+    let k1 = o.kleur || vuurKleur(), k2 = vuurKleur(); while (k2 === k1) k2 = vuurKleur();
+    if (soort === 1) k2 = VUUR_GOUD; if (soort === 4) { k1 = VUUR_GOUD; k2 = [1, 0.5, 0.18]; } if (soort === 3 && !o.kleur) k1 = Math.random() < 0.5 ? VUUR_GOUD : VUUR_WIT;
+    const stijg = 0.8 + h / 120, t0 = VUUR.t + (o.t || 0), d = P.d;
+    d[0] = x * S; d[1] = AK.yVan(grond + h); d[2] = z * S; d[3] = t0; d[4] = k1[0]; d[5] = k1[1]; d[6] = k1[2]; d[7] = soort + Math.random() * 0.999;
+    d[8] = k2[0]; d[9] = k2[1]; d[10] = k2[2]; d[11] = R; d[12] = AK.yVan(grond); d[13] = stijg; d[14] = (Math.random() - 0.5) * h * 0.18 * S; d[15] = (Math.random() - 0.5) * h * 0.18 * S;
+    const a = P.schelp; for (let i = j * P.P, tot = i + P.P; i < tot; i++) a.set(d, i * 16);
+    VUUR.lo = VUUR.lo < 0 ? j : Math.min(VUUR.lo, j); VUUR.hi = Math.max(VUUR.hi, j); VUUR.vrij = (j + 1) % P.N;
+    const sl = VUUR.slots[j]; Object.assign(sl, { eind: t0 + stijg + Math.max(1.8, VUUR_LEVEN[soort] * 1.18 + 0.3) + 0.05, knal: t0 + stijg, start: t0, klaar: false, fluit: false, x, z, y: grond + h, grond, R, soort, k: k1, groot });
+    return { x, z };
+  }
+  // geluid: een knal bij elke pijl die openspat (verder weg zachter, doffer en later: geluid gaat 343 m per seconde), knetteren, en soms een fluitje
+  let knalBuf = null, knetterBuf = null;
+  function vuurBuffers() {
+    if (knalBuf || !ac) return; const sr = ac.sampleRate;
+    let n = Math.floor(sr * 1.5); knalBuf = ac.createBuffer(1, n, sr); let d = knalBuf.getChannelData(0), l = 0;
+    for (let i = 0; i < n; i++) { const x = i / sr, w = Math.random() * 2 - 1; l = l * 0.93 + w * 0.07; d[i] = (w * Math.exp(-x * 34) * 0.9 + l * 3.2 * Math.exp(-x * 2.8)) * Math.min(1, i / (sr * 0.002)); }
+    n = Math.floor(sr * 1.4); knetterBuf = ac.createBuffer(1, n, sr); d = knetterBuf.getChannelData(0);
+    for (let k = 0; k < 140; k++) { const s = Math.floor(Math.pow(Math.random(), 0.7) * (n - 400)), a = 0.25 + Math.random() * 0.75; for (let i = 0; i < 260; i++) d[s + i] += (Math.random() * 2 - 1) * a * Math.exp(-i / 30); }
+  }
+  function vuurGeluid(soort, afstand, groot, later) {
+    if (!ac || !hoofd || !opslag.geluid || document.hidden || afstand > 2600 || VUUR.klankT < 1) return;
+    VUUR.klankT -= 1; vuurBuffers();
+    try {
+      const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = soort === 'knetter' ? knetterBuf : knalBuf; src.playbackRate.value = (groot ? 0.78 : 1) * (0.85 + Math.random() * 0.3);
+      f.type = 'lowpass'; f.frequency.value = Math.max(320, 3400 / (1 + afstand / 320));
+      g.gain.value = (soort === 'knetter' ? 0.05 : 0.15) * (groot ? 1.25 : 1) / (1 + afstand / 260) * (G.scherm === 'spel' ? 1 : 0.4);
+      src.connect(f); f.connect(g); g.connect(hoofd); src.start(ac.currentTime + afstand / 343 + (later || 0));
+      VUUR.klank.push(src); src.onended = () => { const i = VUUR.klank.indexOf(src); if (i >= 0) VUUR.klank.splice(i, 1); };
+    } catch (e) {}
+  }
+  // een tabblad dat niet in beeld is, hoort niets meer (ook geen knallen die al gepland waren)
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { for (const s of VUUR.klank) try { s.stop(); } catch (e) {} VUUR.klank.length = 0; } });
+  // de stand van de feestdagen (feest.js): wanneer het middernacht is, en of er vuurwerk mag zijn
+  window.__eigenNieuwjaar = true;   // Rommelarend telt zelf af en heeft een eigen nieuwjaarsmelding: feest.js laat zijn klokje en kaartje weg
+  if (window.Scorebord && Scorebord.feest) Scorebord.feest(st => {
+    VUUR.aan = !!(st && st.oudNacht && st.versiering !== false && !SNELWEG);
+    try { const RF = window.RommelFeest, F = RF.kern.nu(); VUUR.mid = RF.KERN.moment(F.J.middernacht); VUUR.jaar = +F.J.jaar + 1; } catch (e) { VUUR.mid = NaN; }
+  });
+  function updateVuur(dt) {
+    const t0 = performance.now(); VUUR.t += dt; VUUR.klankT = Math.min(6, VUUR.klankT + dt * 6);
+    let m = null; const RF = window.RommelFeest;
+    if (RF && Number.isFinite(VUUR.mid)) { try { m = (RF.klok() - VUUR.mid) / 60000; } catch (e) { m = null; } }
+    // middernacht: de melding (ook zonder vuurwerk) en de openingssalvo; daarvoor de laatste tien seconden aftellen
+    if (m !== null && Number.isFinite(m)) {
+      if (VUUR.laatsteM !== null && VUUR.laatsteM < 0 && m >= 0) { VUUR.njWacht = true; VUUR.salvo = m < 2; }
+      if (VUUR.laatsteM === null && m >= 0 && m < 20) VUUR.njWacht = true;
+      VUUR.laatsteM = m;
+      if (G.scherm === 'spel') {
+        if (m < 0 && m >= -10 / 60) { const s = Math.ceil(-m * 60); if (s !== VUUR.aftel) { VUUR.aftel = s; melding(`Nog ${s} ${s === 1 ? 'seconde' : 'seconden'} tot ${VUUR.jaar}!`, 'aftel' + s); } }
+        if (VUUR.njWacht && !VUUR.nj && m < 30) { VUUR.nj = true; VUUR.njWacht = false; melding(`Gelukkig nieuwjaar! Welkom in ${VUUR.jaar}.` + (VUUR.aan ? ` Kijk eens om je heen boven ${STAD.naam}.` : ''), 'nieuwjaar'); meldTot = performance.now() + 7000; }
+      }
+    }
+    const aan = VUUR.aan && m !== null && m >= -360 && m < 360;
+    if (!aan && !VUUR.actief) { if (VUUR.pool) VUUR.pool.pts.visible = false; return; }
+    if (aan && (!VUUR.pool || VUUR.kwal !== kwal)) vuurPool();
+    const P = VUUR.pool; if (!P) return;
+    const groot = aan && m >= 0 && m < 20;
+    if (aan && AK.kop && G.scherm !== 'laden') {
+      if (VUUR.salvo) { VUUR.salvo = false; const vlag = VUUR_VLAG[STAD.id] || VUUR_KLEUR; for (let i = 0; i < 12; i++) vuurPijl({ groot: true, t: i * 0.12 + Math.random() * 0.4, kleur: vlag[i % vlag.length], soort: i % 4 === 3 ? 1 : 0 }); }
+      VUUR.wacht -= dt;
+      for (let n = 0; VUUR.wacht <= 0 && n < 4; n++) {
+        const tempo = vuurTempo(m) * (groot ? 1 : 0.55 + 0.45 * W.nacht);
+        if (tempo <= 0) { VUUR.wacht = 1; break; }
+        // bij het grote vuurwerk vaak een paar pijlen tegelijk van dezelfde plek
+        const aantal = groot && Math.random() < 0.45 ? 2 + Math.floor(Math.random() * 3) : 1, plek = vuurPijl({ groot });
+        if (plek) for (let i = 1; i < aantal; i++) vuurPijl({ groot, x: plek.x + (Math.random() - 0.5) * 70, z: plek.z + (Math.random() - 0.5) * 70, t: i * (0.15 + Math.random() * 0.35) });
+        VUUR.wacht += -Math.log(1 - Math.random() * 0.999) / tempo * aantal;
+      }
+    }
+    // alleen de vakken van de nieuwe pijlen naar de grafische kaart (een stuk dat nog niet verstuurd was, gaat mee: count is dan niet -1)
+    if (VUUR.lo >= 0) { const r = P.ib.updateRange; let a = VUUR.lo * P.P * 16, b = (VUUR.hi + 1) * P.P * 16; if (r.count !== -1) { a = Math.min(a, r.offset); b = Math.max(b, r.offset + r.count); } r.offset = a; r.count = b - a; P.ib.needsUpdate = true; VUUR.lo = VUUR.hi = -1; }
+    // per pijl: nog bezig? de knal (geluid) en de flits die de stad heel even kleurt
+    const cx = camera.position.x / S, cy = AK.mVan(camera.position.y), cz = camera.position.z / S; let actief = 0, flits = 0, fr = 0, fg = 0, fb = 0;
+    for (const s of VUUR.slots) {
+      if (s.eind < VUUR.t) continue; actief++;
+      const af = Math.hypot(s.x - cx, s.y - cy, s.z - cz);
+      if (!s.fluit && VUUR.t >= s.start) { s.fluit = true; if (af < 450 && Math.random() < 0.25 && ac && opslag.geluid && !document.hidden) { const duur = Math.max(0.4, s.knal - s.start - 0.1); toon(1300 + Math.random() * 300, af / 343, duur, 'sine', 0.012 * (1 - af / 450), 2500 + Math.random() * 600); } }
+      if (!s.klaar && VUUR.t >= s.knal) { s.klaar = true; vuurGeluid('knal', af, s.groot); if (s.soort === 3) vuurGeluid('knetter', af, s.groot, VUUR_LEVEN[3] * 0.45); }
+      const leeftijd = VUUR.t - s.knal;
+      if (leeftijd >= 0 && leeftijd < 0.6) { const e = (1 - leeftijd / 0.6) ** 2 * (s.R / 50) / (1 + (af / 450) ** 2); flits += e; fr += s.k[0] * e; fg += s.k[1] * e; fb += s.k[2] * e; }
+    }
+    VUUR.actief = actief; P.pts.visible = actief > 0;
+    // de flitsen lichten de stad 's nachts een heel klein beetje op, in hun kleur (via het licht dat er al is, geen lamp erbij)
+    VUUR.flits = Math.min(0.3, flits * 0.22) * W.nacht;
+    if (VUUR.flits > 0.003) { hemi.intensity += VUUR.flits; VUUR_K.setRGB(fr / flits, fg / flits, fb / flits).convertSRGBToLinear(); hemi.color.lerp(VUUR_K, Math.min(0.45, VUUR.flits * 1.6)); }
+    const U = P.pts.material.uniforms;
+    U.uT.value = VUUR.t; U.uPx.value = renderer.domElement.height * 0.5 / Math.tan(camera.fov * Math.PI / 360); U.uMin.value = 2 * renderer.getPixelRatio(); U.uVer.value = scene.fog.far; U.uDag.value = 1 - W.nacht;
+    VUUR.ms = VUUR.ms * 0.95 + (performance.now() - t0) * 0.05;
+  }
   // ---------------------------------------------------------------- scorebord
   function stuurScore() { if (window.Scorebord) Scorebord.stuur('arend', punten(), V.ontdekt.length); }
   // ---------------------------------------------------------------- de lus: alleen tekenen als het nodig is, met een vast budget
@@ -7653,7 +7904,7 @@ const AL = (() => {
     // de schaduwvlek onder de arend
     const vl = vloerM(A.x / S, A.z / S, A.y / S + NUL), dakOnder = AK.gebouwOp(A.x / S, A.z / S), vy = Math.max(AK.yVan(vl.h), dakOnder ? AK.yVan(dakOnder.hoogste) : -1e9), hv = A.y - vy;
     vlek.visible = hv < 60 && A.staat !== 'zit'; if (vlek.visible) { vlek.position.set(A.x, vy + 0.15, A.z); const sc = 1.8 + hv * 0.04; vlek.scale.set(sc, 1, sc); vlek.material.opacity = Math.max(0, 1 - hv / 60) * (1 - W.nacht * 0.7); }
-    AK.kijk(camera.position.x / S, camera.position.z / S, nu); AL.update(dt, t); if (LEVEN.autos) updateLeven(dt, t); updateGeluid(dt); updateDeeltjes(dt);
+    AK.kijk(camera.position.x / S, camera.position.z / S, nu); AL.update(dt, t); if (LEVEN.autos) updateLeven(dt, t); updateGeluid(dt); updateDeeltjes(dt); updateVuur(dt);
     // de kaart tekenen terwijl de tegels binnenkomen (een paar per beeld)
     if (kaartM && kaartRij.length) kaartBijwerken();
     miniT -= dt; if (miniT < 0) { miniT = 0.1; tekenMini(); }
@@ -7686,7 +7937,9 @@ const AL = (() => {
   window.__ar = { arend, lijf, vleugels, poten, renderer, scene, camera, zon, hemi, W, A, G, S: G, opslag, AK, AL, get RACES() { if (!RACES && AK.voortgang.klaar) maakRaces(); return RACES; }, get VEREN() { return VEREN; }, startRace, inv, toets, perf, kwaliteit: k => zetKwaliteit(k), punten, landKnop, zoekLandplek, startFoto, stopFoto, LEVEN,
     teken: () => { lucht.position.copy(camera.position); AK.zichtbaar(camera); renderer.render(scene, camera); }, cam: () => camVolg(0, true),
     leven: (n, dt) => { for (let i = 0; i < n; i++) updateLeven(dt, performance.now() / 1000); },
-    stap: (n, dt) => { for (let i = 0; i < n; i++) { vlieg(dt); checkVeren(dt); checkRace(dt); checkOntdek(dt); } } };
+    stap: (n, dt) => { for (let i = 0; i < n; i++) { vlieg(dt); checkVeren(dt); checkRace(dt); checkOntdek(dt); } },
+    // het vuurwerk op oudjaarsavond: de stand (V), een pijl afsteken (pijl(o)) en het tempo per minuut rond middernacht
+    vuur: { V: VUUR, pijl: o => vuurPijl(o), tempo: vuurTempo, update: dt => updateVuur(dt) } };
 })();
 // ==== SPEL eind
 </script>

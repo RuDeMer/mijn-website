@@ -150,6 +150,8 @@ details.stats summary { cursor: pointer; font-weight: 700; }
 
 @media (prefers-reduced-motion: no-preference) {
   .gouden { animation: zweef 2.4s ease-in-out infinite; }
+  .gouden .og-fonkel { animation: og-fonkel 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes og-fonkel { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.55); } }
   @keyframes zweef { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-10px) rotate(6deg); } }
   .kop-icoon svg { transition: transform .6s cubic-bezier(.37, 0, .2, 1); }
   .kop h1:hover .kop-icoon svg { transform: rotate(-10deg) scale(1.1); }
@@ -347,6 +349,7 @@ details.stats summary { cursor: pointer; font-weight: 700; }
   .gw-ding.gekozen .gw-prijs { color: #2E6B4E; }
   .gw-ding.sint:not(.gekozen) .gw-prijs { color: #A8242E; }
   .gw-ding.kerst:not(.gekozen) .gw-prijs { color: #1B6440; }
+  .gw-ding.oud:not(.gekozen) .gw-prijs { color: #2A3F8F; }
   .gw-van { font-style: normal; font-size: .7rem; font-weight: 800; background: var(--goud); color: var(--inkt); border-radius: 999px; padding: 0 .4rem; margin-left: .2rem; vertical-align: .1em; }
   /* de bakplaats: decor, schort, kroon en muziek */
   .decor { position: absolute; left: 0; right: 0; top: .3rem; bottom: 1.9rem; border-radius: 18px; overflow: hidden; pointer-events: none; display: none; box-shadow: inset 0 0 0 3px rgba(31,35,51,.55), 0 4px 0 rgba(0,0,0,.18); }
@@ -376,12 +379,14 @@ details.stats summary { cursor: pointer; font-weight: 700; }
     .decor .dc-ster { animation: dc-ster 3.4s ease-in-out infinite; }
     .decor .dc-vlam { animation: dc-vlam 1.3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
     .decor .dc-sneeuw { animation: dc-sneeuw 7s linear infinite; }
+    .decor .dc-stoom { animation: dc-stoom 3.2s ease-in-out infinite; }
     .gw-ding:hover .gw-mini, .gw-ding:focus-visible .gw-mini { filter: brightness(1.05); }
   }
   @keyframes dc-lamp { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
   @keyframes dc-ster { 0%, 100% { opacity: .9; } 50% { opacity: .25; } }
   @keyframes dc-vlam { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .75; transform: scale(.88); } }
   @keyframes dc-sneeuw { from { transform: translateY(-40px); } to { transform: translateY(200px); } }
+  @keyframes dc-stoom { 0% { opacity: 0; transform: translateY(8px); } 35% { opacity: .55; } 100% { opacity: 0; transform: translateY(-16px); } }
 </style>
 <!-- versie 0.6: dezelfde stijl als de homepage, met licht en donker (de keuze op de homepage geldt overal) -->
 <script>(function () { var k = 'auto'; try { k = localStorage.getItem('rommelhoekje-thema') || 'auto'; } catch (e) {} var d = k === 'donker' || (k !== 'licht' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); document.documentElement.setAttribute('data-thema', d ? 'donker' : 'licht'); })();</script>
@@ -2343,6 +2348,8 @@ const VB = (function () {
     { id: 's-kerst', soort: 'schort', naam: 'Kerstschort', prijs: 0, feest: 'vb-kerstschort', van: 'kerst' },
     { id: 'b-kerstmarkt', soort: 'bakkerij', naam: 'Kerstmarkt', prijs: 0, feest: 'vb-kerstmarkt', van: 'kerst' },
     { id: 'k-sneeuw', soort: 'korst', naam: 'Sneeuw', prijs: 0, feest: 'vb-sneeuwkorst', van: 'kerst' },
+    // van oudjaar (de zak oliebollen op 31 december 2026): net zo, niet te koop en nooit in S.mooi.heb; van: 'oud' voor het labeltje
+    { id: 'b-oliebollenkraam', soort: 'bakkerij', naam: 'Oliebollenkraam', prijs: 0, feest: 'vb-oliebollenkraam', van: 'oud' },
   ];
   const MO = {}; MOOI.forEach(m => { MO[m.id] = m; });
   // Bijzonder: duur, om naartoe te sparen, en voor altijd van jou. prijsL is de 10-log van de prijs.
@@ -2866,6 +2873,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
   // ---------- tekeningen
   function rng(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
   let uid = 0;
+  // een gladde, gesloten vorm door punten (via de middens, met kwadratische bochten): voor de oliebollen
+  const rondPad = pts => { const f = n => n.toFixed(1), m = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], n = pts.length; let d = 'M' + m(pts[n - 1], pts[0]).map(f).join(' '); for (let i = 0; i < n; i++) { const q = m(pts[i], pts[(i + 1) % n]); d += `Q${f(pts[i][0])} ${f(pts[i][1])} ${f(q[0])} ${f(q[1])}`; } return d + 'Z'; };
   const SMAKEN = VB.SMAKEN;
   function topping(smaak) {
     const r = rng(7 + smaak.length * 31);
@@ -3189,6 +3198,85 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
         <g fill="#C9D6EA">${[[24, 226, 9], [70, 243, 12], [150, 228, 8], [236, 246, 11], [300, 226, 9], [360, 244, 12]].map(([x, y, w]) => `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="2.4"/>`).join('')}</g>
         ${vlokken}`;
       })(),
+      // van oudjaar: een oliebollenkraam op oudejaarsavond. Een rood-wit gestreepte luifel over de hele breedte met een snoer lampjes
+      // eronder; links het bordje OLIEBOLLEN en een bak vol oliebollen met poedersuiker, rechts de frituurpan met drijvende oliebollen en
+      // stoom, en boven de luifel vuurwerk. Alles wat belangrijk is staat links en rechts van je vlaai, en tussen y 64 en 195 (zo smal is
+      // het decor op een tablet). De lampjes, het vuurwerk en de stoom bewegen alleen bij no-preference.
+      'b-oliebollenkraam': (() => {
+        const r = rng(31), lu = cid + 'l', bo = cid + 'b', ol = cid + 'o', wa = cid + 'w', gl = cid + 'g';
+        const f = n => n.toFixed(1), rond = rondPad;
+        // een oliebol (midden x, y, straal s): rond maar een beetje bobbelig, goudbruin, met een paar krenten, en (suiker) bovenop een
+        // laagje poedersuiker met een rafelige rand en losse korreltjes eronder
+        const bol = (x, y, s, suiker = true) => {
+          const k = r() * 6, rr = a => s * (1 + Math.sin(a * 6 + k) * .035 + Math.sin(a * 4 + k * 2) * .03);
+          const omtrek = Array.from({ length: 24 }, (_, i) => { const a = i / 24 * Math.PI * 2; return [x + Math.cos(a) * rr(a), y + Math.sin(a) * rr(a) * .92]; });
+          let h = `<path d="${rond(omtrek)}" fill="url(#${bo})" stroke="#1F2333" stroke-width="1.4" stroke-linejoin="round"/>`;
+          const n = 1 + Math.floor(r() * 3);
+          for (let i = 0; i < n; i++) { const a = .35 + r() * 2.4, d = s * (.5 + r() * .32); h += `<ellipse cx="${f(x + Math.cos(a) * d)}" cy="${f(y + Math.sin(a) * d * .9)}" rx="${f(s * .1)}" ry="${f(s * .075)}" transform="rotate(${Math.round(r() * 180)} ${f(x + Math.cos(a) * d)} ${f(y + Math.sin(a) * d * .9)})" fill="#3A1A10"/>`; }
+          if (suiker) {
+            const kap = []; for (let i = 0; i <= 10; i++) { const a = Math.PI * (1.04 + i / 10 * .92); kap.push([x + Math.cos(a) * rr(a) * .96, y + Math.sin(a) * rr(a) * .88]); }
+            for (let i = 1; i < 8; i++) kap.push([x + s * (.86 - i * .245), y - s * (.08 + (i % 2 ? .16 : 0) + r() * .08)]);
+            h += `<path d="${rond(kap)}" fill="#FFFDF6" opacity=".93"/>`;
+            for (let i = 0; i < 7; i++) h += `<circle cx="${f(x + (r() - .5) * s * 1.4)}" cy="${f(y - s * .05 + r() * s * .42)}" r="${f(.4 + r() * .55)}" fill="#FFFFFF" opacity="${(.6 + r() * .35).toFixed(2)}"/>`;
+          } else h += `<ellipse cx="${f(x - s * .32)}" cy="${f(y - s * .34)}" rx="${f(s * .26)}" ry="${f(s * .14)}" transform="rotate(-28 ${f(x - s * .32)} ${f(y - s * .34)})" fill="#FBD58E" opacity=".55"/>`;
+          return h;
+        };
+        // vuurwerk: een ster van stralen met bolletjes aan het eind
+        const knal = (x, y, s, kleur, n, vertraging) => `<g class="dc-ster" style="animation-delay:-${vertraging}s">${Array.from({ length: n }, (_, i) => { const a = i / n * Math.PI * 2 + .2; return `<path d="M${f(x + Math.cos(a) * s * .35)} ${f(y + Math.sin(a) * s * .35)}L${f(x + Math.cos(a) * s * .85)} ${f(y + Math.sin(a) * s * .85)}" stroke="${kleur}" stroke-width="1.8" stroke-linecap="round"/><circle cx="${f(x + Math.cos(a) * s)}" cy="${f(y + Math.sin(a) * s)}" r="1.5" fill="${kleur}"/>`; }).join('')}<circle cx="${x}" cy="${y}" r="${f(s * 1.2)}" fill="${kleur}" opacity=".12"/></g>`;
+        // een snoer lampjes dat tussen twee punten doorhangt; elk lampje met een zachte gloed
+        const LAMP = ['#FFE28A', '#FFF4D6', '#FFC861', '#FF9A6A'];
+        const snoer = (x0, x1, y, zak, n, d0) => {
+          const cx = (x0 + x1) / 2, cy = y + zak * 2;
+          let h = `<path d="M${x0} ${y}Q${cx} ${cy} ${x1} ${y}" fill="none" stroke="#1F2333" stroke-width="1.3"/>`;
+          for (let i = 0; i < n; i++) { const s = (i + .5) / n, x = (1 - s) * (1 - s) * x0 + 2 * s * (1 - s) * cx + s * s * x1, yy = (1 - s) * (1 - s) * y + 2 * s * (1 - s) * cy + s * s * y + 3, k = LAMP[(i + d0) % LAMP.length];
+            h += `<circle cx="${f(x)}" cy="${f(yy)}" r="7" fill="${k}" opacity=".16"/><path d="M${f(x)} ${f(yy - 3.4)}v-1.6" stroke="#1F2333" stroke-width="2.2"/><circle class="dc-lamp" style="animation-delay:-${(((d0 + i) * .71) % 2.6).toFixed(2)}s" cx="${f(x)}" cy="${f(yy)}" r="2.8" fill="${k}" stroke="#1F2333" stroke-width=".9"/>`; }
+          return h;
+        };
+        // een bordje aan twee kettinkjes onder de luifel
+        const bordje = (x, w, y, tekst, kleur, inkt) => `<path d="M${x + 6} 78V${y}M${x + w - 6} 78V${y}" stroke="#5E5643" stroke-width="1.4" stroke-dasharray="2 1.4"/><rect x="${x}" y="${y}" width="${w}" height="17" rx="3" fill="${kleur}" stroke="#1F2333" stroke-width="2"/><rect x="${x + 2.5}" y="${y + 2.5}" width="${w - 5}" height="12" rx="2" fill="none" stroke="${inkt}" stroke-width=".8" opacity=".55"/><text x="${x + w / 2}" y="${y + 12.6}" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="9.4" fill="${inkt}">${tekst}</text>`;
+        const stoom = (x, y, vertraging) => `<path class="dc-stoom" style="animation-delay:-${vertraging}s" d="M${x} ${y}q-5 -7 0 -14t0 -14t0 -12" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".5"/>`;
+        // midden op de achterwand (achter je vlaai; je ziet hem in de winkel) een klok die op vijf voor twaalf staat
+        const klok = `<circle cx="200" cy="124" r="30" fill="#7A4E2D" stroke="#1F2333" stroke-width="2.4"/><circle cx="200" cy="124" r="24" fill="#FFF8E6" stroke="#1F2333" stroke-width="1.6"/>
+          ${Array.from({ length: 12 }, (_, i) => { const a = i / 12 * Math.PI * 2; return `<circle cx="${f(200 + Math.sin(a) * 19)}" cy="${f(124 - Math.cos(a) * 19)}" r="${i % 3 ? .9 : 1.7}" fill="#1F2333"/>`; }).join('')}
+          <path d="M200 124L199.4 112" stroke="#1F2333" stroke-width="3" stroke-linecap="round"/><path d="M200 124L190.5 107.5" stroke="#1F2333" stroke-width="1.8" stroke-linecap="round"/><circle cx="200" cy="124" r="2.2" fill="#C8323C"/>`;
+        // de luifel: banen rood en wit, met een gegolfde onderrand
+        const BAAN = 22, banen = Array.from({ length: 20 }, (_, i) => i % 2 ? '' : `<rect x="${i * BAAN - 10}" y="46" width="${BAAN}" height="26" fill="#C8323C"/>`).join('');
+        const rand = Array.from({ length: 20 }, (_, i) => `<path d="M${i * BAAN - 10} 71q${BAAN / 2} 13 ${BAAN} 0z" fill="${i % 2 ? '#FBF6E9' : '#C8323C'}" stroke="#1F2333" stroke-width="1.8" stroke-linejoin="round"/>`).join('');
+        // links de bak, met oliebollen in een bergje (eerst achter, dan voor)
+        const berg = [[49, 125, 9.5], [31, 139, 9.5], [49, 140, 9.5], [67, 139, 9.5], [21, 153, 9.5], [39, 154, 9.5], [58, 154, 9.5], [77, 153, 9.5]].map(([x, y, s]) => bol(x, y, s)).join('');
+        // rechts de frituurpan: drie oliebollen drijven in de olie
+        const pan = `<path d="M396 116L377 147" stroke="#7A4E2D" stroke-width="3.2" stroke-linecap="round"/><path d="M396 116L377 147" stroke="#1F2333" stroke-width="5.2" stroke-linecap="round" opacity=".35"/>
+          <path d="M316 148L320 172Q356 179 392 172L396 148Z" fill="#2A2C34" stroke="#1F2333" stroke-width="2"/><ellipse cx="356" cy="148" rx="40" ry="7.5" fill="#5E6270" stroke="#1F2333" stroke-width="2"/><ellipse cx="356" cy="149" rx="35" ry="5.2" fill="url(#${ol})"/>
+          ${bol(336, 148, 7, false)}${bol(356, 147, 7.5, false)}${bol(375, 148.5, 6.6, false)}
+          <path d="M316 148Q356 162 396 148L392 172Q356 179 320 172Z" fill="#3A3D46" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M322 156Q356 166 390 156" fill="none" stroke="#6E7280" stroke-width="2" stroke-linecap="round"/><path d="M320 150Q356 163 392 150" fill="none" stroke="#8E92A0" stroke-width="1.6"/>
+          ${[[344, 151], [366, 150], [384, 151], [329, 150]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.2" fill="#FFE7A0" opacity=".9"/>`).join('')}
+          ${stoom(334, 138, 0)}${stoom(352, 136, 1.1)}${stoom(372, 138, 2.1)}`;
+        return `<defs><linearGradient id="${lu}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0C1434"/><stop offset="1" stop-color="#26336A"/></linearGradient>
+          <radialGradient id="${bo}" cx=".38" cy=".34" r=".72"><stop offset="0" stop-color="#F4BC6A"/><stop offset=".5" stop-color="#D98B3A"/><stop offset=".85" stop-color="#B0601F"/><stop offset="1" stop-color="#8A4618"/></radialGradient>
+          <linearGradient id="${ol}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C25A"/><stop offset="1" stop-color="#C8862A"/></linearGradient>
+          <linearGradient id="${wa}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A3820"/><stop offset="1" stop-color="#3A2414"/></linearGradient>
+          <radialGradient id="${gl}"><stop offset="0" stop-color="#FFC861" stop-opacity=".34"/><stop offset="1" stop-color="#FFC861" stop-opacity="0"/></radialGradient></defs>
+        <rect width="400" height="260" fill="url(#${lu})"/>${stip(18, 41, '#FBF6E9', 'dc-ster', 0, 400, 2, 32)}
+        ${knal(34, 17, 15, '#FFD45C', 12, 0)}${knal(366, 15, 13, '#FF7FA8', 11, 1.4)}${knal(80, 8, 7, '#8FD3F4', 9, .7)}${knal(322, 7, 6, '#9AE79A', 8, 2)}
+        <rect x="0" y="44" width="400" height="184" fill="url(#${wa})"/><path d="${Array.from({ length: 13 }, (_, i) => `M${14 + i * 31} 80V168`).join('')}" stroke="#2E1C10" stroke-width="2"/>
+        <ellipse cx="54" cy="118" rx="96" ry="62" fill="url(#${gl})"/><ellipse cx="350" cy="120" rx="96" ry="62" fill="url(#${gl})"/>
+        ${klok}
+        <rect x="0" y="36" width="400" height="11" fill="#7A4E2D" stroke="#1F2333" stroke-width="2"/><path d="M0 41H400" stroke="#8E5E36" stroke-width="1.4"/>
+        <rect x="-10" y="46" width="420" height="26" fill="#FBF6E9"/>${banen}<path d="M-10 46H410" stroke="#1F2333" stroke-width="2"/>${rand}
+        <path d="M12 150L88 150L84 172L16 172Z" fill="#8E929C" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/>${berg}
+        <path d="M10 160L90 160L85 173L15 173Z" fill="#C9CDD4" stroke="#1F2333" stroke-width="2" stroke-linejoin="round"/><path d="M14 164H86" stroke="#EEF0F3" stroke-width="1.6"/>
+        ${[[100, 166], [96, 169], [104, 170], [6, 168]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#FFFFFF" opacity=".8"/>`).join('')}
+        ${pan}
+        ${bordje(12, 64, 96, 'OLIEBOLLEN', '#FBF6E9', '#A8242E')}${bordje(332, 52, 96, 'VERS!', '#C8323C', '#FFF3C4')}
+        ${snoer(2, 92, 80, 4, 5, 0)}${snoer(308, 398, 80, 4, 5, 2)}
+        <rect x="0" y="40" width="9" height="140" fill="#7A4E2D" stroke="#1F2333" stroke-width="2"/><rect x="391" y="40" width="9" height="140" fill="#7A4E2D" stroke="#1F2333" stroke-width="2"/>
+        <rect x="-4" y="171" width="408" height="8" rx="1.5" fill="#8E5E36" stroke="#1F2333" stroke-width="2"/><rect x="0" y="179" width="400" height="49" fill="#9A6A3E" stroke="#1F2333" stroke-width="2"/>
+        <path d="${Array.from({ length: 18 }, (_, i) => `M${12 + i * 22} 180v47`).join('')}" stroke="#7A4E2D" stroke-width="1.4"/>
+        <path d="M0 186H400" stroke="#E9B949" stroke-width="2.4"/><path d="M0 188.4H400" stroke="#6E4626" stroke-width="1"/>
+        <rect x="0" y="228" width="400" height="32" fill="#34304A"/><path d="M0 228H400" stroke="#1F2333" stroke-width="2"/>
+        <g fill="#423C5C">${Array.from({ length: 34 }, (_, i) => `<ellipse cx="${(i % 17) * 24 + (i >= 17 ? 12 : 0) + 6}" cy="${i >= 17 ? 250 : 238}" rx="9" ry="3.4"/>`).join('')}</g>
+        ${Array.from({ length: 12 }, (_, i) => { const x = Math.round(8 + r() * 384), y = Math.round(233 + r() * 22); return `<rect x="${x - 2}" y="${y - 1}" width="4" height="2.2" rx=".5" fill="${['#E9B949', '#FF7FA8', '#8FD3F4', '#9AE79A'][i % 4]}" transform="rotate(${Math.round(r() * 160 - 80)} ${x} ${y})" opacity=".9"/>`; }).join('')}`;
+      })(),
     };
     if (!T[id]) return '';
     return `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><clipPath id="${cid}"><circle cx="200" cy="120" r="100"/></clipPath></defs>${T[id]}</svg>`;
@@ -3226,6 +3314,27 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
   }
   const KROON_SVG = '<svg viewBox="0 0 80 52" aria-hidden="true" focusable="false"><path d="M8 44L4 12l18 14L40 4l18 22 18-14-4 32z" fill="#E9B949" stroke="#1F2333" stroke-width="2.6" stroke-linejoin="round"/><rect x="8" y="42" width="64" height="8" rx="2" fill="#C8323C" stroke="#1F2333" stroke-width="2.4"/><circle cx="40" cy="4" r="3.6" fill="#FBF6E9" stroke="#1F2333" stroke-width="1.6"/><circle cx="4" cy="12" r="3" fill="#5EC2E8" stroke="#1F2333" stroke-width="1.4"/><circle cx="76" cy="12" r="3" fill="#5EC2E8" stroke="#1F2333" stroke-width="1.4"/><path d="M40 26l2.4 5 5.4.6-4 3.6 1.2 5.4-5-2.9-5 2.9 1.2-5.4-4-3.6 5.4-.6z" fill="#FFF3C4" stroke="#9A6A0B" stroke-width="1.2"/></svg>';
   const GILDEHUIS_SVG = '<svg viewBox="0 0 90 80" aria-hidden="true" focusable="false"><path d="M44 2v18" stroke="#1F2333" stroke-width="2"/><path d="M44 3h16l-4 5 4 5H44z" fill="#C8323C" stroke="#1F2333" stroke-width="1.6"/><path d="M8 40L45 18l37 22z" fill="#2F4C8F" stroke="#1F2333" stroke-width="2.4" stroke-linejoin="round"/><rect x="12" y="40" width="66" height="38" fill="#F2DDA0" stroke="#1F2333" stroke-width="2.4"/><path d="M38 78V60a7 7 0 0 1 14 0v18z" fill="#7A4E2D" stroke="#1F2333" stroke-width="2"/><rect x="18" y="48" width="12" height="12" fill="#9FD3E8" stroke="#1F2333" stroke-width="1.8"/><rect x="60" y="48" width="12" height="12" fill="#9FD3E8" stroke="#1F2333" stroke-width="1.8"/><path d="M45 26l2 4.2 4.6.5-3.4 3.1 1 4.5-4.2-2.4-4.2 2.4 1-4.5-3.4-3.1 4.6-.5z" fill="#E9B949" stroke="#1F2333" stroke-width="1"/></svg>';
+  // op oudjaar (tot middernacht) is de gouden vlaai een gouden oliebol: een bobbelige, goudbruine bol met krenten, een dik laagje
+  // poedersuiker bovenop en drie fonkeltjes eromheen (die fonkelen alleen bij no-preference). Alleen het uiterlijk.
+  function oliebolSVG() {
+    const id = 'ob' + (++uid), r = rng(19), f = n => n.toFixed(1);
+    const rr = a => 72 * (1 + Math.sin(a * 5 + 1.2) * .022 + Math.sin(a * 8 + .4) * .014 + Math.sin(a * 11 + 2) * .01);
+    const omtrek = Array.from({ length: 44 }, (_, i) => { const a = i / 44 * Math.PI * 2; return [100 + Math.cos(a) * rr(a), 108 + Math.sin(a) * rr(a) * .92]; });
+    // de poedersuiker: een dun laagje dat ver doorloopt, en daarop een dik kapje met een rafelige onderrand
+    const kap = (van, tot, y0, golf, dicht) => { const p = []; for (let i = 0; i <= 18; i++) { const a = Math.PI * (van + i / 18 * (tot - van)); p.push([100 + Math.cos(a) * rr(a) * dicht, 108 + Math.sin(a) * rr(a) * .92 * dicht]); }
+      const x0 = p[p.length - 1][0], x1 = p[0][0]; for (let i = 1; i < 12; i++) p.push([x0 + (x1 - x0) * i / 12, y0 - (i % 2 ? golf : 0) - r() * golf * .8]); return rondPad(p); };
+    const korrels = Array.from({ length: 24 }, () => { const x = 42 + r() * 116, y = 86 + r() * 42; return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(1.2 + r() * 1.6)}" fill="#FFFFFF" opacity="${(.55 + r() * .4).toFixed(2)}"/>`; }).join('');
+    const krent = (x, y, a) => `<g transform="rotate(${a} ${x} ${y})"><ellipse cx="${x}" cy="${y}" rx="7" ry="5" fill="#3A1A10"/><ellipse cx="${x - 2}" cy="${y - 1.6}" rx="2.4" ry="1.3" fill="#7A4632"/></g>`;
+    const bult = (x, y, rx, ry, a) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${a} ${x} ${y})" fill="#F0B464" opacity=".45"/>`;
+    const fonkel = (x, y, s, d) => `<path class="og-fonkel" style="animation-delay:-${d}s" d="M${x} ${y - s}Q${x + s * .18} ${y - s * .18} ${x + s} ${y}Q${x + s * .18} ${y + s * .18} ${x} ${y + s}Q${x - s * .18} ${y + s * .18} ${x - s} ${y}Q${x - s * .18} ${y - s * .18} ${x} ${y - s}Z" fill="#FFF3C4" stroke="#B8860B" stroke-width="2.4" stroke-linejoin="round"/>`;
+    return `<svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><defs><radialGradient id="${id}" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="#F6C273"/><stop offset=".45" stop-color="#DE9140"/><stop offset=".82" stop-color="#B4621F"/><stop offset="1" stop-color="#874114"/></radialGradient></defs>
+      <path d="${rondPad(omtrek)}" fill="url(#${id})" stroke="#5A2A0C" stroke-width="4" stroke-linejoin="round"/>
+      ${bult(62, 142, 13, 8, -30)}${bult(128, 156, 15, 7, 8)}${bult(150, 128, 10, 7, -55)}${bult(98, 138, 9, 6, 0)}
+      ${krent(74, 156, 20)}${krent(112, 168, -10)}${krent(150, 146, 60)}${krent(52, 128, 80)}${krent(126, 136, -35)}
+      <path d="${kap(1.06, 1.94, 104, 7, .985)}" fill="#FFFDF6" opacity=".5"/><path d="${kap(1.12, 1.88, 86, 8, .975)}" fill="#FFFDF6"/><path d="M48 84Q72 50 112 46" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+      ${korrels}
+      ${fonkel(28, 38, 15, 0)}${fonkel(174, 44, 11, .6)}${fonkel(172, 170, 9, 1.1)}</svg>`;
+  }
   const GOUD_SVG = '<svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><circle cx="100" cy="100" r="89" fill="#E9B949" stroke="#9A6A0B" stroke-width="4"/><circle cx="100" cy="100" r="80" fill="none" stroke="#FFE7A0" stroke-width="9" stroke-dasharray="9 5"/><circle cx="100" cy="100" r="66" fill="#F6CB4F"/><path d="M100 52l13 28 31 4-23 21 6 31-27-15-27 15 6-31-23-21 31-4z" fill="#FFF3C4" stroke="#B8860B" stroke-width="3" stroke-linejoin="round"/></svg>';
 
   const ICO = {
@@ -3490,11 +3599,20 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
 
   // ---------- gouden vlaai
   let goudVolgende = Date.now() + (40 + Math.random() * 40) * 1000, goudEl = null, goudWeg = 0;
+  // op oudjaar (feest.js: feest 'oud', tot middernacht) is de gouden vlaai een gouden oliebol, voor iedereen. Alleen het uiterlijk:
+  // dezelfde knop, dezelfde kans en dezelfde bonus. feestNu zet de feestverzameling onderaan; om middernacht wordt hij weer een vlaai.
+  let feestNu = null;
+  const isOliebol = () => feestNu === 'oud';
+  function goudUiterlijk() {
+    if (!goudEl) return;
+    const ob = isOliebol();
+    goudEl.innerHTML = ob ? oliebolSVG() : GOUD_SVG; goudEl.classList.toggle('oliebol', ob);
+    goudEl.setAttribute('aria-label', (ob ? 'Gouden oliebol' : 'Gouden vlaai') + '! Klik snel voor een bonus');
+  }
   function toonGoud() {
     const pod = $('podium'), w = pod.clientWidth, h = pod.clientHeight;
     goudEl = document.createElement('button');
-    goudEl.className = 'gouden'; goudEl.setAttribute('aria-label', 'Gouden vlaai! Klik snel voor een bonus');
-    goudEl.innerHTML = GOUD_SVG;
+    goudEl.className = 'gouden'; goudUiterlijk();
     const links = Math.random() < .5;
     goudEl.style.left = (links ? 4 + Math.random() * (w * 0.18) : w * 0.78 + Math.random() * (w * 0.12)) + 'px';
     goudEl.style.top = (10 + Math.random() * (h - 100)) + 'px';
@@ -3502,8 +3620,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
     pod.appendChild(goudEl);
     goudWeg = Date.now() + 13000;
     // de Goudvink vangt hem vanzelf
-    if (M.heeftAuto('vink') && M.S.oer.auto.vink) setTimeout(() => { if (goudEl) { vangGoud(); meld('De Goudvink ving een gouden vlaai voor je.'); } }, 1500);
-    else meld('Er is een gouden vlaai verschenen!');
+    if (M.heeftAuto('vink') && M.S.oer.auto.vink) setTimeout(() => { if (goudEl) { const ob = isOliebol(); vangGoud(); meld('De Goudvink ving een gouden ' + (ob ? 'oliebol' : 'vlaai') + ' voor je.'); } }, 1500);
+    else meld('Er is een gouden ' + (isOliebol() ? 'oliebol' : 'vlaai') + ' verschenen!');
   }
   function haalGoudWeg() { if (goudEl) { goudEl.remove(); goudEl = null; } goudVolgende = Date.now() + (70 + Math.random() * 110) * 1000 * M.goudKans(); }
   function vangGoud() {
@@ -3812,7 +3930,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
     return `<div class="gw-pas ${pb === 'b-gewoon' ? '' : 'met-decor'}" aria-hidden="true"><div class="gw-pas-decor">${decorSVG(pb)}</div><div class="gw-pas-schort">${ps !== 's-geen' || ket ? schortSVG(ps, ket) : ''}</div>${M.heeftBijz('kroon') ? `<div class="gw-pas-kroon">${KROON_SVG}</div>` : ''}<div class="gw-pas-vlaai">${vlaaiSVG(S.smaak, false, pl)}</div></div>
       <p class="gw-pas-tekst" role="status">${pasTekst}</p>
       ${VB.MOOI_SOORTEN.map(([soort, naam]) => `<h4 class="gw-soort">${naam}</h4><ul class="gw-mooi">${VB.MOOI.filter(x => x.soort === soort && (!x.feest || M.mooiHeb(x.id))).map(x => { const heb = M.mooiHeb(x.id), gekozen = keuze(soort) === x.id, past = pas[soort] === x.id;
-        return `<li><button type="button" class="gw-ding${gekozen ? ' gekozen' : ''}${heb ? '' : ' dicht'}${past ? ' past' : ''}${x.feest ? (x.van === 'kerst' ? ' kerst' : ' sint') : ''}" data-mooi="${x.id}" aria-pressed="${gekozen}"><span class="gw-mini">${mini(x.id)}</span><span class="gw-naam">${x.naam}</span><span class="gw-prijs">${gekozen ? '✓ Gekozen' : x.feest ? (x.van === 'kerst' ? 'Uit de kerstkalender' : 'Van de Sint') : heb ? 'Kies' : x.bij ? 'Bijzonder' : STER + ' ' + fmt(x.prijs)}</span></button></li>`; }).join('')}</ul>`).join('')}`;
+        return `<li><button type="button" class="gw-ding${gekozen ? ' gekozen' : ''}${heb ? '' : ' dicht'}${past ? ' past' : ''}${x.feest ? (x.van === 'kerst' ? ' kerst' : x.van === 'oud' ? ' oud' : ' sint') : ''}" data-mooi="${x.id}" aria-pressed="${gekozen}"><span class="gw-mini">${mini(x.id)}</span><span class="gw-naam">${x.naam}</span><span class="gw-prijs">${gekozen ? '✓ Gekozen' : x.feest ? (x.van === 'kerst' ? 'Uit de kerstkalender' : x.van === 'oud' ? 'Van oudjaar' : 'Van de Sint') : heb ? 'Kies' : x.bij ? 'Bijzonder' : STER + ' ' + fmt(x.prijs)}</span></button></li>`; }).join('')}</ul>`).join('')}`;
   }
   function tekenWinkel() {
     const el = $('gildewinkel'); if (!el || WEEK) return;
@@ -4045,7 +4163,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = VB;
   if (window.matchMedia && matchMedia('(hover: none)').matches) $('uitleg-regel').textContent = 'Tik op een bakker om hem in dienst te nemen. Daarna zie je hier wat hij oplevert.';
   bouwBakkers(); zetVlaai(); tekenPrestaties(); tekenInstellingen(); alles(); tekenBuffs(); tekenBakkerij(true);
   // de feestverzameling: opnieuw tekenen zodra hij er is (en als hij verandert, bijvoorbeeld na uitpakken op de homepage)
-  if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => { feestHeb = id => !!(s && s.heb && s.heb(id)); lookNu = ''; gwVorm = ''; zetVlaai(); tekenWinkel(); });
+  if (window.Scorebord && Scorebord.feest) Scorebord.feest(s => { const was = feestNu; feestNu = (s && s.feest) || null; feestHeb = id => !!(s && s.heb && s.heb(id)); lookNu = ''; gwVorm = ''; zetVlaai(); tekenWinkel(); if (was !== feestNu) goudUiterlijk(); });
   // testhaak (voor de tests; verandert niets aan het spel)
   window.__vlaai = { M, VB, G, alles, bewaar, MUZIEK };
 })();

@@ -3512,6 +3512,12 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
           [[24, 20], [30, 17], [38, 19], [42, 25], [22, 27], [35, 22], [27, 23], [40, 30]].map(p => `<circle class="sb-vlok" cx="${p[0]}" cy="${p[1]}" r="1.15" fill="#FFFFFF" stroke="#A9C6DE" stroke-width=".5"/>`).join('') + '<path d="M21 22q2-6 8-8" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>',
         sch: '<path d="M15 52L18 42H46L49 52Z"/><circle cx="32" cy="29" r="16.4"/>', hit: '<rect class="hit fijn" x="13" y="11" width="38" height="43"/><rect class="hit grof" x="8" y="6" width="48" height="53"/>',
         label: 'Sneeuwbol, van onder de kerstboom. Tik, of schud je telefoon, en het sneeuwt erin.' },
+      // (oud en nieuw) de nieuwjaarsmunt: een gouden munt die rolt
+      nieuwjaarsmunt: { naam: 'Nieuwjaarsmunt', klank: 'metaal', vorm: () => Fysica.cirkel(16, 0.45), dichtheid: 2.2, wrijving: 0.45, stuit: 0.3, rol: 170, dempA: 0.05,
+        teken: () => '<circle cx="32" cy="33" r="16" fill="#E0A92E" stroke="#231A26" stroke-width="3"/><circle cx="32" cy="33" r="12.6" fill="#F6CB2F" stroke="#B9801E" stroke-width="1.1"/><path d="M23.5 26.5A11 11 0 0 1 33.5 21.6" fill="none" stroke="#FFF4C2" stroke-width="1.8" stroke-linecap="round"/><text x="32" y="36.6" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="8.6" fill="#8A5A12">2027</text><path d="M32 23.2l1 2.1 2.3.3-1.7 1.6.4 2.3-2-1.1-2 1.1.4-2.3-1.7-1.6 2.3-.3z" fill="#8A5A12"/><path d="M26 41.3h12" stroke="#B9801E" stroke-width="1.4" stroke-linecap="round"/>',
+        sch: '<circle cx="32" cy="33" r="17.5"/>', hit: '<circle class="hit fijn" cx="32" cy="32" r="20"/><circle class="hit grof" cx="32" cy="32" r="24"/>',
+        glans: n => `<defs><clipPath id="rm-nm${n}"><circle cx="32" cy="33" r="14"/></clipPath></defs><g clip-path="url(#rm-nm${n})"><rect class="streep" x="-12" y="0" width="9" height="64" fill="#FFFFFF" opacity="0" transform="rotate(25 32 32)"/></g>`,
+        label: 'Nieuwjaarsmunt 2027, van oud en nieuw. Tik om hem te laten rollen.' },
     };
     // ---------- de knipoogjes in de rommelkast: hebbedingetjes uit series en films, als eigen tekeningen
     // (geen namen, logo's of personages; een hamer, een kubus, een kopje ...). romp: de botsvorm (bol, in tekencoördinaten).
@@ -4612,7 +4618,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       }
       if (r.b.kin) return;
       if (r.soort === 'dobbelsteen') gooi(r);
-      else if (r.soort === 'knikker' || r.soort === 'pepernoot' || r.soort === 'worteltje' || r.soort === 'kerstbal') tikKnikker(r, vanX);
+      else if (r.soort === 'knikker' || r.soort === 'pepernoot' || r.soort === 'worteltje' || r.soort === 'kerstbal' || r.soort === 'nieuwjaarsmunt') tikKnikker(r, vanX);
       else if (r.soort === 'sneeuwbol') { const b = r.b; wereld.wek(b); b.vy = -300; b.w = (Math.random() < 0.5 ? -1 : 1) * 1.5; sneeuwen(r); wek(); }
       else if (r.soort === 'potlood') krabbel(r);
       else if (r.soort === 'chocoletter' || r.soort === 'goudmijter') { // een sprongetje met een draai
@@ -4754,7 +4760,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const telS = {};
       BRIEF.forEach(s => { telS[s] = (telS[s] || 0); maak(s, 'brief', telS[s]++); });
       // wat je met de feestdagen kreeg, staat meteen in de kast (anders groeit hij zichtbaar als feest.js later binnenkomt)
-      try { const fz = JSON.parse(localStorage.getItem('rommelhoekje-feest-v1') || 'null'), st = fz && Array.isArray(fz.st) ? fz.st : [], ID = { chocoletter: 'hp-chocoletter', worteltje: 'hp-worteltje', goudmijter: 'mijter26', kerstbal: 'hp-kerstbal', sneeuwbol: 'hp-sneeuwbol' }; FEESTSPUL.forEach(s => { if (st.indexOf(ID[s]) >= 0 && KAST_VAK.indexOf(s) < 0) KAST_VAK.push(s); }); } catch (e) {}
+      try { const fz = JSON.parse(localStorage.getItem('rommelhoekje-feest-v1') || 'null'), st = fz && Array.isArray(fz.st) ? fz.st : [], ID = { chocoletter: 'hp-chocoletter', worteltje: 'hp-worteltje', goudmijter: 'mijter26', kerstbal: 'hp-kerstbal', sneeuwbol: 'hp-sneeuwbol', nieuwjaarsmunt: 'munt2027' }; FEESTSPUL.forEach(s => { if (st.indexOf(ID[s]) >= 0 && KAST_VAK.indexOf(s) < 0) KAST_VAK.push(s); }); } catch (e) {}
       KAST_VAK.forEach(s => maak(s, 'kast', 0));
       // de rommelkast: een lege plek in de pagina (tussen de advertentie en Alle spellen), of in de kantlijn
       kastSec = document.createElement('section'); kastSec.className = 'tg-kast'; kastSec.setAttribute('aria-hidden', 'true'); kastSec.hidden = true;
@@ -4794,7 +4800,7 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
     }
     // (de feestdagen) wat je op pakjesavond uitpakte (de chocoladeletter, het marsepeinen worteltje en de Gouden Mijter): voor altijd in de
     // rommelkast, in een eigen vakje achter de knipoogjes (de kast groeit mee). feest-home.js geeft de lijst met wat je hebt.
-    const FEESTSPUL = ['chocoletter', 'worteltje', 'goudmijter', 'kerstbal', 'sneeuwbol'];
+    const FEESTSPUL = ['chocoletter', 'worteltje', 'goudmijter', 'kerstbal', 'sneeuwbol', 'nieuwjaarsmunt'];
     function feestRommels(lijst) {
       if (!laag) return;
       const nieuw = FEESTSPUL.filter(s => lijst.indexOf(s) >= 0 && KAST_VAK.indexOf(s) < 0);

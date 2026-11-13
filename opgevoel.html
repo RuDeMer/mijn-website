@@ -1821,7 +1821,7 @@ const REKEN = (() => {
   R.NUL = { cirkel: 0.3, seconde: 0.2, midden: 0.1, kleur: 30, hoek: 30, lijn: 0.05, drieen: 0.08, evenlang: 0.3, stippen: Math.LN2, waterpas: 6, maat: 0.2, zwaartepunt: 0.25, halfvol: 0.2, spiegel: 0.15, muur: 0.3,
     // nieuw in november 2026
     vorm: 0.1, toon: 300, snoep: Math.LN2,
-    symmetrie: 0.08, evengroot: Math.log(1.6), mengen: 20, ritme: 0.5, tempo: 0.25, auto: 0.35, gooien: 0.3, aftellen: 0.25, duur: 0.3,
+    symmetrie: 0.08, evengroot: Math.log(1.6), mengen: 20, ritme: 0.5, tempo: 0.25, auto: 0.12, gooien: 0.3, aftellen: 0.25, duur: 0.3,
     flits: Math.log(1.7), procent: 25, getallenlijn: 0.12, evenhard: 8 };
 
   // ---------- zaadjes: dezelfde opgave voor iedereen op dezelfde dag
@@ -2157,8 +2157,8 @@ const REKEN = (() => {
   };
   // ---------- tempo onthouden: net als op de maat (tempo + de helft van hoe onregelmatig), met een strenger nulpunt
   R.tempo = (tikken, T) => { const x = R.maat(tikken, T); x.score = tikken && tikken.length >= 3 ? R.lin(x.fout, R.NUL.tempo) : 0; return x; };
-  // ---------- de auto: hoe ver je tik ernaast zat, gemeten tegen hoe lang de auto in de tunnel reed
-  R.auto = (dt, T) => { const fout = Math.abs(dt) / T; return { score: R.lin(fout, R.NUL.auto), fout, verschil: dt }; };
+  // ---------- precies stoppen: hoe ver de neus van de auto van de streep stilstaat (in veldmaten; min is ervoor, plus erover)
+  R.auto = d => { const fout = Math.abs(d); return { score: R.lin(fout, R.NUL.auto), fout, verschil: d }; };
   // ---------- in het bakje: hoe ver de bal van het midden van het bakje neerkwam, gemeten tegen de breedte van het veld
   R.gooien = (x, xDoel) => { const fout = Math.abs(x - xDoel); return { score: R.lin(fout, R.NUL.gooien), fout, verschil: x - xDoel }; };
   // ---------- aftellen en hoe lang duurde het: het verschil, gemeten tegen de echte tijd
@@ -4166,80 +4166,143 @@ const REKEN = (() => {
     },
   };
 
-  // ---------- 25. de auto in de tunnel
+  // ---------- 25. precies stoppen: rem op tijd, zodat de neus van de auto precies bij de streep stilstaat
+  // (de id blijft 'auto'). Je ziet de auto de hele tijd; de kunst is de remweg goed schatten. De auto remt altijd
+  // even hard (in de moeilijke stand is de weg nat en remt hij minder hard), dus hoe harder hij rijdt, hoe eerder je moet remmen.
   function tekenAuto(g, x, y, richting, stijl) {
     g.save(); g.translate(x, y); g.scale(richting, 1);
-    const L = 0.12, H = 0.045;
+    const L = 0.12, H = 0.045, RW = H * 0.45;
     if (stijl.geest || stijl.lijn) {
-      g.beginPath(); g.moveTo(-L, 0); g.lineTo(-L, -H); g.lineTo(-L * 0.55, -H); g.lineTo(-L * 0.35, -H * 1.9); g.lineTo(-L * 0.05, -H * 1.9); g.lineTo(0, -H); g.lineTo(0, 0); g.closePath();
+      g.beginPath(); g.moveTo(-L, -RW * 0.4); g.lineTo(-L, -H); g.lineTo(-L * 0.78, -H); g.lineTo(-L * 0.62, -H * 1.85); g.lineTo(-L * 0.25, -H * 1.85); g.lineTo(-L * 0.12, -H); g.lineTo(0, -H); g.lineTo(0, -RW * 0.4); g.closePath();
       g.lineWidth = px(stijl.dik || 4); g.strokeStyle = stijl.lijn || WIT; g.setLineDash(stijl.geest ? [px(4), px(5)] : []); g.stroke(); g.setLineDash([]);
+      for (const wx of [-L * 0.78, -L * 0.24]) { cirkelPad(g, wx, 0, RW); g.stroke(); }
       g.restore(); return;
     }
     // de neus van de auto staat op x (de auto rijdt naar rechts als richting 1 is)
-    rondRechthoek(g, -L, -H, L, H, px(8)); g.fillStyle = stijl.kleur || '#E53935'; g.fill(); g.lineWidth = px(3.5); g.strokeStyle = INKT; g.stroke();
+    rondRechthoek(g, -L, -H, L, H - RW * 0.4, px(8)); g.fillStyle = stijl.kleur || '#E53935'; g.fill(); g.lineWidth = px(3.5); g.strokeStyle = INKT; g.stroke();
     g.beginPath(); g.moveTo(-L * 0.78, -H); g.lineTo(-L * 0.62, -H * 1.85); g.lineTo(-L * 0.25, -H * 1.85); g.lineTo(-L * 0.12, -H); g.closePath(); g.fillStyle = stijl.kleur || '#E53935'; g.fill(); g.stroke();
     g.beginPath(); g.moveTo(-L * 0.7, -H * 1.05); g.lineTo(-L * 0.58, -H * 1.65); g.lineTo(-L * 0.3, -H * 1.65); g.lineTo(-L * 0.2, -H * 1.05); g.closePath(); g.fillStyle = '#BFE3FF'; g.fill();
-    for (const wx of [-L * 0.78, -L * 0.24]) { cirkelPad(g, wx, 0, H * 0.45); g.fillStyle = INKT; g.fill(); stip(g, wx, 0, 2.2, '#9AA'); }
+    // koplamp voorin
+    rondRechthoek(g, -px(7), -H * 0.82, px(6), H * 0.3, px(2)); g.fillStyle = '#FFF59D'; g.fill();
+    // de wielen draaien mee met de afstand die de auto aflegt
+    for (const wx of [-L * 0.78, -L * 0.24]) {
+      cirkelPad(g, wx, 0, RW); g.fillStyle = INKT; g.fill();
+      cirkelPad(g, wx, 0, RW * 0.5); g.fillStyle = '#B0BEC5'; g.fill();
+      const h = (stijl.rol || 0) * richting;
+      streep(g, [[wx - Math.cos(h) * RW * 0.45, -Math.sin(h) * RW * 0.45], [wx + Math.cos(h) * RW * 0.45, Math.sin(h) * RW * 0.45]], 2.5, INKT);
+    }
     // remlichten
     if (stijl.rem) { cirkelPad(g, -L + px(2), -H * 0.6, px(5)); g.fillStyle = '#FF1744'; g.fill(); cirkelPad(g, -L + px(2), -H * 0.6, px(11)); g.fillStyle = 'rgba(255,23,68,.25)'; g.fill(); }
     g.restore();
   }
+  // een eendje dat aan de overkant van de streep wil oversteken
+  function tekenEend(g, x, y, schrik, nu) {
+    const s = 0.028, op = beweegMag && !schrik ? Math.sin(nu / 260) * 0.003 : 0;
+    g.save(); g.translate(x, y + op);
+    g.beginPath(); g.ellipse(0, -s * 0.7, s * 1.05, s * 0.7, 0, 0, Math.PI * 2); g.fillStyle = '#FFD54F'; g.fill(); g.lineWidth = px(3); g.strokeStyle = INKT; g.stroke();
+    cirkelPad(g, -s * 0.75, -s * 1.55, s * 0.5); g.fillStyle = '#FFD54F'; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-s * 1.2, -s * 1.6); g.lineTo(-s * 1.65, -s * 1.45); g.lineTo(-s * 1.2, -s * 1.35); g.closePath(); g.fillStyle = '#FF8F00'; g.fill(); g.stroke();
+    stip(g, -s * 0.85, -s * 1.65, 2.6, INKT);
+    if (schrik) schrijf(g, '!', -s * 0.4, -s * 2.7, 0.05, { kleur: '#D50000', gewicht: 700, rand: 4, randKleur: WIT });
+    g.restore();
+  }
   UIT.auto = {
-    naam: 'De auto', emoji: '🚗', kleur: '#80DEEA', donker: true, echt: '#C62828', soort: 'tijd', as: 'timing',
-    opdracht: () => 'Tik als de neus van de auto bij de streep is',
-    uitleg: () => 'De auto remt de hele tijd een beetje, ook in de tunnel.',
+    naam: 'Precies stoppen', emoji: '🚗', kleur: '#80DEEA', donker: true, echt: '#C62828', soort: 'tijd', as: 'timing',
+    opdracht: () => 'Stop de auto precies bij de streep',
+    uitleg: o => (o.zwaar ? 'Het regent: op de natte weg remt de auto minder hard en glijdt hij verder door. Tik op Rem!' : 'Tik op Rem! De auto remt altijd even hard. Zijn neus moet precies bij de streep stilstaan.'),
     maak: (r, zwaar) => {
+      const a = zwaar ? 0.2 : 0.32, x0 = 0.1;
       for (let i = 0; ; i++) {
-        const v0 = R.tussen(r, 0.27, 0.4), a = R.tussen(r, 0.025, 0.075), x0 = 0.06, xa = R.tussen(r, 0.36, 0.48), w = zwaar ? R.tussen(r, 0.4, 0.5) : R.tussen(r, 0.3, 0.42), xt = xa + w * R.tussen(r, 0.5, 0.85);
-        const tVan = x => { const d = v0 * v0 - 2 * a * (x - x0); return d < 0 ? Infinity : (v0 - Math.sqrt(d)) / a; };
-        const ta = tVan(xa), tt = tVan(xt), vt = Math.sqrt(Math.max(0, v0 * v0 - 2 * a * (xt - x0))), occ = tt - ta;
-        const ok = isFinite(tt) && vt >= 0.35 * v0 && ta > 1.1 && ta < 2.6 && occ >= (zwaar ? 1.3 : 0.8) && occ <= (zwaar ? 3 : 2.1) && xa + w <= 0.95;
-        if (ok || i > 600) return { v0, a, x0, xa, xb: xa + w, xt, ta, tt, richting: R.teken(r), zwaar: !!zwaar };
+        // v: de snelheid (veld per seconde), tb: hoe lang hij rijdt voordat je moet remmen
+        const v = zwaar ? R.tussen(r, 0.27, 0.38) : R.tussen(r, 0.25, 0.4), tb = R.tussen(r, zwaar ? 0.9 : 1, zwaar ? 1.7 : 2.2);
+        const xb = x0 + v * tb, xl = xb + v * v / (2 * a);
+        if ((xl <= 0.9 && xl >= 0.55) || i > 600) return { v, a, x0, xb, xl: Math.min(xl, 0.9), tb, richting: R.teken(r), zwaar: !!zwaar };
       }
     },
     begin(o, S) {
-      const Y = 0.62, TOP = 0.36, X = x => (o.richting > 0 ? x : 1 - x), xOp = t => { const tm = o.v0 / o.a, tt = Math.min(Math.max(0, t), tm); return o.x0 + o.v0 * tt - o.a * tt * tt / 2; };
-      let fase = 'klaar', t0 = 0, tap = null, u = null;
+      const Y = 0.62, X = x => (o.richting > 0 ? x : 1 - x), stopT = o.v / o.a;
+      // waar de neus is na t seconden, als je na tr seconden begon te remmen (tr null: nog niet geremd)
+      const xOp = (t, tr) => {
+        t = Math.max(0, t);
+        if (tr === null || t <= tr) return o.x0 + o.v * t;
+        const d = Math.min(t - tr, stopT);
+        return o.x0 + o.v * tr + o.v * d - o.a * d * d / 2;
+      };
+      let fase = 'klaar', t0 = 0, rem = null, u = null, piep = null;
       const kn = tijdKnop(S, 'Start', ts => druk(ts));
       function druk(ts) {
-        if (fase === 'klaar') { fase = 'rijdt'; t0 = ts + 500; kn.textContent = 'Nu!'; S.geluid.start(); return; }
-        if (fase === 'rijdt' && ts > t0 + 300) { tap = (ts - t0) / 1000; eind(); }
+        if (fase === 'klaar') { fase = 'rijdt'; t0 = ts + 500; kn.textContent = 'Rem!'; S.geluid.start(); return; }
+        if (fase === 'rijdt' && rem === null && ts > t0 + 250) { rem = (ts - t0) / 1000; kn.disabled = true; piep = S.geluid.ruis(2000, o.zwaar ? 0.03 : 0.045); }
       }
       function eind() {
         if (u) return;
-        fase = 'af';
-        if (tap === null) { u = { score: 0, leeg: true }; S.klaar({ score: 0, regel: 'Je hebt niet getikt.', zin: 'Hij is al lang de tunnel uit!' }); return; }
-        u = R.auto(tap - o.tt, o.tt - o.ta);
-        const d = u.verschil, ad = Math.abs(d);
-        S.klaar({ score: u.score, regel: ad < 0.005 ? 'Precies op tijd!' : `${komma(ad, 2)} s te ${d < 0 ? 'vroeg' : 'laat'}`, zin: u.score >= 95 ? 'Jij ziet door de tunnel heen!' : u.score < 75 ? (d < 0 ? 'Hij remde meer dan je dacht.' : 'Hij reed harder dan je dacht.') : null, geest: { e: rond3(d / (o.tt - o.ta)) } });
+        fase = 'af'; kn.disabled = true; if (piep) { piep.stop(); piep = null; }
+        if (rem === null) { u = { score: 0, leeg: true }; S.klaar({ score: 0, regel: 'Je hebt niet geremd.', zin: 'Hij reed zo door!' }); return; }
+        const d = xOp(rem + stopT, rem) - o.xl; u = R.auto(d);
+        const ad = Math.abs(d);
+        S.klaar({ score: u.score, regel: ad < 0.004 ? 'Precies op de streep!' : `${pct1(ad)} van het veld ${d < 0 ? 'vóór' : 'over'} de streep`, zin: u.score >= 95 ? 'Wat een remweg, op de millimeter!' : u.score < 70 ? (d < 0 ? 'Te vroeg geremd: hij staat nog een eind ervoor.' : 'Te laat geremd: hij schoot erover.') : null, geest: { m: rond3(d) } });
       }
       return {
+        geestPast: d => typeof d.m === 'number',
+        stop() { if (piep) { piep.stop(); piep = null; } },
         neer(p, e) { druk(e.timeStamp); },
         toets(e) { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && (e.target.tagName !== 'BUTTON' || e.target === kn)) { druk(e.timeStamp); return true; } return false; },
-        stap(nu) { if (fase === 'rijdt' && (nu - t0) / 1000 > o.tt + 2.5) eind(); },
+        stap(nu) {
+          if (fase !== 'rijdt') return;
+          const t = (nu - t0) / 1000;
+          // het piepen van de banden wordt lager naarmate de auto langzamer gaat, en houdt op als hij stilstaat
+          if (piep && rem !== null) { const f = 1 - Math.min(1, Math.max(0, t - rem) / stopT); if (f <= 0) { piep.stop(); piep = null; } else piep.zet(700 + 1500 * f); }
+          if (rem !== null && t >= rem + stopT + 0.35) eind();
+          else if (rem === null && xOp(t, null) > 1.2) eind();
+        },
         teken(g, nu) {
-          const t = fase === 'klaar' ? 0 : fase === 'rijdt' ? (nu - t0) / 1000 : tap === null ? o.tt + 2.5 : tap;
-          // de weg
-          g.fillStyle = '#546E7A'; g.fillRect(-1, Y, 3, 0.12); streep(g, [[-1, Y + 0.06], [2, Y + 0.06]], 3, '#FFFFFF', [14, 12]);
+          const t = fase === 'klaar' ? 0 : fase === 'rijdt' ? (nu - t0) / 1000 : rem === null ? 99 : rem + stopT;
+          const x = xOp(t, rem), nat = o.zwaar;
+          // de weg (bij regen donker en glimmend)
+          g.fillStyle = nat ? '#37474F' : '#546E7A'; g.fillRect(-1, Y, 3, 0.12);
+          if (nat) { g.fillStyle = 'rgba(255,255,255,.12)'; for (let i = -1; i < 10; i++) g.fillRect(i * 0.13 + 0.02, Y + 0.025, 0.06, 0.012); }
+          streep(g, [[-1, Y + 0.075], [2, Y + 0.075]], 3, '#FFFFFF', [14, 12]);
           streep(g, [[-1, Y], [2, Y]], 4, INKT);
-          if (fase !== 'af') tekenAuto(g, X(xOp(t)), Y - 0.012, o.richting, { rem: fase === 'rijdt' && t > 0 });
-          // de tunnel (na afloop doorzichtig)
-          const a = fase === 'af' ? 1 - 0.65 * S.zacht(S.af(nu)) : 1, m0 = Math.min(X(o.xa), X(o.xb)), m1 = Math.max(X(o.xa), X(o.xb));
-          g.globalAlpha = a; g.fillStyle = '#5D4037'; g.fillRect(m0, TOP, m1 - m0, Y - TOP + 0.003);
-          g.beginPath(); for (const xm of [m0, m1]) { g.moveTo(xm, Y); g.lineTo(xm, TOP + 0.06); }
-          g.lineWidth = px(5); g.strokeStyle = INKT; g.stroke(); g.globalAlpha = 1;
-          g.lineWidth = px(5); g.strokeStyle = INKT; g.strokeRect(m0, TOP, m1 - m0, Y - TOP);
-          // de streep
-          const xs = X(o.xt);
-          streep(g, [[xs, TOP + 0.02], [xs, Y - 0.005]], 5, WIT, [10, 8]);
-          g.beginPath(); g.moveTo(xs, TOP - 0.01); g.lineTo(xs - 0.03, TOP - 0.06); g.lineTo(xs + 0.03, TOP - 0.06); g.closePath(); g.fillStyle = WIT; g.fill(); g.lineWidth = px(3); g.strokeStyle = INKT; g.stroke();
-          if (fase === 'af' && tap !== null) {
-            tekenAuto(g, X(xOp(o.tt)), Y - 0.012, o.richting, { lijn: S.echt, dik: 5 });
-            tekenAuto(g, X(xOp(tap)), Y - 0.012, o.richting, {});
-            schrijf(g, 'jij', X(xOp(tap)) - o.richting * 0.06, Y - 0.12, 0.045, { kleur: WIT, min: 14, gewicht: 700, rand: 5, randKleur: INKT });
+          // remsporen: van waar je begon te remmen tot waar de achterwielen nu zijn
+          if (rem !== null && t > rem) {
+            const xr = xOp(rem, null), xn = x;
+            for (const off of [-0.12 * 0.78, -0.12 * 0.24]) streep(g, [[X(xr + off), Y + 0.012], [X(xn + off), Y + 0.012]], 6, nat ? 'rgba(10,15,20,.55)' : 'rgba(20,28,33,.7)');
+          }
+          // de streep en het bordje
+          const xs = X(o.xl);
+          g.fillStyle = WIT; g.fillRect(xs - (o.richting > 0 ? 0 : 0.012), Y + 0.004, 0.012, 0.11);
+          streep(g, [[xs + o.richting * 0.05, Y], [xs + o.richting * 0.05, Y - 0.22]], 5, '#90A4AE');
+          (() => { const cx = xs + o.richting * 0.05, cy = Y - 0.25, rr = 0.038; g.beginPath(); for (let k = 0; k < 8; k++) { const h = Math.PI / 8 + k * Math.PI / 4; g.lineTo(cx + Math.cos(h) * rr, cy + Math.sin(h) * rr); } g.closePath(); g.fillStyle = '#D32F2F'; g.fill(); g.lineWidth = px(3); g.strokeStyle = WIT; g.stroke(); schrijf(g, 'STOP', cx, cy + 0.002, 0.022, { kleur: WIT, min: 8, gewicht: 700 }); })();
+          // het eendje wacht aan de overkant
+          const over = fase === 'af' && rem !== null && x - o.xl > 0.012;
+          tekenEend(g, xs + o.richting * 0.11, Y, over || (fase === 'af' && rem === null), nu);
+          // de auto
+          const rol = x / (0.045 * 0.45);
+          if (fase !== 'af') tekenAuto(g, X(x), Y - 0.012, o.richting, { rem: rem !== null && t > rem && t < rem + stopT, rol });
+          else {
+            const a = S.zacht(S.af(nu));
+            // het juiste antwoord: waar je had moeten remmen, en waar de auto dan stil had gestaan
+            if (rem !== null) {
+              // twee paaltjes op de weg: waar je had moeten remmen, en waar je remde (ruim boven de auto, en boven elkaar als ze dicht bij elkaar staan)
+              const xb = X(o.xb), xj = X(xOp(rem, null)), dicht = Math.abs(xb - xj) < 0.16;
+              const vl = (xx, kleur, tekst, hoog) => { streep(g, [[xx, Y + 0.012], [xx, Y - 0.17 - hoog]], 3, kleur, [6, 5]); schrijf(g, tekst, xx, Y - 0.19 - hoog, 0.032, { kleur, min: 11, gewicht: 700, rand: 4, randKleur: INKT }); };
+              g.globalAlpha = a; vl(xb, S.echt, 'hier remmen', dicht ? 0.065 : 0); vl(xj, WIT, 'jij remde', 0); g.globalAlpha = 1;
+              tekenAuto(g, X(o.xl), Y - 0.012, o.richting, { lijn: S.echt, dik: 5 });
+            }
+            tekenAuto(g, X(Math.min(x, 1.3)), Y - 0.012, o.richting, { rol });
+            if (rem !== null) schrijf(g, 'jij', X(x) - o.richting * 0.06, Y - 0.12, 0.045, { kleur: WIT, min: 14, gewicht: 700, rand: 5, randKleur: INKT });
+          }
+          // regen in de moeilijke stand
+          if (nat) {
+            g.strokeStyle = 'rgba(255,255,255,.45)'; g.lineWidth = px(2); g.beginPath();
+            const sch = beweegMag ? (nu / 1000) % 1 : 0;
+            // over de hele breedte van het doek, ook naast het vierkante speelveld
+            const l = -V.ox / V.S, b = V.W / V.S;
+            for (let i = 0; i < 90; i++) { const rx = l + ((i * 0.618034) % 1) * b, ry = ((i * 0.377 + sch * (1 + (i % 3) * 0.2)) % 1) * (Y - 0.02); g.moveTo(rx, ry); g.lineTo(rx - 0.012, ry + 0.04); }
+            g.stroke();
           }
         },
-        tekenGeest(g, d) { if (fase === 'af') tekenAuto(g, X(xOp(o.tt + d.e * (o.tt - o.ta))), Y - 0.012, o.richting, { geest: true, lijn: INKT, dik: 3 }); },
+        tekenGeest(g, d) { if (fase === 'af') tekenAuto(g, X(o.xl + d.m), Y - 0.012, o.richting, { geest: true, lijn: INKT, dik: 3 }); },
       };
     },
   };

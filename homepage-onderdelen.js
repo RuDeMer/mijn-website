@@ -1661,7 +1661,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   const PAGINA = document.body.dataset.pagina || location.pathname;
   const KEY = 'gereedschap-v2';
   // dingen waar gereedschap nooit overheen mag hangen
-  const HINDER = '.teaser-houder, .teaser, .nieuwtje, .doos, .sticker, .coulissen, .prop, .kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
+  const HINDER = '.teaser-houder, .teaser, .nieuwtje, .doos, .sticker, .coulissen, .cl-prop, .cl-kaartje, .coulissen h2, h1, h2, h3, .briefje, .haak-rij .label, footer > *, .kop a, .paneel, .status, .plank, .tafel .som, .tafel .handnaam, .veld .kaart, .werkbank, .knoppen, .bericht, .klein, .uitleg, .bord, .legenda, .toetsen, .teller, .buffs .buff, .vlaai-knop, .melding:not([hidden]), .welkom, .dag, #uitslag > *, .opslaan-balk, main a, main button, .wrap > p';
   let opgeslagen = {};
   try { opgeslagen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { opgeslagen = {}; }
   const bewaar = () => { try { localStorage.setItem(KEY, JSON.stringify(opgeslagen)); } catch (e) {} };
@@ -1892,8 +1892,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     ['.briefje', 'zwaai'],
     ['.tape', 'wiebel'],
     ['.sticker', 'wiebel'],
-    ['.prop', 'zwaai'],
-    ['.kaartje', 'zwaai'],
+    ['.cl-kaartje', 'zwaai'],
     ['h2 > span', 'wiebel'],
     ['.versie', 'wiebel'],
     ['.legenda li', 'hop'],
@@ -1972,7 +1971,7 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
 })();
 ;(function () {
 (function () {
-  // HEBBEDINGEN: de sticker rechtsboven en de props uit Rubens musicals op de homepage.
+  // HEBBEDINGEN: de sticker rechtsboven en het theater Uit de coulissen (de rekwisieten van Rubens rollen) op de homepage.
   // Dit script bouwt alles zelf op, zodat de werkplaats het kan bijwerken zonder je labels aan te raken.
   if (document.querySelector('.coulissen')) return;
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1991,140 +1990,6 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     } catch (e) {}
   }
 
-  // ---------- props van Rubens personages (eigen tekeningen, geïnspireerd op zijn kostuums)
-  const PEG = '<circle cx="0" cy="0" r="5" fill="#1E3263"/><path d="M0 0v10" stroke="#8C939E" stroke-width="3" stroke-linecap="round"/>';
-  const SVG = {
-    jas: `<svg viewBox="0 0 132 206" aria-hidden="true" focusable="false"><g transform="translate(66 8)">${PEG}</g>
-      <path d="M66 16q0-8 8-8t6 8q-2 6-10 12" fill="none" stroke="#C9CED6" stroke-width="3.5" stroke-linecap="round"/>
-      <path d="M66 28L14 52q-6 3 0 6h104q6-3 0-6z" fill="#8C5530" stroke="#3A2414" stroke-width="2.5" stroke-linejoin="round"/>
-      <g class="jas-lijf">
-        <path d="M30 56q-14 6-18 26l-6 74q0 6 6 6h14l4-70" fill="#26262E" stroke="#0A0A0E" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M102 56q14 6 18 26l6 74q0 6-6 6h-14l-4-70" fill="#26262E" stroke="#0A0A0E" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M30 56q16-6 36-6t36 6l4 128q0 8-8 10l-32 6-32-6q-8-2-8-10z" fill="#2E2E38" stroke="#0A0A0E" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M30 70q4 40 2 112M102 70q-4 40-2 112" stroke="#3E3E4A" stroke-width="2" fill="none" opacity=".7"/>
-        <path d="M54 52l12 34 12-34q-6 6-12 6t-12-6z" fill="#F2EDE2" stroke="#8C826C" stroke-width="1.6"/>
-        <path d="M58 50q8 10 16 0" fill="none" stroke="#8C826C" stroke-width="1.4"/>
-        <path d="M54 52q-12 4-14 24l14 26 12-20zM78 52q12 4 14 24l-14 26-12-20z" fill="#383844" stroke="#0A0A0E" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M60 46q6 8 12 0l2 8q-8 6-16 0z" fill="#26262E" stroke="#0A0A0E" stroke-width="2"/>
-        ${[96, 116, 136, 156].map(y => `<circle cx="56" cy="${y}" r="3.4" fill="#C9CED6" stroke="#5F6470" stroke-width="1.2"/><circle cx="76" cy="${y}" r="3.4" fill="#C9CED6" stroke="#5F6470" stroke-width="1.2"/>`).join('')}
-        <path d="M32 60L104 150l-2 20L28 82z" fill="#B82E3A" stroke="#4A0A12" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M34 70l68 86M31 77l69 87" stroke="#E0505C" stroke-width="1.6" opacity=".7"/>
-        <path d="M96 150q10 10 6 30l-8-4q4-12-4-20zM104 156q12 6 12 26l-8-2q0-12-8-18z" fill="#9E2430" stroke="#4A0A12" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="M44 190l22 4 22-4" fill="none" stroke="#0A0A0E" stroke-width="2"/>
-        <g class="das"><g transform="rotate(-22 64 56)"><path d="M61 52q2 6 1 12M69 52q-1 6 0 12" stroke="#6E1F2A" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M58 64q6 5 12 0l2 7q-7 6-15 1z" fill="#6E1F2A" stroke="#2A0A10" stroke-width="1.6"/><path d="M61 71q-5 12 0 26l5 7 4-9q-1-15-4-24z" fill="#8E2F3A" stroke="#2A0A10" stroke-width="1.6" stroke-linejoin="round"/><path d="M63 77q0 10 3 19" stroke="#B85A64" stroke-width="1.2" fill="none"/><path d="M70 70q8 6 6 16" stroke="#8E2F3A" stroke-width="3" fill="none" stroke-linecap="round"/></g></g>
-        <g class="broche" transform="translate(88 98)">
-          <path d="M0-14v28M-9-5h18" stroke="#DDE3EA" stroke-width="4.2" stroke-linecap="round"/>
-          <path d="M0-14v28M-9-5h18" stroke="#8C939E" stroke-width="1.4" stroke-linecap="round"/>
-          <circle cy="-14" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cy="14" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cx="-9" cy="-5" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cx="9" cy="-5" r="2.6" fill="#3EC6A8" stroke="#DDE3EA" stroke-width="1"/><circle cy="-5" r="3.2" fill="#2E8B62" stroke="#DDE3EA" stroke-width="1.2"/>
-          <path class="glinster" d="M7-15l1.4 3.6L12-10l-3.6 1.4L7-5l-1.4-3.6L2-10l3.6-1.4z" fill="#fff" opacity="0"/>
-        </g>
-      </g>
-    </svg>`,
-    kroon: `<svg viewBox="0 0 150 128" aria-hidden="true" focusable="false"><g transform="translate(75 8)">${PEG}</g>
-      <g class="gloed" opacity="0"><ellipse cx="75" cy="78" rx="70" ry="44" fill="#4BE38A" opacity=".25"/></g>
-      <g stroke="#3E3112" stroke-width="1.6" stroke-linejoin="round">
-        <path d="M20 86L14 40l18 30 6-52 14 46 10-50 13 44 13-44 10 50 14-46 6 52 18-30-6 46z" fill="#6B5A2A"/>
-        <path d="M24 88L22 54l14 24 8-40 12 38 10-42 9 40 9-40 10 42 12-38 8 40 14-24-2 34z" fill="#C9A24A"/>
-        <path d="M44 38l4 34M66 30l3 40M84 30l-3 40M106 38l-4 34" stroke="#F2D58A" stroke-width="1.4" fill="none"/>
-        <rect x="18" y="84" width="114" height="22" rx="4" fill="#A88536"/>
-        <path d="M18 95h114" stroke="#6B5A2A" stroke-width="2"/>
-      </g>
-      <g fill="#E9C46A"><circle cx="34" cy="90" r="2.4"/><circle cx="54" cy="90" r="2.4"/><circle cx="96" cy="90" r="2.4"/><circle cx="116" cy="90" r="2.4"/><circle cx="34" cy="101" r="2.4"/><circle cx="116" cy="101" r="2.4"/></g>
-      <path class="steen" d="M75 82l9 12-9 12-9-12z" fill="#2E8B62" stroke="#1E5E42" stroke-width="1.6"/>
-      <path d="M72 88l3-3 3 3" stroke="#B8F0CF" stroke-width="1.5" fill="none"/>
-    </svg>`,
-    stok: `<svg viewBox="0 0 70 236" aria-hidden="true" focusable="false"><g transform="translate(30 8)">${PEG}</g>
-      <path d="M30 14q-20 0-20 18" fill="none" stroke="#C99A2E" stroke-width="9" stroke-linecap="round"/>
-      <path d="M30 14q-20 0-20 18" fill="none" stroke="#F2D58A" stroke-width="3" stroke-linecap="round"/>
-      <path d="M30 14q18 0 18 18v16" fill="none" stroke="#C99A2E" stroke-width="11" stroke-linecap="round"/>
-      <path d="M30 14q18 0 18 18v16" fill="none" stroke="#F2D58A" stroke-width="3.5" stroke-linecap="round"/>
-      <circle cx="10" cy="34" r="6" fill="#E9C46A" stroke="#8C6A2A" stroke-width="1.5"/>
-      <rect x="42" y="46" width="12" height="12" rx="2" fill="#C99A2E" stroke="#8C6A2A" stroke-width="1.5"/>
-      <path d="M42 50h12M42 54h12" stroke="#8C6A2A"/>
-      <rect x="44" y="58" width="8" height="160" rx="3" fill="#23252B"/>
-      <path d="M46 62v150" stroke="#45495A" stroke-width="1.5"/>
-      <rect x="43" y="110" width="10" height="4" rx="1" fill="#C99A2E"/><rect x="43" y="160" width="10" height="4" rx="1" fill="#C99A2E"/>
-      <path d="M44 216h8l-1 14h-6z" fill="#C99A2E" stroke="#8C6A2A" stroke-width="1.2"/>
-    </svg>`,
-    kaarten: `<svg viewBox="0 0 130 140" aria-hidden="true" focusable="false"><g transform="translate(65 8)">${PEG}</g>
-      <rect x="57" y="12" width="16" height="22" rx="3" fill="#B5793F" stroke="#7A4E2D" stroke-width="1.5"/><path d="M65 14v18" stroke="#7A4E2D"/>
-      <g class="kaart k1"><rect x="34" y="30" width="48" height="68" rx="5" fill="#FBF6E9" stroke="#9AA0A6" stroke-width="1.5"/><text x="40" y="44" font-size="11" font-weight="800" fill="#C8323C" font-family="sans-serif">7</text><path d="M58 56l7 9-7 9-7-9z" fill="#C8323C"/></g>
-      <g class="kaart k2"><rect x="44" y="30" width="48" height="68" rx="5" fill="#FBF6E9" stroke="#9AA0A6" stroke-width="1.5"/><text x="50" y="44" font-size="11" font-weight="800" fill="#C8323C" font-family="sans-serif">9</text><path d="M68 56l7 9-7 9-7-9z" fill="#C8323C"/><path d="M68 78l4 5-4 5-4-5z" fill="#C8323C"/></g>
-      <g class="kaart k3"><rect x="54" y="30" width="48" height="68" rx="5" fill="#FBF6E9" stroke="#9AA0A6" stroke-width="1.5"/><text x="60" y="44" font-size="11" font-weight="800" fill="#C8323C" font-family="sans-serif">A</text><path d="M78 54l11 14-11 14-11-14z" fill="#C8323C"/></g>
-      <g class="pailletten"><path d="M38 96l16 20-16 20-16-20z" fill="#C8323C" stroke="#7E1E26" stroke-width="1.5"/>
-        <g fill="#F28C9A"><circle cx="38" cy="104" r="1.8"/><circle cx="32" cy="112" r="1.8"/><circle cx="44" cy="112" r="1.8"/><circle cx="38" cy="118" r="1.8"/><circle cx="30" cy="120" r="1.6"/><circle cx="46" cy="120" r="1.6"/><circle cx="38" cy="127" r="1.8"/><circle cx="34" cy="124" r="1.4"/><circle cx="42" cy="124" r="1.4"/></g></g>
-    </svg>`,
-    hoed: `<svg viewBox="0 0 140 120" aria-hidden="true" focusable="false"><g transform="translate(70 8)">${PEG}</g>
-      <g class="krul" fill="none" stroke="#1F1A17" stroke-width="5" stroke-linecap="round"><path d="M24 84q-5 5 0 9.5q5 4.5 0 9.5q-5 4.5 0 9.5q5 4.5 0 9"/><path d="M32 84q-5 5 0 9.5q5 4.5 0 9.5q-5 4.5 0 9.5q5 4.5 0 9q-5 4.5 0 8"/><path d="M40 84q-5 5 0 9.5q5 4.5 0 9.5q-5 4.5 0 9.5q5 4.5 0 9"/><path d="M116 84q5 5 0 9.5q-5 4.5 0 9.5q5 4.5 0 9.5q-5 4.5 0 9"/><path d="M108 84q5 5 0 9.5q-5 4.5 0 9.5q5 4.5 0 9.5q-5 4.5 0 9q5 4.5 0 8"/><path d="M100 84q5 5 0 9.5q-5 4.5 0 9.5q5 4.5 0 9.5q-5 4.5 0 9"/></g>
-      <path d="M44 72q-2-30 14-48q12-8 24 0q14 18 14 48z" fill="#8FA3B5" stroke="#4F6070" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M58 24q12 6 24 0" stroke="#4F6070" stroke-width="2" fill="none"/>
-      <path d="M62 30q8 10 16 0" stroke="#A9BAC8" stroke-width="2" fill="none"/>
-      <path d="M44 66q26 8 52 0v8q-26 8-52 0z" fill="#2E6B4E" stroke="#1E4A35" stroke-width="1.5"/>
-      <path d="M48 70q22 6 44 0" stroke="#7FBF9E" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
-      <path d="M92 64q14-16 22-30" stroke="#5C3A21" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M114 34q-6 8-4 16q8-6 4-16z" fill="#2E8B62"/>
-      <path d="M14 82q56-24 112 0q-10 12-56 12t-56-12z" fill="#7F93A6" stroke="#4F6070" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M26 82q44-16 88 0" stroke="#A9BAC8" stroke-width="2" fill="none"/>
-    </svg>`,
-    staf: `<svg viewBox="0 0 84 250" aria-hidden="true" focusable="false"><g transform="translate(42 6)">${PEG}</g>
-      <path d="M42 10L30 64M42 10l12 54" stroke="#7A4E2D" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <g class="veren"><path d="M38 20q-14-14-12-26q8 8 14 24z" fill="#23252B"/><path d="M44 18q4-16 16-22q-4 12-12 24z" fill="#23252B"/><path d="M41 18q-2-14 4-22q2 10-1 22z" fill="#E9DFC4" stroke="#B5976A"/></g>
-      <path d="M36 66h12v172q0 6-6 6t-6-6z" fill="#D9C9A8" stroke="#8C7350" stroke-width="1.6"/>
-      <path d="M39 70v166" stroke="#F2E8D0" stroke-width="2" stroke-linecap="round"/>
-      <g fill="#C9B58A" stroke="#8C7350" stroke-width="1.4"><ellipse cx="42" cy="92" rx="8" ry="4"/><ellipse cx="42" cy="122" rx="8" ry="4"/><ellipse cx="42" cy="152" rx="8" ry="4"/><ellipse cx="42" cy="182" rx="8" ry="4"/><ellipse cx="42" cy="212" rx="8" ry="4"/></g>
-      <path d="M38 100q4 6 8 0M38 160q4 6 8 0M38 196q4 6 8 0" stroke="#A88E62" stroke-width="1.2" fill="none"/>
-      <rect x="35" y="132" width="14" height="12" rx="2" fill="#5C3A21"/><path d="M35 136h14M35 140h14" stroke="#3A2416"/>
-      <path d="M22 36q0-24 20-24t20 24q0 10-6 16v8H28v-8q-6-6-6-16z" fill="#E9DFC4" stroke="#8C7350" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M26 30q4-12 14-14" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".7"/>
-      <path d="M30 22q4 4 2 8M52 20q-2 6 2 10" stroke="#B5976A" stroke-width="1.4" fill="none"/>
-      <g class="ogen"><ellipse cx="33.5" cy="38" rx="6" ry="6.5" fill="#2A1D14"/><ellipse cx="50.5" cy="38" rx="6" ry="6.5" fill="#2A1D14"/></g>
-      <path d="M42 44l-3.5 6h7z" fill="#2A1D14"/>
-      <g class="kaak"><path d="M29 58h26v6q0 5-5 5H34q-5 0-5-5z" fill="#E9DFC4" stroke="#8C7350" stroke-width="1.6"/><path d="M33 58v8M37 58v9M41 58v9M45 58v9M49 58v9M53 58v7" stroke="#8C7350" stroke-width="1.1"/></g>
-      <path d="M29 56h26" stroke="#8C7350" stroke-width="1.4"/><path d="M33 52v4M37 52v4M41 52v4M45 52v4M49 52v4M53 52v4" stroke="#8C7350" stroke-width="1.1"/>
-    </svg>`,
-    klembord: `<svg viewBox="0 0 110 156" aria-hidden="true" focusable="false"><g transform="translate(55 8)">${PEG}</g>
-      <rect x="14" y="22" width="82" height="126" rx="7" fill="#B07A44" stroke="#5E3A1E" stroke-width="3"/><rect x="14" y="22" width="82" height="10" rx="5" fill="#C48D55"/>
-      <rect x="22" y="36" width="66" height="104" rx="2" fill="#FBF6E9" stroke="#C9C2B2" stroke-width="1.5"/>
-      <text x="55" y="47" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="6.5" fill="#2F6FB5">KLINIEK</text><text x="55" y="54" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="6.5" fill="#2F6FB5">ROZENVELD</text>
-      <path d="M32 58h46M32 68h46M32 78h30M32 88h46M32 98h36" stroke="#A9B8C8" stroke-width="2" stroke-linecap="round"/>
-      <path d="M68 70h8M72 66v8" stroke="#C8323C" stroke-width="3" stroke-linecap="round"/>
-      <path class="krabbel" d="M34 112c6-6 8 6 14 0s8 6 14 0 8 6 12-2" fill="none" stroke="#231A26" stroke-width="2" stroke-linecap="round" stroke-dasharray="80" stroke-dashoffset="80"/>
-      <rect x="38" y="16" width="34" height="14" rx="4" fill="#C9CFD6" stroke="#5F6A75" stroke-width="2.5"/><circle cx="55" cy="23" r="3" fill="#5F6A75"/>
-      <g class="pen"><rect x="82" y="40" width="6" height="58" rx="3" fill="#231A26"/><path d="M82 98l3 8 3-8z" fill="#8C939E"/><rect x="80" y="42" width="3" height="20" rx="1.5" fill="#8C939E"/></g>
-      <g transform="rotate(-6 60 128)"><rect x="40" y="118" width="46" height="18" rx="3" fill="#FFFFFF" stroke="#5F6A75" stroke-width="1.5"/><rect x="40" y="118" width="46" height="5" rx="2" fill="#2F6FB5"/><text x="63" y="133" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="7.5" fill="#231A26">Dr. de Groot</text></g>
-    </svg>`,
-    sigaar: `<svg viewBox="0 0 130 92" aria-hidden="true" focusable="false"><g transform="translate(65 8)">${PEG}</g>
-      <path d="M65 18l-4 10" stroke="#8C939E" stroke-width="2" stroke-linecap="round"/>
-      <g class="rook" opacity=".75"><path d="M106 46c-6-6 4-10-2-16s4-10-2-16" fill="none" stroke="#C9CFD6" stroke-width="3" stroke-linecap="round"/><path d="M98 44c-5-5 3-8-2-13" fill="none" stroke="#DDE2E8" stroke-width="2.5" stroke-linecap="round"/></g>
-      <g transform="rotate(-14 65 60)">
-        <rect x="18" y="52" width="82" height="16" rx="8" fill="#8B5A2B" stroke="#4A2E16" stroke-width="2.5"/>
-        <path d="M26 56c10 2 20-2 30 0s20 2 30 0" fill="none" stroke="#6E4224" stroke-width="1.5" opacity=".7"/>
-        <rect x="34" y="52" width="14" height="16" fill="#C8323C" stroke="#4A2E16" stroke-width="2"/><rect x="36" y="56" width="10" height="8" rx="1" fill="#E9B949"/>
-        <rect x="92" y="52.5" width="10" height="15" rx="3" fill="#9AA0A8"/>
-        <circle class="gloed" cx="103" cy="60" r="6" fill="#FF8A30"/><circle class="gloed2" cx="103" cy="60" r="3" fill="#FFD24A"/>
-      </g>
-    </svg>`,
-    bril: `<svg viewBox="0 0 130 70" aria-hidden="true" focusable="false"><g transform="translate(65 8)">${PEG}</g>
-      <defs><clipPath id="hb-l1"><circle cx="38" cy="40" r="20"/></clipPath><clipPath id="hb-l2"><circle cx="92" cy="40" r="20"/></clipPath></defs>
-      <path d="M58 32q7-8 14 0" fill="none" stroke="#C99A2E" stroke-width="3"/>
-      <path d="M18 36l-12-4M112 36l12-4" stroke="#C99A2E" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="38" cy="40" r="20" fill="#DCEBF5" fill-opacity=".55" stroke="#C99A2E" stroke-width="3.5"/>
-      <circle cx="92" cy="40" r="20" fill="#DCEBF5" fill-opacity=".55" stroke="#C99A2E" stroke-width="3.5"/>
-      <g class="glans"><rect x="10" y="10" width="10" height="70" fill="#fff" opacity=".85" transform="rotate(25 38 40)" clip-path="url(#hb-l1)"/><rect x="64" y="10" width="10" height="70" fill="#fff" opacity=".85" transform="rotate(25 92 40)" clip-path="url(#hb-l2)"/></g>
-      <path d="M28 30q6-6 14-4" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".7"/><path d="M82 30q6-6 14-4" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".7"/>
-    </svg>`,
-  };
-  const PROPS = [
-    { id: 'staf', b: 78, naam: 'Juan Martinez', rol: 'Fiesta de los Muertos', show: 'Toverland Halloween Nights', zin: '¡Bienvenidos a la fiesta!' },
-    { id: 'kroon', b: 150, naam: 'Caspian Darius', rol: 'De God van Chaos', show: 'Graywood en de Geheime Goden van Ostarus en Gifgroeve', zin: 'Chaos!' },
-    { id: 'klembord', b: 92, naam: 'Dokter de Groot', rol: 'Kliniek Rozenveld', show: 'Graywood en de Geheime Goden van Ostarus', zin: 'Kom je, Caroline?' },
-    { id: 'sigaar', b: 124, naam: 'Winston Darius', rol: '', show: 'Graywood en de Geheime Goden van Ostarus', zin: 'Een sigaartje, heren?' },
-    { id: 'stok', b: 64, naam: 'Erik Jacobs', rol: '', show: 'De Bokkenrijders', zin: 'Tik, tik.' },
-    { id: 'kaarten', b: 124, naam: 'Roeter', rol: '', show: 'Wonderland', zin: 'Ruiten troef!' },
-    { id: 'hoed', b: 140, naam: 'Hans Herzschlag', rol: 'Schlagerzanger', show: 'Voor feesten en partijen', zin: 'Prost!' },
-    { id: 'bril', b: 124, naam: 'Callum', rol: '', show: 'Moonside', zin: 'Nog eentje aan de bar?' },
-    { id: 'jas', b: 120, naam: 'Dorian Verstronden', rol: 'De zonde van luiheid', show: 'De Zonden van Groenhorst', zin: 'Vijf minuutjes nog...' },
-  ];
-
   // ---------- stijl
   const stijl = document.createElement('style');
   stijl.id = 'hebbedingen-stijl';
@@ -2133,7 +1998,6 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   .sticker { position: absolute; z-index: 4; left: 0; top: 0; width: 120px; visibility: hidden; height: auto; --r: 5deg; transform: rotate(var(--r)); cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
   .sticker-ballon { position: absolute; z-index: 5; transform: translateX(-50%); background: var(--papier, #FBF6E9); color: var(--inkt, #1F2333); font-weight: 700; padding: .4rem .7rem; border-radius: 10px; box-shadow: 0 3px 0 rgba(0,0,0,.28); font-size: .95rem; pointer-events: none; white-space: nowrap; }
   .sticker-ballon::after { content: ""; position: absolute; left: 50%; top: -6px; width: 12px; height: 12px; background: inherit; transform: translateX(-50%) rotate(45deg); }
-  .coulissen { margin-top: 3.5rem; position: relative; z-index: 1; }
   /* minder ruimte tussen het briefje en de kaarten */
   .held { margin-bottom: .6rem; }
   .rek-held { min-height: 11rem; }
@@ -2159,38 +2023,8 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
   .haak-rij .label:not(.leeg) .label-kaart:focus-visible { outline: 3px solid var(--munt, #E9B949); outline-offset: -6px; }
   .haak-rij .label .stempel { background: #FBF6E9; }
   @media (prefers-reduced-motion: reduce) { .haak-rij .label:not(.leeg) .label-kaart:hover .label-icoon { animation: none; } }
-  .coulissen-rij { display: block; position: relative; border-radius: 14px; padding: 2.2rem 3.6rem 2.4rem; overflow: hidden;
-    background: radial-gradient(ellipse 80% 55% at 50% -8%, rgba(255,214,150,.22), transparent 70%), linear-gradient(to bottom, transparent 88%, #6E4626 88%, #5C3A21 94%, #4A2E1C 100%), linear-gradient(#2C1838, #170D20);
-    box-shadow: inset 0 0 0 4px #4A0E16, inset 0 14px 0 #8E1F28, inset 0 18px 0 #E9B949, 0 8px 0 rgba(0,0,0,.35); }
-  .coulissen-rij::before, .coulissen-rij::after { content: ""; position: absolute; top: 0; bottom: 0; width: 3.2rem; z-index: 2; pointer-events: none;
-    background: repeating-linear-gradient(90deg, #6E1018 0 6px, #B82E3A 6px 14px, #8E1F28 14px 20px, #6E1018 20px 24px); }
-  .coulissen-rij::before { left: 0; box-shadow: inset -10px 0 14px rgba(0,0,0,.45); border-radius: 14px 0 60% 14px / 14px 0 12% 14px; }
-  .coulissen-rij::after { right: 0; box-shadow: inset 10px 0 14px rgba(0,0,0,.45); border-radius: 0 14px 14px 60% / 0 14px 14px 12%; }
-  .coulissen .props { position: relative; z-index: 1; }
-  .coulissen .prop-plek { position: relative; }
-  .coulissen .prop-plek::before { content: ""; position: absolute; left: 50%; top: -2.2rem; width: 15rem; height: calc(100% + 2.6rem); transform: translateX(-50%); pointer-events: none; z-index: 0;
-    background: radial-gradient(ellipse 42% 58% at 50% 34%, rgba(255,236,180,.32), rgba(255,220,150,.12) 55%, transparent 72%); }
-  .coulissen .prop, .coulissen .kaartje { z-index: 1; }
-  .coulissen .prop svg { filter: drop-shadow(0 0 1.5px rgba(255,243,196,.9)) drop-shadow(0 0 12px rgba(255,214,150,.35)) drop-shadow(0 6px 0 rgba(0,0,0,.5)); }
-  .coulissen .kaartje { box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 4px 0 rgba(0,0,0,.45), 0 0 18px rgba(255,214,150,.25); }
-  .coulissen .kaartje::after { background: #2C1838; }
-  @media (max-width: 640px) { .coulissen-rij { padding: 1.8rem 1.8rem 2rem; } .coulissen-rij::before, .coulissen-rij::after { width: 1.4rem; } .coulissen .prop-plek::before { width: 10rem; } }
   .rek.verspreid { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 0; }
-  .props { display: flex; flex-wrap: wrap; justify-content: space-around; align-items: flex-start; gap: 2.2rem 1.2rem; padding-top: 1.4rem; --s: 1; }
-  .prop-plek { margin: 0; display: flex; flex-direction: column; align-items: center; }
-  .prop { display: block; width: calc(var(--b) * var(--s) * 1px); padding: 0; border: 0; background: none; cursor: pointer; transform-origin: 50% 4px; -webkit-tap-highlight-color: transparent; position: relative; }
-  .prop .in { display: block; transform-origin: 50% 4px; }
-  .prop svg { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 5px 0 rgba(0,0,0,.25)); }
-  .prop:focus-visible { outline: 3px solid var(--munt, #E9B949); outline-offset: 4px; border-radius: 8px; }
-  .kaartje { position: relative; transform-origin: 50% -.9rem; margin-top: .9rem; background: var(--manila, #F2DDA0); color: var(--inkt, #1F2333); border-radius: 4px 4px 6px 6px; padding: .45rem .7rem .4rem; max-width: 12.5rem; text-align: center; box-shadow: 0 3px 0 rgba(0,0,0,.25); --r: -2deg; transform: rotate(var(--r)); line-height: 1.25; }
-  .kaartje::before { content: ""; position: absolute; left: 50%; top: -.9rem; width: 2px; height: .9rem; background: #D9CFB8; }
-  .kaartje::after { content: ""; position: absolute; left: calc(50% - 4px); top: .25rem; width: 8px; height: 8px; border-radius: 50%; background: var(--bord, #2F4C8F); }
-  .kaartje b { display: block; margin-top: .45rem; font-size: 1rem; }
-  .kaartje span { display: block; font-size: .78rem; color: var(--zacht, #5E5643); }
-  .prop-ballon { position: absolute; left: 50%; top: -1.6rem; transform: translateX(-50%); background: var(--papier, #FBF6E9); color: var(--inkt, #1F2333); font-weight: 800; font-size: .9rem; padding: .2rem .6rem; border-radius: 8px; box-shadow: 0 2px 0 rgba(0,0,0,.28); white-space: nowrap; pointer-events: none; z-index: 6; }
-  .zzz { position: absolute; z-index: 30; pointer-events: none; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; color: #DCE4F5; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
-  .vonk { position: fixed; width: 6px; height: 6px; border-radius: 50%; background: #6CF2A3; box-shadow: 0 0 8px #4BE38A; pointer-events: none; z-index: 30; }
-  @media (max-width: 640px) { .props { --s: .72; gap: 1.6rem .6rem; } .kaartje { max-width: 9.5rem; padding: .35rem .5rem; } .kaartje b { font-size: .88rem; } .sticker-ballon { font-size: .82rem; } }
+  @media (max-width: 640px) { .sticker-ballon { font-size: .82rem; } }
   `;
   document.head.appendChild(stijl);
 
@@ -2234,139 +2068,944 @@ document.querySelectorAll('.label:not(.leeg) .label-kaart').forEach(a => {
     });
   }
 
-  // ---------- uit de coulissen
-  const sectie = document.createElement('section');
-  sectie.className = 'coulissen'; sectie.setAttribute('aria-label', 'Uit de coulissen');
-  sectie.innerHTML = `<h2><span>Uit de coulissen</span></h2>
-    <div class="coulissen-rij">
-      <div class="props">${PROPS.map(p => `<figure class="prop-plek"><button class="prop" type="button" data-prop="${p.id}" aria-label="${p.naam}, ${p.show}" style="--b:${p.b}"><span class="in">${SVG[p.id]}</span></button><figcaption class="kaartje"><b>${p.naam}</b>${p.rol ? `<span>${p.rol}</span>` : ''}<span><i>${p.show}</i></span></figcaption></figure>`).join('')}</div>
-    </div>`;
-  const rij = document.querySelector('.haak-rij'), main = document.querySelector('main');
-  if (rij) rij.after(sectie); else if (main) main.appendChild(sectie); else document.body.appendChild(sectie);
+  // ==== COULISSEN begin: een klein theater met de rekwisieten van Rubens rollen (staat onderaan de homepage).
+  // Het doek gaat open als het theater in beeld komt, de spot volgt wat je aanwijst, en een tik is een kort optreden.
+  // Wie alle rollen liet optreden, krijgt een slotapplaus (een verborgen grapje: nergens noemen op de site).
+  // Animaties alleen met transform en opacity; geluid pas na een aanraking; bij minder beweging geen doek en geen spot.
+  (function () {
+    'use strict';
+    if (document.querySelector('.coulissen')) return;
 
-  const $p = id => sectie.querySelector(`[data-prop="${id}"]`);
-  const binnen = id => $p(id).querySelector('.in');
-  const anim = (el, frames, opt) => (reduce || !el.animate ? null : el.animate(frames, opt));
-  const wacht = ms => new Promise(r => setTimeout(r, ms));
-  const bezig = new Set();
-  function ballon(id, t) {
-    const k = $p(id), oud = k.querySelector('.prop-ballon'); if (oud) oud.remove();
-    const s = document.createElement('span'); s.className = 'prop-ballon'; s.textContent = t; k.appendChild(s);
-    setTimeout(() => s.remove(), 1700);
-  }
-  const DOEN = {
-    // Dorian: de zonde van luiheid. De jas zakt langzaam in slaap, en er komen Zzz'jes uit
-    jas: async () => {
-      if (bezig.has('jas')) return; bezig.add('jas');
-      for (let i = 0; i < 3; i++) { toon(110, i * 1.1, 0.8, 'sine', 0.05, 82); toon(165, i * 1.1 + 0.55, 0.45, 'triangle', 0.025, 220); }
-      const k = $p('jas'), r = k.getBoundingClientRect();
-      anim(binnen('jas'), [{ transform: 'rotate(0)' }, { transform: 'rotate(7deg)', offset: .25 }, { transform: 'rotate(5deg)', offset: .5 }, { transform: 'rotate(8deg)', offset: .75 }, { transform: 'rotate(0)' }], { duration: 3400, easing: 'ease-in-out' });
-      const das = k.querySelector('.das'); das.style.transformBox = 'fill-box'; das.style.transformOrigin = '50% 0';
-      anim(das, [{ transform: 'rotate(0)' }, { transform: 'rotate(14deg)', offset: .5 }, { transform: 'rotate(0)' }], { duration: 3400, easing: 'ease-in-out' });
-      if (!reduce) for (let i = 0; i < 4; i++) {
-        const z = document.createElement('span'); z.className = 'zzz'; z.textContent = 'Z'; z.style.left = (r.left + r.width * 0.62) + 'px'; z.style.top = (r.top + r.height * 0.18 + scrollY) + 'px'; z.style.fontSize = (14 + i * 5) + 'px';
-        document.body.appendChild(z);
-        z.animate([{ transform: 'translate(0,0) rotate(-10deg)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${30 + i * 12}px, ${-60 - i * 14}px) rotate(12deg)`, opacity: 0 }], { duration: 2000, delay: i * 650, easing: 'ease-out', fill: 'both' }).onfinish = () => z.remove();
+    // ---------- de rollen. Een nieuwe rol: een regel hieronder, een tekening in SVG (met hetzelfde id) en een nummertje in DOEN
+    // (zonder nummertje doet hij een hupje met glinsters) en eventueel iets kleins in RUST. Zie CLAUDE.md, "Uit de coulissen".
+    //   id      de naam van de tekening (SVG) en het nummertje (DOEN, RUST)
+    //   wat     het rekwisiet, op de gaffertape;  naam: de naam van de rol;  rol: wat voor rol (mag leeg);  show: de voorstelling
+    //   kleur   de kleur van het kaartje;  b: hoe breed de tekening is op een computer (px)
+    //   zinnen  wat hij zegt bij een optreden (om de beurt). Eigen zinnen, geen teksten uit de voorstellingen.
+    const PROPS = [
+      { id: 'staf', wat: 'Staf', naam: 'Juan Martinez', rol: 'Fiesta de los Muertos', show: 'Toverland Halloween Nights', kleur: '#C2561A', b: 56,
+        zinnen: ['¡Olé! Mijn botten dansen vanzelf.', 'Ik ben niet mager, ik ben gewoon bot.', 'Muziek! Ik heb geen oren, maar ik voel het.'] },
+      { id: 'kroon', wat: 'Kroon', naam: 'Caspian Darius', rol: 'De God van Chaos', show: 'Graywood en de Geheime Goden van Ostarus en Gifgroeve', kleur: '#23704F', b: 94,
+        zinnen: ['Orde? Nooit van gehoord.', 'Ik heb je sokken door elkaar gegooid. Graag gedaan.', 'Chaos is gewoon creatief opruimen.'] },
+      { id: 'klembord', wat: 'Klembord', naam: 'Dokter de Groot', rol: 'Kliniek Rozenveld', show: 'Graywood en de Geheime Goden van Ostarus', kleur: '#2F6FB5', b: 76,
+        zinnen: ['Zeg eens aaa.', 'Even uw pols voelen. Hij doet het nog.', 'Ik schrijf u twee koekjes voor.'] },
+      { id: 'sigaar', wat: 'Sigaar', naam: 'Winston Darius', rol: '', show: 'Graywood en de Geheime Goden van Ostarus', kleur: '#6B4A2A', b: 90,
+        zinnen: ['Ah. Rookringen van stand.', 'Een Darius haast zich nooit.', 'Zet het maar op mijn rekening.'] },
+      { id: 'stok', wat: 'Stok', naam: 'Erik Jacobs', rol: '', show: 'De Bokkenrijders', kleur: '#5C3A21', b: 38,
+        zinnen: ['Tik, tik. Wie klopt daar zo laat?', 'Mijn bok staat buiten te wachten.', 'Ik ga nooit zonder stok de deur uit. Of zonder bok.'] },
+      { id: 'kaarten', wat: 'Kaarten', naam: 'Roeter', rol: '', show: 'Wonderland', kleur: '#C8323C', b: 84,
+        zinnen: ['Ruiten troef!', 'Wie schudt, die blijft.', 'Ik ben geen kaart. Ik ben een kaartje met karakter.'] },
+      { id: 'hoed', wat: 'Hoed', naam: 'Hans Herzschlag', rol: 'Schlagerzanger', show: 'Voor feesten en partijen', kleur: '#B83C70', b: 88,
+        zinnen: ['Eins, zwei, drei... iedereen meezingen!', 'Mijn hart klopt in driekwartsmaat.', 'Nog één refreintje. Of tien.'] },
+      { id: 'bril', wat: 'Bril', naam: 'Callum', rol: '', show: 'Moonside', kleur: '#231A26', b: 86,
+        zinnen: ['Ik zie alles. Vooral de bar.', 'Maanbril op, feestje aan.', 'Moonside gaat pas open als de maan op is.'] },
+      { id: 'jas', wat: 'Jas', naam: 'Dorian Verstronden', rol: 'De zonde van luiheid', show: 'De Zonden van Groenhorst', kleur: '#8E1F28', b: 86,
+        zinnen: ['Vijf minuutjes nog...', 'Luiheid is een talent. Ik oefen alleen nooit.', 'Doe het licht maar uit, ik speel liggend.'] },
+    ];
+
+    // ---------- de tekeningen (eigen tekeningen van gewone voorwerpen). De onderkant van elke tekening staat op de tafel.
+    // Groepjes met een klasse (cl-...) bewegen in de nummertjes hieronder; ids beginnen met cl- en de afkorting van het rekwisiet.
+    const GLIM = '<path class="cl-glim" d="M0-7L1.5-1.5 7 0 1.5 1.5 0 7-1.5 1.5-7 0-1.5-1.5Z" fill="#fff" opacity="0"/>';
+    const glimOp = (x, y) => `<g transform="translate(${x} ${y})">${GLIM}</g>`;
+    const ruit = (x, y, s) => `M${x} ${y - s}L${x + s * 0.75} ${y}L${x} ${y + s}L${x - s * 0.75} ${y}Z`;
+    const bloem = (x, y, r) => `<g transform="translate(${x} ${y})"><circle r="${r}" fill="#D9661A"/><circle r="${r - 0.6}" fill="none" stroke="#F6A12E" stroke-width="2.2" stroke-dasharray="2.1 1.5"/><circle r="${(r * 0.6).toFixed(1)}" fill="#F6B73C"/><circle r="${(r * 0.28).toFixed(1)}" fill="#A8460C"/></g>`;
+    const krul = (x, rechts) => { const s = rechts ? -1 : 1; return `M${x} 97` + `q${-5 * s} 4.5 0 9.5q${5 * s} 4.5 0 9.5`.repeat(2); };
+    const kaart = (cls, hoek, waarde, pips) => `<g transform="rotate(${hoek} 65 116)"><g class="${cls}">
+        <g class="cl-voor"><rect x="43" y="50" width="44" height="64" rx="5" fill="url(#cl-ka-pap)" stroke="#8C939E" stroke-width="1.2"/>
+          <text x="47" y="61" font-family="system-ui, sans-serif" font-weight="800" font-size="10" fill="#C8323C">${waarde}</text><path d="${ruit(49.6, 66.5, 2.6)}" fill="#C8323C"/>
+          <g transform="rotate(180 65 82)"><text x="47" y="61" font-family="system-ui, sans-serif" font-weight="800" font-size="10" fill="#C8323C">${waarde}</text><path d="${ruit(49.6, 66.5, 2.6)}" fill="#C8323C"/></g>
+          <g fill="#C8323C">${pips.map(([x, y, s]) => `<path d="${ruit(x, y, s || 4.2)}"/>`).join('')}</g></g>
+        <g class="cl-rug" opacity="0"><rect x="43" y="50" width="44" height="64" rx="5" fill="#FBF6E9" stroke="#8C939E" stroke-width="1.2"/><rect x="46" y="53" width="38" height="58" rx="3" fill="url(#cl-ka-ruit)"/><path d="${ruit(65, 82, 9)}" fill="#FBF6E9" stroke="#8E1F28"/></g></g></g>`;
+
+    const SVG = {
+      // Juan Martinez: een versierde schedel op een staf, met linten en goudsbloemen
+      staf: `<svg viewBox="0 0 90 260" aria-hidden="true" focusable="false">
+        <defs>
+          <radialGradient id="cl-st-bot" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFFEF8"/><stop offset=".55" stop-color="#F0E4C8"/><stop offset="1" stop-color="#C4AE84"/></radialGradient>
+          <linearGradient id="cl-st-hout" x1="0" x2="1"><stop offset="0" stop-color="#2A1A0E"/><stop offset=".4" stop-color="#7A4E2D"/><stop offset=".65" stop-color="#5C3A21"/><stop offset="1" stop-color="#22140A"/></linearGradient>
+          <linearGradient id="cl-st-goud" x1="0" x2="1"><stop offset="0" stop-color="#8A6420"/><stop offset=".4" stop-color="#F2D58A"/><stop offset=".7" stop-color="#C99A2E"/><stop offset="1" stop-color="#6B4A12"/></linearGradient>
+          <radialGradient id="cl-st-gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE29A"/><stop offset=".45" stop-color="#FF8A2A" stop-opacity=".75"/><stop offset="1" stop-color="#FF6A00" stop-opacity="0"/></radialGradient>
+        </defs>
+        <path d="M21 251q24-9 48 0v4q-24 8-48 0z" fill="url(#cl-st-hout)" stroke="#1E120A" stroke-width="1.4"/><ellipse cx="45" cy="251" rx="24" ry="4.2" fill="#8E6038"/>
+        <rect x="38.5" y="236" width="13" height="16" rx="2.5" fill="url(#cl-st-goud)" stroke="#6B4A12"/>
+        <rect x="41" y="68" width="8" height="176" rx="3" fill="url(#cl-st-hout)" stroke="#1E120A" stroke-width="1.2"/>
+        <g stroke="#1E120A" stroke-width="1" opacity=".5">${[86, 98, 110, 134, 146, 158, 170, 196, 208, 220].map(y => `<path d="M41 ${y}l8-5"/>`).join('')}</g>
+        <path d="M43 74v164" stroke="#C08A5C" stroke-width=".9" opacity=".6"/>
+        <rect x="39.5" y="122" width="11" height="6" rx="2" fill="url(#cl-st-goud)" stroke="#6B4A12" stroke-width=".8"/><rect x="39.5" y="184" width="11" height="6" rx="2" fill="url(#cl-st-goud)" stroke="#6B4A12" stroke-width=".8"/>
+        <g class="cl-linten" fill="none" stroke-linecap="round">
+          <path d="M43 79C31 96 41 110 30 126" stroke="#2FB7A8" stroke-width="2.8"/><path d="M47 79C59 96 49 110 60 128" stroke="#8E52C4" stroke-width="2.8"/>
+          <path d="M42 78C34 92 44 104 35 118S33 134 29 146" stroke="#E8577A" stroke-width="3.6"/><path d="M48 78C56 92 46 104 55 118S57 132 61 142" stroke="#F08A24" stroke-width="3.6"/>
+        </g>
+        <g fill="#3E8A3A" stroke="#1E4A1C" stroke-width=".8"><path d="M30 76q-8 2-10 8q8 0 12-5z"/><path d="M60 76q8 2 10 8q-8 0-12-5z"/></g>
+        ${bloem(33, 72, 6.4)}${bloem(57, 72, 6.4)}${bloem(41, 76, 6)}${bloem(49, 76, 6)}
+        <g class="cl-schedel">
+          <path d="M45 6C30 6 21 17 21 31C21 40 24 46 28 50L30 57H60L62 50C66 46 69 40 69 31C69 17 60 6 45 6Z" fill="url(#cl-st-bot)" stroke="#6E5A3A" stroke-width="1.5"/>
+          <path d="M22.5 33c2 9 6 15 11.5 18M67.5 33c-2 9-6 15-11.5 18" fill="none" stroke="#BFA97E" stroke-width="1.3"/>
+          <g fill="none" stroke="#E8577A" stroke-width="2.4" stroke-dasharray="3 2"><circle cx="35.5" cy="31" r="9.6"/><circle cx="54.5" cy="31" r="9.6"/></g>
+          <ellipse cx="35.5" cy="31" rx="6.8" ry="7.2" fill="#2A1D14"/><ellipse cx="54.5" cy="31" rx="6.8" ry="7.2" fill="#2A1D14"/>
+          <g class="cl-oog" opacity="0"><circle cx="35.5" cy="31" r="13" fill="url(#cl-st-gl)"/><circle cx="54.5" cy="31" r="13" fill="url(#cl-st-gl)"/><circle cx="35.5" cy="31" r="3" fill="#FFF3C4"/><circle cx="54.5" cy="31" r="3" fill="#FFF3C4"/></g>
+          <circle cx="33.4" cy="28.4" r="1.4" fill="#fff" opacity=".7"/><circle cx="52.4" cy="28.4" r="1.4" fill="#fff" opacity=".7"/>
+          <path d="M45 47.5c-3.2-2.2-5-4-5-6.4 0-1.6 1.2-2.6 2.6-2.6 1 0 1.9.6 2.4 1.4.5-.8 1.4-1.4 2.4-1.4 1.4 0 2.6 1 2.6 2.6 0 2.4-1.8 4.2-5 6.4z" fill="#2A1D14"/>
+          <g fill="#2FB7A8">${[0, 60, 120, 180, 240, 300].map(a => `<circle cx="${(45 + 4.3 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(15.5 + 4.3 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="2.3"/>`).join('')}</g><circle cx="45" cy="15.5" r="2.1" fill="#F6B73C"/>
+          <g fill="#E8577A"><circle cx="29" cy="20" r="1.3"/><circle cx="61" cy="20" r="1.3"/><circle cx="29" cy="45" r="1.2"/><circle cx="61" cy="45" r="1.2"/></g><g fill="#2FB7A8"><circle cx="26" cy="41" r="1.4"/><circle cx="64" cy="41" r="1.4"/></g>
+          <path d="M32 50.5h26v5.5H32z" fill="#FBF6E9" stroke="#8C7350" stroke-width="1"/><path d="M30.5 53.2h29M34 51v4.6M38 51v4.6M42 51v4.6M46 51v4.6M50 51v4.6M54 51v4.6" stroke="#2A1D14" stroke-width=".9"/>
+          <g class="cl-kaak"><path d="M31 56h28v5q0 5-5 5H36q-5 0-5-5z" fill="url(#cl-st-bot)" stroke="#6E5A3A" stroke-width="1.4"/><path d="M34 56.5v4M38 56.5v5M42 56.5v5M46 56.5v5M50 56.5v5M54 56.5v4" stroke="#8C7350" stroke-width=".9"/></g>
+          <path d="M28 24Q31 13 41 10" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".75"/>
+          ${glimOp(61, 12)}
+        </g>
+      </svg>`,
+
+      // Caspian Darius: een gouden kroon met scheve punten en smaragden, op een fluwelen kussen
+      kroon: `<svg viewBox="0 0 160 150" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-kr-g" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="#FFF4C2"/><stop offset=".3" stop-color="#F2C94C"/><stop offset=".64" stop-color="#C9962A"/><stop offset="1" stop-color="#7A5214"/></linearGradient>
+          <linearGradient id="cl-kr-band" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7A5214"/><stop offset=".16" stop-color="#E2AE3A"/><stop offset=".32" stop-color="#FFF0B0"/><stop offset=".48" stop-color="#E9B949"/><stop offset=".78" stop-color="#A9771E"/><stop offset="1" stop-color="#5C3D0C"/></linearGradient>
+          <linearGradient id="cl-kr-in" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E2A08"/><stop offset="1" stop-color="#8A6420"/></linearGradient>
+          <radialGradient id="cl-kr-kus" cx=".42" cy=".28" r=".8"><stop offset="0" stop-color="#3FA275"/><stop offset=".55" stop-color="#1F5E43"/><stop offset="1" stop-color="#0D2E20"/></radialGradient>
+          <linearGradient id="cl-kr-sm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C8FADF"/><stop offset=".4" stop-color="#2FBF7A"/><stop offset="1" stop-color="#0B4F2F"/></linearGradient>
+          <radialGradient id="cl-kr-gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#8CFFC0" stop-opacity=".75"/><stop offset="1" stop-color="#2FBF7A" stop-opacity="0"/></radialGradient>
+        </defs>
+        <ellipse class="cl-gloed" cx="80" cy="66" rx="80" ry="64" fill="url(#cl-kr-gl)" opacity="0"/>
+        <path d="M8 126C8 112 30 106 80 106S152 112 152 126 130 146 80 146 8 140 8 126Z" fill="url(#cl-kr-kus)" stroke="#06170F" stroke-width="2"/>
+        <path d="M14 123C22 114 46 111 80 111S138 114 146 123" fill="none" stroke="#E9B949" stroke-width="2"/>
+        <path d="M11 129C16 140 46 144 80 144S144 140 149 129" fill="none" stroke="#C99A2E" stroke-width="1.6" stroke-dasharray="2 2.6"/>
+        <ellipse cx="60" cy="117" rx="30" ry="5" fill="#fff" opacity=".1"/>
+        <g fill="#06170F" opacity=".5"><circle cx="38" cy="129" r="1.7"/><circle cx="80" cy="133" r="1.7"/><circle cx="122" cy="129" r="1.7"/></g>
+        <g stroke="#7A5214" stroke-width="1"><circle cx="12" cy="130" r="3.6" fill="#E9B949"/><path d="M9 132h6l2.4 13H6.6z" fill="#D9A93C"/><path d="M9 136l-.8 8M12 136v9M15 136l.8 8" fill="none"/><circle cx="148" cy="130" r="3.6" fill="#E9B949"/><path d="M145 132h6l2.4 13h-10.8z" fill="#D9A93C"/><path d="M145 136l-.8 8M148 136v9M151 136l.8 8" fill="none"/></g>
+        <ellipse cx="80" cy="118" rx="50" ry="7.5" fill="#031009" opacity=".5"/>
+        <g class="cl-kroon-heel">
+          <g fill="#9C7224" stroke="#3E2A08" stroke-width="1.2" stroke-linejoin="round"><path d="M40 91L46 70L51 90Z"/><path d="M54 89L59 56L64 88.5Z"/><path d="M68 88.3L73 47L78 88Z"/><path d="M82 88L87 50L92 88.3Z"/><path d="M96 88.5L102 58L106 89Z"/><path d="M110 90L114 72L120 91Z"/></g>
+          <ellipse cx="80" cy="96" rx="46" ry="8" fill="url(#cl-kr-in)" stroke="#3E2A08" stroke-width="1.2"/>
+          <path d="M34 96A46 8 0 0 0 126 96L126 112A46 8 0 0 1 34 112Z" fill="url(#cl-kr-band)" stroke="#4A320C" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M35 99.5A46 8 0 0 0 125 99.5M35 109A46 8 0 0 0 125 109" fill="none" stroke="#7A5214" stroke-width="1"/>
+          <g fill="url(#cl-kr-g)" stroke="#5C3D0C" stroke-width="1.4" stroke-linejoin="round"><path d="M31 98L35 60L45 100.8Z"/><path d="M45 101.5L50 42L59 103Z"/><path d="M59 103.2L65 30L73 103.9Z"/><path d="M72 104L80 15L88 104Z"/><path d="M87 103.9L95 33L101 103.2Z"/><path d="M101 103C104 74 110 58 121 50C113 70 113 86 115 102Z"/><path d="M115 100.6L127 63L129 98Z"/></g>
+          <g fill="none" stroke="#FFF6CF" stroke-width="1.2" stroke-linecap="round" opacity=".75"><path d="M34 96l3-30"/><path d="M48 99l3-50"/><path d="M62 100l3-62"/><path d="M75 100l4-78"/><path d="M90 100l4-58"/><path d="M104 99c2-20 6-34 13-44"/></g>
+          <g stroke="#5C3D0C" stroke-width="1.2" fill="url(#cl-kr-g)"><circle cx="35" cy="57.5" r="3.4"/><circle cx="50" cy="39.5" r="3.4"/><circle cx="65" cy="27" r="3.4"/><circle cx="95" cy="30" r="3.4"/><circle cx="122" cy="47.5" r="3.4"/><circle cx="127.4" cy="60" r="3.4"/></g>
+          <g fill="#fff" opacity=".85"><circle cx="34" cy="56.4" r="1"/><circle cx="49" cy="38.4" r="1"/><circle cx="64" cy="26" r="1"/><circle cx="94" cy="29" r="1"/><circle cx="121" cy="46.4" r="1"/><circle cx="126.4" cy="59" r="1"/></g>
+          <path d="M80 4L86.5 12.5L80 22L73.5 12.5Z" fill="url(#cl-kr-sm)" stroke="#073A22" stroke-width="1.3" stroke-linejoin="round"/><path d="M73.5 12.5H86.5M80 4V22" stroke="#fff" stroke-width=".8" opacity=".45"/>
+          <path d="M80 99L87.5 106.5L80 115L72.5 106.5Z" fill="url(#cl-kr-sm)" stroke="#073A22" stroke-width="1.3" stroke-linejoin="round"/><path d="M72.5 106.5H87.5M80 99V115" stroke="#fff" stroke-width=".8" opacity=".4"/><path d="M76 103.5l4-3" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>
+          <g stroke="#7A5214" stroke-width="1.1"><ellipse cx="56" cy="106.6" rx="4.4" ry="5.2" fill="url(#cl-kr-sm)"/><ellipse cx="104" cy="106.6" rx="4.4" ry="5.2" fill="url(#cl-kr-sm)"/><circle cx="41" cy="104.4" r="2.8" fill="#C8323C"/><circle cx="119" cy="104.4" r="2.8" fill="#C8323C"/></g>
+          <g fill="#fff" opacity=".8"><circle cx="54.6" cy="104.6" r="1.1"/><circle cx="102.6" cy="104.6" r="1.1"/><circle cx="40.2" cy="103.4" r=".9"/><circle cx="118.2" cy="103.4" r=".9"/></g>
+          <path d="M37 101.5A46 8 0 0 0 58 106.8" fill="none" stroke="#FFFBE6" stroke-width="2.2" stroke-linecap="round" opacity=".6"/>
+          ${glimOp(73, 101)}${glimOp(84, 10)}
+        </g>
+      </svg>`,
+
+      // Dokter de Groot: een klembord van Kliniek Rozenveld, met een pen, een stempel en een stethoscoop
+      klembord: `<svg viewBox="0 0 124 162" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-kl-bord" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9A266"/><stop offset=".5" stop-color="#B07A44"/><stop offset="1" stop-color="#7A4E26"/></linearGradient>
+          <linearGradient id="cl-kl-pap" x1="0" y1="28" x2="0" y2="146" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EEE7D8"/></linearGradient>
+          <linearGradient id="cl-kl-klem" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FA"/><stop offset=".5" stop-color="#B9C2CC"/><stop offset="1" stop-color="#6E7884"/></linearGradient>
+          <radialGradient id="cl-kl-zi" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#C9D0D8"/><stop offset="1" stop-color="#5F6A75"/></radialGradient>
+          <clipPath id="cl-kl-clip"><rect x="22" y="29" width="68" height="114" rx="2"/></clipPath>
+        </defs>
+        <path d="M84 152l17-28 4 2-13 30z" fill="#7A4E26" stroke="#3E2410" stroke-width="1.2"/>
+        <rect x="14" y="16" width="84" height="140" rx="7" fill="url(#cl-kl-bord)" stroke="#4A2C12" stroke-width="2.4"/>
+        <path d="M19 22h74" stroke="#F0C894" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+        <rect x="23" y="30" width="70" height="116" rx="2" fill="#3E2410" opacity=".22"/>
+        <rect x="21" y="28" width="70" height="116" rx="2" fill="url(#cl-kl-pap)" stroke="#CFC6B2" stroke-width="1"/>
+        <path d="M29 40h8M33 36v8" stroke="#C8323C" stroke-width="3" stroke-linecap="round"/>
+        <text x="41" y="39.6" font-family="system-ui, sans-serif" font-weight="800" font-size="6.4" fill="#2F6FB5">KLINIEK</text><text x="41" y="46.2" font-family="system-ui, sans-serif" font-weight="800" font-size="6.4" fill="#2F6FB5">ROZENVELD</text>
+        <path d="M27 50.5h58" stroke="#2F6FB5" stroke-width="1"/>
+        <g stroke="#A9B8C8" stroke-width="1.6" stroke-linecap="round"><path d="M28 58h54M28 65h54M28 72h34M37 80.5h30M37 88.5h24M37 96.5h28"/></g>
+        <g fill="#fff" stroke="#5F6A75" stroke-width="1"><rect x="28" y="78" width="5" height="5" rx=".6"/><rect x="28" y="86" width="5" height="5" rx=".6"/><rect x="28" y="94" width="5" height="5" rx=".6"/></g>
+        <path d="M28.6 80l2 2.4 4-5.2M28.6 96l2 2.4 4-5.2" stroke="#23704F" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <g clip-path="url(#cl-kl-clip)">
+          <path d="M30 110c5-6 7 5 12 0s7 5 12 0 7 5 12 0 6 4 10-2M30 120c4-4 6 4 10 0s6 4 10 0 5 3 9-1" fill="none" stroke="#23305E" stroke-width="1.6" stroke-linecap="round"/>
+          <rect class="cl-dek" x="26" y="102" width="62" height="24" fill="url(#cl-kl-pap)"/>
+        </g>
+        <g class="cl-stempel" opacity="0"><g transform="rotate(-12 64 90)"><rect x="43" y="81" width="44" height="17" rx="3" fill="#fff" fill-opacity=".35" stroke="#C8323C" stroke-width="2.2"/><text x="65" y="93.4" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="9" fill="#C8323C">GEZOND!</text></g></g>
+        <g transform="rotate(-6 60 136)"><rect x="38" y="128" width="46" height="17" rx="3" fill="#fff" stroke="#5F6A75" stroke-width="1.4"/><rect x="38" y="128" width="46" height="5" rx="2" fill="#2F6FB5"/><text x="61" y="142.4" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="7.4" fill="#231A26">Dr. de Groot</text></g>
+        <rect x="38" y="8" width="36" height="16" rx="4" fill="url(#cl-kl-klem)" stroke="#4E5864" stroke-width="2"/><rect x="44" y="20" width="24" height="9" rx="2" fill="url(#cl-kl-klem)" stroke="#4E5864" stroke-width="1.6"/><circle cx="56" cy="15" r="3" fill="#4E5864"/><path d="M42 11h28" stroke="#fff" stroke-width="1.2" opacity=".8"/>
+        <g class="cl-pen"><g transform="rotate(14 88 70)"><rect x="85" y="40" width="7" height="60" rx="3.5" fill="#231A26"/><rect x="86.2" y="43" width="1.8" height="52" rx=".9" fill="#7A7290"/><path d="M85 100l3.5 9 3.5-9z" fill="#D4DAE0" stroke="#5F6A75" stroke-width=".8"/><rect x="83" y="44" width="3" height="22" rx="1.5" fill="url(#cl-kl-klem)" stroke="#4E5864" stroke-width=".6"/></g></g>
+        <g fill="none" stroke-linecap="round"><path d="M10 157c-5-12 5-22 16-18 8 3 8 13 18 13 8 0 12-5 16-3" stroke="#2E3A48" stroke-width="3.6"/><path d="M10 157c-5-12 5-22 16-18" stroke="#6C7E94" stroke-width="1.2" opacity=".8"/><path d="M10 157l-4 3M10 157l5 2.4" stroke="#9AA4B0" stroke-width="2.2"/></g>
+        <circle cx="64" cy="149" r="7" fill="url(#cl-kl-zi)" stroke="#4E5864" stroke-width="1.6"/><circle cx="64" cy="149" r="3.8" fill="none" stroke="#8C96A2"/>
+        ${glimOp(66, 12)}
+      </svg>`,
+
+      // Winston Darius: een sigaar met een bandje, in een kristallen asbak
+      sigaar: `<svg viewBox="0 0 150 128" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-si-sig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B07A44"/><stop offset=".35" stop-color="#7E4C24"/><stop offset=".72" stop-color="#5A3418"/><stop offset="1" stop-color="#3A200C"/></linearGradient>
+          <linearGradient id="cl-si-goud" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset=".5" stop-color="#E9B949"/><stop offset="1" stop-color="#8A6420"/></linearGradient>
+          <radialGradient id="cl-si-gl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE08A"/><stop offset=".45" stop-color="#FF7A2A" stop-opacity=".8"/><stop offset="1" stop-color="#FF5A10" stop-opacity="0"/></radialGradient>
+          <linearGradient id="cl-si-glas" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8FA6B8"/><stop offset=".3" stop-color="#E8F2F8"/><stop offset=".55" stop-color="#B4C8D6"/><stop offset="1" stop-color="#7E96A8"/></linearGradient>
+        </defs>
+        <g class="cl-rook" opacity=".6" fill="none" stroke-linecap="round"><path d="M128 80c-6-8 5-12-1-20s4-12-2-20 3-10-1-16" stroke="#C9CFD6" stroke-width="3"/><path d="M124 78c-4-6 3-9-1-14" stroke="#DDE2E8" stroke-width="2.2"/></g>
+        <g fill="none" stroke="#EEF2F5" stroke-width="2.4"><ellipse class="cl-ring" cx="128" cy="74" rx="6" ry="3.4" opacity="0"/><ellipse class="cl-ring" cx="128" cy="74" rx="6" ry="3.4" opacity="0"/><ellipse class="cl-ring" cx="128" cy="74" rx="6" ry="3.4" opacity="0"/></g>
+        <ellipse cx="75" cy="121" rx="56" ry="6.5" fill="#000" opacity=".28"/>
+        <path d="M21 102L25 116Q75 128 125 116L129 102Z" fill="url(#cl-si-glas)" fill-opacity=".75" stroke="#4E6476" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M35 107l2 11M50 109l1 12M65 110v12M85 110v12M100 109l-1 12M115 107l-2 11" stroke="#fff" stroke-width="1" opacity=".55"/>
+        <ellipse cx="75" cy="102" rx="54" ry="12" fill="#DCE8F0" fill-opacity=".8" stroke="#4E6476" stroke-width="1.4"/>
+        <ellipse cx="75" cy="102.5" rx="42" ry="8" fill="#5E6E7C" fill-opacity=".7"/>
+        <path d="M52 104q6-3 12 0t10 1M84 101q4-2 8 0" fill="none" stroke="#B4B4B0" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+        <path d="M29 99q-3-4 0-7M121 99q3-4 0-7" fill="none" stroke="#4E6476" stroke-width="1.6"/>
+        <path d="M32 96Q52 90 75 90" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"/>
+        <g class="cl-sig"><g transform="rotate(-8 75 93)">
+          <rect x="14" y="86" width="112" height="14" rx="7" fill="url(#cl-si-sig)" stroke="#2A1608" stroke-width="1.6"/>
+          <path d="M24 88c6 4 12 6 18 10M46 87c6 4 12 7 18 11M68 87c6 4 12 7 18 11M90 87c6 4 12 7 18 11" stroke="#4A2A12" stroke-width="1" opacity=".55" fill="none"/>
+          <path d="M20 89h94" stroke="#D9A26A" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
+          <rect x="30" y="85.5" width="16" height="15" fill="#B8232F" stroke="#4A0A12" stroke-width="1.2"/><rect x="33" y="88" width="10" height="10" rx="1.5" fill="url(#cl-si-goud)"/><text x="38" y="95.6" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="6.4" fill="#4A0A12">D</text>
+          <path d="M114 86.5h8q6 0 6 6.5t-6 6.5h-8z" fill="#ABABA6" stroke="#5E5E5A" stroke-width="1"/><g fill="#7A7A76"><circle cx="117" cy="90" r=".9"/><circle cx="121" cy="95" r=".9"/><circle cx="118" cy="97" r=".8"/></g>
+          <path d="M123 87.5q6 .8 6 5.5t-6 5.5" fill="none" stroke="#FF7A2A" stroke-width="2.4" stroke-linecap="round"/>
+          <circle class="cl-gloed" cx="127.5" cy="93" r="7" fill="url(#cl-si-gl)" opacity=".55"/>
+        </g></g>
+        ${glimOp(48, 95)}
+      </svg>`,
+
+      // Erik Jacobs: een wandelstok van ebbenhout met een gouden handvat, gekruld als een bokkenhoorn
+      stok: `<svg viewBox="0 0 64 254" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-so-ebben" x1="0" x2="1"><stop offset="0" stop-color="#0E0D12"/><stop offset=".35" stop-color="#3E3A4A"/><stop offset=".55" stop-color="#1C1A22"/><stop offset="1" stop-color="#08070A"/></linearGradient>
+          <linearGradient id="cl-so-goud" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset=".35" stop-color="#E9B949"/><stop offset=".75" stop-color="#A8771E"/><stop offset="1" stop-color="#6B4A12"/></linearGradient>
+          <linearGradient id="cl-so-hout" x1="0" x2="1"><stop offset="0" stop-color="#2A1A0E"/><stop offset=".4" stop-color="#7A4E2D"/><stop offset="1" stop-color="#2A1A0E"/></linearGradient>
+        </defs>
+        <path d="M10 245q22-8 44 0v4q-22 7-44 0z" fill="url(#cl-so-hout)" stroke="#1E120A" stroke-width="1.3"/><ellipse cx="32" cy="245" rx="22" ry="3.8" fill="#8E6038"/>
+        <g class="cl-stok">
+          <rect x="28.5" y="50" width="7" height="192" rx="3" fill="url(#cl-so-ebben)" stroke="#000" stroke-width="1"/>
+          <path d="M30.6 58v178" stroke="#8A85A0" stroke-width="1" opacity=".7"/>
+          <path d="M32 50V34C32 17 47 9 54 19C59 27 51 35 43 31C37 28 40 20 45 21" fill="none" stroke="#5C3D0C" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 50V34C32 17 47 9 54 19C59 27 51 35 43 31C37 28 40 20 45 21" fill="none" stroke="url(#cl-so-goud)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M32 50V34C32 17 47 9 54 19C59 27 51 35 43 31C37 28 40 20 45 21" fill="none" stroke="#8A6420" stroke-width="8" stroke-dasharray="1.2 3.4" opacity=".55"/>
+          <path d="M30 46V34C30 21 40 13 48 14" fill="none" stroke="#FFF6CF" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+          <rect x="27.5" y="47" width="9" height="10" rx="2" fill="url(#cl-so-goud)" stroke="#6B4A12" stroke-width="1"/><path d="M27.5 50.5h9M27.5 53.5h9" stroke="#8A6420" stroke-width=".7"/>
+          ${glimOp(51, 15)}
+        </g>
+        <path d="M25 232h14l-2 14h-10z" fill="url(#cl-so-goud)" stroke="#6B4A12" stroke-width="1"/><ellipse cx="32" cy="232" rx="7" ry="2" fill="#6B4A12"/>
+      </svg>`,
+
+      // Roeter: drie ruitenkaarten in een houten standaard, met rode pailletten
+      kaarten: `<svg viewBox="0 0 130 136" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-ka-pap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECE4D2"/></linearGradient>
+          <linearGradient id="cl-ka-rug" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C8323C"/><stop offset="1" stop-color="#7E1E26"/></linearGradient>
+          <pattern id="cl-ka-ruit" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#A82633"/><rect width="3.5" height="3.5" fill="#E0505C" opacity=".45"/></pattern>
+          <linearGradient id="cl-ka-hout" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9A6438"/><stop offset="1" stop-color="#5C3A21"/></linearGradient>
+          <radialGradient id="cl-ka-pl" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFD0D6"/><stop offset=".5" stop-color="#E0505C"/><stop offset="1" stop-color="#8E1F28"/></radialGradient>
+        </defs>
+        ${kaart('cl-k1', -18, '7', [[56, 64], [74, 64], [65, 73], [56, 82], [74, 82], [56, 101], [74, 101]])}
+        ${kaart('cl-k2', 0, '9', [[56, 62], [74, 62], [56, 75], [74, 75], [65, 82], [56, 89], [74, 89], [56, 102], [74, 102]])}
+        ${kaart('cl-k3', 18, 'A', [[65, 82, 12]])}
+        <path d="M30 112h70l-3-5H33z" fill="#C48D55" stroke="#3A2414" stroke-width="1.2" stroke-linejoin="round"/><path d="M45 109.6h40" stroke="#3A2414" stroke-width="2"/>
+        <path d="M30 112h70l-4 17H34z" fill="url(#cl-ka-hout)" stroke="#3A2414" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M33 114.5h64" stroke="#C48D55" stroke-width="1" opacity=".6"/>
+        <path d="${ruit(65, 121, 6.6)}" fill="#C8323C" stroke="#6A0E1A" stroke-width="1"/>
+        <g fill="url(#cl-ka-pl)" stroke="#6A0E1A" stroke-width=".6"><circle cx="20" cy="129" r="3.4"/><circle cx="26" cy="132" r="3.2"/><circle cx="16" cy="133" r="3"/><circle cx="108" cy="130" r="3.4"/><circle cx="114" cy="133" r="3"/></g>
+        <g class="cl-pail" fill="#fff"><circle cx="19" cy="128" r="1"/><circle cx="25" cy="131" r="1"/><circle cx="107" cy="129" r="1"/><circle cx="64" cy="118.4" r="1.2"/></g>
+        ${glimOp(80, 56)}
+      </svg>`,
+
+      // Hans Herzschlag: een Tiroler hoedje met krullen, een veertje en een hartje, op een hoedenstandaard
+      hoed: `<svg viewBox="0 0 140 156" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-ho-vilt" x1="0" y1="0" x2="1" y2=".35"><stop offset="0" stop-color="#B6C8D6"/><stop offset=".45" stop-color="#8CA2B6"/><stop offset="1" stop-color="#566A7C"/></linearGradient>
+          <linearGradient id="cl-ho-rand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9EB2C4"/><stop offset="1" stop-color="#5E7284"/></linearGradient>
+          <linearGradient id="cl-ho-band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E9A6E"/><stop offset="1" stop-color="#1E5E42"/></linearGradient>
+          <linearGradient id="cl-ho-hout" x1="0" x2="1"><stop offset="0" stop-color="#4A2C14"/><stop offset=".4" stop-color="#B7804A"/><stop offset="1" stop-color="#4A2C14"/></linearGradient>
+          <radialGradient id="cl-ho-hart" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FF9AA6"/><stop offset=".5" stop-color="#D8323E"/><stop offset="1" stop-color="#7A0E1A"/></radialGradient>
+        </defs>
+        <path d="M44 148q26-8 52 0v4q-26 7-52 0z" fill="url(#cl-ho-hout)" stroke="#1E120A" stroke-width="1.3"/><ellipse cx="70" cy="148" rx="26" ry="4" fill="#9A6A40"/>
+        <rect x="66" y="100" width="8" height="50" rx="3" fill="url(#cl-ho-hout)" stroke="#1E120A" stroke-width="1"/>
+        <g class="cl-hoed-top">
+          <g class="cl-krul-l" fill="none" stroke-linecap="round"><g stroke="#1F1A17" stroke-width="5">${[36, 43, 50].map(x => `<path d="${krul(x)}"/>`).join('')}</g><g stroke="#6A5A52" stroke-width="1.2" opacity=".8">${[36, 43, 50].map(x => `<path d="${krul(x - 1.4)}"/>`).join('')}</g></g>
+          <g class="cl-krul-r" fill="none" stroke-linecap="round"><g stroke="#1F1A17" stroke-width="5">${[90, 97, 104].map(x => `<path d="${krul(x, 1)}"/>`).join('')}</g><g stroke="#6A5A52" stroke-width="1.2" opacity=".8">${[90, 97, 104].map(x => `<path d="${krul(x - 1.4, 1)}"/>`).join('')}</g></g>
+          <path d="M46 89C44 66 50 44 60 34C66 28 74 28 80 34C90 44 96 66 94 89Z" fill="url(#cl-ho-vilt)" stroke="#3E5062" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M60 34Q70 41 80 34M64 41Q70 50 76 41" fill="none" stroke="#4E6274" stroke-width="1.6"/><path d="M52 52Q55 46 59 41" fill="none" stroke="#D4E2EC" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+          <path d="M45 74Q70 82 95 74L95 84Q70 92 45 84Z" fill="url(#cl-ho-band)" stroke="#123A28" stroke-width="1.4"/>
+          <path d="M46 79Q70 86.5 94 79" fill="none" stroke="#E9B949" stroke-width="2" stroke-dasharray="3 2"/>
+          <g class="cl-veer"><g fill="none" stroke-linecap="round"><path d="M90 78q2-18 10-30" stroke="#6E5A48" stroke-width="2.2"/><path d="M90 78q5-15 15-23" stroke="#8C7660" stroke-width="2"/><path d="M90 78q0-17 3-31" stroke="#5C4A3A" stroke-width="2"/><path d="M90 78q7-12 18-16" stroke="#A89078" stroke-width="1.8"/></g><path d="M92 79q12-14 20-28" stroke="#4A2E1A" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M112 51q-7 7-4 15q8-6 4-15z" fill="#2E8B62" stroke="#1E5E42" stroke-width=".8"/></g>
+          <g class="cl-hart"><path d="M58 87c-4-3-6-5-6-7.6a3 3 0 0 1 6-1.2 3 3 0 0 1 6 1.2c0 2.6-2 4.6-6 7.6z" fill="url(#cl-ho-hart)" stroke="#6A0E1A" stroke-width="1"/><circle cx="55.5" cy="79.5" r="1" fill="#fff" opacity=".85"/></g>
+          <path d="M14 97C28 86 112 86 126 97C128 102 121 106 114 104C96 100 44 100 26 104C19 106 12 102 14 97Z" fill="url(#cl-ho-rand)" stroke="#3E5062" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M24 95Q70 86 116 95" fill="none" stroke="#D4E2EC" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>
+          ${glimOp(54, 78)}
+        </g>
+      </svg>`,
+
+      // Callum: een ronde gouden bril op een open brillenkoker, zwart en goud, met een maantje
+      bril: `<svg viewBox="0 0 132 102" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-br-goud" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset=".4" stop-color="#E9B949"/><stop offset="1" stop-color="#8A6420"/></linearGradient>
+          <linearGradient id="cl-br-etui" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3542"/><stop offset=".5" stop-color="#1C1A22"/><stop offset="1" stop-color="#0A090D"/></linearGradient>
+          <linearGradient id="cl-br-voer" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#B8862E"/><stop offset=".45" stop-color="#F2D58A"/><stop offset="1" stop-color="#A8771E"/></linearGradient>
+          <radialGradient id="cl-br-glas" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#F4FAFF" stop-opacity=".5"/><stop offset="1" stop-color="#8FB6D2" stop-opacity=".22"/></radialGradient>
+          <clipPath id="cl-br-l1"><circle cx="44" cy="56" r="16"/></clipPath><clipPath id="cl-br-l2"><circle cx="88" cy="56" r="16"/></clipPath>
+        </defs>
+        <ellipse cx="66" cy="98" rx="54" ry="4" fill="#000" opacity=".3"/>
+        <path d="M18 72Q18 50 34 48H98Q114 50 114 72Z" fill="url(#cl-br-etui)" stroke="#000" stroke-width="1.5"/>
+        <path d="M24 70Q25 55 36 53H96Q107 55 108 70Z" fill="url(#cl-br-voer)" opacity=".92"/>
+        <g class="cl-bril">
+          <path d="M27 54H105" stroke="url(#cl-br-goud)" stroke-width="2.2"/><circle cx="27" cy="54" r="1.8" fill="#8A6420"/><circle cx="105" cy="54" r="1.8" fill="#8A6420"/>
+          <circle cx="44" cy="56" r="16" fill="url(#cl-br-glas)"/><circle cx="88" cy="56" r="16" fill="url(#cl-br-glas)"/>
+          <g class="cl-maan" opacity="0"><path d="M48 48a7 7 0 1 0 0 13 5.4 5.4 0 1 1 0-13z" fill="#F2D58A"/><path d="M92 48a7 7 0 1 0 0 13 5.4 5.4 0 1 1 0-13z" fill="#F2D58A"/><g fill="#FFF3C4"><circle cx="38" cy="50" r="1.2"/><circle cx="52" cy="63" r=".9"/><circle cx="82" cy="50" r="1.2"/><circle cx="96" cy="63" r=".9"/></g></g>
+          <g clip-path="url(#cl-br-l1)"><g transform="rotate(25 44 56)"><rect class="cl-glans" x="14" y="28" width="8" height="58" fill="#fff" opacity=".85"/></g></g>
+          <g clip-path="url(#cl-br-l2)"><g transform="rotate(25 88 56)"><rect class="cl-glans" x="58" y="28" width="8" height="58" fill="#fff" opacity=".85"/></g></g>
+          <path d="M34 46q6-6 14-4M78 46q6-6 14-4" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".75"/>
+          <circle cx="44" cy="56" r="16" fill="none" stroke="#6B4A12" stroke-width="4.6"/><circle cx="88" cy="56" r="16" fill="none" stroke="#6B4A12" stroke-width="4.6"/>
+          <circle cx="44" cy="56" r="16" fill="none" stroke="url(#cl-br-goud)" stroke-width="3"/><circle cx="88" cy="56" r="16" fill="none" stroke="url(#cl-br-goud)" stroke-width="3"/>
+          <path d="M60 52q6-7 12 0" stroke="#6B4A12" stroke-width="4" fill="none"/><path d="M60 52q6-7 12 0" stroke="url(#cl-br-goud)" stroke-width="2.4" fill="none"/>
+          ${glimOp(98, 44)}
+        </g>
+        <path d="M14 72H118V88Q118 98 108 98H24Q14 98 14 88Z" fill="url(#cl-br-etui)" stroke="#000" stroke-width="1.6"/>
+        <path d="M16 72H116L114 76H18Z" fill="url(#cl-br-voer)"/>
+        <path d="M18 81H114" stroke="#C99A2E" stroke-width="1"/>
+        <path d="M70 83a6 6 0 1 0 0 11 4.6 4.6 0 1 1 0-11z" fill="url(#cl-br-goud)"/><path d="M75 84.5l.9 2 2.1.2-1.6 1.4.5 2.1-1.9-1.1-1.9 1.1.5-2.1-1.6-1.4 2.1-.2z" fill="#F2D58A"/>
+        <path d="M22 75q20-2 40-1" stroke="#fff" stroke-width="1.2" opacity=".35" fill="none"/>
+      </svg>`,
+
+      // Dorian Verstronden: een zwarte geklede jas met een rode sjerp, aan een kleerhanger op een kapstok
+      jas: `<svg viewBox="0 0 140 236" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cl-ja-hout" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A361A"/><stop offset=".35" stop-color="#B7804A"/><stop offset=".6" stop-color="#8A5A32"/><stop offset="1" stop-color="#4A2C14"/></linearGradient>
+          <linearGradient id="cl-ja-wol" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#101016"/><stop offset=".2" stop-color="#2A2A36"/><stop offset=".4" stop-color="#3C3C4C"/><stop offset=".58" stop-color="#2C2C38"/><stop offset=".86" stop-color="#16161D"/><stop offset="1" stop-color="#0C0C11"/></linearGradient>
+          <linearGradient id="cl-ja-mouw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0E0E13"/><stop offset=".45" stop-color="#2C2C37"/><stop offset="1" stop-color="#111117"/></linearGradient>
+          <linearGradient id="cl-ja-sat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A1A22"/><stop offset=".46" stop-color="#4C4C5E"/><stop offset=".56" stop-color="#5E5E72"/><stop offset="1" stop-color="#18181F"/></linearGradient>
+          <linearGradient id="cl-ja-sj" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6A0E1A"/><stop offset=".3" stop-color="#B82A36"/><stop offset=".5" stop-color="#E35A66"/><stop offset=".7" stop-color="#B82A36"/><stop offset="1" stop-color="#6A0E1A"/></linearGradient>
+          <radialGradient id="cl-ja-zi" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".4" stop-color="#D9DEE5"/><stop offset="1" stop-color="#6E7680"/></radialGradient>
+          <linearGradient id="cl-ja-hemd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DDD6C8"/></linearGradient>
+        </defs>
+        <path d="M42 229q28-10 56 0v3q-28 8-56 0z" fill="url(#cl-ja-hout)" stroke="#2E1A0C" stroke-width="1.5"/>
+        <rect x="67" y="12" width="6" height="217" rx="3" fill="url(#cl-ja-hout)" stroke="#2E1A0C" stroke-width="1.2"/>
+        <path d="M69 18v208" stroke="#E8BC86" stroke-width="1" opacity=".55"/>
+        <circle cx="70" cy="11" r="5.6" fill="url(#cl-ja-hout)" stroke="#2E1A0C" stroke-width="1.2"/><circle cx="68.4" cy="9.4" r="1.6" fill="#F2D2A6" opacity=".8"/>
+        <path d="M73 24h9" stroke="#B8862E" stroke-width="3.4" stroke-linecap="round"/><circle cx="83" cy="24" r="2.7" fill="#E9C46A" stroke="#8A6420"/>
+        <path d="M70 48V34C70 25 76 20 81 21C85 22 86 26 84 28" fill="none" stroke="#8F969E" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M28 55Q70 39 112 55L111 60Q70 46 29 60Z" fill="url(#cl-ja-hout)" stroke="#2E1A0C" stroke-width="1.4"/>
+        <g class="cl-jas-lijf">
+          <g class="cl-mouw-l"><path d="M38 59C24 63 19 79 18 93L14 165C14 171 18 173 24 173H34L40 97Z" fill="url(#cl-ja-mouw)" stroke="#060609" stroke-width="2" stroke-linejoin="round"/><path d="M14.4 158H36.4L35.6 173H15Z" fill="#0A0A0E"/><path d="M15.2 173H34.6L34 177H16Z" fill="#E8E2D6" stroke="#8C826C" stroke-width=".8"/><path d="M23 101l-4 54" stroke="#40404E" stroke-width="1.4" opacity=".7"/></g>
+          <g class="cl-mouw-r"><path d="M102 59C116 63 121 79 122 93L126 165C126 171 122 173 116 173H106L100 97Z" fill="url(#cl-ja-mouw)" stroke="#060609" stroke-width="2" stroke-linejoin="round"/><path d="M125.6 158H103.6L104.4 173H125Z" fill="#0A0A0E"/><path d="M124.8 173H105.4L106 177H124Z" fill="#E8E2D6" stroke="#8C826C" stroke-width=".8"/><path d="M117 101l4 54" stroke="#40404E" stroke-width="1.4" opacity=".55"/></g>
+          <path d="M36 57C50 51 60 49 70 49S90 51 104 57L110 197C110 205 104 209 98 210L82 213L70 199L58 213L42 210C36 209 30 205 30 197Z" fill="url(#cl-ja-wol)" stroke="#060609" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M36 57C31 92 30 160 30 197C30 205 36 209 42 210L45 140Z" fill="#000" opacity=".28"/><path d="M104 57C109 92 110 160 110 197C110 205 104 209 98 210L95 140Z" fill="#000" opacity=".32"/>
+          <path d="M74 104V200" stroke="#060609" stroke-width="1.6"/><path d="M75.5 106V198" stroke="#4A4A5A" stroke-width=".8" opacity=".6"/>
+          <path d="M33 133Q70 139 107 133" fill="none" stroke="#08080C" stroke-width="1.4" opacity=".8"/>
+          <path d="M37 151h22l-1 6H38Z" fill="#1E1E27" stroke="#060609" stroke-width="1"/>
+          <g stroke="#3E434B" stroke-width="1" fill="url(#cl-ja-zi)"><circle cx="61" cy="116" r="3.7"/><circle cx="61" cy="134" r="3.7"/><circle cx="61" cy="152" r="3.7"/><circle cx="61" cy="170" r="3.7"/><circle cx="85" cy="116" r="3.7"/><circle cx="85" cy="134" r="3.7"/><circle cx="85" cy="170" r="3.7"/></g>
+          <path d="M60 51L70 97L80 51C76 55 73 56 70 56S64 55 60 51Z" fill="url(#cl-ja-hemd)" stroke="#8C826C" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M60 51L65.5 61L70 55ZM80 51L74.5 61L70 55Z" fill="#FFFFFF" stroke="#8C826C" stroke-width="1"/>
+          <g class="cl-das"><g transform="rotate(-17 70 57)"><path d="M66.4 56h7.2l-1 7.4h-5.2Z" fill="#6E1A26" stroke="#2A0A10" stroke-width="1.1"/><path d="M67.2 63.4L64.4 90L69.4 98L74 90L72.8 63.4Z" fill="#982C3A" stroke="#2A0A10" stroke-width="1.1" stroke-linejoin="round"/><path d="M69.4 65.5v27" stroke="#D06A78" stroke-width=".9" opacity=".75"/><path d="M65.6 74l7-2.4M65.2 82l7.6-2.4" stroke="#6E1A26" stroke-width=".8" opacity=".7"/></g></g>
+          <path d="M58 50C44 55 40 67 40 81L56 107L66 89L62 61Z" fill="url(#cl-ja-sat)" stroke="#060609" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M82 50C96 55 100 67 100 81L84 107L74 89L78 61Z" fill="url(#cl-ja-sat)" stroke="#060609" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M40 81l8-4.6M100 81l-8-4.6" stroke="#060609" stroke-width="1.4"/>
+          <path d="M45 71Q50 62 58 56" fill="none" stroke="#9A9AB2" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
+          <path d="M38 65L50 59L109 157L102 171Z" fill="url(#cl-ja-sj)" stroke="#4A0A12" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M40.5 67L103.5 167M48.5 61L107.5 159" stroke="#E9B949" stroke-width="1" opacity=".8"/>
+          <path d="M100 169L96 197L101.6 193L104.4 199L108 171Z" fill="#9E2430" stroke="#4A0A12" stroke-width="1.3" stroke-linejoin="round"/>
+          <path d="M96.4 197.5l.8 4.4M99.2 195.6l.8 4.4M101.8 193.6l.8 4.4M104.6 199.6l.8 4" stroke="#E9B949" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="104" cy="164" r="7.2" fill="#B82A36" stroke="#4A0A12" stroke-width="1.4"/><circle cx="104" cy="164" r="4.2" fill="none" stroke="#E35A66" stroke-width="1" stroke-dasharray="2 1.6"/><circle cx="104" cy="164" r="2.6" fill="#E9B949"/>
+          <g transform="translate(88 96)"><path d="M0-14v28M-9-5h18" stroke="#E6EBF1" stroke-width="4.4" stroke-linecap="round"/><path d="M0-14v28M-9-5h18" stroke="#8C939E" stroke-width="1.3" stroke-linecap="round"/><g stroke="#E6EBF1" stroke-width="1"><circle cy="-14" r="2.6" fill="#3EC6A8"/><circle cy="14" r="2.6" fill="#3EC6A8"/><circle cx="-9" cy="-5" r="2.6" fill="#3EC6A8"/><circle cx="9" cy="-5" r="2.6" fill="#3EC6A8"/></g><circle cy="-5" r="3.3" fill="#2E8B62" stroke="#E6EBF1" stroke-width="1.2"/>${glimOp(6, -13)}</g>
+        </g>
+      </svg>`,
+    };
+
+    // ---------- geluid (pas na een aanraking; volgt de geluidsknop van de rommeltjes, rommeltjes-v1.g)
+    const geluidAan = () => { try { const r = JSON.parse(localStorage.getItem('rommeltjes-v1') || 'null'); return !r || r.g !== 0; } catch (e) { return true; } };
+    let ac = null, hoofd = null, ruisBuf = null, mag = false;
+    function audio() {
+      if (!mag || !geluidAan()) return null;
+      try {
+        if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); hoofd = ac.createGain(); hoofd.gain.value = 0.9; hoofd.connect(ac.destination); }
+        if (ac.state === 'suspended') ac.resume();
+        return ac;
+      } catch (e) { return null; }
+    }
+    function ruisBuffer() {
+      if (ruisBuf) return ruisBuf;
+      const n = Math.floor(ac.sampleRate * 1.5), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      return (ruisBuf = b);
+    }
+    // uit: de uitgang van het optreden (zo is een onderbroken optreden meteen stil)
+    function toon(uit, f, t0, d, type, vol, naar) {
+      const c = audio(); if (!c) return;
+      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + (t0 || 0);
+      o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t); if (naar) o.frequency.exponentialRampToValueAtTime(naar, t + d);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.04, t + Math.min(0.02, d / 4)); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(uit || hoofd); o.start(t); o.stop(t + d + 0.05);
+    }
+    function ruis(uit, t0, d, vol, freq, q, naar, soort) {
+      const c = audio(); if (!c) return;
+      const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime + (t0 || 0);
+      s.buffer = ruisBuffer(); f.type = soort || 'bandpass'; f.frequency.setValueAtTime(freq || 1200, t); if (naar) f.frequency.exponentialRampToValueAtTime(naar, t + d); f.Q.value = q || 1;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.04, t + Math.min(0.03, d / 3)); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      s.connect(f); f.connect(g); g.connect(uit || hoofd); s.start(t, Math.random() * 0.5); s.stop(t + d + 0.05);
+    }
+    function meeh(uit, t0) {
+      const c = audio(); if (!c) return;
+      const t = c.currentTime + t0, o = c.createOscillator(), lfo = c.createOscillator(), diep = c.createGain(), f = c.createBiquadFilter(), g = c.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(430, t); o.frequency.linearRampToValueAtTime(350, t + 0.75);
+      lfo.frequency.value = 23; diep.gain.value = 28; lfo.connect(diep); diep.connect(o.frequency);
+      f.type = 'bandpass'; f.frequency.value = 1250; f.Q.value = 2.2;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.05); g.gain.setValueAtTime(0.07, t + 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+      o.connect(f); f.connect(g); g.connect(uit || hoofd); o.start(t); lfo.start(t); o.stop(t + 0.85); lfo.stop(t + 0.85);
+    }
+    function uitgang() { const c = audio(); if (!c) return null; const g = c.createGain(); g.connect(hoofd); return g; }
+    const klak = u => { toon(u, 1900, 0, 0.03, 'square', 0.025); ruis(u, 0, 0.05, 0.05, 3200, 0.8); toon(u, 62, 0.02, 0.45, 'sine', 0.035); };
+    function applaus(dur) {
+      if (!audio()) return;
+      ruis(null, 0.1, dur, 0.022, 1800, 0.5, 1400);
+      const n = Math.round(dur * 26);
+      for (let i = 0; i < n; i++) {
+        const t = Math.pow(Math.random(), 0.8) * dur, sterk = Math.min(1, t / 0.6) * Math.min(1, (dur - t) / 1.2);
+        ruis(null, 0.05 + t, 0.045 + Math.random() * 0.03, (0.02 + Math.random() * 0.06) * Math.max(0.15, sterk), 900 + Math.random() * 1800, 1.3);
       }
-      ballon('jas', 'Vijf minuutjes nog...');
-      await wacht(3400); bezig.delete('jas');
-    },
-    // Caspian: groene chaosvonken
-    kroon: async () => {
-      const k = $p('kroon'), r = k.getBoundingClientRect();
-      [110, 116.5, 155.6].forEach(f => toon(f, 0, 1.3, 'sawtooth', 0.025));
-      toon(880, 0.15, 0.6, 'sine', 0.03, 1760);
-      const gl = k.querySelector('.gloed');
-      anim(gl, [{ opacity: 0 }, { opacity: 1, offset: .3 }, { opacity: 0 }], { duration: 1400 });
-      anim(k.querySelector('svg'), [{ filter: 'drop-shadow(0 5px 0 rgba(0,0,0,.25))' }, { filter: 'drop-shadow(0 0 18px #4BE38A)', offset: .3 }, { filter: 'drop-shadow(0 5px 0 rgba(0,0,0,.25))' }], { duration: 1400 });
-      if (!reduce) for (let i = 0; i < 26; i++) {
-        const v = document.createElement('span'); v.className = 'vonk';
-        const x = r.left + r.width / 2 + (Math.random() - .5) * r.width * .6, y = r.top + r.height * .55;
-        v.style.left = x + 'px'; v.style.top = y + 'px'; document.body.appendChild(v);
-        const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 90;
-        v.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${Math.cos(a) * d}px, ${Math.sin(a) * d - 30}px) scale(.3)`, opacity: 0 }], { duration: 700 + Math.random() * 700, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => v.remove();
+      toon(null, 1650, dur * 0.35, 0.18, 'sine', 0.012, 2300); toon(null, 2300, dur * 0.35 + 0.2, 0.3, 'sine', 0.012, 1500);
+    }
+
+    // ---------- de nummertjes. Elk optreden krijgt o (o.anim, o.na om te wachten, o.uit voor geluid, o.zeg voor het ballonnetje,
+    // o.klaar als het onderbroken is) en k, de knop van het rekwisiet.
+    const $k = (k, s) => k.querySelector(s);
+    const DOEN = {
+      // Juan Martinez: de ogen gloeien, de kaak klappert, de staf danst en er vliegen goudsbloemblaadjes
+      staf: async (o, k) => {
+        [523, 659, 784, 659, 880, 784, 1047].forEach((f, i) => { toon(o.uit, f, i * 0.16, 0.14, 'sawtooth', 0.014); toon(o.uit, f * 2, i * 0.16, 0.1, 'square', 0.005); });
+        [392, 494, 587, 784].forEach(f => toon(o.uit, f, 1.15, 0.7, 'triangle', 0.025));
+        for (let i = 0; i < 10; i++) ruis(o.uit, i * 0.13, 0.06, 0.035, 6500, 1.2, null, 'highpass');
+        o.anim($k(k, '.cl-oog'), [{ opacity: 0 }, { opacity: 1, offset: 0.15 }, { opacity: 0.85, offset: 0.8 }, { opacity: 0 }], { duration: 2400 });
+        o.anim($k(k, '.cl-kaak'), [0, 3, 0, 3, 0, 3, 0, 3, 0].map(y => ({ transform: `translateY(${y}px)` })), { duration: 1150 });
+        o.anim($k(k, '.cl-in'), [{ transform: 'none' }, { transform: 'rotate(-7deg)' }, { transform: 'rotate(6deg)' }, { transform: 'rotate(-5deg)' }, { transform: 'rotate(4deg)' }, { transform: 'none' }], { duration: 1300, easing: 'ease-in-out' });
+        o.anim($k(k, '.cl-linten'), [{ transform: 'none' }, { transform: 'rotate(9deg)' }, { transform: 'rotate(-7deg)' }, { transform: 'rotate(5deg)' }, { transform: 'none' }], { duration: 1500, easing: 'ease-in-out' });
+        o.vonken(k, 22, ['#F08A24', '#F6B73C', '#E8577A', '#FFD27A'], true);
+        await o.na(650); if (o.klaar) return;
+        o.zeg();
+        await o.na(1900);
+      },
+      // Caspian Darius, de God van Chaos: de kroon zweeft op, tolt, gooit de boel door elkaar en landt scheef
+      kroon: async (o, k) => {
+        const heel = $k(k, '.cl-kroon-heel');
+        [110, 116.5, 155.6].forEach(f => toon(o.uit, f, 0, 1.4, 'sawtooth', 0.014)); ruis(o.uit, 0.05, 1.2, 0.05, 300, 1.2, 3200);
+        for (let i = 0; i < 7; i++) toon(o.uit, 1400 + Math.random() * 1600, 0.3 + i * 0.12, 0.18, 'sine', 0.016);
+        o.anim($k(k, '.cl-gloed'), [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 0.8, offset: 0.7 }, { opacity: 0 }], { duration: 2300 });
+        o.anim(heel, [{ transform: 'none' }, { transform: 'translateY(-26px) rotate(-6deg)', offset: 0.22 }, { transform: 'translateY(-30px) rotate(8deg) scaleX(-1)', offset: 0.42 }, { transform: 'translateY(-28px) rotate(-4deg) scaleX(1)', offset: 0.6 }, { transform: 'translateY(2px) rotate(9deg)', offset: 0.78 }, { transform: 'translateY(0) rotate(9deg)', offset: 0.9 }, { transform: 'translateY(0) rotate(9deg)' }], { duration: 2000, easing: 'ease-in-out', fill: 'forwards' });
+        o.vonken(k, 26, ['#7CFFB0', '#2FBF7A', '#D8FFE8', '#E9B949']);
+        await o.na(700); if (o.klaar) return;
+        o.chaos();
+        await o.na(800); if (o.klaar) return;
+        toon(o.uit, 140, 0, 0.18, 'triangle', 0.06, 70); ruis(o.uit, 0, 0.12, 0.05, 500, 1);
+        o.zeg();
+        await o.na(1300); if (o.klaar) return;
+        toon(o.uit, 520, 0, 0.08, 'triangle', 0.03); toon(o.uit, 780, 0.07, 0.1, 'triangle', 0.03);
+        o.anim(heel, [{ transform: 'translateY(0) rotate(9deg)' }, { transform: 'translateY(-8px) rotate(-3deg)', offset: 0.5 }, { transform: 'none' }], { duration: 500, easing: 'ease-out', fill: 'forwards' });
+        await o.na(700);
+      },
+      // Dokter de Groot: de pen krabbelt een recept, er komt een stempel op, en de hartmonitor piept tevreden
+      klembord: async (o, k) => {
+        const pen = $k(k, '.cl-pen'), dek = $k(k, '.cl-dek'), st = $k(k, '.cl-stempel');
+        for (let i = 0; i < 15; i++) ruis(o.uit, 0.15 + i * 0.07, 0.05, 0.022, 3500 + Math.random() * 2500, 2);
+        o.anim(pen, [{ transform: 'none' }, { transform: 'translate(-49px,2px)', offset: 0.15 }, { transform: 'translate(-3px,0)', offset: 0.45 }, { transform: 'translate(-49px,12px)', offset: 0.55 }, { transform: 'translate(-12px,12px)', offset: 0.8 }, { transform: 'none' }], { duration: 1400, easing: 'ease-in-out' });
+        o.anim(dek, [{ transform: 'none' }, { transform: 'none', offset: 0.15 }, { transform: 'translateX(64px)' }], { duration: 1150, fill: 'forwards' });
+        await o.na(1400); if (o.klaar) return;
+        toon(o.uit, 120, 0, 0.12, 'triangle', 0.07, 60); ruis(o.uit, 0, 0.08, 0.06, 700, 1);
+        o.anim(st, [{ opacity: 0, transform: 'scale(1.8)' }, { opacity: 1, transform: 'scale(.94)', offset: 0.7 }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-in', fill: 'forwards' });
+        [0.35, 0.55, 1.05, 1.25].forEach(t => toon(o.uit, 988, t, 0.09, 'sine', 0.03));
+        o.zeg();
+        await o.na(2000); if (o.klaar) return;
+        o.anim(st, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
+        o.anim(dek, [{ transform: 'translateX(64px)' }, { transform: 'none' }], { duration: 420, easing: 'ease-in-out', fill: 'forwards' });
+        await o.na(450);
+      },
+      // Winston Darius: de sigaar gloeit op en blaast drie rookringen
+      sigaar: async (o, k) => {
+        const rook = $k(k, '.cl-rook');
+        ruis(o.uit, 0, 0.9, 0.04, 500, 0.8, 1200, 'lowpass');
+        for (let i = 0; i < 10; i++) ruis(o.uit, 0.1 + Math.random() * 0.7, 0.02, 0.02, 4000, 3);
+        o.anim($k(k, '.cl-gloed'), [{ opacity: 0.55, transform: 'none' }, { opacity: 1, transform: 'scale(1.7)', offset: 0.5 }, { opacity: 0.55, transform: 'none' }], { duration: 1300 });
+        o.anim(rook, [{ opacity: 0.6 }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
+        await o.na(900); if (o.klaar) return;
+        [...k.querySelectorAll('.cl-ring')].forEach((r, i) => {
+          o.anim(r, [{ opacity: 0, transform: 'translate(0,0) scale(.6)' }, { opacity: 0.95, transform: 'translate(-2px,-10px) scale(1)', offset: 0.2 }, { opacity: 0, transform: `translate(${-6 - i * 4}px,-62px) scale(2.6)` }], { duration: 1800, delay: i * 380, easing: 'ease-out', fill: 'both' });
+          ruis(o.uit, i * 0.38, 0.2, 0.03, 600, 1, 260, 'lowpass');
+        });
+        toon(o.uit, 150, 1.2, 0.6, 'sine', 0.025, 110);
+        o.zeg();
+        await o.na(2200); if (o.klaar) return;
+        o.anim(rook, [{ opacity: 0 }, { opacity: 0.6 }], { duration: 600, fill: 'forwards' });
+        await o.na(600);
+      },
+      // Erik Jacobs: de stok draait een rondje, tikt drie keer, en er vliegt een bok met een ruiter langs de maan
+      stok: async (o, k) => {
+        const stok = $k(k, '.cl-stok');
+        ruis(o.uit, 0, 0.7, 0.04, 500, 1, 2400);
+        o.anim(stok, [{ transform: 'none' }, { transform: 'translateY(-30px) rotate(-20deg)', offset: 0.25 }, { transform: 'translateY(-34px) rotate(340deg)', offset: 0.75 }, { transform: 'translateY(-30px) rotate(360deg)' }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
+        await o.na(900); if (o.klaar) return;
+        o.anim(stok, [{ transform: 'translateY(-30px)' }, { transform: 'translateY(0)', offset: 0.2 }, { transform: 'translateY(-10px)', offset: 0.35 }, { transform: 'translateY(0)', offset: 0.5 }, { transform: 'translateY(-10px)', offset: 0.65 }, { transform: 'translateY(0)', offset: 0.8 }, { transform: 'none' }], { duration: 900, easing: 'ease-in', fill: 'forwards' });
+        [0.18, 0.45, 0.72].forEach(t => { toon(o.uit, 230, t, 0.09, 'triangle', 0.06, 120); ruis(o.uit, t, 0.05, 0.05, 1800, 2); });
+        await o.na(900); if (o.klaar) return;
+        o.bok(); meeh(o.uit, 0.5);
+        o.zeg();
+        await o.na(2500);
+      },
+      // Roeter: de kaarten waaieren uit, draaien om en de aas springt op; de pailletten schitteren
+      kaarten: async (o, k) => {
+        for (let i = 0; i < 18; i++) ruis(o.uit, i * 0.035, 0.025, 0.03, 2500 + Math.random() * 2500, 2);
+        const uit = [-12, 0, 12];
+        ['.cl-k1', '.cl-k2', '.cl-k3'].forEach((s, i) => {
+          const c = $k(k, s), d = { duration: 1500, delay: i * 90, easing: 'ease-in-out' };
+          o.anim(c, [{ transform: 'none' }, { transform: `rotate(${uit[i]}deg) translateY(-6px)`, offset: 0.25 }, { transform: `rotate(${uit[i]}deg) translateY(-6px) scaleX(-1)`, offset: 0.55 }, { transform: `rotate(${uit[i]}deg) translateY(-6px) scaleX(1)`, offset: 0.8 }, { transform: 'none' }], d);
+          o.anim($k(c, '.cl-rug'), [{ opacity: 0 }, { opacity: 0, offset: 0.4 }, { opacity: 1, offset: 0.4 }, { opacity: 1, offset: 0.675 }, { opacity: 0, offset: 0.675 }, { opacity: 0 }], d);
+          o.anim($k(c, '.cl-voor'), [{ opacity: 1 }, { opacity: 1, offset: 0.4 }, { opacity: 0, offset: 0.4 }, { opacity: 0, offset: 0.675 }, { opacity: 1, offset: 0.675 }, { opacity: 1 }], d);
+        });
+        await o.na(1700); if (o.klaar) return;
+        [523, 659, 784].forEach(f => toon(o.uit, f, 0, 0.25, 'triangle', 0.03)); [698, 880, 1047].forEach(f => toon(o.uit, f, 0.22, 0.5, 'triangle', 0.03));
+        o.anim($k(k, '.cl-k3'), [{ transform: 'none' }, { transform: 'translateY(-26px) scale(1.12)', offset: 0.35 }, { transform: 'translateY(-26px) scale(1.12)', offset: 0.7 }, { transform: 'none' }], { duration: 1300, easing: 'ease-in-out' });
+        o.anim($k(k, '.cl-pail'), [{ opacity: 1 }, { opacity: 0.1 }, { opacity: 1 }, { opacity: 0.1 }, { opacity: 1 }], { duration: 900 });
+        o.vonken(k, 12, ['#FFD0D6', '#E0505C', '#FFFFFF']);
+        o.zeg();
+        await o.na(2200);
+      },
+      // Hans Herzschlag: een schlagerdeuntje; de hoed huppelt op de maat, de krullen veren en het hartje klopt
+      hoed: async (o, k) => {
+        const T = 0.21, n = 16, top = $k(k, '.cl-hoed-top');
+        const bas = [131, 98, 131, 98, 147, 110, 131, 98], mel = [659, 784, 880, 784, 698, 659, 587, 523];
+        bas.forEach((f, i) => { toon(o.uit, f, i * 2 * T, T * 0.9, 'triangle', 0.05); [330, 392].forEach(g => toon(o.uit, g, (i * 2 + 1) * T, T * 0.6, 'square', 0.008)); toon(o.uit, mel[i], i * 2 * T, T * 1.7, 'square', 0.012); toon(o.uit, mel[i], i * 2 * T, T * 1.7, 'triangle', 0.02); });
+        const hup = [], krul = [], hart = [];
+        for (let i = 0; i <= n; i++) {
+          const op = i % 2 === 1, kant = i % 4 === 1 ? -6 : 6, off = i / n;
+          hup.push({ transform: op ? `translateY(-12px) rotate(${kant}deg)` : 'none', offset: off });
+          krul.push({ transform: op ? 'scaleY(.86)' : 'scaleY(1.08)', offset: off });
+          hart.push({ transform: op ? 'none' : 'scale(1.3)', offset: off });
+        }
+        krul[n] = { transform: 'none', offset: 1 }; hart[n] = { transform: 'none', offset: 1 };
+        const d = { duration: n * T * 1000, easing: 'linear' };
+        o.anim(top, hup, d); o.anim($k(k, '.cl-krul-l'), krul, d); o.anim($k(k, '.cl-krul-r'), krul, d); o.anim($k(k, '.cl-hart'), hart, d);
+        o.anim($k(k, '.cl-veer'), [{ transform: 'none' }, { transform: 'rotate(-14deg)' }, { transform: 'rotate(10deg)' }, { transform: 'rotate(-8deg)' }, { transform: 'none' }], { duration: n * T * 1000, easing: 'ease-in-out' });
+        o.hartjes(k, 6);
+        await o.na(700); if (o.klaar) return;
+        o.zeg();
+        await o.na(n * T * 1000 - 400);
+      },
+      // Callum: een clubdeuntje van Moonside; de bril danst mee, in de glazen komt de maan op
+      bril: async (o, k) => {
+        const B = 0.26, n = 12, bril = $k(k, '.cl-bril');
+        for (let i = 0; i < n; i++) {
+          toon(o.uit, 150, i * B, 0.2, 'sine', 0.08, 42);
+          ruis(o.uit, i * B + B / 2, 0.04, 0.02, 8000, 1, null, 'highpass');
+          toon(o.uit, [55, 55, 65.4, 49][i % 4], i * B, B * 0.9, 'sawtooth', 0.012);
+        }
+        [784, 988, 1175].forEach((f, i) => toon(o.uit, f, 0.5 + i * 0.12, 0.4, 'sine', 0.018));
+        const dans = [];
+        for (let i = 0; i <= n; i++) dans.push({ transform: i % 2 ? `translateY(-7px) rotate(${i % 4 === 1 ? -4 : 4}deg)` : 'none', offset: i / n });
+        o.anim(bril, dans, { duration: n * B * 1000 });
+        o.anim($k(k, '.cl-maan'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: n * B * 1000 });
+        k.querySelectorAll('.cl-glans').forEach(g => o.anim(g, [{ transform: 'none' }, { transform: 'translateX(64px)', offset: 0.5 }, { transform: 'none' }], { duration: 1400, iterations: 2, easing: 'ease-in-out' }));
+        o.vonken(k, 14, ['#F2D58A', '#FFF3C4', '#E9B949']);
+        await o.na(600); if (o.klaar) return;
+        o.zeg();
+        await o.na(n * B * 1000 - 500);
+      },
+      // Dorian Verstronden, de zonde van luiheid: de jas gaapt, zakt in slaap en snurkt; zelfs de spot gaat half uit
+      jas: async (o, k) => {
+        const lijf = $k(k, '.cl-jas-lijf'), das = $k(k, '.cl-das');
+        toon(o.uit, 330, 0, 1.1, 'sine', 0.03, 150); ruis(o.uit, 0, 1, 0.025, 700, 1.5, 300);
+        o.anim($k(k, '.cl-mouw-l'), [{ transform: 'none' }, { transform: 'rotate(16deg)', offset: 0.45 }, { transform: 'rotate(16deg)', offset: 0.6 }, { transform: 'none' }], { duration: 1200, easing: 'ease-in-out' });
+        o.anim($k(k, '.cl-mouw-r'), [{ transform: 'none' }, { transform: 'rotate(-16deg)', offset: 0.45 }, { transform: 'rotate(-16deg)', offset: 0.6 }, { transform: 'none' }], { duration: 1200, easing: 'ease-in-out' });
+        await o.na(1150); if (o.klaar) return;
+        o.anim(lijf, [{ transform: 'none' }, { transform: 'translateY(4px) rotate(5deg) scaleY(.955)' }], { duration: 900, easing: 'cubic-bezier(.4,0,.3,1)', fill: 'forwards' });
+        o.anim(das, [{ transform: 'none' }, { transform: 'rotate(14deg)' }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
+        o.zeg();
+        for (let i = 0; i < 2; i++) { const t = 0.6 + i * 1.3; ruis(o.uit, t, 0.7, 0.05, 420, 2, 260); toon(o.uit, 88, t + 0.65, 0.5, 'sawtooth', 0.02, 70); toon(o.uit, 720, t + 0.95, 0.3, 'sine', 0.01, 520); }
+        o.zzz(k, 4);
+        await o.na(900); if (o.klaar) return;
+        o.spotZwak();
+        await o.na(2000); if (o.klaar) return;
+        toon(o.uit, 300, 0, 0.06, 'square', 0.02); toon(o.uit, 450, 0.06, 0.08, 'square', 0.02);
+        o.anim(lijf, [{ transform: 'translateY(4px) rotate(5deg) scaleY(.955)' }, { transform: 'translateY(-3px) rotate(-2deg) scaleY(1.02)', offset: 0.4 }, { transform: 'none' }], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+        o.anim(das, [{ transform: 'rotate(14deg)' }, { transform: 'none' }], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+        await o.na(600);
+      },
+    };
+    // een rol zonder eigen nummertje: een hupje, wat glinsters en een belletje
+    async function standaard(o, k) {
+      [784, 988, 1175].forEach((f, i) => toon(o.uit, f, i * 0.09, 0.3, 'sine', 0.03));
+      o.anim($k(k, '.cl-in'), [{ transform: 'none' }, { transform: 'translateY(-14px) rotate(-4deg)', offset: 0.3 }, { transform: 'none', offset: 0.55 }, { transform: 'translateY(-6px) rotate(3deg)', offset: 0.75 }, { transform: 'none' }], { duration: 900, easing: 'ease-out' });
+      o.vonken(k, 12, ['#FFE7A0', '#FFFFFF', '#E9B949']); o.zeg();
+      await o.na(1800);
+    }
+
+    // ---------- een klein beetje leven als je niets doet (om de paar seconden één rekwisiet, kort)
+    const speel = (el, f, d) => (el && el.animate ? el.animate(f, d) : null);
+    const glim = k => { const g = [...k.querySelectorAll('.cl-glim')]; speel(g[Math.floor(Math.random() * g.length)], [{ opacity: 0, transform: 'scale(.2) rotate(0)' }, { opacity: 1, transform: 'scale(1.15) rotate(30deg)', offset: 0.45 }, { opacity: 0, transform: 'scale(.2) rotate(60deg)' }], { duration: 900, easing: 'ease-out' }); };
+    const wieg = (el, a) => speel(el, [{ transform: 'none' }, { transform: `rotate(${a}deg)`, offset: 0.35 }, { transform: `rotate(${-a / 2}deg)`, offset: 0.7 }, { transform: 'none' }], { duration: 1900, easing: 'ease-in-out' });
+    const knipper = (el, hoog) => speel(el, [{ opacity: el && el.classList.contains('cl-pail') ? 1 : 0 }, { opacity: hoog }, { opacity: 0.1 }, { opacity: hoog * 0.8 }, { opacity: el && el.classList.contains('cl-pail') ? 1 : 0 }], { duration: 900 });
+    const RUST = {
+      staf: k => (Math.random() < 0.5 ? knipper($k(k, '.cl-oog'), 0.6) : wieg($k(k, '.cl-linten'), 6)),
+      kroon: k => glim(k),
+      klembord: k => (Math.random() < 0.5 ? glim(k) : wieg($k(k, '.cl-pen'), 5)),
+      sigaar: k => speel($k(k, '.cl-rook'), [{ transform: 'none', opacity: 0.6 }, { transform: 'translateY(-12px)', opacity: 0, offset: 0.6 }, { transform: 'translateY(8px)', opacity: 0, offset: 0.62 }, { transform: 'none', opacity: 0.6 }], { duration: 2800, easing: 'ease-in-out' }),
+      stok: k => glim(k),
+      kaarten: k => (Math.random() < 0.5 ? wieg($k(k, '.cl-k3'), 4) : knipper($k(k, '.cl-pail'), 0.15)),
+      hoed: k => (Math.random() < 0.5 ? wieg($k(k, '.cl-veer'), -8) : speel($k(k, '.cl-hart'), [{ transform: 'none' }, { transform: 'scale(1.3)' }, { transform: 'none' }, { transform: 'scale(1.2)' }, { transform: 'none' }], { duration: 700 })),
+      bril: k => k.querySelectorAll('.cl-glans').forEach(g => speel(g, [{ transform: 'none' }, { transform: 'translateX(64px)' }], { duration: 750, easing: 'ease-in-out' })),
+      jas: k => (Math.random() < 0.5 ? glim(k) : wieg($k(k, '.cl-das'), 7)),
+    };
+
+    // ---------- de stijl (alle klassen beginnen met cl-)
+    const PELMET = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='46' viewBox='0 0 96 46'%3E%3Cdefs%3E%3ClinearGradient id='v' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236A0E19'/%3E%3Cstop offset='.22' stop-color='%23B02838'/%3E%3Cstop offset='.5' stop-color='%23861828'/%3E%3Cstop offset='.78' stop-color='%23B02838'/%3E%3Cstop offset='1' stop-color='%236A0E19'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23000' stop-opacity='.1'/%3E%3Cstop offset='.6' stop-color='%23000' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000' stop-opacity='.35'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0H96V22C80 40 16 40 0 22Z' fill='url(%23v)'/%3E%3Cpath d='M0 0H96V22C80 40 16 40 0 22Z' fill='url(%23s)'/%3E%3Cpath d='M0 22C16 40 80 40 96 22' fill='none' stroke='%23F2C94C' stroke-width='2.6'/%3E%3Cpath d='M1.5 25C17 43 79 43 94.5 25' fill='none' stroke='%23C99A2E' stroke-width='5' stroke-dasharray='1.1 2.1'/%3E%3Cpath d='M0 20v15M96 20v15' stroke='%23E9B949' stroke-width='3'/%3E%3Ccircle cx='0' cy='38' r='4' fill='%23E9B949'/%3E%3Ccircle cx='96' cy='38' r='4' fill='%23E9B949'/%3E%3C/svg%3E\")";
+    const CSS = `
+.coulissen { --cl-lijst: #6A1E27; --cl-lijst-d: #3A0D14; --cl-goud: #D9A93C; --cl-muur: #3B3247; --cl-muur-gloed: rgba(255,226,170,.34); --cl-lat: rgba(255,255,255,.05);
+  --cl-lamp: #F1E2BE; --cl-lamp-gloed: rgba(255,200,110,0); --cl-spot: rgba(255,244,212,.26); --cl-plas: rgba(255,238,196,.62); --cl-donker: rgba(14,9,20,.6); --cl-vloer-gloed: rgba(255,200,120,.08);
+  --cl-kaart: #F8EDCF; --cl-inkt: #231A26; --cl-zacht: #5A4A3C;
+  --cl-kol: 88px; --cl-hoog: 170px; --cl-s: 1; --cl-zij: 22px; --cl-rand: 34px;
+  margin: 3.2rem 0 .6rem; position: relative; z-index: 1; }
+html[data-thema="donker"] .coulissen { --cl-muur: #19121F; --cl-muur-gloed: rgba(255,196,120,.15); --cl-lat: rgba(255,255,255,.035); --cl-lamp: #FFEBB4; --cl-lamp-gloed: rgba(255,186,90,.7);
+  --cl-spot: rgba(255,232,180,.36); --cl-plas: rgba(255,232,180,.7); --cl-donker: rgba(6,3,10,.7); --cl-vloer-gloed: rgba(255,190,100,.24); }
+.coulissen h2 { margin: 0 0 1rem; }
+.cl-theater { position: relative; padding: 13px 11px 0; border-radius: 22px 22px 10px 10px; background: linear-gradient(var(--cl-lijst), var(--cl-lijst-d));
+  box-shadow: inset 0 0 0 2.5px #1E070B, inset 0 0 0 5px var(--cl-goud), inset 0 0 0 7px #4A1018, 0 7px 0 rgba(35,26,38,.28); }
+html[data-thema="donker"] .cl-theater { box-shadow: inset 0 0 0 2.5px #1E070B, inset 0 0 0 5px var(--cl-goud), inset 0 0 0 7px #4A1018, 0 8px 0 rgba(0,0,0,.5), 0 0 40px rgba(255,170,80,.08); }
+.cl-lampjes { position: absolute; left: 26px; right: 26px; top: 1px; height: 12px; pointer-events: none;
+  background: radial-gradient(circle, var(--cl-lamp) 0 2.6px, var(--cl-lamp-gloed) 3.4px, transparent 6px) 0 50% / 20px 12px repeat-x; }
+.cl-toneel { position: relative; isolation: isolate; overflow: hidden; border-radius: 13px 13px 3px 3px; padding: 40px 0 24px; background: var(--cl-muur); }
+.cl-achter { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 55% 65% at 50% 0, var(--cl-muur-gloed), transparent 72%),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(0,0,0,.28) 118px 120px, var(--cl-lat) 120px 122px, transparent 122px 160px),
+    repeating-linear-gradient(62deg, transparent 0 190px, var(--cl-lat) 190px 197px, transparent 197px 260px),
+    linear-gradient(transparent 55%, rgba(0,0,0,.35)); }
+.cl-schuif { overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.cl-schuif::-webkit-scrollbar { display: none; }
+.cl-tafel { position: relative; display: flex; margin: 0; padding: 0 var(--cl-rand) 14px; list-style: none; min-width: 100%; width: max-content; box-sizing: border-box;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 3px, transparent 3px 16px, rgba(0,0,0,.25) 16px 19px, transparent 19px 26px) 0 calc(var(--cl-hoog) + 30px) / 100% 100% no-repeat,
+    linear-gradient(#141217, #0B0A0D) 0 calc(var(--cl-hoog) + 30px) / 100% 100% no-repeat; }
+.cl-tafel::before { content: ''; position: absolute; left: 0; right: 0; top: calc(var(--cl-hoog) - 14px); height: 34px; z-index: 1; pointer-events: none;
+  background: linear-gradient(rgba(255,255,255,.07), transparent 2px), linear-gradient(#0E0D12, #23212B 85%, #2E2B37); }
+.cl-tafel::after { content: ''; position: absolute; left: 0; right: 0; top: calc(var(--cl-hoog) + 20px); height: 10px; z-index: 1; pointer-events: none;
+  background: linear-gradient(#B07A48, #7A4E2D 40%, #4E3018); box-shadow: 0 3px 4px rgba(0,0,0,.45); }
+.cl-plek { position: relative; flex: 1 0 var(--cl-kol); width: var(--cl-kol); display: flex; flex-direction: column; align-items: center; scroll-snap-align: center; }
+html[data-thema="donker"] .cl-plek::before { content: ''; position: absolute; left: 50%; top: calc(var(--cl-hoog) * .18); width: 128px; height: calc(var(--cl-hoog) * .95); margin-left: -64px; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 50% 50% at 50% 62%, rgba(255,206,130,.17), transparent 72%); }
+.cl-krijt { position: absolute; top: calc(var(--cl-hoog) - 9px); left: 50%; width: calc(var(--b) * var(--cl-s) * .78px); height: 13px; transform: translateX(-50%); z-index: 2; pointer-events: none;
+  border: 1.5px dashed rgba(255,255,255,.3); border-radius: 50%; }
+.cl-prop { position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: center; width: 100%; height: var(--cl-hoog); margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 10px; }
+.cl-prop:focus { outline: none; }
+.cl-prop:focus-visible { outline: 2.5px dashed #FFE7A0; outline-offset: -3px; }
+.cl-in { display: block; width: calc(var(--b) * var(--cl-s) * 1px); max-width: 100%; margin-bottom: -2px; transform-origin: 50% 100%; }
+.cl-in svg { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
+.cl-in svg g[class], .cl-in svg path[class], .cl-in svg rect[class], .cl-in svg circle[class], .cl-in svg ellipse[class] { transform-box: fill-box; transform-origin: 50% 50%; }
+.cl-in svg .cl-kroon-heel, .cl-in svg .cl-hoed-top, .cl-in svg .cl-bril { transform-origin: 50% 100%; }
+.cl-in svg .cl-jas-lijf, .cl-in svg .cl-das, .cl-in svg .cl-linten, .cl-in svg .cl-krul-l, .cl-in svg .cl-krul-r { transform-origin: 50% 0; }
+.cl-in svg .cl-mouw-l { transform-origin: 85% 2%; } .cl-in svg .cl-mouw-r { transform-origin: 15% 2%; } .cl-in svg .cl-veer { transform-origin: 0 100%; }
+.cl-in svg .cl-k1, .cl-in svg .cl-k2, .cl-in svg .cl-k3 { transform-box: view-box; transform-origin: 65px 116px; }
+.cl-tape { position: absolute; z-index: 3; top: calc(var(--cl-hoog) + 1px); left: 50%; max-width: calc(100% - 10px); padding: 2px 7px 1px; transform: translateX(-50%) rotate(var(--tr, -2deg)); background: var(--tape-k, #EFE9DC);
+  color: #17141B; font-weight: 800; font-size: 10px; line-height: 1.25; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-stretch: 80%;
+  clip-path: polygon(0 8%, 4% 0, 9% 12%, 14% 2%, 100% 0, 97% 20%, 100% 42%, 96% 64%, 100% 86%, 95% 100%, 0 100%, 3% 74%, 0 50%, 4% 28%); box-shadow: 0 1px 0 rgba(0,0,0,.4); pointer-events: none; }
+.cl-haak { position: relative; z-index: 3; width: 7px; height: 7px; margin-top: 52px; border-radius: 50%; background: #E9C46A; box-shadow: 0 1px 0 rgba(0,0,0,.6); pointer-events: none; }
+.cl-kaartje { position: relative; z-index: 3; --r: var(--kr, -2deg); transform: rotate(var(--r)); transform-origin: 50% -12px; margin-top: 12px; width: calc(100% - 12px); max-width: 9.5rem;
+  background: var(--cl-kaart); color: var(--cl-inkt); border-radius: 4px; text-align: center; line-height: 1.2; box-shadow: 0 3px 0 rgba(0,0,0,.4); font-size: 10.5px; overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto; }
+.cl-kaartje::before { content: ''; position: absolute; left: 50%; top: -12px; width: 1.5px; height: 12px; background: #E8DFC6; transform: translateX(-50%); }
+.cl-kaartje::after { content: ''; position: absolute; left: 50%; top: 4px; width: 5px; height: 5px; border-radius: 50%; background: #2B1E2E; transform: translateX(-50%); }
+.cl-kk { display: block; margin: 0 0 6px; padding: 11px 4px 3px; border-radius: 4px 4px 0 0; background: var(--k); color: #FFF7E6; font-weight: 800; font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; }
+.cl-kaartje b { display: block; padding: 0 4px; font-size: 12px; line-height: 1.12; letter-spacing: -.01em; font-stretch: 82%; font-variation-settings: 'wdth' 82; hyphens: manual; -webkit-hyphens: manual; overflow-wrap: normal; }
+.cl-kr { display: block; padding: 3px 6px 0; color: var(--k); font-weight: 700; }
+.cl-ks { display: block; margin: 6px 6px 0; padding-top: 5px; border-top: 1px dashed rgba(35,26,38,.3); font-style: italic; color: var(--cl-zacht); font-size: 10px; }
+.cl-kstub { position: relative; display: block; margin-top: 7px; padding: 5px 4px 6px; border-top: 1.5px dotted rgba(35,26,38,.45); font-size: 7.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cl-zacht); }
+.cl-kstub::before, .cl-kstub::after { content: ''; position: absolute; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: #0F0E12; }
+.cl-kstub::before { left: -4px; } .cl-kstub::after { right: -4px; }
+.cl-plas { position: absolute; left: 0; top: 0; z-index: 2; width: 150px; height: 34px; margin: -17px 0 0 -75px; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(closest-side, var(--cl-plas), transparent); transition: transform .5s cubic-bezier(.3,.7,.3,1), opacity .35s ease; }
+.cl-gloedje { position: absolute; left: 0; top: 0; z-index: 2; width: 170px; height: 220px; margin: -110px 0 0 -85px; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(closest-side, rgba(255,236,190,.22), transparent); transition: transform .5s cubic-bezier(.3,.7,.3,1), opacity .35s ease; }
+.cl-donker { position: absolute; left: -100%; top: -100%; width: 300%; height: 300%; z-index: 5; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse 80px 125px at 50% 50%, transparent 55%, var(--cl-donker) 100%); transition: opacity .25s ease; }
+.cl-bundel { position: absolute; left: 50%; top: -24px; z-index: 6; width: 190px; height: 400px; margin-left: -95px; pointer-events: none; opacity: 0; transform-origin: 50% 0;
+  background: linear-gradient(var(--cl-spot), rgba(255,240,200,.04) 92%, transparent); clip-path: polygon(43% 0, 57% 0, 100% 100%, 0 100%);
+  transition: transform .5s cubic-bezier(.3,.7,.3,1), opacity .35s ease; }
+.coulissen.cl-mik .cl-plas, .coulissen.cl-mik .cl-gloedje { opacity: .75; } .coulissen.cl-mik .cl-bundel { opacity: .55; }
+.coulissen.cl-speelt .cl-plas, .coulissen.cl-speelt .cl-gloedje, .coulissen.cl-speelt .cl-bundel, .coulissen.cl-speelt .cl-donker { opacity: 1; }
+.coulissen.cl-speelt .cl-plas, .coulissen.cl-speelt .cl-gloedje, .coulissen.cl-speelt .cl-bundel { transition-duration: .12s; }
+.coulissen.cl-zwak .cl-bundel, .coulissen.cl-zwak .cl-plas { opacity: .35; transition-duration: 1.2s; }
+.cl-zij { position: absolute; top: 0; bottom: 0; z-index: 8; width: var(--cl-zij); pointer-events: none;
+  background: repeating-linear-gradient(90deg, #4E0B14 0 4px, #8E1F2C 4px 9px, #6A1220 9px 13px); }
+.cl-zij.l { left: 0; box-shadow: inset -8px 0 10px rgba(0,0,0,.5); } .cl-zij.r { right: 0; box-shadow: inset 8px 0 10px rgba(0,0,0,.5); }
+.cl-doek { position: absolute; top: 0; bottom: 0; z-index: 9; width: calc(50% + 1px); pointer-events: none;
+  background: linear-gradient(rgba(0,0,0,.35), transparent 16%, transparent 78%, rgba(0,0,0,.45)),
+    repeating-linear-gradient(90deg, #5E0D17 0, #9E1E2C 9px, #C9394A 15px, #A12131 21px, #5E0D17 30px);
+  box-shadow: inset 0 -8px 0 #C99A2E, inset 0 -10px 0 #6B4A12; transition: transform 1.7s cubic-bezier(.55,.06,.25,1); }
+.cl-doek.l { left: 0; transform-origin: 0 0; } .cl-doek.r { right: 0; transform-origin: 100% 0; }
+.cl-doek.l::after, .cl-doek.r::after { content: ''; position: absolute; top: 0; bottom: 0; width: 14px; }
+.cl-doek.l::after { right: 0; background: linear-gradient(90deg, transparent, rgba(0,0,0,.4)); } .cl-doek.r::after { left: 0; background: linear-gradient(90deg, rgba(0,0,0,.4), transparent); }
+.coulissen.cl-dicht .cl-doek { pointer-events: auto; cursor: pointer; }
+.coulissen.cl-open .cl-doek { transform: scaleX(var(--cl-open, .09)); }
+.cl-schoof { position: absolute; left: 0; right: 0; top: 0; z-index: 10; height: 46px; pointer-events: none;
+  background: linear-gradient(#3A0910, #6A0E19 60%) 0 0 / 100% 9px no-repeat, ${PELMET} 0 7px / 96px 46px repeat-x; filter: drop-shadow(0 4px 3px rgba(0,0,0,.35)); }
+.cl-schoof::before { content: ''; position: absolute; left: 0; right: 0; top: 7px; height: 3px; background: linear-gradient(90deg, #8A6420, #F2C94C, #8A6420, #F2C94C, #8A6420); }
+.cl-vloer { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; height: 24px; pointer-events: none;
+  background: radial-gradient(ellipse 9px 6px at 50% 100%, var(--cl-lamp) 0 55%, transparent 60%) 0 100% / 64px 8px repeat-x,
+    linear-gradient(#7A4E2D, #4E3018 60%, #2E1C0E); box-shadow: 0 -2px 0 rgba(255,220,170,.18); }
+.cl-vloer::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 60px; background: linear-gradient(transparent, var(--cl-vloer-gloed)); }
+.cl-bord { position: absolute; left: 50%; top: 30px; z-index: 7; width: 210px; margin-left: -105px; padding: 10px 12px 12px; text-align: center; pointer-events: none; transform: translateY(-260px); transform-origin: 50% -40px;
+  background: linear-gradient(#3B2414, #22140B); border: 3px solid #D9A93C; border-radius: 8px; box-shadow: 0 6px 0 rgba(0,0,0,.4), inset 0 0 0 2px #22140B; color: #FFE7A0; }
+.cl-bord::before, .cl-bord::after { content: ''; position: absolute; bottom: 100%; width: 2px; height: 120px; background: #C8BFA8; }
+.cl-bord::before { left: 26px; } .cl-bord::after { right: 26px; }
+.cl-bord b { display: block; font-size: 30px; line-height: 1; letter-spacing: .04em; text-shadow: 0 2px 0 #8A3A10, 0 0 12px rgba(255,190,90,.55); }
+.cl-bord span { display: block; margin-top: 5px; font-size: 11px; font-weight: 700; color: #F4E6C4; }
+.cl-bloem { position: absolute; left: 0; top: 0; z-index: 7; width: 26px; height: 26px; margin: -13px 0 0 -13px; pointer-events: none; }
+.cl-vonk { position: absolute; left: 0; top: 0; z-index: 7; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; pointer-events: none; }
+.cl-vonk.blad { width: 9px; height: 7px; border-radius: 70% 0 70% 0; }
+.cl-maanbol { position: absolute; left: 0; top: 0; z-index: 1; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 40% 38%, #FFF8E0, #F2D58A 62%, #D9B25E); box-shadow: 0 0 34px 6px rgba(255,226,150,.45); }
+.cl-bok { position: absolute; left: 0; top: 0; z-index: 2; width: 52px; height: 34px; margin: -17px 0 0 -26px; pointer-events: none; }
+.cl-bok svg { display: block; width: 100%; height: 100%; }
+.cl-ballon { position: absolute; left: 0; top: 0; z-index: 12; max-width: 13rem; padding: .4rem .7rem .45rem; border-radius: 12px; background: #FBF6E9; color: #231A26; font-weight: 800; font-size: .9rem; line-height: 1.25;
+  box-shadow: 0 0 0 2.5px #231A26, 0 4px 0 2.5px rgba(0,0,0,.35); pointer-events: none; text-align: center; }
+.cl-ballon::after { content: ''; position: absolute; left: var(--pijl, 50%); bottom: -7px; width: 12px; height: 12px; margin-left: -6px; background: #FBF6E9; box-shadow: 2.5px 2.5px 0 #231A26; transform: rotate(45deg); }
+.cl-ballon.midden::after { display: none; }
+.cl-zzz { position: absolute; left: 0; top: 0; z-index: 12; pointer-events: none; font-weight: 800; color: #DCE4F5; text-shadow: 0 2px 0 rgba(0,0,0,.45); }
+.cl-zzz.hart { color: #E8384A; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+html:not([data-thema="donker"]) .cl-zzz:not(.hart) { color: #8FA2C8; text-shadow: 0 2px 0 rgba(35,26,38,.25); }
+.cl-onder { display: flex; align-items: center; justify-content: space-between; gap: .4rem 1rem; flex-wrap: wrap; margin-top: .75rem; }
+.cl-tip { margin: 0; color: var(--tg-zacht, #5A4A3C); font-size: .9rem; font-weight: 600; }
+.cl-pijlen { display: none; gap: .5rem; }
+.coulissen.cl-schuift .cl-pijlen { display: flex; }
+.cl-pijlen button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2.5px solid var(--tg-knop-rand, #231A26); background: var(--tg-knop, #fff); color: var(--tg-knop-tekst, #231A26); cursor: pointer; font: inherit; }
+.cl-pijlen button:disabled { opacity: .35; cursor: default; }
+.cl-pijlen button:focus-visible { outline: 3px solid var(--tg-focus, #2F6FB5); outline-offset: 2px; }
+.cl-pijlen svg { width: 18px; height: 18px; }
+.cl-meld { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 640px) {
+  .coulissen { --cl-kol: 132px; --cl-hoog: 204px; --cl-s: 1.22; --cl-zij: 16px; --cl-rand: 28px; margin-top: 2.6rem; }
+  .cl-theater { padding: 11px 8px 0; border-radius: 18px 18px 8px 8px; }
+  .cl-kaartje { font-size: 11.5px; } .cl-kaartje b { font-size: 13.5px; } .cl-ks { font-size: 11px; } .cl-kk, .cl-kstub { font-size: 8px; }
+  .cl-tape { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .cl-doek, .cl-bundel, .cl-plas, .cl-gloedje, .cl-donker, .cl-bord { display: none; } }
+.coulissen.cl-rustig .cl-doek, .coulissen.cl-rustig .cl-bundel, .coulissen.cl-rustig .cl-plas, .coulissen.cl-rustig .cl-gloedje, .coulissen.cl-rustig .cl-donker, .coulissen.cl-rustig .cl-bord { display: none; }
+`;
+
+    const veilig = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const TAPE = ['#EFE9DC', '#F6E27A', '#F7B9C8', '#BFE3F2', '#C9EFC4'];
+    const PIJL = r => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${r ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}"/></svg>`;
+    const ROOS = '<svg viewBox="0 0 26 26" aria-hidden="true"><path d="M13 13l9 11" stroke="#2E7A3A" stroke-width="2.4" stroke-linecap="round"/><path d="M17 18q5-3 6 1q-4 2-6-1z" fill="#3E9A4A"/><circle cx="11" cy="11" r="7.5" fill="#C8323C" stroke="#7A1420" stroke-width="1.3"/><path d="M11 6q4 1 3 5t-5 3q-3-2-1-5" fill="none" stroke="#7A1420" stroke-width="1.3"/><path d="M7 8q-1 3 1 5" fill="none" stroke="#E86A74" stroke-width="1.1"/></svg>';
+    const BOK = '<svg viewBox="0 0 52 34" aria-hidden="true"><g fill="#1B1422" stroke="#FFE7A0" stroke-width=".8" stroke-opacity=".55" stroke-linejoin="round"><path d="M21 9q-9 2-15 9q7-1 13-5z"/><ellipse cx="24" cy="20" rx="13" ry="6.5"/><path d="M34 17l7-6 6 1 1 4-4 3h-4l-3 4z"/><path d="M42 11q2-7 8-7q-4 2-5 8z"/><path d="M45 19l-1 6-2.4-4.6z"/><circle cx="22" cy="6" r="2.8"/><path d="M19.6 8.4l-1.6 7h7l-1.4-7z"/></g><g stroke="#1B1422" stroke-width="2.4" stroke-linecap="round"><path d="M15 24l-6 6M18 25l-3 7M30 24l5 6M33 23l3 7"/></g></svg>';
+
+    // ---------- opbouwen. plaats(sec) zet het theater op de pagina; opties.minder: rustig, zonder doek en spot
+    function bouw(plaats, opties) {
+      opties = opties || {};
+      const reduce = opties.minder != null ? opties.minder : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if (!document.getElementById('cl-stijl')) { const st = document.createElement('style'); st.id = 'cl-stijl'; st.textContent = CSS; document.head.appendChild(st); }
+      const label = p => p.wat + ' van ' + p.naam + (p.rol ? ', ' + p.rol : '') + ', uit ' + p.show + '. Tik voor een kort optreden.';
+      const kaartje = (p, i) => `<span class="cl-kaartje" aria-hidden="true" style="--kr:${[-2.5, 1.8, -1.2, 2.4, -1.8][i % 5]}deg"><span class="cl-kk">★ Toegang ★</span><b>${veilig(p.naam)}</b>${p.rol ? `<span class="cl-kr">${veilig(p.rol)}</span>` : ''}<span class="cl-ks">${veilig(p.show)}</span><span class="cl-kstub">Rij 1 · stoel ${i + 1}</span></span>`;
+      const sec = document.createElement('section');
+      sec.className = 'coulissen' + (reduce ? ' cl-rustig' : ' cl-dicht'); sec.setAttribute('aria-labelledby', 'cl-kop'); sec.lang = 'nl';
+      sec.innerHTML = `<h2 id="cl-kop"><span>Uit de coulissen</span></h2>
+        <div class="cl-theater">
+          <div class="cl-lampjes" aria-hidden="true"></div>
+          <div class="cl-toneel">
+            <div class="cl-achter" aria-hidden="true"></div>
+            <div class="cl-gloedje" aria-hidden="true"></div><div class="cl-plas" aria-hidden="true"></div>
+            <div class="cl-schuif"><ul class="cl-tafel" aria-label="Rekwisieten van Rubens rollen">${PROPS.map((p, i) => `<li class="cl-plek" style="--b:${p.b};--k:${p.kleur}">
+              <span class="cl-krijt" aria-hidden="true"></span>
+              <button class="cl-prop" type="button" data-prop="${p.id}" aria-label="${veilig(label(p))}"><span class="cl-in">${SVG[p.id] || ''}</span></button>
+              <span class="cl-tape" aria-hidden="true" style="--tape-k:${TAPE[i % TAPE.length]};--tr:${[-2, 1.5, -1, 2.5, -2.5][i % 5]}deg">${veilig(p.wat)}</span>
+              <span class="cl-haak" aria-hidden="true"></span>${kaartje(p, i)}</li>`).join('')}</ul></div>
+            <div class="cl-donker" aria-hidden="true"></div><div class="cl-bundel" aria-hidden="true"></div>
+            <div class="cl-bord" aria-hidden="true"><b>Bravo!</b><span>Applaus voor alle rollen</span></div>
+            <div class="cl-zij l" aria-hidden="true"></div><div class="cl-zij r" aria-hidden="true"></div>
+            ${reduce ? '' : '<div class="cl-doek l" aria-hidden="true"></div><div class="cl-doek r" aria-hidden="true"></div>'}
+            <div class="cl-schoof" aria-hidden="true"></div><div class="cl-vloer" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="cl-onder"><p class="cl-tip">Tik op een rekwisiet voor een kort optreden.</p>
+          <div class="cl-pijlen"><button type="button" data-pijl="-1" aria-label="Vorige rekwisieten">${PIJL(0)}</button><button type="button" data-pijl="1" aria-label="Volgende rekwisieten">${PIJL(1)}</button></div></div>
+        <div class="cl-meld" aria-live="polite"></div>`;
+      plaats(sec);
+
+      const $ = s => sec.querySelector(s), theater = $('.cl-theater'), toneel = $('.cl-toneel'), schuif = $('.cl-schuif'), tafel = $('.cl-tafel');
+      const plas = $('.cl-plas'), gloedje = $('.cl-gloedje'), bundel = $('.cl-bundel'), donker = $('.cl-donker'), meld = $('.cl-meld');
+      const knop = id => sec.querySelector(`.cl-prop[data-prop="${id}"]`);
+      if (window.matchMedia && matchMedia('(pointer: coarse)').matches) $('.cl-tip').textContent = 'Tik op een rekwisiet voor een kort optreden. Veeg opzij voor alle rollen.';
+
+      // ---- de spot: richt de bundel, de lichtplas en het gat in het donker op een rekwisiet (alleen transform en opacity)
+      let doelId = null, volg = 0, speelt = null, huidig = null, slotBezig = false, open = reduce, inBeeld = false;
+      function richt(id) {
+        const b = knop(id); if (!b || reduce) return;
+        const s = toneel.getBoundingClientRect(), q = b.querySelector('.cl-in').getBoundingClientRect();
+        const x = q.left + q.width / 2 - s.left, voet = q.bottom - s.top - 4, midden = q.top + q.height * 0.45 - s.top;
+        const dx = x - s.width / 2, dy = voet + 24, hoek = -Math.atan2(dx, dy) * 180 / Math.PI, lang = Math.hypot(dx, dy) + 20;
+        bundel.style.transform = `rotate(${hoek.toFixed(2)}deg) scaleY(${(lang / 400).toFixed(3)})`;
+        plas.style.transform = `translate(${x.toFixed(1)}px, ${voet.toFixed(1)}px)`;
+        gloedje.style.transform = `translate(${x.toFixed(1)}px, ${midden.toFixed(1)}px)`;
+        donker.style.transform = `translate(${(x - s.width / 2).toFixed(1)}px, ${(midden - s.height / 2).toFixed(1)}px)`;
+        doelId = id;
       }
-      ballon('kroon', 'Chaos!');
-    },
-    // Erik: de wandelstok draait een rondje en tikt
-    stok: async () => {
-      if (bezig.has('stok')) return; bezig.add('stok');
-      const a = anim(binnen('stok'), [{ transform: 'rotate(0)' }, { transform: 'rotate(-25deg)', offset: .2 }, { transform: 'rotate(335deg)', offset: .8 }, { transform: 'rotate(360deg)' }], { duration: 1000, easing: 'ease-in-out' });
-      if (a) await a.finished;
-      for (let i = 0; i < 2; i++) { toon(1200, i * 0.22, 0.05, 'square', 0.04); toon(300, i * 0.22, 0.08, 'triangle', 0.05); }
-      ballon('stok', 'Tik, tik.');
-      bezig.delete('stok');
-    },
-    // Roeter: de kaarten waaieren uit en de pailletten schitteren
-    kaarten: async () => {
-      if (bezig.has('kaarten')) return; bezig.add('kaarten');
-      for (let i = 0; i < 6; i++) toon(500 + Math.random() * 900, i * 0.05, 0.03, 'square', 0.02);
-      const k = $p('kaarten');
-      [['k1', -28], ['k2', 0], ['k3', 28]].forEach(([c, h], i) => { const el = k.querySelector('.' + c); el.style.transformBox = 'view-box'; el.style.transformOrigin = '68px 96px'; anim(el, [{ transform: 'rotate(0)' }, { transform: `rotate(${h}deg) translateY(-6px)`, offset: .5 }, { transform: 'rotate(0)' }], { duration: 900, delay: i * 60, easing: 'ease-in-out' }); });
-      k.querySelectorAll('.pailletten circle').forEach((c, i) => anim(c, [{ fill: '#F28C9A' }, { fill: '#FFF3C4' }, { fill: '#F28C9A' }], { duration: 300, delay: i * 60, iterations: 2 }));
-      ballon('kaarten', 'Ruiten troef!');
-      await wacht(950); bezig.delete('kaarten');
-    },
-    // Hans: hoedje omhoog en een schlagerdeuntje
-    hoed: async () => {
-      if (bezig.has('hoed')) return; bezig.add('hoed');
-      const bas = [98, 147, 110, 147, 98, 147, 130.8, 147], mel = [392, 0, 440, 494, 523, 0, 494, 440];
-      bas.forEach((f, i) => { toon(f, i * 0.2, 0.18, 'triangle', 0.05); if (mel[i]) toon(mel[i], i * 0.2 + 0.1, 0.16, 'square', 0.02); });
-      anim(binnen('hoed'), [{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(-26px) rotate(-12deg)', offset: .3 }, { transform: 'translateY(-26px) rotate(12deg)', offset: .55 }, { transform: 'translateY(0) rotate(0)', offset: .8 }, { transform: 'translateY(-6px) rotate(-3deg)', offset: .9 }, { transform: 'translateY(0) rotate(0)' }], { duration: 1500, easing: 'ease-in-out' });
-      ballon('hoed', 'Prost!');
-      await wacht(1600); bezig.delete('hoed');
-    },
-    // Juan: de ogen gloeien, de kaak klappert en er vliegen goudsbloemblaadjes
-    staf: async () => {
-      if (bezig.has('staf')) return; bezig.add('staf');
-      const k = $p('staf'), r = k.getBoundingClientRect();
-      [523, 659, 784, 1047, 784, 1047].forEach((f, i) => toon(f, i * 0.11, 0.16, 'square', 0.03));
-      [262, 330, 392].forEach(f => toon(f, 0.66, 0.5, 'triangle', 0.035));
-      k.querySelectorAll('.ogen ellipse').forEach(e => anim(e, [{ fill: '#2A1D14' }, { fill: '#F2A93B', offset: .2 }, { fill: '#F2A93B', offset: .8 }, { fill: '#2A1D14' }], { duration: 1600 }));
-      anim(k.querySelector('svg'), [{ filter: 'drop-shadow(0 5px 0 rgba(0,0,0,.25))' }, { filter: 'drop-shadow(0 0 14px #F2A93B)', offset: .25 }, { filter: 'drop-shadow(0 5px 0 rgba(0,0,0,.25))' }], { duration: 1600 });
-      const kaak = k.querySelector('.kaak');
-      anim(kaak, [{ transform: 'translateY(0)' }, { transform: 'translateY(4px)' }, { transform: 'translateY(0)' }, { transform: 'translateY(4px)' }, { transform: 'translateY(0)' }, { transform: 'translateY(4px)' }, { transform: 'translateY(0)' }], { duration: 900 });
-      if (!reduce) for (let i = 0; i < 22; i++) {
-        const v = document.createElement('span'); v.className = 'vonk';
-        v.style.background = ['#F2A93B', '#E8702A', '#F6CB2F', '#C8323C'][i % 4]; v.style.boxShadow = 'none'; v.style.borderRadius = '60% 40% 60% 40%'; v.style.width = v.style.height = (6 + Math.random() * 5) + 'px';
-        v.style.left = (r.left + r.width / 2) + 'px'; v.style.top = (r.top + r.height * .14) + 'px'; document.body.appendChild(v);
-        const a = -Math.PI / 2 + (Math.random() - .5) * 2.4, d = 60 + Math.random() * 90;
-        v.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: `translate(${Math.cos(a) * d}px, ${Math.sin(a) * d + 140}px) rotate(${Math.random() * 540}deg)`, opacity: 0 }], { duration: 1300 + Math.random() * 700, easing: 'cubic-bezier(.2,.6,.4,1)' }).onfinish = () => v.remove();
+      function mik(id) { if (reduce || !open || slotBezig) return; richt(id); sec.classList.add('cl-mik'); }
+      function mikWeg() { if (!speelt) { sec.classList.remove('cl-mik'); doelId = null; } }
+      schuif.addEventListener('scroll', () => { if (doelId && !volg) volg = requestAnimationFrame(() => { volg = 0; if (doelId) richt(doelId); }); werkPijlen(); }, { passive: true });
+      tafel.addEventListener('pointerover', e => { const l = e.target.closest('.cl-plek'); if (!l || e.pointerType === 'touch') return; mik(l.querySelector('.cl-prop').dataset.prop); });
+      tafel.addEventListener('pointerleave', mikWeg);
+      tafel.addEventListener('focusin', e => { const b = e.target.closest('.cl-prop'); if (!b) return; openDoek(); b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); setTimeout(() => mik(b.dataset.prop), reduce ? 0 : 280); });
+      tafel.addEventListener('focusout', e => { if (!tafel.contains(e.relatedTarget)) mikWeg(); });
+      tafel.addEventListener('keydown', e => {
+        const knoppen = [...tafel.querySelectorAll('.cl-prop')], i = knoppen.indexOf(document.activeElement); if (i < 0) return;
+        const j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? knoppen.length - 1 : -2;
+        if (j === -2) return; e.preventDefault(); knoppen[Math.max(0, Math.min(knoppen.length - 1, j))].focus();
+      });
+
+      // ---- het doek: gaat open als het theater in beeld komt, en stil weer dicht als het helemaal uit beeld is
+      function zetOpen() { const w = toneel.getBoundingClientRect().width / 2, bos = (parseFloat(getComputedStyle(sec).getPropertyValue('--cl-rand')) || 34) + 6; if (w) sec.style.setProperty('--cl-open', Math.min(0.4, bos / w).toFixed(3)); }
+      function openDoek() {
+        if (open || reduce) return; open = true; zetOpen(); sec.classList.remove('cl-dicht'); sec.classList.add('cl-open');
+        ruis(null, 0, 1.5, 0.03, 380, 0.7, 1300, 'lowpass');
+        planRust();
       }
-      ballon('staf', '¡Bienvenidos a la fiesta!');
-      await wacht(1600); bezig.delete('staf');
-    },
-    // Dokter de Groot: de pen krabbelt iets op de patiëntenkaart
-    klembord: async () => {
-      if (bezig.has('klembord')) return; bezig.add('klembord');
-      const p = $p('klembord'), kr = p.querySelector('.krabbel'), pen = p.querySelector('.pen');
-      for (let k = 0; k < 6; k++) toon(900 + Math.random() * 500, k * 0.07, 0.05, 'triangle', 0.015);
-      anim(kr, [{ strokeDashoffset: 80 }, { strokeDashoffset: 0 }], { duration: 650, easing: 'ease-out', fill: 'forwards' });
-      anim(pen, [{ transform: 'translate(0,0) rotate(0)' }, { transform: 'translate(-44px,18px) rotate(-18deg)' }, { transform: 'translate(-18px,14px) rotate(-12deg)' }, { transform: 'translate(0,0) rotate(0)' }], { duration: 900, easing: 'ease-in-out' });
-      ballon('klembord', 'Kom je, Caroline?');
-      await wacht(1500); anim(kr, [{ strokeDashoffset: 0 }, { strokeDashoffset: 80 }], { duration: 300, fill: 'forwards' }); bezig.delete('klembord');
-    },
-    // Winston Darius: de sigaar gloeit op en er kringelt rook omhoog
-    sigaar: async () => {
-      if (bezig.has('sigaar')) return; bezig.add('sigaar');
-      const p = $p('sigaar'), r = p.querySelector('.rook'), gl = p.querySelector('.gloed'), gl2 = p.querySelector('.gloed2');
-      toon(180, 0, 0.5, 'sine', 0.02);
-      anim(gl, [{ fill: '#FF8A30' }, { fill: '#FFB347' }, { fill: '#FF8A30' }], { duration: 900 }); anim(gl2, [{ opacity: 1 }, { opacity: .3 }, { opacity: 1 }], { duration: 900 });
-      anim(r, [{ transform: 'translateY(0)', opacity: .75 }, { transform: 'translateY(-18px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 0 }, { transform: 'translateY(0)', opacity: .75 }], { duration: 1600, easing: 'ease-out' });
-      ballon('sigaar', 'Een sigaartje, heren?');
-      await wacht(1600); bezig.delete('sigaar');
-    },
-    // Callum: een glinstering over de glazen
-    bril: async () => {
-      if (bezig.has('bril')) return; bezig.add('bril');
-      toon(1568, 0, 0.25, 'sine', 0.04); toon(2349, 0.08, 0.3, 'sine', 0.03);
-      const gl = $p('bril').querySelector('.glans');
-      anim(gl, [{ transform: 'translateX(-40px)' }, { transform: 'translateX(60px)' }], { duration: 700, easing: 'ease-in-out' });
-      ballon('bril', 'Nog eentje aan de bar?');
-      await wacht(800); bezig.delete('bril');
-    },
-  };
-  sectie.addEventListener('click', e => { const b = e.target.closest('[data-prop]'); if (b && DOEN[b.dataset.prop]) DOEN[b.dataset.prop](); });
+      function sluitDoek(stil) {
+        if (reduce) return; open = false; sec.classList.remove('cl-open'); sec.classList.add('cl-dicht'); mikWeg();
+        if (stil) sec.querySelectorAll('.cl-doek').forEach(d => { d.style.transition = 'none'; void d.offsetWidth; d.style.transition = ''; });
+      }
+      sec.querySelectorAll('.cl-doek').forEach(d => d.addEventListener('click', () => { mag = true; openDoek(); }));
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(es => {
+          for (const e of es) {
+            inBeeld = e.isIntersecting;
+            if (e.intersectionRatio >= 0.3 && !open && !slotBezig) setTimeout(() => { if (inBeeld) openDoek(); }, 250);
+            if (!e.isIntersecting && open && !slotBezig && !speelt) sluitDoek(true);
+            planRust();
+          }
+        }, { threshold: [0, 0.3] }).observe(theater);
+      } else { inBeeld = true; openDoek(); }
+
+      // ---- de pijltjes (alleen als de rij niet past)
+      function werkPijlen() {
+        sec.classList.toggle('cl-schuift', schuif.scrollWidth > schuif.clientWidth + 2);
+        const kn = sec.querySelectorAll('.cl-pijlen button');
+        kn[0].disabled = schuif.scrollLeft < 4; kn[1].disabled = schuif.scrollLeft > schuif.scrollWidth - schuif.clientWidth - 4;
+      }
+      sec.querySelector('.cl-pijlen').addEventListener('click', e => { const b = e.target.closest('[data-pijl]'); if (b) schuif.scrollBy({ left: +b.dataset.pijl * schuif.clientWidth * 0.8, behavior: reduce ? 'auto' : 'smooth' }); });
+      addEventListener('resize', () => { zetOpen(); werkPijlen(); if (doelId) richt(doelId); });
+      werkPijlen(); requestAnimationFrame(werkPijlen);
+
+      // ---- een optreden
+      const gespeeld = new Set(), beurt = {};
+      function nieuwOptreden(id) {
+        const o = { id, klaar: false, anims: [], timers: [], nodes: [], uit: uitgang() };
+        o.anim = (el, f, opt) => { if (reduce || !el || !el.animate) return null; const a = el.animate(f, opt); o.anims.push(a); return a; };
+        o.na = ms => new Promise(r => o.timers.push(setTimeout(r, reduce ? Math.min(ms, 400) : ms)));
+        o.zeg = () => {
+          const p = PROPS.find(x => x.id === id), z = p.zinnen[(beurt[id] = (beurt[id] == null ? 0 : beurt[id] + 1) % p.zinnen.length)];
+          ballon(o, knop(id), z); meld.textContent = ''; setTimeout(() => { meld.textContent = p.naam + ': ' + z; }, 30);
+        };
+        o.spotZwak = () => { if (!reduce) sec.classList.add('cl-zwak'); };
+        const vanaf = (k, waar) => { const s = waar.getBoundingClientRect(), q = k.querySelector('.cl-in').getBoundingClientRect(); return { x: q.left - s.left, y: q.top - s.top, w: q.width, h: q.height }; };
+        o.vonken = (k, n, kl, blad) => {
+          if (reduce) return; const r = vanaf(k, toneel);
+          for (let i = 0; i < n; i++) {
+            const v = document.createElement('span'); v.className = 'cl-vonk' + (blad ? ' blad' : ''); v.style.background = kl[i % kl.length]; if (!blad) v.style.boxShadow = '0 0 6px ' + kl[i % kl.length];
+            toneel.appendChild(v); o.nodes.push(v);
+            const x = r.x + r.w * (0.2 + Math.random() * 0.6), y = r.y + r.h * (blad ? 0.1 : 0.25 + Math.random() * 0.4), a = Math.random() * Math.PI * 2, d = 40 + Math.random() * 70;
+            const f = blad ? [{ transform: `translate(${x}px,${y}px) rotate(0)`, opacity: 1 }, { transform: `translate(${x + Math.cos(a) * d}px,${y - 30 - Math.random() * 40}px) rotate(${Math.random() * 360}deg)`, opacity: 1, offset: 0.35 }, { transform: `translate(${x + Math.cos(a) * d * 1.4}px,${y + 90 + Math.random() * 60}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }]
+              : [{ transform: `translate(${x}px,${y}px) scale(1)`, opacity: 1 }, { transform: `translate(${x + Math.cos(a) * d}px,${y + Math.sin(a) * d - 30}px) scale(.2)`, opacity: 0 }];
+            v.animate(f, { duration: (blad ? 1500 : 700) + Math.random() * 800, delay: Math.random() * 500, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'both' }).onfinish = () => v.remove();
+          }
+        };
+        const zwevers = (k, n, tekst, klasse, grootte) => {
+          if (reduce) return; const r = vanaf(k, theater);
+          for (let i = 0; i < n; i++) {
+            const z = document.createElement('span'); z.className = 'cl-zzz' + (klasse ? ' ' + klasse : ''); z.textContent = tekst; z.style.fontSize = (grootte + i * 4) + 'px';
+            theater.appendChild(z); o.nodes.push(z);
+            const x = r.x + r.w * (klasse ? 0.2 + Math.random() * 0.6 : 0.62), y = r.y + r.h * 0.2, s = klasse && i % 2 ? -1 : 1;
+            z.animate([{ transform: `translate(${x}px,${y}px) rotate(-10deg)`, opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: `translate(${x + s * (26 + i * 10)}px,${y - 50 - i * 14}px) rotate(14deg)`, opacity: 0 }], { duration: 1900, delay: 300 + i * (klasse ? 380 : 620), easing: 'ease-out', fill: 'both' }).onfinish = () => z.remove();
+          }
+        };
+        o.zzz = (k, n) => zwevers(k, n, 'Z', '', 13);
+        o.hartjes = (k, n) => zwevers(k, n, '♥', 'hart', 12);
+        o.chaos = () => { for (const p of PROPS) if (p.id !== id) o.anim(knop(p.id).querySelector('.cl-in'), [{ transform: 'none' }, { transform: 'rotate(-5deg) translateY(-3px)' }, { transform: 'rotate(4deg)' }, { transform: 'rotate(-2deg) translateY(-1px)' }, { transform: 'none' }], { duration: 520, delay: Math.random() * 160 }); };
+        o.bok = () => {
+          if (reduce) return; const w = toneel.clientWidth, mx = w * 0.62, my = 66;
+          const maan = document.createElement('span'); maan.className = 'cl-maanbol'; toneel.appendChild(maan); o.nodes.push(maan);
+          maan.style.transform = `translate(${mx}px, ${my}px)`;
+          o.anim(maan, [{ opacity: 0 }, { opacity: 1, offset: 0.15 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: 3000, fill: 'both' });
+          const bok = document.createElement('span'); bok.className = 'cl-bok'; bok.innerHTML = BOK; toneel.appendChild(bok); o.nodes.push(bok);
+          const f = []; for (let i = 0; i <= 8; i++) { const x = -40 + (w + 80) * i / 8; f.push({ transform: `translate(${x}px, ${my + 4 + Math.sin(i * 1.4) * 8 - 10 * Math.exp(-Math.pow((x - mx) / 90, 2))}px) rotate(${Math.cos(i * 1.4) * -6}deg)` }); }
+          o.anim(bok, f, { duration: 2600, delay: 300, easing: 'linear', fill: 'both' });
+        };
+        return o;
+      }
+      function stopOptreden(o) {
+        if (!o || o.klaar) return; o.klaar = true;
+        o.anims.forEach(a => { try { a.cancel(); } catch (e) {} }); o.timers.forEach(clearTimeout); o.nodes.forEach(n => n.remove());
+        if (o.ballon) o.ballon.remove();
+        if (o.uit && ac) { const u = o.uit; try { u.gain.setTargetAtTime(0, ac.currentTime, 0.03); setTimeout(() => u.disconnect(), 300); } catch (e) {} }
+      }
+      function ballon(o, b, tekst) {
+        if (o.ballon) o.ballon.remove();
+        const el = document.createElement('div'); el.className = 'cl-ballon'; el.textContent = tekst; theater.appendChild(el); o.ballon = el;
+        const t = theater.getBoundingClientRect(), q = b.querySelector('.cl-in').getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+        const mx = q.left - t.left + q.width / 2, x = Math.max(6, Math.min(t.width - w - 6, mx - w / 2)), y = Math.max(-h - 4, q.top - t.top - h - 12);
+        el.style.setProperty('--pijl', Math.max(14, Math.min(w - 14, mx - x)) + 'px');
+        el.style.transform = `translate(${x}px, ${y}px)`;
+        if (!reduce) el.animate([{ opacity: 0, transform: `translate(${x}px, ${y + 8}px) scale(.85)` }, { opacity: 1, transform: `translate(${x}px, ${y}px)` }], { duration: 220, easing: 'cubic-bezier(.3,1.5,.5,1)' });
+        setTimeout(() => { if (o.ballon !== el) return; o.ballon = null; if (reduce) el.remove(); else el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250 }).onfinish = () => el.remove(); }, 2700);
+      }
+      async function treedOp(id) {
+        const p = PROPS.find(x => x.id === id); if (!p || slotBezig) return;
+        mag = true; if (!open) openDoek();
+        if (huidig) stopOptreden(huidig);
+        const o = nieuwOptreden(id); huidig = o; speelt = id;
+        sec.classList.remove('cl-zwak'); richt(id); sec.classList.add('cl-mik', 'cl-speelt'); klak(o.uit);
+        gespeeld.add(id);
+        try { await (DOEN[id] || standaard)(o, knop(id)); } catch (e) {}
+        if (huidig !== o) return;
+        stopOptreden(o); huidig = null; speelt = null;
+        sec.classList.remove('cl-speelt', 'cl-zwak'); if (!knop(id).matches(':hover, :focus-visible')) mikWeg();
+        if (PROPS.every(x => gespeeld.has(x.id))) slot();
+      }
+      sec.addEventListener('click', e => { const b = e.target.closest('.cl-prop'); if (b) treedOp(b.dataset.prop); });
+
+      // ---- het slotapplaus: buigen, applaus, rozen uit de zaal, een bord dat zakt, en het doek gaat dicht (en weer open)
+      async function slot() {
+        slotBezig = true; gespeeld.clear();
+        const wacht = ms => new Promise(r => setTimeout(r, ms));
+        await wacht(500);
+        meld.textContent = 'Bravo! Alle rollen hebben opgetreden. Applaus!';
+        applaus(5.2);
+        if (reduce) {
+          const t = document.createElement('div'); t.className = 'cl-ballon midden'; t.textContent = 'Bravo! Applaus voor alle rollen.'; theater.appendChild(t);
+          t.style.transform = `translate(${Math.max(6, theater.clientWidth / 2 - t.offsetWidth / 2)}px, 70px)`;
+          await wacht(4200); t.remove(); slotBezig = false; return;
+        }
+        sec.classList.remove('cl-mik', 'cl-speelt');
+        const ins = [...tafel.querySelectorAll('.cl-in')];
+        const buig = (el, d) => el.animate([{ transform: 'none' }, { transform: 'translateY(3px) rotate(-9deg) scaleY(.93)', offset: 0.45 }, { transform: 'translateY(3px) rotate(-9deg) scaleY(.93)', offset: 0.6 }, { transform: 'none' }], { duration: 900, delay: d, easing: 'ease-in-out' });
+        ins.forEach((el, i) => buig(el, 200 + i * 120));
+        const s = toneel.getBoundingClientRect(), vilt = tafel.getBoundingClientRect().top - s.top + (parseFloat(getComputedStyle(sec).getPropertyValue('--cl-hoog')) || 170) + 2, bloemen = [];
+        for (let i = 0; i < 16; i++) {
+          const f = document.createElement('span'); f.className = 'cl-bloem'; f.innerHTML = ROOS; toneel.appendChild(f); bloemen.push(f);
+          const x0 = s.width * (0.15 + Math.random() * 0.7), x1 = s.width * (0.08 + Math.random() * 0.84), top = 30 + Math.random() * 60, y1 = vilt + 2 + Math.random() * 10, r = (Math.random() - 0.5) * 720;
+          f.animate([{ transform: `translate(${x0}px,${s.height + 30}px) rotate(0)` }, { transform: `translate(${(x0 + x1) / 2}px,${top}px) rotate(${r / 2}deg)`, easing: 'cubic-bezier(.3,0,.7,1)' }, { transform: `translate(${x1}px,${y1}px) rotate(${r}deg)` }],
+            { duration: 1100 + Math.random() * 400, delay: 500 + i * 110, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'both' });
+          setTimeout(() => toon(null, 900 + Math.random() * 400, 0, 0.06, 'triangle', 0.01, 300), 500 + i * 110);
+        }
+        const bord = $('.cl-bord');
+        const bordAnim = bord.animate([{ transform: 'translateY(-260px) rotate(0)' }, { transform: 'translateY(12px) rotate(2deg)', offset: 0.55 }, { transform: 'translateY(-4px) rotate(-1.5deg)', offset: 0.75 }, { transform: 'translateY(0) rotate(.6deg)', offset: 0.9 }, { transform: 'translateY(0) rotate(0)' }], { duration: 1300, delay: 1300, easing: 'ease-out', fill: 'both' });
+        await wacht(2700);
+        ins.forEach(el => buig(el, 0));
+        await wacht(1300);
+        sec.classList.remove('cl-open'); sec.classList.add('cl-dicht'); open = false;
+        ruis(null, 0, 1.6, 0.03, 1300, 0.7, 380, 'lowpass');
+        await wacht(2200);
+        bloemen.forEach(f => f.remove()); bordAnim.cancel();
+        await wacht(900);
+        slotBezig = false; if (inBeeld) openDoek();
+      }
+
+      // ---- een klein beetje leven als je niets doet (alleen als het theater in beeld is en het doek open)
+      let rustKlok = 0;
+      function planRust() {
+        clearTimeout(rustKlok); if (reduce || !inBeeld || !open || document.hidden) return;
+        rustKlok = setTimeout(() => {
+          if (!speelt && !slotBezig && open) { const p = PROPS[Math.floor(Math.random() * PROPS.length)]; if (RUST[p.id]) RUST[p.id](knop(p.id)); }
+          planRust();
+        }, 3500 + Math.random() * 4500);
+      }
+      document.addEventListener('visibilitychange', planRust);
+
+      const api = { sec, PROPS, speel: treedOp, slot, opnieuw() { if (reduce) return; sluitDoek(true); setTimeout(openDoek, 500); }, weg() { clearTimeout(rustKlok); if (huidig) stopOptreden(huidig); sec.remove(); } };
+      window.__coulissen = api;   // testhaak
+      return api;
+    }
+
+    if (window.__clProef) { window.__clProef(bouw); return; }   // de proefpagina bouwt hem zelf
+    bouw(sec => { const rij = document.querySelector('.haak-rij'), main = document.querySelector('main'); if (rij) rij.after(sec); else if (main) main.appendChild(sec); else document.body.appendChild(sec); });
+  })();
+  // ==== COULISSEN eind
 
   // het gereedschap hangt verspreid over de hele pagina: een paar in het rek bij de titel, de rest los
   const heldRek = document.getElementById('rek-held');

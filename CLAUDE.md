@@ -506,6 +506,7 @@ Dit is de persoonlijke website van Ruben, gehost met GitHub Pages vanaf de main-
 
 - Commitberichten in het Nederlands, kort en duidelijk, bijvoorbeeld "Winkel overzichtelijker gemaakt".
 - Zeg na afloop in één of twee zinnen wat er veranderd is en wat Ruben moet doen om het live te zetten.
+- Geeft GitHub bij het samenvoegen een foutmelding ("The server is currently unable to perform this operation"), kijk dan eerst of de samenvoeging toch op main staat. Op 13 november 2026 (pull request 45) stond hij er wel, maar bleef de pull request open en begon de update van de site niet. Druk dan niet nog een keer op samenvoegen; een kleine commit op main start de update van de site.
 
 ## Homepage 0.8 (in homepage-onderdelen.js)
 

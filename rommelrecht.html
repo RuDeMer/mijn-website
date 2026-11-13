@@ -513,6 +513,9 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
       return x > 0 ? Math.max(0, Math.log10(x)) : 0;
     };
     const rbHeb = x => (Array.isArray(x) ? getal(x[0]) + getal(x[1]) : 0);
+    // Op Gevoel: de laatste 10 pogingen van een opdracht ([tijdstip, score]) van twee apparaten samen, en de geest van de beste poging
+    const gvLaatste = (b, s, i, c) => { if (!Array.isArray(s) || !Array.isArray(i)) return keuze(b, s, i, c); const m = new Map(); for (const x of s.concat(i)) if (Array.isArray(x) && num(x[0])) m.set(x[0] + ':' + x[1], x); return [...m.values()].sort((p, q) => p[0] - q[0]).slice(-10); };
+    const gvGeest = (b, s, i) => (!isObj(s) ? i : !isObj(i) ? s : getal(i.s) > getal(s.s) ? i : s);
     // Rommelkroon: per puzzel de beste keer (minder hints, dan sneller); per dag (en per week) liefst de keer die op de dag (of in de week)
     // zelf was, dan de snelste. 'Op de dag zelf' blijft aan als het één keer aan stond.
     const kroonBest = (b, s, i) => { if (!isObj(s) || !isObj(i)) return isObj(s) ? s : i; const hs = getal(s.hints, 99), hi = getal(i.hints, 99); return hi < hs || (hi === hs && getal(i.tijd, 1e12) < getal(s.tijd, 1e12)) ? i : s; };
@@ -630,11 +633,16 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
       } },
       'rommelwoord-stats-v1': { velden: { gespeeld: teller, gewonnen: teller, verdeling: (b, s, i, c) => (Array.isArray(s) && Array.isArray(i) ? Array.from({ length: Math.max(s.length, i.length) }, (x, k) => teller(lijst(b)[k], getal(s[k]), getal(i[k]), c)) : keuze(b, s, i, c)), besteReeks: max, laatsteWinst: max },
         na: (r, b, s, i) => { r.reeks = getal(i.laatsteWinst, -9) > getal(s.laatsteWinst, -9) ? i.reeks : getal(s.laatsteWinst, -9) > getal(i.laatsteWinst, -9) ? s.reeks : Math.max(getal(s.reeks), getal(i.reeks)); if (num(r.besteReeks) && num(r.reeks)) r.besteReeks = Math.max(r.besteReeks, r.reeks); return r; } },
+      // Op Gevoel (2026-11-14 erbij): per opdracht de laatste 10 pogingen samen, de geest van de beste poging, de moeilijke stand
+      // (beste en hoe vaak), het logboek per dag (aantal, som en beste per opdracht, voor het profiel) en de uitdaging van de week
       'opgevoel-v1': {
-        velden: { v: max, records: elk({ best: max, n: teller, som: teller }), dagen: elk(eerste), bezig: lopend, inst: keuze,
+        velden: { v: max, records: elk({ best: max, n: teller, som: teller, r: gvLaatste, g: gvGeest, mb: max, mn: teller }), dagen: elk(eerste), bezig: lopend, inst: keuze,
+          log: elk(elk({ n: teller, s: teller, b: max })), week: elk({ best: max, n: teller }),
           stat: { dag: { n: teller, som: teller, best: max }, vrij: { n: teller, som: teller, best: max } }, reeks: (b, s, i) => s },
         na: (r, b, s, i) => {
           if (isObj(r.dagen)) { const d = Object.keys(r.dagen).sort(); for (const k of d.slice(0, Math.max(0, d.length - 120))) delete r.dagen[k]; }
+          if (isObj(r.log)) { const d = Object.keys(r.log).sort(); for (const k of d.slice(0, Math.max(0, d.length - 120))) delete r.log[k]; }
+          if (isObj(r.week)) { const d = Object.keys(r.week).sort(); for (const k of d.slice(0, Math.max(0, d.length - 26))) delete r.week[k]; }
           const rs = isObj(s.reeks) ? s.reeks : {}, ri = isObj(i.reeks) ? i.reeks : {}, nieuw = String(ri.laatste || '') > String(rs.laatste || '') ? ri : String(rs.laatste || '') > String(ri.laatste || '') ? rs : getal(ri.lengte) >= getal(rs.lengte) ? ri : rs;
           if (isObj(s.reeks) || isObj(i.reeks)) r.reeks = Object.assign({}, nieuw, { beste: Math.max(getal(rs.beste), getal(ri.beste), getal(nieuw.lengte)) });
           if (isObj(r.bezig) && isObj(r.dagen) && r.dagen[r.bezig.dag]) r.bezig = null;
@@ -896,7 +904,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   // Opnieuw beginnen (Scorebord.opnieuw) of een opslag weghalen is een nieuwe versie (een nieuwe generatie): een ander apparaat met de
   // oude stand kan die dan niet meer terugzetten. De spellen zelf lezen en schrijven gewoon localStorage, net als altijd.
   // BV: het versienummer van dit blok (verhoog het bij een nieuwe versie van het koppelen, net als BLOK_NU in de scoreserver)
-  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 15;
+  const GROOT = 300000, MAX3 = 5e6, KV = 'rommelhoekje-koppel-v', BV = 16;
   const IDB = (() => {
     let db = null;
     const open = () => db || (db = new Promise(ok => { try { const r = indexedDB.open('rommelhoekje', 1); r.onupgradeneeded = () => { for (const n of ['basis', 'uit']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); }; r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));

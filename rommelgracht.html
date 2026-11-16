@@ -3260,7 +3260,7 @@ function etalageKast(u2p, e0, e1, G, hoek, x, r, et) {
   doos(bk, ...u2p(wm, (d0 + d1) / 2, y1), wb, .04, d0 - d1, muur, hoek);
   let k = 0;
   const groot = et === 'kermis' || et === 'idee' || et === 'fiets' || et === 'reis';
-  if (et !== 'idee') for (const y of [y0 + (y1 - y0) * .3, y0 + (y1 - y0) * .6]) {
+  if (et !== 'idee' && et !== 'katten') for (const y of [y0 + (y1 - y0) * .3, y0 + (y1 - y0) * .6]) {
     if (groot && y > y0 + (y1 - y0) * .5) continue;
     doos(bk, ...u2p(wm, -.82, y - .03), wb - .08, .03, .52, hout, hoek);
     const n = Math.max(2, Math.floor((wb - .2) / .38));
@@ -3400,17 +3400,30 @@ function tekenEtalage(g, x, y, w, h, s, icoon, k) {
   if (et === 'fiches') { g.fillStyle = '#5A0E18'; g.fillRect(x, y, w, h * .8); for (let i = 0; i < 5; i++) { g.save(); g.translate(x + w * .3, y + h * .55); g.rotate(-.6 + i * .3); g.fillStyle = '#FBF6E9'; g.fillRect(-14 * k, -60 * k, 28 * k, 40 * k); g.fillStyle = i % 2 ? '#C8323C' : '#1A1A1A'; g.font = F(14); g.textAlign = 'center'; g.fillText('♠♥♦♣'[i % 4], 0, -42 * k); g.restore(); } }
   if (et === 'mijn') { g.fillStyle = '#E9C030'; g.fillRect(x + w * .08, y + h * .12, w * .38, h * .3); g.fillStyle = '#1A1A1A'; g.font = F(15); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('PAS OP:', x + w * .27, y + h * .22); g.fillText('KLINKERS!', x + w * .27, y + h * .32); }
   if (et === 'kantoor') { g.fillStyle = '#F4F4F0'; g.fillRect(x + w * .08, y + h * .1, w * .36, h * .3); g.strokeStyle = '#3A4250'; g.lineWidth = 3 * k; g.strokeRect(x + w * .08, y + h * .1, w * .36, h * .3); g.fillStyle = '#3A4250'; g.font = F(12); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Gesloten wegens', x + w * .26, y + h * .2); g.fillText('eerlijkheid', x + w * .26, y + h * .3); }
+  if (et === 'katten') {
+    // Moeki (grijsbruin gestreept, witte bef) en Floortje (schildpad), op een kussen in de vensterbank
+    const kat = (cx, cy, s, vacht, vlek, bef, oog) => { g.fillStyle = vacht; g.beginPath(); g.ellipse(cx, cy, 34 * s, 28 * s, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(cx, cy - 34 * s, 22 * s, 19 * s, 0, 0, 7); g.fill();
+      for (const e of [-1, 1]) { g.beginPath(); g.moveTo(cx + e * 18 * s, cy - 42 * s); g.lineTo(cx + e * 12 * s, cy - 62 * s); g.lineTo(cx + e * 3 * s, cy - 48 * s); g.fill(); }
+      if (vlek) { g.fillStyle = vlek; for (let i = 0; i < 6; i++) { g.beginPath(); g.ellipse(cx + (rr() - .5) * 50 * s, cy - 10 * s + (rr() - .5) * 40 * s, (6 + rr() * 9) * s, (5 + rr() * 7) * s, rr() * 3, 0, 7); g.fill(); } }
+      if (bef) { g.fillStyle = bef; g.beginPath(); g.ellipse(cx, cy - 12 * s, 12 * s, 14 * s, 0, 0, 7); g.fill(); }
+      g.fillStyle = oog; for (const e of [-1, 1]) { g.beginPath(); g.ellipse(cx + e * 8 * s, cy - 36 * s, 4.5 * s, 3.5 * s, 0, 0, 7); g.fill(); } g.fillStyle = '#111'; for (const e of [-1, 1]) g.fillRect(cx + e * 8 * s - 1, cy - 39 * s, 2, 6 * s);
+      g.fillStyle = '#E8A0A8'; g.beginPath(); g.moveTo(cx - 3 * s, cy - 30 * s); g.lineTo(cx + 3 * s, cy - 30 * s); g.lineTo(cx, cy - 27 * s); g.fill(); };
+    g.fillStyle = '#8A4A5A'; g.fillRect(x + w * .1, y + h * .72, w * .8, h * .08);
+    kat(x + w * .3, y + h * .64, k * 2.2, '#7A6E62', '#5A4E42', '#ECE6DA', '#C8B040');
+    kat(x + w * .7, y + h * .65, k * 2, '#2A2220', '#C87A3A', null, '#9AB040');
+    g.fillStyle = '#F4EFE3'; g.font = "700 " + 18 * k + "px Caveat, cursive"; g.textAlign = 'center'; g.fillText('Moeki', x + w * .3, y + h * .9); g.fillText('Floortje', x + w * .66, y + h * .9);
+  }
   if (et === 'rommel') { g.fillStyle = '#2F4C8F'; g.fillRect(x, y, w, h * .8); g.fillStyle = '#1E3263'; for (let yy = y + 10 * k; yy < y + h * .8; yy += 18 * k) for (let xx = x + 10 * k; xx < x + w; xx += 18 * k) { g.beginPath(); g.arc(xx, yy, 2.6 * k, 0, 7); g.fill(); } if (STICKER.beeld) g.drawImage(STICKER.beeld, x + w * .06, y + h * .08, h * .55, h * .55); }
   // het affiche
   const ax = x + w * (et === 'boek' || et === 'platen' ? .55 : .52), ay = y + h * .06, aw = w * .4, ah = h * .5;
-  if (et !== 'rommel' || !STICKER.beeld || true) {
+  if (et !== 'katten') {
     g.fillStyle = '#5A3A22'; g.fillRect(ax - 4 * k, ay - 4 * k, aw + 8 * k, ah + 8 * k); g.fillStyle = '#FBF6E9'; g.fillRect(ax, ay, aw, ah);
     if (icoon) g.drawImage(icoon, ax + aw / 2 - ah * .3, ay + ah * .06, ah * .6, ah * .6);
     g.fillStyle = '#231A26'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; const px = tekstPast(g, s.naam, aw - 12 * k, 20 * k, "800 #px 'Bricolage Grotesque', sans-serif"); g.fillText(s.naam, ax + aw / 2, ay + ah * .8);
     g.font = "600 " + Math.max(9, px * .6) + "px 'Bricolage Grotesque', sans-serif"; g.fillText(regels(g, s.kort || '', aw - 12 * k)[0] || '', ax + aw / 2, ay + ah * .94);
   }
   if (s.nieuw) { g.save(); g.translate(ax + aw - 6 * k, ay + 8 * k); g.rotate(.25); g.fillStyle = '#C8323C'; g.beginPath(); for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, rr2 = (i % 2 ? 20 : 26) * k; g.lineTo(Math.cos(a) * rr2, Math.sin(a) * rr2); } g.fill(); g.fillStyle = '#FFF'; g.font = F(12); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Nieuw!', 0, 0); g.restore(); }
-  kaartje(g, x + w * .06, y + h * .5, w * .4, h * .24, info, k * .8);
+  if (et === 'katten') kaartje(g, x + w * .38, y + h * .05, w * .3, h * .2, info, k * .7); else kaartje(g, x + w * .06, y + h * .5, w * .4, h * .24, info, k * .8);
 }
 // de sticker van Ruben, voor het rommelhoekje (van de site zelf)
 const STICKER = { beeld: null };
@@ -3522,7 +3535,7 @@ function maakScene() {
   // de borden van de spelpanden: één doek
   MAT.bord = patch(new THREE.MeshStandardMaterial({ map: ATLAS.tex, roughness: .55, metalness: 0, emissive: 0xffffff }), sh => {
     sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `float et = step(.5, vL) * step(vL, 1.5), lt = step(1.5, vL);
-totalEmissiveRadiance = diffuseColor.rgb * (et * (.07 + .38 * uNacht) + lt * 1.6 * uNacht);
+totalEmissiveRadiance = diffuseColor.rgb * (et * (.06 + .2 * uNacht) + lt * 1.6 * uNacht);
 diffuseColor.rgb *= 1. - et * .45;`).replace('* uNacht * LAMPMUL; } }', '* uNacht * LAMPMUL * (1. - et * .88); } }').replace('#include <aomap_fragment>', '#include <aomap_fragment>\nreflectedLight.indirectDiffuse *= 1. - et * .8; reflectedLight.indirectSpecular *= 1. - et * .8;');
   });
   const pg = PLATEN.geo(); if (pg) { const m = new THREE.Mesh(pg, MAT.bord); m.receiveShadow = true; SCENE.add(m); }
@@ -4093,6 +4106,108 @@ function toonKaart(aan) {
 }
 // ==== UI eind
 
+// ==== KNIPOGEN begin
+// Kleine dingen voor wie goed kijkt: een arend die boven de daken cirkelt, bubbels in de gracht voor het Rommelkombuis (Ruben duikt),
+// lichtjes langs de bruggen ('s avonds, zoals in het echt), en met de feestdagen vlaggetjes (Sinterklaas) en vuurwerk (oud en nieuw).
+const KNIPOOG = { arend: null, vleugels: [], bubbels: null, brugLicht: [], vlag: null, vuur: null, feest: null, t: 0 };
+const V_BEL = `attribute float aFase; uniform float uTijd; uniform float uSchaal; varying float vA;
+void main() { float f = fract(uTijd * .45 + aFase); vec4 mv = modelViewMatrix * vec4(position + vec3(0., f * .02, 0.), 1.); vA = (1. - f) * smoothstep(0., .1, f); gl_PointSize = (2. + f * 7.) * uSchaal / max(-mv.z, .5); gl_Position = projectionMatrix * mv; }`;
+const F_BEL = `varying float vA; uniform float uLicht; void main() { vec2 d = gl_PointCoord - .5; float r = length(d) * 2.; float ring = smoothstep(.62, .8, r) * (1. - smoothstep(.85, 1., r)); gl_FragColor = vec4(vec3(.85, .9, .95) * uLicht, ring * vA * .8);
+  #include <tonemapping_fragment>
+  #include <encodings_fragment>
+}`;
+function maakKnipogen() {
+  // de arend: een lijf, een witte kop en twee vleugels die klapperen en zweven
+  const g = new THREE.Group(), bruin = patch(new THREE.MeshStandardMaterial({ color: 0x3a2a1c, roughness: .8 })), wit = patch(new THREE.MeshStandardMaterial({ color: 0xe8e4da, roughness: .7, side: THREE.DoubleSide })), geel = patch(new THREE.MeshStandardMaterial({ color: 0xd8a030, roughness: .5 }));
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), bruin); lijf.scale.set(.22, .2, .7); g.add(lijf);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 8), wit); kop.position.set(0, .06, .72); g.add(kop);
+  const snavel = new THREE.Mesh(new THREE.ConeGeometry(.05, .14, 6), geel); snavel.rotation.x = Math.PI / 2; snavel.position.set(0, .03, .9); g.add(snavel);
+  const staart = new THREE.Mesh(new THREE.PlaneGeometry(.4, .4), wit); staart.rotation.x = -Math.PI / 2; staart.position.set(0, 0, -.8); g.add(staart);
+  for (const k of [-1, 1]) {
+    const vorm = new THREE.Shape([[0, -.25], [1.1, -.35], [2.1, -.15], [2.2, .05], [1.2, .32], [0, .28]].map(([x, y]) => new THREE.Vector2(x * k, y)));
+    const geo = new THREE.ShapeGeometry(vorm); geo.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(geo, patch(new THREE.MeshStandardMaterial({ color: 0x2e2216, roughness: .85, side: THREE.DoubleSide }))); m.position.x = k * .12; g.add(m); KNIPOOG.vleugels.push([m, k]);
+  }
+  g.scale.setScalar(1.3); SCENE.add(g); KNIPOOG.arend = g;
+  // bubbels voor het Rommelkombuis: het eerste water vóór de deur
+  const d = DEUREN.find(x => x.spel.href === 'rubendeduiker.html');
+  if (d) {
+    let wp = null; for (let s = 2; s < 40 && !wp; s += .5) { const x = d.p[0] + d.n[0] * s, z = d.p[2] + d.n[1] * s; if (inWaterP(x, z) && inWaterP(x + d.n[0] * 2, z + d.n[1] * 2)) wp = [x + d.n[0] * 2.5, z + d.n[1] * 2.5]; }
+    if (wp) {
+      const N = 26, pos = new Float32Array(N * 3), fase = new Float32Array(N), r = rng(99);
+      for (let i = 0; i < N; i++) { pos[i * 3] = wp[0] + (r() - .5) * 1.4; pos[i * 3 + 1] = WATER_Y + .02; pos[i * 3 + 2] = wp[1] + (r() - .5) * 1.4; fase[i] = r(); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aFase', new THREE.BufferAttribute(fase, 1));
+      KNIPOOG.bubbels = new THREE.Points(geo, new THREE.ShaderMaterial({ uniforms: { uTijd: U.uTijd, uSchaal: GLOED_SCHAAL, uLicht: { value: 1 } }, vertexShader: V_BEL, fragmentShader: F_BEL, transparent: true, depthWrite: false, fog: false }));
+      KNIPOOG.bubbels.frustumCulled = false; SCENE.add(KNIPOOG.bubbels); KNIPOOG.bubbelPlek = wp;
+    }
+  }
+  // lichtjes langs de bruggen: een snoer lampjes over de boog en langs de leuning ('s avonds aan)
+  const lb = new Bak(), gl = [];
+  for (const b of BRUGGEN) {
+    const P = (t, s, y) => [b.x + b.as[0] * t + b.dw[0] * s, y, b.z + b.as[1] * t + b.dw[1] * s];
+    for (const k of [-1, 1]) for (let t = -b.L / 2 + .4; t <= b.L / 2 - .4; t += .45) { const p = P(t, k * (b.B / 2 - .1), b.hoogte(t) + 1.06); _m.compose(_v.set(...p), _q.identity(), _s.set(.022, .022, .022)); zetGeo(lb, VORM.bol, _m, [1, 1, 1]); gl.push([p[0], p[1], p[2], .13, 1, .8, .5]); }
+    const ah = b.span / 2 + .1, spring = WATER_Y + .1, kruin = b.bult - .5;
+    for (const k of [-1, 1]) for (let i = 0; i <= 14; i++) { const a = Math.PI * i / 14, t = b.mid - Math.cos(a) * (ah + .3), y = spring + Math.sin(a) * (kruin - spring + .3); const p = P(t, k * (b.B / 2 + .06), y); _m.compose(_v.set(...p), _q.identity(), _s.set(.025, .025, .025)); zetGeo(lb, VORM.bol, _m, [1, 1, 1]); gl.push([p[0], p[1], p[2], .15, 1, .8, .5]); }
+  }
+  const lm = new THREE.Mesh(lb.geo(), MAT.lampjes); SCENE.add(lm);
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(gl.flatMap(g => [g[0], g[1], g[2]])), 3)); lg.setAttribute('aGrootte', new THREE.BufferAttribute(new Float32Array(gl.map(g => g[3])), 1)); lg.setAttribute('aKleur', new THREE.BufferAttribute(new Float32Array(gl.flatMap(g => [g[4], g[5], g[6]])), 3));
+  const lp = new THREE.Points(lg, new THREE.ShaderMaterial({ uniforms: { uNacht: UNI.uNacht, uSchaal: GLOED_SCHAAL, uAltijd: { value: 0 }, uFel: { value: 1.1 } }, vertexShader: V_GLOED, fragmentShader: F_GLOED, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  lp.frustumCulled = false; lp.renderOrder = 5; SCENE.add(lp); KNIPOOG.brugLicht = [lm, lp];
+  // Sinterklaas: vlaggetjes tussen de bomen
+  const vb = new Bak(), r2 = rng(7), c = Math.cos(GRACHT_HOEK), s = Math.sin(GRACHT_HOEK), ord = K.bomen.slice().sort((p, q) => (p[0] * c + p[1] * s) - (q[0] * c + q[1] * s));
+  for (let i = 0; i + 1 < ord.length; i++) {
+    const a = ord[i], e = ord[i + 1], L = Math.hypot(e[0] - a[0], e[1] - a[1]); if (L > 14 || L < 4) continue;
+    const n = Math.floor(L / .45);
+    for (let j = 0; j < n; j++) { const f = (j + .5) / n, x = a[0] + (e[0] - a[0]) * f, z = a[1] + (e[1] - a[1]) * f, y = 4.4 - Math.sin(f * Math.PI) * .9, dx = (e[0] - a[0]) / L * .14, dz = (e[1] - a[1]) / L * .14;
+      const kl = [lin('#C8323C'), lin('#F4F0E8'), lin('#E9B949')][j % 3], ix = [vb.v([x - dx, y, z - dz], [-dz, 0, dx], [0, 0], kl), vb.v([x + dx, y, z + dz], [-dz, 0, dx], [1, 0], kl), vb.v([x, y - .26, z], [-dz, 0, dx], [.5, 1], kl)]; vb.tri(ix[0], ix[1], ix[2]); }
+    void r2;
+  }
+  KNIPOOG.vlag = new THREE.Mesh(vb.geo(), MAT.stof); KNIPOOG.vlag.visible = false; KNIPOOG.vlag.castShadow = true; SCENE.add(KNIPOOG.vlag);
+  // vuurwerk: een paar pijlen tegelijk die openspatten boven de gracht
+  const NV = 6 * 90, vp = new Float32Array(NV * 3), vk = new Float32Array(NV * 3), vg = new Float32Array(NV);
+  const vgeo = new THREE.BufferGeometry(); vgeo.setAttribute('position', new THREE.BufferAttribute(vp, 3)); vgeo.setAttribute('aKleur', new THREE.BufferAttribute(vk, 3)); vgeo.setAttribute('aGrootte', new THREE.BufferAttribute(vg, 1));
+  KNIPOOG.vuur = new THREE.Points(vgeo, new THREE.ShaderMaterial({ uniforms: { uNacht: { value: 1 }, uSchaal: GLOED_SCHAAL, uAltijd: { value: 1 }, uFel: { value: 4 } }, vertexShader: V_GLOED, fragmentShader: F_GLOED, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  KNIPOOG.vuur.frustumCulled = false; KNIPOOG.vuur.visible = false; SCENE.add(KNIPOOG.vuur); KNIPOOG.pijlen = Array.from({ length: 6 }, () => ({ t: -Math.random() * 4 }));
+  if (window.Scorebord && Scorebord.feest) Scorebord.feest(f => { KNIPOOG.feest = f; });
+}
+const VUURKLEUR = [[1, .35, .3], [1, .8, .3], [.4, .8, 1], [.6, 1, .5], [1, .5, .9], [1, 1, 1]];
+function stapKnipogen(dt) {
+  const K2 = KNIPOOG, t = (K2.t += dt), nacht = UNI.uNacht.value;
+  // de arend cirkelt rond de toren en komt soms boven de gracht
+  if (K2.arend) {
+    const cx = TOREN.x || 0, cz = TOREN.z || 0, R = 70 + Math.sin(t * .05) * 25, a = t * .06, y = 48 + Math.sin(t * .13) * 8;
+    K2.arend.position.set(cx + Math.cos(a) * R, y, cz + Math.sin(a) * R);
+    K2.arend.rotation.set(0, -a + Math.PI, 0); K2.arend.rotateZ(.35);
+    const klap = (Math.sin(t * .4) > .6) ? Math.sin(t * 9) * .55 : .08 * Math.sin(t * 1.3);
+    for (const [m, k] of K2.vleugels) m.rotation.z = k * klap;
+    K2.arend.visible = nacht < .6;
+  }
+  if (K2.bubbels) { K2.bubbels.visible = nacht < .85; K2.bubbels.material.uniforms.uLicht.value = 1.2 - nacht; }
+  for (const m of K2.brugLicht) m.visible = nacht > .2;
+  const f = K2.feest, versier = f && f.versiering !== false;
+  if (K2.vlag) K2.vlag.visible = !!(versier && f.feest === 'sint');
+  // vuurwerk rond middernacht op oudjaar (en in de werkplaats: ?vuurwerk)
+  const vuur = (versier && f && (f.fase === 'vuurwerk' || f.fase === 'aftellen' || f.oudNacht)) || /[?&]vuurwerk/.test(location.search);
+  if (K2.vuur) {
+    K2.vuur.visible = !!vuur && nacht > .3;
+    if (K2.vuur.visible) {
+      const P = K2.vuur.geometry.attributes.position, C = K2.vuur.geometry.attributes.aKleur, G = K2.vuur.geometry.attributes.aGrootte, cam = CAM.position;
+      K2.pijlen.forEach((p, i) => {
+        p.t += dt;
+        if (p.t > 3.2 || p.t < 0 && p.c == null) { if (p.t > 3.2 || p.c == null) { p.t = -Math.random() * 2.5; p.x = cam.x + (Math.random() - .5) * 120; p.z = cam.z + (Math.random() - .5) * 120; p.y = 38 + Math.random() * 25; p.c = VUURKLEUR[Math.floor(Math.random() * VUURKLEUR.length)]; p.s = 7 + Math.random() * 7; } }
+        for (let j = 0; j < 90; j++) {
+          const k = i * 90 + j, tt = Math.max(0, p.t), fi = j / 90 * Math.PI * 2 * 7.3, th = Math.acos(1 - 2 * ((j * .618) % 1)), r = p.s * (1 - Math.exp(-tt * 2.2));
+          if (p.t <= 0) { P.setXYZ(k, p.x || 0, -100, p.z || 0); G.setX(k, 0); continue; }
+          P.setXYZ(k, p.x + Math.sin(th) * Math.cos(fi) * r, p.y + Math.cos(th) * r - tt * tt * 1.4, p.z + Math.sin(th) * Math.sin(fi) * r);
+          const a = Math.max(0, 1 - tt / 3.2); C.setXYZ(k, p.c[0] * a, p.c[1] * a, p.c[2] * a); G.setX(k, .9 * a + .2);
+        }
+      });
+      P.needsUpdate = C.needsUpdate = G.needsUpdate = true;
+    }
+  }
+}
+// ==== KNIPOGEN eind
+
 // ==== START begin
 // Bouwen in een paar stappen (zodat de pagina blijft reageren), dan de lus: hooguit 60 (of 30) beelden per seconde,
 // minder als je stilstaat, niets als het tabblad verborgen is, en de scherpte zakt vanzelf als het apparaat het niet bijhoudt.
@@ -4123,7 +4238,7 @@ async function bouwWereld(meld) {
   meld('Lantaarns, fietsen en woonboten…'); await wacht();
   maakStraatDingen(); maakBoten(); maakToren(); bouwWinkels();
   meld('Bijna klaar…'); await wacht();
-  maakScene(); maakSpiegel(); maakLooprooster(); beginPlek();
+  maakScene(); maakKnipogen(); maakSpiegel(); maakLooprooster(); beginPlek();
   PERF.bouw = Math.round(performance.now() - t0);
 }
 async function startMotor(meld) {
@@ -4147,7 +4262,7 @@ async function startMotor(meld) {
   const letters = document.fonts ? Promise.race([Promise.all(["800 40px 'Bricolage Grotesque'", "700 30px Caveat"].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]) : Promise.resolve();
   letters.then(async () => { await laadSticker(); for (const s of SPELLEN) if (s.vak) await tekenBorden(s); });
   requestAnimationFrame(lus);
-  window.__gracht = { knoppen: zetKnoppen, zoekDeur, SPIEGEL, MAT, SCENE: () => SCENE, SPELER, DEUREN, SPELLEN, LIJST, PERF, K, APP, U, UNI, POST, ZON, LUCHT_NU, BRUGGEN, HUIS: K.huizen, ST, teken, zetLicht, naar: (x, z, yaw, pitch) => { SPELER.x = x; SPELER.z = z; if (yaw != null) SPELER.yaw = yaw; if (pitch != null) SPELER.pitch = pitch; SPELER.y = grondHoogte(x, z); zetCamera(); sorteerLampen(); }, begin, render: () => RENDER, cam: () => CAM };
+  window.__gracht = { knoppen: zetKnoppen, zoekDeur, SPIEGEL, MAT, SCENE: () => SCENE, SPELER, DEUREN, SPELLEN, LIJST, PERF, K, APP, U, UNI, POST, ZON, LUCHT_NU, KNIPOOG, BRUGGEN, HUIS: K.huizen, ST, teken, zetLicht, naar: (x, z, yaw, pitch) => { SPELER.x = x; SPELER.z = z; if (yaw != null) SPELER.yaw = yaw; if (pitch != null) SPELER.pitch = pitch; SPELER.y = grondHoogte(x, z); zetCamera(); sorteerLampen(); }, begin, render: () => RENDER, cam: () => CAM };
   return true;
 }
 let vorige = performance.now(), opgespaard = 0, traag = 0;
@@ -4165,7 +4280,7 @@ function teken(dt) {
   const t0 = performance.now(); RENDER.info.reset();
   U.uTijd.value += dt;
   stapSpeler(dt); stapBinnen(dt); zetCamera();
-  zetLicht(dt);
+  zetLicht(dt); stapKnipogen(dt);
   if ((PERF.beelden & 7) === 0) sorteerLampen();
   zoekDeur();
   if (KW.spiegel > 0) tekenSpiegel(RENDER.domElement.width, RENDER.domElement.height);

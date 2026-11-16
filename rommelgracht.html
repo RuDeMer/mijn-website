@@ -3982,6 +3982,8 @@ function naarBinnen(d) {
   const zwart = document.getElementById('gr-overgang');
   zwart.querySelector('b').textContent = d.spel.naam;
   zwart.hidden = false; requestAnimationFrame(() => zwart.classList.add('aan'));
+  // zodra het zwart is, tekent de gracht niets meer: dan gaat de deur ook op een traag apparaat meteen open
+  setTimeout(() => { window.__grachtStil = true; }, minder() ? 0 : 650);
   setTimeout(() => { location.href = d.spel.href; }, minder() ? 350 : 1350);
 }
 function stapBinnen(dt) {
@@ -3995,7 +3997,7 @@ function stapBinnen(dt) {
   SPELER.yaw = B.van[2] + dy * Math.min(1, e * 1.6); SPELER.pitch = mix(B.van[3], -.02, e);
 }
 // terugkomen met de knop Terug (de pagina komt uit het geheugen van de browser)
-addEventListener('pageshow', e => { if (e.persisted && SPELER.binnen) { const B = SPELER.binnen; B.d.deur.rotation.y = B.d.deur.userData.basis; SPELER.binnen = null; const z = document.getElementById('gr-overgang'); z.classList.remove('aan'); z.hidden = true; if (APP.p) { SPELER.x = APP.p[0]; SPELER.z = APP.p[1]; SPELER.yaw = APP.p[2] + Math.PI; } } });
+addEventListener('pageshow', e => { if (e.persisted) window.__grachtStil = false; if (e.persisted && SPELER.binnen) { const B = SPELER.binnen; B.d.deur.rotation.y = B.d.deur.userData.basis; SPELER.binnen = null; const z = document.getElementById('gr-overgang'); z.classList.remove('aan'); z.hidden = true; if (APP.p) { SPELER.x = APP.p[0]; SPELER.z = APP.p[1]; SPELER.yaw = APP.p[2] + Math.PI; } } });
 
 // ---- automatisch naar een pand lopen: een kortste route over het rooster (1 m per vakje)
 function route(x0, z0, x1, z1) {

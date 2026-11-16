@@ -1624,9 +1624,9 @@ const APP_SLEUTEL = 'rommelgracht-apparaat';
 const APP = (() => { const a = leesJSON(APP_SLEUTEL) || {}; return { k: ['auto', 'zuinig', 'normaal', 'mooi'].includes(a.k) ? a.k : 'auto', w: a.w || 'vandaag', t: a.t || 'echt', g: a.g === 0 ? 0 : 1, p: Array.isArray(a.p) ? a.p : null, l: a.l === 1 ? 1 : 0, bezocht: a.bezocht && typeof a.bezocht === 'object' ? a.bezocht : {} }; })();
 function bewaarApp() { try { localStorage.setItem(APP_SLEUTEL, JSON.stringify(APP)); } catch (e) {} }
 const KWAL = {
-  zuinig: { naam: 'Zuinig', dpr: 1, fps: 30, spiegel: 0.3, ver: 230, bomen: 0.7, blad: .55, dyn: 0, kaart: 1024, schaduwM: 70, msaa: 0, bloei: 0 },
-  normaal: { naam: 'Normaal', dpr: 1.5, fps: 60, spiegel: 0.5, ver: 340, bomen: 1, blad: .85, dyn: 1, kaart: 2048, schaduwM: 110, msaa: 4, bloei: 1 },
-  mooi: { naam: 'Mooi', dpr: 2, fps: 60, spiegel: 0.75, ver: 480, bomen: 1, blad: 1, dyn: 1, kaart: 4096, schaduwM: 150, msaa: 4, bloei: 1 },
+  zuinig: { naam: 'Zuinig', dpr: 1, fps: 30, spiegel: 0.3, ver: 230, bomen: 0.7, blad: .55, dyn: 0, kaart: 1024, schaduwM: 70, msaa: 0, bloei: 0, ao: 0 },
+  normaal: { naam: 'Normaal', dpr: 1.5, fps: 60, spiegel: 0.5, ver: 340, bomen: 1, blad: .85, dyn: 1, kaart: 2048, schaduwM: 110, msaa: 4, bloei: 1, ao: 1, aoN: 10 },
+  mooi: { naam: 'Mooi', dpr: 2, fps: 60, spiegel: 0.75, ver: 480, bomen: 1, blad: 1, dyn: 1, kaart: 4096, schaduwM: 150, msaa: 4, bloei: 1, ao: 1, aoN: 16 },
 };
 function autoKwal() {
   const mob = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
@@ -1701,13 +1701,14 @@ const GELUID = (() => {
   };
 })();
 
-const TIJDEN = { echt: null, ochtend: 9.5, middag: 14, avond: 19.5, nacht: 23.5 };
-// de tijd in Amsterdam: het echte tijdstip, of het gekozen uur op de dag van vandaag
+const TIJDEN = { echt: null, ochtend: 9.25, middag: 14, avond: 19.6, nacht: 23.5 };
+// de tijd in Amsterdam: het echte tijdstip, of een gekozen uur. Een gekozen uur valt op een mooie nazomerdag (6 september):
+// dan staat de zon hoog genoeg om in de gracht te schijnen, en is 'avond' het gouden uur vlak voor zonsondergang.
 function spelTijd() {
   const nu = Date.now(); const u = TIJDEN[APP.t];
   if (u == null) return nu;
-  const off = amsOffset(nu), d = new Date(nu + off); d.setUTCHours(0, 0, 0, 0);
-  return d.getTime() - off + u * 36e5;
+  const dag = Date.UTC(new Date(nu).getUTCFullYear(), 8, 6), off = amsOffset(dag + 12 * 36e5);
+  return dag - off + u * 36e5;
 }
 function amsOffset(t) { try { const s = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hour12: false, timeZoneName: 'short' }).formatToParts(new Date(t)).find(p => p.type === 'timeZoneName'); return /\+2/.test(s && s.value) ? 72e5 : 36e5; } catch (e) { return 36e5; } }
 function amsUur(t) { const d = new Date(t + amsOffset(t)); return d.getUTCHours() + d.getUTCMinutes() / 60; }
@@ -2137,7 +2138,7 @@ function raamIn(G, o, h, muurBak, muurKleur, opties) {
   const q = [bkB.v(P(u0 - m, v0 - m * .4, kd), n, [lx + .02, ly + .02], [1, 1, 1], aan), bkB.v(P(u1 + m, v0 - m * .4, kd), n, [lx + .23, ly + .02], [1, 1, 1], aan), bkB.v(P(u1 + m, v1 + m * .3, kd), n, [lx + .23, ly + .48], [1, 1, 1], aan), bkB.v(P(u0 - m, v1 + m * .3, kd), n, [lx + .02, ly + .48], [1, 1, 1], aan)];
   bkB.quad(q[0], q[1], q[2], q[3]);
   if (!ver) {
-    const dz = [.16, .14, .13], z0 = dk - .01;
+    const dz = [.16, .14, .13], z0 = Math.min(dk - .01, -D - .004);   // achter de neggen, anders liggen twee vlakken op dezelfde plek
     const w = (p0, p1, p2, p3) => { const nn = norm(kruis(sub(p1, p0), sub(p3, p0))); const i = [p0, p1, p2, p3].map(p => bkB.v(p, nn, [.77, .27], dz, aan)); bkB.quad(i[0], i[1], i[2], i[3]); };
     w(P(u0, v0 - m * .4, kd), P(u0, v0 - m * .4, z0), P(u0, v1 + m * .3, z0), P(u0, v1 + m * .3, kd));
     w(P(u1, v0 - m * .4, z0), P(u1, v0 - m * .4, kd), P(u1, v1 + m * .3, kd), P(u1, v1 + m * .3, z0));
@@ -2478,7 +2479,7 @@ function bladMat(map) {
   const m = patch(new THREE.MeshStandardMaterial({ map, alphaTest: .45, side: THREE.DoubleSide, vertexColors: true, roughness: .75, metalness: 0 }), sh => {
     sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\nnormal = normalize(vNormal);')
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-reflectedLight.indirectDiffuse += material.diffuseColor * .18 * (1. - uNacht);`);
+reflectedLight.indirectDiffuse += material.diffuseColor * .1 * (1. - uNacht);`);
   });
   m.shadowSide = THREE.DoubleSide; return m;
 }
@@ -2753,7 +2754,7 @@ function maakBoom(bkS, bkB, x, z, seed, dicht) {
     const n = Math.round((d === 0 ? 5 : d === 1 ? 3 : 1) * dicht + r() * 2);
     for (let k = 0; k < n; k++) {
       const c = [p[0] + (r() - .5) * 2, p[1] + (r() - .4) * 1.5, p[2] + (r() - .5) * 2], w = 1.15 + r() * .75;
-      const az = r() * 6.28, kl = .72 + r() * .38, kk = [kl, kl * (.94 + r() * .12), kl * (.82 + r() * .22)];
+      const az = r() * 6.28, kl = .68 + r() * .36, kk = [kl * .92, kl * (.96 + r() * .1), kl * (.7 + r() * .2)];
       const nr = norm([c[0] - cx, (c[1] - cy) * 1.3 + .4, c[2] - cz]);
       for (const extra of [0, Math.PI / 2]) {
         const ax = Math.cos(az + extra), azz = Math.sin(az + extra), tilt = (r() - .5) * 1.1;
@@ -3174,7 +3175,7 @@ function kaartje(g, x, y, w, h, info, k) {
 // ==== WERELD begin
 // De scène: alles samenvoegen, de lucht (een foto van een echte lucht), de zon met echte schaduwen, het weer,
 // het water met de spiegeling van de gevels, en de nabewerking (gloed om felle lampen, filmische kleuren, scherpe randen).
-let RENDER, SCENE, CAM, SCENE_WINKELS, WATERMESH, NEERSLAG, ZON, LUCHTMESH, GLOEDMESH = [];
+let RENDER, SCENE, CAM, SCENE_WINKELS, WATERMESH, NEERSLAG, ZON, KAATS, LUCHTMESH, GLOEDMESH = [];
 const SPIEGEL = { rt: null, cam: new THREE.PerspectiveCamera(), mat: new THREE.Matrix4(), aan: false };
 
 // ---- de lucht: een bol om de camera met de foto van de lucht (twee luchten, om over te vloeien)
@@ -3272,6 +3273,8 @@ diffuseColor.rgb *= 1. - et * .45;`).replace('* uNacht * LAMPMUL; } }', '* uNach
   ZON.shadow.mapSize.set(KW.kaart, KW.kaart); ZON.shadow.bias = -.0004; ZON.shadow.normalBias = .035; ZON.shadow.autoUpdate = false;
   const S = KW.schaduwM / 2, sc = ZON.shadow.camera; sc.left = -S; sc.right = S; sc.top = S; sc.bottom = -S; sc.near = 1; sc.far = 420; sc.updateProjectionMatrix();
   SCENE.add(ZON); SCENE.add(ZON.target);
+  // teruggekaatst licht: de zon op de straat en de gevels geeft warm licht in de schaduw (van onderen en opzij)
+  KAATS = new THREE.HemisphereLight(0x000000, 0x8a6a52, 0); SCENE.add(KAATS);
   // de gloed
   for (const altijd of [0, 1]) {
     const L = GLOED.filter(g => !!g[7] === !!altijd); if (!L.length) continue;
@@ -3340,7 +3343,7 @@ function zetLuchtFoto(naam, draai, meteen) {
   m.tA.value = LUCHT.beeld[naam]; m.uDraaiA.value = draai; if (!LUCHT_NU.meng) { m.tB.value = m.tA.value; m.uDraaiB.value = draai; }
   LUCHT_NU.env = luchtLicht(naam, draai); SCENE.environment = LUCHT_NU.env;
 }
-const ZON_KLEUR = { laag: [1, .74, .5], zon: [1, .9, .78], hoog: [1, .96, .9], bewolkt: [1, .97, .95], mist: [1, .95, .88], sneeuw: [1, 1, 1], schemer: [1, .55, .3], nacht: [.5, .55, .7] };
+const ZON_KLEUR = { laag: [1, .64, .38], zon: [1, .9, .78], hoog: [1, .96, .9], bewolkt: [1, .97, .95], mist: [1, .95, .88], sneeuw: [1, 1, 1], schemer: [1, .55, .3], nacht: [.5, .55, .7] };
 const ZON_KRACHT = { laag: 4.2, zon: 5.2, hoog: 4.2, bewolkt: 0, mist: .5, sneeuw: .3, schemer: .6, nacht: 0 };
 const _zd = new THREE.Vector3(), _ze = new THREE.Vector3();
 let SCHADUW_PLEK = null;
@@ -3363,6 +3366,10 @@ function zetLicht(dt) {
   // de zon: alleen als hij boven de horizon staat en het niet bewolkt is
   const zk = ZON_KLEUR[naam], zonOp = glad(-.5, 3, e), kracht = ZON_KRACHT[naam] * zonOp * (1 - W.mist * .6) * mix(1, .1, W.regen);
   ZON.color.setRGB(zk[0], zk[1], zk[2]); ZON.intensity = kracht; ZON.visible = kracht > .02;
+  // de bomen volgen het seizoen van de gekozen dag: in oktober en november geel, anders groen
+  const maand = new Date(t + amsOffset(t)).getUTCMonth(), blad = TEX[maand === 9 || maand === 10 ? 'blad.herfst' : 'blad.zomer'];
+  if (MAT.blad.map !== blad) MAT.blad.map = blad;
+  KAATS.intensity = kracht * .085 + fel * .05; KAATS.groundColor.setRGB(.5 * zk[0], .4 * zk[1], .31 * zk[2]);
   const ze = _ze.set(zd.x, Math.max(zd.y, .05), zd.z).normalize(), sp = SPELER;
   if (!SCHADUW_PLEK || Math.hypot(sp.x - SCHADUW_PLEK.x, sp.z - SCHADUW_PLEK.z) > KW.schaduwM * .12 || ze.distanceTo(SCHADUW_PLEK.d) > .004) {
     SCHADUW_PLEK = { x: sp.x, z: sp.z, d: ze.clone() };
@@ -3436,9 +3443,43 @@ function zetLampen(cam) {
   UNI.uOmhoogV.value.set(0, 1, 0).transformDirection(V);
 }
 
-// ---- de nabewerking: de scène in HDR tekenen, daarna gloed, filmische kleuren (ACES), sRGB en zo nodig FXAA
-const POST = { half: false, aan: false, msaa: false, rt: null, a: null, b: null, c: null, d: null, belichting: 1, scene: null, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), quad: null, mat: {} };
+// ---- de nabewerking: de scène in HDR tekenen, dan schaduw in de hoekjes (ambient occlusion), gloed om felle lampen,
+// filmische kleuren (ACES) met een kleine kleurcorrectie, een beetje lens (vignet, korrel, kleurranden) en FXAA.
+const POST = { half: false, aan: false, ao: false, msaa: false, rt: null, ldr: null, a: null, b: null, c: null, d: null, aoA: null, aoB: null, belichting: 1, scene: null, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), quad: null, mat: {}, tijd: 0 };
 const V_VOL = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`;
+// ambient occlusion: per pixel kijken hoeveel van de halve bol boven het oppervlak door iets dichtbij wordt afgedekt (uit de diepte)
+const F_AO = `uniform sampler2D tDiepte; uniform mat4 uProj; uniform mat4 uProjInv; uniform vec2 px; uniform float uStraal; uniform float uTijd; varying vec2 vUv;
+vec3 plek(vec2 uv) { float d = texture2D(tDiepte, uv).x; vec4 v = uProjInv * vec4(uv * 2. - 1., d * 2. - 1., 1.); return v.xyz / v.w; }
+float h12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void main() {
+  float d0 = texture2D(tDiepte, vUv).x; if (d0 >= .99999) { gl_FragColor = vec4(1.); return; }
+  vec3 p = plek(vUv);
+  vec3 pr = plek(vUv + vec2(px.x, 0.)), pl = plek(vUv - vec2(px.x, 0.)), pu = plek(vUv + vec2(0., px.y)), pd = plek(vUv - vec2(0., px.y));
+  vec3 dx = abs(pr.z - p.z) < abs(p.z - pl.z) ? pr - p : p - pl, dy = abs(pu.z - p.z) < abs(p.z - pd.z) ? pu - p : p - pd;
+  vec3 n = normalize(cross(dx, dy)); if (dot(n, -p) < 0.) n = -n;
+  float a0 = h12(gl_FragCoord.xy) * 6.2832;
+  vec3 t = normalize(abs(n.y) < .99 ? cross(n, vec3(0., 1., 0.)) : cross(n, vec3(1., 0., 0.))), b = cross(n, t);
+  float ao = 0., R = uStraal * (1. + clamp(-p.z, 0., 60.) * .012);
+  const int N = AO_N;
+  for (int i = 0; i < N; i++) {
+    float fi = float(i) + .5, r = fi / float(N), a = a0 + fi * 2.39996;
+    float z = sqrt(1. - r * .92), q = sqrt(max(0., 1. - z * z));
+    vec3 s = p + (t * cos(a) * q + b * sin(a) * q + n * z) * R * (.15 + .85 * r * r);
+    vec4 c = uProj * vec4(s, 1.); vec2 uv = c.xy / c.w * .5 + .5;
+    if (uv.x < 0. || uv.y < 0. || uv.x > 1. || uv.y > 1.) continue;
+    float sz = plek(uv).z;
+    float bij = smoothstep(0., 1., R / max(abs(p.z - sz), 1e-3));
+    ao += step(s.z + .02 + .004 * -p.z, sz) * bij;
+  }
+  ao = 1. - ao / float(N);
+  ao = mix(ao, 1., smoothstep(70., 180., -p.z));
+  gl_FragColor = vec4(ao, 1., 1., 1.); }`;
+// de ruis wegpoetsen, zonder over randen heen te smeren (alleen buren op dezelfde diepte tellen mee)
+const F_AOBLUR = `uniform sampler2D t; uniform sampler2D tDiepte; uniform vec2 dir; uniform mat4 uProjInv; varying vec2 vUv;
+float z(vec2 uv) { float d = texture2D(tDiepte, uv).x; vec4 v = uProjInv * vec4(uv * 2. - 1., d * 2. - 1., 1.); return v.z / v.w; }
+void main() { float z0 = z(vUv), s = 0., w = 0.;
+  for (int i = -4; i <= 4; i++) { vec2 uv = vUv + dir * float(i); float g = exp(-float(i * i) * .12), k = g * exp(-abs(z(uv) - z0) / (.04 * abs(z0) + .05)); s += texture2D(t, uv).r * k; w += k; }
+  gl_FragColor = vec4(s / max(w, 1e-4), 1., 1., 1.); }`;
 function postInit() {
   const caps = RENDER.capabilities, ext = RENDER.extensions;
   POST.half = caps.isWebGL2 ? (ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')) : (ext.has('OES_texture_half_float') && ext.has('EXT_color_buffer_half_float'));
@@ -3446,42 +3487,71 @@ function postInit() {
   if (!POST.aan) { RENDER.toneMapping = THREE.ACESFilmicToneMapping; RENDER.outputEncoding = THREE.sRGBEncoding; return; }
   RENDER.toneMapping = THREE.NoToneMapping; RENDER.outputEncoding = THREE.LinearEncoding;
   const opt = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: THREE.HalfFloatType };
+  POST.ao = !!(KW.ao && (caps.isWebGL2 || ext.has('WEBGL_depth_texture')));
   POST.msaa = !!(caps.isWebGL2 && KW.msaa > 0 && THREE.WebGLMultisampleRenderTarget);
   POST.rt = POST.msaa ? new THREE.WebGLMultisampleRenderTarget(8, 8, opt) : new THREE.WebGLRenderTarget(8, 8, opt);
   if (POST.msaa) POST.rt.samples = KW.msaa;
-  for (const k of ['a', 'b', 'c', 'd']) POST[k] = new THREE.WebGLRenderTarget(8, 8, Object.assign({}, opt, { depthBuffer: false }));
+  if (POST.ao) { POST.rt.depthTexture = new THREE.DepthTexture(8, 8); POST.rt.depthTexture.type = caps.isWebGL2 ? THREE.FloatType : THREE.UnsignedIntType; }
+  for (const k of ['a', 'b', 'c', 'd', 'ldr']) POST[k] = new THREE.WebGLRenderTarget(8, 8, Object.assign({}, opt, { depthBuffer: false }));
+  const ob = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, depthBuffer: false };
+  POST.aoA = new THREE.WebGLRenderTarget(8, 8, ob); POST.aoB = new THREE.WebGLRenderTarget(8, 8, ob);
   POST.scene = new THREE.Scene(); POST.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); POST.quad.frustumCulled = false; POST.scene.add(POST.quad);
-  const m = (f, u) => new THREE.ShaderMaterial({ uniforms: u, vertexShader: V_VOL, fragmentShader: f, depthTest: false, depthWrite: false });
+  const m = (f, u, def) => new THREE.ShaderMaterial({ uniforms: u, vertexShader: V_VOL, fragmentShader: f, depthTest: false, depthWrite: false, defines: def || {} });
+  POST.mat.ao = m(F_AO, { tDiepte: { value: null }, uProj: { value: new THREE.Matrix4() }, uProjInv: { value: new THREE.Matrix4() }, px: { value: new THREE.Vector2() }, uStraal: { value: .55 }, uTijd: { value: 0 } }, { AO_N: KW.aoN || 10 });
+  POST.mat.aoBlur = m(F_AOBLUR, { t: { value: null }, tDiepte: { value: null }, dir: { value: new THREE.Vector2() }, uProjInv: { value: new THREE.Matrix4() } });
   POST.mat.fel = m(`uniform sampler2D t; uniform vec2 px; varying vec2 vUv;
     void main() { vec3 c = (texture2D(t, vUv + px * vec2(-1, -1)).rgb + texture2D(t, vUv + px * vec2(1, -1)).rgb + texture2D(t, vUv + px * vec2(-1, 1)).rgb + texture2D(t, vUv + px * vec2(1, 1)).rgb) * .25;
       float l = dot(c, vec3(.2126, .7152, .0722)); gl_FragColor = vec4(c * smoothstep(1.1, 3.5, l) / max(l, 1e-3) * min(l, 30.), 1.); }`, { t: { value: null }, px: { value: new THREE.Vector2() } });
   POST.mat.blur = m(`uniform sampler2D t; uniform vec2 dir; varying vec2 vUv;
     void main() { vec3 c = texture2D(t, vUv).rgb * .227; c += (texture2D(t, vUv + dir * 1.385).rgb + texture2D(t, vUv - dir * 1.385).rgb) * .316; c += (texture2D(t, vUv + dir * 3.23).rgb + texture2D(t, vUv - dir * 3.23).rgb) * .07; gl_FragColor = vec4(c, 1.); }`, { t: { value: null }, dir: { value: new THREE.Vector2() } });
-  POST.mat.uit = m(`uniform sampler2D t; uniform sampler2D tB; uniform sampler2D tC; uniform float uBel; uniform float uBloei; uniform float uFxaa; uniform vec2 px; varying vec2 vUv;
+  // stap 1: ambient occlusion (netjes vergroot, alleen van buren op dezelfde diepte), gloed, belichting, ACES en de kleurcorrectie
+  POST.mat.toon = m(`uniform sampler2D t; uniform sampler2D tB; uniform sampler2D tC; uniform sampler2D tAo; uniform sampler2D tDiepte; uniform mat4 uProjInv; uniform vec2 uAoRes;
+    uniform float uAo; uniform float uBel; uniform float uBloei; uniform float uNacht; varying vec2 vUv;
     vec3 RRTAndODTFit(vec3 v) { vec3 a = v * (v + .0245786) - .000090537; vec3 b = v * (.983729 * v + .4329510) + .238081; return a / b; }
     vec3 aces(vec3 c) { const mat3 i = mat3(vec3(.59719, .07600, .02840), vec3(.35458, .90834, .13383), vec3(.04823, .01566, .83777)); const mat3 o = mat3(vec3(1.60475, -.10208, -.00327), vec3(-.53108, 1.10813, -.07276), vec3(-.07367, -.00605, 1.07602));
       c *= uBel / .6; c = i * c; c = RRTAndODTFit(c); c = o * c; return clamp(c, 0., 1.); }
-    vec3 srgb(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1. / 2.4)) - .055, step(.0031308, c)); }
-    vec3 kleur(vec2 uv) { vec3 c = texture2D(t, uv).rgb; c += (texture2D(tB, uv).rgb * .6 + texture2D(tC, uv).rgb * .4) * uBloei * .14; return aces(c); }
-    float luma(vec3 c) { return dot(c, vec3(.299, .587, .114)); }
+    float lz(vec2 uv) { float d = texture2D(tDiepte, uv).x; vec4 v = uProjInv * vec4(uv * 2. - 1., d * 2. - 1., 1.); return v.z / v.w; }
+    float aoOp(vec2 uv) {
+      float z0 = lz(uv), tol = .012 * abs(z0) + .02; vec2 f = uv * uAoRes - .5, i = floor(f), fr = f - i; float s = 0., w = 0., best = 1., bd = 1e9;
+      for (int k = 0; k < 4; k++) { vec2 c = vec2(mod(float(k), 2.), floor(float(k) / 2.)); vec2 uc = (i + c + .5) / uAoRes; float a = texture2D(tAo, uc).r, dz = abs(lz(uc) - z0);
+        float wb = (c.x > .5 ? fr.x : 1. - fr.x) * (c.y > .5 ? fr.y : 1. - fr.y), wd = exp(-dz / tol); s += a * wb * wd; w += wb * wd; if (dz < bd) { bd = dz; best = a; } }
+      return w > 1e-3 ? s / w : best; }
     void main() {
-      vec3 c = kleur(vUv);
-      if (uFxaa > .5) {
-        vec3 nw = kleur(vUv + vec2(-1, -1) * px), ne = kleur(vUv + vec2(1, -1) * px), sw = kleur(vUv + vec2(-1, 1) * px), se = kleur(vUv + vec2(1, 1) * px);
-        float lNW = luma(nw), lNE = luma(ne), lSW = luma(sw), lSE = luma(se), lM = luma(c);
-        float lMin = min(lM, min(min(lNW, lNE), min(lSW, lSE))), lMax = max(lM, max(max(lNW, lNE), max(lSW, lSE)));
+      vec3 c = texture2D(t, vUv).rgb;
+      if (uAo > .5) { float ao = aoOp(vUv), l = dot(c, vec3(.2126, .7152, .0722)) * uBel; c *= mix(1., ao, mix(.9, .4, smoothstep(.4, 2.5, l))); }
+      c += (texture2D(tB, vUv).rgb * .6 + texture2D(tC, vUv).rgb * .4) * uBloei * .14;
+      c = aces(c);
+      // de kleuren: iets meer verzadiging, warme lichten en koelere schaduwen, en een zachte S-curve
+      float l = dot(c, vec3(.299, .587, .114));
+      c = mix(vec3(l), c, 1.1);
+      c *= mix(vec3(.97, .99, 1.04), vec3(1.03, 1., .96), smoothstep(.15, .75, l)) * mix(1., .98, uNacht);
+      c = clamp(c, 0., 1.); c = mix(c, c * c * (3. - 2. * c), .18);
+      gl_FragColor = vec4(c, dot(c, vec3(.299, .587, .114))); }`, { t: { value: null }, tB: { value: null }, tC: { value: null }, tAo: { value: null }, tDiepte: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uAoRes: { value: new THREE.Vector2(1, 1) },
+      uAo: { value: 0 }, uBel: { value: 1 }, uBloei: { value: 1 }, uNacht: UNI.uNacht });
+  // stap 2: FXAA (gladde randen), een beetje lens (kleurranden naar de rand, vignet, korrel) en sRGB
+  POST.mat.uit = m(`uniform sampler2D t; uniform float uTijd; uniform float uFxaa; uniform vec2 px; varying vec2 vUv;
+    vec3 srgb(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1. / 2.4)) - .055, step(.0031308, c)); }
+    void main() {
+      vec2 q = vUv - .5, ca = q * dot(q, q) * .006;
+      vec4 m = texture2D(t, vUv); vec3 c = vec3(texture2D(t, vUv + ca).r, m.g, texture2D(t, vUv - ca).b);
+      float lNW = texture2D(t, vUv + vec2(-1, -1) * px).a, lNE = texture2D(t, vUv + vec2(1, -1) * px).a, lSW = texture2D(t, vUv + vec2(-1, 1) * px).a, lSE = texture2D(t, vUv + vec2(1, 1) * px).a, lM = m.a;
+      float lMin = min(lM, min(min(lNW, lNE), min(lSW, lSE))), lMax = max(lM, max(max(lNW, lNE), max(lSW, lSE)));
+      if (uFxaa > .5 && lMax - lMin > max(.03, lMax * .1)) {
         vec2 d = vec2(-((lNW + lNE) - (lSW + lSE)), ((lNW + lSW) - (lNE + lSE)));
-        float rd = max((lNW + lNE + lSW + lSE) * .03125, .0078125); float m = 1. / (min(abs(d.x), abs(d.y)) + rd); d = clamp(d * m, -8., 8.) * px;
-        vec3 a = .5 * (kleur(vUv + d * (1. / 3. - .5)) + kleur(vUv + d * (2. / 3. - .5))); vec3 b = a * .5 + .25 * (kleur(vUv - d * .5) + kleur(vUv + d * .5));
-        float lb = luma(b); c = (lb < lMin || lb > lMax) ? a : b;
+        float rd = max((lNW + lNE + lSW + lSE) * .03125, .0078125), k = 1. / (min(abs(d.x), abs(d.y)) + rd); d = clamp(d * k, -8., 8.) * px;
+        vec3 a = .5 * (texture2D(t, vUv + d * (1. / 3. - .5)).rgb + texture2D(t, vUv + d * (2. / 3. - .5)).rgb), b = a * .5 + .25 * (texture2D(t, vUv - d * .5).rgb + texture2D(t, vUv + d * .5).rgb);
+        float lb = dot(b, vec3(.299, .587, .114)); c = (lb < lMin || lb > lMax) ? a : b;
       }
-      vec2 q = vUv - .5; c *= 1. - dot(q, q) * .32;
-      gl_FragColor = vec4(srgb(c), 1.); }`, { t: { value: null }, tB: { value: null }, tC: { value: null }, uBel: { value: 1 }, uBloei: { value: 1 }, uFxaa: { value: 0 }, px: { value: new THREE.Vector2() } });
+      c *= 1. - smoothstep(.12, .75, dot(q, q) * 2.) * .32;
+      vec3 s = srgb(c);
+      s += (fract(sin(dot(vUv * 1000. + uTijd, vec2(12.9898, 78.233))) * 43758.5453) - .5) * .018;
+      gl_FragColor = vec4(s, 1.); }`, { t: { value: null }, uTijd: { value: 0 }, uFxaa: { value: 1 }, px: { value: new THREE.Vector2() } });
 }
 function postMaat(w, h) {
   if (!POST.aan) return;
   POST.rt.setSize(w, h);
-  for (const [k, s] of [['a', 2], ['b', 2], ['c', 3], ['d', 3]]) POST[k].setSize(Math.max(1, w >> s), Math.max(1, h >> s));
+  for (const [k, s] of [['a', 2], ['b', 2], ['c', 3], ['d', 3], ['aoA', 1], ['aoB', 1]]) POST[k].setSize(Math.max(1, w >> s), Math.max(1, h >> s));
+  POST.ldr.setSize(w, h);
 }
 function pas(mat, doel) { POST.quad.material = mat; RENDER.setRenderTarget(doel); RENDER.render(POST.scene, POST.cam); }
 function tekenBeeld() {
@@ -3489,6 +3559,15 @@ function tekenBeeld() {
   const w = RENDER.domElement.width, h = RENDER.domElement.height;
   if (POST.rt.width !== w || POST.rt.height !== h) postMaat(w, h);
   RENDER.setRenderTarget(POST.rt); RENDER.render(SCENE, CAM);
+  POST.tijd = (POST.tijd + .618) % 100;
+  if (POST.ao) {
+    const A = POST.mat.ao.uniforms, B = POST.mat.aoBlur.uniforms;
+    A.tDiepte.value = POST.rt.depthTexture; A.uProj.value.copy(CAM.projectionMatrix); A.uProjInv.value.copy(CAM.projectionMatrixInverse); A.px.value.set(2 / w, 2 / h);
+    pas(POST.mat.ao, POST.aoA);
+    B.tDiepte.value = POST.rt.depthTexture; B.uProjInv.value.copy(CAM.projectionMatrixInverse);
+    B.t.value = POST.aoA.texture; B.dir.value.set(1 / POST.aoA.width, 0); pas(POST.mat.aoBlur, POST.aoB);
+    B.t.value = POST.aoB.texture; B.dir.value.set(0, 1 / POST.aoA.height); pas(POST.mat.aoBlur, POST.aoA);
+  }
   const bloei = KW.bloei ? 1 : 0;
   if (bloei) {
     const F = POST.mat.fel.uniforms, B = POST.mat.blur.uniforms;
@@ -3498,7 +3577,11 @@ function tekenBeeld() {
     B.t.value = POST.a.texture; B.dir.value.set(2 / POST.c.width, 0); pas(POST.mat.blur, POST.c);
     B.t.value = POST.c.texture; B.dir.value.set(0, 2 / POST.c.height); pas(POST.mat.blur, POST.d);
   }
-  const u = POST.mat.uit.uniforms; u.t.value = POST.rt.texture; u.tB.value = POST.a.texture; u.tC.value = POST.d.texture; u.uBloei.value = bloei; u.uBel.value = POST.belichting; u.uFxaa.value = POST.msaa ? 0 : 1; u.px.value.set(1 / w, 1 / h);
+  const T = POST.mat.toon.uniforms; T.t.value = POST.rt.texture; T.tB.value = POST.a.texture; T.tC.value = POST.d.texture; T.tAo.value = POST.aoA.texture; T.uAo.value = POST.ao ? 1 : 0;
+  T.tDiepte.value = POST.ao ? POST.rt.depthTexture : null; T.uProjInv.value.copy(CAM.projectionMatrixInverse); T.uAoRes.value.set(POST.aoA.width, POST.aoA.height);
+  T.uBloei.value = bloei; T.uBel.value = POST.belichting;
+  pas(POST.mat.toon, POST.ldr);
+  const u = POST.mat.uit.uniforms; u.t.value = POST.ldr.texture; u.uFxaa.value = POST.msaa ? 0 : 1; u.uTijd.value = POST.tijd; u.px.value.set(1 / w, 1 / h);
   pas(POST.mat.uit, null);
 }
 // ==== WERELD eind

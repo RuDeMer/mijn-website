@@ -825,6 +825,17 @@
   function teksten(s, sch, p, modus) {
     var t = { label: '', kop: '', zin: '', knoppen: [], stapel: '' }, zin = [];
     var pakjesTekst = sch.stapel ? meer(sch.stapel, 'cadeautje', 'cadeautjes') + ' op je stapel voor pakjesavond' : '';
+    // vóór pakjesavond: per vijf mag je ze al uitpakken (F.kern.pakjes().vroeg); laat zien hoeveel er nog moeten komen
+    var VR = F.KERN.VROEG || 5, nogTot = VR - ((p.open + sch.stapel) % VR);
+    if (sch.stapel && s.fase !== 'pakjesavond-straks' && p.vroegTijd) pakjesTekst = meer(sch.stapel, 'cadeautje', 'cadeautjes') + ' op je stapel' + (p.vroeg ? '' : ' · nog ' + nogTot + ', dan mag je ze uitpakken');
+    // de keuze: nu al uitpakken, of bewaren voor pakjesavond
+    function vroegKeus() {
+      if (!s.zeker || sch.inSchoen || !p.vroeg) return;
+      zin.push(p.vroeg < VR ? 'Je kunt nog ' + meer(p.vroeg, 'cadeautje', 'cadeautjes') + ' uitpakken, of je bewaart ' + (p.vroeg === 1 ? 'het' : 'ze') + ' voor pakjesavond.'
+        : sch.stapel > p.vroeg ? 'Er liggen ' + sch.stapel + ' cadeautjes op je stapel! De eerste ' + p.vroeg + ' mag je nu al uitpakken. Of bewaar je ze voor pakjesavond?'
+        : 'Er liggen ' + p.vroeg + ' cadeautjes op je stapel! Pak je ze nu al uit, of bewaar je ze voor pakjesavond?');
+      t.knoppen.push(['vroeg', p.vroeg === 1 ? 'Pak het nu uit' : 'Pak er ' + p.vroeg + ' uit']);
+    }
     if (modus === 'intocht-straks') {
       t.label = dagLabel(s.J.intocht) + ': de intocht';
       t.kop = 'Vandaag komt Sinterklaas aan!';
@@ -839,15 +850,19 @@
       else {
         if (s.fase === 'intocht' && !F.kern.heb('intocht26')) { zin.push('Er ligt een cadeautje voor je klaar.'); t.knoppen.push(['intocht', 'Pak je intochtcadeautje']); }
         if (sch.inSchoen) { zin.push('Er zit iets in je schoen!'); t.knoppen.push(['uit-schoen', 'Haal je cadeautje eruit']); }
-        else if (sch.kanZetten) { zin.push('Zet je schoen bij de kachel. Morgen kijk je wat erin zit, en op pakjesavond pak je alles uit.'); t.knoppen.push(['schoen', 'Zet je schoen']); }
+        else if (sch.kanZetten) { zin.push(p.vroeg ? 'Zet je schoen ook weer bij de kachel.' : 'Zet je schoen bij de kachel. Morgen kijk je wat erin zit. Bij elke ' + VR + ' cadeautjes mag je ze al uitpakken, of je bewaart ze voor pakjesavond.'); t.knoppen.push(['schoen', 'Zet je schoen']); }
         else if (sch.vandaagGezet) zin.push('Je schoen staat klaar. Kom morgen kijken wat erin zit!');
+        vroegKeus();
       }
       t.stapel = pakjesTekst;
     } else if (modus === 'pakjesavond-straks') {
       t.label = dagLabel(s.J.pakjesavond); t.kop = 'Vanavond is het pakjesavond!';
       if (sch.inSchoen && s.zeker) { zin.push('Er zit nog iets in je schoen!'); t.knoppen.push(['uit-schoen', 'Haal je cadeautje eruit']); }
-      if (sch.stapel || sch.inSchoen) zin.push((sch.stapel ? 'Je hebt ' + meer(sch.stapel, 'cadeautje', 'cadeautjes') + ' op je stapel. ' : '') + 'Om vijf uur mag je uitpakken.');
-      else zin.push('Je zette dit jaar je schoen niet, maar om vijf uur kun je de Sint gerust mee uitzwaaien.');
+      if (p.vroeg && !sch.inSchoen && s.zeker) zin.push('Om vijf uur mag je alles uitpakken.');
+      else if (sch.stapel || sch.inSchoen) zin.push((sch.stapel ? 'Je hebt ' + meer(sch.stapel, 'cadeautje', 'cadeautjes') + ' op je stapel. ' : '') + 'Om vijf uur mag je uitpakken.');
+      else if (!p.open) zin.push('Je zette dit jaar je schoen niet, maar om vijf uur kun je de Sint gerust mee uitzwaaien.');
+      else zin.push('Je pakte al ' + meer(p.open, 'cadeautje', 'cadeautjes') + ' uit. Om vijf uur komt de Sint nog even langs.');
+      vroegKeus();
       t.stapel = pakjesTekst;
     } else if (modus === 'pakjesavond' || modus === 'nog') {
       var nog = p.dicht || (p.mijter === 'dicht' ? 1 : 0);
@@ -1528,10 +1543,12 @@
       pd('M96 66L84 92L92 90L97 98ZM104 66L116 92L108 90L103 98Z', p[1], 'stroke="' + I + '" stroke-width="2.2" stroke-linejoin="round"') + '<circle cx="100" cy="64" r="7" fill="' + p[1] + '" stroke="' + I + '" stroke-width="2.4"/></g>';
     return s + '</g></svg>';
   }
-  function uitpakVenster() {
+  // vroeg: alvast uitpakken vóór pakjesavond (hooguit wat F.kern.pakjes().vroeg toestaat, alleen wat op je stapel ligt)
+  function uitpakVenster(vroeg) {
     if (UP) return;
+    var p0 = F.kern.pakjes(); if (vroeg && !p0.vroeg) return;
     var d = venster('<div class="fb-up" aria-live="polite"></div>', 'fb-uitpak');
-    UP = { d: d, staat: 'dicht' };
+    UP = { d: d, staat: 'dicht', vroeg: !!vroeg, n: p0.vroeg, k: 0 };
     d.addEventListener('close', function () {
       UP = null; F.melden(); teken();
       var s = F.nu(), p = F.kern.pakjes();
@@ -1551,11 +1568,23 @@
     upVolgende();
   }
   function upVolgende() {
-    var p = F.kern.pakjes();
-    if (p.dicht) { UP.staat = 'dicht'; UP.i = p.lijst[0].i; UP.id = p.lijst[0].id; UP.goud = false; }
+    var p = F.kern.pakjes(), st = p.lijst.filter(function (x) { return x.s; });
+    if (UP.vroeg) {
+      if (p.vroeg && st.length) { UP.staat = 'dicht'; UP.i = st[0].i; UP.id = st[0].id; UP.goud = false; }
+      else UP.staat = 'klaar';
+    }
+    else if (p.dicht) { UP.staat = 'dicht'; UP.i = p.lijst[0].i; UP.id = p.lijst[0].id; UP.goud = false; }
     else if (p.mijter === 'dicht') { UP.staat = 'dicht'; UP.i = null; UP.id = F.KERN.MIJTER[F.nu().jaar]; UP.goud = true; }
     else UP.staat = 'klaar';
     var box = UP.d.querySelector('.fb-up'), totaal = p.dicht + p.open;
+    if (UP.staat === 'klaar' && UP.vroeg) {
+      var sch = F.kern.schoen(), VR = F.KERN.VROEG || 5;
+      box.innerHTML = '<span class="fb-label">Alvast uitgepakt</span><span class="fb-plaat">' + plaat(icPepernotenregen()) + '</span><h2 tabindex="-1">' + (UP.k ? 'Je pakte er ' + UP.k + ' uit!' : 'Er ligt nu niets om uit te pakken') + '</h2>' +
+        '<p>' + (UP.k ? 'Ze staan in Mijn feestspullen, en in de spellen. ' : '') + (sch.stapel ? 'Er ' + (sch.stapel === 1 ? 'ligt nog één cadeautje' : 'liggen nog ' + sch.stapel + ' cadeautjes') + ' op je stapel. ' : '') +
+        'Bij de volgende ' + VR + ' cadeautjes mag je weer uitpakken. Wat er dan nog ligt, pak je uit op pakjesavond.</p>' +
+        '<div class="fb-knoppen"><button type="button" class="fb-knop fb-hoofd" data-dicht>Sluiten</button><button type="button" class="fb-knop" data-spullen>Mijn feestspullen</button></div>';
+      box.querySelector('[data-dicht]').focus(); return;
+    }
     if (UP.staat === 'klaar') {
       var mijter = p.mijter === 'open', avond = F.nu().fase === 'pakjesavond';
       box.innerHTML = '<span class="fb-label">Pakjesavond</span><span class="fb-plaat">' + (mijter ? SPUL.mijter26.teken() : plaat(icPepernotenregen())) + '</span><h2 tabindex="-1">Alles uitgepakt!</h2>' +
@@ -1565,7 +1594,7 @@
       box.querySelector('[data-dicht]').focus(); return;
     }
     var x = SPUL[UP.id] || ONBEKEND;
-    box.innerHTML = '<span class="fb-label">Pakjesavond</span><p class="fb-teller">' + (UP.goud ? 'Nog één pakje…' : 'Cadeautje ' + (p.open + 1) + ' van ' + totaal) + '</p>' +
+    box.innerHTML = '<span class="fb-label">' + (UP.vroeg ? 'Alvast uitpakken' : 'Pakjesavond') + '</span><p class="fb-teller">' + (UP.goud ? 'Nog één pakje…' : UP.vroeg ? 'Cadeautje ' + (UP.k + 1) + ' van ' + Math.max(UP.n, UP.k + 1) : 'Cadeautje ' + (p.open + 1) + ' van ' + totaal) + '</p>' +
       '<div class="fb-podium"><button type="button" class="fb-groot fb-wacht" data-pak aria-label="Pak het cadeautje uit">' + grootPakje(UP.i == null ? 3 : UP.i, UP.goud, x.teken().replace('<svg ', '<svg x="40" y="34" width="120" height="120" ')) + '</button><div class="fb-snippers" aria-hidden="true"></div></div>' +
       '<div class="fb-onder"><h2>' + (UP.goud ? 'Wacht eens, er ligt nog een groot, glimmend pakje!' : 'Wat zou erin zitten?') + '</h2><p class="fb-hint">Tik op het pakje, of trek aan het lint.</p>' +
       '<div class="fb-knoppen"><button type="button" class="fb-knop fb-hoofd" data-pak>Pak uit!</button><button type="button" class="fb-knop" data-dicht>Later verder</button></div></div>';
@@ -1576,7 +1605,8 @@
     var r = UP.goud ? F.kern.pakMijter() : F.kern.pakUit(UP.i), box = UP.d.querySelector('.fb-up');
     if (!r) { var h = box.querySelector('.fb-hint'); if (h) h.textContent = navigator.onLine === false ? 'Zonder internet kun je nog niet uitpakken. Probeer het straks nog eens.' : 'Dat lukte even niet. Probeer het zo nog eens.'; return; }
     UP.staat = 'open';
-    var pod = box.querySelector('.fb-podium'), knop = pod.querySelector('.fb-groot'), p = F.kern.pakjes(), x = SPUL[UP.id] || ONBEKEND, meerNog = p.dicht || p.mijter === 'dicht';
+    UP.k++;
+    var pod = box.querySelector('.fb-podium'), knop = pod.querySelector('.fb-groot'), p = F.kern.pakjes(), x = SPUL[UP.id] || ONBEKEND, meerNog = UP.vroeg ? p.vroeg > 0 : p.dicht || p.mijter === 'dicht';
     knop.classList.remove('fb-wacht'); knop.setAttribute('tabindex', '-1'); knop.removeAttribute('data-pak'); knop.setAttribute('aria-label', x.naam);
     pod.classList.add('fb-open'); snippers(pod); scheur(); setTimeout(tring, 380);
     var g = GEDICHT[UP.id] ? gedichtHtml(UP.id) : '<p class="fb-gedicht">' + ONBEKEND_GEDICHT.map(function (r) { return '<span>' + esc(r) + '</span>'; }).join('') + '<span class="fb-ondert">Sint en Piet</span></p>';
@@ -1619,7 +1649,7 @@
   function spullenVenster() {
     var s = F.kern.lees(), sch = F.kern.schoen(), heb = s.st.filter(function (id) { return SPUL[id]; });
     var lijst = heb.length ? '<ul class="fb-spullen">' + heb.map(function (id) { var x = SPUL[id]; return '<li>' + x.teken() + '<span><b>' + esc(x.naam) + '</b><small>' + esc(x.wat + ' · ' + x.feest) + '</small></span></li>'; }).join('') + '</ul>' : '<p class="fb-leeg">Nog niets. Kom op de feestdagen langs, dan vult je feestkast zich vanzelf.</p>';
-    var schoen = sch.gezet ? '<p>Je schoen stond ' + meer(sch.gezet, 'keer', 'keer') + ' klaar. ' + (sch.stapel ? meer(sch.stapel, 'cadeautje ligt', 'cadeautjes liggen') + ' op je stapel' : '') + (sch.inSchoen ? (sch.stapel ? ', en ' : '') + meer(sch.inSchoen, 'cadeautje zit', 'cadeautjes zitten') + ' nog in je schoen' : '') + '. ' + (F.nu().uitpakken ? 'Je pakt ze uit op het feestbord.' : 'Op pakjesavond pak je ze uit.') + '</p>' : '';
+    var schoen = sch.gezet ? '<p>Je schoen stond ' + meer(sch.gezet, 'keer', 'keer') + ' klaar. ' + (sch.stapel ? meer(sch.stapel, 'cadeautje ligt', 'cadeautjes liggen') + ' op je stapel' : '') + (sch.inSchoen ? (sch.stapel ? ', en ' : '') + meer(sch.inSchoen, 'cadeautje zit', 'cadeautjes zitten') + ' nog in je schoen' : '') + (sch.uitgepakt ? (sch.stapel || sch.inSchoen ? '; ' : '') + meer(sch.uitgepakt, 'cadeautje', 'cadeautjes') + ' heb je al uitgepakt' : '') + '. ' + (F.nu().uitpakken ? 'Je pakt ze uit op het feestbord.' : 'Bij elke ' + (F.KERN.VROEG || 5) + ' cadeautjes mag je ze al uitpakken; de rest op pakjesavond.') + '</p>' : '';
     var kk = F.kern.kerst(), kerst = kk.open ? '<p>Je opende ' + kk.open + ' van de ' + kk.aantal + ' deurtjes van de kerstkalender' + (kk.bijzonder === 'open' ? ', en kreeg het bijzondere kerstcadeau' : '') + '.</p>' : '';
     venster('<span class="fb-label">Mijn feestspullen</span><h2>Wat je met de feestdagen kreeg</h2>' + lijst + schoen + kerst +
       '<p class="fb-leeg">Wat je krijgt, gaat mee naar je andere apparaten als je ze hebt gekoppeld.</p><div class="fb-knoppen"><button type="button" class="fb-knop" data-dicht>Sluiten</button></div>');
@@ -1638,6 +1668,7 @@
     else if (a === 'spullen') spullenVenster();
     else if (a === 'nog') intocht(true);
     else if (a === 'uitpakken') uitpakVenster();
+    else if (a === 'vroeg') uitpakVenster(true);
     else if (a === 'afscheid') afscheidVaart(true);
     else if (a === 'deur') deurKlik(+k.getAttribute('data-i'));
     else if (a === 'hap') hap();

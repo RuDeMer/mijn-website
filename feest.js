@@ -37,6 +37,8 @@
     'rd-pepernotentaart', 'rp-pakjesrug', 'vb-speculaas', 'ck-binnen', 'rk-mijter', 'rb-speculaasvos', 'hp-worteltje', 'rs-mijter', 'rc-pakjeskleed',
     'vb-schoorsteen', 'rd-letters', 'ck-wind', 'rb-marsepeinvarken', 'rk-pepernotenregen'] };
   var MIJTER = { '2026': 'mijter26' };
+  // per hoeveel cadeautjes je ze al vóór pakjesavond mag uitpakken (K.pakjes().vroeg)
+  var VROEG = 5;
   // Kerst: wat er achter de deurtjes zit, per feestjaar, op volgorde van de dagen (het eerste deurtje is de dag van kalenderVan).
   // Een deurtje gaat alleen op zijn eigen dag open (een gemist deurtje blijft dicht). BIJZONDER: voor wie alle deurtjes opende (vanaf de
   // dag van kalenderTot tot en met versieringTot): een gouden piek voor je boom en een feestkaart. ONDERBOOM: het cadeau onder de boom,
@@ -156,28 +158,35 @@
       if (n) o.opslag.schrijf(s);
       return n;
     };
-    // ---------- Sinterklaas: uitpakken (vanaf pakjesavond, tot uitpakkenTot)
-    // de pakjes: wat er nog dicht op je stapel ligt (ook wat nog in je schoen zat), hoeveel er open zijn, en de Gouden Mijter
-    // ('dicht' als je alle schoendagen je schoen zette en hem nog niet hebt, 'open' als je hem hebt, anders null)
+    // ---------- Sinterklaas: uitpakken (vanaf pakjesavond, tot uitpakkenTot; en per vijf al eerder, zie VROEG)
+    // de pakjes: wat er nog dicht op je stapel ligt (ook wat nog in je schoen zat; s: 1 als het op je stapel ligt), hoeveel er open zijn,
+    // en de Gouden Mijter ('dicht' als je alle schoendagen je schoen zette en hem nog niet hebt, 'open' als je hem hebt, anders null).
+    // vroeg: hoeveel pakjes je nu al mag uitpakken, vóór pakjesavond (vroegTijd: of dat nu kan, als er genoeg op je stapel liggen).
+    // Per vijf: zodra je vijf cadeautjes uit je schoen hebt gehaald (open of nog op je stapel), mag je die vijf uitpakken, dan de
+    // volgende vijf, enzovoort. Wat er dan nog ligt, pak je uit op pakjesavond. Wordt niet apart bewaard: het volgt uit de cijfers.
     K.pakjes = function () {
       var F = K.nu(), J = F.J, s = K.lees(), sz = seizoen('sint', J), van = plek(J.schoenVan, J), tot = plek(J.schoenTot, J), vandaag = plek(F.dag, J), l = PAKJES[J.jaar] || [];
-      var uit = { lijst: [], dicht: 0, open: 0, gezet: 0, dagen: tot - van + 1, mijter: null, kan: !!(F.uitpakken && o.zeker()) };
+      var uit = { lijst: [], dicht: 0, open: 0, gezet: 0, dagen: tot - van + 1, mijter: null, kan: !!(F.uitpakken && o.zeker()), vroeg: 0, vroegTijd: false }, stapel = 0;
       for (var i = van; i <= tot; i++) {
         var w = cijfer(s, sz, i); if (w >= 1) uit.gezet++;
         if (w === 3) uit.open++;
-        else if (w === 2 || (w === 1 && i < vandaag)) { uit.dicht++; uit.lijst.push({ i: i, id: l[i - van] || null }); }
+        else if (w === 2 || (w === 1 && i < vandaag)) { uit.dicht++; if (w === 2) stapel++; uit.lijst.push({ i: i, id: l[i - van] || null, s: w === 2 ? 1 : 0 }); }
       }
       var m = MIJTER[J.jaar];
       if (m && uit.gezet === uit.dagen) uit.mijter = s.st.indexOf(m) >= 0 ? 'open' : 'dicht';
+      uit.vroegTijd = !F.uitpakken && F.t >= moment(J.intocht) && F.t < moment(J.pakjesavond);
+      if (uit.vroegTijd && o.zeker()) uit.vroeg = Math.max(0, Math.min(stapel, Math.floor((uit.open + stapel) / VROEG) * VROEG - uit.open));
       return uit;
     };
     // één pakje uitpakken (i: de dag, zoals in K.pakjes): het cijfer wordt 3, en wat erin zit komt in de verzameling. Geeft { i, id } of null.
+    // Vóór pakjesavond alleen een pakje dat op je stapel ligt, en alleen als K.pakjes().vroeg zegt dat het mag.
     K.pakUit = function (i) {
       if (!o.zeker() || typeof i !== 'number' || i !== Math.floor(i)) return null;
-      var F = K.nu(); if (!F.uitpakken) return null;
+      var F = K.nu(), vroeg = !F.uitpakken; if (vroeg && !(K.pakjes().vroeg > 0)) return null;
       var J = F.J, s = K.lees(), sz = seizoen('sint', J), van = plek(J.schoenVan, J), tot = plek(J.schoenTot, J);
       if (!(i >= van && i <= tot && i < plek(F.dag, J))) return null;
       var w = cijfer(s, sz, i); if (w !== 1 && w !== 2) return null;
+      if (vroeg && w !== 2) return null;
       zetCijfer(s, sz, i, 3);
       var id = (PAKJES[J.jaar] || [])[i - van] || null; if (id && s.st.indexOf(id) < 0) s.st.push(id);
       return o.opslag.schrijf(s) ? { i: i, id: id } : null;
@@ -252,7 +261,7 @@
     K.pakMunt = function () { return K.oud().kanMunt ? pakLijst(MUNT[K.nu().J.jaar]) : null; };
     return K;
   }
-  var KERN = { KALENDER: KALENDER, VELDEN: VELDEN, MET_TIJD: MET_TIJD, PAKJES: PAKJES, MIJTER: MIJTER, DEURTJES: DEURTJES, BIJZONDER: BIJZONDER, ONDERBOOM: ONDERBOOM, OUDJAAR: OUDJAAR, MUNT: MUNT, nlDag: nlDag, nlDelen: nlDelen, dagNr: dagNr, moment: moment, jaarVan: jaarVan, jaren: jaren, fase: fase, seizoen: seizoen, plek: plek, schoon: schoon, cijfer: cijfer, zetCijfer: zetCijfer, Kern: Kern, geldigJaar: geldigJaar };
+  var KERN = { KALENDER: KALENDER, VELDEN: VELDEN, MET_TIJD: MET_TIJD, PAKJES: PAKJES, MIJTER: MIJTER, VROEG: VROEG, DEURTJES: DEURTJES, BIJZONDER: BIJZONDER, ONDERBOOM: ONDERBOOM, OUDJAAR: OUDJAAR, MUNT: MUNT, nlDag: nlDag, nlDelen: nlDelen, dagNr: dagNr, moment: moment, jaarVan: jaarVan, jaren: jaren, fase: fase, seizoen: seizoen, plek: plek, schoon: schoon, cijfer: cijfer, zetCijfer: zetCijfer, Kern: Kern, geldigJaar: geldigJaar };
   if (typeof module !== 'undefined' && module.exports && typeof window === 'undefined') { module.exports = KERN; return; }
   // ==== KERN eind
 

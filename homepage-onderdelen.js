@@ -3179,7 +3179,10 @@ html:not([data-thema="donker"]) .cl-zzz:not(.hart) { color: #8FA2C8; text-shadow
   // iedereen een dagje neon, in een eigen ontwerp: een zonsondergang met palmen, een stad en een raster, in roze, oranje, paars en
   // turquoise. Per apparaat uit te zetten (localStorage rommelhoekje-neon = de dag dat je hem uitzette; bewust niet in SLEUTELS).
   // Vooraf bekijken: ?neon achter het adres. Het voorbeeld in de werkplaats volgt de dag van __feestVoorbeeld.
-  const NEONDAGEN = ['2026-11-19'];
+  // per dag: waarom het neon is (lang op een computer, kort op een telefoon)
+  const NEONDAGEN = [
+    { dag: '2026-11-19', lang: 'Vandaag komt GTA VI uit. Daarom is het rommelhoekje een dagje neon.', kort: 'Vandaag komt GTA VI uit' }
+  ];
   const NEON = 'rommelhoekje-neon';
   const neonProef = /[?&]neon(=1|=aan)?(&|$)/.test(location.search);
   const NEON_CSS = `
@@ -3209,7 +3212,7 @@ html[data-neon] .tg-weergave, html[data-neon] .tg-rommelknop, html[data-neon] .t
 html[data-neon] .tg-blad { box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 0 22px rgba(255,79,176,.45); }
 html[data-neon] .v6-body footer .versie { background: #2DE2E6; color: #12051F !important; box-shadow: 0 0 14px rgba(45,226,230,.55); }
 /* ruimte voor het bordje bovenaan (de hele dag, ook als neon uit staat: dan verspringt er niets) */
-html[data-neondag] main { padding-top: max(9vh, 4.6rem); }
+html[data-neondag] main { padding-top: max(9vh, 5.3rem); }
 #nn-bord { position: absolute; top: 12px; left: 1.5rem; z-index: 5; display: flex; align-items: center; gap: .7rem; max-width: calc(100% - 3rem); padding: 3px 3px 3px 16px; border-radius: 999px; background: var(--tg-knop); color: var(--tg-knop-tekst); border: 2.5px solid var(--tg-knop-rand); font-weight: 800; font-size: .9rem; line-height: 1.2; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
 #nn-bord[hidden] { display: none; }
 #nn-bord .nn-kort { display: none; }
@@ -3218,10 +3221,13 @@ html[data-neondag] main { padding-top: max(9vh, 4.6rem); }
 html[data-neon] #nn-bord { background: rgba(18,5,31,.84); color: #FFE9F7; border-color: #FF4FB0; text-shadow: 0 0 8px rgba(255,79,176,.95); box-shadow: 0 0 0 1px rgba(255,79,176,.35), 0 0 20px rgba(255,79,176,.55), inset 0 0 14px rgba(255,79,176,.22); }
 html[data-neon] #nn-bord button { background: #2DE2E6; color: #12051F; text-shadow: none; box-shadow: 0 0 14px rgba(45,226,230,.6); }
 @media (max-width: 560px) {
-  html[data-neondag] main { padding-top: max(7vh, 4rem); }
+  html[data-neondag] main { padding-top: max(7vh, 4.6rem); }
   #nn-bord { left: 1rem; top: 8px; max-width: calc(100% - 2rem); font-size: .82rem; padding-left: 12px; gap: .5rem; }
-  #nn-bord .nn-lang { display: none; } #nn-bord .nn-kort { display: inline; }
 }
+@media (max-width: 999px) { #nn-bord .nn-lang { display: none; } #nn-bord .nn-kort { display: inline; } }
+#nn-bord .nn-e { margin-right: .35em; }
+@media (max-width: 400px) { #nn-bord { font-size: .78rem; padding-left: 10px; gap: .4rem; } #nn-bord button { padding: 0 12px; } }
+@media (max-width: 359px) { #nn-bord .nn-e { display: none; } }
 /* de zonsondergang achter het logo */
 #nn-lucht { position: absolute; left: 0; top: 0; width: 100%; height: var(--nn-h, 32rem); z-index: 0; pointer-events: none; overflow: hidden; }
 #nn-lucht[hidden] { display: none; }
@@ -3254,7 +3260,8 @@ html[data-neon] #nn-bord button { background: #2DE2E6; color: #12051F; text-shad
     try { const p = {}; new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).forEach(x => { p[x.type] = x.value; }); if (p.year && p.month && p.day) return p.year + '-' + p.month + '-' + p.day; } catch (e) {}
     const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
-  const isNeondag = () => neonProef || NEONDAGEN.indexOf(dagNL()) >= 0;
+  const neonVan = () => { const d = dagNL(); return NEONDAGEN.find(n => n.dag === d) || (neonProef ? NEONDAGEN[NEONDAGEN.length - 1] : null); };
+  const isNeondag = () => !!neonVan();
   function neonUit() {
     if (neonKeus !== null) return !neonKeus;
     try { return localStorage.getItem(NEON) === dagNL(); } catch (e) { return false; }
@@ -3300,7 +3307,8 @@ html[data-neon] #nn-bord button { background: #2DE2E6; color: #12051F; text-shad
     }
     if (nnBord) {
       nnBord.hidden = !dag;
-      nnBord.querySelector('.nn-tekst').innerHTML = nn ? '<span class="nn-lang">\u{1F334} Vandaag is het rommelhoekje een dagje neon</span><span class="nn-kort">\u{1F334} Een dagje neon</span>' : 'Neon staat uit';
+      const n = neonVan() || {};
+      nnBord.querySelector('.nn-tekst').innerHTML = nn ? '<span class="nn-e" aria-hidden="true">\u{1F334}</span><span class="nn-lang">' + veilig(n.lang || 'Vandaag een dagje neon') + '</span><span class="nn-kort">' + veilig(n.kort || 'Een dagje neon') + '</span>' : 'Neon staat uit';
       nnBord.querySelector('button').textContent = nn ? 'Zet uit' : 'Zet weer aan';
     }
     // de zonsondergang

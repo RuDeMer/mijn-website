@@ -3174,14 +3174,242 @@ html:not([data-thema="donker"]) .cl-zzz:not(.hart) { color: #8FA2C8; text-shadow
   const THEMA = 'rommelhoekje-thema';
   const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : { matches: false };
   const keuze = () => { try { const k = localStorage.getItem(THEMA); return k === 'licht' || k === 'donker' ? k : 'auto'; } catch (e) { return 'auto'; } };
-  function pasThemaToe() {
-    const k = keuze(), donker = k === 'donker' || (k === 'auto' && mq.matches);
-    document.documentElement.dataset.thema = donker ? 'donker' : 'licht';
-    document.querySelectorAll('.tg-weergave button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.thema === k)));
+
+  // ================= de neondag (zie "De neondag" in CLAUDE.md): op de dagen in NEONDAGEN (Nederlandse tijd) is de homepage voor
+  // iedereen een dagje neon, in een eigen ontwerp: een zonsondergang met palmen, een stad en een raster, in roze, oranje, paars en
+  // turquoise. Per apparaat uit te zetten (localStorage rommelhoekje-neon = de dag dat je hem uitzette; bewust niet in SLEUTELS).
+  // Vooraf bekijken: ?neon achter het adres. Het voorbeeld in de werkplaats volgt de dag van __feestVoorbeeld.
+  const NEONDAGEN = ['2026-11-19'];
+  const NEON = 'rommelhoekje-neon';
+  const neonProef = /[?&]neon(=1|=aan)?(&|$)/.test(location.search);
+  const NEON_CSS = `
+/* de neondag: dezelfde opbouw als donker (data-thema="donker"), met eigen kleuren erover */
+html[data-neon][data-thema] { --tg-bg: #12051F; --tg-stip: transparent; --tg-tekst: #FFF0FA; --tg-zacht: #EBCBF3; --tg-knop: #22093C; --tg-knop-tekst: #FFF0FA; --tg-knop-rand: #FF4FB0; --tg-actief: #2DE2E6; --tg-actief-tekst: #12051F; --tg-rand: #0B0316; --tg-schaduw: 0 0 0 2px rgba(255,79,176,.8), 0 0 20px rgba(255,79,176,.35); --tg-zweef: 0 0 0 2px #2DE2E6, 0 0 28px rgba(45,226,230,.55); --tg-brief: #FFF5FC; --tg-focus: #2DE2E6; color-scheme: dark; }
+html[data-neon], html[data-neon] body.v6-body { background-color: #12051F !important; background-image: linear-gradient(rgba(255,79,176,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,79,176,.055) 1px, transparent 1px), linear-gradient(180deg, #12051F 0, #1C0835 30%, #24093F 65%, #12051F 100%) !important; background-size: 48px 48px, 48px 48px, 100% 100% !important; }
+/* het logo: RUBEN'S als roze tape, ROMMELHOEKJE als neonbuis */
+html[data-neon] .held .tape.rood { background: linear-gradient(100deg, #E0157A 0%, #E8305C 55%, #EC4A2E 100%); color: #FFF7FC; text-shadow: 0 2px 0 rgba(110,0,50,.5); box-shadow: 0 5px 0 rgba(0,0,0,.4), 0 0 32px rgba(255,46,136,.6); }
+html[data-neon] .held .tape.zwart { background: #160627; color: #F2FEFF; text-shadow: 0 0 2px #FFFFFF, 0 0 10px #2DE2E6, 0 0 24px #2DE2E6, 0 0 44px rgba(45,226,230,.55); box-shadow: 0 5px 0 rgba(0,0,0,.45), 0 0 0 2px #2DE2E6, 0 0 28px rgba(45,226,230,.5), inset 0 0 18px rgba(45,226,230,.18); }
+html[data-neon] .briefje { box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 0 34px rgba(255,79,176,.4) !important; }
+html[data-neon] .briefje::before { background: #2DE2E6; box-shadow: 0 0 10px #2DE2E6; }
+html[data-neon] main h2 span { background: linear-gradient(95deg, #FF4FB0, #FFA24C); color: #1A0628; box-shadow: 0 3px 0 rgba(0,0,0,.4), 0 0 22px rgba(255,79,176,.5); }
+/* de tegels: elk een eigen kleurverloop met een gloeiende rand */
+html[data-neon] .tg-vlak { background: var(--nn-g) !important; border-color: #0B0316; box-shadow: 0 0 0 2px var(--nn-k), 0 0 24px -6px var(--nn-k); }
+html[data-neon] .tg-vlak::before { background: rgba(255,255,255,.26); }
+html[data-neon] .tg-tegel:hover .tg-vlak, html[data-neon] .tg-tegel:focus-visible .tg-vlak { box-shadow: 0 0 0 3px var(--nn-k), 0 0 34px 0 var(--nn-k); }
+html[data-neon] .tg-tegel:nth-child(6n+1) { --nn-g: linear-gradient(140deg, #FF6AD5, #FFB86B); --nn-k: #FF6AD5; }
+html[data-neon] .tg-tegel:nth-child(6n+2) { --nn-g: linear-gradient(140deg, #9B6BFF, #2DE2E6); --nn-k: #2DE2E6; }
+html[data-neon] .tg-tegel:nth-child(6n+3) { --nn-g: linear-gradient(140deg, #FF5C8A, #FFD36E); --nn-k: #FF5C8A; }
+html[data-neon] .tg-tegel:nth-child(6n+4) { --nn-g: linear-gradient(140deg, #C774E8, #FF9AD5); --nn-k: #C774E8; }
+html[data-neon] .tg-tegel:nth-child(6n+5) { --nn-g: linear-gradient(140deg, #22C8FF, #B967FF); --nn-k: #22C8FF; }
+html[data-neon] .tg-tegel:nth-child(6n+6) { --nn-g: linear-gradient(140deg, #FF8A3D, #FF3D9A); --nn-k: #FF8A3D; }
+html[data-neon] .tg-nieuw { background: #2DE2E6; color: #12051F; box-shadow: 0 0 12px rgba(45,226,230,.7); }
+html[data-neon] .tg-voortgang i { background: rgba(255,255,255,.14); }
+html[data-neon] .tg-voortgang em { background: linear-gradient(90deg, #FF4FB0, #FF9F45); box-shadow: 0 0 8px rgba(255,79,176,.8); }
+html[data-neon] .tg-weergave, html[data-neon] .tg-rommelknop, html[data-neon] .tg-filters button { box-shadow: 0 0 14px rgba(255,79,176,.3); }
+html[data-neon] .tg-blad { box-shadow: 0 4px 0 rgba(0,0,0,.4), 0 0 22px rgba(255,79,176,.45); }
+html[data-neon] .v6-body footer .versie { background: #2DE2E6; color: #12051F !important; box-shadow: 0 0 14px rgba(45,226,230,.55); }
+/* ruimte voor het bordje bovenaan (de hele dag, ook als neon uit staat: dan verspringt er niets) */
+html[data-neondag] main { padding-top: max(9vh, 4.6rem); }
+#nn-bord { position: absolute; top: 12px; left: 1.5rem; z-index: 5; display: flex; align-items: center; gap: .7rem; max-width: calc(100% - 3rem); padding: 3px 3px 3px 16px; border-radius: 999px; background: var(--tg-knop); color: var(--tg-knop-tekst); border: 2.5px solid var(--tg-knop-rand); font-weight: 800; font-size: .9rem; line-height: 1.2; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+#nn-bord[hidden] { display: none; }
+#nn-bord .nn-kort { display: none; }
+#nn-bord button { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 0; background: var(--tg-actief); color: var(--tg-actief-tekst); font: inherit; font-weight: 800; cursor: pointer; }
+#nn-bord button:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 2px; }
+html[data-neon] #nn-bord { background: rgba(18,5,31,.84); color: #FFE9F7; border-color: #FF4FB0; text-shadow: 0 0 8px rgba(255,79,176,.95); box-shadow: 0 0 0 1px rgba(255,79,176,.35), 0 0 20px rgba(255,79,176,.55), inset 0 0 14px rgba(255,79,176,.22); }
+html[data-neon] #nn-bord button { background: #2DE2E6; color: #12051F; text-shadow: none; box-shadow: 0 0 14px rgba(45,226,230,.6); }
+@media (max-width: 560px) {
+  html[data-neondag] main { padding-top: max(7vh, 4rem); }
+  #nn-bord { left: 1rem; top: 8px; max-width: calc(100% - 2rem); font-size: .82rem; padding-left: 12px; gap: .5rem; }
+  #nn-bord .nn-lang { display: none; } #nn-bord .nn-kort { display: inline; }
+}
+/* de zonsondergang achter het logo */
+#nn-lucht { position: absolute; left: 0; top: 0; width: 100%; height: var(--nn-h, 32rem); z-index: 0; pointer-events: none; overflow: hidden; }
+#nn-lucht[hidden] { display: none; }
+.nn-hemel { position: absolute; left: 0; right: 0; top: 0; height: var(--nn-hor, 18rem); overflow: hidden; background: linear-gradient(180deg, #0A021C 0%, #1B0638 26%, #3F0D5C 50%, #86196D 70%, #D9356F 86%, #FF7A55 96%, #FFB45C 100%); }
+.nn-sterren { position: absolute; left: 0; right: 0; top: 0; height: 62%; opacity: .85; background-image: radial-gradient(circle at 23px 31px, #FFFFFF 0 1px, transparent 1.6px), radial-gradient(circle at 141px 12px, #FFD6F4 0 1.2px, transparent 1.8px), radial-gradient(circle at 201px 77px, #FFFFFF 0 .9px, transparent 1.5px), radial-gradient(circle at 87px 104px, #B8FBFF 0 1px, transparent 1.6px), radial-gradient(circle at 250px 140px, #FFFFFF 0 .8px, transparent 1.4px), radial-gradient(circle at 178px 152px, #FFE8B0 0 .9px, transparent 1.5px); background-size: 280px 170px; -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent); mask-image: linear-gradient(180deg, #000 35%, transparent); }
+.nn-gloed { position: absolute; left: calc(var(--nn-zx) - var(--nn-zd)); top: calc(var(--nn-hor) - var(--nn-zd) * 1.3); width: calc(var(--nn-zd) * 2); height: calc(var(--nn-zd) * 2); border-radius: 50%; background: radial-gradient(closest-side, rgba(255,160,120,.8), rgba(255,79,150,.32) 55%, rgba(255,79,150,0)); }
+.nn-zon { position: absolute; left: calc(var(--nn-zx) - var(--nn-zd) / 2); top: calc(var(--nn-hor) - var(--nn-zd) * .8); width: var(--nn-zd); height: var(--nn-zd); border-radius: 50%; background: linear-gradient(180deg, #FFF27A 0%, #FFC857 28%, #FF8F52 52%, #FF4D86 76%, #E0219B 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 48%, transparent 48% 51.5%, #000 51.5% 58%, transparent 58% 62.5%, #000 62.5% 68%, transparent 68% 73.5%, #000 73.5% 78%, transparent 78% 85%, #000 85%);
+  mask-image: linear-gradient(180deg, #000 0 48%, transparent 48% 51.5%, #000 51.5% 58%, transparent 58% 62.5%, #000 62.5% 68%, transparent 68% 73.5%, #000 73.5% 78%, transparent 78% 85%, #000 85%); }
+.nn-stad { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--nn-sh, 46px); }
+.nn-lijn { position: absolute; left: 0; right: 0; top: calc(var(--nn-hor) - 1px); height: 2px; background: #FFC4E8; box-shadow: 0 0 10px 2px rgba(255,79,176,.85), 0 0 28px 6px rgba(255,79,176,.35); }
+.nn-vloer { position: absolute; left: 0; right: 0; top: var(--nn-hor); bottom: 0; background: linear-gradient(180deg, #3A0B55 0%, #210839 38%, rgba(18,5,31,0) 100%); }
+.nn-vloer canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.nn-palm { position: absolute; top: calc(var(--nn-hor) - var(--nn-ph) + 6px); height: var(--nn-ph); width: calc(var(--nn-ph) * .84); }
+.nn-palm.nn-l { left: calc(var(--nn-ph) * -.2); }
+.nn-palm.nn-r { right: calc(var(--nn-ph) * -.2); transform: scaleX(-1); }
+@media (prefers-reduced-motion: no-preference) {
+  .nn-blad { animation: nn-wuif 6.5s ease-in-out infinite alternate; }
+  .nn-blad2 { animation-duration: 5.2s; animation-delay: -2s; }
+  .nn-palm.nn-r .nn-blad { animation-delay: -3.2s; }
+  .nn-gloed { animation: nn-adem 5s ease-in-out infinite alternate; }
+}
+#nn-lucht.nn-stil * { animation-play-state: paused !important; }
+@keyframes nn-wuif { from { transform: rotate(-2.4deg); } to { transform: rotate(2.2deg); } }
+@keyframes nn-adem { from { opacity: .72; } to { opacity: 1; } }
+`;
+  let neonKeus = null; // als bewaren niet kan (een afgeschermd voorbeeld): de keuze van dit bezoek
+  function dagNL() {
+    try { const v = window.__feestVoorbeeld && /^\d{4}-\d\d-\d\d/.exec(window.__feestVoorbeeld.moment || ''); if (v) return v[0]; } catch (e) {}
+    try { const p = {}; new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).forEach(x => { p[x.type] = x.value; }); if (p.year && p.month && p.day) return p.year + '-' + p.month + '-' + p.day; } catch (e) {}
+    const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
+  const isNeondag = () => neonProef || NEONDAGEN.indexOf(dagNL()) >= 0;
+  function neonUit() {
+    if (neonKeus !== null) return !neonKeus;
+    try { return localStorage.getItem(NEON) === dagNL(); } catch (e) { return false; }
+  }
+  const neonAan = () => isNeondag() && !neonUit();
+  function zetNeon(aan) {
+    neonKeus = null;
+    try { if (aan) localStorage.removeItem(NEON); else localStorage.setItem(NEON, dagNL()); if (localStorage.getItem(NEON) !== (aan ? null : dagNL())) neonKeus = aan; } catch (e) { neonKeus = aan; }
+    pasThemaToe();
+  }
+  // een oude keuze (van een eerdere neondag) ruimen we op
+  try { const u = localStorage.getItem(NEON); if (u && u !== dagNL()) localStorage.removeItem(NEON); } catch (e) {}
+
+  function pasThemaToe() {
+    const k = keuze(), dag = isNeondag(), nn = dag && !neonUit(), h = document.documentElement;
+    const donker = nn || k === 'donker' || (k === 'auto' && mq.matches);
+    if (dag) { neonStijl(); h.setAttribute('data-neondag', ''); } else h.removeAttribute('data-neondag');
+    if (nn) h.setAttribute('data-neon', ''); else h.removeAttribute('data-neon');
+    h.dataset.thema = donker ? 'donker' : 'licht';
+    document.querySelectorAll('.tg-weergave button').forEach(b => b.setAttribute('aria-pressed', String(nn ? b.dataset.thema === 'neon' : b.dataset.thema === k)));
+    try { neonWerkBij(dag, nn); } catch (e) { if (window.reportError) reportError(e); }
+  }
+
+  // de stijl van de neondag (alleen op een neondag in de pagina)
+  function neonStijl() {
+    if (document.getElementById('nn-stijl')) return;
+    const st = document.createElement('style'); st.id = 'nn-stijl'; st.textContent = NEON_CSS; document.head.appendChild(st);
+  }
+
+  // de zonsondergang achter het logo, het bordje bovenaan en de knop Neon bij licht en donker
+  let nnLucht = null, nnBord = null, nnStand = '', nnRaf = 0, nnLaatst = 0, nnZicht = true, nnStadB = 0, nnMaat = null;
+  function neonWerkBij(dag, nn) {
+    if (!window.__v6 || !document.body || !$('.held')) return;
+    const knop = document.querySelector('.tg-weergave button[data-thema="neon"]'); if (knop) knop.hidden = !dag;
+    const stand = (dag ? 'd' : '') + (nn ? 'n' : '');
+    if (stand === nnStand) return; nnStand = stand;
+    // het bordje: de hele dag, ook als neon uit staat (dan om hem weer aan te zetten)
+    if (dag && !nnBord) {
+      const main = $('main'); nnBord = document.createElement('div'); nnBord.id = 'nn-bord'; nnBord.setAttribute('role', 'group'); nnBord.setAttribute('aria-label', 'Neon');
+      nnBord.innerHTML = '<span class="nn-tekst" aria-live="polite"></span><button type="button"></button>';
+      nnBord.querySelector('button').addEventListener('click', () => zetNeon(!neonAan()));
+      main.insertBefore(nnBord, main.firstChild);
+    }
+    if (nnBord) {
+      nnBord.hidden = !dag;
+      nnBord.querySelector('.nn-tekst').innerHTML = nn ? '<span class="nn-lang">\u{1F334} Vandaag is het rommelhoekje een dagje neon</span><span class="nn-kort">\u{1F334} Een dagje neon</span>' : 'Neon staat uit';
+      nnBord.querySelector('button').textContent = nn ? 'Zet uit' : 'Zet weer aan';
+    }
+    // de zonsondergang
+    if (nn && !nnLucht) neonLuchtMaak();
+    if (nnLucht) { nnLucht.hidden = !nn; if (nn) neonMeet(); }
+    neonLoop();
+  }
+
+  function neonLuchtMaak() {
+    const d = document.createElement('div'); d.id = 'nn-lucht'; d.setAttribute('aria-hidden', 'true');
+    d.innerHTML = '<div class="nn-hemel"><div class="nn-sterren"></div><div class="nn-gloed"></div><div class="nn-zon"></div><svg class="nn-stad" xmlns="http://www.w3.org/2000/svg"></svg></div>' +
+      '<div class="nn-vloer"><canvas></canvas></div><div class="nn-lijn"></div>' + neonPalm('nn-l') + neonPalm('nn-r');
+    document.body.insertBefore(d, document.body.firstChild);
+    nnLucht = d;
+    let wacht = 0; const opnieuw = () => { cancelAnimationFrame(wacht); wacht = requestAnimationFrame(neonMeet); };
+    addEventListener('resize', opnieuw); addEventListener('load', opnieuw);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(opnieuw);
+    setTimeout(opnieuw, 1500); // de sticker komt soms pas later op zijn plek
+    if ('ResizeObserver' in window) new ResizeObserver(opnieuw).observe($('.held'));
+    if ('IntersectionObserver' in window) new IntersectionObserver(l => { nnZicht = l[l.length - 1].isIntersecting; d.classList.toggle('nn-stil', !nnZicht); neonLoop(); }).observe(d);
+    document.addEventListener('visibilitychange', neonLoop);
+  }
+
+  // waar de horizon, de zon en de palmen komen: de horizon net onder het logo, de zon tussen RUBEN'S en de sticker
+  function neonMeet() {
+    const L = nnLucht; if (!L || L.hidden) return;
+    const held = $('.held'), zw = $('.held .tape.zwart') || $('.held h1'), rood = $('.held .tape.rood') || zw; if (!held || !zw) return;
+    const vw = document.documentElement.clientWidth, sy = scrollY;
+    const hor = Math.round(zw.getBoundingClientRect().bottom + sy + 8), hoog = Math.round(held.getBoundingClientRect().bottom + sy + 90);
+    const zd = Math.round(Math.max(130, Math.min(330, hor * .95)));
+    const stk = $('.sticker'), sr = stk && getComputedStyle(stk).visibility !== 'hidden' ? stk.getBoundingClientRect() : null;
+    const rechts = sr && sr.width ? sr.left : vw - 10, links = rood.getBoundingClientRect().right;
+    const zx = Math.round(Math.max(zd / 2 + 8, Math.min(vw - zd / 2 - 8, (links + rechts) / 2)));
+    const ph = Math.round(Math.max(150, Math.min(330, hor * 1.08))), sh = Math.round(Math.max(28, Math.min(58, hor * .17)));
+    nnMaat = { vw, hor, hoog, zd, zx };
+    const s = L.style; s.setProperty('--nn-hor', hor + 'px'); s.setProperty('--nn-h', hoog + 'px'); s.setProperty('--nn-zd', zd + 'px'); s.setProperty('--nn-zx', zx + 'px'); s.setProperty('--nn-ph', ph + 'px'); s.setProperty('--nn-sh', sh + 'px');
+    if (nnStadB !== vw + 'x' + sh) { nnStadB = vw + 'x' + sh; neonStad(L.querySelector('.nn-stad'), vw, sh); }
+    neonRaster(performance.now());
+  }
+
+  // een stad aan de horizon: lage huizen, hotels met een getrapt dak en een paar torens, met hier en daar licht achter de ramen
+  function neonStad(svg, w, h) {
+    let z = 20261119; const r = () => (z = (z * 16807) % 2147483647) / 2147483647;
+    const kleur = ['#FFD9A0', '#8CF7FF', '#FF9AD6'];
+    let p = '', ramen = '', x = -6 - Math.floor(r() * 20);
+    while (x < w + 6) {
+      const bw = 14 + Math.floor(r() * 40), toren = r() < .14, bh = Math.round(h * (toren ? .8 + r() * .2 : .3 + r() * .45));
+      const top = h - bh;
+      if (toren) { p += `M${x} ${h}V${top}h${bw}V${h}Z`; const sx = x + bw / 2; p += `M${sx - 1} ${top}V${Math.max(1, top - h * .18)}h2V${top}Z`; }
+      else if (r() < .3 && bw > 26) { const t2 = Math.round(bw * .28); p += `M${x} ${h}V${top}h${t2}v${-Math.round(h * .08)}h${bw - 2 * t2}v${Math.round(h * .08)}h${t2}V${h}Z`; }
+      else p += `M${x} ${h}V${top}h${bw}V${h}Z`;
+      for (let ry = top + 4; ry < h - 3; ry += 6) for (let rx = x + 3; rx < x + bw - 3; rx += 5) if (r() < .16) ramen += `<rect x="${rx}" y="${ry}" width="2" height="2.5" fill="${kleur[Math.floor(r() * 3)]}"/>`;
+      x += bw + (r() < .25 ? Math.floor(r() * 10) : 0);
+    }
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`); svg.setAttribute('preserveAspectRatio', 'none');
+    svg.innerHTML = `<path d="${p}" fill="#170430" stroke="#FF6FC0" stroke-opacity=".35" stroke-width="1"/>${ramen}`;
+  }
+
+  // een palm als silhouet (links, of gespiegeld rechts), met een kleinere palm erachter; de bladeren wuiven zacht
+  function neonPalm(kant) {
+    const C = [150, 76], f = n => n.toFixed(1);
+    const blad = (a, len, zak, br) => {
+      const r = a * Math.PI / 180, ex = C[0] + Math.cos(r) * len, ey = C[1] + Math.sin(r) * len + zak;
+      const mx = C[0] + Math.cos(r) * len * .5, my = C[1] + Math.sin(r) * len * .5 - len * .2;
+      const dx = ex - C[0], dy = ey - C[1], l = Math.hypot(dx, dy) || 1, nx = -dy / l * br, ny = dx / l * br;
+      return `M${C[0]} ${C[1]}Q${f(mx + nx)} ${f(my + ny)} ${f(ex)} ${f(ey)}Q${f(mx - nx)} ${f(my - ny)} ${C[0]} ${C[1]}Z`;
+    };
+    const kruin = [[-176, 104, 58], [-152, 98, 30], [-124, 76, 12], [-98, 58, 4], [-70, 74, 10], [-40, 96, 28], [-10, 106, 56], [168, 70, 56], [12, 72, 60]];
+    let b = ''; for (const [a, len, zak] of kruin) b += blad(a, len, zak, 10) + blad(a + 7, len * .86, zak + 8, 6);
+    const stam = 'M110 320Q114 200 144 80L157 82Q128 200 130 320Z';
+    const ringen = [300, 270, 240, 210, 180, 150, 122, 98].map(y => { const t = (320 - y) / 240, x = 120 + t * t * 30 + t * 4; return `M${f(x - 9 + t * 3)} ${y}q${f(9 - t * 3)} -3 ${f(18 - t * 6)} 1`; }).join('');
+    const palm = (tr, kleur, rand, extra) => `<g transform="${tr}"><path d="${stam}" fill="${kleur}" stroke="${rand}" stroke-opacity=".45" stroke-width="1.4"/><path d="${ringen}" fill="none" stroke="${rand}" stroke-opacity=".22" stroke-width="1.2"/><g class="nn-blad${extra}" style="transform-origin:${C[0]}px ${C[1]}px"><path d="${b}" fill="${kleur}" stroke="${rand}" stroke-opacity=".45" stroke-width="1.2"/><circle cx="146" cy="84" r="6" fill="${kleur}"/><circle cx="156" cy="86" r="5.5" fill="${kleur}"/></g></g>`;
+    return `<svg class="nn-palm ${kant}" viewBox="0 0 270 320" xmlns="http://www.w3.org/2000/svg">${palm('translate(10 122) scale(.6)', '#22073F', '#FF6FC0', ' nn-blad2')}${palm('', '#0D0219', '#FF6FC0', '')}</svg>`;
+  }
+
+  // het raster op de grond: lijnen naar de zon toe, en dwarslijnen die langzaam naar je toe komen (30 beelden per seconde,
+  // alleen als het in beeld is en beweging mag; anders staat het stil)
+  function neonRaster(t) {
+    const c = nnLucht && nnLucht.querySelector('canvas'), m = nnMaat; if (!c || !m || nnLucht.hidden) return;
+    const w = c.clientWidth, h = c.clientHeight; if (!w || !h) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1), cw = Math.round(w * dpr), ch = Math.round(h * dpr);
+    if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
+    const g = c.getContext('2d'); if (!g) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    const vx = m.zx, ver = Math.max(60, h * .78), fase = minder ? .35 : (t / 2200) % 1, s = .42;
+    g.beginPath();
+    for (let k = -3; k < 40; k++) { const q = 1 + (k + 1 - fase) * s; if (q < .05) continue; const y = ver / q; if (y > h + 2) continue; if (y < 1.5) break; g.moveTo(0, y); g.lineTo(w, y); }
+    const sp = Math.max(56, Math.min(110, w / 13)), n = Math.ceil(Math.max(vx, w - vx) / (sp * h / ver)) + 1;
+    for (let j = -n; j <= n; j++) { g.moveTo(vx, 0); g.lineTo(vx + j * sp * 1.6, ver * 1.6); }
+    const grad = a => { const l = g.createLinearGradient(0, 0, 0, h); l.addColorStop(0, 'rgba(255,79,176,0)'); l.addColorStop(.12, `rgba(255,79,176,${a * .6})`); l.addColorStop(.38, `rgba(255,95,190,${a})`); l.addColorStop(.72, `rgba(255,79,176,${a * .45})`); l.addColorStop(1, 'rgba(255,79,176,0)'); return l; };
+    g.lineWidth = 4; g.strokeStyle = grad(.22); g.stroke();
+    g.lineWidth = 1.4; g.strokeStyle = grad(.95); g.stroke();
+  }
+  function neonLoop() {
+    const mag = nnLucht && !nnLucht.hidden && nnZicht && !document.hidden && !minder;
+    if (!mag) { cancelAnimationFrame(nnRaf); nnRaf = 0; return; }
+    if (nnRaf) return;
+    const stap = t => { nnRaf = requestAnimationFrame(stap); if (t - nnLaatst < 32) return; nnLaatst = t; neonRaster(t); };
+    nnRaf = requestAnimationFrame(stap);
+  }
+  // de dag kan veranderen terwijl de pagina openstaat (middernacht), of in een ander tabblad aan of uit gaan
+  const neonKijk = () => { if ((isNeondag() ? 'd' : '') + (neonAan() ? 'n' : '') !== nnStand) pasThemaToe(); };
+  setInterval(neonKijk, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) neonKijk(); });
+  addEventListener('pageshow', neonKijk);
+
   pasThemaToe();
   if (mq.addEventListener) mq.addEventListener('change', pasThemaToe); else if (mq.addListener) mq.addListener(pasThemaToe);
-  addEventListener('storage', e => { if (e.key === THEMA) pasThemaToe(); });
+  addEventListener('storage', e => { if (e.key === THEMA || e.key === NEON) pasThemaToe(); });
 
   // ================= korte zinnen onder de tegels
   const ONDERSCHRIFT = { 'rommelgracht.html': 'Wandel langs een echte Amsterdamse gracht', 'coulissenkoor.html': 'Negen zangers uit de coulissen', 'helpdesk.html': 'Een oplichter die altijd verliest', 'rommelcasino.html': 'Speelfiches, neon en een rekenuil', 'rommelgroepjes.html': 'Zestien woorden, vier groepjes', 'cryptisch.html': 'Eén zin, één woord, geen hints', 'letterval.html': 'Veeg woorden uit de letterkist', 'klinkermijnen.html': 'Vind de woorden, ontwijk de klinkers', 'reclame.html': 'Zes reclamespelletjes, maar dan echt', 'huisopstelten.html': 'Twee katten en een lijstje streken', 'rubendeduiker.html': 'Overdag duiken, \'s avonds koken', 'rommelhotel-online.html': 'Live met je vrienden', 'rommelhotel.html': 'Een pixelhotel om in rond te lopen', 'rommelblok.html': 'Bouw je eigen blokkenwereld', 'rommelland.html': 'Bouw je eigen 3D-pretpark', 'rommelarend.html': 'Vlieg als arend over vier wereldsteden', 'rommelbeesten.html': 'Pakjes, kaarten en gevechten', 'vlaaienbakker.html': 'Bak een Limburgs vlaaienrijk', 'rommelpoker.html': 'Poker op de rommelmarkt', 'vouwvlieger.html': 'Vouw, gooi en vlieg zo ver je kunt', 'rommelritme.html': 'Spring op de maat van de muziek', 'rob.html': 'Geef Rob een duimpje', 'productiefiets.html': 'Fiets over het Bata-terrein', 'rommelwheels.html': 'Slappe poppetjes, rare karretjes', 'steigerstress.html': 'Laad de steiger in voor Jan', 'rommelwoord.html': 'Raad het woord van de dag', 'rommelkroon.html': 'Eén kroon per rij, kolom en kleur', 'rommelbel.html': 'Schiet bellen van dezelfde kleur', 'rommelsteek.html': 'Rustig borduren, steek voor steek', 'scorebord.html': 'Wie staat er bovenaan?', 'ideeenbox.html': 'Stuur je idee in', 'mengelmoes.html': 'Combineer alles tot iets nieuws', 'opgevoel.html': 'Hoe goed is je gevoel?', 'rommelrecht.html': 'Rustig opruimen, alles op zijn plek' };
@@ -3595,9 +3823,15 @@ html[data-thema="donker"] .rm-bel, html[data-thema="donker"] .rm-toast { backgro
       const w = document.createElement('div'); w.className = 'tg-weergave'; w.setAttribute('role', 'group'); w.setAttribute('aria-label', 'Licht of donker');
       w.innerHTML = `<button type="button" data-thema="auto"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg><span class="tg-woord">Automatisch</span></button>
         <button type="button" data-thema="licht"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg><span class="tg-woord">Licht</span></button>
-        <button type="button" data-thema="donker"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z"/></svg><span class="tg-woord">Donker</span></button>`;
+        <button type="button" data-thema="donker"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z"/></svg><span class="tg-woord">Donker</span></button>
+        <button type="button" data-thema="neon" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M4.5 13a7.5 7.5 0 0 1 15 0z M5.2 9.6h13.6v1.1H5.2z M4.6 11.7h14.8v1.1H4.6z"/><path d="M3 16.2h18M6 19.4h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="tg-woord">Neon</span></button>`;
       balk.appendChild(w);
-      w.addEventListener('click', e => { const b = e.target.closest('button[data-thema]'); if (!b) return; try { if (b.dataset.thema === 'auto') localStorage.removeItem(THEMA); else localStorage.setItem(THEMA, b.dataset.thema); } catch (x) {} pasThemaToe(); });
+      w.addEventListener('click', e => {
+        const b = e.target.closest('button[data-thema]'); if (!b) return;
+        if (b.dataset.thema === 'neon') { zetNeon(true); return; }
+        try { if (b.dataset.thema === 'auto') localStorage.removeItem(THEMA); else localStorage.setItem(THEMA, b.dataset.thema); } catch (x) {}
+        if (neonAan()) zetNeon(false); else pasThemaToe(); // op de neondag: licht, donker of automatisch zet neon uit
+      });
       pasThemaToe();
     }
     // het briefje: geen gereedschap meer, maar rommeltjes

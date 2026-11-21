@@ -1,0 +1,171 @@
+# Plan: een muntenschuiver
+
+Voorstel van 21 november 2026, door Claude Code. **Nog niet goedgekeurd.** Eerst kiest Ruben een naam en zegt hij ja (of nee) tegen de keuzes hieronder. Dan bouw ik een **proefpagina** (de kast, de schuiver en zoveel munten als soepel kan, nog zonder bonussen), die Ruben op zijn telefoon en MacBook uitprobeert. Pas als die er prachtig uitziet en soepel loopt, bouw ik de rest.
+
+Een nieuw spel: een muntenschuiver zoals op de kermis en in een arcadehal. Je laat munten in een gleuf vallen, een schuiver duwt ze naar voren, en wat over de rand kiept, valt in je bakje. Alles eigen werk: geen namen, kasten, munten, geluiden of teksten van echte automaten, merken of andere spellen. Alleen speelmunten: nooit echt geld, niets te koop, geen reclame.
+
+## 1. De naam
+
+| Naam | Waarom |
+|---|---|
+| **Rommelschuiver** (mijn voorkeur) | Past in het rijtje Rommelbel, Rommelkroon, Rommelland; zegt meteen wat het is. Pagina `rommelschuiver.html`, opslag `rommelschuiver-v1`. |
+| **De Muntenschuiver** | Het gewone woord; duidelijk voor iedereen. |
+| **Kermiskiepers** | Grappig en kermisachtig ("kiepen" = over de rand vallen), minder duidelijk wat het is. |
+| **Kiepkast** | Kort en stoer; het bord op de kast leest lekker. |
+
+Op het bord bovenop de kast komt de naam in neonletters. Hieronder schrijf ik verder **Rommelschuiver**.
+
+## 2. De natuurkunde: eigen werk, gemaakt voor munten
+
+### Wat ik al gemeten heb
+
+Ik heb **Rapier** geprobeerd (versie 0.21, de snelste uitvoering met SIMD; licentie Apache 2.0). Rapier staat **niet op cdnjs**, dus hij zou als eigen bestand naast de pagina moeten (1,65 MB ingepakt), en het veiligheidsbeleid zou `'wasm-unsafe-eval'` nodig hebben. Gemeten op één kern van de computer in de cloud (een Xeon van 2,3 GHz, ongeveer half zo snel als een MacBook met een M-chip), met een speelveld van 30 bij 24 muntstralen en een schuiver die heen en weer gaat:
+
+| Proef | Tijd per stap (60 per seconde) | Wakkere munten |
+|---|---|---|
+| 650 munten (450 onder, 200 bovenop de schuiver) | 6,0 ms (de traagste 10%: 6,7 ms) | **alle 650** |
+| Dezelfde 650, met mijn eigen slaaplaag over Rapier heen | 8,2 ms | nog 553 |
+| Munten in hoge stapels | 300 munten 7,8 ms, 1.000 munten 49 ms | alle |
+
+**Het probleem**: Rapier laat munten pas slapen als hun hele "eiland" stilligt (alles wat elkaar aanraakt). In een muntenschuiver raken alle munten elkaar, en de schuiver beweegt altijd. Dus slaapt er nooit een munt, en kost elke munt altijd rekenwerk: ongeveer 1 ms per 100 munten op deze computer. Met 2.000 munten wordt dat 20 ms per stap: te veel voor een telefoon, en een MacBook gaat blazen. Een eigen slaaplaag eroverheen bouwen werkt tegen Rapier in (het wisselen kost tijd, en de schuiver botst niet met munten die ik op "vast" heb gezet).
+
+### Mijn keuze: eigen muntennatuurkunde
+
+Ik schrijf zelf een natuurkunde die alleen munten (en ronde voorwerpen) hoeft te kunnen, met **drie standen per munt**:
+
+1. **Slapen.** Ligt stil en kost niets. Een munt bovenop de schuiver slaapt *ten opzichte van de schuiver*: hij rijdt mee zonder rekenwerk, tot iets hem raakt (bijvoorbeeld de achterwand die hem eraf schraapt).
+2. **Schuiven.** Een munt die ergens plat op ligt (de vloer, de schuiver, andere munten). Hij schuift en draait over de ondergrond, botst met munten op dezelfde hoogte, wordt door wrijving meegenomen door wat eronder beweegt, en **klimt over een andere munt heen** als hij klem zit (zo ontstaan de lagen munten die over elkaar schuiven). Zijn hoogte en schuinte volgen uit wat eronder ligt, dus een munt die half op een andere ligt, ligt ook echt scheef. Dit is snel: een paar duizend munten in een paar milliseconden, en munten kunnen nooit door elkaar of door de vloer zakken.
+3. **Vallen.** Echte 3D-natuurkunde: zwaartekracht, draaien, stuiteren, rollen op de rand, botsen met de pinnetjes, de rand, de bak en andere munten. Een munt komt in deze stand als hij uit de gleuf komt, over een rand kiept of ergens vanaf valt. Ligt hij weer stil, dan gaat hij terug naar schuiven en slapen.
+
+**Over de rand kiepen**: per munt reken ik uit of hij nog gedragen wordt, **met het gewicht van de munten die op hem liggen**. Een munt die uitsteekt, maar met zijn achterkant onder andere munten ligt, blijft dus hangen; zo ontstaat een rand die steeds verder uitsteekt, tot het zwaartepunt eroverheen gaat en er een hele plak tegelijk afkiept. Precies het moment waar je bij een echte muntenschuiver op zit te wachten.
+
+De natuurkunde draait in een **eigen hulpje (Web Worker)**, zodat het tekenen nooit hoeft te wachten. Dat hulpje staat in de pagina zelf (zoals de kaartbouwer van Rommelarend), dus er komt geen extra bestand bij, en het veiligheidsbeleid blijft zoals bij de andere 3D-spellen (`worker-src 'self' blob:` staat er al).
+
+**Voordelen**: geen download van 1,65 MB, geen `'wasm-unsafe-eval'`, munten die echt slapen, en alles precies afgesteld op munten. **Nadeel**: het is nieuw werk, dus er kunnen in het begin rare dingen gebeuren. Daarom komt het eerst in de proefpagina, met een test die zoekt naar munten die door de vloer of door elkaar zakken, of blijven trillen.
+
+**De reserve**: lukt het in de proefpagina niet om het echt en stabiel te krijgen, dan stap ik over op Rapier in het hulpje, met minder munten die echt bewegen (ongeveer 500) en de rest als siermunten in de bak en op de randen. Dat zeg ik dan eerlijk, met de metingen erbij.
+
+## 3. Het budget (zuinig en soepel)
+
+Hoogstens 60 beelden per seconde. Een keuze **Zuinig, Normaal of Mooi** bij Instellingen, met een automatische keuze (zoals bij Rommelland en Rommelarend: een telefoon met weinig kernen of geheugen Zuinig, anders Normaal; houdt het apparaat het niet bij, dan een stand lager).
+
+| | Zuinig | Normaal | Mooi |
+|---|---|---|---|
+| Beelden per seconde | 30 | 60 | 60 |
+| Munten in de machine | 500 | 1.000 | 1.600 |
+| Munten in de bak (je winst, siermunten) | 300 | 1.000 | 2.000 |
+| Tegelijk in de stand "vallen" | hooguit 40 | 80 | 150 |
+| Natuurkunde per beeld (in het hulpje) | ≤ 2 ms | ≤ 3 ms | ≤ 5 ms |
+| Tekenen per beeld (processor) | ≤ 3 ms | ≤ 4 ms | ≤ 5 ms |
+| Tekenopdrachten | ≤ 40 | ≤ 60 | ≤ 90 |
+| Driehoeken | ≤ 150.000 | ≤ 400.000 | ≤ 1.000.000 |
+| Scherpte | 1 | tot 1,5 | tot 2 |
+| Gloed om de lampjes | nee | lichtpuntjes | echte gloed |
+| Schaduw onder de munten | een vlekje per munt | zachte schaduwkaart | zachte schaduwkaart, vaker bijgewerkt |
+| Weerspiegelingen | eenvoudig | de arcadehal | de arcadehal, en het glas |
+
+**Doelen op echte apparaten**: een MacBook blijft koel en stil (op Normaal samen hooguit een derde van één kern tijdens het spelen), en een gewone telefoon van een paar jaar oud loopt op Normaal op 60 beelden per seconde.
+
+**De slaapstand**: speel je 20 seconden niet, dan maakt de schuiver zijn slag af en stopt hij. Zodra alle munten slapen, rekent en tekent het spel niets meer (de lampjes branden stil). Ook niets in een verborgen tabblad. Een tik, een toets of de muis maakt alles weer wakker.
+
+**Meten**: ik meet in de cloud (Chromium met software-tekenen) op computerformaat (1280 × 800) en telefoonformaat (390 × 844, met een vier keer vertraagde processor): tijd per beeld met het tekenen erbij, de rekentijd van de natuurkunde, en hoeveel munten slapen, schuiven en vallen. Software-tekenen zegt weinig over de grafische kaart, dus de proefpagina krijgt een **meetpaneeltje** (zet `?meet` achter het adres): daarop staan die getallen live, zodat Ruben ze op zijn eigen telefoon en MacBook kan aflezen (een schermafbeelding is genoeg).
+
+## 4. De machine (zo echt mogelijk)
+
+- **De kast**: een gelakte kast met chromen randen (die de lampjes weerspiegelen), een verlicht front, een glazen voorkant en zijkanten, en bovenop een bord met de naam in neonletters. Ledlampjes rondom die rondlopen (één tekenopdracht voor alle lampjes, de kleuren per lampje). Het glas weerspiegelt de lampjes en de hal, met een paar vingerafdrukken en krasjes (zelf getekend, alleen te zien als het licht erop valt).
+- **De munten**: metaal (messing en zilver, en een paar gouden), met een **gekartelde rand**, een **afgesleten glans** (elke munt iets anders: de ene glimt, de andere is dof) en een **eigen ontwerp in reliëf**: een vlaai, een kroontje en Moeki, en op de achterkant een getal. Het reliëf is een normal map die het spel zelf tekent (geen plaatjes van buiten).
+- **Het speelveld, twee verdiepingen**: bovenin een **gleuf** over de hele breedte; de munt valt rechtop tussen **pinnetjes** (achter het glas) naar beneden en komt op de **bovenste verdieping**: de bovenkant van de schuiver. Een vaste achterwand schraapt de munten eraf als de schuiver terugschuift; ze vallen dan op de **onderste verdieping**. Daar duwt de voorkant van de schuiver alles naar voren. Wat over de voorrand kiept, valt in **de bak** (gewonnen); wat over een zijrand valt, verdwijnt in een **zijgoot** (weg). Zo werken echte muntenschuivers.
+- **Licht**: materialen die op het licht reageren (PBR), een omgeving die het spel zelf maakt (een arcadehal met gekleurd licht) voor de weerspiegelingen, zachte schaduwen onder de munten (een kaartje van bovenaf, dat alleen bijgewerkt wordt als er iets bewogen heeft) en gloed om de lampjes.
+- **De sfeer**: achter de kast een arcadehal, onscherp: andere automaten, een grijpkraan, gekleurde lichtjes die zachtjes knipperen (één plaatje dat het spel zelf tekent, met een beetje diepte als je beweegt). Alles eigen tekeningen.
+- **De camera**: je staat voor de kast en kijkt erin, een beetje van boven. Een knopje om dichterbij te kijken. Op Mooi beweegt het beeld een klein beetje mee met de muis of het kantelen van je telefoon.
+- three.js **r128** van cdnjs met dezelfde SRI-hash als Rommelland, Rommelarend en de Rommelgracht (staat dus vaak al in de opslag van de browser). Alle munten in één keer (InstancedMesh), met eenvoudiger munten op Zuinig en een telefoon.
+
+## 5. Spelen
+
+- **Munten erin**: tik of klik boven de gleuf waar de munt moet vallen. Houd je ingedrukt, dan valt er een rijtje (hooguit 4 per seconde). Op het toetsenbord: pijltjes om te mikken, spatie om te laten vallen (ingedrukt houden voor een rijtje). Een munt kost 1 munt uit je bakje.
+- **De bonusgleuf**: onderaan de pinnetjes zitten drie uitgangen; de middelste heeft een lampje en het woord BONUS. Valt je munt daardoorheen, dan draait **het rad** (of lopen de lampjes rond). Of je munt daar komt, is gewone natuurkunde (de pinnetjes); wat het rad geeft, komt uit `crypto.getRandomValues`, en het rad **toont altijd zijn kansen**:
+
+  | Vakje | Aantal van de 16 | Kans | Wat |
+  |---|---|---|---|
+  | 5 munten | 6 | 37,5% | 5 munten vallen in de machine |
+  | 10 munten | 4 | 25% | 10 munten |
+  | 20 munten | 2 | 12,5% | 20 munten |
+  | Muntenregen | 1 | 6,25% | 40 munten, verspreid over de bovenste verdieping |
+  | Lampjesronde | 1 | 6,25% | 10 seconden lang valt elke munt dubbel |
+  | Voorwerp | 1 | 6,25% | een voorwerp voor je verzameling valt in de machine |
+  | Gouden munt | 1 | 6,25% | een grote gouden munt (in je bakje 25 munten waard) |
+
+  De prijzen vallen **als echte munten in de machine**: je moet ze er nog uit duwen. De getallen stel ik af met een robot (zie 7), en ze staan ook bij "Hoe eerlijk is het?".
+- **Geluid** (Web Audio, alles zelf gemaakt, pas na de eerste tik): het rinkelen van munten (metaal op metaal, op glas, op de bak; elk tikje iets anders, en als er veel tegelijk vallen, worden ze samengevoegd tot één rinkelende golf in plaats van honderd losse tikjes), het zoemen en klikken van de schuiver, een doffe klap als er een plak munten over de rand gaat, het ratelen van het rad, en zachte arcademuziek met de hal op de achtergrond. Knoppen voor geluid en muziek.
+- **Trillen**: een kort tikje als er munten in je bakje vallen (alleen op telefoons die het kunnen; een iPhone kan het niet vanuit een webpagina).
+- **Minder beweging**: geen camerabeweging, geen knipperende lampjes (ze branden stil), geen flitsen. De munten bewegen wel, want dat is het spel.
+- Een schermlezer hoort wat er gebeurt ("12 munten gewonnen", "Bonus! Het rad draait").
+
+## 6. Bijzondere voorwerpen en de verzameling
+
+Tussen de munten liggen af en toe **bijzondere voorwerpen**. Valt er een in de bak, dan komt het in je verzameling (heb je hem al, dan is hij 25 munten waard). Ze komen op drie manieren in de machine: van het rad (vakje Voorwerp), **elke dag één dagprijs** (bij je eerste munt van de dag ligt er een voorwerp dat je nog niet hebt op de bovenste verdieping), en heel af en toe met een gewone munt (1 op 250, uit `crypto.getRandomValues`, en ook die kans staat bij "Hoe eerlijk is het?").
+
+**24 stukken**, in drie series (het totaal komt als `voortgangTotaal` in de opslag):
+
+- **Beeldjes uit de spellen** (12, op een rond voetstukje): een vlaai (Vlaaienbakker), een kroontje (Rommelkroon), Moeki en Floortje (Huis op stelten), een Rommelbeest, een papieren vliegtuigje (Vouwvlieger), een arend (Rommelarend), een duikhelm (Ruben de Duiker), de productiefiets, een duim (Rob 👍), een speelfiche (Casino Rommelroyaal) en een muzieknoot (Coulissenkoor).
+- **Edelstenen** (6): robijn, saffier, smaragd, amethist, topaas en (heel zeldzaam) een diamant. Geslepen, met licht dat erdoorheen schittert.
+- **Bijzondere munten** (6): de grote gouden Rommelmunt, een zilveren munt, een koperen centje met een gaatje, een piratenmunt, een sterrenmunt en een munt uit 1926 (van het Rommelhotel).
+
+Voor de natuurkunde heeft elk voorwerp een rond voetstukje of een ronde vorm, zodat het zich gedraagt als een dikke munt; daarop staat de tekening. De verzameling is een kastje met vakjes (zoals de prijzenkast van Zoals in de reclame); een leeg vakje toont een schaduw.
+
+**Feestvoorwerpen** (tellen niet mee voor de 24, net als de Feestset van Rommelbeesten): met de kerst een kerstmunt, met oud en nieuw een vuurwerkmunt (zie 9).
+
+## 7. Speelmunten en eerlijkheid
+
+- **Alleen speelmunten**, buiten dit spel niets waard. Je begint met 150. **Elke dag 100 gratis munten** (bij je eerste bezoek van de dag), zodat je nooit blijft steken.
+- **Het huis wint een beetje, net als bij een echte muntenschuiver**: door de zijgoten. Ik stel de machine af met een **robot** die uren speelt met dezelfde natuurkunde (in Node, versneld): met de bonussen erbij moet er gemiddeld **88 tot 96 van elke 100 munten** terugkomen. Een paneeltje **"Hoe eerlijk is het?"** legt dat uit, met de gemeten getallen, de kansen van het rad en de voorwerpen, en hoeveel van jouw munten in de bak en in de zijgoten vielen (zoals "Waarom het huis altijd wint" in het casino).
+- **Geen manier om eindeloos munten te maken**:
+  - elke munt is een echt ding: hij telt precies één keer, op het moment dat hij in de bak valt;
+  - je munten en het aantal munten in de machine worden **samen** bewaard: dicht doen en opnieuw openen maakt geen munten erbij;
+  - kan de stapel van dit apparaat niet geladen worden (een ander apparaat, of de opslag is weg), dan maakt het spel een geloofwaardige stapel met **precies evenveel munten**, die niet vlak bij de rand liggen (dus geen voordeel);
+  - een voorwerp in de machine staat ook in de opslag; het kan niet dubbel uit de machine komen.
+- **Even pauze**: zoals in het casino vraagt Moeki na een tijdje spelen (20, 30, 45 of 60 minuten, bij Instellingen) of je even iets anders wilt doen. Geen aftelklokken, geen "nog één keer" na verlies.
+- **Los van het casino**: de munten en de fiches van Casino Rommelroyaal hebben niets met elkaar te maken. Het casino heeft al een kleine Muntjesduwer (2D, met fiches) op de Boulevard. **Voorstel**: daar een deurtje "Naar de echte muntenschuiver" (alleen een link; er gaat niets van het een naar het ander).
+
+## 8. Bewaren en koppelen
+
+- **`rommelschuiver-v1`** (in `SLEUTELS`, gaat mee met koppelen; een paar honderd tekens):
+  `{ v: 1, m: munten in je bakje, mm: munten in de machine, mi: [voorwerpen in de machine], d: laatste dag gratis munten, dp: laatste dag van de dagprijs, n: munten ingegooid (ooit), vz: [je verzameling], st: { uit: in de bak, zij: in de zijgoot, bonus, rad: {...} }, inst: { geluid, muziek, pauze }, voortgangTotaal: 24 }`
+- **De REGELS** (in het gedeelde blok én de scoreserver, letterlijk gelijk), zoals bij het casino (`geld: true`): je munten, de machine en de dagen (`m`, `mm`, `mi`, `d`, `dp`) komen **in één keer** van de versie met de meeste voortgang (de maat: munten ingegooid, dan je verzameling); ze worden nooit opgeteld. De verzameling wordt samengevoegd (`samenLijst`), de tellers ook. Omdat er geld in zit, vraagt een tweede apparaat waar je verder wilt spelen (zoals bij het casino). Gedeeld blok `BV = 17`, scoreserver `BLOK_NU = 17`.
+- **Hoe de munten in de machine liggen** staat alleen op dit apparaat, in **`rommelschuiver-machine`** (bewust niet in `SLEUTELS`): per munt de plek, de stand en het ontwerp, in een paar bytes (ongeveer 8 bytes per munt, 1.000 munten zo'n 11 kB), plus een controlegetal dat bij `rommelschuiver-v1` hoort. Klopt dat niet, of is het kapot, dan maakt het spel een geloofwaardige stapel (zie 7).
+- **`rommelschuiver-apparaat`** (ook niet in `SLEUTELS`): de kwaliteit (Zuinig, Normaal, Mooi, automatisch).
+- Beide staan straks in `privacy.html`, ook in de tabel "Hoe lang".
+
+## 9. Op de rest van de site
+
+- **De scoreserver** (versie 2026-11-15): de REGELS voor `rommelschuiver-v1`, `TIJD_SPEL` voor de tijdmachine, `BLOK_NU = 17`, `/status` zegt `schuiver: 1`, en (als Ruben dat wil) het scorebord `schuiver`. In Cloudflare draait nu **2026-11-14** (dat zegt `/status`); **Ruben, wil je die code plakken als we bij stap 3 zijn?** Ik bouw de nieuwe versie daarop, en lever hem als volledig bestand. De pagina gaat pas online als die in Cloudflare staat (de proefpagina mag eerder: die bewaart nog niets dat meegaat met koppelen).
+- **Het scorebord** (optioneel): spel `schuiver`, score = stukken in je verzameling (hooguit 24), extra = alle munten die je ooit won. Staat op `scorebord.html`.
+- **De homepage** (`homepage-onderdelen.js`): icoon `schuiver` (een kastje met een schuiver en munten die over de rand vallen; ook het favicon en het icoon in de kop van het spel), categorie Snel een potje, onderschrift "Duw de muntjes over de rand", voortgang "x van 24 voorwerpen". Het label zet Ruben zelf met de werkplaats.
+- **De banner** in `banners.json` (en een ontwerp in `banners.js`) met grappige teksten, zoals "Nog één muntje en dan valt die rand…", "Moeki ligt op het randje. Duw hem eraf!", "Geen echt geld. Wel echt rinkelen."
+- **De werkplaats**: `SPELICONEN`, `ICOON_OPTIES`, `raadIcoon`, `SPELINFO['rommelschuiver-v1']` (met een cadeautje munten) en `KAN.schuiver`.
+- **De feestkalender** (via `Scorebord.feest`, alleen kijken, niets in de feestverzameling):
+  - **kerst**: sneeuw op de kast, lichtjes in de hal, en kerstmunten tussen de gewone (een eigen ontwerp: een kerstster), plus het feestvoorwerp **kerstmunt**;
+  - **oud en nieuw**: vuurwerk door de grote ramen van de arcadehal (op oudjaar 's avonds, en om middernacht volop), plus het feestvoorwerp **vuurwerkmunt**;
+  - **Sinterklaas** (voorstel): chocolademunten in goudpapier tussen de munten.
+  - Bij minder beweging of met de versiering uit: geen sneeuw en geen vuurwerk.
+
+## 10. De stappen
+
+1. **Dit plan.** Ruben kiest een naam en zegt ja of nee tegen de keuzes.
+2. **De proefpagina**: de kast, de schuiver, de gleuf met de pinnetjes, de twee verdiepingen, de bak en de zijgoten, zoveel munten als soepel kan, munten erin gooien, Zuinig/Normaal/Mooi, de slaapstand en het meetpaneeltje. Nog zonder bonussen, verzameling, scorebord of koppelen. Ik zet hem online op een adres dat nergens gelinkt is (`rubensrommelhoekje.nl/rommelschuiver.html`), zodat Ruben hem op zijn telefoon en MacBook kan proberen. Ik lever de metingen en schermafbeeldingen erbij.
+3. **De rest**: bonusgleuf en rad, voorwerpen en de verzameling, het geld en de dagelijkse munten, bewaren en koppelen, "Hoe eerlijk is het?", de pauze, de feestdagen, de scoreserver, de homepage, de banner, de werkplaats en de privacyverklaring.
+4. **Testen**:
+   - **met code** (in Node, met de natuurkunde uit de pagina): geen munten door de vloer of door elkaar, geen munten die blijven trillen, elke munt in de bak telt precies één keer, geen manier om eindeloos munten te maken (ook niet met opnieuw laden), de kansen van het rad kloppen met wat het rad toont (een miljoen keer draaien), de robot voor de terugbetaling, bewaren en laden (ook kapotte opslag), en de REGELS met twee en drie apparaten;
+   - **in een echte browser** (Chromium, en waar het kan WebKit): telefoon- en computerformaat, licht en donker, met muis, vinger en toetsenbord, minder beweging, de metingen, en geen fouten of overtredingen van het veiligheidsbeleid; alle pagina's met het nieuwe gedeelde blok.
+5. **Commit en push** volgens de afspraken: Ruben ziet eerst welke bestanden erin gaan. Vlak ervoor `git pull --rebase`, en de controle dat de gedeelde blokken overal gelijk zijn.
+6. **Een overdracht** met de metingen, de natuurkunde, de bonussen, de opslag, de REGELS en de testuitslagen met schermafbeeldingen, en een notitie in CLAUDE.md.
+
+## 11. Vragen voor Ruben
+
+1. **Welke naam?** Rommelschuiver, De Muntenschuiver, Kermiskiepers, Kiepkast, of iets anders?
+2. **Eigen natuurkunde** (met Rapier als reserve als het niet goed genoeg wordt): akkoord?
+3. **Het scorebord**: wil je de verzameling op het scorebord, of liever niet?
+4. **Een deurtje vanuit de Muntjesduwer in het casino**: ja of nee?
+5. **De pauze van Moeki** (zoals in het casino): ja of nee?
+6. **Sinterklaas**: ook chocolademunten tussen de munten?
+7. **De bonussen en de verzameling** (hoofdstuk 5 en 6): zo goed, of wil je andere voorwerpen?

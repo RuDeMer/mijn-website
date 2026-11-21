@@ -1,6 +1,8 @@
 # Plan: een muntenschuiver
 
-Voorstel van 21 november 2026, door Claude Code. **Nog niet goedgekeurd.** Eerst kiest Ruben een naam en zegt hij ja (of nee) tegen de keuzes hieronder. Dan bouw ik een **proefpagina** (de kast, de schuiver en zoveel munten als soepel kan, nog zonder bonussen), die Ruben op zijn telefoon en MacBook uitprobeert. Pas als die er prachtig uitziet en soepel loopt, bouw ik de rest.
+Voorstel van 21 november 2026, door Claude Code. **Goedgekeurd door Ruben op 21 november 2026** ("Ja, akkoord"): de naam **Rommelschuiver**, eigen natuurkunde (Rapier als reserve), het scorebord met de verzameling, een deurtje vanuit de Muntjesduwer in het casino, de pauze van Moeki, chocolademunten met Sinterklaas, en de bonussen en de verzameling zoals hieronder.
+
+**Stand (21 november 2026): de proefpagina staat klaar** (`rommelschuiver.html`, nergens gelinkt; zie hoofdstuk 12). Ruben probeert hem op zijn telefoon en MacBook; pas als hij er prachtig uitziet en soepel loopt, bouw ik de rest (stap 3).
 
 Een nieuw spel: een muntenschuiver zoals op de kermis en in een arcadehal. Je laat munten in een gleuf vallen, een schuiver duwt ze naar voren, en wat over de rand kiept, valt in je bakje. Alles eigen werk: geen namen, kasten, munten, geluiden of teksten van echte automaten, merken of andere spellen. Alleen speelmunten: nooit echt geld, niets te koop, geen reclame.
 
@@ -169,3 +171,26 @@ Voor de natuurkunde heeft elk voorwerp een rond voetstukje of een ronde vorm, zo
 5. **De pauze van Moeki** (zoals in het casino): ja of nee?
 6. **Sinterklaas**: ook chocolademunten tussen de munten?
 7. **De bonussen en de verzameling** (hoofdstuk 5 en 6): zo goed, of wil je andere voorwerpen?
+
+## 12. De proefpagina (stap 2, 21 november 2026)
+
+**Wat erin zit**: de kast (gelakt, chroom, een neonbord met ledlampjes die rondlopen, een glazen voorruit met vingerafdrukken, bedrukte binnenwanden), de gleuf met een wagentje dat meeschuift, het pinnenbord, de twee verdiepingen met de schuiver, de bak met de munten die je won, de zijgoten, en een arcadehal eromheen. De munten hebben een gekartelde rand, slijtage en drie ontwerpen in reliëf (een vlaai, een kroontje en Moeki) met een 1 op de achterkant; messing, en af en toe zilver of koper. Ze weerspiegelen de binnenkant van de kast (één foto rondom bij het opstarten). Zachte schaduwen (op Normaal en Mooi), zoomen (wieltje, knijpen, knop, + en -), Zuinig/Normaal/Mooi, de slaapstand, geluid (rinkelen, de schuiver, de hal) en een meetpaneeltje (`?meet` achter het adres, of bij Instellingen). Nog zonder bonussen, verzameling, geld en koppelen; de munten zijn gratis.
+
+**De natuurkunde** werkt zoals in hoofdstuk 2, in een hulpje (Web Worker uit de pagina zelf). Wat ik onderweg leerde:
+- Het evenwicht (hoeveel munten er in de machine blijven) hangt vooral af van de diepte van de onderste verdieping. Met 21 cm diep blijven er zo'n 700 tot 850 munten in de machine. Het aantal munten in de machine is dus voor elke stand hetzelfde (eerlijk); Zuinig, Normaal en Mooi verschillen in de munten in de bak (260, 700, 1.500) en in hoe mooi het getekend wordt.
+- Munten die worden geduwd en een rij munten voor zich uit moeten duwen, schuiven over de munt voor hen heen (zo wordt een stapel in elkaar gedrukt in plaats van als geheel te verschuiven).
+- Een munt die stil op zijn steun ligt, wordt niet meer opnieuw neergelegd (anders trillen stapels), en munten op de schuiver slapen ten opzichte van de schuiver.
+
+**Gemeten** (21 november 2026; in de cloud, één kern van een Xeon van 2,3 GHz, ongeveer half zo snel als een MacBook met een M-chip; zonder grafische kaart, dus de grafische kant is niet gemeten):
+
+| | Gemeten |
+|---|---|
+| Natuurkunde per stap bij flink doorspelen (2,5 munten per seconde, Node, zoals in het hulpje) | gemiddeld 2,5 ms, mediaan 1,8 ms, de traagste 10% 5,3 ms, de traagste 1% 7,5 ms |
+| Tekenwerk op de pagina per beeld (processor) | computer 2,0 ms; telefoonformaat met een 4 keer vertraagde processor 4,5 ms |
+| Tekenopdrachten per beeld | 61 (Zuinig) tot 66 (Normaal) |
+| Driehoeken per beeld (met de schaduw erbij) | Zuinig 290.000, Normaal 420.000 |
+| Laden tot de knop Speel | computer 3,1 s, telefoonformaat (4 keer vertraagd) 4,0 s |
+| Slaapstand | na 20 s niet spelen maakt de schuiver zijn slag af; zodra alles stilligt: 0 rekenstappen en 0 beelden |
+| 10 minuten spelen, 4 keer bewaren en laden | elke munt telt precies één keer, 0 fouten |
+
+**Ruben, wil je zo meten?** Open `rubensrommelhoekje.nl/rommelschuiver.html?meet` op je telefoon en je MacBook, speel een minuutje, en stuur een schermafbeelding van het groene paneeltje (en zeg of hij warm wordt of gaat blazen).

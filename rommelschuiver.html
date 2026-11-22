@@ -60,6 +60,8 @@ html[data-thema="donker"] .rs-hoofd { color: #231A26; }
 .rs-kastkeus b { font-size: 1.05rem; } .rs-kastkeus span { font-size: .88rem; line-height: 1.35; opacity: .85; }
 .rs-kastkeus[aria-current="true"] { box-shadow: inset 0 0 0 3px var(--inkt), 0 3px 0 var(--inkt); background: var(--papier2); }
 .rs-kastkeus[aria-current="true"] b::after { content: " · nu"; font-weight: 600; opacity: .7; }
+.rs-vol { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); z-index: 6; margin: 0; padding: .5rem 1rem; border-radius: 999px; background: rgba(20,10,30,.86); color: #FFE9A8; font: 800 1rem "Bricolage Grotesque", system-ui, sans-serif; box-shadow: 0 0 0 2px #FFE9A8; pointer-events: none; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) { .rs-knipper { animation: rs-knipper .5s ease-in-out 3; } @keyframes rs-knipper { 50% { opacity: .35; } } }
 .rs-laag { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; z-index: 8; background: rgba(8,6,14,.45); overflow-y: auto; }
 .rs-blad { width: min(30rem, 100%); border-radius: 18px; padding: 1.3rem 1.4rem 1.2rem; box-shadow: 0 0 0 3px var(--inkt), 0 14px 40px rgba(0,0,0,.45); position: relative; }
 .rs-blad h1, .rs-blad h2 { margin: 0 0 .4rem; font-size: 1.55rem; line-height: 1.1; }
@@ -117,6 +119,7 @@ html[data-thema="donker"] .rs-hoofd { color: #231A26; }
   <p id="rs-slaap" hidden>De schuiver rust even.<br><span class="rs-zacht" style="color:#FFE7A0">Tik of beweeg om verder te spelen.</span></p>
   <pre id="rs-meet" hidden></pre>
   <p id="rs-meld" class="rs-onzichtbaar" role="status" aria-live="polite"></p>
+  <p id="rs-vol" class="rs-vol" hidden aria-hidden="true">De kast zit vol · even wachten</p>
   <div id="rs-start" class="rs-laag"><div class="rs-blad rs-papier">
     <span class="rs-tape">Proefversie · alleen speelmunten</span>
     <h1 id="rs-titel">Rommelschuiver</h1>
@@ -1823,10 +1826,13 @@ function MUNTFYSICA() {
         const i = lijst[k];
         ox[i] = px[i]; oz[i] = pz[i];
         let dvx = svx[i] - vx[i], dvz = svz[i] - vz[i];
-        const dv = Math.hypot(dvx, dvz), mu = 0.3 * G * DT;
+        const dv = Math.hypot(dvx, dvz), mu = (lvl[i] ? WRIJV_BOVEN : 0.3) * G * DT;
         if (dv <= mu) { vx[i] = svx[i]; vz[i] = svz[i]; }
         else { vx[i] += dvx / dv * mu; vz[i] += dvz / dv * mu; }
         vx[i] += duw[2 * i]; vz[i] += duw[2 * i + 1]; duw[2 * i] = duw[2 * i + 1] = 0;
+        // ligt hij steiler dan de wrijving kan houden, dan glijdt hij van de helling af (zo worden bergen munten nooit torens)
+        const h2 = sa[i] * sa[i] + sb[i] * sb[i];
+        if (h2 > HELLING_GLIJ * HELLING_GLIJ) { const h = Math.sqrt(h2), a = G * (h / Math.sqrt(1 + h2)) * DT; vx[i] -= sa[i] / h * a; vz[i] -= sb[i] / h * a; }
         const vm = Math.hypot(vx[i], vz[i]); if (vm > 600) { vx[i] *= 600 / vm; vz[i] *= 600 / vm; }
         px[i] += vx[i] * DT; pz[i] += vz[i] * DT;
         yaw[i] += wy[i] * DT; wy[i] *= 0.9;
@@ -1903,7 +1909,7 @@ function MUNTFYSICA() {
         let nodig = plaatH(o, X, Z) + dikV(o) + dikV(k) + 0.05 - plaatH(k, X, Z);
         const vloer = lvl[k] ? MK.HP : 0;
         if (nodig > 1) nodig = 1;   // geleidelijk: hooguit een millimeter per beeld
-        if (nodig > 0 && py[k] - vloer < MAXHOOG) {
+        if (nodig > 0 && py[k] - vloer < (lvl[k] ? MAXHOOG_BOVEN : MAXHOOG)) {
           const lx = X - px[k], lz = Z - pz[k], I = traag(k), w = 1 / ms[k] + (lx * lx + lz * lz) / I, lam = nodig / w;
           py[k] += lam / ms[k]; sa[k] += lam * lx / I; sb[k] += lam * lz / I;
           rus[k] = 0; dkv[k] = dikV(k); markeer(k);
@@ -1996,7 +2002,11 @@ function MUNTFYSICA() {
 
     // ---- de plaatjes: hoogte en schuinte uit de steunpunten
     const KLIM0 = opt.klim !== undefined ? opt.klim : 1;
-    const SMAX = 48, PSUB = 4, MAXHOOG = 16, MAXHELLING2 = 0.28;   // in een stapel hooguit 28 graden schuin   // hoger dan dit klimt een munt niet (ongeveer 7 munten)
+    const SMAX = 48, PSUB = 4, MAXHOOG = 16, MAXHELLING2 = 0.28;
+    const MAXHOOG_BOVEN = opt.maxHoogBoven || MAXHOOG, WRIJV_BOVEN = opt.wrijvingBoven || 0.3;
+    // omhoog geduwd worden (door de steun) geeft geen vaart naar boven: anders schiet een munt door en valt hij terug (springen)
+    const HELLING_GLIJ = opt.hellingGlij || 0.32;   // tan van de hoek waarboven een munt van een andere munt afglijdt
+    const OPVAART = opt.opvaart !== undefined ? opt.opvaart : 0, KANTELDEMP = opt.kanteldemp !== undefined ? opt.kanteldemp : 0.6;   // in een stapel hooguit 28 graden schuin   // hoger dan dit klimt een munt niet (ongeveer 7 munten)
     const spX = new Float64Array(SMAX), spZ = new Float64Array(SMAX), spH = new Float64Array(SMAX), spL = new Float64Array(SMAX);
     const spB = new Int32Array(SMAX);
     let spN = 0;
@@ -2204,7 +2214,7 @@ function MUNTFYSICA() {
             }
           }
           // uit een overlap geduwd worden geeft geen vaart (anders schiet hij door)
-          vy[i] = Math.min((py[i] - y0) / hs, 60); va[i] = (sa[i] - a0) / hs * 0.985; vb[i] = (sb[i] - b0) / hs * 0.985;
+          vy[i] = Math.min((py[i] - y0) / hs, OPVAART); va[i] = (sa[i] - a0) / hs * KANTELDEMP; vb[i] = (sb[i] - b0) / hs * KANTELDEMP;
           const vab = Math.hypot(va[i], vb[i]); if (vab > 5) { va[i] *= 5 / vab; vb[i] *= 5 / vab; }
         }
         if (haak.p) haak.p(i, oy[i], spN, spX, spZ, spH, spB, spL, onder, onderN);
@@ -3054,7 +3064,9 @@ function HULPJE(self, MF) {
         const ev = [];
         let st = null;
         const t0 = performance.now();
-        for (let k = 0; k < d.n; k++) { st = sim.stap(); for (let q = 0; q < sim.gebeurtenis.length; q++) ev.push(sim.gebeurtenis[q]); }
+        // hooguit ongeveer 12 ms rekenen per keer (minstens één stap): is het zwaar, dan loopt de kast even iets trager, maar het beeld blijft vloeiend
+        let gedaan = 0;
+        for (let k = 0; k < d.n; k++) { st = sim.stap(); gedaan++; for (let q = 0; q < sim.gebeurtenis.length; q++) ev.push(sim.gebeurtenis[q]); if (performance.now() - t0 > 12) break; }
         const ms = performance.now() - t0;
         const n3 = sim.N * 3, n4 = sim.N * 4;
         let P = terugP.pop(), Q = terugQ.pop();
@@ -3064,7 +3076,7 @@ function HULPJE(self, MF) {
         const M = new Uint8Array(sim.md), S = nieuw.length ? new Uint8Array(sim.soort) : null;
         const over = [P.buffer, Q.buffer, M.buffer];
         if (S) over.push(S.buffer);
-        stuur({ doe: 'staat', P, Q, M, S, nieuw, ev, ms, n: d.n, st, zf: sim.zf, vp: sim.vp, hoek: sim.schijfHoek, w: sim.schijfW, tij: sim.springtij, slag: sim.slagNr, hoogste: sim.hoogste, tel: { uit: sim.tel.uit, zij: sim.tel.zij, in: sim.tel.in }, aantal: sim.aantal() }, over);
+        stuur({ doe: 'staat', P, Q, M, S, nieuw, ev, ms, n: gedaan, st, zf: sim.zf, vp: sim.vp, hoek: sim.schijfHoek, w: sim.schijfW, tij: sim.springtij, slag: sim.slagNr, hoogste: sim.hoogste, tel: { uit: sim.tel.uit, zij: sim.tel.zij, in: sim.tel.in }, aantal: sim.aantal() }, over);
       } else if (d.doe === 'bewaar') {
         if (!sim) return;
         const b = sim.bewaar();
@@ -4677,16 +4689,30 @@ function mikVanScherm(cx, cy) {
   if (ray.ray.intersectPlane(vlakGleuf, punt)) zetMik(punt.x);
 }
 let gooiKlok = 0, gooiKlaarOp = 0;
+// zit de kast te vol, dan neemt de gleuf even niets aan (anders wordt de stapel een berg en het rekenen te zwaar)
+const VOL_GRENS = 1000;
+let volMeld = 0;
 function gooi() {
   if (!S.klaar) return;
   const nu = performance.now();
   if (nu < gooiKlaarOp) return;
-  gooiKlaarOp = nu + 230;                       // hooguit vier per seconde
+  if ((S.aantal || 0) + S.gooiLijst.length >= VOL_GRENS) {
+    if (nu > volMeld) { volMeld = nu + 4000; toonVol(); }
+    return;
+  }
+  gooiKlaarOp = nu + 330;                       // hooguit drie per seconde
   S.gooiLijst.push(S.mik + (Math.random() - 0.5) * 3);
   tel.in++; plop('#rs-t-in', tel.in);
   geluid.tik(0.5, 'staal');
   verbergHint();
   wek();
+}
+function toonVol() {
+  const el = $('#rs-vol');
+  el.hidden = false; el.classList.remove('rs-knipper'); void el.offsetWidth; el.classList.add('rs-knipper');
+  $('#rs-meld').textContent = 'De kast zit vol. Wacht even tot er munten uit vallen.';
+  clearTimeout(toonVol.klok); toonVol.klok = setTimeout(() => { el.hidden = true; }, 3500);
+  geluid.tik(0.2, 'glas');
 }
 function begin() {
   $('#rs-start').hidden = true;

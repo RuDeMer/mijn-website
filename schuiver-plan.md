@@ -320,3 +320,45 @@ Elke kast bewaart zijn eigen stapel (per apparaat). Of je de kasten moet vrijspe
 De munt met het kroontje en de zwaailichten horen nu alleen bij de gewone kast. Bij minder beweging staan de paardjes, sterren en het bord stil.
 
 **Opnieuw gemeten**: de gewone kast gedraagt zich nog steeds bit voor bit hetzelfde; alle kasten komen tot rust zonder munten in elkaar. Een robot (een munt per seconde, een kwartier): de Flipperkast geeft zo'n 92 van de 100 terug, de Draaimolen zo'n 89 en de Halvemaan zo'n 87 (dat getal klimt nog: na een kwartier groeit de stapel daar nog). In de Draaimolen blijven meer munten wakker (de schijf roert de hele onderste verdieping om): de natuurkunde kost daar ongeveer twee keer zoveel (in Node 2,7 ms per stap, de gewone kast 1,3 ms). Tekenopdrachten op Normaal: 98 tot 108.
+
+## 15. De simulatie van de economie (22 november 2026)
+
+Ruben vroeg om de vragen van hoofdstuk 13 opnieuw te stellen, met suggesties na een kleine simulatie.
+
+**Eerst gemeten met de echte natuurkunde** (een robot, per kast 25 minuten, een munt per seconde, elke munt gevolgd):
+
+| Kast | Van de munten die eruit vallen, in de bak | Hoelang een munt (of kaartje) in de machine ligt |
+|---|---|---|
+| De Rommelschuiver | 94 van de 100 | meestal 560 tot 930 ingegooide munten (zo'n 10 minuten spelen) |
+| De Halvemaan | 83 | 480 tot 930 |
+| De Flipperkast | 89 | 540 tot 950 |
+| De Draaimolen | 95 | 450 tot 940 |
+
+Een kaartje dat vandaag in de machine valt, komt er dus pas na zo'n 10 minuten spelen uit: vaak in een volgende beurt. Dat is goed voor terugkomen ("er ligt nog een kaartje van 100 bijna over de rand").
+
+**Daarna 60 dagen gespeeld** (`economie.js` in de kladmap; per regel het gemiddelde van 5 keer), met drie soorten spelers: elke dag een kwartiertje (hooguit 1.500 munten), elke dag tot de munten op zijn (en goed mikken, 3 van de 100 beter), en om de drie dagen.
+
+| | Speeltijd per dag | Kaartjes per dag | Kast 2 | Kast 3 | Kast 4 | Hele verzameling |
+|---|---|---|---|---|---|---|
+| Het voorstel van hoofdstuk 13, met de kasten zoals ze nu zijn | 19 min (goede speler 54 min) | 1.400 (goede speler 4.600) | dag 2 | dag 13 | dag 27 | niet in 60 dagen |
+| Kasten afgesteld op 92 tot 93 van de 100, wisselen tussen kasten, dagprijs elke 3e dag een voorwerp | 19 min (goede speler 26) | 1.475 (goede speler 2.400) | dag 2 | dag 8 | dag 18 | dag 34 |
+| Idem, spaarpot 75 per dag (hooguit 150) | 14 min | 1.130 | dag 3 | dag 9 | dag 22 | dag 47 |
+| Idem, spaarpot 150 per dag (hooguit 450) | 25 min (goede speler 40) | 1.780 | dag 2 | dag 6 | dag 14 | dag 27 |
+| **Mijn voorstel**: afgesteld, spaarpot 100 (hooguit 300), kasten 2.000 / 8.000 / 18.000 | **19 min** (goede speler 25) | **1.485** (goede speler 2.360) | **dag 2** | **dag 10** | **dag 23** | **dag 39** |
+
+Om de drie dagen spelen (mijn voorstel): 30 minuten per keer, kast 2 op dag 4, kast 3 op dag 17, kast 4 op dag 41. Niemand komt ooit zonder munten te zitten (de spaarpot vult altijd bij).
+
+**Wat de simulatie liet zien**:
+- **Een goede speler liep weg** in de gewone kast: die geeft hem 97 van de 100 terug, dus kan hij bijna een uur spelen op 100 munten en verdient hij drie keer zoveel kaartjes. Als alle kasten op 92 tot 93 van de 100 staan, verdient een goede speler zo'n anderhalf keer zoveel. Dat is eerlijk: goed spelen loont, maar niemand loopt weg.
+- **Kasten verschillen te veel**: de Halvemaan geeft 83 terug, de Draaimolen 95. Dan speelt iedereen alleen nog in de Draaimolen. Afstellen (de bak van de Halvemaan iets breder, de zijgoten van de Draaimolen iets breder) maakt ze gelijkwaardig.
+- **De dagprijs elke dag een voorwerp** maakt de verzameling in drie weken af, ook zonder kaartjes. Elke derde dag een voorwerp (en anders een gouden kaartje van 250) laat de verzameling ongeveer vijf à zes weken duren.
+- **Voorwerpen kunnen in een kast blijven liggen** als je daar niet meer speelt. Daarom: een voorwerp uit de Prijzenkraam valt in de kast waar je op dat moment speelt.
+
+## 16. Een volle kast (22 november 2026, na Rubens test met een andere speler)
+
+Iemand gooide er meer dan 5.000 munten in: de kast zat vol (1.635 munten), het beeld zakte naar 20 per seconde, de natuurkunde kostte 24 ms per stap, en achterin sprongen de munten. Nagebootst met een robot die lang drie munten per seconde gooit.
+
+- **Waarom het sprong**: tegen de achterwand bovenin groeide een toren van wel 13 munten hoog. De munten daar lagen steeds op de schuinste stand die de natuurkunde toestaat (28 graden) en gingen op en neer. Echte munten glijden van zo'n steile helling af; dat zat er nog niet in. Nu glijdt een munt die steiler ligt dan de wrijving kan houden (`HELLING_GLIJ`, ongeveer 18 graden) van de helling af. Daarnaast geeft omhoog geduwd worden door de steun geen vaart meer naar boven (`OPVAART`), en wiebelt een munt minder na (`KANTELDEMP`). Gemeten in een volle kast: munten die echt springen van zo'n 120 naar 12, en geen torens meer.
+- **De kast kan niet meer overvol raken**: zitten er 1.000 munten in, dan neemt de gleuf even niets aan ("De kast zit vol · even wachten"); zodra er munten uit vallen, kan het weer. Gewoon spelen komt daar niet aan (dan liggen er zo'n 750 tot 900 munten in). Ingedrukt houden laat nu hooguit drie munten per seconde vallen (was vier).
+- **Het hulpje rekent per keer hooguit zo'n 12 ms**: wordt het toch zwaar, dan loopt de kast heel even trager, maar het beeld blijft vloeiend.
+- Opnieuw getest: alle kasten komen tot rust zonder munten in elkaar, 10 minuten spelen met bewaren en laden telt elke munt precies één keer, wegschietende munten nog even weinig, en in de browser geen fouten.

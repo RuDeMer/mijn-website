@@ -1987,18 +1987,31 @@ function MUNTFYSICA() {
       return hj - hi;   // >0: j hoger
     }
 
-    // staat munt i bovenop een smalle toren? Alleen als alle munten die naast hem liggen minstens anderhalve munt lager liggen.
-    // Ligt er naast hem een munt ongeveer even hoog, dan ligt hij op een berg of een brede laag en blijft hij liggen
-    // (een vaste hoogtegrens alleen liet de bovenste munten van zo'n berg als muizen rondlopen).
-    function smalleToren(i) {
-      zoekBuren(i, 4);
+    // een te hoge munt glijdt alleen naar beneden als er vlakbij een plek is die minstens anderhalve munt lager ligt dan zijn onderkant
+    // (op een vlakke laag blijft hij liggen: een vaste hoogtegrens alleen liet de bovenste munten van zo'n laag als muizen rondlopen).
+    // Geeft de richting in torenX/torenZ, of false.
+    let torenX = 0, torenZ = 0;
+    function oppervlak(i, X, Z) {
+      if (X < -MK.XW + 2 || X > MK.XW - 2 || Z < MK.ZW + 2) return 1e9;   // een wand: daar kan hij niet heen
+      let h = Z > zf + KV.schuifZ(X) ? -1e9 : MK.HP;                       // voor de schuiver valt hij naar beneden
       for (let b = 0; b < burenN; b++) {
         const j = buren[b];
-        if ((md[j] !== SLAAP && md[j] !== SCHUIF) || !lvl[j] || py[j] < py[i] - 1.5 * H0) continue;
-        const d = Math.hypot(px[j] - px[i], pz[j] - pz[i]), r = rr[i] + rr[j];
-        if (d > r - 3 && d < r + 6) return false;
+        if (j === i || (md[j] !== SLAAP && md[j] !== SCHUIF) || !lvl[j]) continue;
+        const dx = X - px[j], dz = Z - pz[j];
+        if (dx * dx + dz * dz < rr[j] * rr[j]) { const t = py[j] + hh[j]; if (t > h) h = t; }
       }
-      return true;
+      return h;
+    }
+    function torenVal(i) {
+      zoekBuren(i, 14);
+      const D = rr[i] + 10, grens = py[i] - hh[i] - 1.5 * H0;
+      let laagst = 1e9;
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4 + i * 0.7, cx = Math.cos(a), cz = Math.sin(a);
+        const h = Math.max(oppervlak(i, px[i] + cx * D, pz[i] + cz * D), oppervlak(i, px[i] + cx * (D + 8), pz[i] + cz * (D + 8)));
+        if (h < laagst) { laagst = h; torenX = cx; torenZ = cz; }
+      }
+      return laagst < grens;
     }
     function schuifHorizontaal() {
       pN = 0; bovenN = 0;
@@ -2013,10 +2026,8 @@ function MUNTFYSICA() {
         else { vx[i] += dvx / dv * mu; vz[i] += dvz / dv * mu; }
         vx[i] += duw[2 * i]; vz[i] += duw[2 * i + 1]; duw[2 * i] = duw[2 * i + 1] = 0;
         // de bovenste munt van een hoge toren op de schuiver schuift eraf, weg van wat hem draagt
-        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H && smalleToren(i)) {
-          let tx = 0, tz = 0; for (let q = 0; q < stN[i]; q++) { tx -= stX[i * SMX + q]; tz -= stZ[i * SMX + q]; }
-          let td = Math.hypot(tx, tz); if (td < 0.5) { const hoek = i * 2.39996; tx = Math.cos(hoek); tz = Math.sin(hoek); td = 1; }
-          const ta = (WRIJV_BOVEN + TOREN_DUW) * G * DT; vx[i] += tx / td * ta; vz[i] += tz / td * ta;
+        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H && torenVal(i)) {
+          const ta = (WRIJV_BOVEN + TOREN_DUW) * G * DT; vx[i] += torenX * ta; vz[i] += torenZ * ta;
         }
         // ligt hij steiler dan de wrijving kan houden, dan glijdt hij van de helling af (zo worden bergen munten nooit torens)
         const h2 = sa[i] * sa[i] + sb[i] * sb[i];

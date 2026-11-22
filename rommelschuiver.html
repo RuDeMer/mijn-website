@@ -1987,6 +1987,19 @@ function MUNTFYSICA() {
       return hj - hi;   // >0: j hoger
     }
 
+    // staat munt i bovenop een smalle toren? Alleen als alle munten die naast hem liggen minstens anderhalve munt lager liggen.
+    // Ligt er naast hem een munt ongeveer even hoog, dan ligt hij op een berg of een brede laag en blijft hij liggen
+    // (een vaste hoogtegrens alleen liet de bovenste munten van zo'n berg als muizen rondlopen).
+    function smalleToren(i) {
+      zoekBuren(i, 4);
+      for (let b = 0; b < burenN; b++) {
+        const j = buren[b];
+        if ((md[j] !== SLAAP && md[j] !== SCHUIF) || !lvl[j] || py[j] < py[i] - 1.5 * H0) continue;
+        const d = Math.hypot(px[j] - px[i], pz[j] - pz[i]), r = rr[i] + rr[j];
+        if (d > r - 3 && d < r + 6) return false;
+      }
+      return true;
+    }
     function schuifHorizontaal() {
       pN = 0; bovenN = 0;
       const lijst = schuivers;
@@ -2000,7 +2013,7 @@ function MUNTFYSICA() {
         else { vx[i] += dvx / dv * mu; vz[i] += dvz / dv * mu; }
         vx[i] += duw[2 * i]; vz[i] += duw[2 * i + 1]; duw[2 * i] = duw[2 * i + 1] = 0;
         // de bovenste munt van een hoge toren op de schuiver schuift eraf, weg van wat hem draagt
-        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H) {
+        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H && smalleToren(i)) {
           let tx = 0, tz = 0; for (let q = 0; q < stN[i]; q++) { tx -= stX[i * SMX + q]; tz -= stZ[i * SMX + q]; }
           let td = Math.hypot(tx, tz); if (td < 0.5) { const hoek = i * 2.39996; tx = Math.cos(hoek); tz = Math.sin(hoek); td = 1; }
           const ta = (WRIJV_BOVEN + TOREN_DUW) * G * DT; vx[i] += tx / td * ta; vz[i] += tz / td * ta;
@@ -2190,7 +2203,7 @@ function MUNTFYSICA() {
     const HELLING_GLIJ = opt.hellingGlij || 0.32;   // tan van de hoek waarboven een munt van een andere munt afglijdt
     // een toren op de schuiver brokkelt af: ligt de bovenste munt van een stapel meer dan TOREN_H boven de schuiver, dan schuift hij eraf
     // (echte munten blijven op een schuiver die heen en weer gaat geen tien hoog liggen; zo'n toren wiebelde en hield de kast vol)
-    const TOREN_H = opt.toren !== undefined ? opt.toren : 11, TOREN_DUW = 0.45;
+    const TOREN_H = opt.toren !== undefined ? opt.toren : 11.6, TOREN_DUW = 0.45;   // 11.6: de zesde munt (de vijfde ligt op 10.9, en wat schuin net iets hoger)
     const OPVAART = opt.opvaart !== undefined ? opt.opvaart : 0, KANTELDEMP = opt.kanteldemp !== undefined ? opt.kanteldemp : 0.6;   // in een stapel hooguit 28 graden schuin   // hoger dan dit klimt een munt niet (ongeveer 7 munten)
     const spX = new Float64Array(SMAX), spZ = new Float64Array(SMAX), spH = new Float64Array(SMAX), spL = new Float64Array(SMAX);
     const spB = new Int32Array(SMAX);

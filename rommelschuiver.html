@@ -1840,7 +1840,7 @@ function MUNTFYSICA() {
       for (let k = 0; k < schuivers.length; k++) {
         const i = schuivers[k];
         vx[i] = (px[i] - ox[i]) / DT; vz[i] = (pz[i] - oz[i]) / DT;
-        const v = Math.hypot(vx[i], vz[i]); if (v > 250) { vx[i] *= 250 / v; vz[i] *= 250 / v; }
+        const v = Math.hypot(vx[i], vz[i]); if (v > 180) { vx[i] *= 180 / v; vz[i] *= 180 / v; }
         if (Math.abs(px[i] - ox[i]) + Math.abs(pz[i] - oz[i]) > 0.005) markeer(i);
       }
       // druk: een munt die vooruit geduwd wordt en een lange rij munten voor zich uit moet duwen, schuift over de munt voor hem
@@ -2219,33 +2219,35 @@ function MUNTFYSICA() {
     // ======================================================================================
     // DE VALSTAND (3D, XPBD)
     // ======================================================================================
-    const VLAKKEN = [];   // [ox, oy, oz, nx, ny, nz, ux, uy, uz, eu, vx, vy, vz, ev, beweegt]
+    const VLAKKEN = [];   // [ox, oy, oz, nx, ny, nz, ux, uy, uz, eu, vx, vy, vz, ev, beweegt, bolleRand]
+    // bolleRand 1: de rand aan de +v-kant is een buitenhoek (daar zit ook een rand in RANDEN)
     let PIN0 = 0;         // vanaf hier zijn de randen pinnetjes
-    const RANDEN = [];    // [ax, ay, az, bx, by, bz, straal, beweegt]
+    const RANDEN = [];    // [ax, ay, az, bx, by, bz, straal, beweegt, n1 (3), n2 (3)]: n1 en n2 zijn de normalen van de twee vlakken van een buitenhoek (of 0)
     {
       const { XW, XF, ZS, ZB, HP, ZW, KD, KY } = MK;
-      const V = (o, n, u, eu, v, ev, b) => VLAKKEN.push([...o, ...n, ...u, eu, ...v, ev, b ? 1 : 0]);
+      const V = (o, n, u, eu, v, ev, b, k) => VLAKKEN.push([...o, ...n, ...u, eu, ...v, ev, b ? 1 : 0, k ? 1 : 0]);
       V([0, 0, (ZB + ZS) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (ZS - ZB) / 2);
-      V([0, 0, ZS / 2], [0, 1, 0], [1, 0, 0], XF, [0, 0, 1], -ZS / 2);
-      V([0, -15, 0], [0, 0, 1], [1, 0, 0], XF, [0, 1, 0], 15);
-      V([-XF, -15, ZS / 2], [-1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15);
-      V([XF, -15, ZS / 2], [1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15);
-      V([-(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15);
-      V([(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15);
-      V([0, HP, -MK.LP / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2, true);    // schuiver boven (z t.o.v. zf)
-      V([0, HP / 2, 0], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], HP / 2, true);           // schuiver voorkant
+      V([0, 0, ZS / 2], [0, 1, 0], [1, 0, 0], XF, [0, 0, 1], -ZS / 2, false, true);
+      V([0, -15, 0], [0, 0, 1], [1, 0, 0], XF, [0, 1, 0], 15, false, true);
+      V([-XF, -15, ZS / 2], [-1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15, false, true);
+      V([XF, -15, ZS / 2], [1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15, false, true);
+      V([-(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15, false, true);
+      V([(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15, false, true);
+      V([0, HP, -MK.LP / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2, true, true);    // schuiver boven (z t.o.v. zf)
+      V([0, HP / 2, 0], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], HP / 2, true, true);           // schuiver voorkant
       V([0, (HP + 400) / 2, ZW], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], (400 - HP) / 2);
       V([-XW, 185, (ZB + ZS) / 2], [1, 0, 0], [0, 0, 1], (ZS - ZB) / 2, [0, 1, 0], 215);
       V([XW, 185, (ZB + ZS) / 2], [-1, 0, 0], [0, 0, 1], (ZS - ZB) / 2, [0, 1, 0], 215);
       V([0, (KY + 400) / 2, ZW + KD], [0, 0, -1], [1, 0, 0], XW, [0, 1, 0], (400 - KY) / 2);
       V([0, (KY + 400) / 2, ZW + KD + 4], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], (400 - KY) / 2);
-      const Rd = (a, b, r, m) => RANDEN.push([...a, ...b, r, m ? 1 : 0]);
-      Rd([-XF, 0, 0], [XF, 0, 0], 0);
-      Rd([-XF, 0, ZS], [-XF, 0, 0], 0); Rd([XF, 0, ZS], [XF, 0, 0], 0);
-      Rd([-XW, 0, ZS], [-XF, 0, ZS], 0); Rd([XF, 0, ZS], [XW, 0, ZS], 0);
-      Rd([-XW, 0, ZS], [-XW, 400, ZS], 0); Rd([XW, 0, ZS], [XW, 400, ZS], 0);
-      Rd([-XW, HP, 0], [XW, HP, 0], 0, true);                                    // voorrand schuiver (z t.o.v. zf)
-      Rd([-XW, KY, ZW + KD], [XW, KY, ZW + KD], 0); Rd([-XW, KY, ZW + KD + 4], [XW, KY, ZW + KD + 4], 0);
+      const Rd = (a, b, r, m, n1, n2) => RANDEN.push([...a, ...b, r, m ? 1 : 0, ...(n1 || [0, 0, 0]), ...(n2 || [0, 0, 0])]);
+      const OP = [0, 1, 0], ONDER = [0, -1, 0], VOOR = [0, 0, 1], ACHTER = [0, 0, -1], LI = [-1, 0, 0], RE = [1, 0, 0];
+      Rd([-XF, 0, 0], [XF, 0, 0], 0, false, OP, VOOR);
+      Rd([-XF, 0, ZS], [-XF, 0, 0], 0, false, OP, LI); Rd([XF, 0, ZS], [XF, 0, 0], 0, false, OP, RE);
+      Rd([-XW, 0, ZS], [-XF, 0, ZS], 0, false, OP, VOOR); Rd([XF, 0, ZS], [XW, 0, ZS], 0, false, OP, VOOR);
+      Rd([-XW, 0, ZS], [-XW, 400, ZS], 0, false, RE, VOOR); Rd([XW, 0, ZS], [XW, 400, ZS], 0, false, LI, VOOR);
+      Rd([-XW, HP, 0], [XW, HP, 0], 0, true, OP, VOOR);                                    // voorrand schuiver (z t.o.v. zf)
+      Rd([-XW, KY, ZW + KD], [XW, KY, ZW + KD], 0, false, ACHTER, ONDER); Rd([-XW, KY, ZW + KD + 4], [XW, KY, ZW + KD + 4], 0, false, VOOR, ONDER);
       PIN0 = RANDEN.length;
       for (const [x, y] of PINNEN) Rd([x, y, ZW], [x, y, ZW + KD], MK.PIN_R);
     }
@@ -2323,6 +2325,8 @@ function MUNTFYSICA() {
       // snel weg als de munt ver van het vlak is
       const afst = (px[i] - ox_) * mx + (py[i] - oy_) * my + (pz[i] - oz_) * mz;
       if (afst > r + hd || afst < -r - 4) return;
+      // ligt het midden van de munt al voorbij een buitenhoek van dit vlak, dan raakt hij de hoek (RANDEN), niet dit vlak
+      if (V[15] && (px[i] - ox_) * V[10] + (py[i] - oy_) * V[11] + (pz[i] - oz_) * V[12] > V[13]) return;
       as3(i);
       const nx = NA[0], ny = NA[1], nz = NA[2];
       const mn = mx * nx + my * ny + mz * nz;
@@ -2347,6 +2351,8 @@ function MUNTFYSICA() {
         const lu = (qx_ - ox_) * V[6] + (qy_ - oy_) * V[7] + (qz_ - oz_) * V[8];
         const lv = (qx_ - ox_) * V[10] + (qy_ - oy_) * V[11] + (qz_ - oz_) * V[12];
         if (Math.abs(lu) > V[9] + 0.5 || Math.abs(lv) > V[13] + 0.5) continue;
+        // vlak bij een buitenhoek, en dieper dan de afstand tot die hoek: dan zit de munt over de hoek (het andere vlak of de rand vangt hem)
+        if (V[15] && V[13] - lv < d) continue;
         contact(i, -1, mx, my, mz, qx_ - mx * hd, qy_ - my * hd, qz_ - mz * hd, qx_ - mx * hgt, qy_ - my * hgt, qz_ - mz * hgt, d, 0, 0, svz_, 0.3, 0.25);
       }
     }
@@ -2373,10 +2379,20 @@ function MUNTFYSICA() {
       opSchijf(px[i], py[i], pz[i], nx, ny, nz, r, X, Y, Z);
       let mx = CP[0] - X, my = CP[1] - Y, mz = CP[2] - Z;
       const dist = Math.hypot(mx, my, mz);
-      const d = hd + rs - dist;
+      let d = hd + rs - dist;
       if (d <= 0) return;
       if (dist < 1e-6) { mx = nx; my = ny; mz = nz; if ((py[i] - Y) * my < 0) { mx = -mx; my = -my; mz = -mz; } }
       else { mx /= dist; my /= dist; mz /= dist; }
+      // een buitenhoek duwt een munt nooit de hoek in: ligt het dichtstbijzijnde punt binnen in het blok (achter allebei de vlakken),
+      // dan gaat de munt eruit langs het vlak waar dat het minst ver is
+      if (Rn[9] || Rn[8] || Rn[10]) {
+        const a1 = Rn[8] * mx + Rn[9] * my + Rn[10] * mz, a2 = Rn[11] * mx + Rn[12] * my + Rn[13] * mz;
+        if (a1 < 0 && a2 < 0) {
+          const k = a1 > a2 ? 8 : 11;
+          d = hd + rs + dist * -(a1 > a2 ? a1 : a2);
+          mx = Rn[k]; my = Rn[k + 1]; mz = Rn[k + 2];
+        }
+      }
       const pin = rs > 0;
       contact(i, -1, mx, my, mz, CP[0] - mx * hd, CP[1] - my * hd, CP[2] - mz * hd, X + mx * rs, Y + my * rs, Z + mz * rs, d, 0, 0, Rn[7] ? vp : 0, pin ? 0.15 : 0.3, pin ? 0.45 : 0.2);
     }
@@ -2470,6 +2486,8 @@ function MUNTFYSICA() {
 
     const vallers = [];
     const NSUB = 6;
+    const UITDUW = 40;   // mm/s: hooguit zo snel duwt een overlap een munt weg
+    const VGLEUF = 450;  // mm/s: zo snel valt een munt hooguit door de gleuf
     function val3D() {
       vallers.length = 0;
       for (let i = 0; i < hoogsteIndex; i++) if (md[i] === VAL) vallers.push(i);
@@ -2482,6 +2500,8 @@ function MUNTFYSICA() {
           const i = vallers[k];
           ox[i] = px[i]; oy[i] = py[i]; oz[i] = pz[i]; oqx[i] = qx[i]; oqy[i] = qy[i]; oqz[i] = qz[i]; oqw[i] = qw[i];
           vy[i] -= G * h;
+          // in de gleuf schuurt de munt langs het glas en het bord: hij valt niet harder dan VGLEUF
+          if (vy[i] < -VGLEUF && pz[i] < MK.ZW + MK.KD + rr[i] && py[i] > MK.KY - 20) vy[i] = -VGLEUF;
           const vm = Math.hypot(vx[i], vy[i], vz[i]); if (vm > 2400) { const f = 2400 / vm; vx[i] *= f; vy[i] *= f; vz[i] *= f; }
           const wm = Math.hypot(wx[i], wY[i], wz[i]); if (wm > 60) { const f = 60 / wm; wx[i] *= f; wY[i] *= f; wz[i] *= f; }
           px[i] += vx[i] * h; py[i] += vy[i] * h; pz[i] += vz[i] * h;
@@ -2567,10 +2587,19 @@ function MUNTFYSICA() {
           let doel = 0;
           if (vnPre < -120) doel = -cE[c] * vnPre;
           const dvn = doel - vn;
+          const wn = genMassa(i, rx, ry, rz, nx, ny, nz) + (j >= 0 ? genMassa(j, sx, sy, sz, nx, ny, nz) : 0);
           if (dvn > 0) {
-            const wn = genMassa(i, rx, ry, rz, nx, ny, nz) + (j >= 0 ? genMassa(j, sx, sy, sz, nx, ny, nz) : 0);
             const jn = dvn / wn;
             ix += nx * jn; iy += ny * jn; iz += nz * jn;
+          } else if (vn > Math.max(doel, UITDUW)) {
+            // het rechtzetten van een overlap mag een munt niet wegschieten: wat daar aan snelheid bij kwam, gaat er weer af
+            const jn = (Math.max(doel, UITDUW) - vn) / wn;
+            vx[i] += nx * jn / ms[i]; vy[i] += ny * jn / ms[i]; vz[i] += nz * jn / ms[i];
+            invTraag(i, ry * nz - rz * ny, rz * nx - rx * nz, rx * ny - ry * nx); wx[i] += TV[0] * jn; wY[i] += TV[1] * jn; wz[i] += TV[2] * jn;
+            if (j >= 0) {
+              vx[j] -= nx * jn / ms[j]; vy[j] -= ny * jn / ms[j]; vz[j] -= nz * jn / ms[j];
+              invTraag(j, -(sy * nz - sz * ny), -(sz * nx - sx * nz), -(sx * ny - sy * nx)); wx[j] += TV[0] * jn; wY[j] += TV[1] * jn; wz[j] += TV[2] * jn;
+            }
           }
           // impuls toepassen
           vx[i] += ix / ms[i]; vy[i] += iy / ms[i]; vz[i] += iz / ms[i];
@@ -2583,7 +2612,11 @@ function MUNTFYSICA() {
           } else if (j <= -2) {
             // een munt in de schuifstand krijgt een duwtje
             const k = -2 - j;
-            if (cL[c] / h > 400) { if (md[k] === SLAAP) { wek(k); } duw[2 * k] -= ix * 0.3 / ms[k]; duw[2 * k + 1] -= iz * 0.3 / ms[k]; }
+            if (cL[c] / h > 400) {
+              if (md[k] === SLAAP) { wek(k); }
+              duw[2 * k] -= ix * 0.3 / ms[k]; duw[2 * k + 1] -= iz * 0.3 / ms[k];
+              const dm = Math.hypot(duw[2 * k], duw[2 * k + 1]); if (dm > 90) { duw[2 * k] *= 90 / dm; duw[2 * k + 1] *= 90 / dm; }
+            }
           }
           if (ny > 0.5) steun3[i] = 1;
         }

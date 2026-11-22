@@ -53,6 +53,13 @@ body > .kop { display: flex; align-items: center; gap: .6rem; padding: .4rem .8r
 .rs-knop:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px var(--inkt), 0 1px 0 var(--inkt); }
 .rs-hoofd { background: var(--rood); color: #fff; font-size: 1.08rem; padding: .78rem 1.4rem; }
 html[data-thema="donker"] .rs-hoofd { color: #231A26; }
+.rs-breed { width: min(36rem, 100%); }
+.rs-kastlijst { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .6rem; margin-top: .6rem; }
+.rs-kastkeus { text-align: left; font: inherit; color: var(--inkt); background: var(--kaart); border: 0; border-radius: 14px; padding: .7rem .8rem .75rem 1rem; box-shadow: inset 0 0 0 2px var(--inkt), 0 3px 0 var(--inkt); cursor: pointer; position: relative; display: grid; gap: .2rem; }
+.rs-kastkeus::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: .45rem; border-radius: 14px 0 0 14px; background: var(--k); }
+.rs-kastkeus b { font-size: 1.05rem; } .rs-kastkeus span { font-size: .88rem; line-height: 1.35; opacity: .85; }
+.rs-kastkeus[aria-current="true"] { box-shadow: inset 0 0 0 3px var(--inkt), 0 3px 0 var(--inkt); background: var(--papier2); }
+.rs-kastkeus[aria-current="true"] b::after { content: " · nu"; font-weight: 600; opacity: .7; }
 .rs-laag { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; z-index: 8; background: rgba(8,6,14,.45); overflow-y: auto; }
 .rs-blad { width: min(30rem, 100%); border-radius: 18px; padding: 1.3rem 1.4rem 1.2rem; box-shadow: 0 0 0 3px var(--inkt), 0 14px 40px rgba(0,0,0,.45); position: relative; }
 .rs-blad h1, .rs-blad h2 { margin: 0 0 .4rem; font-size: 1.55rem; line-height: 1.1; }
@@ -92,6 +99,7 @@ html[data-thema="donker"] .rs-hoofd { color: #231A26; }
   <a href="./"><span class="rs-lang">Terug naar het rommelhoekje</span><span class="rs-kort">Terug</span></a>
   <span class="rs-titel"><svg focusable="false" aria-hidden="true" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="4" width="46" height="13" rx="5" fill="#C8323C" stroke="#231A26" stroke-width="3"/><circle cx="17" cy="10.5" r="2" fill="#FFE76A"/><circle cx="25" cy="10.5" r="2" fill="#FFE76A"/><circle cx="32" cy="10.5" r="2" fill="#FFE76A"/><circle cx="39" cy="10.5" r="2" fill="#FFE76A"/><circle cx="47" cy="10.5" r="2" fill="#FFE76A"/><rect x="11" y="17" width="42" height="29" fill="#2F4C8F" stroke="#231A26" stroke-width="3"/><rect x="11" y="27" width="28" height="7" fill="#C9D0D8" stroke="#231A26" stroke-width="2.2"/><ellipse cx="19" cy="25.5" rx="5" ry="2" fill="#E9B949" stroke="#231A26" stroke-width="1.8"/><ellipse cx="30" cy="25" rx="5" ry="2" fill="#E9B949" stroke="#231A26" stroke-width="1.8"/><ellipse cx="44" cy="40" rx="5.5" ry="2.2" fill="#E9B949" stroke="#231A26" stroke-width="1.8"/><ellipse cx="33" cy="41" rx="5.5" ry="2.2" fill="#E9B949" stroke="#231A26" stroke-width="1.8"/><rect x="7" y="46" width="50" height="13" rx="3" fill="#C8323C" stroke="#231A26" stroke-width="3"/><ellipse cx="48" cy="49.5" rx="4.8" ry="2" fill="#FFE76A" stroke="#231A26" stroke-width="1.6"/><ellipse cx="21" cy="50" rx="4.8" ry="2" fill="#E9B949" stroke="#231A26" stroke-width="1.6"/></svg><span class="rs-naam">Rommelschuiver</span><span class="rs-proef">Proef</span></span>
   <span class="rs-knoppen">
+    <button type="button" id="rs-kastknop" aria-label="Kies een kast"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M5 21V8a7 5 0 0 1 14 0v13z"/><path d="M8 12h8M8 16h8"/></svg><span class="rs-woord">Kasten</span></button>
     <button type="button" id="rs-zoom" aria-pressed="false" aria-label="Dichterbij of de hele kast"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg><span class="rs-woord">Zoom</span></button>
     <button type="button" id="rs-geluidknop" aria-pressed="true" aria-label="Geluid aan of uit"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="rs-golf" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span class="rs-woord">Geluid</span></button>
     <button type="button" id="rs-instknop" aria-label="Instellingen"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span class="rs-woord">Instellingen</span></button>
@@ -111,12 +119,23 @@ html[data-thema="donker"] .rs-hoofd { color: #231A26; }
   <p id="rs-meld" class="rs-onzichtbaar" role="status" aria-live="polite"></p>
   <div id="rs-start" class="rs-laag"><div class="rs-blad rs-papier">
     <span class="rs-tape">Proefversie · alleen speelmunten</span>
-    <h1>Rommelschuiver</h1>
+    <h1 id="rs-titel">Rommelschuiver</h1>
     <p>Laat muntjes in de gleuf vallen. De schuiver duwt ze naar voren, en wat over de rand kiept, valt in de bak.</p>
     <p class="rs-zacht">Dit is een proef: de kast, de schuiver en de munten. De bonussen, de verzameling en het bewaren van je munten komen later. Je munten zijn hier nog gratis.</p>
     <p id="rs-laden" role="status">De kast wordt gebouwd…<span class="balk"><i></i></span></p>
     <div class="rs-rij"><button type="button" class="rs-knop rs-hoofd" id="rs-begin" disabled>Speel</button></div>
   </div></div>
+  <section id="rs-kasten" class="rs-laag" hidden aria-labelledby="rs-kasten-kop"><div class="rs-blad rs-papier rs-breed">
+    <button type="button" class="rs-knop rs-sluit" data-sluit aria-label="Sluiten">✕</button>
+    <h2 id="rs-kasten-kop" tabindex="-1">Kies een kast</h2>
+    <p class="rs-zacht">Elke kast heeft een eigen speelveld en bewaart zijn eigen stapel. In deze proefversie staan ze allemaal open.</p>
+    <div class="rs-kastlijst">
+      <button type="button" class="rs-kastkeus" data-kast="klassiek" style="--k:#B0222E"><b>De Rommelschuiver</b><span>De gewone: een rechte schuiver en een rechte rand.</span></button>
+      <button type="button" class="rs-kastkeus" data-kast="maan" style="--k:#1D2A5E"><b>De Halvemaan</b><span>De rand is een grote boog, en de schuiver is rond. Wat aan de zijkant van de boog afglijdt, is weg.</span></button>
+      <button type="button" class="rs-kastkeus" data-kast="flipper" style="--k:#18793E"><b>De Flipperkast</b><span>Vijf paaltjes waar de munten omheen moeten. Ze lichten op en tingelen als je ze raakt.</span></button>
+      <button type="button" class="rs-kastkeus" data-kast="molen" style="--k:#6C2A86"><b>De Draaimolen</b><span>Een draaischijf neemt de munten mee: soms naar de rand, soms ervan weg.</span></button>
+    </div>
+  </div></section>
   <section id="rs-inst" class="rs-laag" hidden aria-labelledby="rs-inst-kop"><div class="rs-blad rs-papier">
     <button type="button" class="rs-knop rs-sluit" data-sluit aria-label="Sluiten">✕</button>
     <h2 id="rs-inst-kop" tabindex="-1">Instellingen</h2>
@@ -1600,9 +1619,57 @@ function MUNTFYSICA() {
   // (eerst een pinnenbord; Ruben wilde een voorspelbare muntenvaller: de munt valt nu recht naar beneden waar je mikt)
   const PINNEN = [];
 
+  // ======================================================================================
+  // DE KASTEN: elk een eigen speelveld, met dezelfde natuurkunde
+  // ======================================================================================
+  // boog: de rand van de onderste verdieping is een boog (voor = hoe ver het midden naar voren steekt, zij = hoe ver hij
+  //   bij de zijwanden terugbuigt, bak = tot waar de bak loopt; daarbuiten de zijgoten);
+  // schuifBoog: zoveel steekt de voorkant van de schuiver in het midden naar voren;
+  // palen: ronde paaltjes op de onderste verdieping [x, z]; schijf: een draaischijf { x, z, r, w (radialen per seconde) }
+  const KASTEN = {
+    klassiek: { naam: 'De Rommelschuiver' },
+    // getij: elke zoveelste slag is springtij (de schuiver gaat dan 'keer' zo ver)
+    maan: { naam: 'De Halvemaan', boog: { voor: 34, zij: 40, bak: 216 }, schuifBoog: 24, getij: { elke: 6, keer: 1.9 } },
+    // schop: een bumper die geraakt wordt, schiet de munt weg (mm/s), en kan dat weer na 'rust' beelden
+    flipper: { naam: 'De Flipperkast', palen: [[-150, -118], [0, -150], [150, -118], [-76, -66], [76, -66]], paalR: 10, paalH: 30, schop: 150, schopRust: 20 },
+    // de schijf draait heen en weer: w is de hoogste hoeksnelheid, periode de tijd van een hele heen-en-weer (seconden)
+    molen: { naam: 'De Draaimolen', schijf: { x: 0, z: -102, r: 84, w: 0.65, periode: 24 } },
+  };
+  // de vorm van een kast, gedeeld met het tekenen (zo liggen de munten altijd op wat je ziet)
+  function kastVorm(naam) {
+    const K = KASTEN[naam] || KASTEN.klassiek, XW = MK.XW, B = K.boog, SB = K.schuifBoog || 0;
+    const V = {
+      naam: KASTEN[naam] ? naam : 'klassiek', K,
+      XF: B ? XW : MK.XF,
+      ZS: B ? -B.zij : MK.ZS,
+      randZ: B ? (x) => B.voor - (B.voor + B.zij) * (x / XW) * (x / XW) : () => 0,
+      schuifZ: SB ? (x) => SB * (1 - (x / XW) * (x / XW)) : () => 0,
+      schuifDZ: SB ? (x) => -2 * SB * x / (XW * XW) : () => 0,
+      palen: K.palen || [], paalR: K.paalR || 0, paalH: K.paalH || 0,
+      schijf: K.schijf || null,
+    };
+    // de randen van de onderste verdieping (lijnstukjes x0, z0, x1, z1)
+    V.rand = [];
+    if (B) { const n = 20; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.rand.push([x0, V.randZ(x0), x1, V.randZ(x1)]); } }
+    else V.rand.push([-MK.XF, 0, MK.XF, 0], [-MK.XF, MK.ZS, -MK.XF, 0], [MK.XF, MK.ZS, MK.XF, 0], [-XW, MK.ZS, -MK.XF, MK.ZS], [MK.XF, MK.ZS, XW, MK.ZS]);
+    V.vloerOp = B ? (X, Z) => X >= -XW - 0.01 && X <= XW + 0.01 && Z >= MK.ZB && Z <= V.randZ(X) + 0.01
+      : (X, Z) => (X >= -XW - 0.01 && X <= XW + 0.01 && Z >= MK.ZB && Z <= MK.ZS + 0.01) || (X >= -MK.XF - 0.01 && X <= MK.XF + 0.01 && Z >= MK.ZS - 0.01 && Z <= 0.01);
+    V.inBak = B ? (x, z) => Math.abs(x) < B.bak && z > V.randZ(x) - 8 : (x, z) => z > -2 && Math.abs(x) < MK.XF + 6;
+    // de voorkant van de schuiver (z ten opzichte van de stand van de schuiver)
+    V.schuifRand = [];
+    if (SB) { const n = 16; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.schuifRand.push([x0, V.schuifZ(x0), x1, V.schuifZ(x1)]); } }
+    else V.schuifRand.push([-XW, 0, XW, 0]);
+    const S = V.schijf;
+    V.opSchijf = S ? (X, Z) => { const dx = X - S.x, dz = Z - S.z; return dx * dx + dz * dz <= S.r * S.r; } : () => false;
+    return V;
+  }
+
   function maak(opt) {
     opt = opt || {};
     if (opt.mk) Object.assign(MK, opt.mk);
+    const KV = kastVorm(opt.kast);
+    const SCH = KV.schijf;
+    let schijfW = 0, schijfHoek = 0, schijfT = 0;   // de draaischijf: hoeksnelheid nu, hoe ver hij gedraaid is, en de klok van zijn heen en weer
     const N = opt.max || 2400;
     let zaad = (opt.zaad || 12345) >>> 0;
     const rnd = () => { zaad = (zaad + 0x6D2B79F5) >>> 0; let t = zaad; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -1703,13 +1770,19 @@ function MUNTFYSICA() {
     const dkv = new Float64Array(N);   // dikV, bijgehouden
     const traag = (i) => ms[i] * rr[i] * rr[i] / 4;                                   // traagheid om een middellijn (plaatje)
     // de snelheid van een munt als steun: een slapende munt op de schuiver rijdt mee met de schuiver
-    const steunVx = (b) => md[b] === SLAAP ? 0 : vx[b];
-    const steunVz = (b) => md[b] === SLAAP ? (anc[b] ? vp : 0) : vz[b];
+    // anc: 0 ligt vast, 1 rijdt mee met de schuiver, 2 draait mee met de draaischijf
+    const schijfVx = (X, Z) => SCH ? -schijfW * (Z - SCH.z) : 0;
+    const schijfVz = (X, Z) => SCH ? schijfW * (X - SCH.x) : 0;
+    const steunVx = (b) => md[b] === SLAAP ? (anc[b] === 2 ? schijfVx(px[b], pz[b]) : 0) : vx[b];
+    const steunVz = (b) => md[b] === SLAAP ? (anc[b] === 1 ? vp : anc[b] === 2 ? schijfVz(px[b], pz[b]) : 0) : vz[b];
     function wek(i) {
-      if (md[i] === SLAAP) { md[i] = SCHUIF; stil[i] = 0; if (anc[i]) { vx[i] = 0; vz[i] = vp; } }
+      if (md[i] === SLAAP) { md[i] = SCHUIF; stil[i] = 0; if (anc[i]) { vx[i] = anc[i] === 2 ? schijfVx(px[i], pz[i]) : 0; vz[i] = anc[i] === 1 ? vp : schijfVz(px[i], pz[i]); } }
       else if (md[i] === STIL3D) { md[i] = VAL; stil[i] = 0; }
     }
-    function schuiverStand(tt) { return MK.Z0 + MK.SLAG * (1 - Math.cos(tt * 2 * Math.PI / MK.T)) / 2; }
+    let slagNr = 0;
+    const GETIJ = KV.K.getij;
+    const springtij = () => !!GETIJ && slagNr % GETIJ.elke === GETIJ.elke - 1;
+    function schuiverStand(tt) { return MK.Z0 + MK.SLAG * (springtij() ? GETIJ.keer : 1) * (1 - Math.cos(tt * 2 * Math.PI / MK.T)) / 2; }
 
     // ======================================================================================
     // DE SCHUIFSTAND
@@ -1882,19 +1955,35 @@ function MUNTFYSICA() {
       }
       return best;
     }
+    const paalTik = new Int32Array(8).fill(-100);
     function wanden(i) {
       const r = rr[i], x0 = px[i], z0 = pz[i];
       if (lvl[i] === 0) {
-        // de voorkant van de schuiver
-        if (pz[i] < zf + r) pz[i] = zf + r;
+        // de voorkant van de schuiver (een ronde schuiver: loodrecht op de bocht)
+        if (KV.K.schuifBoog) {
+          const s = KV.schuifDZ(px[i]), L = Math.sqrt(1 + s * s), tekort = r - (pz[i] - zf - KV.schuifZ(px[i])) / L;
+          if (tekort > 0) { px[i] -= s / L * tekort; pz[i] += tekort / L; }
+        } else if (pz[i] < zf + r) pz[i] = zf + r;
         // zijwanden (achter ZS), met een rond einde
         if (Math.abs(px[i]) > MK.XW - r - 0.5) for (let s = -1; s <= 1; s += 2) {
           const wx0 = s * MK.XW;
-          const cz = Math.min(pz[i], MK.ZS);
+          const cz = Math.min(pz[i], KV.ZS);
           const dx = px[i] - wx0, dz = pz[i] - cz, d = Math.hypot(dx, dz);
           if (d < r) {
-            if (pz[i] <= MK.ZS) px[i] = wx0 - s * r;
+            if (pz[i] <= KV.ZS) px[i] = wx0 - s * r;
             else { const f = (r - d) / (d || 1e-9); px[i] += dx * f; pz[i] += dz * f; }
+          }
+        }
+        // de paaltjes: een bumper schiet een munt die hem raakt weg (en licht op); daarna even rust
+        for (let k = 0; k < KV.palen.length; k++) {
+          const p = KV.palen[k], dx = px[i] - p[0], dz = pz[i] - p[1], d = Math.hypot(dx, dz), min = r + KV.paalR;
+          if (d >= min) continue;
+          const f = (min - d) / (d || 1e-9);
+          px[i] += dx * f; pz[i] += dz * f;
+          if (KV.K.schop && paalTik[k] + KV.K.schopRust < frameNr) {
+            paalTik[k] = frameNr;
+            duw[2 * i] += dx / (d || 1) * KV.K.schop; duw[2 * i + 1] += dz / (d || 1) * KV.K.schop;
+            if (gebeurtenis.length < 600) gebeurtenis.push(5, k, p[0], KV.paalH, p[1], 1);
           }
         }
       } else {
@@ -1914,12 +2003,12 @@ function MUNTFYSICA() {
     const onder = new Int32Array(16); let onderN = 0;
 
     function steunHoogte(i, X, Z, wie) {
-      // hoogste steun onder punt (X, Z) voor munt i; wie[0] = -1 vloer, -2 schuiver, j munt, -9 niets
+      // hoogste steun onder punt (X, Z) voor munt i; wie[0] = -1 vloer, -2 schuiver, -3 draaischijf, j munt, -9 niets
       let best = -1e9, bw = -9;
       if (lvl[i] === 0) {
-        if ((X >= -MK.XW - 0.01 && X <= MK.XW + 0.01 && Z >= MK.ZB && Z <= MK.ZS + 0.01) || (X >= -MK.XF - 0.01 && X <= MK.XF + 0.01 && Z >= MK.ZS - 0.01 && Z <= 0.01)) { best = 0; bw = -1; }
+        if (KV.vloerOp(X, Z)) { best = 0; bw = SCH && KV.opSchijf(X, Z) ? -3 : -1; }
       } else {
-        if (X >= -MK.XW - 0.01 && X <= MK.XW + 0.01 && Z >= zf - MK.LP && Z <= zf + 0.01) { best = MK.HP; bw = -2; }
+        if (X >= -MK.XW - 0.01 && X <= MK.XW + 0.01 && Z >= zf - MK.LP && Z <= zf + KV.schuifZ(X) + 0.01) { best = MK.HP; bw = -2; }
       }
       for (let k = 0; k < onderN; k++) {
         const j = onder[k];
@@ -2051,11 +2140,9 @@ function MUNTFYSICA() {
         voegSteun(i, px[i], pz[i]);
         for (let s = 0; s < RING; s++) voegSteun(i, px[i] + ringC[s] * r * 0.94, pz[i] + ringS[s] * r * 0.94);
         if (lvl[i] === 0) {
-          koordPunten(i, -MK.XF, 0, MK.XF, 0);
-          koordPunten(i, -MK.XF, MK.ZS, -MK.XF, 0); koordPunten(i, MK.XF, MK.ZS, MK.XF, 0);
-          koordPunten(i, -MK.XW, MK.ZS, -MK.XF, MK.ZS); koordPunten(i, MK.XF, MK.ZS, MK.XW, MK.ZS);
+          for (let k = 0; k < KV.rand.length; k++) { const e = KV.rand[k]; if (Math.abs(px[i] - (e[0] + e[2]) / 2) < r + Math.abs(e[2] - e[0]) / 2 + 1) koordPunten(i, e[0], e[1], e[2], e[3]); }
         } else {
-          koordPunten(i, -MK.XW, zf, MK.XW, zf);
+          for (let k = 0; k < KV.schuifRand.length; k++) { const e = KV.schuifRand[k]; if (Math.abs(px[i] - (e[0] + e[2]) / 2) < r + Math.abs(e[2] - e[0]) / 2 + 1) koordPunten(i, e[0], zf + e[1], e[2], zf + e[3]); }
         }
         for (let o = 0; o < onderN; o++) {
           const j = onder[o];
@@ -2082,16 +2169,17 @@ function MUNTFYSICA() {
             }
           }
           // de snelheid van wat eronder ligt (de punten waar hij nu op rust)
-          let n = 0, sx = 0, sz = 0, opVloer = 0, opSch = 0, ancM = 1;
+          let n = 0, sx = 0, sz = 0, opVloer = 0, opSch = 0, opSchijf = 0, ancM = -1;
           const dk = hh[i] * Math.sqrt(1 + sa[i] * sa[i] + sb[i] * sb[i]);
           for (let s = 0; s < spN; s++) {
             if (py[i] + sa[i] * spX[s] + sb[i] * spZ[s] - dk - spH[s] > 0.05) continue;
             const b = spB[s]; n++;
             if (b === -1) opVloer++;
             else if (b === -2) { opSch++; sz += vp; }
-            else { sx += steunVx(b); sz += steunVz(b); if (!anc[b]) ancM = 0; }
+            else if (b === -3) { opSchijf++; sx += schijfVx(px[i] + spX[s], pz[i] + spZ[s]); sz += schijfVz(px[i] + spX[s], pz[i] + spZ[s]); }
+            else { sx += steunVx(b); sz += steunVz(b); ancM = !anc[b] ? 0 : ancM === -1 || ancM === anc[b] ? anc[b] : 0; }
           }
-          if (n) { svx[i] = sx / n; svz[i] = sz / n; anc[i] = opVloer ? 0 : opSch ? 1 : ancM; }
+          if (n) { svx[i] = sx / n; svz[i] = sz / n; anc[i] = opVloer ? 0 : opSch ? 1 : opSchijf ? (ancM === -1 || ancM === 2 ? 2 : 0) : ancM === -1 ? 1 : ancM; }
           if (haak.p) haak.p(i, oy[i], spN, spX, spZ, spH, spB, spL, onder, onderN, 'rustig');
           continue;
         }
@@ -2125,7 +2213,7 @@ function MUNTFYSICA() {
         dkv[i] = dikV(i);
         if (Math.abs(py[i] - oy[i]) + 12 * (Math.abs(sa[i] - oa[i]) + Math.abs(sb[i] - ob[i])) > 0.005) markeer(i);
         // gewicht doorgeven aan de munten eronder, en de snelheid van de steun onthouden
-        let lsum = 0, sx = 0, sz = 0, opSchuiver = 0, opVloer = 0, opMunt = 0, ancM = 1;
+        let lsum = 0, sx = 0, sz = 0, opSchuiver = 0, opVloer = 0, opMunt = 0, opSchijf = 0, ancM = -1;
         stN[i] = 0;
         for (let s = 0; s < spN; s++) {
           const L = spL[s];
@@ -2135,9 +2223,10 @@ function MUNTFYSICA() {
           if (stN[i] < SMX) { const e = i * SMX + stN[i]++; stB[e] = b; stX[e] = spX[s]; stZ[e] = spZ[s]; stM[e] = L / (G * DT * DT / PSUB); }
           if (b === -1) opVloer += L;
           else if (b === -2) { opSchuiver += L; sz += L * vp; }
+          else if (b === -3) { opSchijf += L; sx += L * schijfVx(px[i] + spX[s], pz[i] + spZ[s]); sz += L * schijfVz(px[i] + spX[s], pz[i] + spZ[s]); }
           else {
             opMunt += L; sx += L * steunVx(b); sz += L * steunVz(b);
-            if (!anc[b]) ancM = 0;
+            ancM = !anc[b] ? 0 : ancM === -1 || ancM === anc[b] ? anc[b] : 0;
             const q = nwN[b];
             if (q < LMAX) { const e = b * LMAX + q; nwX[e] = px[i] + spX[s] - px[b]; nwZ[e] = pz[i] + spZ[s] - pz[b]; nwM[e] = L / (G * DT * DT / PSUB); nwN[b] = q + 1; }
 
@@ -2145,7 +2234,7 @@ function MUNTFYSICA() {
         }
         if (lsum > 0) {
           svx[i] = sx / lsum; svz[i] = sz / lsum;
-          anc[i] = opVloer > 0 ? 0 : opSchuiver > 0 ? 1 : ancM;
+          anc[i] = opVloer > 0 ? 0 : opSchuiver > 0 ? 1 : opSchijf > 0 ? (ancM === -1 || ancM === 2 ? 2 : 0) : ancM === -1 ? 1 : ancM;
           losTel[i] = 0;
         } else { svx[i] = vx[i]; svz[i] = vz[i]; if (losTel[i] < 250) losTel[i]++; }
         // kiepen: te schuin boven een rand of gat, of nergens meer op. Midden in een stapel blijft hij plat (hooguit schuin).
@@ -2219,34 +2308,59 @@ function MUNTFYSICA() {
     // ======================================================================================
     // DE VALSTAND (3D, XPBD)
     // ======================================================================================
-    const VLAKKEN = [];   // [ox, oy, oz, nx, ny, nz, ux, uy, uz, eu, vx, vy, vz, ev, beweegt, bolleRand]
+    const VLAKKEN = [];   // [ox, oy, oz, nx, ny, nz, ux, uy, uz, eu, vx, vy, vz, ev, beweegt, bolleRand, soort]
     // bolleRand 1: de rand aan de +v-kant is een buitenhoek (daar zit ook een rand in RANDEN)
+    // soort: 0 gewoon, 1 de vloer onder (de vorm van de kast, en de draaischijf), 2 de bovenkant van de schuiver (bij een ronde schuiver)
     let PIN0 = 0;         // vanaf hier zijn de randen pinnetjes
     const RANDEN = [];    // [ax, ay, az, bx, by, bz, straal, beweegt, n1 (3), n2 (3)]: n1 en n2 zijn de normalen van de twee vlakken van een buitenhoek (of 0)
     {
-      const { XW, XF, ZS, ZB, HP, ZW, KD, KY } = MK;
-      const V = (o, n, u, eu, v, ev, b, k) => VLAKKEN.push([...o, ...n, ...u, eu, ...v, ev, b ? 1 : 0, k ? 1 : 0]);
-      V([0, 0, (ZB + ZS) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (ZS - ZB) / 2);
-      V([0, 0, ZS / 2], [0, 1, 0], [1, 0, 0], XF, [0, 0, 1], -ZS / 2, false, true);
-      V([0, -15, 0], [0, 0, 1], [1, 0, 0], XF, [0, 1, 0], 15, false, true);
-      V([-XF, -15, ZS / 2], [-1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15, false, true);
-      V([XF, -15, ZS / 2], [1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15, false, true);
-      V([-(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15, false, true);
-      V([(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15, false, true);
-      V([0, HP, -MK.LP / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2, true, true);    // schuiver boven (z t.o.v. zf)
-      V([0, HP / 2, 0], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], HP / 2, true, true);           // schuiver voorkant
+      const { XW, ZB, HP, ZW, KD, KY } = MK, XF = KV.XF, ZS = KV.ZS, B = KV.K.boog, SB = KV.K.schuifBoog;
+      const V = (o, n, u, eu, v, ev, b, k, srt) => VLAKKEN.push([...o, ...n, ...u, eu, ...v, ev, b ? 1 : 0, k ? 1 : 0, srt || 0]);
+      const Rd = (a, b, r, m, n1, n2) => RANDEN.push([...a, ...b, r, m ? 1 : 0, ...(n1 || [0, 0, 0]), ...(n2 || [0, 0, 0])]);
+      const OP = [0, 1, 0], ONDER = [0, -1, 0], VOOR = [0, 0, 1], ACHTER = [0, 0, -1], LI = [-1, 0, 0], RE = [1, 0, 0];
+      // een gebogen rand als stukjes: per stukje een staand vlak eronder (of ervoor) en een rand, met de normaal naar buiten
+      const bocht = (lijst, y0, y1, beweegt) => {
+        for (const [x0, z0, x1, z1] of lijst) {
+          const dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz), n = [-dz / L, 0, dx / L];
+          V([(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], n, [dx / L, 0, dz / L], L / 2 + 0.3, [0, 1, 0], (y1 - y0) / 2, beweegt, true);
+          Rd([x0, y1, z0], [x1, y1, z1], 0, beweegt, OP, n);
+        }
+      };
+      if (B) {
+        // de Halvemaan: één vloer in de vorm van de boog, met een gebogen rand ervoor
+        V([0, 0, (ZB + B.voor) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (B.voor - ZB) / 2, false, false, 1);
+        bocht(KV.rand, -30, 0, false);
+      } else {
+        V([0, 0, (ZB + ZS) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (ZS - ZB) / 2, false, false, 1);
+        V([0, 0, ZS / 2], [0, 1, 0], [1, 0, 0], XF, [0, 0, 1], -ZS / 2, false, true, 1);
+        V([0, -15, 0], [0, 0, 1], [1, 0, 0], XF, [0, 1, 0], 15, false, true);
+        V([-XF, -15, ZS / 2], [-1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15, false, true);
+        V([XF, -15, ZS / 2], [1, 0, 0], [0, 0, 1], -ZS / 2, [0, 1, 0], 15, false, true);
+        V([-(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15, false, true);
+        V([(XF + XW) / 2, -15, ZS], [0, 0, 1], [1, 0, 0], (XW - XF) / 2, [0, 1, 0], 15, false, true);
+      }
+      if (SB) {
+        // een ronde schuiver: de bovenkant volgt de bocht, de voorkant in stukjes
+        V([0, HP, -MK.LP / 2 + SB / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2 + SB / 2, true, false, 2);
+        bocht(KV.schuifRand, 0, HP, true);
+      } else {
+        V([0, HP, -MK.LP / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2, true, true);    // schuiver boven (z t.o.v. zf)
+        V([0, HP / 2, 0], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], HP / 2, true, true);           // schuiver voorkant
+      }
       V([0, (HP + 400) / 2, ZW], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], (400 - HP) / 2);
       V([-XW, 185, (ZB + ZS) / 2], [1, 0, 0], [0, 0, 1], (ZS - ZB) / 2, [0, 1, 0], 215);
       V([XW, 185, (ZB + ZS) / 2], [-1, 0, 0], [0, 0, 1], (ZS - ZB) / 2, [0, 1, 0], 215);
       V([0, (KY + 400) / 2, ZW + KD], [0, 0, -1], [1, 0, 0], XW, [0, 1, 0], (400 - KY) / 2);
       V([0, (KY + 400) / 2, ZW + KD + 4], [0, 0, 1], [1, 0, 0], XW, [0, 1, 0], (400 - KY) / 2);
-      const Rd = (a, b, r, m, n1, n2) => RANDEN.push([...a, ...b, r, m ? 1 : 0, ...(n1 || [0, 0, 0]), ...(n2 || [0, 0, 0])]);
-      const OP = [0, 1, 0], ONDER = [0, -1, 0], VOOR = [0, 0, 1], ACHTER = [0, 0, -1], LI = [-1, 0, 0], RE = [1, 0, 0];
-      Rd([-XF, 0, 0], [XF, 0, 0], 0, false, OP, VOOR);
-      Rd([-XF, 0, ZS], [-XF, 0, 0], 0, false, OP, LI); Rd([XF, 0, ZS], [XF, 0, 0], 0, false, OP, RE);
-      Rd([-XW, 0, ZS], [-XF, 0, ZS], 0, false, OP, VOOR); Rd([XF, 0, ZS], [XW, 0, ZS], 0, false, OP, VOOR);
+      if (!B) {
+        Rd([-XF, 0, 0], [XF, 0, 0], 0, false, OP, VOOR);
+        Rd([-XF, 0, ZS], [-XF, 0, 0], 0, false, OP, LI); Rd([XF, 0, ZS], [XF, 0, 0], 0, false, OP, RE);
+        Rd([-XW, 0, ZS], [-XF, 0, ZS], 0, false, OP, VOOR); Rd([XF, 0, ZS], [XW, 0, ZS], 0, false, OP, VOOR);
+      }
       Rd([-XW, 0, ZS], [-XW, 400, ZS], 0, false, RE, VOOR); Rd([XW, 0, ZS], [XW, 400, ZS], 0, false, LI, VOOR);
-      Rd([-XW, HP, 0], [XW, HP, 0], 0, true, OP, VOOR);                                    // voorrand schuiver (z t.o.v. zf)
+      if (!SB) Rd([-XW, HP, 0], [XW, HP, 0], 0, true, OP, VOOR);                            // voorrand schuiver (z t.o.v. zf)
+      // de paaltjes van de Flipperkast: staande cilinders (verend, zoals een bumper)
+      for (const [x, z] of KV.palen) Rd([x, 0, z], [x, KV.paalH, z], KV.paalR, false);
       Rd([-XW, KY, ZW + KD], [XW, KY, ZW + KD], 0, false, ACHTER, ONDER); Rd([-XW, KY, ZW + KD + 4], [XW, KY, ZW + KD + 4], 0, false, VOOR, ONDER);
       PIN0 = RANDEN.length;
       for (const [x, y] of PINNEN) Rd([x, y, ZW], [x, y, ZW + KD], MK.PIN_R);
@@ -2327,6 +2441,9 @@ function MUNTFYSICA() {
       if (afst > r + hd || afst < -r - 4) return;
       // ligt het midden van de munt al voorbij een buitenhoek van dit vlak, dan raakt hij de hoek (RANDEN), niet dit vlak
       if (V[15] && (px[i] - ox_) * V[10] + (py[i] - oy_) * V[11] + (pz[i] - oz_) * V[12] > V[13]) return;
+      const vorm = (V[16] === 1 && KV.K.boog) ? 1 : (V[16] === 2 && KV.K.schuifBoog) ? 2 : 0;
+      if (vorm === 1 && !KV.vloerOp(px[i], pz[i])) return;
+      if (vorm === 2 && pz[i] > zf + KV.schuifZ(px[i])) return;
       as3(i);
       const nx = NA[0], ny = NA[1], nz = NA[2];
       const mn = mx * nx + my * ny + mz * nz;
@@ -2340,7 +2457,7 @@ function MUNTFYSICA() {
       }
       e2x = ny * ez - nz * ey; e2y = nz * ex - nx * ez; e2z = nx * ey - ny * ex;
       const aantal = Math.abs(mn) > 0.6 ? 3 : 1;
-      const svz_ = V[14] ? vp : 0;
+      let svx_ = 0, svz_ = V[14] ? vp : 0;
       for (let k = 0; k < aantal; k++) {
         const hoek = k === 0 ? 0 : (k === 1 ? 2.0944 : -2.0944);
         const c = Math.cos(hoek), s = Math.sin(hoek);
@@ -2353,7 +2470,10 @@ function MUNTFYSICA() {
         if (Math.abs(lu) > V[9] + 0.5 || Math.abs(lv) > V[13] + 0.5) continue;
         // vlak bij een buitenhoek, en dieper dan de afstand tot die hoek: dan zit de munt over de hoek (het andere vlak of de rand vangt hem)
         if (V[15] && V[13] - lv < d) continue;
-        contact(i, -1, mx, my, mz, qx_ - mx * hd, qy_ - my * hd, qz_ - mz * hd, qx_ - mx * hgt, qy_ - my * hgt, qz_ - mz * hgt, d, 0, 0, svz_, 0.3, 0.25);
+        if (vorm === 1 && !KV.vloerOp(qx_, qz_)) continue;
+        if (vorm === 2 && qz_ > zf + KV.schuifZ(qx_) + 0.5) continue;
+        if (V[16] === 1 && SCH && KV.opSchijf(qx_, qz_)) { svx_ = schijfVx(qx_, qz_); svz_ = schijfVz(qx_, qz_); }
+        contact(i, -1, mx, my, mz, qx_ - mx * hd, qy_ - my * hd, qz_ - mz * hd, qx_ - mx * hgt, qy_ - my * hgt, qz_ - mz * hgt, d, svx_, 0, svz_, 0.3, 0.25);
       }
     }
 
@@ -2394,7 +2514,12 @@ function MUNTFYSICA() {
         }
       }
       const pin = rs > 0;
-      contact(i, -1, mx, my, mz, CP[0] - mx * hd, CP[1] - my * hd, CP[2] - mz * hd, X + mx * rs, Y + my * rs, Z + mz * rs, d, 0, 0, Rn[7] ? vp : 0, pin ? 0.15 : 0.3, pin ? 0.45 : 0.2);
+      if (pin && Rn[1] === 0 && Rn[4] === KV.paalH) {
+        const k = KV.palen.findIndex((p) => p[0] === Rn[0] && p[1] === Rn[2]);
+        if (k >= 0 && paalTik[k] + KV.K.schopRust < frameNr && gebeurtenis.length < 600) { paalTik[k] = frameNr; gebeurtenis.push(5, k, Rn[0], KV.paalH, Rn[2], 1); }
+      }
+      const bumper = pin && Rn[1] === 0 && KV.K.schop;
+      contact(i, -1, mx, my, mz, CP[0] - mx * hd, CP[1] - my * hd, CP[2] - mz * hd, X + mx * rs, Y + my * rs, Z + mz * rs, d, 0, 0, Rn[7] ? vp : 0, pin ? 0.15 : 0.3, bumper ? 0.8 : pin ? 0.45 : 0.2);
     }
 
     const NB = new Float64Array(3);
@@ -2638,20 +2763,37 @@ function MUNTFYSICA() {
       if (schuiverAan || fase > 1e-9) {
         // uit: de slag afmaken en dan stoppen (helemaal achter)
         fase += DT / MK.T;
-        if (fase >= 1) { fase -= 1; if (!schuiverAan) fase = 0; }
+        if (fase >= 1) { fase -= 1; slagNr++; if (!schuiverAan) fase = 0; }
       }
       zf = schuiverStand(fase * MK.T);
       vp = (zf - zfOud) / DT;
       const dzf = zf - zfOud;
+      // de draaischijf draait zolang de schuiver loopt
+      if (SCH && (schuiverAan || fase > 1e-9)) { schijfT += DT; schijfW = SCH.w * Math.sin(2 * Math.PI * schijfT / SCH.periode); } else schijfW = 0;
+      const dh = schijfW * DT, ch = Math.cos(dh), sh = Math.sin(dh);
+      schijfHoek = (schijfHoek + dh) % (2 * Math.PI);
       // slapende munten op de schuiver rijden mee; munten voor de schuiver en tegen de achterwand worden wakker
       schuivers.length = 0;
       for (let i = 0; i < hoogsteIndex; i++) {
         const m = md[i];
         if (m === SLAAP) {
-          if (anc[i]) {
+          if (anc[i] === 1) {
             pz[i] += dzf;
             if (dzf < 0 && pz[i] - rr[i] < MK.ZW + 0.6) wek(i);
-          } else if (lvl[i] === 0 && dzf > 0 && pz[i] - rr[i] < zf + 0.6) wek(i);
+          } else if (anc[i] === 2) {
+            if (dh) {
+              // draait mee met de schijf (plek, draai en schuinte)
+              const dx = px[i] - SCH.x, dz = pz[i] - SCH.z, a = sa[i], b = sb[i];
+              px[i] = SCH.x + dx * ch - dz * sh; pz[i] = SCH.z + dx * sh + dz * ch;
+              sa[i] = a * ch - b * sh; sb[i] = a * sh + b * ch; yaw[i] -= dh;
+              // vlak bij de rand van de schijf: wakker (daar ligt het stil naast)
+              if (Math.hypot(px[i] - SCH.x, pz[i] - SCH.z) > SCH.r - rr[i] - 1.5) wek(i);
+            }
+          } else if (lvl[i] === 0 && dzf > 0 && pz[i] - rr[i] < zf + KV.schuifZ(px[i]) + 0.6) wek(i);
+          else if (dh && lvl[i] === 0) {
+            // ligt hij (deels) op de draaischijf, dan sleept die hem mee
+            for (let k = 0; k < stN[i]; k++) if (stB[i * SMX + k] === -3) { wek(i); break; }
+          }
         }
         if (md[i] === SCHUIF) schuivers.push(i);
       }
@@ -2684,7 +2826,7 @@ function MUNTFYSICA() {
         if (m === WEG) continue;
         if (m === VAL || m === STIL3D) {
           if (py[i] < MK.UIT || py[i] < -200) {
-            const inBak = pz[i] > -2 && Math.abs(px[i]) < MK.XF + 6;
+            const inBak = KV.inBak(px[i], pz[i]);
             md[i] = WEG;
             if (inBak) { tel.uit++; gebeurtenis.push(2, i, px[i], py[i], pz[i], Math.hypot(vx[i], vy[i], vz[i])); }
             else { tel.zij++; gebeurtenis.push(3, i, px[i], py[i], pz[i], Math.hypot(vx[i], vy[i], vz[i])); }
@@ -2693,8 +2835,9 @@ function MUNTFYSICA() {
           if (m === VAL) {
             vallend++;
             // op de schuiver: de snelheid ten opzichte van de schuiver telt
-            const opSch = py[i] > MK.HP - 6 && pz[i] < zf && pz[i] > zf - MK.LP;
-            const v = Math.hypot(vx[i], vy[i], vz[i] - (opSch ? vp : 0)), w = Math.hypot(wx[i], wY[i], wz[i]);
+            const opSch = py[i] > MK.HP - 6 && pz[i] < zf + KV.schuifZ(px[i]) && pz[i] > zf - MK.LP;
+            const opSchijf = SCH && py[i] < 8 && KV.opSchijf(px[i], pz[i]);
+            const v = opSchijf ? Math.hypot(vx[i] - schijfVx(px[i], pz[i]), vy[i], vz[i] - schijfVz(px[i], pz[i])) : Math.hypot(vx[i], vy[i], vz[i] - (opSch ? vp : 0)), w = Math.hypot(wx[i], wY[i], wz[i]);
             as3(i);
             const ny = Math.abs(NA[1]);
             if (val3T[i] < 65535) val3T[i]++;
@@ -2728,7 +2871,7 @@ function MUNTFYSICA() {
       } else stilTijd = 0;
       rustTijd = (wakker + vallend === 0) ? rustTijd + DT : 0;
       uitvoer();
-      return { wakker, vallend, slapend, zf, rust: wakker + vallend === 0 && Math.abs(dzf) < 1e-9 };
+      return { wakker, vallend, slapend, zf, rust: wakker + vallend === 0 && Math.abs(dzf) < 1e-9 && !dh };
     }
 
     function uitvoer() {
@@ -2773,8 +2916,16 @@ function MUNTFYSICA() {
       const R = R0, stap_ = 2 * R + 0.6, rij = stap_ * Math.sqrt(3) / 2;
       const leg = (aantal, laag) => {
         if (aantal <= 0) return;
-        const z0 = laag ? MK.ZW + R + 1 : zf + R + 1, z1 = laag ? zf - R - 6 : -R - 4;
-        const breed = (z) => laag ? MK.XW - R - 1 : (z > MK.ZS - R ? MK.XF - R - 3 : MK.XW - R - 1);
+        const z0 = laag ? MK.ZW + R + 1 : zf + R + 1, z1 = laag ? zf - R - 6 : (KV.K.boog ? KV.K.boog.voor : 0) - R - 4;
+        const breed = (z) => laag ? MK.XW - R - 1 : (z > KV.ZS - R ? KV.XF - R - 3 : MK.XW - R - 1);
+        // past een munt hier? (binnen de vorm, niet in een paaltje, niet in de schuiver)
+        const past = (x, z) => {
+          if (laag) return z <= zf + KV.schuifZ(x) - R - 6;
+          if (z < zf + KV.schuifZ(x) + R + 1 || z > KV.randZ(x) - R - 4) return false;
+          for (const p of KV.palen) if (Math.hypot(x - p[0], z - p[1]) < R + KV.paalR + 1) return false;
+          if (SCH && Math.hypot(x - SCH.x, z - SCH.z) < SCH.r + R) return false;
+          return true;
+        };
         const gewicht = [0.42, 0.3, 0.16, 0.08, 0.04];
         let over = aantal;
         for (let L = 0; L < 12 && over > 0; L++) {
@@ -2783,7 +2934,7 @@ function MUNTFYSICA() {
           const ox_ = (L % 2) * stap_ / 2, oz_ = ((L >> 1) % 2) * rij / 2;
           for (let k = 0, z = z0 + oz_; z <= z1; z += rij, k++) {
             const w = breed(z);
-            for (let x = -w + ((k % 2) ? stap_ / 2 : 0) + ox_; x <= w; x += stap_) plek.push([x + (rnd() - 0.5) * 1.6, z + (rnd() - 0.5) * 1.6]);
+            for (let x = -w + ((k % 2) ? stap_ / 2 : 0) + ox_; x <= w; x += stap_) if (past(x, z)) plek.push([x + (rnd() - 0.5) * 1.6, z + (rnd() - 0.5) * 1.6]);
           }
           for (let k = plek.length - 1; k > 0; k--) { const j = (rnd() * (k + 1)) | 0; const t2 = plek[k]; plek[k] = plek[j]; plek[j] = t2; }
           const deel = L < gewicht.length ? gewicht[L] : 0.02;
@@ -2810,10 +2961,11 @@ function MUNTFYSICA() {
     // ======================================================================================
     // BEWAREN: per munt 10 bytes (plek, schuinte, draai, soort)
     // ======================================================================================
+    const KENMERK = 0x52533101 + Object.keys(KASTEN).indexOf(KV.naam) * 0x100;   // de gewone kast houdt het oude kenmerk
     function bewaar() {
       let n = 0; for (let i = 0; i < hoogsteIndex; i++) if (md[i] !== WEG) n++;
       const b = new ArrayBuffer(8 + n * 12), d = new DataView(b);
-      d.setUint32(0, 0x52533101); d.setFloat32(4, fase % 1);
+      d.setUint32(0, KENMERK); d.setFloat32(4, fase % 1);
       let o = 8;
       for (let i = 0; i < hoogsteIndex; i++) {
         if (md[i] === WEG) continue;
@@ -2830,7 +2982,7 @@ function MUNTFYSICA() {
     }
     function laad(bytes) {
       const d = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-      if (bytes.byteLength < 8 || d.getUint32(0) !== 0x52533101) return false;
+      if (bytes.byteLength < 8 || d.getUint32(0) !== KENMERK) return false;
       const n = (bytes.byteLength - 8) / 12;
       if (n !== Math.floor(n) || n > N) return false;
       md.fill(WEG); hoogsteIndex = 0;
@@ -2853,7 +3005,9 @@ function MUNTFYSICA() {
     function aantal() { let n = 0; for (let i = 0; i < hoogsteIndex; i++) if (md[i] !== WEG) n++; return n; }
 
     return {
-      N, MK, PINNEN, P, Q, md, soort, gebeurtenis, tel,
+      N, MK, PINNEN, P, Q, md, soort, gebeurtenis, tel, kast: KV.naam,
+      get schijfHoek() { return schijfHoek; }, get schijfW() { return schijfW; },
+      get springtij() { return springtij(); }, get slagNr() { return slagNr; },
       stap, gooi, vul, bewaar, laad, aantal,
       get zf() { return zf; }, get vp() { return vp; }, get t() { return t; }, get fase() { return fase; },
       get hoogste() { return hoogsteIndex; },
@@ -2863,7 +3017,7 @@ function MUNTFYSICA() {
       _: { haak, rus, svx, svz, wek: (i) => { wek(i); }, px, py, pz, sa, sb, rr, hh, lvl, anc, vx, vy, vz, qx, qy, qz, qw, wx, wY, wz, yaw, flip, plaatH, dikV, restQuat, naarRust, naar3D, SLAAP, SCHUIF, VAL, WEG, STIL3D },
     };
   }
-  return { maak, MK, PINNEN, R0, H0, SLAAP, SCHUIF, VAL, WEG, STIL3D, DT };
+  return { maak, MK, PINNEN, R0, H0, SLAAP, SCHUIF, VAL, WEG, STIL3D, DT, KASTEN, kastVorm };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = MUNTFYSICA;
 // ==== FYSICA eind
@@ -2880,7 +3034,7 @@ function HULPJE(self, MF) {
     const d = e.data;
     try {
       if (d.doe === 'maak') {
-        sim = F.maak({ max: d.max, zaad: d.zaad });
+        sim = F.maak({ max: d.max, zaad: d.zaad, kast: d.kast });
         let geladen = false;
         if (d.laad) geladen = sim.laad(new Uint8Array(d.laad));
         if (!geladen) {
@@ -2910,7 +3064,7 @@ function HULPJE(self, MF) {
         const M = new Uint8Array(sim.md), S = nieuw.length ? new Uint8Array(sim.soort) : null;
         const over = [P.buffer, Q.buffer, M.buffer];
         if (S) over.push(S.buffer);
-        stuur({ doe: 'staat', P, Q, M, S, nieuw, ev, ms, n: d.n, st, zf: sim.zf, vp: sim.vp, hoogste: sim.hoogste, tel: { uit: sim.tel.uit, zij: sim.tel.zij, in: sim.tel.in }, aantal: sim.aantal() }, over);
+        stuur({ doe: 'staat', P, Q, M, S, nieuw, ev, ms, n: d.n, st, zf: sim.zf, vp: sim.vp, hoek: sim.schijfHoek, w: sim.schijfW, tij: sim.springtij, slag: sim.slagNr, hoogste: sim.hoogste, tel: { uit: sim.tel.uit, zij: sim.tel.zij, in: sim.tel.in }, aantal: sim.aantal() }, over);
       } else if (d.doe === 'bewaar') {
         if (!sim) return;
         const b = sim.bewaar();
@@ -2934,10 +3088,24 @@ const MK = MF.MK, R0 = MF.R0, H0 = MF.H0;
 // ---------------------------------------------------------------------------------------------
 // instellingen per apparaat (bewust niet in SLEUTELS): kwaliteit, geluid, metingen
 // ---------------------------------------------------------------------------------------------
-const SLEUTEL_APP = 'rommelschuiver-apparaat', SLEUTEL_MACHINE = 'rommelschuiver-machine';
+const SLEUTEL_APP = 'rommelschuiver-apparaat';
 const lees = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
 const schrijf = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
-const APP = Object.assign({ k: 'auto', g: 1, m: 0 }, lees(SLEUTEL_APP) || {});
+const APP = Object.assign({ k: 'auto', g: 1, m: 0, kast: 'klassiek' }, lees(SLEUTEL_APP) || {});
+// welke kast: ?kast= in het adres (om te testen), anders de laatste keuze op dit apparaat
+const kastUitAdres = (location.search.match(/[?&]kast=(\w+)/) || [])[1];
+const KAST = (kastUitAdres && MF.KASTEN[kastUitAdres]) ? kastUitAdres : MF.KASTEN[APP.kast] ? APP.kast : 'klassiek';
+const KV = MF.kastVorm(KAST);
+// elke kast een eigen stapel (de gewone kast houdt zijn oude sleutel)
+const SLEUTEL_MACHINE = 'rommelschuiver-machine' + (KAST === 'klassiek' ? '' : '-' + KAST);
+// het uiterlijk per kast: lak, naam op het bord, neonkleur, de kleuren van de boog en de binnenkant
+const THEMA = {
+  klassiek: { lak: '#B0222E', naam: 'Rommelschuiver', band: '★ ROMMELSCHUIVER ★', bandKl: ['#C8323C', '#FFE9A8'], neon: [255, 60, 170], neonKern: '#FFDCF0', boog: ['#D8343F', '#F3C451'], streep: '#C8323C', binnen: '#F1E6C8', embleem: 1, hue: 0.92 },
+  maan: { lak: '#1D2A5E', naam: 'Halvemaan', band: '☾ HALVEMAAN ☾', bandKl: ['#22306A', '#DCE6FF'], neon: [80, 190, 255], neonKern: '#E2F4FF', boog: ['#1E2C66', '#B8C8F0'], streep: '#2A3C86', binnen: '#E4EAF6', embleem: 2, hue: 0.56 },
+  flipper: { lak: '#18793E', naam: 'Flipperkast', band: '▶ FLIPPERKAST ◀', bandKl: ['#18793E', '#FFE14D'], neon: [255, 210, 40], neonKern: '#FFF8D0', boog: ['#1B8A46', '#FFD23E'], streep: '#18793E', binnen: '#F4F0D6', embleem: 0, hue: 0.14 },
+  molen: { lak: '#6C2A86', naam: 'Draaimolen', band: '✿ DRAAIMOLEN ✿', bandKl: ['#8A2E7C', '#FFE6A8'], neon: [255, 140, 60], neonKern: '#FFF0E0', boog: ['#E9E2CF', '#D8343F'], streep: '#D8343F', binnen: '#FFF3DC', embleem: 1, hue: 0.07 },
+};
+const TH = THEMA[KAST];
 const bewaarApp = () => schrijf(SLEUTEL_APP, APP);
 const MEET = /[?&]meet\b/.test(location.search) || !!APP.m;
 const TEST = /[?&]test\b/.test(location.search);
@@ -3141,7 +3309,10 @@ function geborsteld(w, h) {
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
 }
 function vloerPrint(w, h) {
-  // de vloer onder: geborsteld staal met gele pijltjes naar de rand en een paar sterren
+  // de vloer onder: geborsteld staal met gele pijltjes naar de rand (en per kast een eigen print)
+  if (KAST === 'maan') return vloerMaan(w, h);
+  if (KAST === 'flipper') return vloerFlipper(w, h);
+  if (KAST === 'molen') return vloerMolen(w, h);
   const c = maakDoek(w, h), g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 0, h); grad.addColorStop(0, '#8e959e'); grad.addColorStop(1, '#a7aeb6');
   g.fillStyle = grad; g.fillRect(0, 0, w, h);
@@ -3153,11 +3324,14 @@ function vloerPrint(w, h) {
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
 }
 function pinnenbord(w, h) {
-  // achter de pinnetjes: een stralende zon in kermiskleuren, sterren en een rand met lampjes (geschilderd)
+  // de achterwand: een stralende zon in kermiskleuren, sterren en een rand (per kast een eigen tekening)
+  if (KAST === 'maan') return bordMaan(w, h);
+  if (KAST === 'flipper') return bordFlipper(w, h);
+  if (KAST === 'molen') return bordMolen(w, h);
   const c = maakDoek(w, h), g = c.getContext('2d');
   g.fillStyle = '#1B2A6B'; g.fillRect(0, 0, w, h);
   const cx = w / 2, cy = h * 1.08;
-  for (let k = 0; k < 28; k++) { g.fillStyle = k % 2 ? '#E9B949' : '#C8323C'; g.beginPath(); g.moveTo(cx, cy); const a0 = Math.PI + k / 28 * Math.PI, a1 = Math.PI + (k + 1) / 28 * Math.PI; g.lineTo(cx + Math.cos(a0) * w, cy + Math.sin(a0) * w); g.lineTo(cx + Math.cos(a1) * w, cy + Math.sin(a1) * w); g.closePath(); g.fill(); }
+  for (let k = 0; k < 28; k++) { g.fillStyle = k % 2 ? TH.boog[1] : TH.boog[0]; g.beginPath(); g.moveTo(cx, cy); const a0 = Math.PI + k / 28 * Math.PI, a1 = Math.PI + (k + 1) / 28 * Math.PI; g.lineTo(cx + Math.cos(a0) * w, cy + Math.sin(a0) * w); g.lineTo(cx + Math.cos(a1) * w, cy + Math.sin(a1) * w); g.closePath(); g.fill(); }
   const vg = g.createRadialGradient(cx, cy, h * 0.1, cx, cy, w * 0.7); vg.addColorStop(0, 'rgba(255,240,200,.25)'); vg.addColorStop(1, 'rgba(10,8,30,.55)'); g.fillStyle = vg; g.fillRect(0, 0, w, h);
   const ster = (x, y, r, kl) => { g.fillStyle = kl; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } g.fill(); };
   for (let k = 0; k < 18; k++) ster(rnd() * w, rnd() * h * 0.85, h * (0.015 + rnd() * 0.025), rnd() < 0.5 ? '#FFF6D0' : '#8EC5EE');
@@ -3167,8 +3341,8 @@ function pinnenbord(w, h) {
 function zijPrint(w, h) {
   // de binnenkant van de kast: schuine kermisstrepen met sterren
   const c = maakDoek(w, h), g = c.getContext('2d');
-  g.fillStyle = '#F1E6C8'; g.fillRect(0, 0, w, h);
-  g.fillStyle = '#C8323C';
+  g.fillStyle = TH.binnen; g.fillRect(0, 0, w, h);
+  g.fillStyle = TH.streep;
   for (let x = -h; x < w + h; x += w / 6) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w / 12, 0); g.lineTo(x + w / 12 + h * 0.6, h); g.lineTo(x + h * 0.6, h); g.closePath(); g.fill(); }
   g.fillStyle = 'rgba(27,42,107,.9)'; g.fillRect(0, h * 0.86, w, h * 0.14);
   const ster = (x, y, r) => { g.fillStyle = '#E9B949'; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } g.fill(); };
@@ -3200,8 +3374,8 @@ function neonBord(w, h, tekst) {
   const buis = maakDoek(w, h), g = buis.getContext('2d');
   const font = `italic 800 ${h * 0.5}px "Bricolage Grotesque", system-ui, sans-serif`;
   g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineCap = 'round';
-  g.strokeStyle = 'rgba(255,60,170,1)'; g.lineWidth = h * 0.06; g.strokeText(tekst, w / 2, h * 0.52);
-  g.strokeStyle = 'rgba(255,220,240,1)'; g.lineWidth = h * 0.025; g.strokeText(tekst, w / 2, h * 0.52);
+  g.strokeStyle = `rgba(${TH.neon.join(',')},1)`; g.lineWidth = h * 0.06; g.strokeText(tekst, w / 2, h * 0.52);
+  g.strokeStyle = TH.neonKern; g.lineWidth = h * 0.025; g.strokeText(tekst, w / 2, h * 0.52);
   const gloed = maakDoek(w / 2, h / 2), gg = gloed.getContext('2d');
   gg.filter = `blur(${h * 0.06}px)`; gg.drawImage(buis, 0, 0, w / 2, h / 2); gg.filter = `blur(${h * 0.02}px)`; gg.drawImage(buis, 0, 0, w / 2, h / 2);
   const t1 = new THREE.CanvasTexture(buis), t2 = new THREE.CanvasTexture(gloed);
@@ -3262,13 +3436,98 @@ function vlekjes(w, h) {
   g.globalAlpha = 1;
   const t = new THREE.CanvasTexture(c); return t;
 }
+const tex = (c, rep) => { const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; } return t; };
+const ster5 = (g, x, y, r, kl) => { g.fillStyle = kl; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } g.fill(); };
+const pijlen = (g, w, h, kl) => { g.fillStyle = kl; for (let x = w / 14; x < w; x += w / 7) { g.beginPath(); g.moveTo(x - w / 40, h * 0.86); g.lineTo(x + w / 40, h * 0.86); g.lineTo(x, h * 0.95); g.closePath(); g.fill(); } };
+function vloerMaan(w, h) {
+  // nachtblauw staal met zilveren sterretjes, een maan en lichtblauwe pijltjes
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#2B3A72'); gr.addColorStop(1, '#3F509A'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let k = 0; k < h * 2; k++) { g.fillStyle = `rgba(255,255,255,${0.02 + rnd() * 0.04})`; g.fillRect(0, rnd() * h, w, 1); }
+  for (let k = 0; k < 70; k++) ster5(g, rnd() * w, rnd() * h * 0.8, h * (0.008 + rnd() * 0.014), `rgba(225,235,255,${0.35 + rnd() * 0.5})`);
+  g.fillStyle = 'rgba(255,246,210,.75)'; g.beginPath(); g.arc(w * 0.5, h * 0.38, h * 0.16, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#34458A'; g.beginPath(); g.arc(w * 0.5 + h * 0.07, h * 0.35, h * 0.15, 0, Math.PI * 2); g.fill();
+  pijlen(g, w, h, 'rgba(170,215,255,.9)');
+  g.strokeStyle = 'rgba(220,230,255,.8)'; g.lineWidth = h * 0.012; g.beginPath(); g.moveTo(0, h * 0.975); g.lineTo(w, h * 0.975); g.stroke();
+  return tex(c);
+}
+function vloerFlipper(w, h) {
+  // een flipperveld: donkergroen met gele banen, sterren om over te rollen en rode pijlen
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#0F3D24'); gr.addColorStop(1, '#17603A'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.strokeStyle = 'rgba(255,225,77,.55)'; g.lineWidth = w * 0.006;
+  for (let k = 1; k < 6; k++) { const x = w * k / 6; g.beginPath(); g.moveTo(x, h * 0.15); g.lineTo(x, h * 0.8); g.stroke(); }
+  for (let k = 0; k < 5; k++) { const x = w * (k + 0.5) / 5 + w * 0.0, y = h * 0.3; g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.arc(x, y, h * 0.08, 0, Math.PI * 2); g.fill(); ster5(g, x, y, h * 0.06, 'rgba(255,225,77,.85)'); }
+  g.fillStyle = 'rgba(255,60,80,.85)'; for (let k = 0; k < 4; k++) { const x = w * (0.2 + k * 0.2), y = h * 0.6; g.beginPath(); g.moveTo(x, y - h * 0.08); g.lineTo(x + w * 0.03, y + h * 0.04); g.lineTo(x - w * 0.03, y + h * 0.04); g.closePath(); g.fill(); }
+  pijlen(g, w, h, 'rgba(255,225,77,.95)');
+  g.strokeStyle = '#FFE14D'; g.lineWidth = h * 0.015; g.beginPath(); g.moveTo(0, h * 0.975); g.lineTo(w, h * 0.975); g.stroke();
+  return tex(c);
+}
+function vloerMolen(w, h) {
+  // houten planken van een draaimolen, met gouden pijltjes
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const pl = h / 9;
+  for (let k = 0; k < 10; k++) {
+    const y = k * pl, l = 0.42 + rnd() * 0.1;
+    g.fillStyle = `hsl(28, 45%, ${l * 100}%)`; g.fillRect(0, y, w, pl);
+    for (let q = 0; q < 14; q++) { g.strokeStyle = `rgba(60,30,10,${0.08 + rnd() * 0.1})`; g.lineWidth = 1 + rnd() * 1.5; g.beginPath(); const yy = y + rnd() * pl; g.moveTo(0, yy); g.bezierCurveTo(w * 0.3, yy + (rnd() - 0.5) * pl * 0.5, w * 0.7, yy + (rnd() - 0.5) * pl * 0.5, w, yy); g.stroke(); }
+    g.fillStyle = 'rgba(40,20,8,.55)'; g.fillRect(0, y, w, 2);
+    const naad = rnd() * w; g.fillRect(naad, y, 2, pl);
+  }
+  pijlen(g, w, h, 'rgba(255,210,90,.95)');
+  g.strokeStyle = '#E9B949'; g.lineWidth = h * 0.015; g.beginPath(); g.moveTo(0, h * 0.975); g.lineTo(w, h * 0.975); g.stroke();
+  return tex(c);
+}
+function bordMaan(w, h) {
+  // de achterwand: een sterrenhemel met een grote maan en vallende sterren
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#070A22'); gr.addColorStop(1, '#22306A'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  for (let k = 0; k < 220; k++) { g.fillStyle = `rgba(255,255,255,${0.3 + rnd() * 0.7})`; g.beginPath(); g.arc(rnd() * w, rnd() * h, 0.6 + rnd() * 1.6, 0, Math.PI * 2); g.fill(); }
+  const mx = w * 0.74, my = h * 0.38, mr = h * 0.26;
+  const mg = g.createRadialGradient(mx, my, mr * 0.2, mx, my, mr * 2); mg.addColorStop(0, 'rgba(255,248,215,.5)'); mg.addColorStop(1, 'rgba(255,248,215,0)'); g.fillStyle = mg; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#FFF6D8'; g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(190,180,150,.45)'; for (const [a, b, r] of [[-0.3, -0.2, 0.18], [0.25, 0.1, 0.12], [-0.05, 0.35, 0.1], [0.3, -0.35, 0.08]]) { g.beginPath(); g.arc(mx + a * mr, my + b * mr, r * mr, 0, Math.PI * 2); g.fill(); }
+  g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineCap = 'round';
+  for (let k = 0; k < 3; k++) { const x = w * (0.1 + k * 0.2), y = h * (0.15 + k * 0.12); g.lineWidth = 2.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + w * 0.09, y + h * 0.06); g.stroke(); ster5(g, x + w * 0.09, y + h * 0.06, h * 0.025, '#FFFFFF'); }
+  g.strokeStyle = '#C9D6F0'; g.lineWidth = h * 0.03; g.strokeRect(h * 0.02, h * 0.02, w - h * 0.04, h - h * 0.04);
+  return tex(c);
+}
+function bordFlipper(w, h) {
+  // de achterwand van de Flipperkast: bliksems, sterren en vlakken in neonkleuren
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#2A0E4A'); gr.addColorStop(1, '#0E2A3A'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  stralen(g, w / 2, h * 1.1, 24, w, 'rgba(255,225,77,.16)', 'rgba(0,0,0,0)');
+  const flits = (x, y, s, kl) => { g.fillStyle = kl; g.beginPath(); g.moveTo(x, y); g.lineTo(x + s * 0.5, y); g.lineTo(x + s * 0.2, y + s * 0.6); g.lineTo(x + s * 0.55, y + s * 0.6); g.lineTo(x - s * 0.05, y + s * 1.5); g.lineTo(x + s * 0.1, y + s * 0.85); g.lineTo(x - s * 0.2, y + s * 0.85); g.closePath(); g.fill(); };
+  flits(w * 0.12, h * 0.12, h * 0.5, '#FFE14D'); flits(w * 0.84, h * 0.1, h * 0.5, '#4DE1FF');
+  for (let k = 0; k < 14; k++) ster5(g, rnd() * w, rnd() * h * 0.85, h * (0.02 + rnd() * 0.03), ['#FF4DA6', '#FFE14D', '#4DE1FF'][k % 3]);
+  g.font = `italic 900 ${h * 0.28}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = h * 0.03; g.strokeStyle = '#1A0830'; g.strokeText('BUMPER!', w / 2, h * 0.5);
+  const tg = g.createLinearGradient(0, h * 0.35, 0, h * 0.65); tg.addColorStop(0, '#FFF3A0'); tg.addColorStop(1, '#FF8A3D'); g.fillStyle = tg; g.fillText('BUMPER!', w / 2, h * 0.5);
+  g.strokeStyle = '#FFE14D'; g.lineWidth = h * 0.03; g.strokeRect(h * 0.02, h * 0.02, w - h * 0.04, h - h * 0.04);
+  return tex(c);
+}
+function bordMolen(w, h) {
+  // de achterwand van de Draaimolen: een tent met banen, vlaggetjes en spiegeltjes
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  stralen(g, w / 2, -h * 0.3, 40, w * 2, '#D8343F', '#F6E7C4');
+  const vg = g.createRadialGradient(w / 2, h * 0.6, h * 0.1, w / 2, h * 0.6, w * 0.7); vg.addColorStop(0, 'rgba(255,240,200,.15)'); vg.addColorStop(1, 'rgba(40,10,40,.45)'); g.fillStyle = vg; g.fillRect(0, 0, w, h);
+  const kl = ['#E9B949', '#3E8ED0', '#D8343F', '#4DB36A', '#8A2E7C'];
+  for (let r = 0; r < 2; r++) { g.strokeStyle = '#5A3A1E'; g.lineWidth = 2; g.beginPath(); for (let x = 0; x <= w; x += 8) g.lineTo(x, h * (0.12 + r * 0.16) + Math.sin(x / w * Math.PI) * h * 0.08); g.stroke();
+    for (let k = 0; k < 16; k++) { const x = (k + 0.5) / 16 * w, y = h * (0.12 + r * 0.16) + Math.sin(x / w * Math.PI) * h * 0.08; g.fillStyle = kl[(k + r) % 5]; g.beginPath(); g.moveTo(x - w * 0.02, y); g.lineTo(x + w * 0.02, y); g.lineTo(x, y + h * 0.09); g.closePath(); g.fill(); } }
+  for (let k = 0; k < 9; k++) { const x = (k + 0.5) / 9 * w, y = h * 0.72; const sg = g.createRadialGradient(x - 4, y - 4, 1, x, y, h * 0.06); sg.addColorStop(0, '#FFFFFF'); sg.addColorStop(1, '#9AA6B8'); g.fillStyle = sg; g.beginPath(); g.arc(x, y, h * 0.05, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#E9B949'; g.lineWidth = 3; g.stroke(); }
+  g.strokeStyle = '#E9B949'; g.lineWidth = h * 0.03; g.strokeRect(h * 0.02, h * 0.02, w - h * 0.04, h - h * 0.04);
+  return tex(c);
+}
 function stralen(g, cx, cy, n, r, k1, k2) {
   for (let k = 0; k < n; k++) { g.fillStyle = k % 2 ? k2 : k1; g.beginPath(); g.moveTo(cx, cy); const a0 = k / n * Math.PI * 2, a1 = (k + 1) / n * Math.PI * 2; g.lineTo(cx + Math.cos(a0) * r, cy + Math.sin(a0) * r); g.lineTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r); g.closePath(); g.fill(); }
 }
 function kroonPlaat(w, h) {
   // de boog bovenop de kast: een verlichte zonnestraal in kermiskleuren (het plaatje is zelf licht)
   const c = maakDoek(w, h), g = c.getContext('2d');
-  stralen(g, w / 2, h * 0.62, 36, w, '#D8343F', '#F3C451');
+  if (KAST === 'maan') {
+    const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#060820'); gr.addColorStop(1, '#22306A'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    for (let k = 0; k < 160; k++) { g.fillStyle = `rgba(255,255,255,${0.3 + rnd() * 0.7})`; g.beginPath(); g.arc(rnd() * w, rnd() * h, 0.6 + rnd() * 1.8, 0, Math.PI * 2); g.fill(); }
+  } else stralen(g, w / 2, h * 0.62, 36, w, TH.boog[0], TH.boog[1]);
   const vg = g.createRadialGradient(w / 2, h * 0.62, h * 0.05, w / 2, h * 0.62, w * 0.55); vg.addColorStop(0, 'rgba(255,248,215,.85)'); vg.addColorStop(0.28, 'rgba(255,236,190,.25)'); vg.addColorStop(1, 'rgba(40,10,40,.55)');
   g.fillStyle = vg; g.fillRect(0, 0, w, h);
   // een rand van gouden puntjes langs de onderkant
@@ -3304,7 +3563,7 @@ function kopBand(w, h) {
 function zijKunst(w, h) {
   // de buitenkant van de zijwanden: rode lak met een gouden zwier en sterren
   const c = maakDoek(w, h), g = c.getContext('2d');
-  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#C0202E'); gr.addColorStop(1, '#7E1220'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, new THREE.Color(TH.lak).offsetHSL(0, 0, 0.05).getStyle()); gr.addColorStop(1, new THREE.Color(TH.lak).offsetHSL(0, 0, -0.12).getStyle()); g.fillStyle = gr; g.fillRect(0, 0, w, h);
   g.strokeStyle = '#F3C451'; g.lineWidth = w * 0.035; g.lineCap = 'round';
   for (const [d, a] of [[0, 1], [0.08, 0.6]]) { g.globalAlpha = a; g.beginPath(); g.moveTo(w * (0.1 + d), h); g.bezierCurveTo(w * (0.2 + d), h * 0.55, w * (0.9 - d), h * 0.6, w * (0.75 - d), h * 0.05); g.stroke(); }
   g.globalAlpha = 1;
@@ -3341,6 +3600,70 @@ function glijPrint(w, h) {
   }
   g.fillStyle = 'rgba(200,50,60,.8)'; g.fillRect(0, 0, w, h * 0.06);
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function schijfPrint(S) {
+  // de draaischijf: banen in kermiskleuren, een rand met lampjes en een ster in het midden
+  const c = maakDoek(S, S), g = c.getContext('2d'), m = S / 2;
+  const kl = ['#D8343F', '#F6E7C4', '#E9B949', '#F6E7C4'];
+  for (let k = 0; k < 24; k++) { g.fillStyle = kl[k % 4]; g.beginPath(); g.moveTo(m, m); g.arc(m, m, m, k / 24 * Math.PI * 2, (k + 1) / 24 * Math.PI * 2); g.closePath(); g.fill(); }
+  g.strokeStyle = '#7A4E2D'; g.lineWidth = S * 0.025; g.beginPath(); g.arc(m, m, m * 0.97, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = '#FFF4C8'; for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2; g.beginPath(); g.arc(m + Math.cos(a) * m * 0.9, m + Math.sin(a) * m * 0.9, S * 0.012, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = '#6C2A86'; g.beginPath(); g.arc(m, m, m * 0.22, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#E9B949'; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? m * 0.07 : m * 0.16; g.lineTo(m + Math.cos(a) * q, m + Math.sin(a) * q); } g.fill();
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function kopGlas(w, h) {
+  // het glas van de flipperkop: een eigen tekening met de naam en sterren
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1A0A36'); gr.addColorStop(1, '#0B3A2A'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  stralen(g, w / 2, h * 0.38, 32, w, 'rgba(255,225,77,.18)', 'rgba(0,0,0,0)');
+  for (let k = 0; k < 24; k++) ster5(g, rnd() * w, rnd() * h, h * (0.015 + rnd() * 0.03), ['#FF4DA6', '#FFE14D', '#4DE1FF', '#FFFFFF'][k % 4]);
+  g.font = `italic 900 ${h * 0.27}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineJoin = 'round'; g.lineWidth = h * 0.05; g.strokeStyle = '#120626'; g.strokeText('FLIPPERKAST', w / 2, h * 0.3);
+  const tg = g.createLinearGradient(0, h * 0.16, 0, h * 0.44); tg.addColorStop(0, '#FFF6B0'); tg.addColorStop(1, '#FF9A3D'); g.fillStyle = tg; g.fillText('FLIPPERKAST', w / 2, h * 0.3);
+  g.strokeStyle = '#FFE14D'; g.lineWidth = h * 0.02; g.strokeRect(h * 0.03, h * 0.03, w - h * 0.06, h - h * 0.06);
+  return tex(c);
+}
+function tijBord(w, h) {
+  // het bord van de Halvemaan: SPRINGTIJ in neon (licht op als het springtij is)
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  g.fillStyle = '#0A0F2A'; g.fillRect(0, 0, w, h);
+  g.font = `italic 900 ${h * 0.56}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = '#7FD8FF'; g.shadowBlur = h * 0.18; g.fillStyle = '#E8F8FF'; g.fillText('☾  SPRINGTIJ  ☽', w / 2, h * 0.54); g.shadowBlur = 0;
+  g.strokeStyle = '#5A78C8'; g.lineWidth = h * 0.05; g.strokeRect(h * 0.04, h * 0.06, w - h * 0.08, h - h * 0.12);
+  return tex(c);
+}
+function maakScore() {
+  // het scorebord van de Flipperkast: oranje cijfers zoals op een oude flipperkast (telt hoe vaak een bumper schoot)
+  const c = maakDoek(512, 92), g = c.getContext('2d'), t = tex(c);
+  let laatst = -1;
+  const zet = (n) => {
+    if (n === laatst) return; laatst = n;
+    g.fillStyle = '#0A0604'; g.fillRect(0, 0, 512, 92);
+    g.strokeStyle = '#3A2410'; g.lineWidth = 4; g.strokeRect(2, 2, 508, 88);
+    g.font = '700 24px "Bricolage Grotesque", system-ui, sans-serif'; g.fillStyle = '#FF8A2A'; g.textBaseline = 'middle'; g.fillText('BUMPERS', 18, 46);
+    g.font = '700 56px ui-monospace, "Courier New", monospace'; g.textAlign = 'right';
+    g.fillStyle = 'rgba(255,120,30,.14)'; g.fillText('8888888', 496, 50);
+    g.shadowColor = '#FF7A1A'; g.shadowBlur = 14; g.fillStyle = '#FFB060'; g.fillText(String(n).padStart(7, ' '), 496, 50); g.shadowBlur = 0; g.textAlign = 'left';
+    t.needsUpdate = true;
+  };
+  zet(0);
+  return { tex: t, zet };
+}
+function streepTex() {
+  // het dak van de draaimolen: banen rood en room, met een gouden rand onderaan
+  const c = maakDoek(512, 128), g = c.getContext('2d');
+  for (let k = 0; k < 24; k++) { g.fillStyle = k % 2 ? '#F6E7C4' : '#D8343F'; g.fillRect(k * 512 / 24, 0, 512 / 24 + 1, 128); }
+  g.fillStyle = '#E9B949'; g.fillRect(0, 116, 512, 12);
+  return tex(c);
+}
+function schulpTex() {
+  // de rand onder het dak: schulpjes (doorzichtig ertussen) in rood, room en goud
+  const c = maakDoek(512, 64), g = c.getContext('2d');
+  g.clearRect(0, 0, 512, 64);
+  for (let k = 0; k < 24; k++) { const x = (k + 0.5) * 512 / 24; g.fillStyle = k % 2 ? '#F6E7C4' : '#D8343F'; g.beginPath(); g.moveTo(x - 512 / 48, 0); g.lineTo(x + 512 / 48, 0); g.lineTo(x + 512 / 48, 30); g.arc(x, 30, 512 / 48, 0, Math.PI); g.closePath(); g.fill(); }
+  g.fillStyle = '#E9B949'; g.fillRect(0, 0, 512, 8);
+  return tex(c);
 }
 function gloedVlek() {
   const c = maakDoek(64, 64), g = c.getContext('2d');
@@ -3417,19 +3740,19 @@ const MAT = {};
 function maakMaterialen() {
   const ruwStaal = geborsteld(256, 512);
   MAT.staal = new THREE.MeshStandardMaterial({ color: lin('#D3D8DE'), metalness: 0.9, roughness: 0.5, roughnessMap: ruwStaal });
-  MAT.vloer = new THREE.MeshStandardMaterial({ color: 0xffffff, map: vloerPrint(1024, 512), metalness: 0.75, roughness: 0.52, roughnessMap: ruwStaal });
+  MAT.vloer = new THREE.MeshStandardMaterial({ color: 0xffffff, map: vloerPrint(1024, 512), metalness: { klassiek: 0.75, maan: 0.6, flipper: 0.15, molen: 0.05 }[KAST], roughness: KAST === 'molen' ? 0.7 : 0.52, roughnessMap: KAST === 'molen' ? null : ruwStaal });
   MAT.zijPrint = new THREE.MeshStandardMaterial({ map: zijPrint(512, 512), metalness: 0.1, roughness: 0.45 });
   MAT.chroom = new THREE.MeshStandardMaterial({ color: lin('#B9BEC6'), metalness: 1, roughness: 0.12, roughnessMap: ruwStaal, envMapIntensity: 1.1 });
   MAT.chroomDonker = new THREE.MeshStandardMaterial({ color: lin('#8C929C'), metalness: 1, roughness: 0.28, roughnessMap: ruwStaal });
   MAT.glij = new THREE.MeshStandardMaterial({ map: glijPrint(1024, 128), metalness: 0.7, roughness: 0.35 });
   MAT.lak = KW.glas && KWNAAM === 'mooi'
-    ? new THREE.MeshPhysicalMaterial({ color: lin('#B0222E'), metalness: 0, roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.06 })
-    : new THREE.MeshStandardMaterial({ color: lin('#B0222E'), metalness: 0.1, roughness: 0.25 });
+    ? new THREE.MeshPhysicalMaterial({ color: lin(TH.lak), metalness: 0, roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.06 })
+    : new THREE.MeshStandardMaterial({ color: lin(TH.lak), metalness: 0.1, roughness: 0.25 });
   MAT.lakCreme = new THREE.MeshStandardMaterial({ color: lin('#F1E6C8'), metalness: 0, roughness: 0.3 });
   MAT.zwart = new THREE.MeshStandardMaterial({ color: lin('#16121E'), metalness: 0.2, roughness: 0.6 });
   MAT.binnen = new THREE.MeshStandardMaterial({ color: lin('#231a33'), metalness: 0.3, roughness: 0.5 });
   MAT.pinnenbord = new THREE.MeshStandardMaterial({ map: pinnenbord(1024, 512), metalness: 0, roughness: 0.55 });
-  MAT.schuiverBand = new THREE.MeshStandardMaterial({ map: bandTekst(1024, 64, '★ ROMMELSCHUIVER ★', '#C8323C', '#FFE9A8'), metalness: 0.2, roughness: 0.35 });
+  MAT.schuiverBand = new THREE.MeshStandardMaterial({ map: bandTekst(1024, 64, TH.band, TH.bandKl[0], TH.bandKl[1]), metalness: 0.2, roughness: 0.35 });
   MAT.achterBand = new THREE.MeshStandardMaterial({ map: bandTekst(1024, 64, '◄ DUW ►', '#1B2A6B', '#FFD36A'), metalness: 0.1, roughness: 0.4, emissive: lin('#1B2A6B'), emissiveIntensity: 0.25 });
   MAT.voorpaneel = new THREE.MeshBasicMaterial({ map: voorpaneel(1024, 256) });
   MAT.glas = new THREE.MeshStandardMaterial({ color: lin('#E8F2FF'), metalness: 0, roughness: 0.04, transparent: true, opacity: 0.1, envMapIntensity: 1.6, depthWrite: false });
@@ -3455,38 +3778,101 @@ function bouwKast() {
   const { XW, XF, ZS, HP, ZW, KD, KY, TOP } = MK;
   const kast = new THREE.Group(); scene.add(kast);
   const doos = (w, h, d, mat, x, y, z, schaduw) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); if (schaduw !== false) { m.receiveShadow = true; m.castShadow = !!schaduw; } kast.add(m); return m; };
-  // de vloer onder (achter de rand met muren, voorin iets smaller) als één plaatje met de print
+  const BOOG = KV.K.boog, XFk = KV.XF, ZSk = KV.ZS;
+  // een strook langs een kromme: punten [x, z] met per punt een boven- en onderkant (voor gebogen randen en platen)
+  const strook = (pts, yBoven, yOnder, dzOnder, mat, ouder) => {
+    const pos = [], uv = [], idx = [];
+    let L = 0;
+    pts.forEach(([x, z], k) => {
+      if (k) L += Math.hypot(x - pts[k - 1][0], z - pts[k - 1][1]);
+      pos.push(x, yBoven, z, x, yOnder, z + dzOnder); uv.push(L, 1, L, 0);
+    });
+    for (let k = 0; k < pts.length - 1; k++) { const a = 2 * k; idx.push(a, a + 1, a + 2, a + 2, a + 1, a + 3); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv.map((u, k) => k % 2 ? u : u / L), 2));
+    g.setIndex(idx); g.computeVertexNormals();
+    const mm = mat.clone(); mm.side = THREE.DoubleSide;
+    const m = new THREE.Mesh(g, mm); m.receiveShadow = true; (ouder || kast).add(m); return m;
+  };
+  const boogPts = (f, x0, x1, n) => { const p = []; for (let k = 0; k <= n; k++) { const x = x0 + (x1 - x0) * k / n; p.push([x, f(x)]); } return p; };
+  // de vloer onder (achter de rand met muren, voorin iets smaller of als boog) als één plaatje met de print
   const vorm = new THREE.Shape();
-  vorm.moveTo(-XW, 330); vorm.lineTo(XW, 330); vorm.lineTo(XW, -ZS); vorm.lineTo(XF, -ZS); vorm.lineTo(XF, 0); vorm.lineTo(-XF, 0); vorm.lineTo(-XF, -ZS); vorm.lineTo(-XW, -ZS); vorm.closePath();
+  if (BOOG) {
+    vorm.moveTo(-XW, 330); vorm.lineTo(XW, 330);
+    for (let k = 0; k <= 40; k++) { const x = XW - 2 * XW * k / 40; vorm.lineTo(x, -KV.randZ(x)); }
+    vorm.closePath();
+  } else {
+    vorm.moveTo(-XW, 330); vorm.lineTo(XW, 330); vorm.lineTo(XW, -ZS); vorm.lineTo(XF, -ZS); vorm.lineTo(XF, 0); vorm.lineTo(-XF, 0); vorm.lineTo(-XF, -ZS); vorm.lineTo(-XW, -ZS); vorm.closePath();
+  }
   const vg = new THREE.ShapeGeometry(vorm);
   vg.rotateX(Math.PI / 2);   // (x, y) wordt (x, 0, y): y van de vorm = -z
   const vp_ = vg.attributes.position, vuv = vg.attributes.uv;
-  for (let k = 0; k < vp_.count; k++) { vp_.setZ(k, -vp_.getZ(k)); vuv.setXY(k, (vp_.getX(k) + XW) / (2 * XW), 1 + vp_.getZ(k) / 330); }
+  // de print ligt langs de rand (bij de Halvemaan volgen de pijltjes de boog)
+  for (let k = 0; k < vp_.count; k++) { vp_.setZ(k, -vp_.getZ(k)); vuv.setXY(k, (vp_.getX(k) + XW) / (2 * XW), 1 + (vp_.getZ(k) - KV.randZ(vp_.getX(k))) / 330); }
   vg.computeVertexNormals();
   for (let k = 0; k < vp_.count; k++) vg.attributes.normal.setXYZ(k, 0, 1, 0);
   const vloer = new THREE.Mesh(vg, MAT.vloer);
   vloer.receiveShadow = true; kast.add(vloer);
-  // de zijgoten voorin: donkere gaten naast de vloer
-  for (const s of [-1, 1]) doos(XW - XF + 2, 2, -ZS, MAT.zwart, s * (XF + (XW - XF) / 2 + 0.5), -1.5, ZS / 2, false);
-  // de voorrand: een chromen strip
-  const rand = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 2 * XF, 16, 1), MAT.chroom);
-  rand.rotation.z = Math.PI / 2; rand.position.set(0, -2.2, 0.6); kast.add(rand);
-  doos(2 * XF, 26, 3, MAT.chroom, 0, -17, -1.2, false);
-  // onder de voorrand: een schuine glijplaat naar de bak
-  const glij = new THREE.Mesh(new THREE.PlaneGeometry(2 * XF, 80), MAT.glij);
-  glij.position.set(0, -68, 3); glij.rotation.x = -0.12; glij.receiveShadow = true; kast.add(glij);
+  // de bak is bij de Halvemaan smaller (daarnaast de zijgoten)
+  const BX = BOOG ? BOOG.bak : XW + 10;
+  G.bakX = BX;
+  if (BOOG) {
+    // de rand als boog: een chromen buis, een strook eronder en een gebogen glijplaat naar de bak
+    const rp = boogPts(KV.randZ, -XW, XW, 48);
+    kast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp.map(([x, z]) => new THREE.Vector3(x, -2.2, z + 0.6))), 96, 2.2, 10), MAT.chroom));
+    strook(rp.map(([x, z]) => [x, z - 1.2]), -4, -30, 0, MAT.chroom);
+    const gp = boogPts(KV.randZ, -BX, BX, 40);
+    strook(gp.map(([x, z]) => [x, z + 2]), -30, -100, 14, MAT.glij);
+    // de zijgoten: donkere putten aan de uiteinden van de boog
+    for (const s of [-1, 1]) doos(XW + 30 - BX, 4, 120, MAT.zwart, s * (BX + (XW + 30 - BX) / 2), -60, -20, false);
+  } else {
+    // de zijgoten voorin: donkere gaten naast de vloer
+    for (const s of [-1, 1]) doos(XW - XF + 2, 2, -ZS, MAT.zwart, s * (XF + (XW - XF) / 2 + 0.5), -1.5, ZS / 2, false);
+    // de voorrand: een chromen strip
+    const rand = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 2 * XF, 16, 1), MAT.chroom);
+    rand.rotation.z = Math.PI / 2; rand.position.set(0, -2.2, 0.6); kast.add(rand);
+    doos(2 * XF, 26, 3, MAT.chroom, 0, -17, -1.2, false);
+    // onder de voorrand: een schuine glijplaat naar de bak
+    const glij = new THREE.Mesh(new THREE.PlaneGeometry(2 * XF, 80), MAT.glij);
+    glij.position.set(0, -68, 3); glij.rotation.x = -0.12; glij.receiveShadow = true; kast.add(glij);
+  }
   // de bak: een chromen trog met een opgerolde lip en afgeronde zijkanten
-  const bakVloer = doos(2 * XW + 20, 6, 130, MAT.staal, 0, MK.UIT - 96, 64, false);
+  const bakVloer = doos(2 * BX, 6, 130, MAT.staal, 0, MK.UIT - 96, 64, false);
   bakVloer.receiveShadow = true;
-  const bakVoor = doos(2 * XW + 20, 62, 4, MAT.chroom, 0, MK.UIT - 66, 131, false);
+  const bakVoor = doos(2 * BX, 62, 4, MAT.chroom, 0, MK.UIT - 66, 131, false);
   bakVoor.rotation.x = 0.16;
-  const lipG = new THREE.CylinderGeometry(4.5, 4.5, 2 * XW + 20, 16, 1); lipG.rotateZ(Math.PI / 2);
+  const lipG = new THREE.CylinderGeometry(4.5, 4.5, 2 * BX, 16, 1); lipG.rotateZ(Math.PI / 2);
   const bakLip = new THREE.Mesh(lipG, MAT.chroom); bakLip.position.set(0, MK.UIT - 35, 136); kast.add(bakLip);
   const zijVorm = new THREE.Shape();
   zijVorm.moveTo(0, 0); zijVorm.lineTo(140, 0); zijVorm.lineTo(140, 62); zijVorm.quadraticCurveTo(140, 92, 112, 94); zijVorm.lineTo(0, 94); zijVorm.closePath();
   const zijG = new THREE.ExtrudeGeometry(zijVorm, { depth: 5, bevelEnabled: true, bevelThickness: 1.5, bevelSize: 1.5, bevelSegments: 2, curveSegments: 10 });
   zijG.rotateY(-Math.PI / 2);   // vorm-x wordt +z
-  for (const s of [-1, 1]) { const z = new THREE.Mesh(zijG, MAT.chroom); z.position.set(s * (XW + 14) + 2.5, MK.UIT - 99, -6); kast.add(z); }
+  for (const s of [-1, 1]) { const z = new THREE.Mesh(zijG, MAT.chroom); z.position.set(s * (BX + 4) + 2.5, MK.UIT - 99, -6); kast.add(z); }
+  // de paaltjes van de Flipperkast: chroom met een rubberen ring en een lampje erop
+  if (KV.palen.length) {
+    const n = KV.palen.length, PR = KV.paalR, PH = KV.paalH, m4p = new THREE.Matrix4();
+    const lijf = new THREE.InstancedMesh(new THREE.CylinderGeometry(PR * 0.78, PR * 0.9, PH, 20, 1), MAT.chroom, n);
+    const ring = new THREE.InstancedMesh(new THREE.TorusGeometry(PR * 0.86, PR * 0.22, 10, 24), new THREE.MeshStandardMaterial({ color: lin('#D8343F'), roughness: 0.55, metalness: 0 }), n);
+    G.paalKap = new THREE.InstancedMesh(new THREE.SphereGeometry(PR * 0.82, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff }), n);
+    KV.palen.forEach(([x, z], k) => {
+      m4p.makeTranslation(x, PH / 2, z); lijf.setMatrixAt(k, m4p);
+      m4p.makeRotationX(Math.PI / 2).setPosition(x, PH * 0.55, z); ring.setMatrixAt(k, m4p);
+      m4p.makeTranslation(x, PH, z); G.paalKap.setMatrixAt(k, m4p); G.paalKap.setColorAt(k, new THREE.Color(1.1, 0.5, 0.08));
+    });
+    lijf.castShadow = ring.castShadow = KW.schaduw > 0;
+    kast.add(lijf, ring, G.paalKap);
+    G.paalFlits = new Float32Array(n);
+  }
+  // de draaischijf van de Draaimolen: een gestreepte schijf met een chromen rand, die meedraait met de natuurkunde
+  if (KV.schijf) {
+    const S = KV.schijf;
+    G.schijf = new THREE.Mesh(new THREE.CircleGeometry(S.r, 64), new THREE.MeshStandardMaterial({ map: schijfPrint(512), metalness: 0.35, roughness: 0.4 }));
+    G.schijf.rotation.x = -Math.PI / 2; G.schijf.position.set(S.x, 0.06, S.z); G.schijf.receiveShadow = true;
+    G.schijf.material.polygonOffset = true; G.schijf.material.polygonOffsetFactor = -1; G.schijf.material.polygonOffsetUnits = -2;
+    kast.add(G.schijf);
+    const schijfRand = new THREE.Mesh(new THREE.TorusGeometry(S.r + 1.5, 1.6, 8, 72), MAT.chroom); schijfRand.rotation.x = Math.PI / 2; schijfRand.position.set(S.x, 0.3, S.z); kast.add(schijfRand);
+  }
   G.bakY = MK.UIT - 93;
   // het verlichte voorpaneel onder de bak
   const vp = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW + 40, 110), MAT.voorpaneel);
@@ -3525,7 +3911,8 @@ function bouwKast() {
   const kop = doos(2 * XW + 92, 400, 600, MAT.lak, 0, 682, -260, false);
   kop.material = [MAT.lak, MAT.lak, MAT.lak, MAT.binnen, MAT.lak, MAT.lak];
   doos(2 * XW + 96, 12, 14, MAT.chroom, 0, 484, 40, false);
-  const band = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW + 24, 72), MAT.kopBand); band.position.set(0, 527, 40.8); kast.add(band);
+  if (KAST === 'maan') G.tijMat = new THREE.MeshBasicMaterial({ map: tijBord(1024, 128), color: new THREE.Color(0.35, 0.35, 0.4) });
+  const band = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW + 24, 72), G.tijMat || MAT.kopBand); band.position.set(0, 527, 40.8); kast.add(band);
   for (const y of [-122, -234]) doos(2 * XW + 48, 7, 6, MAT.chroom, 0, y, 142, false);
   // binnenwanden met kermisstrepen
   for (const s of [-1, 1]) {
@@ -3573,9 +3960,23 @@ function bouwKast() {
   G.schuiver = new THREE.Group(); kast.add(G.schuiver);
   const blok = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, HP, MK.LP), [MAT.staal, MAT.staal, MAT.staal, MAT.staal, MAT.schuiverBand, MAT.staal]);
   blok.position.set(0, HP / 2, -MK.LP / 2); blok.receiveShadow = true; blok.castShadow = KW.schaduw > 0; G.schuiver.add(blok);
-  const lip = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, 3, 4), MAT.chroom); lip.position.set(0, HP - 1.5, -1.6); G.schuiver.add(lip);
+  if (KV.K.schuifBoog) {
+    // een ronde voorkant: een dak in de vorm van de bocht, een gebogen band en een gebogen lip
+    const dak = new THREE.Shape();
+    dak.moveTo(-XW, MK.LP); for (let k = 0; k <= 32; k++) { const x = -XW + 2 * XW * k / 32; dak.lineTo(x, -KV.schuifZ(x)); } dak.lineTo(XW, MK.LP); dak.closePath();
+    const dg = new THREE.ShapeGeometry(dak); dg.rotateX(Math.PI / 2);
+    const dp = dg.attributes.position; for (let k = 0; k < dp.count; k++) { dp.setY(k, HP + 0.05); dp.setZ(k, -dp.getZ(k)); }
+    dg.computeVertexNormals(); for (let k = 0; k < dp.count; k++) dg.attributes.normal.setXYZ(k, 0, 1, 0);
+    const dm = new THREE.Mesh(dg, MAT.staal); dm.receiveShadow = true; G.schuiver.add(dm);
+    const bp = boogPts(KV.schuifZ, -XW, XW, 40);
+    const band = strook(bp, HP, 0, 0, MAT.schuiverBand, G.schuiver);
+    band.material.map.wrapS = THREE.RepeatWrapping;
+    G.schuiver.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp.map(([x, z]) => new THREE.Vector3(x, HP - 1.5, z + 0.4))), 64, 2, 8), MAT.chroom));
+  } else {
+    const lip = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, 3, 4), MAT.chroom); lip.position.set(0, HP - 1.5, -1.6); G.schuiver.add(lip);
+  }
   // het bord bovenop met de neonletters
-  const nb = neonBord(1024, 256, 'Rommelschuiver');
+  const nb = neonBord(1024, 256, TH.naam);
   const bordAchter = doos(2 * XW + 40, 250, 16, MAT.zwart, 0, 690, 48, false);
   bordAchter.material = [MAT.zwart, MAT.zwart, MAT.zwart, MAT.zwart, MAT.bord, MAT.zwart];
   doos(2 * XW + 50, 10, 22, MAT.chroom, 0, 562, 48, false); doos(2 * XW + 50, 10, 22, MAT.chroom, 0, 818, 48, false);
@@ -3591,24 +3992,85 @@ function bouwKast() {
   for (let y = 599; y <= 790; y += 21) { lampPos.push([-XW - 4, y, 58], [XW + 4, y, 58]); }
   for (let y = -90; y <= 860; y += 24) { const z = voorZ(y) + 10; lampPos.push([-XW - 44, y, z], [XW + 44, y, z]); }
   for (let x = -XW + 10; x <= XW - 10; x += 24) lampPos.push([x, 362, ZW + 4]);
-  // de boog bovenop: een verlichte zonnestraal met een chromen rand, lampjes langs de bocht en zwaailichten op de hoeken
+  // bovenop: per kast een eigen kop
   const KB = 320, KH = 40, KS = 128, KR = (KB * KB + KS * KS) / (2 * KS), KC = KH + KS - KR, ka = Math.atan2(KH - KC, KB);
-  const boog = new THREE.Shape();
-  boog.moveTo(-KB, 0); boog.lineTo(KB, 0); boog.lineTo(KB, KH); boog.absarc(0, KC, KR, ka, Math.PI - ka, false); boog.closePath();
-  const boogG = new THREE.ExtrudeGeometry(boog, { depth: 28, bevelEnabled: true, bevelThickness: 5, bevelSize: 5, bevelSegments: 3, curveSegments: 48 });
-  const kroon = new THREE.Mesh(boogG, [MAT.kroon, MAT.chroom]); kroon.position.set(0, 882, 14); kast.add(kroon);
   doos(2 * KB + 20, 12, 52, MAT.chroom, 0, 886, 26, false);
-  for (let k = 0; k <= 30; k++) { const a = ka + (Math.PI - 2 * ka) * k / 30; lampPos.push([Math.cos(a) * (KR - 13), 882 + KC + Math.sin(a) * (KR - 13), 52]); }
-  for (let k = 0; k <= 14; k++) lampPos.push([-KB + 20 + k * (2 * KB - 40) / 14, 897, 52]);
-  G.kroonTop = 882 + KH + KS;
-  G.zwaai = [];
-  for (const s of [-1, 1]) {
-    const zx = s * (KB - 16), zy = 882 + KC + Math.sqrt(KR * KR - zx * zx) - 3;
-    const voet = new THREE.Mesh(new THREE.CylinderGeometry(14, 17, 12, 18, 1), MAT.chroom); voet.position.set(zx, zy + 6, 28); kast.add(voet);
-    const kap = new THREE.Mesh(new THREE.SphereGeometry(14, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.6, 0.2) }));
-    kap.position.set(zx, zy + 12, 28); kast.add(kap);
-    G.zwaai.push(kap);
+  if (KAST === 'klassiek' || KAST === 'maan') {
+    // de boog: een verlichte zonnestraal (of een nachthemel) met een chromen rand en lampjes langs de bocht
+    const boog = new THREE.Shape();
+    boog.moveTo(-KB, 0); boog.lineTo(KB, 0); boog.lineTo(KB, KH); boog.absarc(0, KC, KR, ka, Math.PI - ka, false); boog.closePath();
+    const boogG = new THREE.ExtrudeGeometry(boog, { depth: 28, bevelEnabled: true, bevelThickness: 5, bevelSize: 5, bevelSegments: 3, curveSegments: 48 });
+    const kroon = new THREE.Mesh(boogG, [MAT.kroon, MAT.chroom]); kroon.position.set(0, 882, 14); kast.add(kroon);
+    for (let k = 0; k <= 30; k++) { const a = ka + (Math.PI - 2 * ka) * k / 30; lampPos.push([Math.cos(a) * (KR - 13), 882 + KC + Math.sin(a) * (KR - 13), 52]); }
+    for (let k = 0; k <= 14; k++) lampPos.push([-KB + 20 + k * (2 * KB - 40) / 14, 897, 52]);
   }
+  if (KAST === 'klassiek') {
+    // zwaailichten op de hoeken (de munt met het kroontje komt erbij in bouwMunten)
+    G.zwaai = [];
+    for (const s of [-1, 1]) {
+      const zx = s * (KB - 16), zy = 882 + KC + Math.sqrt(KR * KR - zx * zx) - 3;
+      const voet = new THREE.Mesh(new THREE.CylinderGeometry(14, 17, 12, 18, 1), MAT.chroom); voet.position.set(zx, zy + 6, 28); kast.add(voet);
+      const kap = new THREE.Mesh(new THREE.SphereGeometry(14, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.6, 0.2) }));
+      kap.position.set(zx, zy + 12, 28); kast.add(kap);
+      G.zwaai.push(kap);
+    }
+  } else if (KAST === 'maan') {
+    // een grote neonmaan voor de nachthemel, met sterren die twinkelen
+    const maan = new THREE.Shape(); maan.absarc(0, 0, 62, Math.PI * 0.5, Math.PI * 1.5, false); maan.absarc(-26, 0, 50, Math.PI * 1.43, Math.PI * 0.57, true);
+    const mg = new THREE.ExtrudeGeometry(maan, { depth: 8, bevelEnabled: true, bevelThickness: 3, bevelSize: 3, bevelSegments: 3, curveSegments: 40 });
+    G.maanMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.9, 1.8, 1.3) });
+    const m = new THREE.Mesh(mg, G.maanMat); m.position.set(18, 966, 52); kast.add(m);
+    if (KW.gloed) { const gl = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshBasicMaterial({ map: gloedVlek(), color: new THREE.Color(0.9, 0.85, 0.55), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.7 })); gl.position.set(0, 966, 50); kast.add(gl); }
+    const st = new THREE.Shape(); for (let k = 0; k < 10; k++) { const a = Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? 6 : 14; st[k ? 'lineTo' : 'moveTo'](Math.cos(a) * q, Math.sin(a) * q); }
+    const sg = new THREE.ExtrudeGeometry(st, { depth: 4, bevelEnabled: true, bevelThickness: 1.5, bevelSize: 1.5, bevelSegments: 2 });
+    G.sterren = [];
+    for (const [x, y, sc] of [[-210, 940, 1.2], [-130, 1000, 0.9], [120, 1010, 0.8], [200, 945, 1.1], [-60, 1030, 0.7], [250, 905, 0.7], [-260, 905, 0.8]]) {
+      const sm = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.8) });
+      const sterM = new THREE.Mesh(sg, sm); sterM.position.set(x, y, 48); sterM.scale.setScalar(sc); kast.add(sterM); G.sterren.push(sm);
+    }
+  } else if (KAST === 'flipper') {
+    // een flipperkop: een schuine kast met een beschilderd glas en een scorebord
+    const kop = new THREE.Group(); kop.position.set(0, 888, 0); kop.rotation.x = -0.1; kast.add(kop);
+    const kb = new THREE.Mesh(new THREE.BoxGeometry(2 * KB, 160, 70), [MAT.lak, MAT.lak, MAT.lak, MAT.lak, new THREE.MeshBasicMaterial({ map: kopGlas(1024, 256), color: new THREE.Color(1.05, 1.05, 1.05) }), MAT.lak]);
+    kb.position.set(0, 80, -10); kop.add(kb);
+    for (const [w, h, x, y] of [[2 * KB + 16, 10, 0, 162], [2 * KB + 16, 10, 0, 0], [10, 170, -KB - 3, 80], [10, 170, KB + 3, 80]]) { const r = new THREE.Mesh(new THREE.BoxGeometry(w, h, 76), MAT.chroom); r.position.set(x, y, -10); kop.add(r); }
+    G.score = maakScore();
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(280, 50), new THREE.MeshBasicMaterial({ map: G.score.tex })); sc.position.set(0, 34, 26); kop.add(sc);
+    for (let k = 0; k <= 16; k++) lampPos.push([-KB + 10 + k * (2 * KB - 20) / 16, 888 + 176, 22]);
+  } else if (KAST === 'molen') {
+    // een draaimolen bovenop: een gestreept dak, een rand met lampjes en paardjes die op en neer gaan (draait mee met de schijf)
+    const R = 250, dakY = 78;
+    G.molen = new THREE.Group(); G.molen.position.set(0, 892, -70); kast.add(G.molen);
+    const goud = new THREE.MeshStandardMaterial({ color: lin('#E9B949'), metalness: 0.9, roughness: 0.3 });
+    const vloerM = new THREE.Mesh(new THREE.CylinderGeometry(R - 20, R - 10, 12, 40, 1), [new THREE.MeshStandardMaterial({ color: lin('#7A4E2D'), roughness: 0.6 }), new THREE.MeshStandardMaterial({ map: schijfPrint(512), roughness: 0.5 }), goud]);
+    vloerM.position.y = 6; G.molen.add(vloerM);
+    const as = new THREE.Mesh(new THREE.CylinderGeometry(12, 12, dakY + 60, 16, 1), goud); as.position.y = (dakY + 60) / 2; G.molen.add(as);
+    const dak = new THREE.Mesh(new THREE.ConeGeometry(R, 56, 24, 1, true), new THREE.MeshStandardMaterial({ map: streepTex(), side: THREE.DoubleSide, roughness: 0.6 }));
+    dak.position.y = dakY + 28 + 26; G.molen.add(dak);
+    const rand = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 26, 48, 1, true), new THREE.MeshStandardMaterial({ map: schulpTex(), transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.6 }));
+    rand.position.y = dakY + 13; G.molen.add(rand);
+    const top = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 10), goud); top.position.y = dakY + 26 + 56 + 8; G.molen.add(top);
+    // de paardjes: een eigen silhouet, op gouden stangen
+    const paard = new THREE.Shape();
+    [[-30, 8], [-22, 20], [10, 22], [20, 30], [26, 44], [36, 44], [40, 34], [30, 30], [28, 18], [32, 2], [26, 0], [22, 12], [-10, 12], [-16, -2], [-22, -2], [-18, 12], [-28, 2], [-34, 2]].forEach(([x, y], k) => paard[k ? 'lineTo' : 'moveTo'](x, y));
+    paard.closePath();
+    const pg = new THREE.ExtrudeGeometry(paard, { depth: 10, bevelEnabled: true, bevelThickness: 3, bevelSize: 2, bevelSegments: 2 });
+    pg.translate(0, -16, -5);
+    const kleuren = ['#F6F1E4', '#E9B949', '#F2A7C3', '#9FD3F2', '#F6F1E4', '#C9A2E6'];
+    G.paarden = [];
+    for (let k = 0; k < 6; k++) {
+      const a = k / 6 * Math.PI * 2, x = Math.cos(a) * (R - 50), z = Math.sin(a) * (R - 50);
+      const stang = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, dakY, 8, 1), goud); stang.position.set(x, dakY / 2 + 6, z); G.molen.add(stang);
+      const p = new THREE.Mesh(pg, new THREE.MeshStandardMaterial({ color: lin(kleuren[k]), roughness: 0.4, metalness: 0.1 }));
+      p.position.set(x, 38, z); p.rotation.y = -a; p.scale.setScalar(0.85); G.molen.add(p); G.paarden.push(p);
+    }
+    // lampjes langs de rand van het dak (draaien mee)
+    const nL = 28; G.molenLamp = new THREE.InstancedMesh(new THREE.SphereGeometry(3.6, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), nL);
+    const m4l = new THREE.Matrix4();
+    for (let k = 0; k < nL; k++) { const a = k / nL * Math.PI * 2; m4l.makeTranslation(Math.cos(a) * (R + 3), dakY + 2, Math.sin(a) * (R + 3)); G.molenLamp.setMatrixAt(k, m4l); G.molenLamp.setColorAt(k, new THREE.Color(1.8, 1.4, 0.6)); }
+    G.molen.add(G.molenLamp);
+  }
+  G.kroonTop = 882 + KH + KS;
   G.lampPos = lampPos;
   G.lampen = new THREE.InstancedMesh(new THREE.SphereGeometry(3.6, 10, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), lampPos.length);
   lampPos.forEach((p, k) => { m4.makeTranslation(p[0], p[1], p[2]); G.lampen.setMatrixAt(k, m4); G.lampen.setColorAt(k, new THREE.Color(1, 1, 1)); });
@@ -3619,11 +4081,13 @@ function bouwKast() {
     gg.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(lampPos.length * 3).fill(1), 3));
     G.lampGloed = new THREE.Points(gg, new THREE.PointsMaterial({ size: KW.gloed > 1 ? 34 : 26, map: gloedVlek(), vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true, opacity: 0.55 }));
     kast.add(G.lampGloed);
-    const zg = new THREE.BufferGeometry();
-    zg.setAttribute('position', new THREE.Float32BufferAttribute(G.zwaai.flatMap((k) => [k.position.x, k.position.y + 6, k.position.z + 6]), 3));
-    zg.setAttribute('color', new THREE.Float32BufferAttribute([1, 0.5, 0.1, 1, 0.5, 0.1], 3));
-    G.zwaaiGloed = new THREE.Points(zg, new THREE.PointsMaterial({ size: 140, map: G.lampGloed.material.map, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true, opacity: 0.8 }));
-    kast.add(G.zwaaiGloed);
+    if (G.zwaai) {
+      const zg = new THREE.BufferGeometry();
+      zg.setAttribute('position', new THREE.Float32BufferAttribute(G.zwaai.flatMap((k) => [k.position.x, k.position.y + 6, k.position.z + 6]), 3));
+      zg.setAttribute('color', new THREE.Float32BufferAttribute([1, 0.5, 0.1, 1, 0.5, 0.1], 3));
+      G.zwaaiGloed = new THREE.Points(zg, new THREE.PointsMaterial({ size: 140, map: G.lampGloed.material.map, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true, opacity: 0.8 }));
+      kast.add(G.zwaaiGloed);
+    }
   }
   // de hal: een grote, gebogen achtergrond en een vloer
   const hal = new THREE.Mesh(new THREE.CylinderGeometry(3600, 3600, 3200, 40, 1, true, Math.PI * 0.62, Math.PI * 0.76), new THREE.MeshBasicMaterial({ map: halPlaat(2048, 1024), side: THREE.BackSide, color: new THREE.Color(0.85, 0.85, 0.85) }));
@@ -3687,9 +4151,10 @@ function bouwMunten(atlas) {
   bim.castShadow = false; bim.receiveShadow = KW.schaduw > 0; bim.frustumCulled = false;
   scene.add(bim);
   G.bak = bim;
-  // in de boog bovenop: een grote munt met het kroontje, die zachtjes heen en weer draait
+  // in de boog bovenop (alleen bij de gewone kast): een grote munt met het kroontje, die zachtjes heen en weer draait
+  if (KAST === 'klassiek') {
   const eg = muntGeo(R0, H0 * 1.6, 48);
-  eg.setAttribute('aDesign', new THREE.InstancedBufferAttribute(new Float32Array([1]), 1));
+  eg.setAttribute('aDesign', new THREE.InstancedBufferAttribute(new Float32Array([TH.embleem]), 1));
   eg.setAttribute('aSlijt', new THREE.InstancedBufferAttribute(new Float32Array([0.15]), 1));
   G.embleem = new THREE.InstancedMesh(eg, mat, 1);
   G.embleem.setColorAt(0, lin('#F0C66E'));
@@ -3699,6 +4164,7 @@ function bouwMunten(atlas) {
   G.embleemZet(0.25);
   G.embleem.frustumCulled = false;
   scene.add(G.embleem);
+  }
   // een doorschijnende munt in het wagentje: daar valt je munt
   const spook = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: lin('#F4CF6A'), metalness: 1, roughness: 0.3, transparent: true, opacity: 0.85 }));
   spook.rotation.x = Math.PI / 2; spook.position.set(0, MK.TOP + 14, 0);
@@ -3726,9 +4192,10 @@ function zetCamera() {
   const a = camera.aspect, z = kijk.zoom;
   const t = Math.max(0, Math.min(1, (1.25 - a) / 0.75));            // 0 liggend, 1 staand
   // de hele kast (zoom 0) of dichter op het speelveld (zoom 1)
-  const doel = new THREE.Vector3(0, (360 - t * 170) * (1 - z) + 25 * z, (-150 - t * 10) * (1 - z) - 160 * z);
+  const extra = { klassiek: 0, maan: 0, flipper: 45, molen: 60 }[KAST] * (1 - t);   // de kop van de Flipperkast en de Draaimolen is hoger
+  const doel = new THREE.Vector3(0, (360 + extra - t * 170) * (1 - z) + 25 * z, (-150 - t * 10) * (1 - z) - 160 * z);
   const richting = new THREE.Vector3(kijk.x * 0.12, 0.47 + z * 0.43 + kijk.y * 0.05, 1).normalize();
-  const W = (660 - t * 100) * (1 - z) + (470 - t * 170) * z, Hh = 1260 * (1 - z) + 430 * z;
+  const W = (660 - t * 100) * (1 - z) + (470 - t * 170) * z, Hh = (1260 + 2 * extra) * (1 - z) + 430 * z;
   const f = Math.tan(camera.fov * Math.PI / 360);
   const d = Math.max(Hh / 2 / f, W / 2 / (f * a)) * 1.02;
   camera.position.copy(doel).addScaledVector(richting, d);
@@ -3811,11 +4278,13 @@ function zetMunten() {
     S.bewoog = true;
   }
   G.schuiver.position.z = S.zf;
+  if (G.schijf) G.schijf.rotation.z = -(S.hoek || 0);
 }
 const NUL4 = new THREE.Matrix4().makeScale(0, 0, 0);
 
 // munten die in de bak vallen: even vallen, dan blijven ze liggen (een hoogtekaartje van de bak)
-const BAK = { x0: -MK.XW - 4, x1: MK.XW + 4, z0: 8, z1: 124, cel: 6 };
+const BAKX = KV.K.boog ? KV.K.boog.bak - 6 : MK.XW + 4;
+const BAK = { x0: -BAKX, x1: BAKX, z0: 8, z1: 124, cel: 6 };
 BAK.nx = Math.ceil((BAK.x1 - BAK.x0) / BAK.cel); BAK.nz = Math.ceil((BAK.z1 - BAK.z0) / BAK.cel);
 BAK.h = new Float32Array(BAK.nx * BAK.nz);
 const vallers = [];   // { x, y, z, vx, vy, vz, q, w }
@@ -3880,16 +4349,18 @@ function updateLampen(t) {
   lampFase = f;
   const n = G.lampPos.length, kl = new THREE.Color();
   const gc = G.lampGloed ? G.lampGloed.geometry.attributes.color : null;
+  const flits = !MINDER && (S.tij || performance.now() < (G.flitsTot || 0));
   for (let k = 0; k < n; k++) {
     const aan = MINDER ? 1 : ((k + f) % 6 < 3 ? 1 : 0.25);
-    kl.copy(LAMPKLEUR[(k + Math.floor(f / 18)) % 4]).multiplyScalar(aan);
+    if (flits) { kl.setRGB(1.6, 1.8, 2.2).multiplyScalar((k + f) % 2 ? 1.2 : 0.3); if (KAST === 'flipper') kl.setRGB(2, 1.6, 0.4).multiplyScalar((k + f) % 2 ? 1.2 : 0.3); }
+    else kl.copy(LAMPKLEUR[(k + Math.floor(f / 18)) % 4]).multiplyScalar(aan);
     G.lampen.setColorAt(k, kl);
     if (gc) { gc.setXYZ(k, kl.r * 0.6, kl.g * 0.6, kl.b * 0.6); }
   }
   G.lampen.instanceColor.needsUpdate = true;
   if (gc) gc.needsUpdate = true;
   // de neonbuizen: de kleur loopt langzaam rond (roze, paars, blauw en terug); bij minder beweging vast roze
-  const tint = MINDER ? 0.92 : 0.78 + 0.16 * Math.sin(f / 40);
+  const tint = MINDER ? TH.hue : TH.hue + 1 + 0.08 * Math.sin(f / 40);
   kl.setHSL(tint % 1, 1, 0.62); MAT.neonKern.color.copy(kl).multiplyScalar(1.7);
   MAT.neonGloed.color.copy(kl).multiplyScalar(0.7);
   // de zwaailichten: om de beurt fel (als een draaiende lamp)
@@ -3899,6 +4370,14 @@ function updateLampen(t) {
     if (G.zwaaiGloed) G.zwaaiGloed.geometry.attributes.color.setXYZ(k, h * 1.1, h * 0.5, h * 0.12);
   });
   if (G.zwaaiGloed) G.zwaaiGloed.geometry.attributes.color.needsUpdate = true;
+  // de sterren van de Halvemaan twinkelen
+  if (G.sterren) G.sterren.forEach((m, k) => m.color.setScalar(MINDER ? 1.5 : ((k * 7 + f) % 11 < 2 ? 0.7 : (k + f) % 5 === 0 ? 2.4 : 1.5)));
+  // de lampjes van de draaimolen lopen rond
+  if (G.molenLamp) {
+    const nL = G.molenLamp.count;
+    for (let k = 0; k < nL; k++) { kl.copy(LAMPKLEUR[(k >> 1) % 4]).multiplyScalar(MINDER ? 1 : (k + f) % 4 < 2 ? 1.1 : 0.35); G.molenLamp.setColorAt(k, kl); }
+    G.molenLamp.instanceColor.needsUpdate = true;
+  }
   return true;
 }
 
@@ -3944,6 +4423,46 @@ const geluid = (() => {
       o.connect(og); og.connect(g); o.start(t); o.stop(t + duur + 0.02);
     }
   }
+  // een paaltje van de Flipperkast: een helder belletje (elk paaltje een eigen toon)
+  function ding(k) {
+    if (!aan()) return;
+    const t = ctx.currentTime, f = [784, 988, 1175, 880, 1047][k % 5];
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.5); g.connect(uit);
+    for (const [r, a] of [[1, 1], [2, 0.35], [3.01, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'sine'; o.frequency.value = f * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.52); }
+  }
+  // springtij: een aanzwellende golf (gefilterde ruis die omhoog gaat)
+  function golf() {
+    if (!aan()) return;
+    const t = ctx.currentTime, len = Math.floor(ctx.sampleRate * 1.6), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.sin(Math.PI * k / len);
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2200, t + 1.2);
+    const g = ctx.createGain(); g.gain.value = 0.22; src.connect(f); f.connect(g); g.connect(uit); src.start(t);
+    for (const [n, dt] of [[660, 0.9], [880, 1.05], [1320, 1.2]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = n; og.gain.setValueAtTime(0.06, t + dt); og.gain.exponentialRampToValueAtTime(0.0005, t + dt + 0.5); o.connect(og); og.connect(uit); o.start(t + dt); o.stop(t + dt + 0.52); }
+  }
+  // de draaimolen: een eigen walsje op een draaiorgel, zo snel als de schijf draait (stil als hij stilstaat)
+  const WALS = [72, 0, 0, 76, 74, 72, 79, 0, 77, 76, 0, 0, 74, 0, 76, 77, 76, 74, 72, 74, 76, 74, 0, 0, 72, 0, 0, 76, 79, 76, 81, 0, 79, 77, 0, 0, 76, 77, 79, 77, 76, 74, 72, 0, 74, 72, 0, 0];
+  const BAS = [48, 48, 43, 48, 43, 41, 48, 43, 48, 48, 41, 41, 48, 43, 48, 48];
+  let orgelT = 0, orgelStap = 0;
+  function pijp(f, t, duur, luid) {
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(luid, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0005, t + duur); g.connect(uit);
+    for (const [r, a] of [[1, 1], [2, 0.4], [3, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = f * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + duur + 0.02); }
+  }
+  function draaiorgel(w) {
+    if (!aan()) { orgelT = 0; return; }
+    const snel = Math.abs(w || 0) / 0.75;
+    if (!(snel >= 0.2) || !isFinite(ctx.currentTime)) { orgelT = 0; return; }
+    const nu = ctx.currentTime, tel = 0.3 / (0.55 + 0.45 * snel);
+    if (orgelT < nu) orgelT = nu + 0.04;
+    while (orgelT < nu + 0.2) {
+      const n = WALS[orgelStap % WALS.length], tel3 = orgelStap % 3, maat = Math.floor(orgelStap / 3) % BAS.length;
+      if (n) pijp(440 * Math.pow(2, (n - 69) / 12), orgelT, tel * 1.6, 0.045);
+      const b = BAS[maat];
+      if (tel3 === 0) pijp(440 * Math.pow(2, (b - 69) / 12), orgelT, tel * 0.9, 0.05);
+      else pijp(440 * Math.pow(2, (b + 16 - 69) / 12), orgelT, tel * 0.5, 0.02);
+      orgelT += tel; orgelStap++;
+    }
+  }
   // veel munten tegelijk: een rinkelende golf in plaats van honderd losse tikjes
   function regen(n) {
     if (!aan()) return;
@@ -3966,7 +4485,7 @@ const geluid = (() => {
   }
   function zet(a) { if (uit) uit.gain.setTargetAtTime(a ? 0.8 : 0, ctx.currentTime, 0.05); }
   function pauze(p) { if (!ctx) return; if (p) ctx.suspend(); else if (APP.g) ctx.resume(); }
-  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze };
+  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel };
 })();
 
 // ---------------------------------------------------------------------------------------------
@@ -4013,6 +4532,26 @@ function lus(t) {
   updateLampen(t);
   if (Math.abs(kijk.zoom - kijk.doelZoom) > 0.002) { kijk.zoom += (kijk.doelZoom - kijk.zoom) * (MINDER ? 1 : Math.min(1, dt * 7)); zetCamera(); }
   if (G.embleem && !MINDER) G.embleemZet(0.45 * Math.sin(t / 1400));
+  if (G.tijMat) {
+    const GT = KV.K.getij, straks = S.slag % GT.elke === GT.elke - 2;
+    G.tijMat.color.setScalar(S.tij ? (MINDER ? 1.6 : 1.3 + 0.6 * Math.sin(t / 70)) : straks && !MINDER ? (Math.floor(t / 400) % 2 ? 0.9 : 0.35) : 0.35);
+  }
+  if (G.molen) {
+    G.molen.rotation.y = -S.hoek * 0.8;
+    G.paarden.forEach((p, k) => { p.position.y = 38 + (MINDER ? 0 : 11 * Math.sin(S.hoek * 5 + k * Math.PI / 3)); });
+    geluid.draaiorgel(S.w || 0);
+  }
+  if (G.paalFlits) {
+    let veranderd = false;
+    for (let k = 0; k < G.paalFlits.length; k++) {
+      const f = G.paalFlits[k];
+      if (f <= 0 && G.paalKap.userData[k] === 0) continue;
+      G.paalFlits[k] = Math.max(0, f - dt * 2.2); G.paalKap.userData[k] = G.paalFlits[k] > 0 ? 1 : 0;
+      const h = MINDER ? 0 : G.paalFlits[k];
+      G.paalKap.setColorAt(k, new THREE.Color(1.1 + 1.6 * h, 0.5 + 1.8 * h, 0.08 + 1.9 * h)); veranderd = true;
+    }
+    if (veranderd) G.paalKap.instanceColor.needsUpdate = true;
+  }
   if (G.neon && !MINDER) { const fl = 1.45 + 0.15 * Math.sin(t / 170) + (Math.random() < 0.004 ? -0.6 : 0); G.neon.material.color.setScalar(fl); }
   if (renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = true;
   renderer.render(scene, camera);
@@ -4063,7 +4602,9 @@ function vanHulpje(d) {
     const oudP = S.P, oudQ = S.Q;
     if (!S.Pvorig || S.Pvorig.length !== d.P.length) S.Pvorig = new Float32Array(d.P.length);
     if (oudP) S.Pvorig.set(oudP);
-    S.P = d.P; S.Q = d.Q; S.M = d.M; S.hoogste = d.hoogste; S.zf = d.zf; S.vp = d.vp; S.st = d.st; S.aantal = d.aantal;
+    S.P = d.P; S.Q = d.Q; S.M = d.M; S.hoogste = d.hoogste; S.zf = d.zf; S.vp = d.vp; S.st = d.st; S.aantal = d.aantal; S.hoek = d.hoek || 0; S.w = d.w || 0; S.slag = d.slag || 0;
+    if (d.tij && !S.tij) { geluid.golf(); $('#rs-meld').textContent = 'Springtij! De schuiver duwt nu extra ver.'; }
+    S.tij = !!d.tij;
     S.Pvrij = oudP; S.Qvrij = oudQ;
     if (d.S) zetSoorten(d.S);
     S.rust = !!(d.st && d.st.rust);
@@ -4106,6 +4647,7 @@ function gebeurtenissen(ev, n) {
         const q = [S.Q[i * 4], S.Q[i * 4 + 1], S.Q[i * 4 + 2], S.Q[i * 4 + 3]];
         vallers.push({ i, x, y, z, vx, vy: -500, vz, q });
       } else if (soort === 3) { tel.zij++; geluid.zij(); }
+      else if (soort === 5 && G.paalFlits) { G.paalFlits[i] = 1; geluid.ding(i); if (ev[k + 5]) { tel.bump = (tel.bump || 0) + 1; if (G.score) G.score.zet(tel.bump); G.flitsTot = performance.now() + 260; } }
       k += 6;
     }
   }
@@ -4206,6 +4748,24 @@ function openInst() {
   $('#rs-inst-kop').focus();
 }
 $('#rs-instknop').addEventListener('click', openInst);
+// de kasten: kiezen bewaart eerst de stapel van deze kast, en laadt dan de andere
+const kastVenster = $('#rs-kasten');
+$('#rs-titel').textContent = MF.KASTEN[KAST].naam;
+$('#rs-kastknop').addEventListener('click', () => {
+  kastVenster.querySelectorAll('[data-kast]').forEach((b) => b.setAttribute('aria-current', b.dataset.kast === KAST ? 'true' : 'false'));
+  kastVenster.hidden = false; $('#rs-kasten-kop').focus();
+});
+kastVenster.addEventListener('click', (e) => {
+  const keus = e.target.closest('[data-kast]');
+  if (keus) {
+    if (keus.dataset.kast === KAST) { kastVenster.hidden = true; doek.focus({ preventScroll: true }); return; }
+    APP.kast = keus.dataset.kast; bewaarApp();
+    bewaarMachine(() => { location.href = location.pathname + location.search.replace(/([?&])kast=\w+&?/, '$1').replace(/[?&]$/, ''); });
+    return;
+  }
+  if (e.target === kastVenster || e.target.closest('[data-sluit]')) { kastVenster.hidden = true; doek.focus({ preventScroll: true }); }
+});
+kastVenster.addEventListener('keydown', (e) => { if (e.key === 'Escape') { kastVenster.hidden = true; doek.focus({ preventScroll: true }); } });
 inst.addEventListener('click', (e) => { if (e.target === inst || e.target.closest('[data-sluit]')) { inst.hidden = true; doek.focus({ preventScroll: true }); } });
 inst.addEventListener('keydown', (e) => { if (e.key === 'Escape') { inst.hidden = true; doek.focus({ preventScroll: true }); } });
 inst.querySelector('form').addEventListener('change', (e) => {
@@ -4255,6 +4815,7 @@ async function opstarten() {
   scene.environment = fotoRondom();
   oud.dispose();
   vulBakVanTeller();
+  if (G.score) G.score.zet(tel.bump || 0);
   $('#rs-t-bak b').textContent = tel.uit; $('#rs-t-in b').textContent = tel.in; $('#rs-t-zij b').textContent = tel.zij;
   zetMik(0);
   maat();
@@ -4263,7 +4824,7 @@ async function opstarten() {
   const opg = lees(SLEUTEL_MACHINE);
   let laad = null;
   if (opg && opg.m) { try { const s = atob(opg.m); const b = new Uint8Array(s.length); for (let k = 0; k < s.length; k++) b[k] = s.charCodeAt(k); laad = b.buffer; } catch (e) { laad = null; } }
-  hulp.stuur({ doe: 'maak', max: MAXM, zaad: (Date.now() & 0xffff) + 1, laad, onder: 560, boven: 200, inloop: 240 }, laad ? [laad] : []);
+  hulp.stuur({ doe: 'maak', max: MAXM, zaad: (Date.now() & 0xffff) + 1, laad, onder: 560, boven: 200, inloop: 240, kast: KAST }, laad ? [laad] : []);
 }
 if (MEET) $('#rs-meet').hidden = false;
 opstarten();

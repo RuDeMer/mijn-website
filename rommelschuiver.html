@@ -1999,6 +1999,12 @@ function MUNTFYSICA() {
         if (dv <= mu) { vx[i] = svx[i]; vz[i] = svz[i]; }
         else { vx[i] += dvx / dv * mu; vz[i] += dvz / dv * mu; }
         vx[i] += duw[2 * i]; vz[i] += duw[2 * i + 1]; duw[2 * i] = duw[2 * i + 1] = 0;
+        // de bovenste munt van een hoge toren op de schuiver schuift eraf, weg van wat hem draagt
+        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H) {
+          let tx = 0, tz = 0; for (let q = 0; q < stN[i]; q++) { tx -= stX[i * SMX + q]; tz -= stZ[i * SMX + q]; }
+          let td = Math.hypot(tx, tz); if (td < 0.5) { const hoek = i * 2.39996; tx = Math.cos(hoek); tz = Math.sin(hoek); td = 1; }
+          const ta = (WRIJV_BOVEN + TOREN_DUW) * G * DT; vx[i] += tx / td * ta; vz[i] += tz / td * ta;
+        }
         // ligt hij steiler dan de wrijving kan houden, dan glijdt hij van de helling af (zo worden bergen munten nooit torens)
         const h2 = sa[i] * sa[i] + sb[i] * sb[i];
         if (h2 > HELLING_GLIJ * HELLING_GLIJ) { const h = Math.sqrt(h2), a = G * (h / Math.sqrt(1 + h2)) * DT; vx[i] -= sa[i] / h * a; vz[i] -= sb[i] / h * a; }
@@ -2182,6 +2188,9 @@ function MUNTFYSICA() {
     const MAXHOOG_BOVEN = opt.maxHoogBoven || MAXHOOG, WRIJV_BOVEN = opt.wrijvingBoven || 0.3;
     // omhoog geduwd worden (door de steun) geeft geen vaart naar boven: anders schiet een munt door en valt hij terug (springen)
     const HELLING_GLIJ = opt.hellingGlij || 0.32;   // tan van de hoek waarboven een munt van een andere munt afglijdt
+    // een toren op de schuiver brokkelt af: ligt de bovenste munt van een stapel meer dan TOREN_H boven de schuiver, dan schuift hij eraf
+    // (echte munten blijven op een schuiver die heen en weer gaat geen tien hoog liggen; zo'n toren wiebelde en hield de kast vol)
+    const TOREN_H = opt.toren !== undefined ? opt.toren : 11, TOREN_DUW = 0.45;
     const OPVAART = opt.opvaart !== undefined ? opt.opvaart : 0, KANTELDEMP = opt.kanteldemp !== undefined ? opt.kanteldemp : 0.6;   // in een stapel hooguit 28 graden schuin   // hoger dan dit klimt een munt niet (ongeveer 7 munten)
     const spX = new Float64Array(SMAX), spZ = new Float64Array(SMAX), spH = new Float64Array(SMAX), spL = new Float64Array(SMAX);
     const spB = new Int32Array(SMAX);
@@ -5248,7 +5257,7 @@ function bouwLicht() {
 }
 
 // de munten: in de machine (precies zoals het hulpje ze doorgeeft) en in de bak (siermunten die zijn gewonnen)
-const MAXM = 1700;
+const MAXM = 2100;
 function bouwMunten(atlas) {
   const geo = muntGeo(R0, H0, KW.segm);
   const mat = muntMateriaal(atlas);
@@ -5945,8 +5954,106 @@ function updateLampen(t) {
 // ---------------------------------------------------------------------------------------------
 // het geluid (Web Audio, alles zelf gemaakt), pas na de eerste tik
 // ---------------------------------------------------------------------------------------------
+// ==== KLANK begin
+// De geluiden van de munten, vooraf uitgerekend: een paar varianten per soort, als korte stukjes geluid (zoals een opname).
+// Een munt is een dun schijfje metaal: een klap (een stootje ruis), een paar ongelijke boventonen die snel wegsterven
+// (een munt die op andere munten valt, wordt meteen gedempt), een doffe bonk van wat eronder ligt, en soms nog een
+// paar kleine natikjes als hij plat valt. Geen lang, zuiver tingelen: dat klinkt als glas of edelstenen.
+function MAAKKLANK() {
+  // de boventonen van een dun schijfje (vrije rand): verhoudingen ten opzichte van de laagste
+  const SCHIJF = [1, 1.73, 2.33, 3.91, 4.11, 5.3];
+  const KLANK = {
+    // een munt valt op andere munten of op de vloer
+    munt: { lengte: 0.11, f0: [1850, 2700], modes: [[0, 1, 0.016], [1, 0.55, 0.012], [2, 0.5, 0.01], [3, 0.22, 0.007], [4, 0.2, 0.006], [5, 0.1, 0.004]],
+      ruis: [1, 0.0035, 3800, 0.8], bonk: [[300, 460], 0.7, 0.012], na: [0, 2], varianten: 8 },
+    // tegen een stalen wand, de schuiver of de gleuf: een lagere, wat langere klank
+    staal: { lengte: 0.22, f0: [1050, 1450], plaat: [1, 2.76, 5.4, 8.93], modes: [[0, 1, 0.045], [1, 0.45, 0.03], [2, 0.25, 0.018], [3, 0.1, 0.01]],
+      munt: 0.35, ruis: [0.7, 0.003, 2600, 0.9], bonk: [[180, 260], 0.35, 0.016], na: [0, 1], varianten: 6 },
+    // tegen het plexiglas: dof tikje
+    glas: { lengte: 0.07, f0: [1500, 1900], modes: [[0, 1, 0.01], [2, 0.3, 0.006]], ruis: [1, 0.003, 1800, 1.2], bonk: [[520, 640], 0.4, 0.008], na: [0, 0], varianten: 4 },
+    // in de trechter: een klank op het chroom, en dan rolt de munt rond tot hij in het gat valt
+    bak: { lengte: 0.75, f0: [1600, 2100], modes: [[0, 1, 0.05], [1, 0.6, 0.035], [2, 0.5, 0.03], [3, 0.2, 0.016], [4, 0.2, 0.014]],
+      ruis: [0.8, 0.003, 3200, 0.8], bonk: [[240, 320], 0.3, 0.02], rol: true, varianten: 6 },
+    // een tikje van het rad (een plastic pennetje)
+    klik: { lengte: 0.04, f0: [2600, 3000], modes: [[0, 0.6, 0.004]], ruis: [1, 0.0015, 3000, 1.5], bonk: [[900, 1000], 0.3, 0.004], na: [0, 0], varianten: 3 },
+  };
+  // een bandfilter (RBJ), om de ruis van de klap kleur te geven
+  function band(d, sr, f, q) {
+    const w = 2 * Math.PI * f / sr, al = Math.sin(w) / (2 * q), c = Math.cos(w), a0 = 1 + al;
+    const b0 = al / a0, b2 = -al / a0, a1 = -2 * c / a0, a2 = (1 - al) / a0;
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    for (let n = 0; n < d.length; n++) { const x = d[n], y = b0 * x + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y; d[n] = y; }
+    return d;
+  }
+  // één klap op plek s (in samples), met sterkte a
+  function slag(d, sr, P, s, a, f0, rnd) {
+    const len = d.length;
+    const ratio = P.plaat || SCHIJF;
+    for (const [i, amp, tau] of P.modes) {
+      const f = f0 * ratio[i] * (1 + (rnd() - 0.5) * 0.025); if (f > sr * 0.45) continue;
+      const w = 2 * Math.PI * f / sr, ph = rnd() * 6.283, k = Math.exp(-1 / (tau * (0.75 + 0.5 * rnd()) * sr));
+      let e = a * amp * (0.6 + 0.8 * rnd());
+      for (let n = s; n < len && e > 1e-4; n++) { d[n] += e * Math.sin(w * (n - s) + ph); e *= k; }
+    }
+    // een munt die tegen staal tikt, klinkt zelf ook een beetje mee
+    if (P.munt) {
+      const fm = 2300 + rnd() * 600;
+      for (const [r, amp, tau] of [[1, 1, 0.02], [1.73, 0.6, 0.014], [2.33, 0.5, 0.01]]) {
+        const w = 2 * Math.PI * fm * r / sr, k = Math.exp(-1 / (tau * sr)); let e = a * P.munt * amp;
+        for (let n = s; n < len && e > 1e-4; n++) { d[n] += e * Math.sin(w * (n - s)); e *= k; }
+      }
+    }
+    // de klap: ruis met een snelle staart, gekleurd
+    const [ra, rt, rf, rq] = P.ruis, rl = Math.min(len - s, Math.ceil(rt * 8 * sr)), r = new Float32Array(rl), rk = Math.exp(-1 / (rt * sr));
+    let e = 1; for (let n = 0; n < rl; n++) { r[n] = (rnd() * 2 - 1) * e; e *= rk; }
+    band(r, sr, rf * (0.85 + 0.3 * rnd()), rq);
+    for (let n = 0; n < rl; n++) d[s + n] += r[n] * ra * a * 2.2;
+    // de bonk van wat eronder ligt
+    const [bf, ba, bt] = P.bonk, fb = bf[0] + rnd() * (bf[1] - bf[0]), wb = 2 * Math.PI * fb / sr, kb = Math.exp(-1 / (bt * sr));
+    e = a * ba; for (let n = s; n < len && e > 1e-4; n++) { d[n] += e * Math.sin(wb * (n - s)); e *= kb; }
+  }
+  function maak(sr, soort, rnd) {
+    const P = KLANK[soort], d = new Float32Array(Math.ceil(P.lengte * sr));
+    const f0 = P.f0[0] + rnd() * (P.f0[1] - P.f0[0]);
+    slag(d, sr, P, 0, 1, f0, rnd);
+    if (P.rol) {
+      // een munt die rondrolt in de trechter: steeds snellere, zachtere tikjes (als een munt die uittolt)
+      let t = 0.07 + rnd() * 0.03, gap = 0.075, a = 0.42;
+      while (t < P.lengte - 0.05 && a > 0.04) { slag(d, sr, P, Math.floor(t * sr), a, f0 * (0.97 + rnd() * 0.06), rnd); t += gap * (0.85 + 0.3 * rnd()); gap *= 0.83; a *= 0.86; if (gap < 0.012) gap = 0.012; }
+    } else {
+      // soms nog een of twee natikjes (de munt valt plat)
+      const na = P.na[0] + Math.floor(rnd() * (P.na[1] - P.na[0] + 1));
+      let t = 0.012 + rnd() * 0.012;
+      for (let k = 0; k < na; k++) { slag(d, sr, P, Math.floor(t * sr), 0.28 * (0.5 + rnd()), f0, rnd); t += 0.01 + rnd() * 0.012; }
+    }
+    // zacht aan het begin (geen tik van de luidspreker) en netjes uit aan het eind; dan normaliseren
+    const fi = Math.floor(sr * 0.0004), fo = Math.floor(sr * 0.01);
+    for (let n = 0; n < fi; n++) d[n] *= n / fi;
+    for (let n = 0; n < fo; n++) d[d.length - 1 - n] *= n / fo;
+    let m = 0; for (let n = 0; n < d.length; n++) m = Math.max(m, Math.abs(d[n]));
+    if (m > 0) for (let n = 0; n < d.length; n++) d[n] /= m;
+    return d;
+  }
+  // alle varianten van alle soorten (sr: de samplefrequentie)
+  function alles(sr, rnd) { const uit = {}; for (const soort of Object.keys(KLANK)) uit[soort] = Array.from({ length: KLANK[soort].varianten }, () => maak(sr, soort, rnd)); return uit; }
+  return { KLANK, maak, alles };
+}
+// ==== KLANK eind
 const geluid = (() => {
-  let ctx = null, uit = null, zoem = null, zoemG = null, sfeer = null, tikkenDitBeeld = 0, laatsteRegen = 0;
+  let ctx = null, uit = null, zoem = null, zoemG = null, sfeer = null, tikkenDitBeeld = 0, laatsteRegen = 0, bank = null;
+  // de klanken van de munten: een paar varianten per soort, vooraf uitgerekend (in stukjes, zodat het beeld niet hapert)
+  const LUID = { munt: 1.5, staal: 1.4, glas: 1.2, bak: 1.6, klik: 0.7 };
+  function maakBank() {
+    const K = MAAKKLANK(), soorten = Object.keys(K.KLANK), uitB = {};
+    let q = 0;
+    const volgende = () => {
+      if (!ctx) return;
+      const soort = soorten[q++];
+      uitB[soort] = Array.from({ length: K.KLANK[soort].varianten }, () => { const d = K.maak(ctx.sampleRate, soort, Math.random), b = ctx.createBuffer(1, d.length, ctx.sampleRate); b.getChannelData(0).set(d); return b; });
+      if (q < soorten.length) setTimeout(volgende, 16); else bank = uitB;
+    };
+    setTimeout(volgende, 30);
+  }
   const aan = () => APP.g && ctx && ctx.state === 'running';
   function start() {
     if (ctx || !window.AudioContext && !window.webkitAudioContext) return;
@@ -5965,24 +6072,22 @@ const geluid = (() => {
       sfeer = ctx.createBufferSource(); sfeer.buffer = buf; sfeer.loop = true;
       const sf = ctx.createBiquadFilter(); sf.type = 'bandpass'; sf.frequency.value = 500; sf.Q.value = 0.6;
       const sg = ctx.createGain(); sg.gain.value = 0.05; sfeer.connect(sf); sf.connect(sg); sg.connect(uit); sfeer.start();
+      maakBank();
     } catch (e) { ctx = null; }
   }
   function ontwaak() { if (ctx && ctx.state === 'suspended') ctx.resume(); }
-  // een tikje metaal: een paar ongelijke tonen die snel wegsterven
+  // een munt raakt iets: een van de vooraf uitgerekende klanken (munt, staal, glas, bak, klik), elke keer iets anders van toonhoogte
+  function speel(soort, gain, t) {
+    const lijst = bank[soort] || bank.munt, src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = lijst[Math.floor(Math.random() * lijst.length)];
+    src.playbackRate.value = 0.93 + Math.random() * 0.14;
+    g.gain.value = gain; src.connect(g); g.connect(uit); src.start(t);
+  }
   function tik(kracht, soort) {
-    if (!aan() || tikkenDitBeeld > 7) return;
+    if (!aan() || !bank || tikkenDitBeeld > 7) return;
     tikkenDitBeeld++;
-    const t = ctx.currentTime + Math.random() * 0.01;
-    const f0 = soort === 'glas' ? 3800 + Math.random() * 900 : soort === 'staal' ? 1900 + Math.random() * 700 : 2600 + Math.random() * 1500;
-    const duur = soort === 'glas' ? 0.25 : 0.07 + kracht * 0.12;
-    const g = ctx.createGain(); g.gain.setValueAtTime(Math.min(0.35, 0.04 + kracht * 0.3), t); g.gain.exponentialRampToValueAtTime(0.0005, t + duur);
-    g.connect(uit);
-    for (const [r, a] of [[1, 1], [2.32, 0.5], [4.25, 0.3], [6.63, 0.15]]) {
-      const f = f0 * r * (1 + (Math.random() - 0.5) * 0.02); if (f > 16000) continue;
-      const o = ctx.createOscillator(), og = ctx.createGain();
-      o.frequency.value = f; og.gain.value = a;
-      o.connect(og); og.connect(g); o.start(t); o.stop(t + duur + 0.02);
-    }
+    soort = LUID[soort] ? soort : 'munt';
+    speel(soort, Math.min(0.35, 0.04 + kracht * 0.3) * LUID[soort], ctx.currentTime + Math.random() * 0.01);
   }
   // een paaltje van de Flipperkast: een helder belletje (elk paaltje een eigen toon)
   function ding(k) {
@@ -6024,20 +6129,14 @@ const geluid = (() => {
       orgelT += tel; orgelStap++;
     }
   }
-  // veel munten tegelijk: een rinkelende golf in plaats van honderd losse tikjes
+  // veel munten tegelijk: een plens losse klanken door elkaar (geen ruis: dat klonk als glas of edelstenen)
   function regen(n) {
-    if (!aan()) return;
+    if (!aan() || !bank) return;
     const nu = ctx.currentTime; if (nu - laatsteRegen < 0.12) return; laatsteRegen = nu;
-    const len = Math.floor(ctx.sampleRate * 0.5), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
-    for (let k = 0; k < len; k++) { const env = Math.exp(-k / len * 5); d[k] = (Math.random() * 2 - 1) * env * (Math.random() < 0.02 ? 1 : 0.2); }
-    const s = ctx.createBufferSource(); s.buffer = buf;
-    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 4200; f.Q.value = 1.4;
-    const g = ctx.createGain(); g.gain.value = Math.min(0.5, 0.12 + n * 0.02);
-    s.connect(f); f.connect(g); g.connect(uit); s.start();
-    for (let k = 0; k < Math.min(5, n); k++) setTimeout(() => tik(0.3 + Math.random() * 0.4), k * 40);
+    for (let k = 0; k < Math.min(12, 4 + n / 2); k++) speel(k % 4 === 3 ? 'bak' : 'munt', (0.12 + Math.random() * 0.22) * LUID.munt * 0.7, nu + Math.random() * 0.38);
   }
-  function bak(kracht) { tik(0.25 + kracht * 0.5, 'staal'); if (navigator.vibrate && !MINDER && APP.g) { try { navigator.vibrate(8); } catch (e) {} } }
-  function zij() { tik(0.15, 'staal'); }
+  function bak(kracht) { tik(0.25 + kracht * 0.5, 'bak'); if (navigator.vibrate && !MINDER && APP.g) { try { navigator.vibrate(8); } catch (e) {} } }
+  function zij() { tik(0.18, 'glas'); }
   function beeld(vp, wakker) {
     tikkenDitBeeld = 0;
     if (!ctx) return;
@@ -6054,7 +6153,7 @@ const geluid = (() => {
       for (const [r, a] of [[1, 1], [2.0, 0.5], [2.76, 0.35], [5.4, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = 262 * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.65); }
     }
   }
-  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel, klok };
+  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel, klok, get klaar() { return !!bank; } };
 })();
 
 // ---------------------------------------------------------------------------------------------
@@ -6347,7 +6446,7 @@ function mikVanScherm(cx, cy) {
 }
 let gooiKlok = 0, gooiKlaarOp = 0;
 // zit de kast te vol, dan neemt de gleuf even niets aan (anders wordt de stapel een berg en het rekenen te zwaar)
-const VOL_GRENS = 1250;
+const VOL_GRENS = 1800;   // (sinds 22 november: met het afbrokkelen van torens blijft een kast bij gewoon spelen rond de 1.200 tot 1.400)
 // de eerste stapel van een kast: zoveel kaartjes erop, en waar de muntenringen staan ([x, z, lagen van 8 munten])
 const START_KAARTJES = { klassiek: 10, maan: 12, flipper: 14, molen: 16, ruitenwisser: 18, schatkamer: 20, fichebank: 18 };
 // stapels fiches in de eerste stapel van de Fichebank ([x, z, soorten van onder naar boven]; 16 = 5, 17 = 25, 18 = 100 munten)
@@ -6605,7 +6704,7 @@ function updateLicht(t) {
   if (L) {
     const f = Math.min(1, (t - L.begin) / L.duur), e = 1 - Math.pow(1 - f, 3);
     pos = (L.van + Math.floor(L.stappen * e + 1e-9)) % n;
-    if (pos !== L.tik && !MINDER) { L.tik = pos; geluid.tik(0.1 + 0.2 * (1 - e), 'staal'); }
+    if (pos !== L.tik && !MINDER) { L.tik = pos; geluid.tik(0.1 + 0.2 * (1 - e), 'klik'); }
     if (f >= 1) { pos = PT.uit.vak; if (!L.klaar) { L.klaar = t; PT.flits = t + 1300; } else if (t - L.klaar > 1300) { PT.licht = null; lichtKlaar(); } }
     PT.lichtPos = pos;
   }
@@ -6738,7 +6837,7 @@ function updatePoort(t) {
     const s = PT.spin, f = Math.min(1, (t - s.begin) / s.duur), e = 1 - Math.pow(1 - f, 3), hoek = s.van + (s.naar - s.van) * e;
     const deel = s.hart ? G.radHart : G.radSchijf, vak = Math.floor(hoek / (stap / (s.hart ? ECO.JACKPOT : ECO.RAD.length)));
     deel.rotation.z = hoek;
-    if (vak !== s.tik && !MINDER) { s.tik = vak; geluid.tik(0.12 + 0.2 * (1 - e), 'staal'); }
+    if (vak !== s.tik && !MINDER) { s.tik = vak; geluid.tik(0.12 + 0.2 * (1 - e), 'klik'); }
     if (f >= 1) { PT.spin = null; if (!s.hart && PT.uit.soort === 'ster') setTimeout(hartDraai, 500); else setTimeout(radKlaar, 350); }
   }
   for (let k = 0; k < 16; k++) {

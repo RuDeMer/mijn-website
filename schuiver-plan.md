@@ -308,3 +308,15 @@ Elke kast bewaart zijn eigen stapel (per apparaat). Of je de kasten moet vrijspe
 - **Elke kast een eigen uiterlijk**: de lak, het neonbord met de naam, de band op de schuiver, de boog bovenop, de binnenkant en de munt in de boog.
 - **Getest** (Node, met de natuurkunde uit de pagina): per kast spelen en de schuiver uit (alles in rust binnen 2,5 s, geen munten in elkaar, niets door de vloer), 10 minuten spelen met 4 keer bewaren en laden (elke munt telt precies één keer), en een robot die een kwartier lang elke seconde een munt gooit: de gewone kast geeft zo'n 94 van de 100 terug, de Flipperkast zo'n 94, de Draaimolen zo'n 92 en de Halvemaan zo'n 88 (daar valt meer in de zijgoten). In de browser: alle vier op computer en telefoon, wisselen tussen de kasten (de stapels blijven bewaard), geen fouten of overtredingen van het veiligheidsbeleid. Tekenopdrachten op Normaal: 96.
 - **Nog niet**: de kaartjes (die horen bij de economie, hoofdstuk 13) en het vrijspelen van de kasten.
+
+**Unieker en actievoller (22 november 2026, na Rubens reactie)**:
+
+| Kast | Eigen kop | Eigen vloer en achterwand | Wat er gebeurt |
+|---|---|---|---|
+| **De Halvemaan** | Een nachthemel met een grote neonmaan en sterren die twinkelen | Nachtblauw staal met sterretjes; een sterrenhemel met een maan en vallende sterren | **Springtij**: elke zesde slag gaat de schuiver bijna twee keer zo ver (`getij` in `KASTEN`). Een slag van tevoren knippert het bord SPRINGTIJ, tijdens springtij flitsen alle lampjes en klinkt er een aanzwellende golf |
+| **De Flipperkast** | Een flipperkop met een beschilderd glas en een scorebord met oranje cijfers | Een flipperveld met banen en sterren; bliksems en BUMPER! | **Bumpers schieten**: raakt een munt een bumper, dan schiet die hem weg (150 mm/s, daarna even rust; `schop`). Het lampje flitst, er klinkt een belletje, alle lampjes flitsen even, en het scorebord telt mee (bewaard per apparaat). Zo'n 40 keer per minuut |
+| **De Draaimolen** | Een draaimolen met een gestreept dak, schulpjes, lampjes die rondlopen en zes paardjes die op en neer gaan; hij draait mee met de schijf | Houten planken; een tent met vlaggetjes en spiegeltjes | De schijf **draait heen en weer**: sneller, langzamer, stil en dan de andere kant op (elke 24 seconden een heel rondje heen en weer; `periode`). Een **draaiorgel** speelt een eigen walsje, zo snel als de schijf draait, en stil als hij stilstaat |
+
+De munt met het kroontje en de zwaailichten horen nu alleen bij de gewone kast. Bij minder beweging staan de paardjes, sterren en het bord stil.
+
+**Opnieuw gemeten**: de gewone kast gedraagt zich nog steeds bit voor bit hetzelfde; alle kasten komen tot rust zonder munten in elkaar. Een robot (een munt per seconde, een kwartier): de Flipperkast geeft zo'n 92 van de 100 terug, de Draaimolen zo'n 89 en de Halvemaan zo'n 87 (dat getal klimt nog: na een kwartier groeit de stapel daar nog). In de Draaimolen blijven meer munten wakker (de schijf roert de hele onderste verdieping om): de natuurkunde kost daar ongeveer twee keer zoveel (in Node 2,7 ms per stap, de gewone kast 1,3 ms). Tekenopdrachten op Normaal: 98 tot 108.

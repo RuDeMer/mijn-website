@@ -214,3 +214,97 @@ Ruben speelde op zijn iPhone (Mooi: 51 beelden per seconde, natuurkunde 5,8 ms p
 Gemeten met een robot die drie minuten elke halve seconde een munt gooit: een munt die ineens wegschiet, glijdt daarna meestal 1 à 2 cm, en nooit meer dan 7 cm (eerst tot 26 cm). De oude versie deed het ook al, en nog vaker (625 keer in drie minuten, nu zo'n 55 keer, en veel korter).
 
 **Opnieuw gemeten** (22 november 2026, dezelfde cloudcomputer): natuurkunde bij flink doorspelen gemiddeld 1,2 tot 1,5 ms per stap (de traagste 1% 4 tot 5 ms); na het uitzetten van de schuiver ligt alles binnen 1,1 s stil, zonder munten in elkaar; 10 minuten spelen met 4 keer bewaren en laden telt elke munt precies één keer. Het evenwicht ligt nu rond de 800 munten in de machine (zo'n 460 op de schuiver), en een robot die elke seconde een munt gooit, krijgt er zo'n 95% van terug. Tekenopdrachten per beeld: Normaal 94 (was 66; de nieuwe kast), driehoeken gelijk.
+
+## 13. De economie: waarom je terugkomt (voorstel, 22 november 2026)
+
+Ruben vroeg om "een ijzersterke economie en een reden waarom mensen terug blijven komen", en eerst als plan. Dit is het voorstel. Er is nog niets van gebouwd; ik bouw het pas als Ruben ja zegt.
+
+### Twee soorten geld
+
+| | **Munten** | **Kaartjes** |
+|---|---|---|
+| Wat | Je brandstof: je gooit ze in de gleuf | Je spaargeld: punten voor de **Prijzenkraam** |
+| Hoe krijg je ze | Elke dag 100 in je **spaarpot**, en alles wat in je bakje valt | Echte **kaartjes** die tussen de munten in de machine liggen (zoals op de kermis), met 5, 10, 25, 50 of 100 erop, en heel soms een gouden kaartje van 250. Valt er een in je bakje, dan krijg je dat aantal |
+| Waaraan geef je ze uit | Aan de machine | Aan de Prijzenkraam |
+
+**De gouden regel: munten worden nooit kaartjes, en kaartjes worden nooit munten.** Als je ze zou kunnen wisselen, kan iemand die slim speelt eindeloos rondpompen (munten, kaartjes, munten). Zo kan dat niet.
+
+### Waar het vandaan komt en waar het heen gaat
+
+- **De spaarpot**: elke dag komen er 100 munten in (om middernacht). Hij wacht op je tot hij 300 munten bevat (drie dagen). Mis je een dag, dan ben je niets kwijt; ben je een maand weg, dan krijg je er niet 3.000. Je begint met 150 munten.
+- **De machine geeft gemiddeld zo'n 93 van elke 100 munten terug** (de rest valt in de zijgoten; zo werkt een echte muntenschuiver ook). Daardoor kun je met 100 munten ongeveer 1.400 munten in de machine gooien voor ze op zijn. Dat is **zo'n 15 tot 20 minuten spelen per dag**, en dan wacht je spaarpot weer op morgen. Zo bepaalt de machine zelf hoelang een potje duurt, zonder klok of wachttijd.
+- **Kaartjes komen in de machine** doordat de machine na elke 20 munten die je erin gooit een nieuw kaartje bovenop de schuiver legt (je ziet het vallen). Welk kaartje het wordt, komt uit `crypto.getRandomValues` en de kansen staan in beeld:
+
+  | Kaartje | Kans | |
+  |---|---|---|
+  | 5 | 35% | |
+  | 10 | 30% | |
+  | 25 | 20% | |
+  | 50 | 10% | |
+  | 100 | 4% | |
+  | Gouden kaartje (250) | 1% | |
+
+  Gemiddeld is een kaartje zo'n 22 waard. Een speler die zijn spaarpot leegspeelt, verdient daarmee ongeveer **1.200 tot 1.500 kaartjes per dag**. Kaartjes die nog in de machine liggen, wachten tot morgen.
+- **Drie opdrachtjes per dag** (elke dag andere, voor iedereen dezelfde), zoals "Laat 8 munten tegelijk vallen", "Duw een kaartje van 25 of meer eraf", "Gooi 3 munten op dezelfde plek". Elk opdrachtje 50 tot 150 kaartjes. Geen haast: ze gelden de hele dag, en een gemiste dag maakt niets kapot.
+- **De dagprijs**: bij je eerste munt van de dag ligt er iets bijzonders bovenop de schuiver: een voorwerp dat je nog niet hebt, of een gouden kaartje. Je moet het er nog wel zelf uitduwen.
+
+### De Prijzenkraam (waar de kaartjes heen gaan)
+
+| Wat | Prijs | Hoelang sparen (bij één keer per dag spelen) |
+|---|---|---|
+| Een voorwerp voor je verzameling (het valt in de machine, jij duwt het eruit) | 300 tot 1.500 | een halve tot een paar dagen |
+| **De tweede kast** | 2.000 | 2 dagen |
+| **De derde kast** | 6.000 | ongeveer een week |
+| **De vierde kast** | 12.000 | ongeveer twee weken |
+| Mooie dingen: andere munten (zilver, koper, regenboog), een andere lak voor de kast, een andere neonkleur | 500 tot 3.000 | |
+| **Gouden versies** van de 24 voorwerpen (voor wie alles al heeft) | 5.000 per stuk | maanden |
+
+De prijzen staan vast en ik reken ze na met de robot: hoelang een gewone speler (een kwartier per dag) erover doet om alles te halen. Mijn doel: de tweede kast in de eerste week, alle kasten in de eerste maand, de hele verzameling in twee maanden, en goud voor wie echt alles wil.
+
+### Waarom je terugkomt (zonder trucjes)
+
+1. **Je stapel blijft liggen.** Wat gisteren al half over de rand hing, hangt er vandaag nog. Dat is de echte reden waarom mensen bij een muntenschuiver blijven staan: je wilt weten of hij nu valt.
+2. **Je spaarpot is weer vol** (100 munten per dag, tot 300).
+3. **Er ligt een dagprijs**, en er zijn **drie nieuwe opdrachtjes**.
+4. **Er is iets om naartoe te sparen**: de volgende kast, het volgende voorwerp, goud.
+5. **Elke kast is anders** (zie hoofdstuk 14), met eigen kaartjes: in een duurdere kast zijn de kaartjes meer waard, maar kost een munt ook meer (2 of 3 munten).
+
+**Bewust niet**: geen reeks die kapotgaat als je een dag mist, geen aftelklokken, geen "nog één keer" na verlies, geen meldingen die je terugroepen, en niets te koop met echt geld. Moeki vraagt na een tijdje spelen nog steeds of je even pauze wilt (zoals in het casino).
+
+### Waarom hij ijzersterk is
+
+- **Elke munt en elk kaartje is een echt ding** in de natuurkunde: het telt precies één keer, op het moment dat het in je bakje valt.
+- **Munten en kaartjes zijn nooit te wisselen** (zie de gouden regel).
+- **Je kunt niet terug in de tijd**: je geld en de machine worden samen bewaard; opnieuw laden of de pagina sluiten maakt niets erbij. Kan de machine niet geladen worden, dan komt er een stapel met precies evenveel munten en kaartjes, niet vlak bij de rand.
+- **Twee apparaten**: de versie met de meeste voortgang wint in één keer (zoals bij het casino); geld wordt nooit opgeteld. Een tweede apparaat vraagt waar je verder wilt spelen.
+- **De machine geeft nooit meer terug dan erin gaat**: ik laat een slimme robot (die mikt op de beste plekken) uren spelen. Komt hij boven de 97 van de 100 uit, dan maak ik de zijgoten iets breder. Zo kan niemand oneindig spelen en dus ook niet oneindig kaartjes halen.
+- **Op het scorebord** (als je dat wilt): je verzameling, en een **weekbord met de kaartjes van deze week** (iedereen begint maandag weer bij nul, zoals de Bakwedstrijd), zodat een nieuwe speler ook kan winnen.
+
+### Vragen voor Ruben
+
+1. **Twee soorten geld** (munten om te spelen, kaartjes om te sparen), en ze nooit kunnen wisselen: goed?
+2. **De spaarpot**: 100 per dag, hooguit 300: goed?
+3. **De kasten vrijspelen met kaartjes** (2.000, 6.000 en 12.000): goed, of liever anders (bijvoorbeeld met opdrachten)?
+4. **De Prijzenkraam**: zo, of wil je er andere dingen in?
+5. **De opdrachtjes van de dag**: ja of nee?
+6. **Het weekbord met kaartjes** op het scorebord: ja of nee?
+
+## 14. Drie nieuwe kasten (22 november 2026)
+
+Ruben: "Nu zijn het ook nog rechte blokken, maak alvast drie andere kasten." Elke kast heeft een eigen speelveld, een eigen kast en een eigen naambord. De natuurkunde blijft dezelfde; ik maak hem geschikt voor andere vormen.
+
+| Kast | Wat is er anders | Hoe hij eruitziet |
+|---|---|---|
+| **1. De Rommelschuiver** (zoals nu) | Rechte schuiver, rechte rand | Rood en goud, de boog met de kroonmunt |
+| **2. De Halvemaan** | De rand is een **grote boog**: in het midden steekt hij ver naar voren, aan de zijkanten buigt hij terug naar de zijgoten. De voorkant van de schuiver is ook rond. Munten vallen dus anders over de rand, en wat aan de zijkant van de boog afglijdt, is weg | Nachtblauw met zilver, sterren en een maan van neon |
+| **3. De Flipperkast** | Op de onderste verdieping staan **vijf ronde paaltjes** (bumpers met een rubberen ring) waar de munten omheen moeten. Ze lichten op en tingelen als er een munt tegenaan komt | Groen en geel, met flipperlampjes en pijlen |
+| **4. De Draaimolen** | Midden op de onderste verdieping zit een **draaischijf** die langzaam ronddraait en de munten meeneemt, naar de rand of juist ervan weg | Een kermiskast met een gestreepte luifel, spiegeltjes en lampjes, zoals een draaimolen |
+
+Elke kast bewaart zijn eigen stapel (per apparaat). Of je de kasten moet vrijspelen en wat ze kosten, hangt af van de economie (hoofdstuk 13); in de proefversie staan ze allemaal open.
+
+**Gebouwd (22 november 2026, in de proefpagina)**: de knop **Kasten** (bovenin) opent een venster met de vier kasten. Kiezen bewaart eerst de stapel van de kast waar je bent, en laadt dan de andere. Elke kast bewaart zijn eigen stapel in `rommelschuiver-machine-<kast>` (de gewone kast houdt `rommelschuiver-machine`), en de gekozen kast staat in `rommelschuiver-apparaat` (allemaal per apparaat, niet in `SLEUTELS`). Om te testen: `?kast=maan`, `flipper` of `molen` achter het adres.
+
+- **De natuurkunde** kent nu kasten (`KASTEN` en `kastVorm` in de natuurkunde; het tekenen gebruikt dezelfde vorm). De gewone kast gedraagt zich daarna precies hetzelfde als ervoor (nagerekend: bit voor bit dezelfde uitkomst). De Halvemaan heeft een gebogen rand en een ronde schuiver (in 2D loodrecht op de bocht, in 3D als stukjes vlak en rand), de Flipperkast vijf paaltjes (in 2D cirkels, in 3D verende cilinders; een munt die er hard tegenaan komt laat het lampje oplichten en tingelen), en de Draaimolen een draaischijf: munten die erop slapen draaien exact mee (plek, draai en schuinte), munten die er half op liggen worden meegesleept, en de schijf stopt als de schuiver stopt (dan kan alles slapen).
+- **Elke kast een eigen uiterlijk**: de lak, het neonbord met de naam, de band op de schuiver, de boog bovenop, de binnenkant en de munt in de boog.
+- **Getest** (Node, met de natuurkunde uit de pagina): per kast spelen en de schuiver uit (alles in rust binnen 2,5 s, geen munten in elkaar, niets door de vloer), 10 minuten spelen met 4 keer bewaren en laden (elke munt telt precies één keer), en een robot die een kwartier lang elke seconde een munt gooit: de gewone kast geeft zo'n 94 van de 100 terug, de Flipperkast zo'n 94, de Draaimolen zo'n 92 en de Halvemaan zo'n 88 (daar valt meer in de zijgoten). In de browser: alle vier op computer en telefoon, wisselen tussen de kasten (de stapels blijven bewaard), geen fouten of overtredingen van het veiligheidsbeleid. Tekenopdrachten op Normaal: 96.
+- **Nog niet**: de kaartjes (die horen bij de economie, hoofdstuk 13) en het vrijspelen van de kasten.

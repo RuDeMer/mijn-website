@@ -397,3 +397,20 @@ Ruben: "Ik vind de beeldjes van Moeki en Floortje lelijk, dus alleen edelstenen 
 - **De schuiver rust pas na 5 minuten** zonder spelen (`RUST_NA`, was 20 seconden). De pauze van Moeki telt alleen de tijd dat je echt speelt (een tik in de laatste 30 seconden), en toont nu het pixelportret van Moeki uit Huis op stelten.
 - **Getest**: de rekenregels in Node, en in Chromium de kraam, de verzameling, de prijzen in de kast en het luikje, herladen en een nagemaakte stapel (845 munten voor en na, dezelfde kaartjes en prijzen), zonder fouten of overtredingen van het veiligheidsbeleid.
 - **Nog open**: een klein kansspelletje voor de prijzen (een voorstel ligt bij Ruben), en de scoreserver (de code staat nergens anders dan in Cloudflare en bij Ruben).
+
+## 20. De Prijzenpoort en het Rad (22 november 2026, keuze A van Ruben)
+
+Ruben koos uit drie voorstellen voor A: prijzen win je met een klein kansspelletje in de kast, en de kraam verkoopt ze niet meer.
+
+- **De Prijzenpoort**: een gouden ringetje met lampjes schuift in de gleuf heen en weer (op 198 mm hoogte, 188 mm naar links en rechts, één keer heen en weer in 6,5 s). Valt je munt erdoorheen, dan draait het rad. Na elke draai is de poort 25 seconden dicht (de lampjes lopen rood vol). Het spel zelf kijkt dat na, zonder iets aan de natuurkunde te veranderen: het ziet in de plekken van de munten wanneer een munt die hoogte passeert, en waar het poortje op dat moment was (`poortKijk`, in de tijd van de natuurkunde).
+- **Het Rad** (op de achterwand, tussen het luikje en het poortje): 16 vakjes (`RAD` in de economie): 6 keer Superduw (de schuiver duwt 3 slagen extra ver, net als het springtij van de Halvemaan: `superduw` in de natuurkunde, 1,45 keer zo ver), 4 keer een munt, 3 keer een kaartje, 1 keer een muntenregen van 5, 1 keer 3 kaartjes, en 1 keer de ★. Op de ★ draait het hartje van het rad (6 vakjes): 1 op 6 is een prijs (een edelsteen of bijzondere munt die je nog niet hebt, of een gouden kaartje van 250 als je ze allemaal hebt), anders een kaartje. Een prijs dus 1 op 96 draaien. Alles komt uit het prijzenluikje, en de uitkomst ligt meteen vast (echt toeval, `ECO.radDraai`); het draaien laat hem alleen zien. Bij minder beweging draait het rad kort.
+- **Afgesteld met een simulatie** (`poort_sim.js` en `econ_rad.js` in de kladmap): het poortje geeft een draai per ongeveer 45 tot 55 munten (ook als je goed mikt, door de rust van 25 seconden). Met een muntenregen van 8 en 2 munten per vakje speelde een heel goede speler bijna gratis (49 minuten per dag); met 1 munt en een regen van 5 blijft het in balans:
+
+  | Speler | Minuten per dag | Kaartjes per dag | Draaien per dag | Kast 2, 3, 4 | Hele verzameling | Goud na 60 dagen |
+  |---|---|---|---|---|---|---|
+  | Elke dag een kwartiertje | 22 | 1.870 | 27 | dag 2, 8, 19 | dag 44 | 14 |
+  | Elke dag tot de munten op zijn (goed) | 37 | 3.690 | 56 | dag 1, 4, 12 | dag 31 | 24 |
+  | Om de drie dagen | 30 | 2.190 | 36 | dag 4, 14, 37 | na dag 60 | 0 |
+
+- **De kraam** verkoopt geen prijzen meer (alleen kasten, mooie dingen en goud), en legt uit hoe je ze wint. Bij Eerlijk? staan de kansen van het rad. Nieuw opdrachtje (achteraan): "Laat het rad 3 keer draaien".
+- **Getest**: de rekenregels in Node (elk vakje even vaak, de jackpot 1 op 6, een prijs staat meteen in de kast), en in Chromium: munten door het poortje mikken, het rad, een jackpot met de prijs uit het luikje, de kraam, op 1000 en 390 breed, zonder fouten.

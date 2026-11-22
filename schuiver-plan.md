@@ -362,3 +362,12 @@ Iemand gooide er meer dan 5.000 munten in: de kast zat vol (1.635 munten), het b
 - **De kast kan niet meer overvol raken**: zitten er 1.000 munten in, dan neemt de gleuf even niets aan ("De kast zit vol · even wachten"); zodra er munten uit vallen, kan het weer. Gewoon spelen komt daar niet aan (dan liggen er zo'n 750 tot 900 munten in). Ingedrukt houden laat nu hooguit drie munten per seconde vallen (was vier).
 - **Het hulpje rekent per keer hooguit zo'n 12 ms**: wordt het toch zwaar, dan loopt de kast heel even trager, maar het beeld blijft vloeiend.
 - Opnieuw getest: alle kasten komen tot rust zonder munten in elkaar, 10 minuten spelen met bewaren en laden telt elke munt precies één keer, wegschietende munten nog even weinig, en in de browser geen fouten.
+
+## 17. De trechter (22 november 2026, Rubens idee)
+
+Ruben: "Laat ze maar in een soort van trechter vallen, dus dat ze helemaal weg zijn." In de bak lag een plaatje van de munten die je won (Normaal 700, Mooi 1.500): dat kostte bij het tekenen 17 tot 31% van alle driehoeken, en een lege bak kostte evenveel.
+
+- **De bak is een trechter geworden**: een trechter van geborsteld staal met een band in de kleur van de kast en een neonring om het gat. Een munt die over de rand valt, komt neer op de trechter, draait steeds sneller rond naar het gat (zoals water in een afvoer), kantelt het gat in en is weg (ruim een seconde). De ring licht op als er iets in valt. De munt heeft hetzelfde uiterlijk als de munt die viel (eigen InstancedMesh met hooguit 120 tegelijk, `G.trechter`, `nieuweValler` en `updateVallers`).
+- **De voorkant van de trog is van plexiglas**, zodat je de munten ook in het gewone beeld in de trechter ziet verdwijnen. De onderkast is daarvoor bovenin hol gemaakt.
+- **Voor de natuurkunde verandert er niets**: een munt in de bak was daar al weg.
+- **Gemeten** (computer, Normaal): driehoeken van 434.000 naar 364.000, geen fouten; de slaapstand werkt nog (na 30 s niets doen slaapt alles).

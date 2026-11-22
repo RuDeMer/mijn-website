@@ -3124,9 +3124,9 @@ const TEST = /[?&]test\b/.test(location.search);
 const MINDER = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const KWAL = {
-  zuinig: { naam: 'Zuinig', fps: 30, dpr: 1, schaduw: 0, segm: 18, tex: 512, aa: false, gloed: 0, bak: 260, glas: 0 },
-  normaal: { naam: 'Normaal', fps: 60, dpr: 1.5, schaduw: 1024, segm: 24, tex: 1024, aa: true, gloed: 1, bak: 700, glas: 1 },
-  mooi: { naam: 'Mooi', fps: 60, dpr: 2, schaduw: 2048, segm: 44, tex: 1024, aa: true, gloed: 2, bak: 1500, glas: 1 },
+  zuinig: { naam: 'Zuinig', fps: 30, dpr: 1, schaduw: 0, segm: 18, tex: 512, aa: false, gloed: 0, glas: 0 },
+  normaal: { naam: 'Normaal', fps: 60, dpr: 1.5, schaduw: 1024, segm: 24, tex: 1024, aa: true, gloed: 1, glas: 1 },
+  mooi: { naam: 'Mooi', fps: 60, dpr: 2, schaduw: 2048, segm: 44, tex: 1024, aa: true, gloed: 2, glas: 1 },
 };
 function autoKwal() {
   const kernen = navigator.hardwareConcurrency || 4, geheugen = navigator.deviceMemory || 4;
@@ -3735,7 +3735,7 @@ function fotoRondom() {
   const rt = new THREE.WebGLCubeRenderTarget(KW.tex >= 1024 ? 256 : 128, { type: THREE.HalfFloatType, generateMipmaps: false });
   const cam = new THREE.CubeCamera(5, 9000, rt);
   cam.position.set(0, 90, -150);
-  const verborgen = [G.munten, G.bak, G.wagen].filter(Boolean);
+  const verborgen = [G.munten, G.trechter, G.wagen].filter(Boolean);
   for (const o of verborgen) o.visible = false;
   const schaduw = renderer.shadowMap.enabled; renderer.shadowMap.enabled = false;
   scene.add(cam); cam.update(renderer, scene); scene.remove(cam);
@@ -3784,6 +3784,63 @@ function maakMaterialen() {
   MAT.neonGloed = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.9, 0.2, 0.6), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false });
 }
 
+// de trechter (vroeger een bak): wat over de rand valt, draait rond naar het gat in het midden en is dan weg.
+// De vorm: van de rechthoekige rand (x0..x1, z0..z1) naar een rond gat (straal rt), langs stralen vanuit het gat; u = 0 bij het gat, 1 aan de rand.
+function trRand(TR, th) {   // de afstand van het midden van het gat tot de rand, langs de straal met hoek th
+  const dx = Math.cos(th), dz = Math.sin(th);
+  const tx = dx > 1e-6 ? (TR.x1 - TR.cx) / dx : dx < -1e-6 ? (TR.x0 - TR.cx) / dx : 1e9;
+  const tz = dz > 1e-6 ? (TR.z1 - TR.cz) / dz : dz < -1e-6 ? (TR.z0 - TR.cz) / dz : 1e9;
+  return Math.min(tx, tz);
+}
+const trH = (u) => 0.3 * u + 0.7 * (1 - (1 - u) * (1 - u));   // de hoogte (0 bij het gat, 1 aan de rand): steiler naar het gat toe
+const trHD = (u) => 0.3 + 1.4 * (1 - u);                         // hoe snel die hoogte verandert
+function trechterPrint(n) {
+  // geborsteld staal in rondjes (de lijnen lopen rond het gat) en een band in de kleur van de kast
+  const c = maakDoek(n, n), g = c.getContext('2d');
+  let z = 1234567; const r = () => ((z = (Math.imul(z, 1103515245) + 12345) >>> 0) / 4294967296);
+  g.fillStyle = '#B4B9C1'; g.fillRect(0, 0, n, n);
+  for (let y = 0; y < n; y++) { const v = 150 + Math.floor(r() * 70); g.fillStyle = `rgba(${v},${v + 3},${v + 9},0.6)`; g.fillRect(0, y, n, 1); }
+  g.fillStyle = TH.streep; g.fillRect(0, n * 0.07, n, n * 0.045);
+  g.fillStyle = 'rgba(255,255,255,0.55)'; g.fillRect(0, n * 0.12, n, n * 0.012);
+  // naar het gat toe donkerder (de diepte)
+  const gr = g.createLinearGradient(0, n * 0.62, 0, n); gr.addColorStop(0, 'rgba(20,20,28,0)'); gr.addColorStop(1, 'rgba(20,20,28,0.75)');
+  g.fillStyle = gr; g.fillRect(0, n * 0.62, n, n * 0.38);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4;
+  return t;
+}
+function bouwTrechter(kast, TR) {
+  const NA = 96, NR = 14, pos = [], uv = [], idx = [];
+  for (let j = 0; j <= NR; j++) {
+    const u = j / NR;
+    for (let k = 0; k <= NA; k++) {
+      const th = k / NA * Math.PI * 2, r = TR.rt + (trRand(TR, th) - TR.rt) * u;
+      pos.push(TR.cx + Math.cos(th) * r, TR.yKeel + (TR.yRand - TR.yKeel) * trH(u), TR.cz + Math.sin(th) * r);
+      uv.push(k / NA * 10, u);
+    }
+  }
+  for (let j = 0; j < NR; j++) for (let k = 0; k < NA; k++) { const a = j * (NA + 1) + k, b = a + NA + 1; idx.push(a, a + 1, b, b, a + 1, b + 1); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: trechterPrint(KW.tex >= 1024 ? 512 : 256), metalness: 0.75, roughness: 0.42 }));
+  m.receiveShadow = true; kast.add(m);
+  // het gat: een donkere buis naar beneden
+  const KH = 70, kg = new THREE.CylinderGeometry(TR.rt, TR.rt * 0.94, KH, 40, 1, true), kp = kg.attributes.position, kc = [];
+  for (let k = 0; k < kp.count; k++) { const v = kp.getY(k) > 0 ? 0.09 : 0; kc.push(v, v, v * 1.15); }
+  kg.setAttribute('color', new THREE.Float32BufferAttribute(kc, 3));
+  const keel = new THREE.Mesh(kg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide }));
+  keel.position.set(TR.cx, TR.yKeel - KH / 2, TR.cz); kast.add(keel);
+  const bodem = new THREE.Mesh(new THREE.CircleGeometry(TR.rt, 32), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+  bodem.rotation.x = -Math.PI / 2; bodem.position.set(TR.cx, TR.yKeel - KH + 1, TR.cz); kast.add(bodem);
+  // een neonring om het gat, die oplicht als er iets in valt
+  G.keelKleur = new THREE.Color(TH.neon[0] / 255, TH.neon[1] / 255, TH.neon[2] / 255).convertSRGBToLinear();
+  G.keelMat = new THREE.MeshBasicMaterial({ color: G.keelKleur.clone().multiplyScalar(0.8) });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(TR.rt + 0.8, 1.4, 8, 48), G.keelMat);
+  ring.rotation.x = Math.PI / 2; ring.position.set(TR.cx, TR.yKeel + 0.9, TR.cz); kast.add(ring);
+  G.keelFlits = 0;
+}
+
 // alles wat stilstaat (de kast), plus de schuiver
 const G = {};
 function bouwKast() {
@@ -3828,7 +3885,6 @@ function bouwKast() {
   vloer.receiveShadow = true; kast.add(vloer);
   // de bak is bij de Halvemaan smaller (daarnaast de zijgoten)
   const BX = BOOG ? BOOG.bak : XW + 10;
-  G.bakX = BX;
   if (BOOG) {
     // de rand als boog: een chromen buis, een strook eronder en een gebogen glijplaat naar de bak
     const rp = boogPts(KV.randZ, -XW, XW, 48);
@@ -3849,10 +3905,13 @@ function bouwKast() {
     const glij = new THREE.Mesh(new THREE.PlaneGeometry(2 * XF, 80), MAT.glij);
     glij.position.set(0, -68, 3); glij.rotation.x = -0.12; glij.receiveShadow = true; kast.add(glij);
   }
-  // de bak: een chromen trog met een opgerolde lip en afgeronde zijkanten
-  const bakVloer = doos(2 * BX, 6, 130, MAT.staal, 0, MK.UIT - 96, 64, false);
-  bakVloer.receiveShadow = true;
-  const bakVoor = doos(2 * BX, 62, 4, MAT.chroom, 0, MK.UIT - 66, 131, false);
+  // de trechter, in een chromen trog met een opgerolde lip en afgeronde zijkanten
+  G.tr = { cx: 0, cz: 62, rt: 16, yRand: MK.UIT - 92, yKeel: MK.UIT - 150, x0: -BX + 1, x1: BX - 1, z0: 4, z1: 123 };
+  bouwTrechter(kast, G.tr);
+  // de voorkant van de trog is van doorzichtig plexiglas: zo zie je de munten in de trechter verdwijnen
+  const plexi = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 0.06, transparent: true, opacity: 0.16, depthWrite: false });
+  const bakVoor = doos(2 * BX, 62, 4, plexi, 0, MK.UIT - 66, 131, false);
+  bakVoor.renderOrder = 4;
   bakVoor.rotation.x = 0.16;
   const lipG = new THREE.CylinderGeometry(4.5, 4.5, 2 * BX, 16, 1); lipG.rotateZ(Math.PI / 2);
   const bakLip = new THREE.Mesh(lipG, MAT.chroom); bakLip.position.set(0, MK.UIT - 35, 136); kast.add(bakLip);
@@ -3885,7 +3944,6 @@ function bouwKast() {
     kast.add(G.schijf);
     const schijfRand = new THREE.Mesh(new THREE.TorusGeometry(S.r + 1.5, 1.6, 8, 72), MAT.chroom); schijfRand.rotation.x = Math.PI / 2; schijfRand.position.set(S.x, 0.3, S.z); kast.add(schijfRand);
   }
-  G.bakY = MK.UIT - 93;
   // het verlichte voorpaneel onder de bak
   const vp = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW + 40, 110), MAT.voorpaneel);
   vp.position.set(0, -178, 140.6); kast.add(vp);
@@ -3911,7 +3969,12 @@ function bouwKast() {
     if (KW.gloed) { const gl = new THREE.Mesh(new THREE.TubeGeometry(langsVoor(s * (XW + 62), 9, -100, 868), 60, 11, 8), MAT.neonGloed); gl.renderOrder = 5; kast.add(gl); }
   }
   // onderkast met chromen hoeken, een zwarte plint en een gloed op het tapijt eronder
-  doos(2 * XW + 140, 420, 160, MAT.lak, 0, -320, 60, false);
+  // (bovenin hol: daar zit de trechter; zijkanten, voor- en achterkant tot onder het gat, dan het blok eronder)
+  { const BXk = G.tr.x1 + 1, B = XW + 70, yb = -250, hb = yb + 110;
+    for (const s of [-1, 1]) doos(B - BXk, -hb, 160, MAT.lak, s * (B + BXk) / 2, (-110 + yb) / 2, 60, false);
+    doos(2 * BXk, -hb, 16, MAT.lak, 0, (-110 + yb) / 2, 132, false);
+    doos(2 * BXk, -hb, 24, MAT.lak, 0, (-110 + yb) / 2, -8, false);
+    doos(2 * B, yb + 530, 160, MAT.lak, 0, (yb - 530) / 2, 60, false); }
   for (const s of [-1, 1]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 420, 12, 1), MAT.chroom); h.position.set(s * (XW + 70), -320, 140); kast.add(h); }
   doos(2 * XW + 110, 170, 140, MAT.zwart, 0, -615, 50, false);
   doos(2 * XW + 142, 8, 10, MAT.chroom, 0, -532, 140, false);
@@ -4152,17 +4215,16 @@ function bouwMunten(atlas) {
   for (let i = 0; i < MAXM; i++) im.setMatrixAt(i, nul);
   scene.add(im);
   G.munten = im; G.design = design;
-  // de bak
-  const bgeo = muntGeo(R0, H0, Math.max(12, Math.round(KW.segm * 0.55)));
-  const bd = new Float32Array(KW.bak), bs = new Float32Array(KW.bak);
-  for (let i = 0; i < KW.bak; i++) { bd[i] = i % 3; bs[i] = rnd(); }
-  bgeo.setAttribute('aDesign', new THREE.InstancedBufferAttribute(bd, 1));
-  bgeo.setAttribute('aSlijt', new THREE.InstancedBufferAttribute(bs, 1));
-  const bim = new THREE.InstancedMesh(bgeo, mat, KW.bak);
-  for (let i = 0; i < KW.bak; i++) { bim.setMatrixAt(i, nul); bim.setColorAt(i, muntKleur(i * 7 + 3)); }
-  bim.castShadow = false; bim.receiveShadow = KW.schaduw > 0; bim.frustumCulled = false;
-  scene.add(bim);
-  G.bak = bim;
+  // de munten die in de trechter draaien (een eigen InstancedMesh: hun plek in de natuurkunde kan meteen een nieuwe munt krijgen)
+  const tgeo = muntGeo(R0, H0, Math.max(12, Math.round(KW.segm * 0.6)));
+  tgeo.setAttribute('aDesign', new THREE.InstancedBufferAttribute(new Float32Array(TMAX), 1));
+  tgeo.setAttribute('aSlijt', new THREE.InstancedBufferAttribute(new Float32Array(TMAX), 1));
+  const tim = new THREE.InstancedMesh(tgeo, mat, TMAX);
+  for (let i = 0; i < TMAX; i++) { tim.setMatrixAt(i, nul); tim.setColorAt(i, KLEUREN[0]); }
+  tim.count = 0;
+  tim.castShadow = false; tim.receiveShadow = KW.schaduw > 0; tim.frustumCulled = false;
+  scene.add(tim);
+  G.trechter = tim;
   // in de boog bovenop (alleen bij de gewone kast): een grote munt met het kroontje, die zachtjes heen en weer draait
   if (KAST === 'klassiek') {
   const eg = muntGeo(R0, H0 * 1.6, 48);
@@ -4294,60 +4356,86 @@ function zetMunten() {
 }
 const NUL4 = new THREE.Matrix4().makeScale(0, 0, 0);
 
-// munten die in de bak vallen: even vallen, dan blijven ze liggen (een hoogtekaartje van de bak)
-const BAKX = KV.K.boog ? KV.K.boog.bak - 6 : MK.XW + 4;
-const BAK = { x0: -BAKX, x1: BAKX, z0: 8, z1: 124, cel: 6 };
-BAK.nx = Math.ceil((BAK.x1 - BAK.x0) / BAK.cel); BAK.nz = Math.ceil((BAK.z1 - BAK.z0) / BAK.cel);
-BAK.h = new Float32Array(BAK.nx * BAK.nz);
-const vallers = [];   // { x, y, z, vx, vy, vz, q, w }
-let bakVolgende = 0, bakGevuld = 0;
-function bakHoogte(x, z, r) {
-  let m = 0;
-  const a = Math.max(0, Math.floor((x - r - BAK.x0) / BAK.cel)), b = Math.min(BAK.nx - 1, Math.floor((x + r - BAK.x0) / BAK.cel));
-  const c = Math.max(0, Math.floor((z - r - BAK.z0) / BAK.cel)), d = Math.min(BAK.nz - 1, Math.floor((z + r - BAK.z0) / BAK.cel));
-  for (let j = c; j <= d; j++) for (let i = a; i <= b; i++) m = Math.max(m, BAK.h[j * BAK.nx + i]);
-  return m;
-}
-function bakLeg(x, z, r, top) {
-  const a = Math.max(0, Math.floor((x - r - BAK.x0) / BAK.cel)), b = Math.min(BAK.nx - 1, Math.floor((x + r - BAK.x0) / BAK.cel));
-  const c = Math.max(0, Math.floor((z - r - BAK.z0) / BAK.cel)), d = Math.min(BAK.nz - 1, Math.floor((z + r - BAK.z0) / BAK.cel));
-  for (let j = c; j <= d; j++) for (let i = a; i <= b; i++) { const cx = BAK.x0 + (i + 0.5) * BAK.cel, cz = BAK.z0 + (j + 0.5) * BAK.cel; if ((cx - x) ** 2 + (cz - z) ** 2 <= r * r * 1.1) BAK.h[j * BAK.nx + i] = Math.max(BAK.h[j * BAK.nx + i], top); }
-}
-function bakNeerleggen(x, z, kantel, draai, stil) {
-  // een munt in de bak: bovenop wat er al ligt, een beetje scheef
-  x = Math.max(BAK.x0 + 12, Math.min(BAK.x1 - 12, x)); z = Math.max(BAK.z0 + 12, Math.min(BAK.z1 - 14, z));
-  const onder = bakHoogte(x, z, 9);
-  if (onder > 40) { x = BAK.x0 + 12 + rnd() * (BAK.x1 - BAK.x0 - 24); z = BAK.z0 + 12 + rnd() * (BAK.z1 - BAK.z0 - 26); }
-  const top = bakHoogte(x, z, 9) + H0;
-  const i = bakVolgende; bakVolgende = (bakVolgende + 1) % KW.bak; bakGevuld = Math.min(KW.bak, bakGevuld + 1);
-  qq.setFromEuler(new THREE.Euler(kantel * (rnd() - 0.5), draai, kantel * (rnd() - 0.5)));
-  vv.set(x, G.bakY + top - H0 / 2, z);
-  m4.compose(vv, qq, een); G.bak.setMatrixAt(i, m4); G.bak.instanceMatrix.needsUpdate = true;
-  bakLeg(x, z, 10, top);
-  if (bakGevuld === KW.bak && bakVolgende === 0) BAK.h.fill(0);   // vol: opnieuw beginnen (de oudste worden overschreven)
-}
-function vulBakVanTeller() {
-  // de munten die je eerder won, liggen nog in de bak (alleen het beeld)
-  const n = Math.min(KW.bak, tel.uit);
-  for (let k = 0; k < n; k++) bakNeerleggen(BAK.x0 + 14 + rnd() * (BAK.x1 - BAK.x0 - 28), BAK.z0 + 14 + rnd() * (BAK.z1 - BAK.z0 - 30), 0.7, rnd() * 6.28, true);
+// munten die in de trechter vallen: eerst vallen, dan draaien ze rond naar het gat (steeds sneller, zoals water in een afvoer), en weg
+const TMAX = 120, TRG = 9810 * 0.45;
+const vallers = [];   // { s: plek in G.trechter, x, y, z, vx, vy, vz, Q, fase: 0 vallen, 1 draaien, 2 in het gat, u, th, du, vt, spin, kantel }
+const tBezet = new Uint8Array(TMAX), tDoel = new THREE.Quaternion(), tYaw = new THREE.Quaternion(), tN = new THREE.Vector3(), OMHOOG = new THREE.Vector3(0, 1, 0);
+const tKleur = new THREE.Color();
+function nieuweValler(i, x, y, z, vx, vy, vz, q) {
+  let s = 0; while (s < TMAX && tBezet[s]) s++;
+  if (s >= TMAX) return;   // te veel tegelijk: deze is meteen weg
+  tBezet[s] = 1;
+  // hetzelfde uiterlijk als de munt die viel
+  const mg = G.munten.geometry.attributes, tg = G.trechter.geometry.attributes;
+  tg.aDesign.array[s] = mg.aDesign.array[i]; tg.aSlijt.array[s] = mg.aSlijt.array[i];
+  tg.aDesign.needsUpdate = true; tg.aSlijt.needsUpdate = true;
+  const c = G.munten.instanceColor.array; tKleur.setRGB(c[i * 3], c[i * 3 + 1], c[i * 3 + 2]);
+  G.trechter.setColorAt(s, tKleur); G.trechter.instanceColor.needsUpdate = true;
+  vallers.push({ s, x, y, z, vx, vy, vz, Q: new THREE.Quaternion(q[0], q[1], q[2], q[3]), fase: 0, u: 1, th: 0, du: 0, vt: 0, spin: rnd() * 6.28, kantel: 0 });
 }
 function updateVallers(dt) {
+  const TR = G.tr;
+  let hoogste = -1;
   for (let k = vallers.length - 1; k >= 0; k--) {
     const v = vallers[k];
-    v.vy -= 9810 * dt; v.x += v.vx * dt; v.y += v.vy * dt; v.z += v.vz * dt;
-    if (v.z > BAK.z1 - 16) { v.z = BAK.z1 - 16; v.vz = -Math.abs(v.vz) * 0.3; }
-    const vloer = G.bakY + bakHoogte(v.x, v.z, 9) + H0 / 2;
-    if (v.y <= vloer) {
-      vallers.splice(k, 1);
-      G.munten.setMatrixAt(v.i, NUL4);
-      bakNeerleggen(v.x, v.z, 0.5, rnd() * 6.28);
-      geluid.bak(Math.min(1, Math.abs(v.vy) / 1500));
-      continue;
+    if (v.fase === 0) {
+      v.vy -= TRG * dt; v.x += v.vx * dt; v.y += v.vy * dt; v.z += v.vz * dt;
+      if (v.z > TR.z1 - R0) { v.z = TR.z1 - R0; v.vz = -Math.abs(v.vz) * 0.3; }
+      if (v.z < TR.z0 + R0) { v.z = TR.z0 + R0; v.vz = Math.abs(v.vz) * 0.3; }
+      if (Math.abs(v.x - TR.cx) > TR.x1 - R0) { v.x = TR.cx + Math.sign(v.x - TR.cx) * (TR.x1 - R0); v.vx = -v.vx * 0.3; }
+      const dx = v.x - TR.cx, dz = v.z - TR.cz, r = Math.max(1, Math.hypot(dx, dz)), th = Math.atan2(dz, dx), L = Math.max(8, trRand(TR, th) - TR.rt);
+      const u = Math.max(0, Math.min(1, (r - TR.rt) / L));
+      if (v.y <= TR.yKeel + (TR.yRand - TR.yKeel) * trH(u) + H0 / 2) {
+        // neergekomen: verder draaiend naar het gat (met wat vaart van het vallen)
+        v.fase = 1; v.u = u; v.th = th;
+        const vin = -(v.vx * dx + v.vz * dz) / r, vt = (v.vz * dx - v.vx * dz) / r;
+        v.du = Math.max(0, vin) * 0.5 / L;
+        v.vt = vt * 0.3 + (55 + 40 * rnd());
+        geluid.bak(Math.min(1, Math.abs(v.vy) / 900));
+      }
     }
-    vv.set(v.x, v.y, v.z); qq.set(v.q[0], v.q[1], v.q[2], v.q[3]);
-    m4.compose(vv, qq, een); G.munten.setMatrixAt(v.i, m4);
+    if (v.fase === 1) {
+      const L = Math.max(8, trRand(TR, v.th) - TR.rt);
+      // naar beneden: hoe dichter bij het gat, hoe sneller (een rondje van de rand tot het gat duurt ruim een seconde)
+      const doel = 0.45 + 1.8 * (1 - v.u) * (1 - v.u);
+      v.du += (doel - v.du) * Math.min(1, dt * 5);
+      v.u -= v.du * dt;
+      const r = TR.rt + L * Math.max(0, v.u), vt = v.vt * (1 + 4 * (1 - v.u) * (1 - v.u));
+      v.th += Math.min(vt / Math.max(r, TR.rt), 20) * dt;
+      v.spin += vt / R0 * dt * 0.25;
+      v.kantel = Math.atan((TR.yRand - TR.yKeel) * trHD(Math.max(0, v.u)) / L);
+      if (v.u <= 0) { v.u = 0; v.fase = 2; v.vy = -40; v.rk = TR.rt; G.keelFlits = 1; }
+      const rr = TR.rt + L * v.u;
+      v.x = TR.cx + Math.cos(v.th) * rr; v.z = TR.cz + Math.sin(v.th) * rr; v.y = TR.yKeel + (TR.yRand - TR.yKeel) * trH(v.u) + H0 / 2;
+    } else if (v.fase === 2) {
+      // in het gat: rechtop kantelen, ronddraaien en naar beneden
+      v.vy -= TRG * dt; v.y += v.vy * dt;
+      v.rk = Math.max(3, v.rk - 50 * dt);
+      v.th += 16 * dt; v.spin += 10 * dt;
+      v.kantel = Math.min(1.35, v.kantel + 5 * dt);
+      v.x = TR.cx + Math.cos(v.th) * v.rk; v.z = TR.cz + Math.sin(v.th) * v.rk;
+      if (v.y < TR.yKeel - 45) { tBezet[v.s] = 0; G.trechter.setMatrixAt(v.s, NUL4); vallers.splice(k, 1); continue; }
+    }
+    if (v.fase >= 1) {
+      // plat op de helling (de bovenkant wijst een beetje naar het gat), en ronddraaiend
+      const c = Math.cos(v.th), sn = Math.sin(v.th), sk = Math.sin(v.kantel);
+      tN.set(-c * sk, Math.cos(v.kantel), -sn * sk);
+      tDoel.setFromUnitVectors(OMHOOG, tN); tYaw.setFromAxisAngle(OMHOOG, v.spin); tDoel.multiply(tYaw);
+      v.Q.slerp(tDoel, Math.min(1, dt * 14));
+    }
+    vv.set(v.x, v.y, v.z); m4.compose(vv, v.Q, een); G.trechter.setMatrixAt(v.s, m4);
+    if (v.s > hoogste) hoogste = v.s;
   }
-  if (vallers.length) { const r = G.munten.instanceMatrix.updateRange; r.offset = 0; r.count = -1; G.munten.instanceMatrix.needsUpdate = true; G.munten.instanceMatrix.needsUpdatePending = true; }
+  // alleen tekenen wat er is
+  let n = 0; for (let s = TMAX - 1; s >= 0; s--) if (tBezet[s]) { n = s + 1; break; }
+  if (G.trechter.count !== n || vallers.length) { G.trechter.count = n; G.trechter.instanceMatrix.needsUpdate = true; }
+  // de ring om het gat
+  if (G.keelFlits > 0 || G.keelMat.userData.aan) {
+    G.keelFlits = Math.max(0, G.keelFlits - dt * 3);
+    const f = MINDER ? 0 : G.keelFlits;
+    G.keelMat.color.copy(G.keelKleur).multiplyScalar(0.8 + 1.6 * f);
+    G.keelMat.userData.aan = G.keelFlits > 0;
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -4624,7 +4712,6 @@ function vanHulpje(d) {
     S.wacht = false; S.stappen += d.n;
     gebeurtenissen(d.ev, d.n);
     zetMunten();
-    for (const v of vallers) { vv.set(v.x, v.y, v.z); qq.set(v.q[0], v.q[1], v.q[2], v.q[3]); m4.compose(vv, qq, een); G.munten.setMatrixAt(v.i, m4); }
   } else if (d.doe === 'bewaard') {
     const b = d.data; let s = '';
     for (let k = 0; k < b.length; k += 8192) s += String.fromCharCode.apply(null, b.subarray(k, k + 8192));
@@ -4657,7 +4744,7 @@ function gebeurtenissen(ev, n) {
         const x = ev[k + 2], y = ev[k + 3], z = ev[k + 4];
         const vx = pv ? (x - pv[i * 3]) * 60 / n : 0, vz = pv ? Math.max(40, (z - pv[i * 3 + 2]) * 60 / n) : 80;
         const q = [S.Q[i * 4], S.Q[i * 4 + 1], S.Q[i * 4 + 2], S.Q[i * 4 + 3]];
-        vallers.push({ i, x, y, z, vx, vy: -500, vz, q });
+        nieuweValler(i, x, y, z, vx, -300, vz, q);
       } else if (soort === 3) { tel.zij++; geluid.zij(); }
       else if (soort === 5 && G.paalFlits) { G.paalFlits[i] = 1; geluid.ding(i); if (ev[k + 5]) { tel.bump = (tel.bump || 0) + 1; if (G.score) G.score.zet(tel.bump); G.flitsTot = performance.now() + 260; } }
       k += 6;
@@ -4840,7 +4927,6 @@ async function opstarten() {
   const oud = scene.environment;
   scene.environment = fotoRondom();
   oud.dispose();
-  vulBakVanTeller();
   if (G.score) G.score.zet(tel.bump || 0);
   $('#rs-t-bak b').textContent = tel.uit; $('#rs-t-in b').textContent = tel.in; $('#rs-t-zij b').textContent = tel.zij;
   zetMik(0);
@@ -4855,7 +4941,7 @@ async function opstarten() {
 if (MEET) $('#rs-meet').hidden = false;
 opstarten();
 // testhaak
-window.__schuiver = { S, G, MK, KW, KWNAAM, renderer, scene, camera, zetCamera,
+window.__schuiver = { S, G, MK, KW, KWNAAM, renderer, scene, camera, zetCamera, vallers, nieuweValler,
   kijkNaar(a, b, c, x, y, z, fov) { if (fov) camera.fov = fov; camera.position.set(a, b, c); camera.lookAt(x, y, z); camera.updateProjectionMatrix(); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); }, get hulp() { return hulp; }, gooi: (x) => { zetMik(x); gooiKlaarOp = 0; gooi(); }, wek, tel, geluid };
 })();
 // ==== SPEL eind

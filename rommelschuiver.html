@@ -2995,6 +2995,17 @@ function MUNTFYSICA() {
       md[i] = VAL; tel.in++; stilTijd = 0;
       return i;
     }
+    // een prijs uit het luikje in de achterwand: hij komt plat naar buiten op de bovenste verdieping, met een zetje naar voren
+    function luik(x, s) {
+      const i = vrij(); if (i < 0) return -1;
+      zet(i, s);
+      px[i] = Math.max(-60, Math.min(60, x)); py[i] = MK.HP + 16; pz[i] = MK.ZW + MK.KD + R0 + 2;
+      const f = rnd() * Math.PI * 2, c = Math.cos(f / 2), s2 = Math.sin(f / 2), k = 0.12;
+      qx[i] = k * c; qy[i] = s2; qz[i] = 0; qw[i] = c; { const l = Math.hypot(qx[i], qy[i], qz[i], qw[i]); qx[i] /= l; qy[i] /= l; qw[i] /= l; }
+      vy[i] = 20; vz[i] = 170 + rnd() * 40; vx[i] = (rnd() - 0.5) * 30;
+      md[i] = VAL; tel.in++; stilTijd = 0;
+      return i;
+    }
     // een geloofwaardige stapel: laag voor laag op een rooster met wat willekeur (steeds minder munten per laag), daarna laten zakken
     // marge: hoeveel verder van de voorrand de onderste laag blijft (een nagemaakte stapel geeft zo geen voordeel)
     function vul(onderAantal, bovenAantal, marge) {
@@ -3094,7 +3105,7 @@ function MUNTFYSICA() {
       N, MK, PINNEN, P, Q, md, soort, gebeurtenis, tel, kast: KV.naam,
       get schijfHoek() { return schijfHoek; }, get schijfW() { return schijfW; },
       get springtij() { return springtij(); }, get slagNr() { return slagNr; },
-      stap, gooi, vul, bewaar, laad, aantal,
+      stap, gooi, luik, vul, bewaar, laad, aantal,
       get zf() { return zf; }, get vp() { return vp; }, get t() { return t; }, get fase() { return fase; },
       get hoogste() { return hoogsteIndex; },
       schuiver(aan) { schuiverAan = !!aan; },
@@ -3127,7 +3138,7 @@ function HULPJE(self, MF) {
     return som;
   };
   // munten (of kaartjes en voorwerpen) in de gleuf: een getal (de plek) of [plek, soort]
-  const erin = (lijst, nieuw) => { for (const g of lijst || []) { const i = typeof g === 'number' ? sim.gooi(g) : sim.gooi(g[0], g[1]); if (i >= 0) nieuw.push(i); } };
+  const erin = (lijst, nieuw) => { for (const g of lijst || []) { const i = typeof g === 'number' ? sim.gooi(g) : g[2] ? sim.luik(g[0], g[1]) : sim.gooi(g[0], g[1]); if (i >= 0) nieuw.push(i); } };
   // een nagemaakte stapel met precies deze inhoud (doel: { mm, kk, vw }), niet vlak bij de rand
   function naMaken(doel) {
     const totaal = doel.mm + doel.kk.length + doel.vw.length;
@@ -3141,7 +3152,7 @@ function HULPJE(self, MF) {
     // past het niet allemaal in de stapel, dan valt de rest er straks in (zodat het precies klopt)
     const nu = telling(), over = [];
     for (let k = 0; k < doel.mm - nu.n; k++) over.push((Math.random() - 0.5) * 420);
-    const mist = (lijst, heb, plus) => { const h = heb.slice(); for (const x of lijst) { const p = h.indexOf(x); if (p >= 0) h.splice(p, 1); else over.push([(Math.random() - 0.5) * 420, plus + x]); } };
+    const mist = (lijst, heb, plus) => { const h = heb.slice(); for (const x of lijst) { const p = h.indexOf(x); if (p >= 0) h.splice(p, 1); else over.push(plus === 32 ? [(Math.random() - 0.5) * 100, plus + x, 1] : [(Math.random() - 0.5) * 420, plus + x]); } };
     mist(doel.kk, nu.k, 10); mist(doel.vw, nu.v, 32);
     return over;
   }
@@ -3206,7 +3217,7 @@ function HULPJE(self, MF) {
 // De gouden regel: munten worden nooit kaartjes, en kaartjes worden nooit munten.
 // Alles wat het spel bewaart, staat in één object (de opslag 'rommelschuiver-v1'); deze functies passen het aan.
 function ROMMELECO() {
-  const START = 150, POT_DAG = 100, POT_MAX = 300;          // je begint met 150 munten; de spaarpot krijgt er elke dag 100 bij, tot 300
+  const START = 150, POT_DAG = 100, POT_MAX = Infinity;     // je begint met 150 munten; de spaarpot krijgt er elke dag 100 bij, zonder grens (keuze van Ruben)
   const KAARTJE_ELKE = 20;                                   // na elke 20 munten die je erin gooit, legt de kast er een kaartje bij
   const KAARTJES = [5, 10, 25, 50, 100, 250];               // wat er op een kaartje staat (soort 10 tot en met 15)
   const KAARTJE_KANS = [3500, 3000, 2000, 1000, 400, 100];  // de kans per kaartje, van de 10.000 (gemiddeld 21,25 per kaartje)
@@ -3214,34 +3225,35 @@ function ROMMELECO() {
   const KAST_PRIJS = [0, 2000, 8000, 18000];                 // de tweede, derde en vierde kast die je opent
   const VOORWERP_PRIJS = 600, GOUD_PRIJS = 5000, DUBBEL = 25, OPDRACHT = 100, DAGPRIJS_ELKE = 3;
   const SOORT_KAARTJE = 10, SOORT_VOORWERP = 32;
-  // de verzameling: 24 voorwerpen in drie series (nieuwe altijd achteraan; verander nooit een nummer)
+  // de verzameling: 24 voorwerpen in twee series, edelstenen en bijzondere munten (nieuwe altijd achteraan; verander nooit een nummer)
+  // een edelsteen heeft een kleur en een slijpvorm (vorm), een munt een ontwerp (de tekening in de pagina)
   const VOORWERPEN = [
-    { naam: 'Vlaai', serie: 0, uit: 'De Vlaaienbakker', tekst: 'Een kersenvlaai met een rooster erop, warm uit de oven.' },
-    { naam: 'Kroontje', serie: 0, uit: 'Rommelkroon', tekst: 'Precies één per rij, één per kolom en één per vlak.' },
-    { naam: 'Moeki', serie: 0, uit: 'Huis op stelten', tekst: 'Ligt het liefst precies op de verkeerde plek.' },
-    { naam: 'Floortje', serie: 0, uit: 'Huis op stelten', tekst: 'Klimt overal in, vooral in de gordijnen.' },
-    { naam: 'Rommelbeest', serie: 0, uit: 'Rommelbeesten', tekst: 'Een zeldzame, met glans. Niet ruilen!' },
-    { naam: 'Papieren vliegtuigje', serie: 0, uit: 'Vouwvlieger', tekst: 'Eén extra vouw, en hij vliegt nog verder.' },
-    { naam: 'Arend', serie: 0, uit: 'Rommelarend', tekst: 'Heeft vier wereldsteden van boven gezien.' },
-    { naam: 'Duikhelm', serie: 0, uit: 'Ruben de Duiker', tekst: 'Overdag onder water, \'s avonds in de keuken.' },
-    { naam: 'Productiefiets', serie: 0, uit: 'JAJA PRODUCTIEFIETS!', tekst: 'Donkerrood, en altijd onderweg.' },
-    { naam: 'Duim', serie: 0, uit: 'Rob 👍', tekst: 'Een duimpje voor Rob. Niet voor brood.' },
-    { naam: 'Speelfiche', serie: 0, uit: 'Casino Rommelroyaal', tekst: 'Alleen om mee te spelen, nooit echt geld.' },
-    { naam: 'Muzieknoot', serie: 0, uit: 'Coulissenkoor', tekst: 'Vier zangers, één akkoord.' },
-    { naam: 'Robijn', serie: 1, kleur: '#D6243F', tekst: 'Zo rood als de lak van de Rommelschuiver.' },
-    { naam: 'Saffier', serie: 1, kleur: '#2F5BE0', tekst: 'Blauw als de nacht boven de Halvemaan.' },
-    { naam: 'Smaragd', serie: 1, kleur: '#1FA35A', tekst: 'Groen als het veld van de Flipperkast.' },
-    { naam: 'Amethist', serie: 1, kleur: '#9447D0', tekst: 'Paars als het dak van de Draaimolen.' },
-    { naam: 'Topaas', serie: 1, kleur: '#F2A51A', tekst: 'Goudgeel, en hij vangt elk lampje.' },
-    { naam: 'Diamant', serie: 1, kleur: '#E8F6FF', zeldzaam: 1, tekst: 'De zeldzaamste van allemaal.' },
-    { naam: 'Gouden Rommelmunt', serie: 2, tekst: 'Met het kroontje erop, net als die in de boog.' },
-    { naam: 'Zilveren munt', serie: 2, tekst: 'Blinkend nieuw, nog nooit in een kast geweest.' },
-    { naam: 'Koperen centje', serie: 2, tekst: 'Met een gaatje erin, voor aan een touwtje.' },
-    { naam: 'Piratenmunt', serie: 2, tekst: 'Een beetje scheef geslagen, ergens op zee.' },
-    { naam: 'Sterrenmunt', serie: 2, tekst: 'Blauw met sterretjes, uit de nachtkast.' },
-    { naam: 'Munt uit 1926', serie: 2, tekst: 'Uit de kassa van het Rommelhotel, in het jaar dat het openging.' },
+    { naam: 'Robijn', serie: 0, kleur: '#D8243F', vorm: 'rond', tekst: 'Zo rood als de lak van de Rommelschuiver.' },
+    { naam: 'Saffier', serie: 0, kleur: '#2C58E0', vorm: 'ovaal', tekst: 'Blauw als de nacht boven de Halvemaan.' },
+    { naam: 'Smaragd', serie: 0, kleur: '#16A35A', vorm: 'rechthoek', tekst: 'Groen als het veld van de Flipperkast, met trapjes geslepen.' },
+    { naam: 'Amethist', serie: 0, kleur: '#9347D2', vorm: 'peer', tekst: 'Paars als het dak van de Draaimolen.' },
+    { naam: 'Topaas', serie: 0, kleur: '#F4A417', vorm: 'kussen', tekst: 'Goudgeel, en hij vangt elk lampje.' },
+    { naam: 'Diamant', serie: 0, kleur: '#EAF7FF', vorm: 'rond', zeldzaam: 1, tekst: 'De zeldzaamste van allemaal: hij schittert in alle kleuren.' },
+    { naam: 'Aquamarijn', serie: 0, kleur: '#4FCCE3', vorm: 'driehoek', tekst: 'Zo licht als zeewater op een zomerdag.' },
+    { naam: 'Roze toermalijn', serie: 0, kleur: '#F25FA4', vorm: 'hart', tekst: 'Een hartje, voor wie van de kermis houdt.' },
+    { naam: 'Peridot', serie: 0, kleur: '#A2D433', vorm: 'marquise', tekst: 'Fris groen, in de vorm van een bootje.' },
+    { naam: 'Granaat', serie: 0, kleur: '#8E1530', vorm: 'achthoek', tekst: 'Donkerrood, als een kers op een vlaai.' },
+    { naam: 'Opaal', serie: 0, kleur: '#EEE9F6', vorm: 'bol', opaal: 1, tekst: 'Melkwit, met alle kleuren van de regenboog erin.' },
+    { naam: 'Maansteen', serie: 0, kleur: '#CFE0F4', vorm: 'bol', maan: 1, tekst: 'Hij gloeit zachtjes blauw, als de maan.' },
+    { naam: 'Gouden Rommelmunt', serie: 1, rand: '#D9A21E', tekst: 'Met het kroontje erop, net als die in de boog.' },
+    { naam: 'Zilveren sterrenmunt', serie: 1, rand: '#C3C8CF', tekst: 'Blinkend nieuw, nog nooit in een kast geweest.' },
+    { naam: 'Koperen centje', serie: 1, rand: '#B96D46', tekst: 'Met een gaatje erin, voor aan een touwtje.' },
+    { naam: 'Piratenmunt', serie: 1, rand: '#C9962E', tekst: 'Een beetje scheef geslagen, ergens op zee.' },
+    { naam: 'Nachtmunt', serie: 1, rand: '#D9A21E', tekst: 'Blauw email met gouden sterretjes.' },
+    { naam: 'Munt uit 1926', serie: 1, rand: '#8E6436', tekst: 'Uit de kassa van het Rommelhotel, in het jaar dat het openging.' },
+    { naam: 'Klavermunt', serie: 1, rand: '#C9CED6', tekst: 'Een klavertje vier: dat brengt geluk.' },
+    { naam: 'Halvemaanmunt', serie: 1, rand: '#C3C8CF', tekst: 'Van zilver, met een maantje dat glanst.' },
+    { naam: 'Bliksemmunt', serie: 1, rand: '#E9B949', tekst: 'Zwart en geel, zoals de bumpers van de Flipperkast.' },
+    { naam: 'Paardjesmunt', serie: 1, rand: '#D9A21E', tekst: 'Met een paardje van de Draaimolen.' },
+    { naam: 'Zonnemunt', serie: 1, rand: '#E9B949', tekst: 'Van goud, met stralen als een zon.' },
+    { naam: 'Ankermunt', serie: 1, rand: '#8FA3B8', tekst: 'Van een oude zeeman, die hem nooit uitgaf.' },
   ];
-  const SERIES = ['Beeldjes uit de spellen', 'Edelstenen', 'Bijzondere munten'];
+  const SERIES = ['Edelstenen', 'Bijzondere munten'];
   // mooie dingen voor de Prijzenkraam (nieuwe altijd achteraan; verander nooit een id)
   const MOOI = [
     { id: 'zilver', soort: 'munt', naam: 'Zilveren munten', prijs: 500, tekst: 'Al je munten van zilver.' },
@@ -3294,7 +3306,7 @@ function ROMMELECO() {
   function lees(x, dag) {
     if (!isObj(x) || x.v !== 1) return nieuw(dag);
     const s = nieuw(dag);
-    s.m = heel(x.m, START, 0, 1e9); s.k = heel(x.k, 0, 0, 1e12); s.pot = heel(x.pot, 0, 0, POT_MAX); s.pd = heel(x.pd, dag, 0, 1e7);
+    s.m = heel(x.m, START, 0, 1e9); s.k = heel(x.k, 0, 0, 1e12); s.pot = heel(x.pot, 0, 0, 1e9); s.pd = heel(x.pd, dag, 0, 1e7);
     s.open = ['klassiek'].concat(lijst(x.open, (k) => KASTEN.includes(k) && k !== 'klassiek')).filter((k, i, a) => a.indexOf(k) === i);
     if (isObj(x.kast)) for (const k of KASTEN) if (isObj(x.kast[k])) s.kast[k] = kastRec(x.kast[k]);
     s.vz = lijst(x.vz, vwId).filter((k, i, a) => a.indexOf(k) === i);
@@ -3314,7 +3326,7 @@ function ROMMELECO() {
     if (s.pd > dag + 1) s.pd = dag;          // een klok die vooruit liep: niets erbij, opnieuw beginnen te tellen
     if (!(s.pd < dag)) return 0;
     const voor = s.pot;
-    s.pot = Math.min(POT_MAX, s.pot + POT_DAG * Math.min(POT_MAX / POT_DAG, dag - s.pd));
+    s.pot = Math.min(POT_MAX, s.pot + POT_DAG * (dag - s.pd));
     s.pd = dag;
     return s.pot - voor;
   }
@@ -4372,6 +4384,26 @@ function bouwKast() {
   doos(2 * XW, KY - HP - 0.6, 16, MAT.achterBand, 0, HP + 0.6 + (KY - HP - 0.6) / 2, ZW - 8, false).material = [MAT.binnen, MAT.binnen, MAT.binnen, MAT.binnen, MAT.achterBand, MAT.binnen];
   const bord = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW, 300), MAT.pinnenbord);
   bord.position.set(0, KY + 150, ZW - 0.2); bord.receiveShadow = true; kast.add(bord);
+  // het prijzenluikje: een gouden lijst met een klepje in de band, en daarboven (achter het glas) een bordje PRIJS met lampjes
+  {
+    const L = G.luik = new THREE.Group(); kast.add(L);
+    const goudM = new THREE.MeshStandardMaterial({ color: lin('#E9B949'), metalness: 0.95, roughness: 0.25 });
+    const mond = new THREE.Mesh(new THREE.PlaneGeometry(44, 22), new THREE.MeshBasicMaterial({ color: 0x07050c })); mond.position.set(0, HP + 14, ZW + 0.3); L.add(mond);
+    for (const [w, h, x, y] of [[50, 3, 0, HP + 26.5], [50, 3, 0, HP + 1.5], [3, 25, -23.5, HP + 14], [3, 25, 23.5, HP + 14]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 3), goudM); b.position.set(x, y, ZW + 1.5); L.add(b); }
+    G.luikKlep = new THREE.Group(); G.luikKlep.position.set(0, HP + 25, ZW + 1.4); L.add(G.luikKlep);
+    const kc = maakDoek(128, 64), kx = kc.getContext('2d'); kx.fillStyle = TH.streep; kx.fillRect(0, 0, 128, 64); kx.fillStyle = '#FFE9A8'; kx.font = '800 30px "Bricolage Grotesque", sans-serif'; kx.textAlign = 'center'; kx.textBaseline = 'middle'; kx.fillText('★', 64, 33);
+    const kt = new THREE.CanvasTexture(kc); kt.encoding = THREE.sRGBEncoding;
+    const klep = new THREE.Mesh(new THREE.BoxGeometry(43, 21, 1.2), [goudM, goudM, goudM, goudM, new THREE.MeshStandardMaterial({ map: kt, roughness: 0.5 }), goudM]); klep.position.y = -10.5; G.luikKlep.add(klep);
+    const bc = maakDoek(256, 64), bx = bc.getContext('2d'); bx.fillStyle = '#1A1020'; bx.fillRect(0, 0, 256, 64); bx.strokeStyle = '#E9B949'; bx.lineWidth = 5; bx.strokeRect(4, 4, 248, 56);
+    bx.fillStyle = '#FFE9A8'; bx.font = '800 38px "Bricolage Grotesque", sans-serif'; bx.textAlign = 'center'; bx.textBaseline = 'middle'; bx.fillText('★ PRIJS ★', 128, 34);
+    const bt = new THREE.CanvasTexture(bc); bt.encoding = THREE.sRGBEncoding;
+    G.luikBordMat = new THREE.MeshBasicMaterial({ map: bt, color: new THREE.Color(0.55, 0.55, 0.55) });
+    const bord = new THREE.Mesh(new THREE.PlaneGeometry(72, 18), G.luikBordMat); bord.position.set(0, KY + 22, ZW + 0.5); L.add(bord);
+    G.luikLampen = new THREE.InstancedMesh(new THREE.SphereGeometry(1.8, 10, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), 12);
+    for (let k = 0; k < 12; k++) { const x = -40 + (k % 6) * 16, y = KY + 22 + (k < 6 ? 12 : -12); G.luikLampen.setMatrixAt(k, new THREE.Matrix4().makeTranslation(x, y, ZW + 1)); G.luikLampen.setColorAt(k, new THREE.Color(0.5, 0.42, 0.2)); }
+    L.add(G.luikLampen);
+    G.luikTot = 0;
+  }
   // de pinnetjes
   const pinGeo = new THREE.CylinderGeometry(MK.PIN_R, MK.PIN_R, KD + 3, 10, 1);
   pinGeo.rotateX(Math.PI / 2);
@@ -4636,137 +4668,89 @@ function tekenKaartje(g, w, h, k) {
   g.font = `800 ${Math.round(h * 0.13)}px "Bricolage Grotesque", system-ui, sans-serif`;
   g.fillText('★ KAARTJES ★', w / 2, h * 0.77);
 }
+// de slijpvorm van een edelsteen: de omtrek (van boven gezien) als punten, de langste kant ongeveer 1
+function snede(vorm) {
+  const p = [], N = 16;
+  if (vorm === 'rechthoek') { const c = 0.24; return [[-1 + c, -0.72], [1 - c, -0.72], [1, -0.72 + c], [1, 0.72 - c], [1 - c, 0.72], [-1 + c, 0.72], [-1, 0.72 - c], [-1, -0.72 + c]]; }
+  if (vorm === 'achthoek') { for (let k = 0; k < 8; k++) { const a = (k + 0.5) * Math.PI / 4; p.push([Math.cos(a) * 0.95, Math.sin(a) * 0.95]); } return p; }
+  if (vorm === 'driehoek') {
+    const h = [-Math.PI / 2, Math.PI / 6, 5 * Math.PI / 6].map((a) => [Math.cos(a), Math.sin(a) * 1.0 + 0.12]);
+    for (let k = 0; k < 3; k++) { const A = h[k], B = h[(k + 1) % 3], mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2, l = Math.hypot(mx, my - 0.12); for (let q = 0; q < 5; q++) { const t = q / 5, b = 0.14 * Math.sin(Math.PI * t); p.push([A[0] + (B[0] - A[0]) * t + (mx / l) * b, A[1] + (B[1] - A[1]) * t + ((my - 0.12) / l) * b]); } }
+    return p;
+  }
+  for (let k = 0; k < (vorm === 'hart' || vorm === 'bol' ? 24 : N); k++) {
+    const t = k / (vorm === 'hart' || vorm === 'bol' ? 24 : N) * Math.PI * 2;
+    if (vorm === 'ovaal') p.push([Math.sin(t), -Math.cos(t) * 0.72]);
+    else if (vorm === 'bol') p.push([Math.sin(t) * 0.95, -Math.cos(t) * 0.78]);
+    else if (vorm === 'kussen') { const c = Math.cos(t), s = Math.sin(t), q = 1 / Math.pow(Math.pow(Math.abs(c), 3) + Math.pow(Math.abs(s), 3), 1 / 3); p.push([s * q * 0.92, -c * q * 0.84]); }
+    else if (vorm === 'peer') { const w = 0.78 * Math.sqrt((1 - Math.cos(t)) / 2); p.push([Math.sin(t) * w, -Math.cos(t) * 0.98 + 0.08]); }
+    else if (vorm === 'marquise') { const y = -Math.cos(t), R = 1.184, d = 0.634; p.push([Math.sign(Math.sin(t)) * Math.max(0, Math.sqrt(Math.max(0, R * R - y * y)) - d), y]); }
+    else if (vorm === 'hart') { const x = 16 * Math.pow(Math.sin(t), 3), y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)); p.push([x / 17, y / 17 + 0.12]); }
+    else p.push([Math.sin(t), -Math.cos(t)]);
+  }
+  return p;
+}
 // de voorwerpen als tekening (doorzichtige achtergrond); n is de maat in pixels
 function tekenVoorwerp(g, n, id) {
-  const V = ECO.VOORWERPEN[id], c = n / 2;
+  const V = ECO.VOORWERPEN[id], c = n / 2, inkt = '#2A1E24';
   g.save(); g.lineJoin = 'round'; g.lineCap = 'round';
-  const rond = (x, y, r, kl, rand) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = kl; g.fill(); if (rand) { g.lineWidth = n * 0.03; g.strokeStyle = rand; g.stroke(); } };
-  const vorm = (pts, kl, rand, lw) => { g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x * n, y * n) : g.moveTo(x * n, y * n))); g.closePath(); g.fillStyle = kl; g.fill(); if (rand) { g.lineWidth = n * (lw || 0.03); g.strokeStyle = rand; g.stroke(); } };
-  const inkt = '#2A1E24';
-  const munt = (binnen, buiten, rand) => { rond(c, c, n * 0.44, buiten, inkt); rond(c, c, n * 0.36, binnen); g.lineWidth = n * 0.02; g.strokeStyle = rand; g.beginPath(); g.arc(c, c, n * 0.36, 0, 7); g.stroke(); };
-  const tekst = (t, y, s, kl) => { g.fillStyle = kl; g.font = `800 ${Math.round(n * s)}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, c, y * n); };
-  const ster = (x, y, r, kl) => { const p = []; for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * 0.45 : r; p.push([(x + Math.cos(a) * q) / n, (y + Math.sin(a) * q) / n]); } vorm(p, kl); };
-  const kat = (vacht, vlek, oog) => {
-    vorm([[0.2, 0.42], [0.24, 0.12], [0.42, 0.3]], vacht, inkt); vorm([[0.8, 0.42], [0.76, 0.12], [0.58, 0.3]], vacht, inkt);
-    vorm([[0.24, 0.2], [0.36, 0.31], [0.26, 0.36]], '#F2A6B0'); vorm([[0.76, 0.2], [0.64, 0.31], [0.74, 0.36]], '#F2A6B0');
-    g.beginPath(); g.ellipse(c, n * 0.55, n * 0.34, n * 0.3, 0, 0, 7); g.fillStyle = vacht; g.fill(); g.lineWidth = n * 0.03; g.strokeStyle = inkt; g.stroke();
-    if (vlek) vlek();
-    for (const s of [-1, 1]) { g.beginPath(); g.ellipse(c + s * n * 0.13, n * 0.5, n * 0.065, n * 0.08, 0, 0, 7); g.fillStyle = oog; g.fill(); g.lineWidth = n * 0.015; g.strokeStyle = inkt; g.stroke(); g.beginPath(); g.ellipse(c + s * n * 0.13, n * 0.5, n * 0.02, n * 0.065, 0, 0, 7); g.fillStyle = '#111'; g.fill(); rond(c + s * n * 0.13 + n * 0.02, n * 0.47, n * 0.015, '#fff'); }
-    vorm([[0.46, 0.6], [0.54, 0.6], [0.5, 0.65]], '#E8869A');
-    g.lineWidth = n * 0.015; g.strokeStyle = inkt; g.beginPath(); g.moveTo(c, n * 0.65); g.quadraticCurveTo(c - n * 0.05, n * 0.71, c - n * 0.09, n * 0.68); g.moveTo(c, n * 0.65); g.quadraticCurveTo(c + n * 0.05, n * 0.71, c + n * 0.09, n * 0.68); g.stroke();
-    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = n * 0.008; for (const s of [-1, 1]) for (const d of [-0.02, 0.02]) { g.beginPath(); g.moveTo(c + s * n * 0.12, n * (0.64 + d)); g.lineTo(c + s * n * 0.3, n * (0.62 + d * 2)); g.stroke(); }
-  };
-  switch (id) {
-    case 0: { // vlaai
-      rond(c, c, n * 0.44, '#D9A35A', inkt); rond(c, c, n * 0.36, '#B5182F');
-      for (let k = 0; k < 9; k++) rond(c + Math.cos(k * 2.4) * n * 0.2 * ((k % 3) / 2 + 0.3), c + Math.sin(k * 2.4) * n * 0.2 * ((k % 3) / 2 + 0.3), n * 0.045, '#7E0E20');
-      g.strokeStyle = '#EEC27A'; g.lineWidth = n * 0.05;
-      for (const d of [-0.18, 0, 0.18]) { g.beginPath(); g.moveTo(c + d * n - n * 0.25, c - n * 0.25); g.lineTo(c + d * n + n * 0.25, c + n * 0.25); g.stroke(); g.beginPath(); g.moveTo(c + d * n + n * 0.25, c - n * 0.25); g.lineTo(c + d * n - n * 0.25, c + n * 0.25); g.stroke(); }
-      g.lineWidth = n * 0.03; g.strokeStyle = inkt; g.beginPath(); g.arc(c, c, n * 0.44, 0, 7); g.stroke();
-      break; }
-    case 1: // kroontje
-      vorm([[0.14, 0.72], [0.14, 0.32], [0.32, 0.5], [0.5, 0.22], [0.68, 0.5], [0.86, 0.32], [0.86, 0.72]], '#F1C043', inkt, 0.035);
-      vorm([[0.14, 0.64], [0.86, 0.64], [0.86, 0.74], [0.14, 0.74]], '#D49A22', inkt);
-      rond(n * 0.5, n * 0.5, n * 0.05, '#D23A44'); rond(n * 0.3, n * 0.58, n * 0.035, '#2F86D2'); rond(n * 0.7, n * 0.58, n * 0.035, '#2EA05A');
-      for (const x of [0.14, 0.5, 0.86]) rond(n * x, n * (x === 0.5 ? 0.21 : 0.31), n * 0.04, '#F7E39A', inkt);
-      break;
-    case 2: // Moeki: grijsbruin gestreept, een M op zijn voorhoofd, een witte bef
-      kat('#8D8073', () => {
-        g.strokeStyle = '#4E4338'; g.lineWidth = n * 0.022;
-        g.beginPath(); g.moveTo(c - n * 0.08, n * 0.4); g.lineTo(c - n * 0.04, n * 0.33); g.lineTo(c, n * 0.39); g.lineTo(c + n * 0.04, n * 0.33); g.lineTo(c + n * 0.08, n * 0.4); g.stroke();
-        for (const s of [-1, 1]) { g.beginPath(); g.moveTo(c + s * n * 0.33, n * 0.5); g.lineTo(c + s * n * 0.22, n * 0.53); g.moveTo(c + s * n * 0.33, n * 0.58); g.lineTo(c + s * n * 0.23, n * 0.59); g.stroke(); }
-        g.beginPath(); g.ellipse(c, n * 0.67, n * 0.14, n * 0.1, 0, 0, 7); g.fillStyle = '#F4EFE6'; g.fill();
-      }, '#9CCB5E');
-      break;
-    case 3: // Floortje: schildpad (donker met oranje vlekken)
-      kat('#2E2522', () => {
-        g.fillStyle = '#C9712C'; g.beginPath(); g.ellipse(c - n * 0.16, n * 0.43, n * 0.12, n * 0.09, -0.5, 0, 7); g.fill(); g.beginPath(); g.ellipse(c + n * 0.2, n * 0.66, n * 0.1, n * 0.08, 0.4, 0, 7); g.fill();
-        g.fillStyle = '#9B5427'; g.beginPath(); g.ellipse(c + n * 0.1, n * 0.36, n * 0.07, n * 0.05, 0.3, 0, 7); g.fill();
-      }, '#D9C24A');
-      break;
-    case 4: { // Rommelbeest: een rond beestje met hoorntjes en grote ogen
-      vorm([[0.3, 0.3], [0.26, 0.12], [0.4, 0.26]], '#F2D16B', inkt); vorm([[0.7, 0.3], [0.74, 0.12], [0.6, 0.26]], '#F2D16B', inkt);
-      g.beginPath(); g.ellipse(c, n * 0.56, n * 0.36, n * 0.32, 0, 0, 7); g.fillStyle = '#6BC46A'; g.fill(); g.lineWidth = n * 0.03; g.strokeStyle = inkt; g.stroke();
-      g.beginPath(); g.ellipse(c, n * 0.68, n * 0.2, n * 0.14, 0, 0, 7); g.fillStyle = '#B9E7A6'; g.fill();
-      for (const s of [-1, 1]) { rond(c + s * n * 0.13, n * 0.48, n * 0.09, '#fff', inkt); rond(c + s * n * 0.12, n * 0.5, n * 0.045, '#1A1A22'); rond(c + s * n * 0.1, n * 0.47, n * 0.016, '#fff'); }
-      g.lineWidth = n * 0.02; g.strokeStyle = inkt; g.beginPath(); g.arc(c, n * 0.62, n * 0.06, 0.2, Math.PI - 0.2); g.stroke();
-      ster(n * 0.82, n * 0.22, n * 0.07, '#FFE76A'); ster(n * 0.16, n * 0.7, n * 0.05, '#FFE76A');
-      break; }
-    case 5: // papieren vliegtuigje
-      vorm([[0.1, 0.5], [0.9, 0.24], [0.42, 0.62]], '#FFFFFF', inkt);
-      vorm([[0.42, 0.62], [0.9, 0.24], [0.5, 0.82]], '#E3E9F2', inkt);
-      vorm([[0.42, 0.62], [0.9, 0.24], [0.46, 0.68]], '#C3CEDC');
-      break;
-    case 6: // arend: een witte kop met een gele haaksnavel
-      vorm([[0.2, 0.92], [0.24, 0.55], [0.4, 0.3], [0.62, 0.22], [0.78, 0.32], [0.8, 0.5], [0.66, 0.6], [0.7, 0.92]], '#5A3A22', inkt);
-      vorm([[0.3, 0.6], [0.36, 0.38], [0.55, 0.24], [0.74, 0.3], [0.78, 0.46], [0.6, 0.56], [0.5, 0.66]], '#F7F5EE', inkt);
-      vorm([[0.72, 0.36], [0.92, 0.42], [0.88, 0.52], [0.8, 0.5], [0.76, 0.48]], '#F2C230', inkt);
-      rond(n * 0.62, n * 0.34, n * 0.035, '#F2E066', inkt); rond(n * 0.625, n * 0.34, n * 0.015, '#111');
-      break;
-    case 7: // duikhelm van koper met een rond raampje
-      rond(c, n * 0.48, n * 0.36, '#C89338', inkt);
-      vorm([[0.2, 0.74], [0.8, 0.74], [0.86, 0.9], [0.14, 0.9]], '#A87628', inkt);
-      rond(c, n * 0.48, n * 0.17, '#7FB6D6', inkt); rond(c - n * 0.05, n * 0.43, n * 0.05, 'rgba(255,255,255,.7)');
-      for (let k = 0; k < 8; k++) rond(c + Math.cos(k * Math.PI / 4) * n * 0.22, n * 0.48 + Math.sin(k * Math.PI / 4) * n * 0.22, n * 0.022, '#7A5418');
-      break;
-    case 8: { // de productiefiets: donkerrood
-      g.lineWidth = n * 0.045; g.strokeStyle = inkt;
-      for (const x of [0.25, 0.75]) { g.beginPath(); g.arc(n * x, n * 0.64, n * 0.17, 0, 7); g.stroke(); g.lineWidth = n * 0.012; for (let k = 0; k < 6; k++) { g.beginPath(); g.moveTo(n * x, n * 0.64); g.lineTo(n * x + Math.cos(k) * n * 0.16, n * 0.64 + Math.sin(k) * n * 0.16); g.stroke(); } g.lineWidth = n * 0.045; }
-      g.strokeStyle = '#9A1E2A'; g.lineWidth = n * 0.05; g.beginPath(); g.moveTo(n * 0.25, n * 0.64); g.lineTo(n * 0.45, n * 0.4); g.lineTo(n * 0.7, n * 0.4); g.lineTo(n * 0.75, n * 0.64); g.moveTo(n * 0.45, n * 0.4); g.lineTo(n * 0.5, n * 0.64); g.lineTo(n * 0.7, n * 0.4); g.moveTo(n * 0.25, n * 0.64); g.lineTo(n * 0.5, n * 0.64); g.stroke();
-      g.strokeStyle = inkt; g.lineWidth = n * 0.035; g.beginPath(); g.moveTo(n * 0.4, n * 0.32); g.lineTo(n * 0.52, n * 0.32); g.moveTo(n * 0.68, n * 0.4); g.lineTo(n * 0.66, n * 0.27); g.lineTo(n * 0.76, n * 0.25); g.stroke();
-      break; }
-    case 9: // duim omhoog
-      vorm([[0.3, 0.46], [0.46, 0.44], [0.5, 0.14], [0.6, 0.14], [0.64, 0.42], [0.84, 0.46], [0.86, 0.86], [0.3, 0.86]], '#F2C49B', inkt, 0.035);
-      vorm([[0.14, 0.46], [0.3, 0.46], [0.3, 0.88], [0.14, 0.88]], '#2F6FB5', inkt, 0.035);
-      g.lineWidth = n * 0.02; g.strokeStyle = '#C08A62'; for (const y of [0.56, 0.66, 0.76]) { g.beginPath(); g.moveTo(n * 0.62, n * y); g.lineTo(n * 0.84, n * y); g.stroke(); }
-      break;
-    case 10: // speelfiche
-      rond(c, c, n * 0.44, '#C8323C', inkt);
-      g.fillStyle = '#fff'; for (let k = 0; k < 8; k++) { g.save(); g.translate(c, c); g.rotate(k * Math.PI / 4); g.fillRect(-n * 0.04, -n * 0.44, n * 0.08, n * 0.1); g.restore(); }
-      rond(c, c, n * 0.27, '#F6EBD2', inkt);
-      vorm([[0.38, 0.58], [0.38, 0.42], [0.44, 0.5], [0.5, 0.38], [0.56, 0.5], [0.62, 0.42], [0.62, 0.58]], '#E9B949', inkt, 0.02);
-      break;
-    case 11: // muzieknoot
-      g.beginPath(); g.ellipse(n * 0.36, n * 0.74, n * 0.15, n * 0.11, -0.4, 0, 7); g.fillStyle = '#1E1A26'; g.fill();
-      g.fillRect(n * 0.47, n * 0.16, n * 0.05, n * 0.58);
-      vorm([[0.52, 0.16], [0.52, 0.28], [0.78, 0.44], [0.74, 0.3]], '#1E1A26');
-      rond(n * 0.31, n * 0.71, n * 0.035, 'rgba(255,231,106,.85)');
-      break;
-    case 12: case 13: case 14: case 15: case 16: case 17: { // edelstenen: een geslepen steen
-      const kl = new THREE.Color(V.kleur), lic = kl.clone().offsetHSL(0, -0.05, 0.22).getStyle(), don = kl.clone().offsetHSL(0, 0, -0.2).getStyle(), mid = kl.getStyle();
-      vorm([[0.14, 0.38], [0.3, 0.2], [0.7, 0.2], [0.86, 0.38], [0.5, 0.88]], mid, inkt, 0.03);
-      vorm([[0.3, 0.2], [0.7, 0.2], [0.62, 0.38], [0.38, 0.38]], lic);
-      vorm([[0.14, 0.38], [0.3, 0.2], [0.38, 0.38]], don); vorm([[0.86, 0.38], [0.7, 0.2], [0.62, 0.38]], lic);
-      vorm([[0.14, 0.38], [0.38, 0.38], [0.5, 0.88]], lic); vorm([[0.62, 0.38], [0.86, 0.38], [0.5, 0.88]], don);
-      g.lineWidth = n * 0.012; g.strokeStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.moveTo(n * 0.14, n * 0.38); g.lineTo(n * 0.86, n * 0.38); g.stroke();
-      ster(n * 0.74, n * 0.26, n * 0.06, '#FFFFFF');
-      break; }
-    case 18: // gouden Rommelmunt met het kroontje
-      munt('#F3C64E', '#D9A21E', '#A9790F');
-      vorm([[0.34, 0.6], [0.34, 0.4], [0.42, 0.48], [0.5, 0.34], [0.58, 0.48], [0.66, 0.4], [0.66, 0.6]], '#B8840F', null);
-      tekst('ROMMEL', 0.72, 0.075, '#8A600A');
-      break;
-    case 19: // zilveren munt met een ster
-      munt('#E6E8EC', '#C3C8CF', '#9AA1AA'); ster(c, c, n * 0.2, '#A9B0B9'); ster(c - n * 0.02, c - n * 0.02, n * 0.17, '#F4F6F8');
-      break;
-    case 20: // koperen centje met een gaatje
-      munt('#D8895E', '#B96D46', '#8F4F30'); tekst('1', 0.33, 0.14, '#8F4F30');
-      g.globalCompositeOperation = 'destination-out'; rond(c, n * 0.56, n * 0.08, '#000'); g.globalCompositeOperation = 'source-over';
-      g.lineWidth = n * 0.02; g.strokeStyle = '#8F4F30'; g.beginPath(); g.arc(c, n * 0.56, n * 0.08, 0, 7); g.stroke();
-      break;
-    case 21: // piratenmunt: een beetje scheef, met gekruiste zwaarden
-      vorm([[0.1, 0.48], [0.18, 0.2], [0.46, 0.08], [0.78, 0.16], [0.92, 0.46], [0.84, 0.8], [0.52, 0.93], [0.2, 0.84]], '#D9A93A', inkt, 0.03);
-      g.strokeStyle = '#7A5A12'; g.lineWidth = n * 0.04; g.beginPath(); g.moveTo(n * 0.3, n * 0.3); g.lineTo(n * 0.7, n * 0.7); g.moveTo(n * 0.7, n * 0.3); g.lineTo(n * 0.3, n * 0.7); g.stroke();
-      rond(c, c, n * 0.1, '#F0E6CF', '#7A5A12');
-      break;
-    case 22: // sterrenmunt: blauw met sterretjes
-      munt('#22327A', '#D9A21E', '#F3C64E');
-      ster(c, c, n * 0.14, '#FFE76A'); for (let k = 0; k < 6; k++) ster(c + Math.cos(k * 1.05) * n * 0.25, c + Math.sin(k * 1.05) * n * 0.25, n * 0.04, '#FFF4C0');
-      break;
-    case 23: // munt uit 1926 (van het Rommelhotel)
-      munt('#B9895A', '#8E6436', '#6B4724');
-      tekst('1926', 0.5, 0.15, '#5B3A1C'); tekst('HOTEL', 0.33, 0.07, '#5B3A1C');
-      break;
+  const rond = (x, y, r, kl, rand, lw) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = kl; g.fill(); if (rand) { g.lineWidth = n * (lw || 0.025); g.strokeStyle = rand; g.stroke(); } };
+  const vorm = (pts, kl, rand, lw) => { g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fillStyle = kl; g.fill(); if (rand) { g.lineWidth = n * (lw || 0.025); g.strokeStyle = rand; g.stroke(); } };
+  const ster = (x, y, r, kl, punten) => { const p = [], m = punten || 5; for (let k = 0; k < 2 * m; k++) { const a = -Math.PI / 2 + k * Math.PI / m, q = k % 2 ? r * 0.45 : r; p.push([x + Math.cos(a) * q, y + Math.sin(a) * q]); } vorm(p, kl); };
+  const glinster = (x, y, r) => { g.fillStyle = 'rgba(255,255,255,.95)'; g.beginPath(); g.moveTo(x, y - r); g.quadraticCurveTo(x, y, x + r, y); g.quadraticCurveTo(x, y, x, y + r); g.quadraticCurveTo(x, y, x - r, y); g.quadraticCurveTo(x, y, x, y - r); g.fill(); };
+  const tekst = (t, y, s, kl, x) => { g.fillStyle = kl; g.font = `800 ${Math.round(n * s)}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, x === undefined ? c : x, y); };
+  if (V.serie === 0) {
+    // een edelsteen van boven: facetten van de rand naar het tafeltje, licht van linksboven
+    const kl = new THREE.Color(V.kleur), S = n * 0.42, pts = snede(V.vorm).map(([x, y]) => [c + x * S, c + y * S]);
+    if (V.vorm === 'bol') {
+      const gr = g.createRadialGradient(c - S * 0.3, c - S * 0.35, S * 0.05, c, c, S);
+      gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(0.35, kl.getStyle()); gr.addColorStop(1, kl.clone().offsetHSL(0, 0, -0.25).getStyle());
+      vorm(pts, gr, inkt, 0.025);
+      if (V.opaal) { g.save(); g.clip(); for (let k = 0; k < 9; k++) { const a = k * 2.4; rond(c + Math.cos(a) * S * 0.45, c + Math.sin(a) * S * 0.35, S * 0.16, `hsla(${k * 40}, 85%, 62%, .55)`); } g.restore(); g.lineWidth = n * 0.025; g.strokeStyle = inkt; g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke(); }
+      if (V.maan) { const gl = g.createRadialGradient(c + S * 0.1, c + S * 0.1, 0, c, c, S); gl.addColorStop(0, 'rgba(120,170,255,.55)'); gl.addColorStop(1, 'rgba(120,170,255,0)'); g.fillStyle = gl; g.fill(); }
+      g.beginPath(); g.ellipse(c - S * 0.32, c - S * 0.3, S * 0.22, S * 0.12, -0.6, 0, 7); g.fillStyle = 'rgba(255,255,255,.75)'; g.fill();
+    } else {
+      const tafel = pts.map(([x, y]) => [c + (x - c) * 0.55, c + (y - c) * 0.55]);
+      for (let k = 0; k < pts.length; k++) {
+        const a = pts[k], b = pts[(k + 1) % pts.length], ta = tafel[k], tb = tafel[(k + 1) % pts.length];
+        const mx = (a[0] + b[0]) / 2 - c, my = (a[1] + b[1]) / 2 - c, licht = (-mx - my) / (Math.hypot(mx, my) || 1);
+        const f = kl.clone().offsetHSL(0, 0, 0.16 * licht + (k % 2 ? 0.05 : -0.05));
+        if (V.zeldzaam) f.offsetHSL(((k * 0.13) % 1) * 0.6, 0.35, 0);
+        vorm([a, b, tb, ta], f.getStyle());
+      }
+      vorm(tafel, kl.clone().offsetHSL(0, -0.05, 0.12).getStyle());
+      g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = n * 0.008;
+      for (let k = 0; k < pts.length; k++) { g.beginPath(); g.moveTo(pts[k][0], pts[k][1]); g.lineTo(tafel[k][0], tafel[k][1]); g.stroke(); }
+      g.lineWidth = n * 0.025; g.strokeStyle = inkt; g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
+      glinster(c - S * 0.25, c - S * 0.28, n * 0.07); if (V.zeldzaam) { glinster(c + S * 0.42, c - S * 0.1, n * 0.05); glinster(c + S * 0.05, c + S * 0.4, n * 0.04); }
+    }
+  } else {
+    // een munt: rand, binnenvlak en het ontwerp
+    const R = n * 0.44, r = n * 0.36;
+    const munt = (binnen, rand, lijn) => {
+      const gr = g.createLinearGradient(c - R, c - R, c + R, c + R); gr.addColorStop(0, new THREE.Color(rand).offsetHSL(0, 0, 0.18).getStyle()); gr.addColorStop(1, new THREE.Color(rand).offsetHSL(0, 0, -0.15).getStyle());
+      rond(c, c, R, gr, inkt);
+      g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = n * 0.008; for (let k = 0; k < 48; k++) { const a = k * Math.PI / 24; g.beginPath(); g.moveTo(c + Math.cos(a) * R * 0.9, c + Math.sin(a) * R * 0.9); g.lineTo(c + Math.cos(a) * R * 0.97, c + Math.sin(a) * R * 0.97); g.stroke(); }
+      const gi = g.createRadialGradient(c - r * 0.3, c - r * 0.4, r * 0.1, c, c, r); gi.addColorStop(0, new THREE.Color(binnen).offsetHSL(0, 0, 0.12).getStyle()); gi.addColorStop(1, new THREE.Color(binnen).offsetHSL(0, 0, -0.1).getStyle());
+      rond(c, c, r, gi, lijn, 0.015);
+    };
+    const reliëf = (teken) => { g.save(); g.translate(n * 0.012, n * 0.012); g.globalAlpha = 0.35; teken('#000000'); g.restore(); teken(); };
+    switch (id - 12) {
+      case 0: munt('#F2C24A', '#D9A21E', '#A9790F'); reliëf((k) => vorm([[c - r * 0.5, c + r * 0.22], [c - r * 0.5, c - r * 0.2], [c - r * 0.25, c + r * 0.02], [c, c - r * 0.42], [c + r * 0.25, c + r * 0.02], [c + r * 0.5, c - r * 0.2], [c + r * 0.5, c + r * 0.22]], k || '#B8840F')); tekst('ROMMEL', c + r * 0.55, 0.07, '#8A600A'); break;
+      case 1: munt('#E6E8EC', '#C3C8CF', '#9AA1AA'); reliëf((k) => ster(c, c, r * 0.62, k || '#F6F7F9')); for (let q = 0; q < 8; q++) ster(c + Math.cos(q * Math.PI / 4) * r * 0.82, c + Math.sin(q * Math.PI / 4) * r * 0.82, r * 0.08, '#9AA1AA'); break;
+      case 2: munt('#D8895E', '#B96D46', '#8F4F30'); tekst('1', c - r * 0.45, 0.13, '#8F4F30'); g.strokeStyle = '#8F4F30'; g.lineWidth = n * 0.02; for (const s of [-1, 1]) { g.beginPath(); g.arc(c, c, r * 0.72, Math.PI / 2 + s * 0.4, Math.PI / 2 + s * 1.3, s < 0); g.stroke(); }
+        g.globalCompositeOperation = 'destination-out'; rond(c, c + r * 0.12, n * 0.075, '#000'); g.globalCompositeOperation = 'source-over'; g.lineWidth = n * 0.02; g.strokeStyle = '#7A4026'; g.beginPath(); g.arc(c, c + r * 0.12, n * 0.075, 0, 7); g.stroke(); break;
+      case 3: vorm([[n * 0.1, n * 0.48], [n * 0.18, n * 0.2], [n * 0.46, n * 0.08], [n * 0.78, n * 0.16], [n * 0.92, n * 0.46], [n * 0.84, n * 0.8], [n * 0.52, n * 0.93], [n * 0.2, n * 0.84]], '#D9A93A', inkt); reliëf((k) => { g.fillStyle = k || '#9C7418'; g.fillRect(c - n * 0.05, c - n * 0.25, n * 0.1, n * 0.5); g.fillRect(c - n * 0.25, c - n * 0.05, n * 0.5, n * 0.1); }); for (const [x, y] of [[0.3, 0.3], [0.7, 0.3], [0.3, 0.7], [0.7, 0.7]]) rond(n * x, n * y, n * 0.03, '#9C7418'); break;
+      case 4: munt('#1E2C78', '#D9A21E', '#F3C64E'); ster(c, c, r * 0.36, '#FFE76A'); for (let q = 0; q < 7; q++) ster(c + Math.cos(q * 0.9) * r * 0.66, c + Math.sin(q * 0.9) * r * 0.66, r * 0.1, '#FFF4C0'); break;
+      case 5: munt('#B9895A', '#8E6436', '#6B4724'); reliëf((k) => tekst('1926', c + r * 0.05, 0.15, k || '#5B3A1C')); tekst('HOTEL', c - r * 0.5, 0.065, '#5B3A1C'); g.strokeStyle = '#5B3A1C'; g.lineWidth = n * 0.02; g.beginPath(); g.arc(c - r * 0.25, c + r * 0.55, r * 0.1, 0, 7); g.moveTo(c - r * 0.15, c + r * 0.55); g.lineTo(c + r * 0.3, c + r * 0.55); g.lineTo(c + r * 0.3, c + r * 0.66); g.stroke(); break;
+      case 6: munt('#2C9C55', '#C9CED6', '#E6E9EE'); for (let q = 0; q < 4; q++) { const a = q * Math.PI / 2 + Math.PI / 4; reliëf((k) => rond(c + Math.cos(a) * r * 0.28, c + Math.sin(a) * r * 0.28, r * 0.24, k || '#7ED67F')); } g.strokeStyle = '#1F6B3A'; g.lineWidth = n * 0.022; g.beginPath(); g.moveTo(c, c); g.quadraticCurveTo(c + r * 0.15, c + r * 0.5, c + r * 0.05, c + r * 0.75); g.stroke(); break;
+      case 7: munt('#DCE0E6', '#C3C8CF', '#9AA1AA'); reliëf((k) => { g.save(); g.beginPath(); g.arc(c - r * 0.08, c, r * 0.5, 0, 7); g.moveTo(c + r * 0.54, c - r * 0.1); g.arc(c + r * 0.12, c - r * 0.1, r * 0.42, 0, 7, true); g.fillStyle = k || '#F6F7F9'; g.fill('evenodd'); g.restore(); }); ster(c + r * 0.45, c - r * 0.4, r * 0.1, '#9AA1AA'); ster(c + r * 0.5, c + r * 0.25, r * 0.07, '#9AA1AA'); break;
+      case 8: munt('#2A262E', '#E9B949', '#F3D06A'); g.save(); g.beginPath(); g.arc(c, c, r, 0, 7); g.clip(); g.fillStyle = 'rgba(243,208,106,.35)'; for (let q = -6; q < 6; q++) { g.beginPath(); g.moveTo(c + q * r * 0.3, c - r); g.lineTo(c + q * r * 0.3 + r * 0.15, c - r); g.lineTo(c + q * r * 0.3 - r * 0.6, c + r); g.lineTo(c + q * r * 0.3 - r * 0.75, c + r); g.fill(); } g.restore(); reliëf((k) => vorm([[c + r * 0.1, c - r * 0.7], [c - r * 0.35, c + r * 0.05], [c - r * 0.02, c + r * 0.05], [c - r * 0.15, c + r * 0.7], [c + r * 0.38, c - r * 0.12], [c + r * 0.04, c - r * 0.12]], k || '#FFE14D')); break;
+      case 9: munt('#F0C04C', '#D9A21E', '#A9790F'); g.strokeStyle = '#8A600A'; g.lineWidth = n * 0.02; g.beginPath(); g.moveTo(c + r * 0.1, c - r * 0.78); g.lineTo(c + r * 0.1, c + r * 0.78); g.stroke();
+        reliëf((k) => vorm([[c - r * 0.5, c + r * 0.2], [c - r * 0.42, c - r * 0.18], [c - r * 0.1, c - r * 0.25], [c + r * 0.12, c - r * 0.55], [c + r * 0.42, c - r * 0.52], [c + r * 0.5, c - r * 0.3], [c + r * 0.32, c - r * 0.22], [c + r * 0.3, c + r * 0.08], [c + r * 0.4, c + r * 0.42], [c + r * 0.25, c + r * 0.44], [c + r * 0.08, c + r * 0.15], [c - r * 0.25, c + r * 0.18], [c - r * 0.35, c + r * 0.45], [c - r * 0.5, c + r * 0.45]], k || '#B8840F')); break;
+      case 10: munt('#F6C94E', '#E9B949', '#C58F1A'); for (let q = 0; q < 12; q++) { const a = q * Math.PI / 6; vorm([[c + Math.cos(a - 0.12) * r * 0.45, c + Math.sin(a - 0.12) * r * 0.45], [c + Math.cos(a) * r * 0.85, c + Math.sin(a) * r * 0.85], [c + Math.cos(a + 0.12) * r * 0.45, c + Math.sin(a + 0.12) * r * 0.45]], '#E39A1C'); } reliëf((k) => rond(c, c, r * 0.4, k || '#FFD95A')); g.fillStyle = '#A9700E'; rond(c - r * 0.13, c - r * 0.06, r * 0.05, '#A9700E'); rond(c + r * 0.13, c - r * 0.06, r * 0.05, '#A9700E'); g.strokeStyle = '#A9700E'; g.lineWidth = n * 0.018; g.beginPath(); g.arc(c, c + r * 0.05, r * 0.16, 0.3, Math.PI - 0.3); g.stroke(); break;
+      case 11: munt('#4E6A86', '#8FA3B8', '#C9D6E2'); reliëf((k) => { g.strokeStyle = k || '#E3ECF4'; g.lineWidth = n * 0.04; g.beginPath(); g.moveTo(c, c - r * 0.55); g.lineTo(c, c + r * 0.6); g.moveTo(c - r * 0.3, c - r * 0.3); g.lineTo(c + r * 0.3, c - r * 0.3); g.moveTo(c - r * 0.55, c + r * 0.2); g.quadraticCurveTo(c - r * 0.5, c + r * 0.65, c, c + r * 0.62); g.quadraticCurveTo(c + r * 0.5, c + r * 0.65, c + r * 0.55, c + r * 0.2); g.stroke(); g.beginPath(); g.arc(c, c - r * 0.65, r * 0.12, 0, 7); g.stroke(); }); break;
+    }
   }
   g.restore();
 }
@@ -4805,31 +4789,80 @@ function kaartLaat(k, s) { const L = KAART_LIJST[k]; L.bezet[s] = 0; L.mesh.setM
 function kaartTel(k) { const L = KAART_LIJST[k]; let n = 0; for (let s = KMAX - 1; s >= 0; s--) if (L.bezet[s]) { n = s + 1; break; } L.mesh.count = n; L.mesh.visible = n > 0; L.mesh.instanceMatrix.needsUpdate = true; }
 // een voorwerp: een groep met de oorsprong in het midden van de munt (de as omhoog)
 const VW_SJABLOON = {};
+function steenGeo(V) {
+  const S = 8.6, hc = 3.6, hp = 5.2, pts = snede(V.vorm).map(([x, y]) => [x * S, y * S]);
+  const pos = [], kl = [], k0 = new THREE.Color(V.kleur);
+  const vlak = (a, b, c, tint) => { pos.push(...a, ...b, ...c); const t = k0.clone(); if (tint) t.offsetHSL(tint[0], tint[1], tint[2]); if (!V.zeldzaam && !V.opaal && !V.maan) t.offsetHSL(0, 0.08, -0.1); t.convertSRGBToLinear(); for (let q = 0; q < 3; q++) kl.push(t.r, t.g, t.b); };
+  if (V.vorm === 'bol') {
+    // een cabochon: een gladde koepel
+    const L = 7;
+    for (let j = 0; j < L; j++) {
+      const a0 = j / L * Math.PI / 2, a1 = (j + 1) / L * Math.PI / 2;
+      for (let k = 0; k < pts.length; k++) {
+        const p = pts[k], q = pts[(k + 1) % pts.length];
+        const P = (pt, a) => [pt[0] * Math.cos(a), Math.sin(a) * 4.6, pt[1] * Math.cos(a)];
+        const t = V.opaal ? [((k * 7 + j * 3) % 12) / 12 - 0.5, 0.7, -0.16] : null;
+        vlak(P(p, a0), P(q, a1), P(q, a0), t); vlak(P(p, a0), P(p, a1), P(q, a1), t);
+      }
+    }
+  } else {
+    const T = pts.map(([x, z]) => [x * 0.5, z * 0.5]);
+    for (let k = 0; k < pts.length; k++) {
+      const p = pts[k], q = pts[(k + 1) % pts.length], tp = T[k], tq = T[(k + 1) % pts.length];
+      const vuur = V.zeldzaam ? [((k * 0.37) % 1) - 0.5, 0.6, 0] : null;
+      vlak([p[0], 0, p[1]], [tq[0], hc, tq[1]], [q[0], 0, q[1]], vuur);
+      vlak([p[0], 0, p[1]], [tp[0], hc, tp[1]], [tq[0], hc, tq[1]], vuur ? [vuur[0] + 0.2, 0.5, 0.05] : null);
+      vlak([q[0], 0, q[1]], [0, -hp, 0], [p[0], 0, p[1]], vuur ? [vuur[0] - 0.15, 0.5, -0.05] : [0, 0, -0.08]);
+      vlak([0, hc, 0], [tq[0], hc, tq[1]], [tp[0], hc, tp[1]], [0, -0.05, 0.08]);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(kl.map((x) => x), 3));
+  g.computeVertexNormals();
+  return g;
+}
 function voorwerpSjabloon(id) {
   if (VW_SJABLOON[id]) return VW_SJABLOON[id];
   const V = ECO.VOORWERPEN[id], g = new THREE.Group();
-  const tex = () => { const c = maakDoek(256, 256), x = c.getContext('2d'); tekenVoorwerp(x, 256, id); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; };
+  const tex = (bump) => { const c = maakDoek(256, 256), x = c.getContext('2d'); tekenVoorwerp(x, 256, id); if (bump) { const d = x.getImageData(0, 0, 256, 256); for (let k = 0; k < d.data.length; k += 4) { const l = 0.3 * d.data[k] + 0.59 * d.data[k + 1] + 0.11 * d.data[k + 2]; d.data[k] = d.data[k + 1] = d.data[k + 2] = l; } x.putImageData(d, 0, 0); } const t = new THREE.CanvasTexture(c); if (!bump) t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; };
   if (V.serie === 0) {
-    // een beeldje: een rond gouden voetstukje met een staand plaatje dat altijd naar je toe kijkt
-    const voet = new THREE.Mesh(new THREE.CylinderGeometry(R0, R0, H0 * 1.1, 32), new THREE.MeshStandardMaterial({ color: lin('#D9A21E'), metalness: 0.9, roughness: 0.3 }));
-    const bord = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshStandardMaterial({ map: tex(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.6 }));
-    bord.position.y = H0 * 0.55 + 11.5; bord.name = 'bord'; bord.castShadow = KW.schaduw > 0;
-    g.add(voet, bord);
-  } else if (V.serie === 1) {
-    // een edelsteen op een zilveren zetting
-    const voet = new THREE.Mesh(new THREE.CylinderGeometry(R0 * 0.9, R0, H0, 24), new THREE.MeshStandardMaterial({ color: lin('#D6D9DE'), metalness: 0.95, roughness: 0.25 }));
-    const pts = [new THREE.Vector2(0.01, -5.5), new THREE.Vector2(8.6, 0), new THREE.Vector2(8.6, 0.8), new THREE.Vector2(5.3, 4.2), new THREE.Vector2(0.01, 4.2)];
-    const kl = lin(V.kleur);
-    const steen = new THREE.Mesh(new THREE.LatheGeometry(pts, 8), new THREE.MeshStandardMaterial({ color: kl, metalness: 0.15, roughness: 0.06, flatShading: true, emissive: kl.clone().multiplyScalar(0.18), envMapIntensity: 1.8 }));
-    steen.position.y = H0 / 2 + 5.6; steen.castShadow = KW.schaduw > 0;
-    g.add(voet, steen);
+    // een edelsteen op een zetting: een metalen schijfje met een kommetje en pootjes, zoals bij een ring
+    const warm = ['#D8243F', '#F4A417', '#8E1530', '#A2D433', '#F25FA4'].includes(V.kleur);
+    const metaal = new THREE.MeshStandardMaterial({ color: lin(warm ? '#E2B246' : '#D6D9DE'), metalness: 0.95, roughness: 0.22 });
+    const voet = new THREE.Mesh(new THREE.CylinderGeometry(R0 * 0.92, R0, H0, 32), metaal);
+    const bol = V.vorm === 'bol';
+    const steenMat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: V.zeldzaam ? 0.35 : 0.05, roughness: bol ? 0.22 : 0.14, flatShading: !bol, envMapIntensity: V.zeldzaam ? 2.6 : 0.8, emissive: lin(V.kleur).multiplyScalar(V.maan ? 0.35 : V.zeldzaam ? 0.06 : 0.38) });
+    const steen = new THREE.Mesh(steenGeo(V), steenMat);
+    // de zetting: een metalen kommetje dat de omtrek van de steen volgt (de onderkant van de steen zit erin), met een randje en pootjes
+    const pts = snede(V.vorm), S = 8.6, top = bol ? H0 / 2 + 1.3 : H0 / 2 + 4.4;
+    const ringen = bol ? [[0.9, H0 / 2 - 0.1], [1.04, top], [0.96, top]] : [[0.58, H0 / 2 - 0.1], [1.05, top], [0.97, top]];
+    const pos = [];
+    for (let j = 0; j < ringen.length - 1; j++) {
+      const [sa, ya] = ringen[j], [sb, yb] = ringen[j + 1];
+      for (let k = 0; k < pts.length; k++) {
+        const p = pts[k], q = pts[(k + 1) % pts.length];
+        const L0 = [p[0] * S * sa, ya, p[1] * S * sa], L1 = [q[0] * S * sa, ya, q[1] * S * sa], U0 = [p[0] * S * sb, yb, p[1] * S * sb], U1 = [q[0] * S * sb, yb, q[1] * S * sb];
+        pos.push(...L0, ...U1, ...L1, ...L0, ...U0, ...U1);
+      }
+    }
+    const kg = new THREE.BufferGeometry(); kg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); kg.computeVertexNormals();
+    const kom = new THREE.Mesh(kg, metaal);
+    steen.position.y = bol ? H0 / 2 + 0.3 : top - 0.3; steen.castShadow = KW.schaduw > 0;
+    g.add(voet, kom, steen);
+    if (!bol) {
+      const klauw = new THREE.SphereGeometry(1.05, 10, 6), n = pts.length >= 12 ? 6 : 4;
+      for (let k = 0; k < n; k++) { const p = pts[Math.floor(k * pts.length / n + pts.length / (2 * n)) % pts.length]; const m = new THREE.Mesh(klauw, metaal); m.position.set(p[0] * S * 0.98, top + 0.5, p[1] * S * 0.98); m.scale.set(1, 1.3, 1); g.add(m); }
+    }
   } else {
-    // een bijzondere munt: de tekening op beide kanten
-    const t = tex(), rand = V.naam.includes('Zilver') ? '#C3C8CF' : V.naam.includes('Koper') ? '#B96D46' : V.naam.includes('Sterren') ? '#D9A21E' : V.naam.includes('1926') ? '#8E6436' : '#D9A21E';
-    const zij = new THREE.MeshStandardMaterial({ color: lin(rand), metalness: 0.9, roughness: 0.35 });
-    const vlak = new THREE.MeshStandardMaterial({ map: t, metalness: 0.55, roughness: 0.35, alphaTest: 0.5 });
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(R0, R0, H0 * 1.15, 40), [zij, vlak, vlak]);
-    m.scale.setScalar(id === 18 ? 1.1 : 1);
+    // een bijzondere munt: de tekening met reliëf op beide kanten, en een gekartelde rand
+    const t = tex(false), b = tex(true);
+    const kc = maakDoek(64, 8), kg = kc.getContext('2d'); kg.fillStyle = V.rand; kg.fillRect(0, 0, 64, 8); kg.fillStyle = 'rgba(0,0,0,.35)'; for (let x = 0; x < 64; x += 4) kg.fillRect(x, 0, 2, 8);
+    const kt = new THREE.CanvasTexture(kc); kt.encoding = THREE.sRGBEncoding; kt.wrapS = THREE.RepeatWrapping; kt.repeat.set(14, 1);
+    const zij = new THREE.MeshStandardMaterial({ map: kt, metalness: 0.9, roughness: 0.35 });
+    const vlak = new THREE.MeshStandardMaterial({ map: t, bumpMap: b, bumpScale: 0.9, metalness: 0.5, roughness: 0.42, alphaTest: 0.5 });
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(R0, R0, H0 * 1.2, 48), [zij, vlak, vlak]);
+    m.scale.setScalar(id === 12 ? 1.1 : 1);
     g.add(m);
   }
   g.traverse((o) => { if (o.isMesh) o.receiveShadow = KW.schaduw > 0; });
@@ -4837,14 +4870,13 @@ function voorwerpSjabloon(id) {
   return g;
 }
 function maakVoorwerp(id) { const o = voorwerpSjabloon(id).clone(); o.userData.id = id; scene.add(o); return o; }
-// een staand plaatje kijkt naar de camera (alleen om de as van het voetstukje)
+// de stand van een voorwerp: zoals zijn munt (schuin, en de draai om zijn as)
 const vwOp = new THREE.Vector3(), vwQ = new THREE.Quaternion(), vwDraai = new THREE.Quaternion(), OMHOOG2 = new THREE.Vector3(0, 1, 0);
 function zetVoorwerp(o, x, y, z, qx, qy, qz, qw) {
   o.position.set(x, y, z);
   vwQ.set(qx, qy, qz, qw); vwOp.copy(OMHOOG2).applyQuaternion(vwQ);
   o.quaternion.setFromUnitVectors(OMHOOG2, vwOp);
-  if (ECO.VOORWERPEN[o.userData.id].serie === 0) { vwDraai.setFromAxisAngle(OMHOOG2, Math.atan2(camera.position.x - x, camera.position.z - z)); o.quaternion.multiply(vwDraai); }
-  else { vwDraai.setFromAxisAngle(OMHOOG2, Math.atan2(2 * (qw * qy + qx * qz), 1 - 2 * (qy * qy + qz * qz))); o.quaternion.multiply(vwDraai); }
+  vwDraai.setFromAxisAngle(OMHOOG2, Math.atan2(2 * (qw * qy + qx * qz), 1 - 2 * (qy * qy + qz * qz))); o.quaternion.multiply(vwDraai);
 }
 // messing, en af en toe zilver of koper (vast per munt)
 const KLEUREN = [lin('#E3B565'), lin('#D9AE5E'), lin('#EBC27A'), lin('#D6D8DC'), lin('#C98A5A')];
@@ -5062,6 +5094,26 @@ function updateVallers(dt) {
 // ---------------------------------------------------------------------------------------------
 const LAMPKLEUR = [new THREE.Color(1.8, 0.35, 0.9), new THREE.Color(1.9, 1.5, 0.4), new THREE.Color(0.4, 1.6, 1.9), new THREE.Color(1.9, 0.5, 0.35)];
 let lampFase = -1;
+// het prijzenluikje: het klepje gaat open en de lampjes knipperen zolang er een prijs uitkomt
+const luikKleur = new THREE.Color();
+function updateLuik(t, dt) {
+  if (!G.luikKlep) return;
+  const aan = t < G.luikTot, doel = aan ? -1.3 : 0, k = G.luikKlep.rotation;
+  if (Math.abs(k.x - doel) > 0.001 || aan || G.luikWasAan) {
+    k.x += (doel - k.x) * (MINDER ? 1 : Math.min(1, dt * 9));
+    for (let q = 0; q < 12; q++) { const brand = aan && (MINDER || (Math.floor(t / 110) + q) % 2 === 0); luikKleur.setRGB(brand ? 2.2 : 0.5, brand ? 1.7 : 0.42, brand ? 0.6 : 0.2); G.luikLampen.setColorAt(q, luikKleur); }
+    G.luikLampen.instanceColor.needsUpdate = true;
+    G.luikBordMat.color.setScalar(aan ? (MINDER ? 1.4 : 1.1 + 0.4 * Math.sin(t / 60)) : 0.55);
+    G.luikWasAan = aan; teken = true;
+  }
+}
+// een prijs komt uit het luikje (een voorwerp, of de dagprijs): met lampjes en een fanfaretje
+function luikPrijs(so) {
+  S.gooiLijst.push([(geheim() - 0.5) * 80, so, 1]);
+  G.luikTot = performance.now() + 1800;
+  [0, 2, 4].forEach((k, q) => setTimeout(() => geluid.ding(k), q * 140));
+  wek();
+}
 function updateLampen(t) {
   const f = MINDER ? 0 : Math.floor(t / 110);
   if (f === lampFase) return false;
@@ -5226,7 +5278,7 @@ function lus(t) {
   vorigBeeld = t;
   const t0 = performance.now();
   // de schuiver rust na 20 seconden zonder spelen; ligt dan alles stil, dan rekent en tekent het spel niets meer
-  const rustig = performance.now() - S.laatsteInvoer > 20000;
+  const rustig = performance.now() - S.laatsteInvoer > RUST_NA;
   if (rustig && S.rust && !vallers.length && !S.wacht && Math.abs(kijk.zoom - kijk.doelZoom) < 0.002) {
     cancelAnimationFrame(volgende);
     S.wakker = false; lusLoopt = false; $('#rs-slaap').hidden = false;
@@ -5236,7 +5288,7 @@ function lus(t) {
   }
   // bewaren: de stapel en je munten samen (het hulpje gooit eerst wat er nog in de gleuf moest)
   if (S.bewaarNodig && !S.wacht && performance.now() - laatstBewaard > 1500) bewaarNu();
-  if (!rustig && !TEST) { S.speeltijd += dt; if (S.speeltijd > pauzeNa()) toonPauze(); }
+  if (performance.now() - S.laatsteInvoer < 30000 && !TEST) { S.speeltijd += dt; if (S.speeltijd > pauzeNa()) toonPauze(); }
   // natuurkunde: stappen van 1/60 s vragen aan het hulpje
   S.tijdTegoed = Math.min(S.tijdTegoed + dt, 0.1);
   if (!S.wacht) {
@@ -5252,6 +5304,7 @@ function lus(t) {
   }
   updateVallers(dt);
   updateLampen(t);
+  updateLuik(t, dt);
   if (Math.abs(kijk.zoom - kijk.doelZoom) > 0.002) { kijk.zoom += (kijk.doelZoom - kijk.zoom) * (MINDER ? 1 : Math.min(1, dt * 7)); zetCamera(); }
   if (G.embleem && !MINDER) G.embleemZet(0.45 * Math.sin(t / 1400));
   if (G.tijMat) {
@@ -5410,7 +5463,7 @@ function gebeurtenissen(ev, n) {
         if (bSoort[i] >= 0) laatBijzonder(i, true);
         const zg = TEST ? { terug: false } : ECO.zijgoot(eco, KAST, so);
         // een voorwerp ben je nooit kwijt: de kast gooit het er opnieuw in
-        if (zg.terug) { S.gooiLijst.push([(geheim() - 0.5) * 300, so]); melding(ECO.VOORWERPEN[so - ECO.SOORT_VOORWERP].naam + ' viel in de zijgoot. De kast gooit het er opnieuw in.', plaatje('voorwerp', so - ECO.SOORT_VOORWERP, 96)); }
+        if (zg.terug) { luikPrijs(so); melding(ECO.VOORWERPEN[so - ECO.SOORT_VOORWERP].naam + ' viel in de zijgoot. Hij komt opnieuw uit het luikje.', plaatje('voorwerp', so - ECO.SOORT_VOORWERP, 96)); }
       }
       else if (soort === 5 && G.paalFlits) { G.paalFlits[i] = 1; geluid.ding(i); if (ev[k + 5]) { tel.bump = (tel.bump || 0) + 1; if (G.score) G.score.zet(tel.bump); G.flitsTot = performance.now() + 260; } }
       k += 6;
@@ -5474,6 +5527,8 @@ function mikVanScherm(cx, cy) {
 let gooiKlok = 0, gooiKlaarOp = 0;
 // zit de kast te vol, dan neemt de gleuf even niets aan (anders wordt de stapel een berg en het rekenen te zwaar)
 const VOL_GRENS = 1000;
+// speel je 5 minuten niet, dan maakt de schuiver zijn slag af en rust hij (daarna rekent en tekent het spel niets meer)
+const RUST_NA = 5 * 60 * 1000;
 let volMeld = 0;
 function gooi() {
   if (!S.klaar) return;
@@ -5492,8 +5547,8 @@ function gooi() {
   if (g && g.kaartje) S.gooiLijst.push([(geheim() - 0.5) * 400, ECO.SOORT_KAARTJE + ECO.trekKaartje(Math.floor(geheim() * 10000))]);
   const dp = TEST ? null : ECO.dagprijs(eco, vandaag(), KAST, geheim());
   if (dp) {
-    S.gooiLijst.push([(geheim() - 0.5) * 300, dp.soort]);
-    melding(dp.id !== undefined ? 'De dagprijs valt erin: ' + ECO.VOORWERPEN[dp.id].naam + '! Duw hem eruit.' : 'De dagprijs valt erin: een gouden kaartje van 250!', dp.id !== undefined ? plaatje('voorwerp', dp.id, 96) : plaatje('kaartje', 5, 48), 5000);
+    luikPrijs(dp.soort);
+    melding(dp.id !== undefined ? 'De dagprijs komt uit het luikje: ' + ECO.VOORWERPEN[dp.id].naam + '! Duw hem eruit.' : 'De dagprijs komt uit het luikje: een gouden kaartje van 250!', dp.id !== undefined ? plaatje('voorwerp', dp.id, 96) : plaatje('kaartje', 5, 48), 5000);
   }
   tel.in++; zetHud(); S.bewaarNodig = true;
   geluid.tik(0.5, 'staal');
@@ -5567,7 +5622,7 @@ function verbergHint() { if (hintWeg) return; hintWeg = true; setTimeout(() => $
 $('#rs-pot').addEventListener('click', () => {
   if (!S.klaar) return;
   geluid.start(); geluid.ontwaak();
-  if (eco.pot <= 0) { melding('Je spaarpot is leeg. Morgen komen er weer ' + ECO.POT_DAG + ' munten in (tot ' + ECO.POT_MAX + ').', null, 4000); return; }
+  if (eco.pot <= 0) { melding('Je spaarpot is leeg. Morgen komen er weer ' + ECO.POT_DAG + ' munten in.', null, 4000); return; }
   const n = ECO.pakPot(eco);
   melding('+' + n + ' munten uit je spaarpot!', null, 3000); $('#rs-meld').textContent = n + ' munten uit je spaarpot. Je hebt er nu ' + eco.m + '.';
   geluid.ding(3); zetHud(true); S.bewaarNodig = true; bewaarNu(); wek();
@@ -5601,7 +5656,7 @@ kraam.addEventListener('click', (e) => {
   let gelukt = false, tekst = '';
   if (soort === 'vw') {
     const so = ECO.koopVoorwerp(eco, +id, KAST);
-    if (so) { S.gooiLijst.push([(geheim() - 0.5) * 300, so]); gelukt = true; tekst = ECO.VOORWERPEN[+id].naam + ' valt nu in de kast. Duw hem eruit!'; }
+    if (so) { luikPrijs(so); gelukt = true; tekst = ECO.VOORWERPEN[+id].naam + ' komt uit het prijzenluikje. Duw hem eruit!'; }
   } else if (soort === 'mooi') {
     gelukt = ECO.koopMooi(eco, id); tekst = 'Gekocht! De kast laadt even opnieuw om het te laten zien.';
   } else if (soort === 'kies') {
@@ -5632,7 +5687,7 @@ function tekenKraam() {
       h += '<h3>Een nieuwe kast</h3><div class="rs-raster">' + dicht.map((k) => `<div class="rs-ding"><b>${esc(MF.KASTEN[k].naam)}</b><span class="rs-mini">${getal(kp)} kaartjes</span><button type="button" class="rs-knop" data-koop="kast:${k}">Bekijk</button></div>`).join('') + '</div>';
     }
     const mis = ECO.ontbreekt(eco);
-    h += `<h3>Voorwerpen voor je verzameling</h3><p class="rs-zacht">${getal(ECO.VOORWERP_PRIJS)} kaartjes per stuk. Het voorwerp valt in de kast waar je nu speelt: jij duwt het eruit. Valt het in een zijgoot, dan gooit de kast het er opnieuw in.</p>`;
+    h += `<h3>Voorwerpen voor je verzameling</h3><p class="rs-zacht">${getal(ECO.VOORWERP_PRIJS)} kaartjes per stuk. Het voorwerp komt uit het prijzenluikje van de kast waar je nu speelt: jij duwt het eruit. Valt het in een zijgoot, dan komt het opnieuw uit het luikje.</p>`;
     h += mis.length ? '<div class="rs-raster">' + mis.map((id) => { const V = ECO.VOORWERPEN[id]; return `<div class="rs-ding"><img src="${plaatje('voorwerp', id, 112)}" alt=""><b>${esc(V.naam)}</b><span class="rs-mini">${esc(ECO.SERIES[V.serie])}</span><button type="button" class="rs-knop" data-koop="vw:${id}" ${eco.k < ECO.VOORWERP_PRIJS ? 'disabled' : ''} aria-label="Koop ${esc(V.naam)} voor ${ECO.VOORWERP_PRIJS} kaartjes">${getal(ECO.VOORWERP_PRIJS)}</button></div>`; }).join('') + '</div>'
       : '<p>Je hebt ze allemaal (of ze liggen al in een kast). Knap!</p>';
     h += '<h3>Iets moois</h3><div class="rs-raster">' + ECO.MOOI.map((m) => {
@@ -5664,7 +5719,7 @@ function tekenKraam() {
     h += lijst.map((o) => `<div class="rs-op${o.klaar ? ' klaar' : ''}"><b>${esc(o.tekst)}</b><span>${o.klaar ? '✓ +' + o.beloning + ' kaartjes' : o.nu + ' van ' + o.doel}</span><div class="rs-balkje" aria-hidden="true"><i style="width:${Math.round(100 * o.nu / o.doel)}%"></i></div></div>`).join('');
     const dagprijsVandaag = eco.dp === d, voorwerpDag = d % ECO.DAGPRIJS_ELKE === 0 && ECO.ontbreekt(eco).length > 0;
     h += `<h3>De dagprijs</h3><p>${dagprijsVandaag ? 'De dagprijs van vandaag ligt al in de kast (of je hebt hem al).' : voorwerpDag ? 'Vandaag valt er bij je eerste munt een voorwerp in de kast dat je nog niet hebt!' : 'Bij je eerste munt van vandaag valt er een gouden kaartje van 250 in de kast.'} Om de drie dagen is de dagprijs een voorwerp.</p>`;
-    h += `<h3>Je spaarpot</h3><p>Elke dag komen er ${ECO.POT_DAG} munten in je spaarpot, tot hij ${ECO.POT_MAX} munten bevat. Mis je een dag, dan ben je dus niets kwijt. Nu zitten er ${eco.pot} in.</p>`;
+    h += `<h3>Je spaarpot</h3><p>Elke dag komen er ${ECO.POT_DAG} munten in je spaarpot, zonder grens: ben je een week weg, dan zitten er 700 in. Nu zitten er ${eco.pot} in.</p>`;
     p.innerHTML = h;
   } else {
     const st = eco.st, terugJij = st.uit + st.zij ? Math.round(1000 * st.uit / (st.uit + st.zij)) / 10 : null;
@@ -5677,6 +5732,8 @@ function tekenKraam() {
   }
 }
 // de pauze: na een tijdje spelen vraagt Moeki of je even iets anders wilt doen (de tijd telt per tabblad)
+// Moeki: het pixelportret uit Huis op stelten (hetzelfde als in Rommelkroon)
+const MOEKI = 'data:image/png;base64,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';
 const pauzeNa = () => (APP.p || 30) * 60;
 try { S.speeltijd = +sessionStorage.getItem('rommelschuiver-speeltijd') || 0; } catch (e) {}
 setInterval(() => { try { sessionStorage.setItem('rommelschuiver-speeltijd', String(Math.round(S.speeltijd))); } catch (e) {} }, 10000);
@@ -5685,7 +5742,7 @@ function toonPauze() {
   if (!pz.hidden) return;
   S.speeltijd = 0;
   $('#rs-pauze-min').textContent = APP.p || 30;
-  $('#rs-pauze-kat').src = plaatje('voorwerp', 2, 192);
+  $('#rs-pauze-kat').src = MOEKI;
   pz.hidden = false; $('#rs-pauze-kop').focus();
   ingedrukt = false; clearInterval(gooiKlok);
 }
@@ -5817,7 +5874,7 @@ async function opstarten() {
 function naLaden(d) {
   if (d.over && d.over.length) S.gooiLijst.push(...d.over);
   const kr = eco.kast[KAST];
-  if (!TEST && kr && d.som) { const heb = d.som.v.slice(); for (const id of kr.vw) { const p = heb.indexOf(id); if (p >= 0) heb.splice(p, 1); else S.gooiLijst.push([(geheim() - 0.5) * 300, ECO.SOORT_VOORWERP + id]); } }
+  if (!TEST && kr && d.som) { const heb = d.som.v.slice(); for (const id of kr.vw) { const p = heb.indexOf(id); if (p >= 0) heb.splice(p, 1); else S.gooiLijst.push([(geheim() - 0.5) * 80, ECO.SOORT_VOORWERP + id, 1]); } }
   if (d.nagemaakt) $('#rs-meld').textContent = 'Je stapel is opnieuw neergelegd, met precies dezelfde munten.';
   S.bewaarNodig = true;
 }

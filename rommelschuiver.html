@@ -3010,17 +3010,21 @@ function MUNTFYSICA() {
       md[i] = VAL; tel.in++; stilTijd = 0;
       return i;
     }
-    // een muntentoren op de onderste verdieping: de munten op die plek gaan weg, en dan n munten recht op elkaar (de bovenste kan een kaartje zijn)
-    function toren(x, z, n, boven) {
-      for (let i = 0; i < hoogsteIndex; i++) if (md[i] !== WEG && !lvl[i] && Math.hypot(px[i] - x, pz[i] - z) < 2 * R0 + 1) md[i] = WEG;
-      const f = rnd() * Math.PI * 2;
-      for (let k = 0; k < n; k++) {
+    // een muntenring op de onderste verdieping: lagen van 8 munten in een kring, elke laag een kwart stap verder gedraaid,
+    // zodat er schuine strengen omhoog lopen (een spiraal). Wat op die plek lag, gaat weg. In het midden is het hol:
+    // daar komt 'midden' (een stapeltje, van onder naar boven). 'boven' is een munt in de bovenste laag (een kaartje).
+    const RING_N = 8, RING_R = 32.5;
+    function ring(x, z, lagen, boven, midden) {
+      for (let i = 0; i < hoogsteIndex; i++) if (md[i] !== WEG && !lvl[i] && Math.hypot(px[i] - x, pz[i] - z) < RING_R + 2 * R0 + 0.5) md[i] = WEG;
+      const f0 = rnd() * Math.PI * 2, stap = 2 * Math.PI / RING_N, hoog = H0 + 0.05;
+      const leg = (i, s, X, Z, y) => { zet(i, s); lvl[i] = 0; px[i] = X; pz[i] = Z; py[i] = y; yaw[i] = rnd() * Math.PI * 2; flip[i] = rnd() < 0.5 ? 1 : 0; sa[i] = sb[i] = 0; md[i] = SCHUIF; };
+      const bovenOp = boven ? (rnd() * RING_N) | 0 : -1;
+      for (let L = 0; L < lagen; L++) for (let m = 0; m < RING_N; m++) {
         const i = vrij(); if (i < 0) return;
-        zet(i, k === n - 1 && boven ? boven : (rnd() * 3) | 0);
-        lvl[i] = 0; px[i] = x + (rnd() - 0.5) * 0.8; pz[i] = z + (rnd() - 0.5) * 0.8; yaw[i] = f + k * 0.4; flip[i] = rnd() < 0.5 ? 1 : 0;
-        py[i] = hh[i] + k * (2 * hh[i] + 0.05); sa[i] = sb[i] = 0;
-        md[i] = SCHUIF;
+        const f = f0 + (m + L * 0.25) * stap;
+        leg(i, L === lagen - 1 && m === bovenOp ? boven : (rnd() * 3) | 0, x + RING_R * Math.cos(f), z + RING_R * Math.sin(f), H0 / 2 + L * hoog);
       }
+      (midden || []).forEach((s, k) => { const i = vrij(); if (i >= 0) leg(i, s, x + (rnd() - 0.5), z + (rnd() - 0.5), H0 / 2 + k * hoog); });
     }
     // een geloofwaardige stapel: laag voor laag op een rooster met wat willekeur (steeds minder munten per laag), daarna laten zakken
     // marge: hoeveel verder van de voorrand de onderste laag blijft (een nagemaakte stapel geeft zo geen voordeel)
@@ -3121,7 +3125,7 @@ function MUNTFYSICA() {
       N, MK, PINNEN, P, Q, md, soort, gebeurtenis, tel, kast: KV.naam,
       get schijfHoek() { return schijfHoek; }, get schijfW() { return schijfW; },
       get springtij() { return springtij(); }, get slagNr() { return slagNr; },
-      stap, gooi, luik, superduw, toren, vul, bewaar, laad, aantal,
+      stap, gooi, luik, superduw, ring, vul, bewaar, laad, aantal,
       get zf() { return zf; }, get vp() { return vp; }, get t() { return t; }, get fase() { return fase; },
       get hoogste() { return hoogsteIndex; },
       schuiver(aan) { schuiverAan = !!aan; },
@@ -3155,11 +3159,13 @@ function HULPJE(self, MF) {
   };
   // munten (of kaartjes en voorwerpen) in de gleuf: een getal (de plek) of [plek, soort]
   const erin = (lijst, nieuw) => { for (const g of lijst || []) { const i = typeof g === 'number' ? sim.gooi(g) : g[2] ? sim.luik(g[0], g[1]) : sim.gooi(g[0], g[1]); if (i >= 0) nieuw.push(i); } };
-  // de allereerste stapel van een kast: muntentorens (met een kaartje bovenop) en kaartjes die bovenop de munten liggen
+  // de allereerste stapel van een kast: muntenringen (met kaartjes bovenop en in het midden) en kaartjes die bovenop de munten liggen
   function beginStapel(st) {
     const kaartjes = (st.kaartjes || []).slice(), _ = sim._;
-    for (const [x, z, n] of st.torens || []) sim.toren(x, z, n, kaartjes.length ? 10 + kaartjes.shift() : 0);
-    // munten waar niets bovenop ligt (zichtbaar), niet vlak bij de rand en niet in een toren
+    // muntenringen: een kaartje in de bovenste laag, en twee in het holle midden
+    const pak = () => kaartjes.length ? 10 + kaartjes.shift() : 0;
+    for (const [x, z, lagen] of st.ringen || []) { const boven = pak(), midden = [pak(), pak()].filter((s) => s); sim.ring(x, z, lagen, boven, midden); }
+    // munten waar niets bovenop ligt (zichtbaar), niet vlak bij de rand en niet in een ring
     const vrijBoven = [];
     for (let i = 0; i < sim.hoogste; i++) {
       if (sim.md[i] === F.WEG || sim.soort[i] >= 10) continue;
@@ -3202,7 +3208,7 @@ function HULPJE(self, MF) {
           // even laten schuiven, zodat de stapel er echt uitziet
           for (let k = 0; k < (d.inloop || 0); k++) sim.stap();
           sim.tel.uit = 0; sim.tel.zij = 0;
-          if (d.start) { beginStapel(d.start); const aan = sim.schuiverAan; sim.schuiver(false); sim.stap(); sim.schuiver(aan); sim.tel.uit = 0; sim.tel.zij = 0; }
+          if (d.start) { beginStapel(d.start); const aan = sim.schuiverAan; sim.schuiver(false); for (let k = 0; k < 20; k++) sim.stap(); sim.schuiver(aan); sim.tel.uit = 0; sim.tel.zij = 0; }
         }
         const P = new Float32Array(sim.P), Q = new Float32Array(sim.Q), M = new Uint8Array(sim.md), S = new Uint8Array(sim.soort);
         stuur({ doe: 'klaar', geladen, nagemaakt: !geladen && !!d.doel, over, som: telling(), N: sim.N, hoogste: sim.hoogste, P, Q, M, S, zf: sim.zf, MK: sim.MK, PINNEN: F.PINNEN }, [P.buffer, Q.buffer, M.buffer, S.buffer]);
@@ -5581,12 +5587,12 @@ function mikVanScherm(cx, cy) {
 let gooiKlok = 0, gooiKlaarOp = 0;
 // zit de kast te vol, dan neemt de gleuf even niets aan (anders wordt de stapel een berg en het rekenen te zwaar)
 const VOL_GRENS = 1250;
-// de eerste stapel van een kast: zoveel kaartjes erop, en waar de muntentorens staan ([x, z, hoe hoog])
+// de eerste stapel van een kast: zoveel kaartjes erop, en waar de muntenringen staan ([x, z, lagen van 8 munten])
 const START_KAARTJES = { klassiek: 10, maan: 12, flipper: 14, molen: 16 };
-const TORENS = {
-  maan: [[-110, -105, 10], [110, -105, 10]],
-  flipper: [[-115, -85, 11], [115, -85, 11], [0, -95, 9]],
-  molen: [[-45, -115, 10], [50, -90, 9], [-175, -75, 11], [175, -75, 11]],
+const RINGEN = {
+  maan: [[-110, -115, 10], [110, -115, 10]],
+  flipper: [[-75, -140, 10], [75, -140, 10], [0, -88, 10]],
+  molen: [[0, -102, 10], [-172, -125, 10], [172, -125, 10]],
 };
 // speel je 5 minuten niet, dan maakt de schuiver zijn slag af en rust hij (daarna rekent en tekent het spel niets meer)
 const RUST_NA = 5 * 60 * 1000;
@@ -6094,12 +6100,12 @@ async function opstarten() {
   if (opg && opg.m && (!heeftRec || opg.h === kr.h)) { try { const s = atob(opg.m); const b = new Uint8Array(s.length); for (let k = 0; k < s.length; k++) b[k] = s.charCodeAt(k); laad = b.buffer; } catch (e) { laad = null; } }
   // een ander apparaat, of de stapel is weg: een nagemaakte stapel met precies evenveel munten, kaartjes en voorwerpen (niet vlak bij de rand)
   if (!laad && heeftRec && (kr.mm + kr.kk.length + kr.vw.length) > 0) doel = { mm: kr.mm, kk: kr.kk, vw: kr.vw };
-  // een gloednieuwe stapel: kaartjes bovenop de munten, en in de latere kasten muntentorens
+  // een gloednieuwe stapel: kaartjes bovenop de munten, en in de latere kasten muntenringen
   let start = null;
   if (!laad && !doel) {
     const kaartjes = [];
     for (let k = 0; k < (START_KAARTJES[KAST] || 10); k++) kaartjes.push(ECO.trekKaartje(Math.floor(geheim() * 10000)));
-    start = { torens: TORENS[KAST] || [], kaartjes };
+    start = { ringen: RINGEN[KAST] || [], kaartjes };
   }
   hulp.stuur({ doe: 'maak', max: MAXM, zaad: (Date.now() & 0xffff) + 1, laad, doel, start, onder: 560, boven: 200, inloop: 240, kast: KAST }, laad ? [laad] : []);
 }

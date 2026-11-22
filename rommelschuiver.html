@@ -136,6 +136,14 @@ html[data-thema="donker"] .rs-ding.mis img { filter: brightness(0) invert(1) opa
 .rs-tabel th, .rs-tabel td { text-align: left; padding: .28rem .4rem; border-bottom: 1px solid var(--lijn); }
 .rs-tabel td:last-child, .rs-tabel th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
 #rs-pauze-kat { display: block; margin: 0 auto .4rem; image-rendering: pixelated; }
+/* het geheime beheermenu (alleen voor Ruben) */
+#rs-beheer input { user-select: text; -webkit-user-select: text; font: inherit; font-size: 16px; padding: .45rem .6rem; border-radius: 10px; border: 2px solid var(--inkt); background: #fff; color: #1F2333; min-width: 0; flex: 1 1 9rem; }
+#rs-beheer .rs-blad { max-height: calc(100% - 1rem); overflow-y: auto; }
+.rs-bh-blok { border-top: 2px dashed var(--lijn); padding-top: .7rem; margin-top: .8rem; }
+.rs-bh-blok h3 { margin: 0 0 .3rem; font-size: 1.02rem; }
+.rs-bh-blok p { margin: .2rem 0; }
+.rs-bh-blok .rs-rij { margin-top: .5rem; }
+#rs-bh-fout { min-height: 1.3em; }
 @media (max-width: 600px) { .rs-blad { padding: 1.1rem 1rem 1rem; } .rs-teller { min-width: 3.8rem; padding: .25rem .5rem .3rem; } .rs-teller b { font-size: 1rem; } }
 </style>
 </head>
@@ -223,6 +231,11 @@ html[data-thema="donker"] .rs-ding.mis img { filter: brightness(0) invert(1) opa
     <p>Moeki ligt al een tijdje naar je te kijken. Je speelt nu <b id="rs-pauze-min">30</b> minuten. Zullen we even iets anders doen?</p>
     <p class="rs-zacht">Je stapel blijft gewoon liggen, en je spaarpot vult zich morgen weer.</p>
     <div class="rs-rij"><a class="rs-knop rs-hoofd" href="./">Naar het rommelhoekje</a><button type="button" class="rs-knop" id="rs-pauze-door">Nog even verder</button></div>
+  </div></section>
+  <section id="rs-beheer" class="rs-laag" hidden aria-labelledby="rs-beheer-kop"><div class="rs-blad rs-papier">
+    <button type="button" class="rs-knop rs-sluit" data-sluit aria-label="Sluiten">✕</button>
+    <h2 id="rs-beheer-kop" tabindex="-1">Beheer</h2>
+    <div id="rs-bh-inhoud"></div>
   </div></section>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -4335,11 +4348,7 @@ function bouwKast() {
     strook(rp.map(([x, z]) => [x, z - 1.2]), -4, -30, 0, MAT.chroom);
     const gp = boogPts(KV.randZ, -BX, BX, 40);
     strook(gp.map(([x, z]) => [x, z + 2]), -30, -100, 14, MAT.glij);
-    // de zijgoten: donkere putten aan de uiteinden van de boog
-    for (const s of [-1, 1]) doos(XW + 30 - BX, 4, 120, MAT.zwart, s * (BX + (XW + 30 - BX) / 2), -60, -20, false);
   } else {
-    // de zijgoten voorin: donkere gaten naast de vloer
-    for (const s of [-1, 1]) doos(XW - XF + 2, 2, -ZS, MAT.zwart, s * (XF + (XW - XF) / 2 + 0.5), -1.5, ZS / 2, false);
     // de voorrand: een chromen strip
     const rand = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 2 * XF, 16, 1), MAT.chroom);
     rand.rotation.z = Math.PI / 2; rand.position.set(0, -2.2, 0.6); kast.add(rand);
@@ -4347,6 +4356,28 @@ function bouwKast() {
     // onder de voorrand: een schuine glijplaat naar de bak
     const glij = new THREE.Mesh(new THREE.PlaneGeometry(2 * XF, 80), MAT.glij);
     glij.position.set(0, -68, 3); glij.rotation.x = -0.12; glij.receiveShadow = true; kast.add(glij);
+  }
+  // de zijgoten: een donkere koker naar beneden, aan beide kanten tot tegen de zijwand. Munten verdwijnen erin,
+  // maar je kijkt niet meer door de kast heen naar de grond. Binnen loopt het donker weg; buiten is hij gelakt zoals de onderkast.
+  {
+    const onzichtbaar = new THREE.MeshBasicMaterial({ visible: false });
+    const binnen = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide });
+    const koker = (xa, xb, za, zb) => {
+      const w = xb - xa, d = zb - za, h = 111, g = new THREE.BoxGeometry(w, h, d), p = g.attributes.position, c = [];
+      for (let k = 0; k < p.count; k++) { const v = p.getY(k) > 0 ? 0.075 : 0.004; c.push(v, v * 0.95, v * 1.25); }
+      g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
+      // de bovenkant (groep 2, +y) is open
+      for (const [mat, kant] of [[binnen, 0], [MAT.lak, 1]]) {
+        const mm = [mat, mat, onzichtbaar, mat, mat, mat];
+        const m = new THREE.Mesh(g, mm); m.position.set((xa + xb) / 2, -1 - h / 2, (za + zb) / 2); m.receiveShadow = !!kant; kast.add(m);
+      }
+    };
+    const x0 = BOOG ? BX : XF, x1 = XW + 26, xv = BX + 9.5;
+    for (const s of [-1, 1]) {
+      const lr = (a, b) => s > 0 ? [a, b] : [-b, -a];
+      koker(...lr(x0, x1), -300, 2);
+      if (xv < x1 - 1) koker(...lr(xv, x1), 2, 138);
+    }
   }
   // de trechter, in een chromen trog met een opgerolde lip en afgeronde zijkanten
   G.tr = { cx: 0, cz: 62, rt: 16, yRand: MK.UIT - 92, yKeel: MK.UIT - 150, x0: -BX + 1, x1: BX - 1, z0: 4, z1: 123 };
@@ -5979,6 +6010,90 @@ function toonPauze() {
   ingedrukt = false; clearInterval(gooiKlok);
 }
 $('#rs-pauze-door').addEventListener('click', () => { $('#rs-pauze').hidden = true; doek.focus({ preventScroll: true }); });
+
+// het geheime beheermenu: alleen voor Ruben, met het beheerwachtwoord van de werkplaats (de scoreserver kijkt het na).
+// Openen: typ "beheer", of houd de naam bovenaan 2 seconden ingedrukt. Het wachtwoord wordt nergens bewaard; alleen dat het klopte,
+// voor dit tabblad (sessionStorage rommelschuiver-beheer). Wat je hier geeft, staat op dit apparaat.
+const BEHEER = (() => {
+  const K = 'rommelschuiver-beheer', laag = $('#rs-beheer'), inhoud = $('#rs-bh-inhoud');
+  const ontgrendeld = () => { try { return sessionStorage.getItem(K) === '1'; } catch (e) { return false; } };
+  async function controleer(pw) {
+    try {
+      const inst = window.Scorebord ? await Scorebord.klaar : {}, url = String((inst && inst.scoreUrl) || '').replace(/\/+$/, '');
+      if (!url) return 'geen';
+      const r = await fetch(url + '/ideeen/alle', { headers: { Authorization: 'Bearer ' + pw }, cache: 'no-store' });
+      return r.ok ? 'ok' : r.status === 401 || r.status === 403 ? 'fout' : r.status === 429 ? 'wacht' : 'geen';
+    } catch (e) { return 'geen'; }
+  }
+  const dicht = () => { laag.hidden = true; doek.focus({ preventScroll: true }); };
+  function openen() {
+    if (!S.klaar || TEST || !laag.hidden) return;
+    ingedrukt = false; clearInterval(gooiKlok);
+    laag.hidden = false;
+    if (ontgrendeld()) return menu();
+    inhoud.innerHTML = `<p>Vul het beheerwachtwoord van je werkplaats in.</p>
+      <form id="rs-bh-form" class="rs-rij"><input id="rs-bh-pw" type="password" autocomplete="current-password" aria-label="Beheerwachtwoord"><button class="rs-knop rs-hoofd" type="submit">Open</button></form>
+      <p class="rs-zacht" id="rs-bh-fout" aria-live="polite"></p>`;
+    $('#rs-bh-pw').focus();
+    $('#rs-bh-form').onsubmit = async (e) => {
+      e.preventDefault(); const pw = $('#rs-bh-pw').value; if (!pw) return;
+      const f = $('#rs-bh-fout'); f.textContent = 'Even controleren…';
+      const u = await controleer(pw);
+      if (u === 'ok') { try { sessionStorage.setItem(K, '1'); } catch (x) {} menu(); }
+      else f.textContent = u === 'fout' ? 'Dat wachtwoord klopt niet.' : u === 'wacht' ? 'Te vaak geprobeerd: wacht even een kwartier.' : 'De scoreserver is niet bereikbaar. Probeer het later opnieuw.';
+    };
+  }
+  // na een verandering: tellers bijwerken, bewaren (de munten en de stapel samen) en het menu opnieuw tekenen
+  const klaar = (tekst) => { zetHud(true); S.econVeranderd = true; S.bewaarNodig = true; bewaarNu(); wek(); melding('🔧 ' + tekst, null, 2600); $('#rs-meld').textContent = tekst; menu(); };
+  function menu() {
+    const alleKasten = ECO.KASTEN.every((k) => eco.open.includes(k)), mist = ECO.VOORWERPEN.length - eco.vz.length;
+    inhoud.innerHTML = `<p class="rs-zacht">Alleen voor jou. Wat je hier geeft, staat op dit apparaat.</p>
+      <div class="rs-bh-blok"><h3>Munten</h3><p>Je hebt nu <b>${getal(eco.m)}</b> munten.</p>
+        <div class="rs-rij"><button class="rs-knop" type="button" data-m="100">+ 100</button><button class="rs-knop" type="button" data-m="1000">+ 1.000</button><button class="rs-knop" type="button" data-m="10000">+ 10.000</button></div>
+        <form class="rs-rij" data-zet="m"><input type="number" inputmode="numeric" min="0" max="1000000000" step="1" placeholder="Bijvoorbeeld 5000" aria-label="Aantal munten"><button class="rs-knop rs-hoofd" type="submit">Zet op dit aantal</button></form></div>
+      <div class="rs-bh-blok"><h3>Kaartjes</h3><p>Je hebt nu <b>${getal(eco.k)}</b> kaartjes.</p>
+        <div class="rs-rij"><button class="rs-knop" type="button" data-k="1000">+ 1.000</button><button class="rs-knop" type="button" data-k="10000">+ 10.000</button><button class="rs-knop" type="button" data-k="100000">+ 100.000</button></div>
+        <form class="rs-rij" data-zet="k"><input type="number" inputmode="numeric" min="0" max="1000000000000" step="1" placeholder="Bijvoorbeeld 20000" aria-label="Aantal kaartjes"><button class="rs-knop rs-hoofd" type="submit">Zet op dit aantal</button></form></div>
+      <div class="rs-bh-blok"><h3>In de kast</h3><p class="rs-zacht">Gratis, uit het prijzenluikje.</p>
+        <div class="rs-rij"><button class="rs-knop" type="button" id="rs-bh-regen">Muntenregen: 30 munten</button><button class="rs-knop" type="button" id="rs-bh-rad"${PT.draait ? ' disabled' : ''}>Draai het rad</button><button class="rs-knop" type="button" id="rs-bh-prijs"${mist ? '' : ' disabled'}>Een prijs</button></div></div>
+      <div class="rs-bh-blok"><h3>Kasten en verzameling</h3><p>${eco.open.length} van ${ECO.KASTEN.length} kasten open, ${eco.vz.length} van ${ECO.VOORWERPEN.length} prijzen in je verzameling.</p>
+        <div class="rs-rij"><button class="rs-knop" type="button" id="rs-bh-kasten"${alleKasten ? ' disabled' : ''}>Alle kasten open</button><button class="rs-knop" type="button" id="rs-bh-verz"${mist ? '' : ' disabled'}>Verzameling compleet</button></div></div>
+      <div class="rs-bh-blok"><h3>Iemand anders helpen</h3><p class="rs-zacht">Open dit menu op zijn of haar telefoon of computer (typ "beheer", of houd de naam bovenaan 2 seconden ingedrukt) en vul daar je wachtwoord in. Zodra de scoreserver de Rommelschuiver kent, kan het ook vanuit je werkplaats.</p></div>
+      <div class="rs-rij"><button class="rs-knop" type="button" id="rs-bh-slot">Vergrendel het beheer</button></div>`;
+    inhoud.querySelectorAll('[data-m]').forEach((b) => (b.onclick = () => { eco.m = Math.min(1e9, eco.m + +b.dataset.m); geluid.ding(3); klaar(getal(+b.dataset.m) + ' munten erbij.'); }));
+    inhoud.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { eco.k = Math.min(1e12, eco.k + +b.dataset.k); geluid.ding(4); klaar(getal(+b.dataset.k) + ' kaartjes erbij.'); }));
+    inhoud.querySelectorAll('[data-zet]').forEach((f) => (f.onsubmit = (e) => {
+      e.preventDefault();
+      const veld = f.querySelector('input'), wat = f.dataset.zet, max = wat === 'm' ? 1e9 : 1e12, n = Math.floor(+veld.value);
+      if (veld.value === '' || !isFinite(n) || n < 0 || n > max) { melding('Vul een aantal in van 0 tot ' + getal(max) + '.', null, 3000); return; }
+      eco[wat] = n; klaar('Je hebt nu ' + getal(n) + (wat === 'm' ? ' munten.' : ' kaartjes.'));
+    }));
+    $('#rs-bh-regen').onclick = () => { luikRij(Array.from({ length: 30 }, (_, k) => k % 3)); dicht(); melding('Muntenregen: 30 munten uit het luikje!', null, 3000); };
+    $('#rs-bh-rad').onclick = () => { if (PT.draait) return; dicht(); draaiRad(); };
+    $('#rs-bh-prijs').onclick = () => { const v = ECO.kiesVoorwerp(eco, KAST, geheim()); if (!v) return; luikPrijs(v.soort); dicht(); S.bewaarNodig = true; melding(ECO.VOORWERPEN[v.id].naam + ' komt uit het luikje!', plaatje('voorwerp', v.id, 96), 3500); };
+    $('#rs-bh-kasten').onclick = () => { for (const k of ECO.KASTEN) if (!eco.open.includes(k)) eco.open.push(k); klaar('Alle kasten zijn open.'); };
+    $('#rs-bh-verz').onclick = () => { for (let i = 0; i < ECO.VOORWERPEN.length; i++) if (!eco.vz.includes(i)) eco.vz.push(i); klaar('Je verzameling is compleet.'); };
+    $('#rs-bh-slot').onclick = () => { try { sessionStorage.removeItem(K); } catch (e) {} dicht(); melding('Het beheer is vergrendeld.', null, 2500); };
+    $('#rs-beheer-kop').focus();
+  }
+  laag.addEventListener('click', (e) => { if (e.target === laag || e.target.closest('[data-sluit]')) dicht(); });
+  laag.addEventListener('keydown', (e) => { if (e.key === 'Escape') dicht(); });
+  // "beheer" typen (niet in een invulveld), of de naam bovenaan 2 seconden ingedrukt houden
+  let getypt = '', klok = 0;
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || !e.key || e.key.length !== 1) return;
+    if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
+    getypt = (getypt + e.key.toLowerCase()).slice(-6); if (getypt === 'beheer') { getypt = ''; openen(); }
+  });
+  const titel = $('.kop .rs-titel');
+  if (titel) {
+    titel.addEventListener('pointerdown', () => { clearTimeout(klok); klok = setTimeout(openen, 2000); });
+    for (const t of ['pointerup', 'pointerleave', 'pointercancel']) titel.addEventListener(t, () => clearTimeout(klok));
+    titel.addEventListener('contextmenu', (e) => e.preventDefault());
+    titel.style.webkitTouchCallout = 'none';
+  }
+  return { openen, menu };
+})();
 
 // ---------------------------------------------------------------------------------------------
 // instellingen, verbergen, bewaren

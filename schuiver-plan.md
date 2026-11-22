@@ -468,3 +468,28 @@ De eerste van de drie nieuwe kasten (Ruben koos A, B en C uit hoofdstuk 23; ze k
 - **Afgesteld** met de robot (een half uur, elke seconde een munt, drie zaadjes): met de gewone zijgoten gaf hij ongeveer 94 van de 100 terug; met iets bredere zijgoten (`XF` 228) is het ongeveer 87. Het rad stopt in deze kast meer in de kast (fiches van 5 en 25 in plaats van 1 en 5 munten: gemiddeld 2,25 munten meer per draai, ongeveer 4 per 100 munten die je erin gooit), en geeft daarnaast ongeveer 1. Samen ongeveer 91. De fiches in de eerste stapel zijn samen 400 munten waard: een welkomstcadeau voor de duurste kast.
 - **Economie**: zevende kast, voor 65.000 kaartjes. De eerste stapel heeft 18 kaartjes. In het geheime menu staat in deze kast ook "Een fiche van 100".
 - **Getest**: in Node (stapels fiches blijven staan, de tweede schuiver, de fiches in het kastrecord en in een nagemaakte stapel, hooguit 1 snelle munt per twee minuten) en in Chromium op 1280 en 390 breed: de kast, de fiches, de tweede schuiver, kopen als zevende kast, Eerlijk? en het geheime menu, zonder fouten of overtredingen van het veiligheidsbeleid.
+
+## 27. De metingen en de verbeteringen (22 november 2026, Rubens reactie)
+
+Ruben: "Ik kan de metingen niet uit zetten. Misschien is het ook een idee om upgrades in de winkel toe te voegen zodat je bijvoorbeeld sneller per minuut muntjes kan laten vallen etc. Dit mogen levels zijn en wat duurder om het gebalanceerd te houden."
+
+- **De metingen**: `?meet` in het adres zette ze bij elk bezoek weer aan, wat je ook koos (en ik had gevraagd om dat adres te gebruiken). Nu zet `?meet` ze alleen aan als je bij Instellingen nog nooit zelf iets koos (`mk` in `rommelschuiver-apparaat`), en haalt het spel `?meet` uit het adres. Aan- en uitzetten gaat meteen, zonder herladen.
+- **Vier verbeteringen in de Prijzenkraam** (`VERBETERING` in de economie, elk drie niveaus, voor alle kasten; nieuwe altijd achteraan, verander nooit een id). Kopen: twee keer tikken (eerst "Zeker?").
+
+  | Verbetering | Zonder | Niveau 1 | Niveau 2 | Niveau 3 | Prijzen (kaartjes) |
+  |---|---|---|---|---|---|
+  | **Snelle gleuf**: munten per minuut als je ingedrukt houdt | 180 | 200 | 220 | 240 | 2.500, 6.000, 12.000 |
+  | **Kaartjesmachine**: een kaartje na elke … munten | 20 | 18 | 16 | 14 | 4.000, 12.000, 30.000 |
+  | **Vangnet**: van de munten in een zijgoot komt er 1 op … terug | – | 12 | 8 | 5 | 3.000, 9.000, 24.000 |
+  | **Superduwknop**: een superduw na elke … munten (hooguit 3 klaar) | – | 200 | 130 | 80 | 2.000, 6.000, 15.000 |
+
+  Samen 125.500 kaartjes: meer dan de zevende kast.
+- **Waarom deze getallen** (gemeten met de robot):
+  - *De gleuf*: 240 per minuut is het meeste dat de kast bijhoudt. Bij 4 munten per seconde blijft de stapel rond de 1.150 munten; bij 4,6 per seconde groeit hij door tot de grens van 1.250 ("De kast zit vol"), en bij 6 per seconde is hij binnen twee minuten vol. Wat de kast teruggeeft verandert niet (92 tot 94 van de 100). Het rad draait er niet vaker door (het poortje is na een draai even dicht), dus per munt geeft het rad iets minder. Vasthouden gaat nu precies in de maat (eerst kwamen er door de klok van 60 ms zo'n 167 per minuut, nu 180).
+  - *De Kaartjesmachine*: op het hoogste niveau 43% meer kaartjes in de kast.
+  - *Het vangnet*: van wat eruit valt, gaan er zo'n 7 tot 9 van de 100 in een zijgoot (de Fichebank 13, de Ruitenwisser 17). Met 1 op 5 geeft een kast zo'n 1,5 meer terug (de Fichebank 2,5, de Ruitenwisser 3,5). Alleen munten: fiches, kaartjes en prijzen vangt het netje niet. In de zijgoten hangt dan een touwnetje dat oplicht als het een munt vangt.
+  - *De Superduwknop*: een superduw (3 slagen extra ver, net als het rad) haalt munten eruit die al bijna vielen. Gemeten met een superduw na elke 80 munten (een half uur): 93,2 van de 100 in de trechter, zonder 92,9. Op den duur verandert het dus bijna niets; je krijgt de munten alleen eerder. Op het scherm een knop met een balkje dat oplaadt (ook met de toets D).
+  - *Samen*, voor iemand die elke dag zijn spaarpot leegspeelt: alles op het hoogste niveau geeft zo'n 1,7 keer zoveel kaartjes per dag (meer munten om te gooien door het vangnet, en meer kaartjes per munt). Wie alles koopt, is daar maanden mee bezig.
+- **Opslag** (`rommelschuiver-v1`): `upg` (per verbetering het niveau), `sd` (de superduwen die klaar zijn `n`, en hoeveel munten er al opladen `t`), en de tellers `st.vang` (munten uit het vangnet) en `st.duw` (superduwen gebruikt). Ook de tellers `fiche`, `kist` en `sleutel` blijven nu bij het laden staan (die gingen verloren).
+- **Eerlijk?** legt de verbeteringen uit en noemt je eigen getallen. **Het geheime menu**: alles op het hoogste niveau, alles terug naar niets, en de Superduwknop vol.
+- **Getest**: de rekenregels in Node (kopen, te weinig kaartjes, hooguit drie niveaus, kaartjes, superduwen opladen en gebruiken, het vangnet 1 op 12 precies, rare en oude opslag), en in Chromium op 1280 (licht) en 390 (donker): de metingen aan en uit (ook met `?meet`), kopen in de kraam, de gleuf (met een nagemaakte klok: 180 en 240 per minuut), de knop, het netje, Eerlijk?, herladen en het geheime menu, zonder fouten of overtredingen van het veiligheidsbeleid.

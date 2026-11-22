@@ -184,13 +184,14 @@ html[data-thema="donker"] .rs-ding.mis img { filter: brightness(0) invert(1) opa
   <section id="rs-kasten" class="rs-laag" hidden aria-labelledby="rs-kasten-kop"><div class="rs-blad rs-papier rs-breed">
     <button type="button" class="rs-knop rs-sluit" data-sluit aria-label="Sluiten">✕</button>
     <h2 id="rs-kasten-kop" tabindex="-1">Kies een kast</h2>
-    <p class="rs-zacht">Elke kast heeft een eigen speelveld en bewaart zijn eigen stapel. Een nieuwe kast open je met kaartjes: de tweede kost 2.000, de derde 8.000 en de vierde 18.000. Je kiest zelf welke.</p>
+    <p class="rs-zacht">Elke kast heeft een eigen speelveld en bewaart zijn eigen stapel. Een nieuwe kast open je met kaartjes: de tweede kost 2.000, de derde 8.000, de vierde 18.000 en de vijfde 30.000. Je kiest zelf welke.</p>
     <p class="rs-zacht" id="rs-kasten-saldo"></p>
     <div class="rs-kastlijst">
       <button type="button" class="rs-kastkeus" data-kast="klassiek" style="--k:#B0222E"><b>De Rommelschuiver</b><span>De gewone: een rechte schuiver en een rechte rand.</span><i class="rs-slot"></i></button>
       <button type="button" class="rs-kastkeus" data-kast="maan" style="--k:#1D2A5E"><b>De Halvemaan</b><span>De rand is een grote boog, en de schuiver is rond. Wat aan de zijkant van de boog afglijdt, is weg.</span><i class="rs-slot"></i></button>
       <button type="button" class="rs-kastkeus" data-kast="flipper" style="--k:#18793E"><b>De Flipperkast</b><span>Vijf paaltjes waar de munten omheen moeten. Ze lichten op en tingelen als je ze raakt.</span><i class="rs-slot"></i></button>
       <button type="button" class="rs-kastkeus" data-kast="molen" style="--k:#6C2A86"><b>De Draaimolen</b><span>Een draaischijf neemt de munten mee: soms naar de rand, soms ervan weg.</span><i class="rs-slot"></i></button>
+      <button type="button" class="rs-kastkeus" data-kast="ruitenwisser" style="--k:#0F7F92"><b>De Ruitenwisser</b><span>Een arm veegt heen en weer over de vloer. Door het poortje? Dan lopen de lichtjes rond: 5, 10, 20 of 50 munten.</span><i class="rs-slot"></i></button>
     </div>
   </div></section>
   <section id="rs-inst" class="rs-laag" hidden aria-labelledby="rs-inst-kop"><div class="rs-blad rs-papier">
@@ -1724,6 +1725,11 @@ function MUNTFYSICA() {
     // de schijf draait heen en weer: w is de hoogste hoeksnelheid, periode de tijd van een hele heen-en-weer (seconden)
     // XF: de zijgoten van de Draaimolen zijn iets breder (afgesteld op ongeveer 92 van de 100, zoals de andere kasten)
     molen: { naam: 'De Draaimolen', XF: 231.5, schijf: { x: 0, z: -102, r: 84, w: 0.65, periode: 24 } },
+    // de Ruitenwisser: een arm die vanaf een spil op de voorrand heen en weer over de onderste vloer veegt
+    ruitenwisser: { naam: 'De Ruitenwisser', blokken: [
+      { soort: 'arm', x: 0, z: -8, lengte: 168, dik: 5, h: 11, hoek: 0.95, periode: 7 },
+      { soort: 'vast', x: 0, z: -8, b: 10, d: 10, r: 10, h: 16 },
+    ] },
   };
   // de vorm van een kast, gedeeld met het tekenen (zo liggen de munten altijd op wat je ziet)
   function kastVorm(naam, extra) {
@@ -1737,7 +1743,26 @@ function MUNTFYSICA() {
       schuifDZ: SB ? (x) => -2 * SB * x / (XW * XW) : () => 0,
       palen: K.palen || [], paalR: K.paalR || 0, paalH: K.paalH || 0,
       schijf: K.schijf || null,
+      blokken: K.blokken || [],
     };
+    // blokken op de onderste verdieping: een rechthoek met ronde hoeken, van de vloer tot hoogte h.
+    // vast: { x, z, b (halve breedte), d (halve diepte), r (hoekstraal), h, hoek };
+    // arm: draait heen en weer om een spil { x, z, lengte, dik (halve dikte), h, hoek (uitslag), periode, fase };
+    // schuif: schuift vooruit en terug { x, z, b, d, r, h, slag, periode, fase }.
+    // De stand komt in uit[o..o+7]: midden x, z, de lange as (ux, uz), halve maten (ex, ez), hoekstraal, hoogte.
+    V.blokStand = (k, T, uit, o) => {
+      const b = V.blokken[k];
+      if (b.soort === 'arm') {
+        const th = b.hoek * Math.sin(2 * Math.PI * T / b.periode + (b.fase || 0)), ux = Math.sin(th), uz = -Math.cos(th);
+        uit[o] = b.x + ux * b.lengte / 2; uit[o + 1] = b.z + uz * b.lengte / 2; uit[o + 2] = ux; uit[o + 3] = uz;
+        uit[o + 4] = b.lengte / 2 + b.dik; uit[o + 5] = b.dik; uit[o + 6] = b.dik; uit[o + 7] = b.h;
+      } else {
+        const a = b.hoek || 0, dz = b.soort === 'schuif' ? b.slag * (1 - Math.cos(2 * Math.PI * T / b.periode + (b.fase || 0))) / 2 : 0;
+        uit[o] = b.x; uit[o + 1] = b.z + dz; uit[o + 2] = Math.cos(a); uit[o + 3] = Math.sin(a);
+        uit[o + 4] = b.b; uit[o + 5] = b.d; uit[o + 6] = Math.min(b.r || 0, b.b, b.d); uit[o + 7] = b.h;
+      }
+    };
+    V.blokBeweegt = V.blokken.some((b) => b.soort !== 'vast');
     // de randen van de onderste verdieping (lijnstukjes x0, z0, x1, z1)
     V.rand = [];
     if (B) { const n = 20; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.rand.push([x0, V.randZ(x0), x1, V.randZ(x1)]); } }
@@ -1759,7 +1784,32 @@ function MUNTFYSICA() {
     if (opt.mk) Object.assign(MK, opt.mk);
     const KV = kastVorm(opt.kast, opt.kastExtra);
     const SCH = KV.schijf;
-    let schijfW = 0, schijfHoek = 0, schijfT = 0;   // de draaischijf: hoeksnelheid nu, hoe ver hij gedraaid is, en de klok van zijn heen en weer
+    let schijfW = 0, schijfHoek = 0, schijfT = 0;
+    // de blokken: hun stand nu en een stap eerder (voor de snelheid), en hun eigen klok (loopt zolang de schuiver loopt)
+    const NBL = KV.blokken.length, BS = new Float64Array(NBL * 8), BO = new Float64Array(NBL * 8);
+    let blokT = 0;
+    const BLOK_OVER = 2.5;   // ligt de onderkant van een munt minder dan dit onder de bovenkant van een blok, dan schuift hij erover in plaats van opzij
+    for (let k = 0; k < NBL; k++) { KV.blokStand(k, 0, BS, k * 8); KV.blokStand(k, 0, BO, k * 8); }
+    // afstand van punt (X, Z) tot blok k (negatief: erin); de normaal naar buiten komt in BN
+    const BN = new Float64Array(2);
+    function blokAfst(k, X, Z) {
+      const o = k * 8, rx = X - BS[o], rz = Z - BS[o + 1], ux = BS[o + 2], uz = BS[o + 3];
+      const lx = rx * ux + rz * uz, lz = -rx * uz + rz * ux, rc = BS[o + 6];
+      const qx = Math.abs(lx) - (BS[o + 4] - rc), qz = Math.abs(lz) - (BS[o + 5] - rc);
+      let gx, gz, d;
+      if (qx > 0 || qz > 0) { const ax = Math.max(qx, 0), az = Math.max(qz, 0), L = Math.hypot(ax, az) || 1e-9; gx = ax / L * Math.sign(lx || 1); gz = az / L * Math.sign(lz || 1); d = L - rc; }
+      else if (qx > qz) { gx = Math.sign(lx || 1); gz = 0; d = qx - rc; } else { gx = 0; gz = Math.sign(lz || 1); d = qz - rc; }
+      BN[0] = gx * ux - gz * uz; BN[1] = gx * uz + gz * ux;
+      return d;
+    }
+    // de snelheid van het blok op punt (X, Z): waar dat punt een stap eerder was
+    const BV = new Float64Array(2);
+    function blokSnel(k, X, Z) {
+      const o = k * 8, rx = X - BS[o], rz = Z - BS[o + 1], ux = BS[o + 2], uz = BS[o + 3];
+      const lx = rx * ux + rz * uz, lz = -rx * uz + rz * ux;
+      const vx_ = BO[o] + lx * BO[o + 2] - lz * BO[o + 3], vz_ = BO[o + 1] + lx * BO[o + 3] + lz * BO[o + 2];
+      BV[0] = (X - vx_) / DT; BV[1] = (Z - vz_) / DT;
+    }   // de draaischijf: hoeksnelheid nu, hoe ver hij gedraaid is, en de klok van zijn heen en weer
     const N = opt.max || 2400;
     let zaad = (opt.zaad || 12345) >>> 0;
     const rnd = () => { zaad = (zaad + 0x6D2B79F5) >>> 0; let t = zaad; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -2071,6 +2121,13 @@ function MUNTFYSICA() {
             else { const f = (r - d) / (d || 1e-9); px[i] += dx * f; pz[i] += dz * f; }
           }
         }
+        // de blokken: eruit duwen (een bewegend blok neemt de munt zo vanzelf mee)
+        for (let k = 0; k < NBL; k++) {
+          // ligt de munt (bijna) zo hoog als het blok, dan glijdt hij erover (de bovenkant draagt hem, zie steunHoogte)
+          if (py[i] - hh[i] > BS[k * 8 + 7] - BLOK_OVER) continue;
+          const d = blokAfst(k, px[i], pz[i]);
+          if (d < r) { px[i] += BN[0] * (r - d); pz[i] += BN[1] * (r - d); }
+        }
         // de paaltjes: een bumper schiet een munt die hem raakt weg (en licht op); daarna even rust
         for (let k = 0; k < KV.palen.length; k++) {
           const p = KV.palen[k], dx = px[i] - p[0], dz = pz[i] - p[1], d = Math.hypot(dx, dz), min = r + KV.paalR;
@@ -2108,6 +2165,7 @@ function MUNTFYSICA() {
       let best = -1e9, bw = -9;
       if (lvl[i] === 0) {
         if (KV.vloerOp(X, Z)) { best = 0; bw = SCH && KV.opSchijf(X, Z) ? -3 : -1; }
+        for (let k = 0; k < NBL; k++) { const h = BS[k * 8 + 7]; if (h > best && py[i] - hh[i] > h - BLOK_OVER && blokAfst(k, X, Z) < 0) { best = h; bw = -10 - k; } }
       } else {
         if (X >= -MK.XW - 0.01 && X <= MK.XW + 0.01 && Z >= zf - MK.LP && Z <= zf + KV.schuifZ(X) + 0.01) { best = MK.HP; bw = -2; }
       }
@@ -2276,6 +2334,7 @@ function MUNTFYSICA() {
             if (py[i] + sa[i] * spX[s] + sb[i] * spZ[s] - dk - spH[s] > 0.05) continue;
             const b = spB[s]; n++;
             if (b === -1) opVloer++;
+            else if (b <= -10) { opVloer++; blokSnel(-10 - b, px[i] + spX[s], pz[i] + spZ[s]); sx += BV[0]; sz += BV[1]; }   // de bovenkant van een blok: neemt hem mee
             else if (b === -2) { opSch++; sz += vp; }
             else if (b === -3) { opSchijf++; sx += schijfVx(px[i] + spX[s], pz[i] + spZ[s]); sz += schijfVz(px[i] + spX[s], pz[i] + spZ[s]); }
             else { sx += steunVx(b); sz += steunVz(b); ancM = !anc[b] ? 0 : ancM === -1 || ancM === anc[b] ? anc[b] : 0; }
@@ -2323,6 +2382,7 @@ function MUNTFYSICA() {
           const b = spB[s];
           if (stN[i] < SMX) { const e = i * SMX + stN[i]++; stB[e] = b; stX[e] = spX[s]; stZ[e] = spZ[s]; stM[e] = L / (G * DT * DT / PSUB); }
           if (b === -1) opVloer += L;
+          else if (b <= -10) { opVloer += L; blokSnel(-10 - b, px[i] + spX[s], pz[i] + spZ[s]); sx += L * BV[0]; sz += L * BV[1]; }
           else if (b === -2) { opSchuiver += L; sz += L * vp; }
           else if (b === -3) { opSchijf += L; sx += L * schijfVx(px[i] + spX[s], pz[i] + spZ[s]); sz += L * schijfVz(px[i] + spX[s], pz[i] + spZ[s]); }
           else {
@@ -2623,6 +2683,41 @@ function MUNTFYSICA() {
       contact(i, -1, mx, my, mz, CP[0] - mx * hd, CP[1] - my * hd, CP[2] - mz * hd, X + mx * rs, Y + my * rs, Z + mz * rs, d, 0, 0, Rn[7] ? vp : 0, pin ? 0.15 : 0.3, bumper ? 0.8 : pin ? 0.45 : 0.2);
     }
 
+    // een vallende munt tegen een blok (een staand, rond hoekig blok van de vloer tot h)
+    const BQ = new Float64Array(3);
+    function blokOp(k, X, Y, Z) {   // dichtstbijzijnde punt van het blok bij (X, Y, Z), in BQ
+      const d = blokAfst(k, X, Z), h = BS[k * 8 + 7];
+      if (d > 0) { BQ[0] = X - BN[0] * d; BQ[2] = Z - BN[1] * d; } else { BQ[0] = X; BQ[2] = Z; }
+      BQ[1] = Y < 0 ? 0 : Y > h ? h : Y;
+      return d;
+    }
+    function blokContact(i, k) {
+      const r = rr[i], hd = hh[i], h = BS[k * 8 + 7];
+      if (py[i] - r - hd > h + 1 || blokAfst(k, px[i], pz[i]) > r + hd + 1) return;
+      as3(i);
+      const nx = NA[0], ny = NA[1], nz = NA[2];
+      // om en om: het punt van het blok bij de munt, en het punt van de munt bij dat punt
+      blokOp(k, px[i], py[i], pz[i]);
+      for (let it = 0; it < 4; it++) { opSchijf(px[i], py[i], pz[i], nx, ny, nz, r, BQ[0], BQ[1], BQ[2]); blokOp(k, CP[0], CP[1], CP[2]); }
+      const Dx = CP[0], Dy = CP[1], Dz = CP[2];
+      let mx, my, mz, d, qx_, qy_, qz_;
+      const dIn = blokAfst(k, Dx, Dz);
+      if (dIn < 0 && Dy < h && Dy > 0) {
+        // het punt van de munt zit in het blok: eruit langs de kortste weg (de bovenkant of een zijkant)
+        if (h - Dy < -dIn) { mx = 0; my = 1; mz = 0; d = hd + h - Dy; qx_ = Dx; qy_ = h; qz_ = Dz; }
+        else { mx = BN[0]; my = 0; mz = BN[1]; d = hd - dIn; qx_ = Dx - BN[0] * dIn; qy_ = Dy; qz_ = Dz - BN[1] * dIn; }
+      } else {
+        qx_ = BQ[0]; qy_ = BQ[1]; qz_ = BQ[2];
+        mx = Dx - qx_; my = Dy - qy_; mz = Dz - qz_;
+        const L = Math.hypot(mx, my, mz);
+        d = hd - L;
+        if (d <= 0) return;
+        if (L < 1e-6) { mx = 0; my = 1; mz = 0; } else { mx /= L; my /= L; mz /= L; }
+      }
+      blokSnel(k, qx_, qz_);
+      contact(i, -1, mx, my, mz, Dx - mx * hd, Dy - my * hd, Dz - mz * hd, qx_, qy_, qz_, d, BV[0], 0, BV[1], 0.3, 0.25);
+    }
+
     const NB = new Float64Array(3);
     function muntContact(i, j) {
       // twee schijven: kleinste afstand door om en om het dichtstbijzijnde punt te zoeken, plus wat steunpunten
@@ -2742,6 +2837,7 @@ function MUNTFYSICA() {
           for (let v = 0; v < VLAKKEN.length; v++) vlakContact(i, VLAKKEN[v], VLAKKEN[v][14] ? zfS : 0);
           const inGleuf = pz[i] < MK.ZW + MK.KD + rr[i] && py[i] > MK.KY - 30;
           for (let v = 0; v < RANDEN.length; v++) { if (v >= PIN0 && !inGleuf) break; randContact(i, RANDEN[v], RANDEN[v][7] ? zfS : 0); }
+          for (let k = 0; k < NBL; k++) blokContact(i, k);
           zoekBuren(i, 2);
           for (let b = 0; b < burenN; b++) {
             const j = buren[b];
@@ -2872,6 +2968,13 @@ function MUNTFYSICA() {
       // de draaischijf draait zolang de schuiver loopt
       if (SCH && (schuiverAan || fase > 1e-9)) { schijfT += DT; schijfW = SCH.w * Math.sin(2 * Math.PI * schijfT / SCH.periode); } else schijfW = 0;
       const dh = schijfW * DT, ch = Math.cos(dh), sh = Math.sin(dh);
+      if (NBL) {
+        BO.set(BS);
+        if (KV.blokBeweegt && (schuiverAan || fase > 1e-9)) blokT += DT;
+        for (let k = 0; k < NBL; k++) KV.blokStand(k, blokT, BS, k * 8);
+      }
+      let blokNu = false;
+      if (KV.blokBeweegt) for (let k = 0; k < NBL * 8 && !blokNu; k++) if (BS[k] !== BO[k]) blokNu = true;
       schijfHoek = (schijfHoek + dh) % (2 * Math.PI);
       // slapende munten op de schuiver rijden mee; munten voor de schuiver en tegen de achterwand worden wakker
       schuivers.length = 0;
@@ -2896,6 +2999,7 @@ function MUNTFYSICA() {
             for (let k = 0; k < stN[i]; k++) if (stB[i * SMX + k] === -3) { wek(i); break; }
           }
         }
+        if (blokNu && md[i] === SLAAP && lvl[i] === 0) for (let k = 0; k < NBL; k++) if (blokAfst(k, px[i], pz[i]) < rr[i] + 3) { wek(i); break; }
         if (md[i] === SCHUIF) schuivers.push(i);
       }
       bouwRaster();
@@ -3054,6 +3158,7 @@ function MUNTFYSICA() {
           if (z < zf + KV.schuifZ(x) + R + 1 || z > KV.randZ(x) - R - 4 - marge) return false;
           for (const p of KV.palen) if (Math.hypot(x - p[0], z - p[1]) < R + KV.paalR + 1) return false;
           if (SCH && Math.hypot(x - SCH.x, z - SCH.z) < SCH.r + R) return false;
+          for (let k = 0; k < NBL; k++) if (blokAfst(k, x, z) < R + 1) return false;
           return true;
         };
         const gewicht = [0.42, 0.3, 0.16, 0.08, 0.04];
@@ -3136,7 +3241,7 @@ function MUNTFYSICA() {
 
     return {
       N, MK, PINNEN, P, Q, md, soort, gebeurtenis, tel, kast: KV.naam,
-      get schijfHoek() { return schijfHoek; }, get schijfW() { return schijfW; },
+      get schijfHoek() { return schijfHoek; }, get schijfW() { return schijfW; }, get blokT() { return blokT; },
       get springtij() { return springtij(); }, get slagNr() { return slagNr; },
       stap, gooi, luik, superduw, ring, vul, bewaar, laad, aantal,
       get zf() { return zf; }, get vp() { return vp; }, get t() { return t; }, get fase() { return fase; },
@@ -3247,7 +3352,7 @@ function HULPJE(self, MF) {
         const M = new Uint8Array(sim.md), S = nieuw.length ? new Uint8Array(sim.soort) : null;
         const over = [P.buffer, Q.buffer, M.buffer];
         if (S) over.push(S.buffer);
-        stuur({ doe: 'staat', P, Q, M, S, nieuw, ev, ms, n: gedaan, st, zf: sim.zf, vp: sim.vp, hoek: sim.schijfHoek, w: sim.schijfW, tij: sim.springtij, slag: sim.slagNr, hoogste: sim.hoogste, tel: { uit: sim.tel.uit, zij: sim.tel.zij, in: sim.tel.in }, aantal: sim.aantal() }, over);
+        stuur({ doe: 'staat', P, Q, M, S, nieuw, ev, ms, n: gedaan, st, zf: sim.zf, vp: sim.vp, hoek: sim.schijfHoek, w: sim.schijfW, bt: sim.blokT, tij: sim.springtij, slag: sim.slagNr, hoogste: sim.hoogste, tel: { uit: sim.tel.uit, zij: sim.tel.zij, in: sim.tel.in }, aantal: sim.aantal() }, over);
       } else if (d.doe === 'bewaar') {
         if (!sim) return;
         // eerst wat er nog in de gleuf moest (dan klopt de stapel precies met je munten), dan de stapel zelf
@@ -3273,8 +3378,8 @@ function ROMMELECO() {
   const KAARTJE_ELKE = 20;                                   // na elke 20 munten die je erin gooit, legt de kast er een kaartje bij
   const KAARTJES = [5, 10, 25, 50, 100, 250];               // wat er op een kaartje staat (soort 10 tot en met 15)
   const KAARTJE_KANS = [3500, 3000, 2000, 1000, 400, 100];  // de kans per kaartje, van de 10.000 (gemiddeld 21,25 per kaartje)
-  const KASTEN = ['klassiek', 'maan', 'flipper', 'molen'];
-  const KAST_PRIJS = [0, 2000, 8000, 18000];                 // de tweede, derde en vierde kast die je opent
+  const KASTEN = ['klassiek', 'maan', 'flipper', 'molen', 'ruitenwisser'];   // nieuwe kasten altijd achteraan
+  const KAST_PRIJS = [0, 2000, 8000, 18000, 30000];          // de tweede, derde, vierde en vijfde kast die je opent
   const VOORWERP_PRIJS = 600, GOUD_PRIJS = 5000, DUBBEL = 25, OPDRACHT = 100, DAGPRIJS_ELKE = 3;
   const SOORT_KAARTJE = 10, SOORT_VOORWERP = 32;
   // de verzameling: 24 voorwerpen in twee series, edelstenen en bijzondere munten (nieuwe altijd achteraan; verander nooit een nummer)
@@ -3337,6 +3442,9 @@ function ROMMELECO() {
   const RAD = ['duw', 'munt', 'kaartje', 'duw', 'munt', 'regen', 'duw', 'kaartje', 'ster', 'duw', 'munt', 'kaartjes', 'duw', 'munt', 'duw', 'kaartje'];
   const RAD_NAAM = { duw: 'Superduw', munt: 'Een munt', kaartje: 'Een kaartje', regen: 'Muntenregen: 5 munten', kaartjes: '3 kaartjes', ster: 'Jackpot-kans' };
   const JACKPOT = 6;   // op de ster: 1 op 6 is een prijs
+  // het lichtjesrad van de Ruitenwisser: 32 lampjes rond een teller; waar het licht stopt, zoveel munten (de ster: 1 op 3 een prijs, anders 3 kaartjes)
+  const LICHT = [50, 5, 5, 10, 5, 5, 20, 5, 5, 10, 5, 5, 'ster', 5, 5, 10, 5, 5, 20, 5, 5, 10, 5, 5, 10, 5, 5, 20, 5, 5, 10, 5];
+  const LICHT_STER = 3;
   const KANT = 80;   // links: x < -80, rechts: x > 80, midden: daartussen (in mm, de kast is 480 breed)
 
   // ---- hulpjes
@@ -3492,6 +3600,16 @@ function ROMMELECO() {
     return uit;
   }
 
+  // het lichtjesrad van de Ruitenwisser (net als het rad: telt als een draai)
+  function lichtDraai(s, kast, r1, r2) {
+    const vak = Math.min(LICHT.length - 1, Math.floor(r1 * LICHT.length)), w = LICHT[vak];
+    s.st.rad = (s.st.rad || 0) + 1;
+    tel(s, 'rad', 1);
+    const uit = { vak, munten: typeof w === 'number' ? w : 0, ster: w === 'ster', prijs: null };
+    if (uit.ster && Math.floor(r2 * LICHT_STER) === 0) { uit.prijs = kiesVoorwerp(s, kast, (r2 * LICHT_STER) % 1) || { soort: SOORT_KAARTJE + 5 }; s.st.prijs = (s.st.prijs || 0) + 1; }
+    return uit;
+  }
+
   // ---- de Prijzenkraam
   const kastPrijs = (s) => (s.open.length < KASTEN.length ? KAST_PRIJS[s.open.length] : null);
   function koopKast(s, naam) {
@@ -3524,7 +3642,7 @@ function ROMMELECO() {
   function naBewaren(s, kast, som, h) { const r = rec(s, kast); r.mm = som.n; r.kk = som.k.slice(0, 400); r.vw = som.v.slice(); r.h = h; }
 
   return { START, POT_DAG, POT_MAX, KAARTJE_ELKE, KAARTJES, KAARTJE_KANS, KASTEN, KAST_PRIJS, VOORWERP_PRIJS, GOUD_PRIJS, DUBBEL, OPDRACHT, DAGPRIJS_ELKE,
-    SOORT_KAARTJE, SOORT_VOORWERP, VOORWERPEN, SERIES, MOOI, OPDRACHTEN, KANT, RAD, RAD_NAAM, JACKPOT, kiesVoorwerp, radDraai,
+    SOORT_KAARTJE, SOORT_VOORWERP, VOORWERPEN, SERIES, MOOI, OPDRACHTEN, KANT, RAD, RAD_NAAM, JACKPOT, LICHT, LICHT_STER, kiesVoorwerp, radDraai, lichtDraai,
     dagVan, vinger, nieuw, lees, rec, vulPot, pakPot, gooi, trekKaartje, soortVan, binnen, zijgoot, opdrachtenVan, opVandaag, tel, ontbreekt, dagprijs,
     kastPrijs, koopKast, koopVoorwerp, koopMooi, kies, koopGoud, naBewaren };
 }
@@ -3566,6 +3684,7 @@ const THEMA = {
   klassiek: { lak: '#B0222E', naam: 'Rommelschuiver', band: '★ ROMMELSCHUIVER ★', bandKl: ['#C8323C', '#FFE9A8'], neon: [255, 60, 170], neonKern: '#FFDCF0', boog: ['#D8343F', '#F3C451'], streep: '#C8323C', binnen: '#F1E6C8', embleem: 1, hue: 0.92 },
   maan: { lak: '#1D2A5E', naam: 'Halvemaan', band: '☾ HALVEMAAN ☾', bandKl: ['#22306A', '#DCE6FF'], neon: [80, 190, 255], neonKern: '#E2F4FF', boog: ['#1E2C66', '#B8C8F0'], streep: '#2A3C86', binnen: '#E4EAF6', embleem: 2, hue: 0.56 },
   flipper: { lak: '#18793E', naam: 'Flipperkast', band: '▶ FLIPPERKAST ◀', bandKl: ['#18793E', '#FFE14D'], neon: [255, 210, 40], neonKern: '#FFF8D0', boog: ['#1B8A46', '#FFD23E'], streep: '#18793E', binnen: '#F4F0D6', embleem: 0, hue: 0.14 },
+  ruitenwisser: { lak: '#0F7F92', naam: 'Ruitenwisser', band: '☂ RUITENWISSER ☂', bandKl: ['#0F7F92', '#FFF3B0'], neon: [60, 220, 255], neonKern: '#E6FBFF', boog: ['#2BA9D6', '#FFD23E'], streep: '#0F7F92', binnen: '#E8F6F8', embleem: 2, hue: 0.52 },
   molen: { lak: '#6C2A86', naam: 'Draaimolen', band: '✿ DRAAIMOLEN ✿', bandKl: ['#8A2E7C', '#FFE6A8'], neon: [255, 140, 60], neonKern: '#FFF0E0', boog: ['#E9E2CF', '#D8343F'], streep: '#D8343F', binnen: '#FFF3DC', embleem: 1, hue: 0.07 },
 };
 const TH = Object.assign({}, THEMA[KAST]);
@@ -3780,6 +3899,7 @@ function vloerPrint(w, h) {
   if (KAST === 'maan') return vloerMaan(w, h);
   if (KAST === 'flipper') return vloerFlipper(w, h);
   if (KAST === 'molen') return vloerMolen(w, h);
+  if (KAST === 'ruitenwisser') return vloerRuit(w, h);
   const c = maakDoek(w, h), g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 0, h); grad.addColorStop(0, '#8e959e'); grad.addColorStop(1, '#a7aeb6');
   g.fillStyle = grad; g.fillRect(0, 0, w, h);
@@ -3795,6 +3915,7 @@ function pinnenbord(w, h) {
   if (KAST === 'maan') return bordMaan(w, h);
   if (KAST === 'flipper') return bordFlipper(w, h);
   if (KAST === 'molen') return bordMolen(w, h);
+  if (KAST === 'ruitenwisser') return bordRuit(w, h);
   const c = maakDoek(w, h), g = c.getContext('2d');
   g.fillStyle = '#1B2A6B'; g.fillRect(0, 0, w, h);
   const cx = w / 2, cy = h * 1.08;
@@ -3906,6 +4027,60 @@ function vlekjes(w, h) {
 const tex = (c, rep) => { const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; } return t; };
 const ster5 = (g, x, y, r, kl) => { g.fillStyle = kl; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } g.fill(); };
 const pijlen = (g, w, h, kl) => { g.fillStyle = kl; for (let x = w / 14; x < w; x += w / 7) { g.beginPath(); g.moveTo(x - w / 40, h * 0.86); g.lineTo(x + w / 40, h * 0.86); g.lineTo(x, h * 0.95); g.closePath(); g.fill(); } };
+function vloerRuit(w, h) {
+  // de vloer van de Ruitenwisser: natte blauwe tegeltjes met druppels, en gele pijltjes naar de rand
+  // (het plaatje is 480 mm breed en 330 mm diep: een tegel van 30 mm is dus breder dan hoog in pixels)
+  const c = maakDoek(w, h), g = c.getContext('2d'), sx = w / 480, sz = h / 330;
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#24708C'); gr.addColorStop(1, '#3B9DBA'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  const TX = 30 * sx, TY = 30 * sz;
+  for (let y = 0; y < h; y += TY) for (let x = 0; x < w; x += TX) {
+    g.fillStyle = `rgba(${rnd() < 0.5 ? '255,255,255' : '10,40,70'},${0.03 + rnd() * 0.07})`; g.fillRect(x + 2, y + 2, TX - 4, TY - 4);
+    g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(x + 3, y + 3, TX - 6, TY * 0.12);
+  }
+  g.strokeStyle = 'rgba(8,36,56,.45)'; g.lineWidth = 2.2;
+  for (let x = 0; x <= w; x += TX) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  for (let y = 0; y <= h; y += TY) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+  // druppels: een donker randje, licht van boven en een glimmertje
+  for (let k = 0; k < 150; k++) {
+    const x = rnd() * w, y = rnd() * h * 0.9, r = (1.5 + rnd() * 3.5) * sx;
+    g.save(); g.translate(x, y); g.scale(1, sz / sx);
+    const dg = g.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r); dg.addColorStop(0, 'rgba(230,250,255,.75)'); dg.addColorStop(0.7, 'rgba(150,210,235,.35)'); dg.addColorStop(1, 'rgba(10,50,80,.45)');
+    g.fillStyle = dg; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(-r * 0.35, -r * 0.35, r * 0.22, 0, Math.PI * 2); g.fill();
+    g.restore();
+  }
+  pijlen(g, w, h, 'rgba(255,214,74,.9)');
+  g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = h * 0.012; g.beginPath(); g.moveTo(0, h * 0.975); g.lineTo(w, h * 0.975); g.stroke();
+  return tex(c);
+}
+function bordRuit(w, h) {
+  // de achterwand van de Ruitenwisser: een regenboog tussen de wolken, met regen links en de zon rechts
+  const c = maakDoek(w, h), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#5FC4EC'); gr.addColorStop(1, '#D4F3FF'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  // de zon
+  const zx = w * 0.84, zy = h * 0.24, zr = h * 0.11;
+  stralen(g, zx, zy, 18, h * 0.5, 'rgba(255,236,140,.55)', 'rgba(255,236,140,0)');
+  const zg = g.createRadialGradient(zx, zy, zr * 0.2, zx, zy, zr); zg.addColorStop(0, '#FFF6B8'); zg.addColorStop(1, '#FFC93C'); g.fillStyle = zg; g.beginPath(); g.arc(zx, zy, zr, 0, Math.PI * 2); g.fill();
+  // de regenboog
+  const kl = ['#E53B3B', '#F28A2E', '#F7D43A', '#3DBA5A', '#2E8FD8', '#7A4FC4'];
+  const bx = w / 2, by = h * 1.18, R = h * 1.0, dr = h * 0.075;
+  kl.forEach((k, i) => { g.strokeStyle = k; g.lineWidth = dr + 1; g.beginPath(); g.arc(bx, by, R - i * dr, Math.PI, Math.PI * 2); g.stroke(); });
+  // wolken (wit met een grijzig randje onderaan)
+  const wolk = (x, y, s) => {
+    for (const [a, b, r] of [[-1.1, 0.15, 0.55], [-0.45, -0.2, 0.75], [0.35, -0.3, 0.85], [1.05, 0.05, 0.6], [0, 0.2, 0.7]]) {
+      const cg = g.createRadialGradient(x + a * s, y + (b - 0.25) * s, r * s * 0.2, x + a * s, y + b * s, r * s);
+      cg.addColorStop(0, '#FFFFFF'); cg.addColorStop(0.75, '#F3F8FC'); cg.addColorStop(1, '#C9D8E4');
+      g.fillStyle = cg; g.beginPath(); g.arc(x + a * s, y + b * s, r * s, 0, Math.PI * 2); g.fill();
+    }
+  };
+  // regen uit de wolk linksboven
+  g.strokeStyle = 'rgba(40,110,190,.55)'; g.lineCap = 'round';
+  for (let k = 0; k < 70; k++) { const x = w * 0.04 + rnd() * w * 0.3, y = h * 0.25 + rnd() * h * 0.6, L = h * (0.03 + rnd() * 0.04); g.lineWidth = 2 + rnd() * 1.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x - L * 0.3, y + L); g.stroke(); }
+  wolk(w * 0.2, h * 0.2, h * 0.14);
+  wolk(w * 0.08, h * 0.9, h * 0.13); wolk(w * 0.92, h * 0.9, h * 0.13);
+  g.strokeStyle = '#FFF3B0'; g.lineWidth = h * 0.03; g.strokeRect(h * 0.02, h * 0.02, w - h * 0.04, h - h * 0.04);
+  return tex(c);
+}
 function vloerMaan(w, h) {
   // nachtblauw staal met zilveren sterretjes, een maan en lichtblauwe pijltjes
   const c = maakDoek(w, h), g = c.getContext('2d');
@@ -4207,7 +4382,7 @@ const MAT = {};
 function maakMaterialen() {
   const ruwStaal = geborsteld(256, 512);
   MAT.staal = new THREE.MeshStandardMaterial({ color: lin('#D3D8DE'), metalness: 0.9, roughness: 0.5, roughnessMap: ruwStaal });
-  MAT.vloer = new THREE.MeshStandardMaterial({ color: 0xffffff, map: vloerPrint(1024, 512), metalness: { klassiek: 0.75, maan: 0.6, flipper: 0.15, molen: 0.05 }[KAST], roughness: KAST === 'molen' ? 0.7 : 0.52, roughnessMap: KAST === 'molen' ? null : ruwStaal });
+  MAT.vloer = new THREE.MeshStandardMaterial({ color: 0xffffff, map: vloerPrint(1024, 512), metalness: { klassiek: 0.75, maan: 0.6, flipper: 0.15, molen: 0.05, ruitenwisser: 0.2 }[KAST], roughness: KAST === 'molen' ? 0.7 : 0.52, roughnessMap: KAST === 'molen' ? null : ruwStaal });
   MAT.zijPrint = new THREE.MeshStandardMaterial({ map: zijPrint(512, 512), metalness: 0.1, roughness: 0.45 });
   MAT.chroom = new THREE.MeshStandardMaterial({ color: lin('#B9BEC6'), metalness: 1, roughness: 0.12, roughnessMap: ruwStaal, envMapIntensity: 1.1 });
   MAT.chroomDonker = new THREE.MeshStandardMaterial({ color: lin('#8C929C'), metalness: 1, roughness: 0.28, roughnessMap: ruwStaal });
@@ -4418,6 +4593,30 @@ function bouwKast() {
     kast.add(G.schijf);
     const schijfRand = new THREE.Mesh(new THREE.TorusGeometry(S.r + 1.5, 1.6, 8, 72), MAT.chroom); schijfRand.rotation.x = Math.PI / 2; schijfRand.position.set(S.x, 0.3, S.z); kast.add(schijfRand);
   }
+  // de blokken op de onderste verdieping (de arm van de Ruitenwisser en zijn spil): ze bewegen mee met de natuurkunde
+  if (KV.blokken.length) {
+    G.blokken = [];
+    const rubber = new THREE.MeshStandardMaterial({ color: lin('#1C1E24'), roughness: 0.85, metalness: 0 });
+    const kleur = new THREE.MeshStandardMaterial({ color: lin(TH.lak), roughness: 0.3, metalness: 0.2 });
+    KV.blokken.forEach((b) => {
+      const grp = new THREE.Group(); kast.add(grp); G.blokken.push(grp);
+      if (b.soort === 'arm') {
+        // een stang met ronde uiteinden: chroom, met een zwarte rubberen wisser onderaan en een gekleurde kap erop
+        const L = b.lengte / 2 + b.dik, D = b.dik;
+        const vorm = (l, d) => { const v = new THREE.Shape(); v.absarc(l - d, 0, d, -Math.PI / 2, Math.PI / 2, false); v.absarc(-l + d, 0, d, Math.PI / 2, Math.PI * 1.5, false); return v; };
+        const lijf = new THREE.ExtrudeGeometry(vorm(L, D), { depth: b.h - 4, bevelEnabled: false, curveSegments: 10 }); lijf.rotateX(-Math.PI / 2); lijf.translate(0, 3, 0);
+        const wis = new THREE.ExtrudeGeometry(vorm(L + 0.6, D + 0.6), { depth: 3, bevelEnabled: false, curveSegments: 10 }); wis.rotateX(-Math.PI / 2);
+        const kap = new THREE.ExtrudeGeometry(vorm(L - 1, D - 1.2), { depth: 1.6, bevelEnabled: true, bevelThickness: 0.8, bevelSize: 0.8, bevelSegments: 2, curveSegments: 10 }); kap.rotateX(-Math.PI / 2); kap.translate(0, b.h - 1, 0);
+        for (const [g_, m] of [[lijf, MAT.chroom], [wis, rubber], [kap, kleur]]) { const mm = new THREE.Mesh(g_, m); mm.castShadow = KW.schaduw > 0; mm.receiveShadow = true; grp.add(mm); }
+      } else {
+        // de spil: een chromen paal met een gekleurde kap en een lampje
+        const r = Math.min(b.b, b.d), paal = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 1.5, b.h, 24, 1), MAT.chroom); paal.position.y = b.h / 2; paal.castShadow = KW.schaduw > 0; grp.add(paal);
+        const dop = new THREE.Mesh(new THREE.SphereGeometry(r * 0.95, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), kleur); dop.position.y = b.h; grp.add(dop);
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(2.6, 10, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.8, 0.6) })); lamp.position.y = b.h + r * 0.95; grp.add(lamp);
+      }
+    });
+    zetBlokken(0);
+  }
   // het verlichte voorpaneel onder de bak
   const vp = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW + 40, 110), MAT.voorpaneel);
   vp.position.set(0, -178, 140.6); kast.add(vp);
@@ -4602,6 +4801,20 @@ function bouwKast() {
     G.score = maakScore();
     const sc = new THREE.Mesh(new THREE.PlaneGeometry(280, 50), new THREE.MeshBasicMaterial({ map: G.score.tex })); sc.position.set(0, 34, 26); kop.add(sc);
     for (let k = 0; k <= 16; k++) lampPos.push([-KB + 10 + k * (2 * KB - 20) / 16, 888 + 176, 22]);
+  } else if (KAST === 'ruitenwisser') {
+    // een regenboog bovenop, tussen twee wolken, met lampjes langs de buitenste boog
+    const kl = ['#E53B3B', '#F28A2E', '#F7D43A', '#3DBA5A', '#2E8FD8', '#7A4FC4'], RB = 250, DB = 11;
+    G.regenboog = [];
+    kl.forEach((k, i) => {
+      const m = new THREE.MeshStandardMaterial({ color: lin(k), roughness: 0.35, metalness: 0.1, emissive: lin(k), emissiveIntensity: 0.35 });
+      const b = new THREE.Mesh(new THREE.TorusGeometry(RB - i * DB, DB / 2 + 0.6, 10, 72, Math.PI), m); b.position.set(0, 892, 24); kast.add(b); G.regenboog.push(m);
+    });
+    const wolkM = new THREE.MeshStandardMaterial({ color: lin('#F6FAFF'), roughness: 0.95, metalness: 0 });
+    for (const s of [-1, 1]) {
+      const w = new THREE.Group(); w.position.set(s * (RB - 30), 900, 34); kast.add(w);
+      for (const [x, y, z, r] of [[-38, 0, 0, 30], [0, 16, 4, 40], [40, 2, 0, 32], [16, -10, 18, 28], [-20, -10, 16, 26]]) { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), wolkM); b.position.set(s * x, y, z); w.add(b); }
+    }
+    for (let k = 0; k <= 26; k++) { const a = Math.PI * k / 26; lampPos.push([Math.cos(a) * (RB + 10), 892 + Math.sin(a) * (RB + 10), 30]); }
   } else if (KAST === 'molen') {
     // een draaimolen bovenop: een gestreept dak, een rand met lampjes en paardjes die op en neer gaan (draait mee met de schijf)
     const R = 250, dakY = 78;
@@ -4991,7 +5204,7 @@ function zetCamera() {
   const a = camera.aspect, z = kijk.zoom;
   const t = Math.max(0, Math.min(1, (1.25 - a) / 0.75));            // 0 liggend, 1 staand
   // de hele kast (zoom 0) of dichter op het speelveld (zoom 1)
-  const extra = { klassiek: 0, maan: 0, flipper: 45, molen: 60 }[KAST] * (1 - t);   // de kop van de Flipperkast en de Draaimolen is hoger
+  const extra = { klassiek: 0, maan: 0, flipper: 45, molen: 60, ruitenwisser: 70 }[KAST] * (1 - t);   // de kop van de Flipperkast en de Draaimolen is hoger
   const doel = new THREE.Vector3(0, (360 + extra - t * 170) * (1 - z) + 25 * z, (-150 - t * 10) * (1 - z) - 160 * z);
   const richting = new THREE.Vector3(kijk.x * 0.12, 0.47 + z * 0.43 + kijk.y * 0.05, 1).normalize();
   const W = (660 - t * 100) * (1 - z) + (470 - t * 170) * z, Hh = (1260 + 2 * extra) * (1 - z) + 430 * z;
@@ -5084,6 +5297,11 @@ function zetMunten() {
   }
   G.schuiver.position.z = S.zf;
   if (G.schijf) G.schijf.rotation.z = -(S.hoek || 0);
+  if (G.blokken) zetBlokken(S.bt || 0);
+}
+function zetBlokken(T) {
+  const blokBuf = G.blokBuf || (G.blokBuf = new Float64Array(8));
+  G.blokken.forEach((grp, k) => { KV.blokStand(k, T, blokBuf, 0); grp.position.set(blokBuf[0], 0, blokBuf[1]); grp.rotation.y = Math.atan2(-blokBuf[3], blokBuf[2]); });
 }
 const NUL4 = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -5467,7 +5685,7 @@ function vanHulpje(d) {
     const oudP = S.P, oudQ = S.Q;
     if (!S.Pvorig || S.Pvorig.length !== d.P.length) S.Pvorig = new Float32Array(d.P.length);
     if (oudP) S.Pvorig.set(oudP);
-    S.P = d.P; S.Q = d.Q; S.M = d.M; S.hoogste = d.hoogste; S.zf = d.zf; S.vp = d.vp; S.st = d.st; S.aantal = d.aantal; S.hoek = d.hoek || 0; S.w = d.w || 0; S.slag = d.slag || 0;
+    S.P = d.P; S.Q = d.Q; S.M = d.M; S.hoogste = d.hoogste; S.zf = d.zf; S.vp = d.vp; S.st = d.st; S.aantal = d.aantal; S.hoek = d.hoek || 0; S.w = d.w || 0; S.slag = d.slag || 0; S.bt = d.bt || 0;
     if (d.tij && !S.tij) { geluid.golf(); $('#rs-meld').textContent = S.superMeld ? 'Superduw! De schuiver duwt nu extra ver.' : 'Springtij! De schuiver duwt nu extra ver.'; }
     if (!d.tij && S.tij) S.superMeld = false;
     S.tij = !!d.tij;
@@ -5619,11 +5837,12 @@ let gooiKlok = 0, gooiKlaarOp = 0;
 // zit de kast te vol, dan neemt de gleuf even niets aan (anders wordt de stapel een berg en het rekenen te zwaar)
 const VOL_GRENS = 1250;
 // de eerste stapel van een kast: zoveel kaartjes erop, en waar de muntenringen staan ([x, z, lagen van 8 munten])
-const START_KAARTJES = { klassiek: 10, maan: 12, flipper: 14, molen: 16 };
+const START_KAARTJES = { klassiek: 10, maan: 12, flipper: 14, molen: 16, ruitenwisser: 18 };
 const RINGEN = {
   maan: [[-110, -115, 10], [110, -115, 10]],
   flipper: [[-75, -140, 10], [75, -140, 10], [0, -88, 10]],
   molen: [[0, -102, 10], [-172, -125, 10], [172, -125, 10]],
+  ruitenwisser: [[-172, -150, 10], [172, -150, 10]],
 };
 // speel je 5 minuten niet, dan maakt de schuiver zijn slag af en rust hij (daarna rekent en tekent het spel niets meer)
 const RUST_NA = 5 * 60 * 1000;
@@ -5718,7 +5937,8 @@ function verbergHint() { if (hintWeg) return; hintWeg = true; setTimeout(() => $
 // de Prijzenpoort en het Rad: een poortje schuift heen en weer in de gleuf; valt je munt erdoorheen, dan draait het rad
 // (wat het rad geeft, bepaalt echt toeval: ECO.radDraai; de kansen staan bij 'Eerlijk?' in de kraam)
 // ---------------------------------------------------------------------------------------------
-const POORT = { y: 198, a: 188, periode: 6.5, half: 13, rust: 25000 };
+// (bij de Ruitenwisser is het poortje na een draai langer dicht: het lichtjesrad geeft meer)
+const POORT = { y: 198, a: 188, periode: 6.5, half: 13, rust: KAST === 'ruitenwisser' ? 55000 : 25000 };
 const poortX = (t) => POORT.a * Math.sin(2 * Math.PI * t / POORT.periode);
 const PT = { draait: false, openVanaf: 0, rustVan: 0, uit: null, spin: null, flits: 0 };
 const poortOpen = () => !PT.draait && performance.now() >= PT.openVanaf;
@@ -5764,6 +5984,117 @@ function jackpotPrint(n) {
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
   return t;
 }
+// ---- het lichtjesrad van de Ruitenwisser: 32 lampjes met getallen, en in het midden een teller
+const LICHT_KLEUR = { 5: '#FFE066', 10: '#FFB23E', 20: '#FF7A3D', 50: '#E5303B', ster: '#8A3FD0' };
+function lichtPrint(n) {
+  const c = maakDoek(n, n), g = c.getContext('2d'), m = n / 2, Rc = n * 0.49, f = Rc / 54;   // f: pixels per mm (de schijf is 54 mm)
+  const stap = Math.PI * 2 / ECO.LICHT.length;
+  g.fillStyle = '#12233A'; g.beginPath(); g.arc(m, m, Rc, 0, Math.PI * 2); g.fill();
+  ECO.LICHT.forEach((w, k) => {
+    const a = -Math.PI / 2 + k * stap;
+    g.beginPath(); g.arc(m, m, Rc * 0.985, a - stap / 2, a + stap / 2); g.arc(m, m, 39 * f, a + stap / 2, a - stap / 2, true); g.closePath();
+    g.fillStyle = LICHT_KLEUR[w]; g.fill(); g.strokeStyle = '#12233A'; g.lineWidth = n * 0.004; g.stroke();
+    g.save(); g.translate(m, m); g.rotate(a + Math.PI / 2); g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = w === 50 || w === 'ster' ? '#FFFFFF' : '#3A1E08';
+    g.font = `900 ${Math.round((w === 50 ? 8.5 : w === 'ster' ? 9 : 7) * f)}px "Bricolage Grotesque", system-ui, sans-serif`;
+    g.fillText(w === 'ster' ? '★' : String(w), 0, -46.5 * f); g.restore();
+    // het fitting van het lampje
+    g.fillStyle = '#0A1626'; g.beginPath(); g.arc(m + Math.cos(a) * 33 * f, m + Math.sin(a) * 33 * f, 2.6 * f, 0, Math.PI * 2); g.fill();
+  });
+  // de teller in het midden
+  g.fillStyle = '#FFE066'; g.font = `800 ${Math.round(4.6 * f)}px "Bricolage Grotesque", system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('MUNTEN', m, m - 12 * f);
+  g.fillStyle = '#05080E'; g.beginPath(); g.roundRect ? g.roundRect(m - 17 * f, m - 7.5 * f, 34 * f, 15 * f, 3 * f) : g.rect(m - 17 * f, m - 7.5 * f, 34 * f, 15 * f); g.fill();
+  g.fillStyle = '#FFE066'; g.fillText('BONUS', m, m + 12.5 * f);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+  return t;
+}
+function zetTeller(waarde) {
+  const T = G.teller; if (!T || T.nu === waarde) return;
+  T.nu = waarde;
+  const g = T.g, w = T.doek.width, h = T.doek.height;
+  g.fillStyle = '#05080E'; g.fillRect(0, 0, w, h);
+  g.font = `700 ${Math.round(h * 0.82)}px ui-monospace, "Courier New", monospace`; g.textAlign = 'right'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(255,40,40,.13)'; g.fillText('888', w * 0.94, h * 0.54);
+  g.fillStyle = '#FF3B30'; g.shadowColor = '#FF3B30'; g.shadowBlur = h * 0.18; g.fillText(String(waarde), w * 0.94, h * 0.54); g.shadowBlur = 0;
+  T.tex.needsUpdate = true; teken = true;
+}
+function bouwLichtjes(goud) {
+  const R = 54, y = 128, n = ECO.LICHT.length;
+  G.rad = new THREE.Group(); G.rad.position.set(0, y, MK.ZW + 0.8); scene.add(G.rad);
+  G.rad.add(new THREE.Mesh(new THREE.CircleGeometry(R, 72), new THREE.MeshBasicMaterial({ map: lichtPrint(512), color: new THREE.Color(0.95, 0.95, 0.95) })));
+  G.rad.add(new THREE.Mesh(new THREE.TorusGeometry(R + 1.2, 2.4, 8, 72), goud));
+  G.licht = new THREE.InstancedMesh(new THREE.SphereGeometry(2.2, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }), n);
+  for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2; G.licht.setMatrixAt(k, new THREE.Matrix4().makeTranslation(Math.sin(a) * 33, Math.cos(a) * 33, 1.2)); G.licht.setColorAt(k, new THREE.Color(0.5, 0.12, 0.08)); }
+  G.rad.add(G.licht);
+  const doek = maakDoek(192, 80), tex = new THREE.CanvasTexture(doek); tex.encoding = THREE.sRGBEncoding;
+  G.teller = { doek, g: doek.getContext('2d'), tex, nu: null };
+  const scherm = new THREE.Mesh(new THREE.PlaneGeometry(32, 13.4), new THREE.MeshBasicMaterial({ map: tex })); scherm.position.set(0, 0, 0.5); G.rad.add(scherm);
+  zetTeller(0);
+}
+// het licht loopt rond en stopt op een vakje (de uitkomst ligt meteen vast, echt toeval)
+function draaiLicht() {
+  PT.draait = true; PT.flits = performance.now() + 500;
+  const uit = ECO.lichtDraai(eco, KAST, geheim(), geheim());
+  PT.uit = uit; S.bewaarNodig = true;
+  const n = ECO.LICHT.length, van = PT.lichtPos || 0, verder = ((uit.vak - van) % n + n) % n;
+  PT.licht = { van, stappen: (MINDER ? 0 : 3 * n) + verder + (verder === 0 && MINDER ? n : 0), begin: performance.now(), duur: MINDER ? 500 : 4200, tik: van, klaar: 0 };
+  geluid.ding(1);
+  $('#rs-meld').textContent = 'Door de poort! Het lichtjesrad draait.';
+  melding('Door de poort! De lichtjes lopen rond…', null, 2400);
+  wek();
+}
+function lichtKlaar() {
+  const u = PT.uit, eind = () => { PT.draait = false; PT.rustVan = performance.now(); PT.openVanaf = PT.rustVan + POORT.rust; zetHud(); S.bewaarNodig = true; wek(); };
+  if (eco.net) { for (const t of eco.net) melding('Opdrachtje klaar: ' + t + '. +' + ECO.OPDRACHT + ' kaartjes!', null, 5000); delete eco.net; S.opNieuw = true; }
+  if (u.munten) {
+    // de munten komen een voor een uit het luikje, en de teller telt af
+    const n = u.munten, t = n >= 20 ? '★ ' + n + ' munten! ★' : '+' + n + ' munten uit het luikje!';
+    melding(t, null, 2500 + n * 60); $('#rs-meld').textContent = n + ' munten uit het luikje.';
+    if (n >= 20) { PT.flits = performance.now() + 2500; [0, 2, 4, 2, 4].forEach((k, q) => setTimeout(() => geluid.ding(k), q * 130)); }
+    zetTeller(n);
+    for (let k = 0; k < n; k++) setTimeout(() => {
+      S.gooiLijst.push([(geheim() - 0.5) * 80, k % 3, 1]); G.luikTot = performance.now() + 700; S.bewaarNodig = true; wek();
+      zetTeller(n - k - 1); if (k % 5 === 4) geluid.ding(3);
+      if (k === n - 1) eind();
+    }, 300 + k * 140);
+    return;
+  }
+  if (u.prijs) {
+    luikPrijs(u.prijs.soort);
+    const t = u.prijs.id !== undefined ? 'JACKPOT! ' + ECO.VOORWERPEN[u.prijs.id].naam + ' komt uit het luikje!' : 'JACKPOT! Een gouden kaartje van 250!';
+    melding(t, u.prijs.id !== undefined ? plaatje('voorwerp', u.prijs.id, 96) : plaatje('kaartje', 5, 48), 6000); $('#rs-meld').textContent = t;
+    PT.flits = performance.now() + 2500;
+  } else { luikRij([radKaartje(), radKaartje(), radKaartje()]); melding('De ster: 3 kaartjes uit het luikje!', plaatje('kaartje', 3, 48), 3000); $('#rs-meld').textContent = '3 kaartjes uit het luikje.'; }
+  eind();
+}
+function updateLicht(t) {
+  const n = ECO.LICHT.length, L = PT.licht;
+  let pos = PT.lichtPos || 0;
+  if (L) {
+    const f = Math.min(1, (t - L.begin) / L.duur), e = 1 - Math.pow(1 - f, 3);
+    pos = (L.van + Math.floor(L.stappen * e + 1e-9)) % n;
+    if (pos !== L.tik && !MINDER) { L.tik = pos; geluid.tik(0.1 + 0.2 * (1 - e), 'staal'); }
+    if (f >= 1) { pos = PT.uit.vak; if (!L.klaar) { L.klaar = t; PT.flits = t + 1300; } else if (t - L.klaar > 1300) { PT.licht = null; lichtKlaar(); } }
+    PT.lichtPos = pos;
+  }
+  for (let k = 0; k < n; k++) {
+    let r, g, b;
+    if (L) {
+      const achter = (pos - k + n) % n;
+      if (L.klaar) { const aan = k === pos && (MINDER || Math.floor(t / 110) % 2 === 0); r = aan ? 3 : 0.35; g = aan ? 2.6 : 0.08; b = aan ? 1.2 : 0.06; }
+      else if (achter === 0) { r = 3; g = 2.6; b = 1.2; } else if (achter < 4) { r = 2.2 - achter * 0.5; g = 0.5; b = 0.2; } else { r = 0.35; g = 0.08; b = 0.06; }
+    } else if (PT.draait) { r = 2; g = 0.4; b = 0.2; }
+    else {
+      // in rust: allemaal zacht rood, en af en toe loopt er een lichtje rond (in rust na een draai: langzaam vollopen)
+      const open = poortOpen();
+      if (!open) { const vol = (t - PT.rustVan) / POORT.rust; const aan = k / n < vol; r = aan ? 1.4 : 0.3; g = aan ? 0.3 : 0.07; b = 0.06; }
+      else { const kop = MINDER ? -1 : Math.floor(t / 60) % (n * 3); const d = (kop - k + n * 3) % (n * 3); const aan = d < 3; r = aan ? 2.6 - d * 0.6 : 0.9; g = aan ? 1.6 - d * 0.4 : 0.2; b = aan ? 0.6 : 0.1; }
+    }
+    ptKleur.setRGB(r, g, b); G.licht.setColorAt(k, ptKleur);
+  }
+  G.licht.instanceColor.needsUpdate = true;
+}
 function bouwPoortEnRad() {
   const { XW, ZW, KD } = MK;
   const goud = new THREE.MeshStandardMaterial({ color: lin('#E9B949'), metalness: 0.95, roughness: 0.25 });
@@ -5775,6 +6106,8 @@ function bouwPoortEnRad() {
   G.poortLampen = new THREE.InstancedMesh(new THREE.SphereGeometry(1.5, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), 10);
   for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; G.poortLampen.setMatrixAt(k, new THREE.Matrix4().makeTranslation(Math.cos(a) * (POORT.half + 3), Math.sin(a) * (POORT.half + 3), 1.8)); G.poortLampen.setColorAt(k, new THREE.Color(1, 0.8, 0.3)); }
   G.poort.add(G.poortLampen);
+  // bij de Ruitenwisser: het lichtjesrad in plaats van het rad
+  if (KAST === 'ruitenwisser') { bouwLichtjes(goud); return; }
   // het rad (op de achterwand, boven het poortje)
   const R = 46, y = 128;
   G.rad = new THREE.Group(); G.rad.position.set(0, y, ZW + 0.8); scene.add(G.rad);
@@ -5802,6 +6135,7 @@ function poortKijk(n) {
 }
 // het rad draaien: de uitkomst ligt meteen vast (echt toeval), het draaien laat hem zien
 function draaiRad() {
+  if (G.licht) return draaiLicht();
   PT.draait = true; PT.flits = performance.now() + 500;
   const uit = ECO.radDraai(eco, KAST, geheim(), geheim());
   PT.uit = uit; S.bewaarNodig = true;
@@ -5860,6 +6194,7 @@ function updatePoort(t) {
     G.poortLampen.setColorAt(k, ptKleur);
   }
   G.poortLampen.instanceColor.needsUpdate = true;
+  if (G.licht) { updateLicht(t); teken = true; return; }
   // het rad
   if (PT.spin) {
     const s = PT.spin, f = Math.min(1, (t - s.begin) / s.duur), e = 1 - Math.pow(1 - f, 3), hoek = s.van + (s.naar - s.van) * e;
@@ -5892,7 +6227,7 @@ $('#rs-pot').addEventListener('click', () => {
   geluid.ding(3); zetHud(true); S.bewaarNodig = true; bewaarNu(); wek();
 });
 // hoeveel elke kast teruggeeft (gemeten met een robot die een kwartier lang elke seconde een munt gooit; zie het plan)
-const TERUG = { klassiek: 93, maan: 92, flipper: 93, molen: 92 };
+const TERUG = { klassiek: 93, maan: 92, flipper: 93, molen: 92, ruitenwisser: 83 };
 const kraam = $('#rs-kraam');
 let kraamTab = 'kraam';
 function openKraam(tab) {
@@ -5985,9 +6320,13 @@ function tekenKraam() {
   } else {
     const st = eco.st, terugJij = st.uit + st.zij ? Math.round(1000 * st.uit / (st.uit + st.zij)) / 10 : null;
     let h = '<p>Een muntenschuiver geeft nooit alles terug: wat over een zijkant valt, is voor de kast. Zo werken echte muntenschuivers ook. Hier is het eerlijk en openlijk: niets is verstopt.</p>';
-    h += '<h3>Wat de kasten teruggeven</h3><p class="rs-zacht">Van alles wat eruit valt, gaat dit deel in de trechter (de rest in de zijgoten). Gemeten met een robot die een half uur lang elke seconde een munt gooit (een meting schommelt ongeveer 1). Het rad van de Prijzenpoort geeft daar nog ongeveer 1 bij.</p><table class="rs-tabel"><tbody>' + ECO.KASTEN.map((k) => `<tr><td>${esc(MF.KASTEN[k].naam)}</td><td>ongeveer ${TERUG[k]} van de 100</td></tr>`).join('') + '</tbody></table>';
+    h += '<h3>Wat de kasten teruggeven</h3><p class="rs-zacht">Van alles wat eruit valt, gaat dit deel in de trechter (de rest in de zijgoten). Gemeten met een robot die een half uur lang elke seconde een munt gooit (een meting schommelt ongeveer 1). Het rad van de Prijzenpoort geeft daar nog ongeveer 1 bij. Bij de Ruitenwisser veegt de arm meer munten naar de zijkanten, maar het lichtjesrad stopt er veel munten bij: samen komt hij op ongeveer 91.</p><table class="rs-tabel"><tbody>' + ECO.KASTEN.map((k) => `<tr><td>${esc(MF.KASTEN[k].naam)}</td><td>ongeveer ${TERUG[k]} van de 100${k === 'ruitenwisser' ? ' (met het lichtjesrad ongeveer 91)' : ''}</td></tr>`).join('') + '</tbody></table>';
     const telRad = {}; ECO.RAD.forEach((w) => { telRad[w] = (telRad[w] || 0) + 1; });
     h += `<h3>Het rad van de Prijzenpoort</h3><p class="rs-zacht">Het rad heeft ${ECO.RAD.length} vakjes. Waar het stopt, beslist echt toeval. Op de ★ draait het hartje van het rad: 1 van de ${ECO.JACKPOT} vakjes is een prijs (een edelsteen of bijzondere munt die je nog niet hebt), anders krijg je een kaartje. Na elke draai is het poortje ${Math.round(POORT.rust / 1000)} seconden dicht.</p><table class="rs-tabel"><tbody>` + Object.keys(telRad).map((w) => `<tr><td>${esc(ECO.RAD_NAAM[w])}</td><td>${telRad[w]} van de ${ECO.RAD.length}</td></tr>`).join('') + `<tr><td>Een prijs (de ★ en dan het hartje)</td><td>1 op ${ECO.RAD.length * ECO.JACKPOT}</td></tr></tbody></table>`;
+    if (KAST === 'ruitenwisser') {
+      const telL = {}; ECO.LICHT.forEach((w) => { telL[w] = (telL[w] || 0) + 1; });
+      h += `<h3>Het lichtjesrad van de Ruitenwisser</h3><p class="rs-zacht">In deze kast draait er geen rad, maar lopen er lichtjes rond: ${ECO.LICHT.length} lampjes. Waar het licht stopt, beslist echt toeval. Zoveel munten komen er uit het luikje; op de ★ is 1 van de ${ECO.LICHT_STER} keer een prijs, anders 3 kaartjes. Na elke keer is het poortje ${Math.round(POORT.rust / 1000)} seconden dicht.</p><table class="rs-tabel"><tbody>` + [5, 10, 20, 50, 'ster'].map((w) => `<tr><td>${w === 'ster' ? 'De ★' : w + ' munten'}</td><td>${telL[w]} van de ${ECO.LICHT.length}</td></tr>`).join('') + '</tbody></table>';
+    }
     h += `<h3>De kaartjes</h3><p class="rs-zacht">Na elke ${ECO.KAARTJE_ELKE} munten die je erin gooit, valt er een kaartje in de kast. Welk kaartje het wordt, beslist echt toeval (de computer gooit een dobbelsteen met 10.000 kanten):</p><table class="rs-tabel"><tbody>` + ECO.KAARTJES.map((w, k) => `<tr><td>Kaartje van ${w}</td><td>${String(ECO.KAARTJE_KANS[k] / 100).replace('.', ',')}%</td></tr>`).join('') + '</tbody></table>';
     h += `<h3>De regels</h3><p>Munten worden nooit kaartjes, en kaartjes worden nooit munten. Je munten en je stapel worden altijd samen bewaard, dus de pagina sluiten maakt er niets bij (en haalt er niets af). Kun je je stapel op dit apparaat niet laden, dan legt de kast een nieuwe stapel met precies dezelfde munten, iets verder van de rand.</p>`;
     h += `<h3>Jij</h3><table class="rs-tabel"><tbody><tr><td>Munten erin gegooid</td><td>${getal(st.n)}</td></tr><tr><td>In de trechter</td><td>${getal(st.uit)}</td></tr><tr><td>In de zijgoten</td><td>${getal(st.zij)}</td></tr>${terugJij !== null ? `<tr><td>Jouw deel in de trechter</td><td>${String(terugJij).replace('.', ',')} van de 100</td></tr>` : ''}<tr><td>Kaartjes gewonnen</td><td>${getal(st.kw)}</td></tr><tr><td>Keer dat het rad draaide</td><td>${getal(st.rad || 0)}</td></tr><tr><td>Prijzen uit het rad</td><td>${getal(st.prijs || 0)}</td></tr></tbody></table>`;

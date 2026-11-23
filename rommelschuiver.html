@@ -2003,15 +2003,20 @@ function MUNTFYSICA() {
       return h;
     }
     function torenVal(i) {
+      // de kant waar hij heen wil: weg van wat hem draagt (ligt hij er recht op, dan een vaste kant per munt)
+      let wx = 0, wz = 0; for (let q = 0; q < stN[i]; q++) { wx -= stX[i * SMX + q]; wz -= stZ[i * SMX + q]; }
+      const wd = Math.hypot(wx, wz); if (wd < 0.5) { const hoek = i * 2.39996; wx = Math.cos(hoek); wz = Math.sin(hoek); } else { wx /= wd; wz /= wd; }
+      // van de lagere plekken eromheen de plek die het dichtst bij die kant ligt (geen lagere plek: hij blijft liggen)
       zoekBuren(i, 14);
       const D = rr[i] + 10, grens = py[i] - hh[i] - 1.5 * H0;
-      let laagst = 1e9;
+      let beste = -2;
       for (let k = 0; k < 8; k++) {
-        const a = k * Math.PI / 4 + i * 0.7, cx = Math.cos(a), cz = Math.sin(a);
+        const a = k * Math.PI / 4 + i * 0.7, cx = Math.cos(a), cz = Math.sin(a), dot = cx * wx + cz * wz;
+        if (dot <= beste) continue;
         const h = Math.max(oppervlak(i, px[i] + cx * D, pz[i] + cz * D), oppervlak(i, px[i] + cx * (D + 8), pz[i] + cz * (D + 8)));
-        if (h < laagst) { laagst = h; torenX = cx; torenZ = cz; }
+        if (h < grens) { beste = dot; torenX = cx; torenZ = cz; }
       }
-      return laagst < grens;
+      return beste > -2;
     }
     function schuifHorizontaal() {
       pN = 0; bovenN = 0;

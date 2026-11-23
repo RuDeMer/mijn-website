@@ -6068,10 +6068,32 @@ function MAAKKLANK() {
   return { KLANK, maak, alles };
 }
 // ==== KLANK eind
+// De echte opnames van munten (CC0, van Freesound: zie het colofon), achter elkaar in één mp3 naast de pagina. Per soort waar elke
+// klank begint en hoe lang hij is, in seconden. Is het bestand er (nog) niet, dan klinkt het zelfgemaakte geluid (MAAKKLANK).
+// Verander je de opnames, verhoog dan ?v= (de service worker van de site bewaart het bestand).
+const OPNAMES = 'rommelschuiver-geluiden.mp3?v=1';
+const OPNAME_PLEK = {"munt":[[0.4,0.16],[0.71,0.16],[1.02,0.16],[1.33,0.16],[1.64,0.16],[1.95,0.16],[2.26,0.16],[2.57,0.16],[2.88,0.16],[3.19,0.16],[3.5,0.16],[3.81,0.16]],"staal":[[4.12,0.28],[4.55,0.28],[4.98,0.28],[5.41,0.28],[5.84,0.3],[6.29,0.3]],"bak":[[6.74,0.62],[7.51,0.5],[8.16,0.5]],"glas":[[8.81,0.12],[9.08,0.13],[9.36,0.12]],"regen":[[9.63,0.9],[10.68,0.9]]};
 const geluid = (() => {
-  let ctx = null, uit = null, zoem = null, zoemG = null, sfeer = null, tikkenDitBeeld = 0, laatsteRegen = 0, bank = null;
+  let ctx = null, uit = null, zoem = null, zoemG = null, sfeer = null, tikkenDitBeeld = 0, laatsteRegen = 0, bank = null, echt = null;
   // de klanken van de munten: een paar varianten per soort, vooraf uitgerekend (in stukjes, zodat het beeld niet hapert)
   const LUID = { munt: 1.5, staal: 1.4, glas: 1.2, bak: 1.6, klik: 0.7 };
+  // de echte opnames: even luid als het zelfgemaakte geluid (dezelfde energie per soort; de regen: een plens met een paar losse munten)
+  const LUID_ECHT = { munt: 1.26, staal: 1.57, glas: 0.82, bak: 1.57, regen: 0.28 };
+  // de opnames ophalen en knippen. Een mp3-decoder kan alles een paar milliseconden verschuiven: we zoeken het begin van elke klank op.
+  function laadOpnames() {
+    const uitpakken = (b) => new Promise((ok, mis) => { try { const p = ctx.decodeAudioData(b, ok, mis); if (p && p.then) p.then(ok, mis); } catch (e) { mis(e); } });
+    fetch(OPNAMES).then((r) => { if (!r.ok) throw new Error('geen opnames'); return r.arrayBuffer(); }).then(uitpakken).then((ab) => {
+      const d = ab.getChannelData(0), sr = ab.sampleRate, uitE = {};
+      const zoek = (van, tot, dr) => { for (let i = Math.max(0, Math.floor(van * sr)), e = Math.min(d.length, Math.floor(tot * sr)); i < e; i++) if (Math.abs(d[i]) > dr) return i / sr; return -1; };
+      const eerste = zoek(0, OPNAME_PLEK.munt[0][0] + 0.1, 0.05), schuif = eerste < 0 ? 0 : eerste - OPNAME_PLEK.munt[0][0] - 0.002;
+      for (const soort of Object.keys(OPNAME_PLEK)) uitE[soort] = OPNAME_PLEK[soort].map(([s, L]) => {
+        let b = s + schuif; const t = zoek(b - 0.03, b + 0.05, 0.04); if (t >= 0) b = t - 0.002;
+        const i0 = Math.max(0, Math.floor(b * sr)), n = Math.max(1, Math.min(d.length - i0, Math.ceil(L * sr))), nb = ctx.createBuffer(1, n, sr);
+        nb.getChannelData(0).set(d.subarray(i0, i0 + n)); return nb;
+      });
+      echt = uitE;
+    }).catch(() => {});
+  }
   function maakBank() {
     const K = MAAKKLANK(), soorten = Object.keys(K.KLANK), uitB = {};
     let q = 0;
@@ -6101,16 +6123,16 @@ const geluid = (() => {
       sfeer = ctx.createBufferSource(); sfeer.buffer = buf; sfeer.loop = true;
       const sf = ctx.createBiquadFilter(); sf.type = 'bandpass'; sf.frequency.value = 500; sf.Q.value = 0.6;
       const sg = ctx.createGain(); sg.gain.value = 0.05; sfeer.connect(sf); sf.connect(sg); sg.connect(uit); sfeer.start();
-      maakBank();
+      maakBank(); laadOpnames();
     } catch (e) { ctx = null; }
   }
   function ontwaak() { if (ctx && ctx.state === 'suspended') ctx.resume(); }
   // een munt raakt iets: een van de vooraf uitgerekende klanken (munt, staal, glas, bak, klik), elke keer iets anders van toonhoogte
   function speel(soort, gain, t) {
-    const lijst = bank[soort] || bank.munt, src = ctx.createBufferSource(), g = ctx.createGain();
+    const e = echt && echt[soort], lijst = e || bank[soort] || bank.munt, src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = lijst[Math.floor(Math.random() * lijst.length)];
     src.playbackRate.value = 0.93 + Math.random() * 0.14;
-    g.gain.value = gain; src.connect(g); g.connect(uit); src.start(t);
+    g.gain.value = e ? gain / LUID[soort] * LUID_ECHT[soort] : gain; src.connect(g); g.connect(uit); src.start(t);
   }
   function tik(kracht, soort) {
     if (!aan() || !bank || tikkenDitBeeld > 7) return;
@@ -6161,7 +6183,14 @@ const geluid = (() => {
   // veel munten tegelijk: een plens losse klanken door elkaar (geen ruis: dat klonk als glas of edelstenen)
   function regen(n) {
     if (!aan() || !bank) return;
-    const nu = ctx.currentTime; if (nu - laatsteRegen < 0.12) return; laatsteRegen = nu;
+    const nu = ctx.currentTime; if (nu - laatsteRegen < (echt ? 0.45 : 0.12)) return; laatsteRegen = nu;
+    if (echt && echt.regen) {
+      // een echte plens munten, met een paar losse munten erbovenop
+      const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = echt.regen[Math.floor(Math.random() * echt.regen.length)];
+      src.playbackRate.value = 0.95 + Math.random() * 0.1; g.gain.value = LUID_ECHT.regen * Math.min(1.4, 0.6 + n / 25); src.connect(g); g.connect(uit); src.start(nu);
+      for (let k = 0; k < 3; k++) speel('munt', 0.2 * LUID.munt, nu + Math.random() * 0.4);
+      return;
+    }
     for (let k = 0; k < Math.min(12, 4 + n / 2); k++) speel(k % 4 === 3 ? 'bak' : 'munt', (0.12 + Math.random() * 0.22) * LUID.munt * 0.7, nu + Math.random() * 0.38);
   }
   function bak(kracht) { tik(0.25 + kracht * 0.5, 'bak'); if (navigator.vibrate && !MINDER && APP.g) { try { navigator.vibrate(8); } catch (e) {} } }
@@ -6182,7 +6211,7 @@ const geluid = (() => {
       for (const [r, a] of [[1, 1], [2.0, 0.5], [2.76, 0.35], [5.4, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = 262 * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.65); }
     }
   }
-  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel, klok, get klaar() { return !!bank; } };
+  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel, klok, get klaar() { return !!bank; }, get echt() { return !!echt; } };
 })();
 
 // ---------------------------------------------------------------------------------------------

@@ -1987,6 +1987,37 @@ function MUNTFYSICA() {
       return hj - hi;   // >0: j hoger
     }
 
+    // een te hoge munt glijdt alleen naar beneden als er vlakbij een plek is die minstens anderhalve munt lager ligt dan zijn onderkant
+    // (op een vlakke laag blijft hij liggen: een vaste hoogtegrens alleen liet de bovenste munten van zo'n laag als muizen rondlopen).
+    // Geeft de richting in torenX/torenZ, of false.
+    let torenX = 0, torenZ = 0;
+    function oppervlak(i, X, Z) {
+      if (X < -MK.XW + 2 || X > MK.XW - 2 || Z < MK.ZW + 2) return 1e9;   // een wand: daar kan hij niet heen
+      let h = Z > zf + KV.schuifZ(X) ? -1e9 : MK.HP;                       // voor de schuiver valt hij naar beneden
+      for (let b = 0; b < burenN; b++) {
+        const j = buren[b];
+        if (j === i || (md[j] !== SLAAP && md[j] !== SCHUIF) || !lvl[j]) continue;
+        const dx = X - px[j], dz = Z - pz[j];
+        if (dx * dx + dz * dz < rr[j] * rr[j]) { const t = py[j] + hh[j]; if (t > h) h = t; }
+      }
+      return h;
+    }
+    function torenVal(i) {
+      // de kant waar hij heen wil: weg van wat hem draagt (ligt hij er recht op, dan een vaste kant per munt)
+      let wx = 0, wz = 0; for (let q = 0; q < stN[i]; q++) { wx -= stX[i * SMX + q]; wz -= stZ[i * SMX + q]; }
+      const wd = Math.hypot(wx, wz); if (wd < 0.5) { const hoek = i * 2.39996; wx = Math.cos(hoek); wz = Math.sin(hoek); } else { wx /= wd; wz /= wd; }
+      // van de lagere plekken eromheen de plek die het dichtst bij die kant ligt (geen lagere plek: hij blijft liggen)
+      zoekBuren(i, 14);
+      const D = rr[i] + 10, grens = py[i] - hh[i] - 1.5 * H0;
+      let beste = -2;
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4 + i * 0.7, cx = Math.cos(a), cz = Math.sin(a), dot = cx * wx + cz * wz;
+        if (dot <= beste) continue;
+        const h = Math.max(oppervlak(i, px[i] + cx * D, pz[i] + cz * D), oppervlak(i, px[i] + cx * (D + 8), pz[i] + cz * (D + 8)));
+        if (h < grens) { beste = dot; torenX = cx; torenZ = cz; }
+      }
+      return beste > -2;
+    }
     function schuifHorizontaal() {
       pN = 0; bovenN = 0;
       const lijst = schuivers;
@@ -2000,10 +2031,8 @@ function MUNTFYSICA() {
         else { vx[i] += dvx / dv * mu; vz[i] += dvz / dv * mu; }
         vx[i] += duw[2 * i]; vz[i] += duw[2 * i + 1]; duw[2 * i] = duw[2 * i + 1] = 0;
         // de bovenste munt van een hoge toren op de schuiver schuift eraf, weg van wat hem draagt
-        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H) {
-          let tx = 0, tz = 0; for (let q = 0; q < stN[i]; q++) { tx -= stX[i * SMX + q]; tz -= stZ[i * SMX + q]; }
-          let td = Math.hypot(tx, tz); if (td < 0.5) { const hoek = i * 2.39996; tx = Math.cos(hoek); tz = Math.sin(hoek); td = 1; }
-          const ta = (WRIJV_BOVEN + TOREN_DUW) * G * DT; vx[i] += tx / td * ta; vz[i] += tz / td * ta;
+        if (lvl[i] && !ldN[i] && py[i] - MK.HP > TOREN_H && torenVal(i)) {
+          const ta = (WRIJV_BOVEN + TOREN_DUW) * G * DT; vx[i] += torenX * ta; vz[i] += torenZ * ta;
         }
         // ligt hij steiler dan de wrijving kan houden, dan glijdt hij van de helling af (zo worden bergen munten nooit torens)
         const h2 = sa[i] * sa[i] + sb[i] * sb[i];
@@ -2190,7 +2219,7 @@ function MUNTFYSICA() {
     const HELLING_GLIJ = opt.hellingGlij || 0.32;   // tan van de hoek waarboven een munt van een andere munt afglijdt
     // een toren op de schuiver brokkelt af: ligt de bovenste munt van een stapel meer dan TOREN_H boven de schuiver, dan schuift hij eraf
     // (echte munten blijven op een schuiver die heen en weer gaat geen tien hoog liggen; zo'n toren wiebelde en hield de kast vol)
-    const TOREN_H = opt.toren !== undefined ? opt.toren : 11, TOREN_DUW = 0.45;
+    const TOREN_H = opt.toren !== undefined ? opt.toren : 11.6, TOREN_DUW = 0.45;   // 11.6: de zesde munt (de vijfde ligt op 10.9, en wat schuin net iets hoger)
     const OPVAART = opt.opvaart !== undefined ? opt.opvaart : 0, KANTELDEMP = opt.kanteldemp !== undefined ? opt.kanteldemp : 0.6;   // in een stapel hooguit 28 graden schuin   // hoger dan dit klimt een munt niet (ongeveer 7 munten)
     const spX = new Float64Array(SMAX), spZ = new Float64Array(SMAX), spH = new Float64Array(SMAX), spL = new Float64Array(SMAX);
     const spB = new Int32Array(SMAX);

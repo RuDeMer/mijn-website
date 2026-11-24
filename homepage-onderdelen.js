@@ -3450,6 +3450,7 @@ body.v6-body { color: var(--tg-tekst); transition: background-color .3s ease; }
 .tg-balk .tg-filters { margin: 0; flex: 1 1 auto; min-width: 0; }
 .tg-weergave { flex: none; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--tg-knop); border: 2.5px solid var(--tg-knop-rand); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
 .tg-weergave button { display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 15px; border-radius: 999px; border: 0; background: transparent; color: var(--tg-knop-tekst); font: inherit; font-weight: 800; font-size: .88rem; cursor: pointer; }
+.tg-weergave button[hidden] { display: none; } /* de knop Neon staat er alleen op een neondag (anders wint display: flex van hidden) */
 .tg-weergave button[aria-pressed="true"] { background: var(--tg-actief); color: var(--tg-actief-tekst); }
 .tg-weergave svg { width: 18px; height: 18px; flex: none; }
 .tg-weergave button:focus-visible, .tg-filters button:focus-visible { outline: 3px solid var(--tg-focus); outline-offset: 2px; }

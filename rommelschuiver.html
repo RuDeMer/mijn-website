@@ -5797,7 +5797,7 @@ function updateVallers(dt) {
         const vin = -(v.vx * dx + v.vz * dz) / r, vt = (v.vz * dx - v.vx * dz) / r;
         v.du = Math.max(0, vin) * 0.5 / L;
         v.vt = vt * 0.3 + (55 + 40 * rnd());
-        geluid.bak(Math.min(1, Math.abs(v.vy) / 900));
+        geluid.bak(Math.min(1, Math.abs(v.vy) / 900), v.x);
       }
     }
     if (v.fase === 1) {
@@ -5876,7 +5876,7 @@ function openKist() {
   const eerste = prijzen.find((p) => p.id !== undefined);
   const t = 'De schatkist is open! ' + ECO.KIST_PRIJZEN + ' prijzen komen uit het luikje!';
   melding(t, eerste ? plaatje('voorwerp', eerste.id, 96) : plaatje('kaartje', 5, 48), 6000); $('#rs-meld').textContent = t;
-  [0, 2, 4, 2, 4, 7].forEach((k, q) => setTimeout(() => geluid.ding(k), q * 150));
+  geluid.fanfare(true);
   // alle drie meteen in de kast (dan staan ze bij het bewaren altijd in de stapel; uit elkaar, zodat ze niet op elkaar landen)
   prijzen.forEach((p, k) => S.gooiLijst.push([(k - 1) * 45, p.soort, 1]));
   G.luikTot = performance.now() + 2500; wek();
@@ -6077,14 +6077,19 @@ function MAAKKLANK() {
 // De echte opnames van munten (CC0, van Freesound: zie het colofon), achter elkaar in één mp3 naast de pagina. Per soort waar elke
 // klank begint en hoe lang hij is, in seconden. Is het bestand er (nog) niet, dan klinkt het zelfgemaakte geluid (MAAKKLANK).
 // Verander je de opnames, verhoog dan ?v= (de service worker van de site bewaart het bestand).
-const OPNAMES = 'rommelschuiver-geluiden.mp3?v=1';
-const OPNAME_PLEK = {"munt":[[0.4,0.16],[0.71,0.16],[1.02,0.16],[1.33,0.16],[1.64,0.16],[1.95,0.16],[2.26,0.16],[2.57,0.16],[2.88,0.16],[3.19,0.16],[3.5,0.16],[3.81,0.16]],"staal":[[4.12,0.28],[4.55,0.28],[4.98,0.28],[5.41,0.28],[5.84,0.3],[6.29,0.3]],"bak":[[6.74,0.62],[7.51,0.5],[8.16,0.5]],"glas":[[8.81,0.12],[9.08,0.13],[9.36,0.12]],"regen":[[9.63,0.9],[10.68,0.9]]};
+const OPNAMES = 'rommelschuiver-geluiden.mp3?v=2';
+const OPNAME_PLEK = {"munt":[[0.4,0.16],[0.71,0.16],[1.02,0.16],[1.33,0.16],[1.64,0.16],[1.95,0.16],[2.26,0.16],[2.57,0.16],[2.88,0.16],[3.19,0.16],[3.5,0.16],[3.81,0.16]],"staal":[[4.12,0.28],[4.55,0.28],[4.98,0.28],[5.41,0.28],[5.84,0.3],[6.29,0.3]],"bak":[[6.74,0.5],[7.39,0.5],[8.04,0.3359],[8.5259,0.5],[9.1759,0.5],[9.8259,0.62]],"glas":[[10.5959,0.12],[10.8659,0.13],[11.1459,0.12]],"regen":[[11.4159,1.0],[12.5659,1.0],[13.7159,1.0],[14.8659,0.9]]};
 const geluid = (() => {
-  let ctx = null, uit = null, zoem = null, zoemG = null, sfeer = null, tikkenDitBeeld = 0, laatsteRegen = 0, bank = null, echt = null;
+  let ctx = null, uit = null, galmIn = null, zoem = null, zoemG = null, sfeer = null, ruis = null, tikkenDitBeeld = 0, laatsteRegen = 0, bank = null, echt = null;
   // de klanken van de munten: een paar varianten per soort, vooraf uitgerekend (in stukjes, zodat het beeld niet hapert)
   const LUID = { munt: 1.5, staal: 1.4, glas: 1.2, bak: 1.6, klik: 0.7 };
-  // de echte opnames: even luid als het zelfgemaakte geluid (dezelfde energie per soort; de regen: een plens met een paar losse munten)
-  const LUID_ECHT = { munt: 1.26, staal: 1.57, glas: 0.82, bak: 1.57, regen: 0.28 };
+  // de echte opnames: ongeveer even luid als het zelfgemaakte geluid (de regen: een plens met een paar losse munten)
+  const LUID_ECHT = { munt: 1.26, staal: 1.57, glas: 0.82, bak: 2.4, regen: 0.23 };
+  // alles wat klinkt staat in C groot pentatonisch (c d e g a): dan klinkt nooit iets vals, ook niet door elkaar
+  // de winstladder: elke gewonnen munt een tingeltje, steeds een toontje hoger (van g'' tot g'''')
+  const LADDER = [0, 2, 5, 7, 9, 12, 14, 17, 19, 21, 24];
+  let reeks = 0, laatsteWinst = -9, rijT = 0, laatsteGleuf = -9, kaartT = 0;
+  const winstTijden = [];
   // de opnames ophalen en knippen. Een mp3-decoder kan alles een paar milliseconden verschuiven: we zoeken het begin van elke klank op.
   function laadOpnames() {
     const uitpakken = (b) => new Promise((ok, mis) => { try { const p = ctx.decodeAudioData(b, ok, mis); if (p && p.then) p.then(ok, mis); } catch (e) { mis(e); } });
@@ -6111,16 +6116,40 @@ const geluid = (() => {
     };
     setTimeout(volgende, 30);
   }
+  // de galm van de speelhal: een korte, heldere nagalm (zelf uitgerekend: ruis die uitsterft en steeds doffer wordt,
+  // met een paar vroege weerkaatsingen van de wanden). Elke klank stuurt er een beetje naartoe.
+  function maakGalm() {
+    const sr = ctx.sampleRate, len = Math.floor(sr * 1.15), pre = Math.floor(sr * 0.011), ir = ctx.createBuffer(2, len, sr);
+    for (let c = 0; c < 2; c++) {
+      const d = ir.getChannelData(c); let lp = 0;
+      for (let n = pre; n < len; n++) {
+        const x = (n - pre) / sr, k = 0.2 + 0.75 * Math.min(1, x / 0.9);
+        lp += (1 - k) * ((Math.random() * 2 - 1) - lp);
+        d[n] = lp * Math.exp(-x * 5.4) * (n > len - sr * 0.05 ? (len - n) / (sr * 0.05) : 1);
+      }
+      for (const [ms, g] of [[7, 0.45], [12, 0.32], [19, 0.26], [28, 0.2], [41, 0.14]]) { const i = Math.floor(sr * (ms + c * 1.9) / 1000); if (i < len) d[i] += g * (c ? -1 : 1); }
+    }
+    const conv = ctx.createConvolver(); conv.normalize = true; conv.buffer = ir;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 320;
+    const terug = ctx.createGain(); terug.gain.value = 0.5;
+    galmIn = ctx.createGain(); galmIn.connect(hp); hp.connect(conv); conv.connect(terug); terug.connect(uit);
+  }
   const aan = () => APP.g && ctx && ctx.state === 'running';
   function start() {
     if (ctx || !window.AudioContext && !window.webkitAudioContext) return;
     try {
       ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
-      uit = ctx.createGain(); uit.gain.value = APP.g ? 0.8 : 0; uit.connect(comp); comp.connect(ctx.destination);
-      // het zoemen van de schuiver: een lage zaagtand door een filter
-      zoem = ctx.createOscillator(); zoem.type = 'sawtooth'; zoem.frequency.value = 58;
-      const zf = ctx.createBiquadFilter(); zf.type = 'lowpass'; zf.frequency.value = 220;
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.2;
+      // daarna wat harder, met een begrenzer erachter (dan kraakt het nooit, ook niet bij een grote plens)
+      const na = ctx.createGain(); na.gain.value = 1.7;
+      const grens = ctx.createDynamicsCompressor(); grens.threshold.value = -3; grens.knee.value = 0; grens.ratio.value = 20; grens.attack.value = 0.001; grens.release.value = 0.12;
+      uit = ctx.createGain(); uit.gain.value = APP.g ? 0.8 : 0; uit.connect(comp); comp.connect(na); na.connect(grens); grens.connect(ctx.destination);
+      try { maakGalm(); } catch (e) { galmIn = null; }
+      // ruis voor klikjes en ritselen (een seconde, steeds vanaf een ander plekje)
+      ruis = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const rd = ruis.getChannelData(0); for (let k = 0; k < rd.length; k++) rd[k] = Math.random() * 2 - 1;
+      // het motortje van de schuiver: een zacht, laag brommen (een driehoek met een beetje boventoon, door een filter)
+      zoem = ctx.createOscillator(); zoem.type = 'triangle'; zoem.frequency.value = 55;
+      const zf = ctx.createBiquadFilter(); zf.type = 'lowpass'; zf.frequency.value = 180;
       zoemG = ctx.createGain(); zoemG.gain.value = 0;
       zoem.connect(zf); zf.connect(zoemG); zoemG.connect(uit); zoem.start();
       // de hal: zacht geroezemoes (gefilterde ruis)
@@ -6128,47 +6157,144 @@ const geluid = (() => {
       let b0 = 0; for (let k = 0; k < len; k++) { b0 = 0.985 * b0 + 0.015 * (Math.random() * 2 - 1); d[k] = b0 * 3; }
       sfeer = ctx.createBufferSource(); sfeer.buffer = buf; sfeer.loop = true;
       const sf = ctx.createBiquadFilter(); sf.type = 'bandpass'; sf.frequency.value = 500; sf.Q.value = 0.6;
-      const sg = ctx.createGain(); sg.gain.value = 0.05; sfeer.connect(sf); sf.connect(sg); sg.connect(uit); sfeer.start();
+      const sg = ctx.createGain(); sg.gain.value = 0.045; sfeer.connect(sf); sf.connect(sg); sg.connect(uit); sfeer.start();
       maakBank(); laadOpnames();
     } catch (e) { ctx = null; }
   }
   function ontwaak() { if (ctx && ctx.state === 'suspended') ctx.resume(); }
-  // een munt raakt iets: een van de vooraf uitgerekende klanken (munt, staal, glas, bak, klik), elke keer iets anders van toonhoogte
-  function speel(soort, gain, t) {
+  // een klank naar buiten: links of rechts (waar het in de kast gebeurt), en een beetje naar de galm
+  function naar(node, pan, galm) {
+    let n = node;
+    if (pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-0.8, Math.min(0.8, pan)); n.connect(p); n = p; }
+    n.connect(uit);
+    if (galmIn && galm > 0) { const s = ctx.createGain(); s.gain.value = galm; n.connect(s); s.connect(galmIn); }
+  }
+  const panVan = (x) => Math.max(-1, Math.min(1, (x || 0) / 300));
+  function vibreer(p) { if (navigator.vibrate && !MINDER && APP.g) { try { navigator.vibrate(p); } catch (e) {} } }
+  // een munt raakt iets: een van de opnames (munt, staal, glas, bak, regen), elke keer iets anders van toonhoogte
+  function speel(soort, gain, t, pan, galm, rate) {
     const e = echt && echt[soort], lijst = e || bank[soort] || bank.munt, src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = lijst[Math.floor(Math.random() * lijst.length)];
-    src.playbackRate.value = 0.93 + Math.random() * 0.14;
-    g.gain.value = e ? gain / LUID[soort] * LUID_ECHT[soort] : gain; src.connect(g); g.connect(uit); src.start(t);
+    src.playbackRate.value = rate || 0.93 + Math.random() * 0.14;
+    g.gain.value = e ? gain / LUID[soort] * LUID_ECHT[soort] : gain; src.connect(g); naar(g, pan, galm); src.start(t);
   }
-  function tik(kracht, soort) {
+  // een klokje: een paar boventonen die elk in hun eigen tempo uitsterven (zoals een klokkenspel), met een heel kort tikje vooraan
+  const KLOKJE = [[1, 1, 1], [2.76, 0.4, 0.42], [5.4, 0.18, 0.22], [8.93, 0.07, 0.12]];
+  function bel(f, t, luid, duur, pan, galm) {
+    const g = ctx.createGain(); g.gain.value = luid; naar(g, pan, galm);
+    for (const [r, a, dr] of KLOKJE) {
+      const fr = f * r; if (fr > 11000) continue;
+      const o = ctx.createOscillator(), og = ctx.createGain(), d = Math.max(0.05, duur * dr);
+      o.frequency.value = fr;
+      og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(a, t + 0.0015); og.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(og); og.connect(g); o.start(t); o.stop(t + d + 0.02);
+    }
+  }
+  // een klikje: een flintertje ruis door een filter (tandwieltjes, de la van de kassa, papier)
+  function klikje(t, luid, f, q, duur, pan, galm) {
+    const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = ruis; bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(luid, t + 0.001); g.gain.exponentialRampToValueAtTime(0.0001, t + duur);
+    src.connect(bp); bp.connect(g); naar(g, pan, galm || 0); src.start(t, Math.random() * 0.8, duur + 0.02);
+  }
+  function tik(kracht, soort, x) {
     if (!aan() || !bank || tikkenDitBeeld > 7) return;
     tikkenDitBeeld++;
     soort = LUID[soort] ? soort : 'munt';
-    speel(soort, Math.min(0.35, 0.04 + kracht * 0.3) * LUID[soort], ctx.currentTime + Math.random() * 0.01);
+    speel(soort, Math.min(0.35, 0.04 + kracht * 0.3) * LUID[soort], ctx.currentTime + Math.random() * 0.01, panVan(x) * 0.7, soort === 'klik' ? 0.04 : 0.14);
   }
-  // een paaltje van de Flipperkast: een helder belletje (elk paaltje een eigen toon)
-  function ding(k) {
+  // een munt in de gleuf: hij tikt tegen het staal en rolt de goot af (steeds snellere, zachtere tikjes)
+  function gleuf(x) {
+    if (!aan() || !bank) return;
+    const t = ctx.currentTime, snel = t - laatsteGleuf < 0.18, pan = panVan(x) * 0.6; laatsteGleuf = t;
+    speel('staal', 0.17 * LUID.staal, t, pan, 0.12);
+    if (snel) return;
+    let tt = t + 0.075, gap = 0.042, a = 0.055;
+    for (let k = 0; k < 5; k++) { speel('munt', a * LUID.munt, tt, pan, 0.06, 1.12 + Math.random() * 0.12); tt += gap; gap *= 0.78; a *= 0.72; }
+  }
+  // een gewonnen munt (hij gaat over de rand de trechter in): een tingeltje op de winstladder.
+  // Komen er meer achter elkaar, dan gaat elk tingeltje een toontje hoger; na een grote plens slaat de kassa aan.
+  function winst(x) {
     if (!aan()) return;
-    const t = ctx.currentTime, f = [784, 988, 1175, 880, 1047][k % 5];
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.5); g.connect(uit);
-    for (const [r, a] of [[1, 1], [2, 0.35], [3.01, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'sine'; o.frequency.value = f * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.52); }
+    const nu = ctx.currentTime;
+    if (nu - laatsteWinst > 0.9) reeks = 0;
+    laatsteWinst = nu; winstTijden.push(nu); if (winstTijden.length > 60) winstTijden.shift();
+    const t = Math.max(nu + 0.12, rijT + 0.062);
+    if (t - nu > 0.75) return;   // te veel tegelijk: de ladder loopt al (de kassa komt zo)
+    rijT = t;
+    const stap = Math.min(reeks++, LADDER.length - 1), top = stap === LADDER.length - 1;
+    const f = 784 * Math.pow(2, (LADDER[stap] - (top && reeks % 2 ? 3 : 0)) / 12);
+    bel(f, t, 0.05 * (top ? 0.8 : 1), 0.55, panVan(x) * 0.5, 0.32);
   }
-  // springtij: een aanzwellende golf (gefilterde ruis die omhoog gaat)
+  // de kassa: "ka" (een droge klik van de la en een doffe bons) en "ching" (een helder belletje dat lang naklinkt), met glinsters
+  function kassa(n) {
+    if (!aan()) return;
+    const t = ctx.currentTime + 0.03;
+    klikje(t, 0.32, 2400, 1.1, 0.035, 0, 0.1);
+    klikje(t + 0.012, 0.16, 5200, 1.5, 0.02, 0, 0.1);
+    const o = ctx.createOscillator(), og = ctx.createGain();
+    o.frequency.setValueAtTime(165, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.1);
+    og.gain.setValueAtTime(0.2, t); og.gain.exponentialRampToValueAtTime(0.0005, t + 0.13); o.connect(og); naar(og, 0, 0.05); o.start(t); o.stop(t + 0.15);
+    for (const [f, a] of [[2093, 0.075], [2637, 0.05], [3136, 0.04]]) bel(f, t + 0.07, a, 1.5, 0, 0.42);
+    const m = Math.min(10, 3 + Math.floor(n / 5));
+    for (let k = 0; k < m; k++) bel(2093 * Math.pow(2, LADDER[(k * 3) % 8] / 12), t + 0.16 + k * 0.055 + Math.random() * 0.025, 0.02, 0.4, Math.random() * 1.4 - 0.7, 0.5);
+    if (n >= 25) [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, k) => bel(f, t + 0.12 + k * 0.075, 0.045, 1.2 + k * 0.1, (k - 2) * 0.18, 0.4));
+    vibreer(n >= 25 ? [14, 50, 14, 50, 22] : [12, 50, 18]);
+  }
+  // kaartjes: de printer ratelt ze eruit (een tikje per kaartje, een motortje, en het kaartje scheurt af), en een tingeltje
+  function kaartjes(n, x) {
+    if (!aan()) return;
+    const pan = panVan(x) * 0.5, stappen = Math.min(22, 3 + Math.round(Math.sqrt(n || 1) * 1.4)), tussen = 0.048;
+    const t0 = Math.max(ctx.currentTime + 0.08, kaartT), eind = t0 + stappen * tussen;
+    kaartT = eind + 0.12;
+    const m = ctx.createOscillator(), mf = ctx.createBiquadFilter(), mg = ctx.createGain();
+    m.type = 'sawtooth'; m.frequency.value = 112; mf.type = 'bandpass'; mf.frequency.value = 850; mf.Q.value = 1.3;
+    mg.gain.setValueAtTime(0.0001, t0); mg.gain.exponentialRampToValueAtTime(0.022, t0 + 0.03); mg.gain.setValueAtTime(0.022, eind); mg.gain.exponentialRampToValueAtTime(0.0001, eind + 0.06);
+    m.connect(mf); mf.connect(mg); naar(mg, pan, 0.04); m.start(t0); m.stop(eind + 0.08);
+    for (let k = 0; k < stappen; k++) { const t = t0 + k * tussen; klikje(t, 0.22, 3300, 2.4, 0.013, pan, 0.06); klikje(t + 0.019, 0.08, 2100, 2, 0.01, pan); }
+    klikje(eind + 0.015, 0.1, 4600, 0.7, 0.075, pan, 0.05);
+    bel(1568, eind + 0.08, 0.045, 0.6, pan, 0.32); bel(2349, eind + 0.15, 0.035, 0.7, pan, 0.32);
+  }
+  // iets nieuws voor je verzameling (of de schatkist gaat open): een fanfaretje van klokjes, een akkoord dat blijft hangen, en glinsters
+  function fanfare(groot) {
+    if (!aan()) return;
+    const t = ctx.currentTime + 0.03, noten = groot ? [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568] : [523.25, 659.25, 783.99, 1046.5];
+    noten.forEach((f, k) => bel(f, t + k * 0.085, 0.06, 1.0 + k * 0.12, (k - noten.length / 2) * 0.18, 0.45));
+    const s = t + noten.length * 0.085;
+    for (const f of [1046.5, 1318.5, 1568]) bel(f, s, 0.028, 2.0, 0, 0.55);
+    for (let k = 0; k < (groot ? 16 : 10); k++) bel(2093 * Math.pow(2, LADDER[k % 6] / 12), s + k * 0.05 + Math.random() * 0.03, 0.015, 0.4, Math.random() * 1.6 - 0.8, 0.6);
+    vibreer([15, 60, 15, 60, 25]);
+  }
+  // een fiche in de trechter: een dubbel tingeltje (een groot fiche: de kassa)
+  function fiche(waarde, x) {
+    if (!aan()) return;
+    if (waarde >= 100) return kassa(30);
+    const t = ctx.currentTime + 0.1, pan = panVan(x) * 0.5;
+    bel(1568, t, 0.05, 0.7, pan, 0.35); bel(2093, t + 0.07, 0.045, 0.8, pan, 0.35);
+    if (waarde >= 25) bel(2637, t + 0.14, 0.04, 0.9, pan, 0.35);
+  }
+  // een paaltje van de Flipperkast, of een seintje: een helder klokje (elk getal een eigen toon; 5 en hoger een octaaf hoger)
+  const DING = [784, 880, 1046.5, 1174.7, 1318.5];
+  function ding(k, x) {
+    if (!aan()) return;
+    bel(DING[k % 5] * (k >= 5 ? 2 : 1), ctx.currentTime, 0.12, 0.6, panVan(x) * 0.6, 0.3);
+  }
+  // springtij: een aanzwellende golf (gefilterde ruis die omhoog gaat) en drie klokjes
   function golf() {
     if (!aan()) return;
     const t = ctx.currentTime, len = Math.floor(ctx.sampleRate * 1.6), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
     for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.sin(Math.PI * k / len);
     const src = ctx.createBufferSource(); src.buffer = buf;
     const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2200, t + 1.2);
-    const g = ctx.createGain(); g.gain.value = 0.22; src.connect(f); f.connect(g); g.connect(uit); src.start(t);
-    for (const [n, dt] of [[660, 0.9], [880, 1.05], [1320, 1.2]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = n; og.gain.setValueAtTime(0.06, t + dt); og.gain.exponentialRampToValueAtTime(0.0005, t + dt + 0.5); o.connect(og); og.connect(uit); o.start(t + dt); o.stop(t + dt + 0.52); }
+    const g = ctx.createGain(); g.gain.value = 0.2; src.connect(f); f.connect(g); naar(g, 0, 0.3); src.start(t);
+    for (const [n, dt] of [[659.25, 0.9], [880, 1.05], [1318.5, 1.2]]) bel(n, t + dt, 0.07, 0.9, 0, 0.4);
   }
   // de draaimolen: een eigen walsje op een draaiorgel, zo snel als de schijf draait (stil als hij stilstaat)
   const WALS = [72, 0, 0, 76, 74, 72, 79, 0, 77, 76, 0, 0, 74, 0, 76, 77, 76, 74, 72, 74, 76, 74, 0, 0, 72, 0, 0, 76, 79, 76, 81, 0, 79, 77, 0, 0, 76, 77, 79, 77, 76, 74, 72, 0, 74, 72, 0, 0];
   const BAS = [48, 48, 43, 48, 43, 41, 48, 43, 48, 48, 41, 41, 48, 43, 48, 48];
   let orgelT = 0, orgelStap = 0;
   function pijp(f, t, duur, luid) {
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(luid, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0005, t + duur); g.connect(uit);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(luid, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0005, t + duur); naar(g, 0, 0.2);
     for (const [r, a] of [[1, 1], [2, 0.4], [3, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = f * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + duur + 0.02); }
   }
   function draaiorgel(w) {
@@ -6186,26 +6312,36 @@ const geluid = (() => {
       orgelT += tel; orgelStap++;
     }
   }
-  // veel munten tegelijk: een plens losse klanken door elkaar (geen ruis: dat klonk als glas of edelstenen)
+  // veel munten tegelijk: een echte plens munten (een speelautomaat die uitbetaalt), met losse munten links en rechts erbovenop
   function regen(n) {
     if (!aan() || !bank) return;
     const nu = ctx.currentTime; if (nu - laatsteRegen < (echt ? 0.45 : 0.12)) return; laatsteRegen = nu;
     if (echt && echt.regen) {
-      // een echte plens munten, met een paar losse munten erbovenop
       const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = echt.regen[Math.floor(Math.random() * echt.regen.length)];
-      src.playbackRate.value = 0.95 + Math.random() * 0.1; g.gain.value = LUID_ECHT.regen * Math.min(1.4, 0.6 + n / 25); src.connect(g); g.connect(uit); src.start(nu);
-      for (let k = 0; k < 3; k++) speel('munt', 0.2 * LUID.munt, nu + Math.random() * 0.4);
+      src.playbackRate.value = 0.95 + Math.random() * 0.1; g.gain.value = LUID_ECHT.regen * Math.min(1.4, 0.6 + n / 25); src.connect(g); naar(g, Math.random() * 0.4 - 0.2, 0.2); src.start(nu);
+      for (let k = 0; k < 3; k++) speel('munt', 0.18 * LUID.munt, nu + Math.random() * 0.4, Math.random() * 1.2 - 0.6, 0.15);
       return;
     }
-    for (let k = 0; k < Math.min(12, 4 + n / 2); k++) speel(k % 4 === 3 ? 'bak' : 'munt', (0.12 + Math.random() * 0.22) * LUID.munt * 0.7, nu + Math.random() * 0.38);
+    for (let k = 0; k < Math.min(12, 4 + n / 2); k++) speel(k % 4 === 3 ? 'bak' : 'munt', (0.12 + Math.random() * 0.22) * LUID.munt * 0.7, nu + Math.random() * 0.38, Math.random() * 1.2 - 0.6, 0.15);
   }
-  function bak(kracht) { tik(0.25 + kracht * 0.5, 'bak'); if (navigator.vibrate && !MINDER && APP.g) { try { navigator.vibrate(8); } catch (e) {} } }
-  function zij() { tik(0.18, 'glas'); }
+  // een munt landt in de chromen trechter (de metalen bak rinkelt na)
+  function bak(kracht, x) {
+    if (!aan() || !bank || tikkenDitBeeld > 7) return;
+    tikkenDitBeeld++;
+    speel('bak', Math.min(0.35, 0.115 + kracht * 0.15) * LUID.bak, ctx.currentTime + Math.random() * 0.008, panVan(x) * 0.6, 0.22);
+    vibreer(8);
+  }
+  function zij(x) { tik(0.18, 'glas', x); }
   function beeld(vp, wakker) {
     tikkenDitBeeld = 0;
     if (!ctx) return;
-    const doel = aan() && wakker ? Math.min(0.05, Math.abs(vp) / 80 * 0.05) : 0;
+    const doel = aan() && wakker ? Math.min(0.035, Math.abs(vp) / 80 * 0.035) : 0;
     zoemG.gain.setTargetAtTime(doel, ctx.currentTime, 0.08);
+    // is de plens voorbij (even geen gewonnen munt meer)? Kwamen er tien of meer binnen twee seconden: de kassa
+    if (winstTijden.length && ctx.currentTime - laatsteWinst > 0.6) {
+      let n = 0; for (const t of winstTijden) if (t >= laatsteWinst - 2) n++;
+      winstTijden.length = 0; if (n >= 10) kassa(n);
+    }
   }
   function zet(a) { if (uit) uit.gain.setTargetAtTime(a ? 0.8 : 0, ctx.currentTime, 0.05); }
   function pauze(p) { if (!ctx) return; if (p) ctx.suspend(); else if (APP.g) ctx.resume(); }
@@ -6213,11 +6349,11 @@ const geluid = (() => {
   function klok() {
     if (!aan()) return;
     for (let k = 0; k < 3; k++) {
-      const t = ctx.currentTime + k * 0.75, g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + 1.6); g.connect(uit);
+      const t = ctx.currentTime + k * 0.75, g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + 1.6); naar(g, 0, 0.45);
       for (const [r, a] of [[1, 1], [2.0, 0.5], [2.76, 0.35], [5.4, 0.15]]) { const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = 262 * r; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.65); }
     }
   }
-  return { start, ontwaak, tik, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel, klok, get klaar() { return !!bank; }, get echt() { return !!echt; } };
+  return { start, ontwaak, tik, gleuf, winst, kassa, kaartjes, fanfare, fiche, regen, bak, zij, beeld, zet, pauze, ding, golf, draaiorgel, klok, get klaar() { return !!bank; }, get echt() { return !!echt; } };
 })();
 
 // ---------------------------------------------------------------------------------------------
@@ -6413,7 +6549,7 @@ function gebeurtenissen(ev, n) {
     if (soort === 1) {
       const kracht = Math.min(1, ev[k + 5] / 900), j = ev[k + 6];
       tikken++;
-      if (tikken < 6) geluid.tik(kracht, j === -1 ? (ev[k + 3] < -360 ? 'glas' : 'staal') : 'munt');
+      if (tikken < 6) geluid.tik(kracht, j === -1 ? (ev[k + 3] < -360 ? 'glas' : 'staal') : 'munt', ev[k + 2]);
       k += 7;
     } else {
       const i = ev[k + 1];
@@ -6431,16 +6567,16 @@ function gebeurtenissen(ev, n) {
         nieuweValler(i, x, y, z, vx, -300, vz, q, bij);
         const b = TEST ? { wat: ECO.soortVan(so) } : ECO.binnen(eco, KAST, so, x);
         if (b.wat === 'munt') {
-          inBak++;
+          inBak++; geluid.winst(x);
           const nu = performance.now(); S.regen.push(nu); while (S.regen.length && S.regen[0] < nu - 2000) S.regen.shift();
           if (!TEST) ECO.tel(eco, 'regen', S.regen.length);
-        } else if (b.wat === 'kaartje') { kaartjesWinst += b.waarde || 0; geluid.ding(4); }
-        else if (b.nieuw) { geluid.ding(0); melding('Nieuw in je verzameling: ' + ECO.VOORWERPEN[b.id].naam + '!', plaatje('voorwerp', b.id, 96), 5000); $('#rs-meld').textContent = 'Nieuw in je verzameling: ' + ECO.VOORWERPEN[b.id].naam + '.'; S.verzNieuw = true; }
+        } else if (b.wat === 'kaartje') { kaartjesWinst += b.waarde || 0; geluid.kaartjes(b.waarde || 0, x); }
+        else if (b.nieuw) { geluid.fanfare(); melding('Nieuw in je verzameling: ' + ECO.VOORWERPEN[b.id].naam + '!', plaatje('voorwerp', b.id, 96), 5000); $('#rs-meld').textContent = 'Nieuw in je verzameling: ' + ECO.VOORWERPEN[b.id].naam + '.'; S.verzNieuw = true; }
         else if (b.dubbel) melding(ECO.VOORWERPEN[b.id].naam + ' had je al: ' + ECO.DUBBEL + ' kaartjes.', plaatje('voorwerp', b.id, 96));
         else if (b.wat === 'sleutel') openKist();
-        else if (b.wat === 'fiche') { inBak += b.waarde; geluid.ding(b.waarde >= 100 ? 4 : 2); if (b.waarde >= 25) melding('Een fiche van ' + b.waarde + ' in de trechter: +' + b.waarde + ' munten!', plaatje('fiche', ECO.FICHES.indexOf(b.waarde), 64), 3000); }
+        else if (b.wat === 'fiche') { inBak += b.waarde; geluid.fiche(b.waarde, x); if (b.waarde >= 25) melding('Een fiche van ' + b.waarde + ' in de trechter: +' + b.waarde + ' munten!', plaatje('fiche', ECO.FICHES.indexOf(b.waarde), 64), 3000); }
       } else if (soort === 3) {
-        tel.zij++; geluid.zij(); S.econVeranderd = true;
+        tel.zij++; geluid.zij(ev[k + 2]); S.econVeranderd = true;
         const so = S.soort ? S.soort[i] : 0;
         if (bSoort[i] >= 0) laatBijzonder(i, true);
         const zg = TEST ? { terug: false } : ECO.zijgoot(eco, KAST, so, geheim());
@@ -6449,7 +6585,7 @@ function gebeurtenissen(ev, n) {
         if (zg.terug && so === ECO.SOORT_SLEUTEL) { luikPrijs(so); melding('De gouden sleutel viel in de zijgoot. Hij komt opnieuw uit het luikje.', plaatje('sleutel', 0, 96)); }
         else if (zg.terug) { luikPrijs(so); melding(ECO.VOORWERPEN[so - ECO.SOORT_VOORWERP].naam + ' viel in de zijgoot. Hij komt opnieuw uit het luikje.', plaatje('voorwerp', so - ECO.SOORT_VOORWERP, 96)); }
       }
-      else if (soort === 5 && G.paalFlits) { G.paalFlits[i] = 1; geluid.ding(i); if (ev[k + 5]) { tel.bump = (tel.bump || 0) + 1; if (G.score) G.score.zet(tel.bump); G.flitsTot = performance.now() + 260; } }
+      else if (soort === 5 && G.paalFlits) { G.paalFlits[i] = 1; geluid.ding(i, ev[k + 2]); if (ev[k + 5]) { tel.bump = (tel.bump || 0) + 1; if (G.score) G.score.zet(tel.bump); G.flitsTot = performance.now() + 260; } }
       k += 6;
     }
   }
@@ -6458,7 +6594,7 @@ function gebeurtenissen(ev, n) {
   if (S.econVeranderd) {
     S.econVeranderd = false; S.bewaarNodig = true;
     if (kaartjesWinst) { melding('+' + kaartjesWinst.toLocaleString('nl-NL') + ' kaartjes', plaatje('kaartje', ECO.KAARTJES.indexOf(kaartjesWinst) >= 0 ? ECO.KAARTJES.indexOf(kaartjesWinst) : 1, 48), 2200); kaartjesWinst = 0; }
-    if (eco.net) { for (const t of eco.net) { melding('Opdrachtje klaar: ' + t + '. +' + ECO.OPDRACHT + ' kaartjes!', null, 5000); geluid.ding(2); } delete eco.net; S.opNieuw = true; }
+    if (eco.net) { for (const t of eco.net) { melding('Opdrachtje klaar: ' + t + '. +' + ECO.OPDRACHT + ' kaartjes!', null, 5000); geluid.kaartjes(ECO.OPDRACHT); } delete eco.net; S.opNieuw = true; }
     zetHud(inBak > 0);
   }
 }
@@ -6552,7 +6688,7 @@ function gooi() {
     melding(dp.id !== undefined ? 'De dagprijs komt uit het luikje: ' + ECO.VOORWERPEN[dp.id].naam + '! Duw hem eruit.' : 'De dagprijs komt uit het luikje: een gouden kaartje van 250!', dp.id !== undefined ? plaatje('voorwerp', dp.id, 96) : plaatje('kaartje', 5, 48), 5000);
   }
   tel.in++; zetHud(); S.bewaarNodig = true;
-  geluid.tik(0.5, 'staal');
+  geluid.gleuf(S.mik);
   verbergHint();
   wek();
 }
@@ -6745,7 +6881,7 @@ function lichtKlaar() {
     // de munten komen een voor een uit het luikje, en de teller telt af
     const n = u.munten, t = n >= 20 ? '★ ' + n + ' munten! ★' : '+' + n + ' munten uit het luikje!';
     melding(t, null, 2500 + n * 60); $('#rs-meld').textContent = n + ' munten uit het luikje.';
-    if (n >= 20) { PT.flits = performance.now() + 2500; [0, 2, 4, 2, 4].forEach((k, q) => setTimeout(() => geluid.ding(k), q * 130)); }
+    if (n >= 20) { PT.flits = performance.now() + 2500; geluid.kassa(n); }
     zetTeller(n);
     for (let k = 0; k < n; k++) setTimeout(() => {
       S.gooiLijst.push([(geheim() - 0.5) * 80, k % 3, 1]); G.luikTot = performance.now() + 700; S.bewaarNodig = true; wek();
@@ -6758,7 +6894,7 @@ function lichtKlaar() {
     luikPrijs(u.prijs.soort);
     const t = u.prijs.id !== undefined ? 'JACKPOT! ' + ECO.VOORWERPEN[u.prijs.id].naam + ' komt uit het luikje!' : 'JACKPOT! Een gouden kaartje van 250!';
     melding(t, u.prijs.id !== undefined ? plaatje('voorwerp', u.prijs.id, 96) : plaatje('kaartje', 5, 48), 6000); $('#rs-meld').textContent = t;
-    PT.flits = performance.now() + 2500;
+    PT.flits = performance.now() + 2500; geluid.kassa(30);
   } else { luikRij([radKaartje(), radKaartje(), radKaartje()]); melding('De ster: 3 kaartjes uit het luikje!', plaatje('kaartje', 3, 48), 3000); $('#rs-meld').textContent = '3 kaartjes uit het luikje.'; }
   eind();
 }
@@ -6868,12 +7004,12 @@ function radKlaar() {
       luikPrijs(ECO.SOORT_SLEUTEL);
       const t = 'JACKPOT! De gouden sleutel komt uit het luikje. Duw hem in de trechter: dan gaat de schatkist open!';
       melding(t, plaatje('sleutel', 0, 96), 7000); $('#rs-meld').textContent = t;
-      PT.flits = performance.now() + 2500;
+      PT.flits = performance.now() + 2500; geluid.kassa(30);
     } else if (u.prijs) {
       luikPrijs(u.prijs.soort);
       const t = u.prijs.id !== undefined ? 'JACKPOT! ' + ECO.VOORWERPEN[u.prijs.id].naam + ' komt uit het luikje!' : 'JACKPOT! Een gouden kaartje van 250!';
       melding(t, u.prijs.id !== undefined ? plaatje('voorwerp', u.prijs.id, 96) : plaatje('kaartje', 5, 48), 6000); $('#rs-meld').textContent = t;
-      PT.flits = performance.now() + 2500;
+      PT.flits = performance.now() + 2500; geluid.kassa(30);
     } else { luikRij([radKaartje()]); melding('Bijna! Een kaartje als troost.', null, 3000); }
   }
   if (w !== 'ster' || (!u.prijs && !u.sleutel)) $('#rs-meld').textContent = (KAST === 'fichebank' && w === 'munt' ? 'Een fiche van 5' : KAST === 'fichebank' && w === 'regen' ? 'Een fiche van 25' : ECO.RAD_NAAM[w]) + '.';

@@ -561,9 +561,21 @@ Ruben: "Maak de Rommelschuiver veel spannender en verslavender, voordat hij op d
 
 Ik speelde de kast zoals hij nu online staat, op telefoon- en computerformaat, en liet een robot als nieuwe speler spelen (een verse kast zoals het spel die maakt, elke halve seconde een munt; in Node met de echte natuurkunde, drie keer 20 minuten):
 
-*(De meting loopt nog; de uitkomst komt hier.)*
+| | De Rommelschuiver | De Schatkamer |
+|---|---|---|
+| De eerste munt valt eruit | twee keer pas na 87 en 90 seconden (173 en 180 munten erin), één keer meteen | twee keer pas na 82 en 86 seconden (163 en 173 munten erin), één keer na 4 seconden |
+| Munten eruit in minuut 1 tot 3, en 3 tot 5 | zo'n 155, en zo'n 220 (240 erin) | zo'n 165, en zo'n 235 (240 erin) |
+| Daarna, per minuut | zo'n 102 eruit van de 120 erin | zo'n 99 eruit van de 120 erin |
+| Het langste stuk zonder iets | 12 tot 20 seconden | 8 tot 12 seconden |
+| Een golfje (5 munten binnen 2 seconden) | zo'n 10 per minuut | zo'n 10 per minuut |
 
-**Wat er nu ontbreekt**: er gebeurt weinig onverwachts. Een kaartje of een draai aan het rad is leuk, maar er is nooit een moment waarop de hele kast losgaat. Een nieuwe speler moet eerst lang gooien voordat er iets uit valt.
+Wat dat betekent:
+
+- **Het begin is te traag.** Een nieuwe speler heeft 250 munten (150 om mee te beginnen en 100 in de spaarpot). Meestal heeft hij er al 170 in gegooid voordat de eerste munt eruit valt: dan is hij al tweederde van zijn munten kwijt zonder dat er iets gebeurd is.
+- **Daarna is het een gelijkmatig druppeltje.** Elke paar seconden valt er wat en het is nooit lang stil, maar er komt ook nooit een groot moment: zo'n 10 kleine golfjes per minuut, en elke minuut is ongeveer hetzelfde.
+- Op telefoon en computer zag ik hetzelfde: het spel ziet er mooi uit en klinkt goed, maar na een paar minuten weet je wat er komt.
+
+**Wat er nu ontbreekt**: iets onverwachts. Een kaartje of een draai aan het rad is leuk, maar er is nooit een moment waarop de hele kast losgaat, en een nieuwe speler moet eerst lang gooien voordat er iets uit valt.
 
 ### 1. De spelleider
 
@@ -685,7 +697,7 @@ Elk niveau ertussen: 20 munten en 100 kaartjes. Bestaande spelers beginnen op he
 
 **Het doel**: wie elke dag speelt tot zijn munten op zijn, speelt **45 tot 60 minuten per dag** (nu zo'n 35 tot 40, hoofdstuk 20), met een paar grote momenten erin; een kwartiertje per dag blijft ook leuk (dan bewaar je munten voor morgen). De kasten, de verzameling en de niveaus blijven iets om naartoe te werken: de tweede kast in de eerste week, alle kasten in de eerste twee maanden, de hele verzameling in ongeveer anderhalve maand, en goud en glimmend voor wie alles wil.
 
-**Waarom het niet ontspoort**: de pot van de spelleider geeft hooguit 3 à 4 van elke 100 munten terug, bovenop de 91 tot 94 van de kast. Samen blijft het dus altijd onder de 100 van de 100 (zo'n 96 à 97): hoe slim je ook speelt, je munten raken een keer op. Het precieze deel voor de pot stel ik met de robots af, zodat het doel van de minuten per dag gehaald wordt. Dat reken ik na met de robots:
+**Waarom het niet ontspoort**: de pot van de spelleider geeft hooguit 3 à 4 van elke 100 munten terug, bovenop de 91 tot 94 van de kast. Samen blijft het dus altijd onder de 100 van de 100 (zo'n 96 à 97): hoe slim je ook speelt, je munten raken een keer op. Het precieze deel voor de pot stel ik af zodat het doel van de minuten per dag gehaald wordt. Dat reken ik na met drie robots:
 
 - **een robot met de echte natuurkunde** die per kast lange sessies speelt met de spelleider erbij: hoe vaak elke gebeurtenis voorkomt, hoeveel er terugkomt, en dat er nooit munten wegschieten, door de vloer zakken of gaan dansen (ook niet tijdens een Aardschok of een storm), en dat de grens van een volle kast (1.800) blijft werken;
 - **een rekenmodel van 60 dagen** (zoals in hoofdstuk 15) met een speler die elke dag een kwartiertje speelt, een die speelt tot de munten op zijn, en een die om de drie dagen speelt: minuten per dag, kaartjes, niveaus, de kasten, de verzameling en de kermispas;
@@ -694,7 +706,7 @@ Elk niveau ertussen: 20 munten en 100 kaartjes. Bestaande spelers beginnen op he
 ### 9. Wat blijft
 
 - **De opslag**: `rommelschuiver-v1` en de stapels per kast. Alles komt er achteraan bij (bestaande voortgang blijft werken, geen id verandert): `xp` (ervaring), `rk` (je reeks: de laatste dag, hoe lang, de laatste vrije dag), `pas` (de maand, je punten en je trap), `rg` (de spelleider: zijn pot, de potjes, de Koortsmeter, de laatste gebeurtenissen, de dagen van Het Wonder), `glim` (glimmende voorwerpen), `med` (medailles), en per kast `bz` (tovermunten in de kast). De REGELS blijven zoals ze zijn (`geheel`), dus **de scoreserver hoeft niet opnieuw**.
-- **Soepel en zuinig**: elke gebeurtenis binnen het budget van hoofdstuk 3 (een storm van 35 munten past in "hooguit 80 tegelijk aan het vallen" op Normaal; op Zuinig 20 munten en minder confetti). Ik meet elke gebeurtenis apart in elke kast.
+- **Soepel en zuinig**: ik meet elke gebeurtenis apart in elke kast. De natuurkunde moet binnen zijn eigen tijd per stap blijven (hooguit zo'n 12 ms per keer, hoofdstuk 16) en het beeld vloeiend; op Zuinig zijn de stormen kleiner (20 munten) en is er minder confetti.
 - **De natuurkunde**: geen munten die wegschieten, door de vloer zakken of dansen, ook niet tijdens een gebeurtenis.
 - **De gedeelde blokken** blijven overal gelijk; het veiligheidsbeleid verandert niet.
 

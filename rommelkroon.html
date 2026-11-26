@@ -2691,10 +2691,13 @@ const KM2 = (() => {
   const regelVan = P => [P.k > 1 ? 'Twee kronen per rij, kolom en vlak.' : '', /[A-Z]/.test(P.v) ? (P.g ? 'Waar geen vakje is, kan geen kroon.' : 'Op een doos kan geen kroon.') : '', P.t && P.t.length ? 'Het getal op een kaartje is het aantal kronen eromheen.' : ''].filter(Boolean).join(' ');
 
   // ---------------- statistieken, reeks en mijlpalen
+  // [null, 0, 1, '', 'h']: een dag die alleen meetelt voor de reeks (Ruben herstelde hem in de werkplaats), zonder tijd. Een puzzel die je
+  // later uit het archief oploste en die Ruben liet meetellen, houdt zijn tijd: [tijd, hints, 1, spoor, 'h'].
+  function alleenReeks(e) { return Array.isArray(e) && e[4] === 'h' && typeof e[0] !== 'number'; }
   function reeksen() {
     const op = new Set(), vandaag = dagNr();
     let archief = 0, aantal = 0;
-    for (const [d, e] of Object.entries(opslag.dag)) { if (!Array.isArray(e)) continue; aantal++; if (e[2]) op.add(+d); else archief++; }
+    for (const [d, e] of Object.entries(opslag.dag)) { if (!Array.isArray(e)) continue; if (e[2]) op.add(+d); if (alleenReeks(e)) continue; aantal++; if (!e[2] || e[4] === 'h') archief++; }
     let nu = 0, d = op.has(vandaag) ? vandaag : vandaag - 1;
     while (op.has(d)) { nu++; d--; }
     let beste = 0; for (const x of op) if (!op.has(x - 1)) { let l = 0; while (op.has(x + l)) l++; beste = Math.max(beste, l); }
@@ -2889,7 +2892,7 @@ const KM2 = (() => {
   const inSeizoen = (s, d) => { const v = vakVan(s, d); return v ? d >= v[0] && d <= v[1] : inVast(s, d); };
   const seizoenNu = () => Object.keys(SEIZOEN).find(s => inSeizoen(s, dagNr())) || null;
   // wat je al verdiende, blijft: een dag die volgens de vaste data in het seizoen viel, telt altijd mee (ook als de kalender anders zegt)
-  const verdiend = s => Object.entries(opslag.dag).some(([d, e]) => Array.isArray(e) && e[2] && (inSeizoen(s, +d) || inVast(s, +d)));
+  const verdiend = s => Object.entries(opslag.dag).some(([d, e]) => Array.isArray(e) && e[2] && !alleenReeks(e) && (inSeizoen(s, +d) || inVast(s, +d)));
   // wanneer het seizoen is (nu, of anders de volgende keer): uit de feestkalender als die het weet, anders de vaste tekst
   const wanneer = s => {
     if (FKAL) try { const J = FKAL.kern.jaarVan(FKAL.kal, Date.now()), v = J && vakJ(s, J); if (v && v[1] >= dagNr()) return datumNL(v[0]) + ' tot en met ' + datumNL(v[1]); } catch (e) {}
@@ -3199,8 +3202,8 @@ const KM2 = (() => {
         for (let d = begin; d <= dagen[dagen.length - 1]; d++) {
           const nr = d - begin + 1, e = opslag.dag[d], id = dagId(d), b = opslag.bezig[id], oud = d < DAG_VANAF && opslag.opgelost[id];
           if (d < ARCHIEF_VANAF) { k += `<button class="kdag" type="button" disabled aria-hidden="true">${nr}</button>`; continue; }
-          const klaar = !!(e || oud), cls = (klaar ? ' klaar' : b ? ' bezig' : '') + (e && e[2] ? ' optijd' : '') + (d === vandaag ? ' vandaag' : '');
-          k += `<button class="kdag${cls}" type="button" data-dag="${d}" aria-label="${datum(d)}, ${dagMaat(d)} bij ${dagMaat(d)}${e ? ', opgelost in ' + fmt(e[0]) : oud ? ', opgelost' : b ? ', bezig' : ''}${d === vandaag ? ', vandaag' : ''}">${nr}<small>${e ? fmt(e[0]) : oud ? '✓' : dagMaat(d) + '×' + dagMaat(d)}</small></button>`;
+          const ar = alleenReeks(e), klaar = !!((e && !ar) || oud), cls = (klaar ? ' klaar' : b ? ' bezig' : '') + (e && e[2] ? ' optijd' : '') + (d === vandaag ? ' vandaag' : '');
+          k += `<button class="kdag${cls}" type="button" data-dag="${d}" aria-label="${datum(d)}, ${dagMaat(d)} bij ${dagMaat(d)}${ar ? ', telt mee voor je reeks' : e ? ', opgelost in ' + fmt(e[0]) : oud ? ', opgelost' : b ? ', bezig' : ''}${d === vandaag ? ', vandaag' : ''}">${nr}<small>${ar ? 'reeks' : e ? fmt(e[0]) : oud ? '✓' : dagMaat(d) + '×' + dagMaat(d)}</small></button>`;
         }
         h += k + '</div></div>';
       }
@@ -3361,8 +3364,9 @@ const KM2 = (() => {
     let dagTekst = '';
     if (dagCtx !== null) {
       const d = dagCtx, e = opslag.dag[d], opTijd = d === dagNr() ? 1 : 0;
-      if (typeof id !== 'number') { oud = e ? { tijd: e[0] } : null; record = !e || t < e[0]; }
-      if (!e || t < e[0]) opslag.dag[d] = [t, hints, e && e[2] ? 1 : opTijd, spoorTekst()];
+      const echt = e && !alleenReeks(e);
+      if (typeof id !== 'number') { oud = echt ? { tijd: e[0] } : null; record = !echt || t < e[0]; }
+      if (!echt || t < e[0]) opslag.dag[d] = [t, hints, e && e[2] ? 1 : opTijd, spoorTekst()];
       else if (opTijd && !e[2]) e[2] = 1;
       const r = reeksen();
       dagTekst = (opTijd && r.nu ? `<p><span class="reeks">${VLAM}${r.nu} dag${r.nu > 1 ? 'en' : ''} op rij!</span></p>` : '') + (opTijd && saAan ? `<p class="klein" id="dlg-vgl">${SA.dag && SA.dag.d === d ? saTekst(SA.dag) : 'Even kijken hoe snel de anderen waren…'}</p>` : '');
@@ -3522,7 +3526,7 @@ const KM2 = (() => {
 
   // ---------------- delen (zonder de oplossing te verraden)
   function deelTekst(d) {
-    const e = opslag.dag[d]; if (!e) return '';
+    const e = opslag.dag[d]; if (!e || alleenReeks(e)) return '';
     const n2 = dagMaat(d), r = reeksen();
     return `Rommelkroon · ${datum(d, { weekday: 'short', day: 'numeric', month: 'short' })}\n👑 ${n2}×${n2} in ${fmt(e[0])}${e[1] ? ` · ${e[1]} hint${e[1] > 1 ? 's' : ''}` : ' · zonder hint'}\n${e[3] || ''}${e[2] && r.nu > 1 ? `\n🔥 ${r.nu} dagen op rij` : ''}\n${location.origin}${location.pathname}`;
   }

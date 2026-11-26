@@ -2235,6 +2235,9 @@ const MOTOR = (() => {
   }
   function schrijfResultaat(r) { return r.s + Math.min(4, r.f) + r.gis.map(g => g.map(i => i.toString(16)).join('')).join(''); }
   function nieuwResultaat() { return { s: 'b', f: 0, gis: [] }; }
+  // 'w4' zonder pogingen: een dag die alleen meetelt voor de reeks (Ruben herstelde hem in de werkplaats). Echt opgelost op de dag zelf kan
+  // nooit zonder pogingen, dus dit is altijd herkenbaar. Telt niet als gespeeld of opgelost, wel voor de reeks.
+  function hersteld(r) { return !!r && r.s === 'w' && !r.gis.length; }
   // welke groepjes je vond, in volgorde
   function gevonden(r) { const uit = []; for (const g of r.gis) { const b = beoordeel(g); if (b.goed && !uit.includes(b.groep)) uit.push(b.groep); } return uit; }
   function leesOpslag(t) {
@@ -2253,6 +2256,7 @@ const MOTOR = (() => {
     let run = 0, vorige = -9;
     for (const d of Object.keys(p).map(Number).filter(n => n >= 1).sort((a, b) => a - b)) {
       const r = leesResultaat(p[d]); if (!r || r.s === 'b') continue;
+      if (hersteld(r)) { run = d === vorige + 1 ? run + 1 : 1; vorige = d; s.beste = Math.max(s.beste, run); continue; }
       s.gespeeld++;
       if (r.s === 'w' || r.s === 'a') { s.opgelost++; s.verdeling[Math.min(3, r.f)]++; if (r.f === 0) s.zonder++; } else s.verdeling[4]++;
       if (r.s === 'w') { run = d === vorige + 1 ? run + 1 : 1; vorige = d; s.beste = Math.max(s.beste, run); }
@@ -2270,7 +2274,7 @@ const MOTOR = (() => {
       r.gis.map(g => g.map(i => KLEURBLOK[groepVan(i)]).join('')).join('\n') + (adres ? '\n' + adres : '');
   }
   return { DAG_EEN, KISTJES, N, RONDES, MAANDEN, WEEKDAGEN, SLEUTEL, nlDatum, dagNummer, dagVan, datumVan, isoVan, datumTekst, totMiddernacht, puzzelVan, sleutel, ontsleutel,
-    groepVan, beoordeel, rng, schud, beginVolgorde, leesResultaat, schrijfResultaat, nieuwResultaat, gevonden, leesOpslag, stats, foutjes, deelTekst, KLEURBLOK };
+    groepVan, beoordeel, rng, schud, beginVolgorde, leesResultaat, schrijfResultaat, nieuwResultaat, hersteld, gevonden, leesOpslag, stats, foutjes, deelTekst, KLEURBLOK };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = MOTOR;
 // ==== MOTOR eind
@@ -2335,7 +2339,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = MOTOR;
   function alles() {
     const archief = isArchief();
     $('archiefbalk').hidden = !archief && !voorproef;
-    if (archief) $('archieftekst').textContent = 'Uit het archief: telt niet mee voor je reeks.';
+    if (archief) $('archieftekst').textContent = M.hersteld(res) ? 'Uit het archief: deze dag telt mee voor je reeks.' : 'Uit het archief: telt niet mee voor je reeks.';
     if (voorproef) $('archieftekst').textContent = 'Voorproef (beheer): wordt niet bewaard en telt nergens mee.';
     const gev = M.gevonden(res);
     $('gevonden').innerHTML = gev.map(g => groepHTML(g)).join('');
@@ -2427,16 +2431,17 @@ if (typeof module !== 'undefined' && module.exports) module.exports = MOTOR;
   function toonUitslag(focus) {
     const gev = M.gevonden(res), gelukt = res.s === 'w' || res.s === 'a', rest = [0, 1, 2, 3].filter(g => !gev.includes(g));
     const st = M.stats(O.p, vandaag);
-    const kop = gelukt ? (res.f === 0 ? 'Foutloos opgelost!' : 'Opgelost met ' + M.foutjes(res.f)) : 'Niet gelukt';
+    const herst = M.hersteld(res), kop = herst ? 'Telt mee voor je reeks' : gelukt ? (res.f === 0 ? 'Foutloos opgelost!' : 'Opgelost met ' + M.foutjes(res.f)) : 'Niet gelukt';
     $('uitslag').innerHTML = '<section class="paneel" aria-labelledby="u-kop">' +
       '<h2 id="u-kop" tabindex="-1">' + kop + '</h2>' +
       '<p class="sub">Puzzel ' + dag + ' · ' + esc(M.datumTekst(dag, true)) + (isArchief() ? ' · uit het archief' : voorproef ? ' · voorproef' : '') + '</p>' +
+      (herst ? '<p class="sub">Deze puzzel speelde je niet, maar hij telt wel mee voor je reeks.</p>' : '') +
       '<p class="sub">' + (gev.length ? 'Zo vond je ze:' : 'Zo zat het:') + '</p>' +
       '<ol class="orde">' + gev.map((g, k) => '<li><span class="nr">' + (k + 1) + '</span><ul class="gevonden" style="margin:0">' + groepHTML(g, { lang: true }) + '</ul></li>').join('') +
-      rest.map(g => '<li><span class="nr">–</span><ul class="gevonden" style="margin:0">' + groepHTML(g, { lang: true, gemist: true }) + '</ul></li>').join('') + '</ol>' +
+      rest.map(g => '<li><span class="nr">–</span><ul class="gevonden" style="margin:0">' + groepHTML(g, { lang: true, gemist: !herst }) + '</ul></li>').join('') + '</ol>' +
       '<p class="raster-mini" aria-hidden="true">' + res.gis.map(g => g.map(i => M.KLEURBLOK[i >> 2]).join('')).join('<br>') + '</p>' +
       '<div class="cijfers"><div><b>' + st.gespeeld + '</b><span>Gespeeld</span></div><div><b>' + st.reeks + '</b><span>Reeks</span></div><div><b>' + st.beste + '</b><span>Beste reeks</span></div><div><b>' + st.zonder + '</b><span>Zonder fouten</span></div></div>' +
-      '<div class="deel">' + (voorproef ? '' : '<button class="knop hoofd" type="button" id="b-deel">Deel je resultaat</button>') +
+      '<div class="deel">' + (voorproef || herst ? '' : '<button class="knop hoofd" type="button" id="b-deel">Deel je resultaat</button>') +
       (isArchief() || voorproef ? '<button class="knop" type="button" id="b-terug">Naar de puzzel van vandaag</button>' : '<span class="aftellen">Nieuwe puzzel over <b id="aftel"></b></span>') + '</div>' +
       '<div id="sb-groepjes" hidden></div><div class="eind-reclame"></div></section>';
     if ($('b-deel')) $('b-deel').addEventListener('click', deel);
@@ -2497,7 +2502,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = MOTOR;
       const n = M.dagVan(j, m, d), r = M.leesResultaat(O.p[n]), kan = n >= 1 && n <= vandaag;
       const st = !r ? '' : r.s === 'w' ? 'w' : r.s === 'a' ? 'a' : r.s === 'b' ? 'b' : 'v';
       const teken = { w: '✓', a: '·', v: '✕', b: '…' }[st] || '';
-      const zin = { w: 'op de dag zelf opgelost', a: 'later opgelost', v: 'niet gelukt', b: 'nog bezig' }[st] || (kan ? 'nog niet gespeeld' : '');
+      const zin = M.hersteld(r) ? 'telt mee voor je reeks' : { w: 'op de dag zelf opgelost', a: 'later opgelost', v: 'niet gelukt', b: 'nog bezig' }[st] || (kan ? 'nog niet gespeeld' : '');
       h += '<button type="button" class="' + st + (n === vandaag ? ' vandaag' : '') + '" data-dag="' + n + '"' + (kan ? '' : ' disabled') + ' aria-label="' + d + ' ' + M.MAANDEN[m - 1] + (kan ? ', puzzel ' + n + ', ' + zin : '') + '">' + d + (teken ? '<span class="st" aria-hidden="true">' + teken + '</span>' : '') + '</button>';
     }
     $('kalender').innerHTML = h;

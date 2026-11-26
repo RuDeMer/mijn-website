@@ -1343,6 +1343,35 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   const aantal = o => (o && typeof o === 'object' ? Object.keys(o).length : 0);
   const som = o => Object.values(o || {}).reduce((a, b) => a + n0(b), 0);
   const tot = (s, n) => (s && s.voortgangTotaal > 0 ? s.voortgangTotaal : n);
+  // ---------------- de feestdagen: gemiste schoendagen (voor de samenvatting en het herstel "Gemiste schoendag inhalen")
+  // De schoendagen komen uit feestdagen.json op de site (zoals bij de spelers), anders uit de vaste kalender van feest.js (KALENDER).
+  // In de verzameling (rommelhoekje-feest-v1) is d.sint26 één cijfer per dag, dag 0 is 1 november: 0 niets, 1 schoen gezet,
+  // 2 cadeautje uit de schoen, 3 uitgepakt. Inhalen zet een gemiste dag op 1: dan zit het cadeautje van die dag in de schoen.
+  const FH_STANDAARD = { jaren: [{ jaar: '2026', schoenVan: '2026-11-14', schoenTot: '2026-12-04', uitpakkenTot: '2027-01-06' }] };
+  let fhKal = FH_STANDAARD, fhBezig = null;
+  function fhLaad() {
+    if (!fhBezig) fhBezig = fetch('feestdagen.json', { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).then(D => {
+      const dag = v => /^\d{4}-\d{2}-\d{2}/.test(String(v || ''));
+      const l = D && Array.isArray(D.jaren) ? D.jaren.filter(J => J && /^\d{4}$/.test(String(J.jaar)) && dag(J.schoenVan) && dag(J.schoenTot)) : [];
+      if (l.length) fhKal = { jaren: l }; else fhBezig = null;
+    }).catch(() => { fhBezig = null; }).then(() => fhKal);
+    return fhBezig;
+  }
+  const FH_NL = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const fhDagNr = s => Math.round(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5);
+  const fhDatum = (n, lang) => new Date(n * 864e5).toLocaleDateString('nl-NL', lang ? { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' } : { timeZone: 'UTC', day: 'numeric', month: 'long' });
+  // de schoendagen vóór vandaag (Nederlandse tijd) waarop de schoen niet stond, zolang je de cadeautjes nog kunt uitpakken
+  function fhGemist(s) {
+    const vandaag = fhDagNr(FH_NL.format(new Date())), d = (s && s.d && typeof s.d === 'object') ? s.d : {}, uit = [];
+    for (const J of fhKal.jaren) {
+      if (J.uitpakkenTot && /^\d{4}-\d{2}-\d{2}/.test(J.uitpakkenTot) && vandaag > fhDagNr(J.uitpakkenTot)) continue;
+      const nul = fhDagNr(J.jaar + '-11-01'), van = fhDagNr(J.schoenVan) - nul, totI = Math.min(fhDagNr(J.schoenTot) - nul, vandaag - nul - 1);
+      const sz = 'sint' + String(J.jaar).slice(2), x = typeof d[sz] === 'string' ? d[sz] : '';
+      for (let i = van; i <= totI; i++) if (!(+x[i] >= 1)) uit.push({ waarde: sz + ':' + i, sz, i, label: fhDatum(nul + i, true), kort: fhDatum(nul + i) });
+    }
+    return uit;
+  }
+  const fhLijst = l => (l.length > 1 ? l.slice(0, -1).join(', ') + ' en ' + l[l.length - 1] : l.join(''));
   const SPELINFO = {
     'vlaaienbakker-v1': { naam: 'Vlaaienbakker', pagina: 'vlaaienbakker.html', icoon: 'vlaai', spel: 'vlaai', kort: s => [vbKort(s, vbGetal(s, 'alles')[0] >= vbGetal(s, 'ooit')[0] ? 'alles' : 'ooit') + ' vlaaien ooit gebakken', vbKort(s, 'vlaaien') + ' vlaaien nu', som(s.bakkers) + ' bakkers', (s.gilde && s.gilde.verdiend ? vbKort(s, 'gilde.verdiend') + ' gildesterren' : ''), (s.oer && s.oer.n > 0 ? s.oer.n + (s.oer.n === 1 ? ' Oerknal, ' : ' Oerknallen, ') + vbKort(s, 'oer.ooit') + ' oerdeeg verdiend' : ''), (s.mijl ? s.mijl + ' van 200 mijlpalen' : '')], cadeau: [{ pad: 'vlaaien', label: 'Vlaaien erbij', std: 1000 }] },
     'vlaaienbakker-week-v1': { naam: 'Bakwedstrijd van de week', pagina: 'vlaaienbakker.html#wedstrijd', icoon: 'vlaai', kort: s => ['Week ' + (s.week || '?') + ': ' + vlaaiKort(s.totaal) + ' vlaaien', Math.round(n0(s.tijdOver) / 60) + ' minuten baktijd over'] },
@@ -1384,7 +1413,17 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     'rommelhoekje-thema': { naam: 'Licht of donker', overig: true, ruw: true },
     'rommelhoekje-speler': { naam: 'Naam op het scorebord', overig: true },
     'rommelhoekje-eitjes': { naam: 'Gevonden grapjes', overig: true },
-    'rommelhoekje-feest-v1': { naam: 'Feestdagen (Sinterklaas, kerst, oud en nieuw)', overig: true, kort: s => { const d = s.d || {}, tel = (x, w) => String(x || '').split('').filter(c => +c >= w).length, st = Array.isArray(s.st) ? s.st : []; return [st.length + (st.length === 1 ? ' ding' : ' dingen') + ' gekregen' + (st.length ? ': ' + st.slice(0, 6).join(', ') + (st.length > 6 ? ', …' : '') : ''), ...Object.keys(d).filter(k => /^sint/.test(k)).map(k => 'Sinterklaas 20' + k.slice(4) + ': schoen ' + tel(d[k], 1) + ' keer gezet, ' + tel(d[k], 3) + ' uitgepakt'), ...Object.keys(d).filter(k => /^kerst/.test(k)).map(k => 'Kerst 20' + k.slice(5) + ': ' + tel(d[k], 1) + ' deurtjes open')]; } },
+    // overig (geen spel in het overzicht Spellen), maar met een samenvatting: dan staat hij in het profiel bij de voortgang, met Helpen
+    'rommelhoekje-feest-v1': { naam: 'Feestdagen (Sinterklaas, kerst, oud en nieuw)', overig: true, icoon: 'pakje', laad: fhLaad, kort: s => {
+      const d = s.d || {}, tel = (x, w) => String(x || '').split('').filter(c => +c >= w).length, st = Array.isArray(s.st) ? s.st : [];
+      const gemist = fhGemist(s), sint = [...new Set(Object.keys(d).filter(k => /^sint/.test(k)).concat(gemist.map(g => g.sz)))];
+      return [st.length + (st.length === 1 ? ' ding' : ' dingen') + ' gekregen' + (st.length ? ': ' + st.slice(0, 6).join(', ') + (st.length > 6 ? ', …' : '') : ''),
+        ...sint.map(k => { const g = gemist.filter(x => x.sz === k).map(x => x.kort); return 'Sinterklaas 20' + k.slice(4) + ': schoen ' + tel(d[k], 1) + ' keer gezet, ' + tel(d[k], 3) + ' uitgepakt' + (g.length ? ' · gemist: ' + (g.length > 5 ? g.slice(0, 5).join(', ') + ' en nog ' + (g.length - 5) : fhLijst(g)) : ''); }),
+        ...Object.keys(d).filter(k => /^kerst/.test(k)).map(k => 'Kerst 20' + k.slice(5) + ': ' + tel(d[k], 1) + ' deurtjes open')]; },
+      herstel: [{ naam: 'Gemiste schoendag inhalen', uitleg: 'Zet de schoen alsnog op de dagen die je hieronder kiest (alleen dagen vóór vandaag). Het cadeautje van die dag zit dan in de schoen: met een tik op de homepage gaat het naar de stapel, en de dag telt weer mee voor de Gouden Mijter. De schoen van vandaag zet de speler zelf.',
+        kies: s => fhGemist(s), leeg: 'Er is geen schoendag in te halen: de schoen stond op elke schoendag tot en met gisteren.',
+        doe: (s, g) => { if (!s.d || typeof s.d !== 'object') s.d = {}; for (const x of g || []) { let t = typeof s.d[x.sz] === 'string' ? s.d[x.sz] : ''; while (t.length <= x.i) t += '0'; if (!(+t[x.i] >= 1)) t = t.slice(0, x.i) + '1' + t.slice(x.i + 1); s.d[x.sz] = t.replace(/0+$/, ''); } if (!s.v) s.v = 1; return s; },
+        bericht: g => (g.length ? `Ruben heeft je schoen alsnog gezet op ${fhLijst(g.map(x => x.kort))}. Het cadeautje zit in je schoen: haal het eruit op de homepage.` : 'Ruben heeft je schoen alsnog gezet.') }] },
     'gereedschap-v2': { naam: 'Gereedschap op de homepage', overig: true },
   };
   function samenvatting(sleutel, data) {
@@ -1522,10 +1561,11 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   let P = null;   // het profiel dat nu open staat
   async function toonSpeler(scoreId, account) {
     $('s-uitslag').innerHTML = ''; $('s-profiel').innerHTML = '<p class="zacht">Laden…</p>';
+    const kal = fhLaad();   // de feestkalender (de gemiste schoendagen in de samenvatting); mislukt nooit
     try {
       let p = await score('/beheer/speler?' + (scoreId ? 'score=' + scoreId : '') + (account ? '&account=' + account : ''));
       if (!p.account && p.koppeling) p = await score('/beheer/speler?score=' + p.score + '&account=' + p.koppeling);
-      P = p; tekenProfiel();
+      await kal; P = p; tekenProfiel();
     } catch (e) { $('s-profiel').innerHTML = `<div class="kaart"><p class="melding fout">${esc(e.message)}</p></div>`; }
   }
   function tekenProfiel() {
@@ -1533,8 +1573,10 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     const laatst = Math.max(p.laatst || 0, ...p.scores.map(s => s.tijd || 0));
     const chips = [p.score ? `<span class="chip" title="Nummer op het scorebord">🏆 ${esc(p.score.slice(0, 6))}</span>` : '', p.account ? `<span class="chip" title="Nummer van het account">🔑 ${esc(p.account.slice(0, 6))}</span>` : '<span class="chip let">geen account gevonden</span>', p.geblokkeerd ? `<span class="chip fout">⛔ geblokkeerd${p.geblokkeerd.reden ? ': ' + esc(p.geblokkeerd.reden) : ''}</span>` : '', p.vast ? `<span class="chip info">naam door jou gezet</span>` : ''].join(' ');
     const plekken = p.scores.length ? '<ul class="regels">' + p.scores.map(s => { const pl = p.plekken[s.spel]; return `<li><span class="groei"><b>${esc(naamVanSpel(s.spel))}</b>: ${scoreHtml(s.spel, s.score, s.log)}${pl ? ` · <b>${pl.plek}e</b> van ${pl.totaal}` : ''}</span><small>${datum(s.tijd)}</small></li>`; }).join('') + '</ul>' : '<p class="leeg">Staat niet op het scorebord.</p>';
-    const rijen = (p.opslag || []).filter(r => SPELINFO[r.sleutel] && !SPELINFO[r.sleutel].overig).sort((a, b) => b.t - a.t);
-    const overig = (p.opslag || []).filter(r => !SPELINFO[r.sleutel] || SPELINFO[r.sleutel].overig);
+    // bij de voortgang (met Helpen): de spellen, en wat geen spel is maar wel een samenvatting heeft (de feestdagen)
+    const bijVoortgang = I => !!I && (!I.overig || !!I.kort);
+    const rijen = (p.opslag || []).filter(r => bijVoortgang(SPELINFO[r.sleutel])).sort((a, b) => b.t - a.t);
+    const overig = (p.opslag || []).filter(r => !bijVoortgang(SPELINFO[r.sleutel]));
     const versiesVan = sl => p.versies.filter(v => v.sleutel === sl).reduce((a, v) => a + (v.n || 1), 0);
     const voortgang = !p.account ? '<p class="leeg">Geen account gevonden. Zonder account staat de voortgang alleen op het apparaat van de speler. Vraag de speler om de koppelcode (venster "Je account").</p>' : rijen.length ? '<ul class="regels">' + rijen.map(r => { const k = samenvatting(r.sleutel, r.data); const I = SPELINFO[r.sleutel]; return `<li><span class="groei" style="display:flex;gap:.6rem;align-items:flex-start"><span style="width:2rem;flex:none">${icoonSvg(I.icoon)}</span><span><b>${esc(I.naam)}</b><br>${k.map(esc).join(' · ')}<br><small>bewaard ${geleden(r.t)} · ${kb(r.data.length)} · ${versiesVan(r.sleutel)} ${versiesVan(r.sleutel) === 1 ? 'versie' : 'versies'} in de tijdmachine</small></span></span><span class="knoppen"><button class="mini" type="button" data-help="${esc(r.sleutel)}">🛠️ Helpen</button>${versiesVan(r.sleutel) ? `<button class="mini" type="button" data-vergelijk="${esc(r.sleutel)}">⚖️ Versies</button>` : ''}<button class="mini" type="button" data-ruw="${esc(r.sleutel)}">Bekijk</button></span></li>`; }).join('') + '</ul>' : '<p class="leeg">Nog geen voortgang bewaard.</p>';
     const hulp = p.hulp.length ? '<ul class="regels">' + p.hulp.map(h => `<li><span class="groei"><b>${esc(h.titel || spelNaam(h.sleutel))}</b> · ${esc({ zet: 'terugzetten of herstellen', wijzig: 'cadeautje of wijziging', wis: 'opslag weghalen' }[h.soort] || h.soort)}<br><small>“${esc(h.bericht)}”</small></span><span>${h.gezien ? '<span class="chip goed">gezien ' + esc(geleden(h.gezien)) + '</span>' : h.bezorgd ? '<span class="chip info">aangekomen ' + esc(geleden(h.bezorgd)) + '</span>' : '<span class="chip let">wacht op de speler</span> <button class="mini rood" type="button" data-hulp-weg="' + h.nr + '">Intrekken</button>'}</span></li>`).join('') + '</ul>' : '<p class="leeg">Nog geen hulp gestuurd.</p>';
@@ -1688,6 +1730,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
       <p class="melding fout" id="h-fout" hidden></p></div>
       <div class="venster-voet"><button class="knop" type="button" data-dicht>Annuleren</button><button class="knop hoofd" type="button" id="h-stuur">Stuur</button></div>`);
     let versies = { nu: null, versies: [] }; try { versies = await score('/beheer/versies?account=' + P.account + '&sleutel=' + encodeURIComponent(sleutel)); } catch (e) {}
+    if (I.laad) try { await I.laad(); } catch (e) {}   // wat het herstel nodig heeft (de feestdagen: de feestkalender)
     const keuzes = [];
     if (versies.versies.length) keuzes.push(['terug', '⏪ Een eerdere versie terugzetten', versies.versies.length + (versies.versies.length === 1 ? ' versie' : ' versies') + ' in de tijdmachine (30 dagen)']);
     if (I.cadeau) keuzes.push(['cadeau', '🎁 Een cadeautje geven', I.cadeau.map(c => c.label).join(', ')]);
@@ -1712,8 +1755,19 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
         const zet = () => zetBericht('Een cadeautje van Ruben: ' + I.cadeau.map((c, i) => getal(+det.querySelector(`[data-cadeau="${i}"]`).value || 0) + ' ' + c.label.replace(/ erbij.*$/, '').toLowerCase()).join(' en ') + '. Veel plezier!');
         det.querySelectorAll('input').forEach(x => x.addEventListener('input', zet)); zet();
       } else if (s === 'herstel') {
-        det.innerHTML = '<div class="keuzes">' + I.herstel.map((h, i) => `<label class="keuze"><input type="radio" name="h-recept" value="${i}"${i ? '' : ' checked'}><span><b>${esc(h.naam)}</b><br><small class="zacht">${esc(h.uitleg)}</small></span></label>`).join('') + '</div>';
-        zetBericht(`Ruben heeft je spel ${I.naam} gerepareerd. Je kunt weer verder spelen!`);
+        det.innerHTML = '<div class="keuzes">' + I.herstel.map((h, i) => `<label class="keuze"><input type="radio" name="h-recept" value="${i}"${i ? '' : ' checked'}><span><b>${esc(h.naam)}</b><br><small class="zacht">${esc(h.uitleg)}</small></span></label>`).join('') + '</div><div id="h-kies"></div>';
+        // een recept met kies(opslag) geeft een lijst { waarde, label }: de beheerder vinkt aan wat er moet gebeuren (doe(opslag, gekozen))
+        let st = null; try { st = JSON.parse(huidig); } catch (e) {}
+        const recept = () => {
+          const h = I.herstel[+(det.querySelector('input[name="h-recept"]:checked') || {}).value || 0], plek = det.querySelector('#h-kies');
+          if (!h.kies) { plek.innerHTML = ''; zetBericht(h.bericht ? h.bericht([]) : `Ruben heeft je spel ${I.naam} gerepareerd. Je kunt weer verder spelen!`); return; }
+          const opties = st ? h.kies(st) : [];
+          plek.innerHTML = opties.length ? '<h3 style="margin:.8rem 0 .2rem">Welke?</h3><div class="keuzes">' + opties.map(o => `<label class="keuze"><input type="checkbox" name="h-kies" value="${esc(o.waarde)}" checked><span><b>${esc(o.label)}</b></span></label>`).join('') + '</div>' : `<p class="melding let">${esc(h.leeg || 'Er is niets te herstellen.')}</p>`;
+          const zet = () => { const w = [...plek.querySelectorAll('input[name="h-kies"]:checked')].map(x => x.value); zetBericht(h.bericht(opties.filter(o => w.includes(o.waarde)))); };
+          plek.querySelectorAll('input').forEach(x => x.addEventListener('change', zet)); zet();
+        };
+        det.querySelectorAll('input[name="h-recept"]').forEach(x => x.addEventListener('change', () => { zelfBericht = false; recept(); }));
+        recept();
       } else if (s === 'zelf') {
         let t = huidig; try { t = JSON.stringify(JSON.parse(huidig), null, 1); } catch (e) {}
         det.innerHTML = `<label class="veld">De opslag (JSON)<span>Pas alleen aan wat je zeker weet. Velden weghalen kan het spel kapotmaken.</span><textarea id="h-json" spellcheck="false" style="min-height:14rem;font-family:ui-monospace,monospace;font-size:.8rem">${esc(t)}</textarea></label>`;
@@ -1730,7 +1784,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
       if (b.bericht.length < 5) return toonFout('Schrijf een bericht voor de speler (minstens 5 tekens).');
       if (s === 'terug') { const v = versies.versies[+(d.querySelector('input[name="h-versie"]:checked') || {}).value || 0]; try { await versieInhoud(v, P.account, sleutel); } catch (x) { return toonFout(x.message); } b.soort = 'zet'; b.data = v.data; }
       if (s === 'cadeau') { b.soort = 'wijzig'; const ops = I.cadeau.map((c, i) => ({ pad: c.pad, erbij: Math.floor(+det.querySelector(`[data-cadeau="${i}"]`).value || 0) })).filter(o => o.erbij > 0); if (!ops.length) return toonFout('Vul een aantal in.'); b.data = JSON.stringify(ops); }
-      if (s === 'herstel') { let st; try { st = JSON.parse(huidig); } catch (e) { return toonFout('De huidige opslag is onleesbaar; gebruik "Zelf aanpassen" of zet een reservekopie terug.'); } const h = I.herstel[+(d.querySelector('input[name="h-recept"]:checked') || {}).value || 0]; b.soort = 'zet'; b.data = JSON.stringify(h.doe(st)); }
+      if (s === 'herstel') { let st; try { st = JSON.parse(huidig); } catch (e) { return toonFout('De huidige opslag is onleesbaar; gebruik "Zelf aanpassen" of zet een reservekopie terug.'); } const h = I.herstel[+(d.querySelector('input[name="h-recept"]:checked') || {}).value || 0]; let gekozen = null; if (h.kies) { const w = [...d.querySelectorAll('input[name="h-kies"]:checked')].map(x => x.value), opties = h.kies(st); gekozen = opties.filter(o => w.includes(o.waarde)); if (!gekozen.length) return toonFout(opties.length ? 'Vink minstens één aan.' : (h.leeg || 'Er is niets te herstellen.')); } b.soort = 'zet'; b.data = JSON.stringify(h.doe(st, gekozen)); }
       if (s === 'zelf') { const t = d.querySelector('#h-json').value; let st; try { st = JSON.parse(t); } catch (e) { return toonFout('Dit is geen geldige JSON: ' + e.message); } let oud = null; try { oud = JSON.parse(huidig); } catch (e) {} if (oud && st && typeof oud === 'object' && typeof st === 'object') { const weg = Object.keys(oud).filter(k => !(k in st)); if (weg.length && !confirm('Je haalt deze velden weg: ' + weg.join(', ') + '. Weet je het zeker?')) return; } b.soort = 'zet'; b.data = JSON.stringify(st); }
       if (s === 'wis') { if (!confirm('De opslag van ' + I.naam + ' bij deze speler weghalen?')) return; b.soort = 'wis'; }
       d.querySelector('#h-stuur').disabled = true;

@@ -726,3 +726,39 @@ Elk niveau ertussen: 20 munten en 100 kaartjes. Bestaande spelers beginnen op he
 4. **Het Wonder** eens per twee à drie dagen spelen: zeldzaam genoeg?
 5. **De kermispas per maand**, met een medaille van de maand: goed?
 6. **De schuifjes in het beheermenu** eerst alleen op jouw apparaat, en daarna zet ik jouw keuze vast voor iedereen: goed?
+
+### 12. De proefversie (26 november 2026)
+
+Ruben: "Akkoord met alles, bouw maar de proefversie." Gebouwd: de spelleider en vier gebeurtenissen. De rest van het plan (de andere gebeurtenissen, de tovermunten, het niveau, de dagreeks, de kermispas, de verzameling, de feestdagen) komt nadat Ruben de proef op zijn telefoon en laptop speelde.
+
+**De spelleider** (`ROMMELREGIE`, in de pagina tussen `// ==== SPELLEIDER begin` en `// ==== SPELLEIDER eind`, zonder pagina, in Node te testen):
+- Een moment na 30 tot 90 seconden spelen (het eerste van een bezoek na 20 tot 40 seconden), altijd minstens 20 seconden tussen twee momenten, nooit twee keer dezelfde gebeurtenis achter elkaar, en per gebeurtenis een rusttijd (storm 4 minuten, Aardschok 3 minuten 20, Reuzenmunt 4 minuten). Alleen tijd waarin je echt gooit telt (een munt in de laatste 4 seconden), met de echte klok.
+- De pot: 1 van elke 30 munten die je erin gooit. Een storm kost zoveel munten als er vallen (20 tot 35), de Reuzenmunt 10, Koorts elke munt die dubbel telt (de pot mag daarvoor tot 40 onder nul). De Aardschok kost niets.
+- Het welkom van een nieuwe speler (150 munten, eenmalig): een Muntenstorm na 30 seconden spelen, de Reuzenmunt na 2 minuten, Koorts na 3 minuten (de meter begint op driekwart), een Aardschok na 4 minuten; wat er daarna nog in zit, gaat eerst op. Welkom terug (na 20 uur weg, eens per dag): na 8 seconden spelen een storm van 20 of de Reuzenmunt. Redding (minder dan 15 munten en een lege spaarpot, eens per dag): een storm van 30.
+- Bestaande spelers (die al speelden voor er een spelleider was) krijgen geen welkom, maar beginnen met 40 munten in de pot en een halfvolle koortsmeter.
+- Een handje helpen (hooguit eens per 30 seconden spelen): ligt een prijs, een kaartje van 50 of meer of de Reuzenmunt 12 seconden aan de rand, dan een zetje erachter; is er 25 seconden niets gewonnen (in een nieuwe kast 8), een zetje bij de rand.
+
+**De gebeurtenissen** (in de natuurkunde: `regen`, `schok` en `zetje` in `MUNTFYSICA`; in het spel: `SP` in `spannend.js`):
+- *Muntenstorm*: een donderslag, onweer in de lampjes en een flits, dan 20 tot 35 munten (Zuinig 20) die in 2,4 seconden van boven vallen: 60% vlak voor de rand van de onderste vloer, 40% vlak achter de voorkant van de schuiver. Als ze geland zijn, een naschokje.
+- *Aardschok*: eerst wordt het even stil, dan 3 seconden gerommel, de kast schudt, de lampjes knipperen rood, en de munten vlak bij een rand krijgen een duwtje naar voren. In de Flipperkast heet hij Tilt!, in de Schatkamer Instorting.
+- *De Reuzenmunt* (soort 19, een tovermunt): 26 mm straal (een munt is 12), 4,4 mm dik, 5 keer zo zwaar, met een kroontje en een 10. Hij landt met een dreun 6 cm voor de rand, en is in de trechter 10 munten waard.
+- *Koorts*: de meter (2.400 gewonnen munten, een flinke speler zo'n 20 minuten) staat bij de tellers. Vol: 20 seconden telt elke munt dubbel, de gleuf gaat 1,5 keer zo snel, de munten worden goud, de lampjes lopen in een regenboog en er speelt een snel kermisdeuntje.
+- Elke gebeurtenis heeft een grote aankondiging over de kast (een titel en een zinnetje), een eigen lichtpatroon en een eigen geluid (zelf gemaakt met Web Audio: donder, gerommel, een zoef en een dreun, het deuntje van Koorts, en het publiek).
+
+**Grote momenten**: vallen er 30 munten binnen anderhalve seconde (de robot: ongeveer 15 keer per uur), dan slow motion (1,3 seconde op een derde van de snelheid), de camera zoomt in, een flits, confetti, gejuich en trillen. De teller van je munten rolt op als er 8 of meer tegelijk bijkomen. "Bijna!" (een geel stickertje) boven een prijs, een kaartje van 50 of meer of de Reuzenmunt aan de rand, met een "oooh" van het publiek; valt hij, gejuich en confetti, valt hij in een zijgoot, een zucht. Bij minder beweging: geen schudden, slow motion, inzoomen, flitsen of confetti.
+
+**Het begin**: een nieuwe stapel wordt bij het neerleggen met een schok van 3 seconden dicht tegen de rand geschoven (`pers` in het hulpje), en het startscherm is korter: "Gooi muntjes. Duw ze over de rand. Hoe meer er valt, hoe gekker het wordt."
+
+**Verder**: de pauze van Moeki staat standaard uit (Instellingen heeft nu Uit; wie al een keuze had, staat één keer op uit), en het tabblad Eerlijk? is weg (het wordt later de Kermispas). Het geheime beheermenu heeft bovenaan "De spelleider": de pot, de koortsmeter en het welkom, een knop per gebeurtenis (kost niets), twee schuifjes (hoe lang hij wacht, 0,25 tot 3 keer; hoe gul, 0,5 tot 2 keer; alleen op dat apparaat, in `rommelschuiver-apparaat` als `rv` en `rgu`) en "Begin als nieuwe speler".
+
+**Opslag**: in `rommelschuiver-v1` erbij `rg` (de spelleider: `p` de pot, `w` het welkom, `td` en `rd` de dagen van welkom terug en redding, `km` de koortsmeter, `sp` seconden gespeeld, `ls` laatst gespeeld, `ns` hoe ver het welkom is, `l` de laatste gebeurtenissen, `n` hoe vaak elke kwam), per kast `bz` (de tovermunten in de kast) en de teller `st.tover`. De REGELS zijn niet veranderd (`geheel`), dus de scoreserver hoeft niet opnieuw. Een oudere pagina laat `rg` weg als hij bewaart; dan is de speler voor de spelleider weer een bestaande speler (zonder welkom).
+
+**Gemeten**:
+- *De natuurkunde* (Node, de gewone kast, na 3 minuten inspelen, een munt per halve seconde; munten in de trechter per 5 seconden, de eerste 5 seconden na de gebeurtenis): gewoon zo'n 18; na een Aardschok 55 tot 62 (daarna een tijdje minder: wat viel, viel anders later); na een storm met naschokje zo'n 50. Nergens munten die wegschieten (sneller dan 300 mm/s) of door de vloer zakken, en daarna alles in rust binnen 5 seconden.
+- *Het begin*: met de schok bij het neerleggen valt in de meeste kasten de eerste munt binnen een paar seconden (zonder: na 80 tot 100 seconden en zo'n 170 munten); in de gewone kast soms nog na een minuut, en daar helpen de zetjes van de spelleider.
+- *Een uur spelen met de spelleider* (de robot, een munt per halve seconde, met de echte natuurkunde, economie en spelleider):
+
+@@ROBOT@@
+
+- *De spelleider in Node* (13 tests): het welkom op 30, 120, 180 en 240 seconden; nooit twee momenten binnen 20 seconden; nooit twee keer hetzelfde achter elkaar; nooit meer weggegeven dan er in de pot kwam; welkom terug en redding één keer per dag; niet spelen is niets; de schuifjes werken.
+- *In Chromium* (computer 1280 en telefoon iPhone 13, Zuinig en Normaal, minder beweging): een nieuwe speler krijgt het welkom na 30 seconden spelen; elke gebeurtenis met de knop; oude voortgang van de versie die online staat laadt met dezelfde munten en dezelfde stapel; herladen midden in een storm, met de Reuzenmunt in de kast (hij ligt er daarna nog) en midden in Koorts (je munten blijven, de koorts is weg); het beheermenu; nergens fouten of overtredingen van het veiligheidsbeleid; de gedeelde blokken overal gelijk. **Niet getest: een echte iPhone, Android-telefoon en MacBook.**

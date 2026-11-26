@@ -3965,7 +3965,7 @@ function ROMMELREGIE() {
       td: heel(x && x.td, 0, 0, 1e7),                                    // de dag van het laatste welkom terug
       rd: heel(x && x.rd, 0, 0, 1e7),                                    // de dag van de laatste redding
       km: heel(x ? x.km : KOORTS_VOL * (oud ? 0.5 : 0.75), 0, 0, KOORTS_VOL),   // de koortsmeter (de eerste keer al half of voor driekwart vol)
-      sp: heel(x ? x.sp : oud ? 3600 : 0, 0, 0, 1e9),                   // seconden gespeeld, ooit
+      sp: Math.round(getal(x ? x.sp : oud ? 3600 : 0, 0, 0, 1e9) * 100) / 100,   // seconden gespeeld, ooit
       ls: heel(x && x.ls, 0, 0, 1e14),                                   // wanneer je voor het laatst speelde
       ns: heel(x ? x.ns : oud ? NIEUW.length : 0, 0, 0, NIEUW.length),   // hoe ver het verloop voor een nieuwe speler is
       l: (x && Array.isArray(x.l) ? x.l : []).filter((id) => typeof id === 'string' && geb(id)).slice(-3),   // de laatste gebeurtenissen
@@ -4036,7 +4036,6 @@ function ROMMELREGIE() {
     if (!info.speelt) return null;
     rg.sp += dt; reg.speel += dt; reg.droog += dt;
     if (info.nu) rg.ls = info.nu;
-    rg.sp = Math.round(rg.sp * 10) / 10;
     if (!info.vrij || reg.koorts > 0) return null;
     // 1. het begin van een nieuwe speler
     if (rg.ns < NIEUW.length && rg.sp >= NIEUW[rg.ns][0]) {
@@ -7946,9 +7945,9 @@ const SP = (() => {
       if (nu() < st.koortsTot && wat !== 'fiche') for (let k = 0; k < n; k++) extra += RG.koortsMunt(regie);
       if (extra) { eco.m += extra; S.econVeranderd = true; }
     }
-    // een grote plens: 10 of meer munten binnen 0,7 seconde
-    const t = nu(); st.winsten.push(t); while (st.winsten.length && st.winsten[0] < t - 700) st.winsten.shift();
-    if (st.winsten.length >= 10 && t > st.groot) { st.groot = t + 5000; slomo(1300); inzoomen(1800); flits(); confetti(70); geluid.publiek('juich'); geluid.tril([20, 30, 20, 30, 40]); }
+    // een grote plens: 30 of meer munten binnen anderhalve seconde (met de robot gemeten: ongeveer 15 keer per uur, en dan pas het grote moment)
+    const t = nu(); st.winsten.push(t); while (st.winsten.length && st.winsten[0] < t - 1500) st.winsten.shift();
+    if (st.winsten.length >= 30 && t > st.groot) { st.groot = t + 8000; slomo(1300); inzoomen(1800); flits(); confetti(70); geluid.publiek('juich'); geluid.tril([20, 30, 20, 30, 40]); }
     if (st.bijna.has(i)) { st.bijna.delete(i); confetti(90); geluid.publiek('juich'); }
     if (wat === 'tover') { confetti(120); slomo(1100); geluid.kassa(30); melding('De Reuzenmunt! +10 munten' + (extra ? ' (en ' + extra + ' extra door de koorts)' : ''), plaatje('tover', 0, 64), 3500); }
     return extra;

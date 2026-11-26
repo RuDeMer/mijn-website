@@ -550,3 +550,167 @@ Ruben: "Het moeten ook echt satisfying geluiden worden."
 - **De gleuf** (`gleuf`): de munt tikt tegen het staal en rolt de goot af (steeds snellere, zachtere tikjes; bij snel achter elkaar gooien alleen het tikje).
 - **Ruimte**: elke klank komt van links of rechts, waar het in de kast gebeurt (`naar`, `panVan`), en gaat een beetje naar een korte, heldere galm van de speelhal (`maakGalm`, zelf uitgerekend). Na de compressor wat harder, met een begrenzer erachter (`grens`): het geheel is zo'n −21 LUFS en komt nooit boven −1 dBFS (eerst −26 LUFS). Het motortje van de schuiver bromt zachter (een driehoek in plaats van een zaagtand). Op een telefoon trilt een grote plens en een fanfare.
 - **Getest**: een vast verloop met het echte geluid van de pagina, offline gemaakt in Chromium (een nagemaakte klok en een `OfflineAudioContext`): de ladder klimt, de kassa komt na de plens, geen fouten, piek −1,1 dBFS. De echte pagina met geluid aan, klassiek en de Schatkamer, op 480 en 390 breed: 30 gewonnen munten gaven 30 tingeltjes en 30 keer de trechter, zonder fouten.
+
+## 33. Spannender en verslavender (voorstel, 26 november 2026)
+
+Ruben: "Maak de Rommelschuiver veel spannender en verslavender, voordat hij op de homepage komt." De opzet verandert: **eerlijkheid en vaste kansen mogen weg**. Een spelleider mag het geluk sturen, en de kast mag per moment meer of minder teruggeven, zolang de economie gezond blijft. Wat blijft: **alleen speelmunten**, nooit echt geld, nooit iets kopen, geen reclame.
+
+**Stand: dit is een voorstel.** Eerst keurt Ruben het goed (de vragen staan onderaan). Daarna bouw ik eerst een proefversie met de spelleider en vier gebeurtenissen, die Ruben op zijn telefoon en laptop speelt, en pas daarna de rest.
+
+### Hoe het nu voelt (gemeten)
+
+Ik speelde de kast zoals hij nu online staat, op telefoon- en computerformaat, en liet een robot als nieuwe speler spelen (een verse kast zoals het spel die maakt, elke halve seconde een munt; in Node met de echte natuurkunde, drie keer 20 minuten):
+
+*(De meting loopt nog; de uitkomst komt hier.)*
+
+**Wat er nu ontbreekt**: er gebeurt weinig onverwachts. Een kaartje of een draai aan het rad is leuk, maar er is nooit een moment waarop de hele kast losgaat. Een nieuwe speler moet eerst lang gooien voordat er iets uit valt.
+
+### 1. De spelleider
+
+Een regisseur in het spel (`REGIE`, in de pagina, zonder pagina te testen in Node, zoals de economie). Hij kijkt elke seconde mee en beslist wanneer er iets bijzonders gebeurt.
+
+- **Het ritme**: na elke gebeurtenis kiest hij een moment over **30 tot 90 seconden spelen** (alleen tijd waarin je echt gooit telt; ligt je telefoon stil, dan wacht hij). Op dat moment komt er een gebeurtenis, een tovermunt of een groot moment. Nooit twee keer kort achter elkaar hetzelfde: elke gebeurtenis heeft een eigen rusttijd, en de laatste drie komen niet meteen terug.
+- **Gul op de goede momenten**:
+  - *nieuwe speler* (de eerste vijf minuten ooit): een vast verloop, zie "Het begin";
+  - *droog* (40 seconden geen munt in de trechter): eerder een gebeurtenis, en dan een die munten geeft (Muntenstorm, Muntenkanon, De vlaai);
+  - *bijna op* (minder dan 15 munten, en de spaarpot is leeg): een **reddingsmoment**, een Muntenstorm van 30 munten (hooguit één keer per dag);
+  - *terug na een dag of langer*: in de eerste minuut een welkom (de Jackpottoren of de Reuzenmunt), en "Terwijl je weg was" (zie 5).
+- **Spanning opbouwen**: de spelleider ziet in de natuurkunde wat er bijna valt (een prijs of een rij munten vlak bij de rand). Dan laat hij het even hangen ("Bijna!"), de rand wiebelt, het publiek houdt de adem in, en met een van de volgende munten geeft hij een klein duwtje: knal.
+- **Een handje helpen** (subtiel, alleen als het spannend is): een munt die net niet kiept een heel klein zetje geven, een prijs een paar seconden laten "plakken" zodat hij niet te vroeg valt, of de rand op het goede moment laten gaan. Dat zijn kleine duwtjes in de natuurkunde (een paar mm per seconde), dus het blijft echt voelen.
+- **De pot van de spelleider** (zo blijft de economie gezond): van elke 30 munten die je erin gooit, gaat er ongeveer 1 in zijn pot (dat zie je niet; de robots stellen het precies af). Alles wat hij aan munten weggeeft (een storm, een kanon, Koorts, een gouden munt), komt uit die pot. Zit er weinig in, dan kiest hij gebeurtenissen die niets kosten (Aardschok, Zijgoten dicht, De magneet: die laten munten vallen die er toch al bijna uit waren). Zo kan hij **nooit meer weggeven dan er binnenkomt**, en blijft de kast op de lange duur onder de 100 van de 100. Daarnaast heeft hij drie kleine potjes die nooit meer dan dit kunnen geven: een welkom voor een nieuwe speler (eenmalig 150 munten), een welkom terug (25 munten per dag) en het reddingsmoment (30 munten per dag).
+- **Het rad mag ook gestuurd worden**: draaide het rad lang geen prijs, dan wordt de kans op de jackpot steeds groter (na 40 draaien zonder prijs zeker een prijs).
+- **In het geheime beheermenu**: een knop per gebeurtenis en per tovermunt om hem meteen te zien, en twee schuifjes: **hoe vaak** (de spelleider wacht 0,25 tot 3 keer zo lang) en **hoe gul** (de pot krijgt 0,5 tot 2 keer zoveel). De schuifjes gelden alleen op dat apparaat, om te proberen; wat Ruben het fijnst vindt, zet ik daarna vast voor iedereen.
+
+### 2. De gebeurtenissen
+
+Elke gebeurtenis heeft een eigen aankondiging (een grote tekst over de kast, een eigen lichtpatroon in alle lampjes, een eigen geluid) en een eigen gevoel. Hoe vaak: per uur echt spelen, bij een gewone speler. Samen zo'n 30 tot 35 gebeurtenissen per uur; de andere momenten van de spelleider zijn tovermunten (zie 3). Wat het kost, komt uit de pot.
+
+| Gebeurtenis | Wat je ziet en hoort | Wat het doet | Hoe vaak (per uur) |
+|---|---|---|---|
+| **Muntenstorm** | De neon flikkert als onweer, een donderslag, en dan regent het munten over de hele schuiver (je hoort ze kletteren) | 20 tot 35 munten vallen van boven op beide verdiepingen | 3 tot 4 |
+| **Aardschok** | Een laag gerommel, de hele kast schudt drie tellen (het beeld trilt mee), lampjes knipperen rood | Alles wat aan de rand hangt, kiept eraf; de munten op de vloer schuiven een stukje naar voren | 4 tot 5 |
+| **De Reuzenmunt** | Een munt zo groot als een schoteltje (met het kroontje) ploft met een dreun op de schuiver | Hij duwt een hele strook munten naar voren; in de trechter is hij 10 munten waard | 2 tot 3 |
+| **Koorts** | Een meter in beeld loopt vol met elke munt die je wint. Vol: 20 seconden is alles goud, de muziek versnelt, de lampjes razen | Elke munt die je wint telt dubbel, en de gleuf gaat 1,5 keer zo snel | 2 tot 3 |
+| **Zijgoten dicht** | Twee hekjes schuiven met een klik omhoog voor de zijgoten, met een klokje dat aftelt | 30 seconden gaat er niets verloren in de zijgoten | 3 |
+| **De magneet** | Een grote rode hoefijzermagneet zakt aan een kabel boven de voorrand, met een zoemend geluid dat aanzwelt | 8 seconden trekt hij de munten bij de rand naar voren | 3 |
+| **Het muntenkanon** | Een koperen kanonnetje klapt uit de zijwand, "poef poef poef" | Schiet een rij van 12 munten dwars over de onderste vloer | 3 |
+| **De vlaai** | Een vlaai uit de Vlaaienbakker valt op de schuiver en spat met een "splets" uiteen in munten (en een paar kruimels) | 15 munten op één plek | 2 |
+| **De ballon** | Een ballon met een prijs eraan zweeft heen en weer boven de gleuf | Raak hem drie keer met een munt, en hij knalt: de prijs (een edelsteen, een tovermunt, of een stapeltje kaartjes) valt uit het luikje | 1 tot 2 |
+| **De jackpottoren** | Op de schuiver groeit een toren van gouden munten, laag voor laag (elke 15 munten die je gooit een laag) | Bij 12 lagen gaat hij wankelen en valt hij om: het regent goud (de gouden munten zijn elk 2 munten waard) | 1 |
+| **Turbo** | Een sirene, en de schuiver gaat twee keer zo snel, met snelheidsstrepen op de vloer | 12 seconden schuift alles twee keer zo vaak | 3 |
+| **Het Wonder** | Heel zeldzaam. Alles wordt stil, het licht gaat uit op één spot na, dan stort de hele voorrand in, in slow motion, met een fanfare en confetti | Alle munten in de voorste strook van de onderste vloer vallen, plus een regen gouden munten. Het komt als herinnering in je verzameling (met de datum) | ongeveer eens per twee à drie dagen spelen |
+| **De feestdagen** | Via de feestkalender van de site (`feest.js`). Sinterklaas: pepernoten en chocolademunten in goudpapier die uit een zak strooien. Kerst: sneeuw op de kast, en kerstballen die als munten vallen. Oud en nieuw: vuurwerkmunten die knallen, en om middernacht vuurwerk boven de kast | In plaats van een gewone storm: dezelfde munten, met het feest erop (de chocolademunten zijn 2 munten waard) | in de feesttijd in plaats van een deel van de stormen |
+
+**Per kast een eigen smaak** (dezelfde gebeurtenis, een eigen naam en uiterlijk, en een eigen gebeurtenis erbij):
+
+| Kast | Eigen namen | Eigen gebeurtenis |
+|---|---|---|
+| De Rommelschuiver | zoals hierboven | **Kermisknaller**: de kroonmunt in de boog draait snel rond, en er vallen 3 gouden munten |
+| De Halvemaan | Muntenstorm heet **Sterrenregen** (vallende sterren worden munten) | **Volle maan**: 20 seconden is elke slag springtij |
+| De Flipperkast | Aardschok heet **Tilt!** | **Multibal**: 15 seconden schieten de bumpers twee keer zo hard, en het scorebord gaat los |
+| De Draaimolen | De vlaai is een **suikerspin** | **Kermisgekte**: de schijf draait een halve minuut hard rond, het draaiorgel speelt dubbel zo snel |
+| De Ruitenwisser | Muntenstorm heet **Wolkbreuk** | **Stormwind**: de arm veegt 15 seconden twee keer zo ver |
+| De Schatkamer | Muntenstorm heet **Schatregen** (met gouden munten), Aardschok heet **Instorting** (stenen rommelen) | **De klok slaat dertien**: drie superduwen en een gouden sleutelkans |
+| De Fichebank | Muntenstorm heet **Fichesregen** (met fiches van 5) | **Hoge inzet**: 20 seconden is elk fiche dat valt dubbel waard |
+
+### 3. Bijzondere munten (in het spel: tovermunten)
+
+In je verzameling heten een paar voorwerpen al "bijzondere munten". Om dat niet door elkaar te halen, noem ik de nieuwe munten in het spel **tovermunten**. Af en toe valt er uit de gleuf een tovermunt in plaats van een gewone (de spelleider kiest wanneer; zo'n 25 tot 30 per uur, ongeveer 1 op de 250 munten als je flink gooit, vaker tijdens Koorts en als het droog is). Elke munt heeft een eigen uiterlijk (een eigen ontwerp in reliëf en een eigen kleur), zodat je hem herkent terwijl hij over de schuiver schuift.
+
+| Munt | Uiterlijk | Wat hij doet | Hoe vaak (van de bijzondere) |
+|---|---|---|---|
+| **?-munt** | Paars met een groot vraagteken | Als hij landt: een verrassing (5 munten erbij, een kaartje, een superduw, een klein schokje, of Koorts een stuk voller) | 25% |
+| **Bommunt** | Zwart met een lontje dat vonkt | Telt na het landen af (3, 2, 1) en blaast dan de munten om zich heen opzij, ook over de rand | 15% |
+| **Magneetmunt** | Rood en zilver, een hoefijzer | Trekt 6 seconden de munten om zich heen naar zich toe (een klontje dat samen verder schuift) | 12% |
+| **Kloonmunt** | Groen met drie stipjes | Splitst zich na het landen in drie munten | 15% |
+| **Stuitermunt** | Rood rubber | Stuitert een paar keer flink, ook over andere munten heen | 13% |
+| **Regenboogmunt** | Alle kleuren, glanzend | Valt hij in de trechter, dan begint meteen Koorts | 5% |
+| **Gouden munt** | Echt goud met een 10 erop | 10 munten waard in de trechter | 15% |
+| **Feestmunten** | Chocolademunt (Sint), kerstmunt, vuurwerkmunt | Zoals de gewone, met een feestje als hij valt (de vuurwerkmunt knalt als een bommunt) | alleen in de feesttijd |
+
+Een tovermunt telt in de kast als munt (een opslag zonder tovermunten wordt gewoon gelezen); in het kastrecord staat welke er nog in liggen (`bz`), zodat een nagemaakte stapel ze terug kan leggen.
+
+### 4. Grote momenten die je voelt
+
+- **Slow motion en de camera**: vallen er veel munten tegelijk (15 of meer in een seconde), valt er een prijs, of komt Het Wonder, dan gaat alles even langzaam (ruim een seconde op een derde van de snelheid), en zoomt de camera naar de voorrand. Daarna versnelt het weer, met een knal en een flits.
+- **De teller rolt op** (de getallen rollen als een kassa), met confetti, een flits en alle lampjes die meedoen.
+- **Geluid**: vlak voor een grote val wordt het even stil (de hal en de muziek zakken weg), en dan de plens en de kassa (uit hoofdstuk 32). Een publiek dat meeleeft: "oooh" als er iets bijna valt, gejuich als het valt, een zucht als het blijft hangen (zelf gemaakt met Web Audio).
+- **Trillen** op telefoons die het kunnen (een iPhone kan dat niet vanuit een webpagina).
+- **"Bijna!"**: ligt er een prijs of een kaartje van 50 of meer vlak bij de rand, dan licht hij op en verschijnt er een stickertje "Bijna!". Blijft hij te lang hangen, dan zucht het publiek, en helpt de spelleider soms een handje.
+- Bij minder beweging: geen schudden, geen slow motion met zoom, geen flitsen en geen confetti; de tekst en het geluid blijven.
+
+### 5. Redenen om door te spelen en terug te komen
+
+**Een spelersniveau.** Elke munt die je erin gooit geeft 1 ervaring, een gebeurtenis die je meemaakt 10, een prijs 50. Het eerste niveau gaat snel (na 5 minuten), daarna steeds iets langzamer. Elk niveau geeft munten en kaartjes, en sommige niveaus een gebeurtenis die vaker komt:
+
+| Niveau | Titel | Na ongeveer | Beloning |
+|---|---|---|---|
+| 1 | Kermisklant | het begin | |
+| 2 | Muntjesgooier | 5 minuten | 30 munten |
+| 3 | Randjesrijder | 12 minuten | 30 munten, 200 kaartjes |
+| 5 | Kiepkenner | een half uur | 50 munten, 300 kaartjes, De magneet komt vaker |
+| 8 | Schuivermeester | de tweede dag | 50 munten, 500 kaartjes, tovermunten komen vaker |
+| 12 | Goudzoeker | de vierde dag | 75 munten, 800 kaartjes, gouden munten komen vaker |
+| 16 | Stormjager | een week | 75 munten, 1.000 kaartjes, Muntenstorm komt vaker |
+| 20 | Kermisbaas | anderhalve week | 100 munten, 1.500 kaartjes, Koorts duurt 25 seconden |
+| 25 | Jackpotjager | drie weken | 100 munten, 2.000 kaartjes, de Jackpottoren komt vaker |
+| 30 | Muntenmagnaat | een maand | 150 munten, 3.000 kaartjes, Het Wonder komt vaker |
+| 40 en 50 | Rommelbaron, Rommelkoning | twee en drie maanden | 150 munten, 5.000 kaartjes |
+
+Elk niveau ertussen: 20 munten en 100 kaartjes. Bestaande spelers beginnen op het niveau dat past bij de munten die ze al gooiden (de beloningen van de niveaus die ze zo overslaan, krijgen ze in één keer, in een zakje).
+
+**Een dagreeks.** Speel je op een dag, dan komt er bovenop de 100 munten van die dag 5 munten per dag van je reeks bij (dag 2: +10, dag 11 en verder: +50). Eén keer per week mag je een dag missen zonder dat je reeks breekt (je ziet het vrijkaartje). Bij 7, 14 en 30 dagen een cadeautje: een zakje met 5 tovermunten, een glimmende munt voor je verzameling, en bij 30 dagen een edelsteen.
+
+**Een kermispas** (per maand, met een eigen medaille van die maand). 30 trappen; je vult ze met pasjespunten: 1 per munt, 20 per gebeurtenis, 50 per opdrachtje, 100 per prijs. Een trap kost 3.000 punten: wie elke dag zijn munten opspeelt, haalt trap 30 in ongeveer twee weken, wie om de dag speelt ook nog in die maand, en wie elke dag een kwartiertje speelt, komt tot ongeveer trap 20. Om en om munten (30) en kaartjes (300), elke vijfde trap een zakje tovermunten, trap 15 een glimmende munt, en trap 30 de **medaille van de maand** (een eigen verzameling: elke maand een andere kleur en een ander symbool).
+
+**Meer verdienen tijdens het spelen**: een goede sessie duurt langer dan nu, met de munten uit de gebeurtenissen (uit de pot van de spelleider) bovenop je spaarpot.
+
+**"Terwijl je weg was"**: ben je drie uur of langer weg geweest, dan is er iets gebeurd als je terugkomt: een kaartje van 50 of 100 is vlak bij de rand gaan liggen, of er staat een tovermunt op de rand, met een briefje "Terwijl je weg was…".
+
+**De verzameling**: naast de 24 voorwerpen en hun gouden versies nu ook **glimmende versies** (valt er een voorwerp dat je al hebt, dan is het 1 op 5 keer glimmend, in plaats van 25 kaartjes), **herinneringen** (Het Wonder, met de datum) en de **medailles van de kermispas**.
+
+### 6. Het begin
+
+- **Een nieuwe kast ligt vol tot vlak over de rand**: de eerste munten laten meteen munten vallen.
+- **De eerste vijf minuten zijn een vast verloop** (alleen de eerste keer ooit): na zo'n 40 seconden een Muntenstorm ("Welkom!"), na 2 minuten de Reuzenmunt, na 3 minuten Koorts (de meter begint de eerste keer al voor driekwart vol), na 4 minuten een Aardschok, en binnen 10 minuten de eerste edelsteen (de dagprijs van de eerste dag is altijd een edelsteen, en hij ligt vlak bij de rand).
+- **Het startscherm**: kort en spannend, met drie plaatjes van wat er kan gebeuren: "Gooi muntjes. Duw ze over de rand. Hoe meer er valt, hoe gekker het wordt." Daaronder de knop Speel.
+
+### 7. Wat er verdwijnt
+
+- **De tabel "Eerlijk?"** in de kraam: dat tabblad wordt **Kermispas** (je trappen, je niveau en je reeks).
+- **De pauze van Moeki** gaat naar Instellingen, en staat **standaard uit** (wie hem wil, zet hem aan: 20, 30, 45 of 60 minuten).
+- **"PROEF"** bij de naam, als alles af is.
+
+### 8. Balans
+
+**Het doel**: wie elke dag speelt tot zijn munten op zijn, speelt **45 tot 60 minuten per dag** (nu zo'n 35 tot 40, hoofdstuk 20), met een paar grote momenten erin; een kwartiertje per dag blijft ook leuk (dan bewaar je munten voor morgen). De kasten, de verzameling en de niveaus blijven iets om naartoe te werken: de tweede kast in de eerste week, alle kasten in de eerste twee maanden, de hele verzameling in ongeveer anderhalve maand, en goud en glimmend voor wie alles wil.
+
+**Waarom het niet ontspoort**: de pot van de spelleider geeft hooguit 3 à 4 van elke 100 munten terug, bovenop de 91 tot 94 van de kast. Samen blijft het dus altijd onder de 100 van de 100 (zo'n 96 à 97): hoe slim je ook speelt, je munten raken een keer op. Het precieze deel voor de pot stel ik met de robots af, zodat het doel van de minuten per dag gehaald wordt. Dat reken ik na met de robots:
+
+- **een robot met de echte natuurkunde** die per kast lange sessies speelt met de spelleider erbij: hoe vaak elke gebeurtenis voorkomt, hoeveel er terugkomt, en dat er nooit munten wegschieten, door de vloer zakken of gaan dansen (ook niet tijdens een Aardschok of een storm), en dat de grens van een volle kast (1.800) blijft werken;
+- **een rekenmodel van 60 dagen** (zoals in hoofdstuk 15) met een speler die elke dag een kwartiertje speelt, een die speelt tot de munten op zijn, en een die om de drie dagen speelt: minuten per dag, kaartjes, niveaus, de kasten, de verzameling en de kermispas;
+- **een robot die valsspeelt**: zo snel mogelijk gooien met de Snelle gleuf, altijd op de beste plek mikken, opnieuw laden midden in een gebeurtenis, en zoeken of de kloonmunt, de gouden munt of Koorts eindeloos munten geeft. Wordt een gebeurtenis onderbroken (de pagina gaat dicht), dan is hij weg: hij komt niet nog een keer, en wat er al in de kast lag, blijft er.
+
+### 9. Wat blijft
+
+- **De opslag**: `rommelschuiver-v1` en de stapels per kast. Alles komt er achteraan bij (bestaande voortgang blijft werken, geen id verandert): `xp` (ervaring), `rk` (je reeks: de laatste dag, hoe lang, de laatste vrije dag), `pas` (de maand, je punten en je trap), `rg` (de spelleider: zijn pot, de potjes, de Koortsmeter, de laatste gebeurtenissen, de dagen van Het Wonder), `glim` (glimmende voorwerpen), `med` (medailles), en per kast `bz` (tovermunten in de kast). De REGELS blijven zoals ze zijn (`geheel`), dus **de scoreserver hoeft niet opnieuw**.
+- **Soepel en zuinig**: elke gebeurtenis binnen het budget van hoofdstuk 3 (een storm van 35 munten past in "hooguit 80 tegelijk aan het vallen" op Normaal; op Zuinig 20 munten en minder confetti). Ik meet elke gebeurtenis apart in elke kast.
+- **De natuurkunde**: geen munten die wegschieten, door de vloer zakken of dansen, ook niet tijdens een gebeurtenis.
+- **De gedeelde blokken** blijven overal gelijk; het veiligheidsbeleid verandert niet.
+
+### 10. De stappen
+
+1. **Dit plan.** Ruben keurt het goed (of zegt wat anders moet).
+2. **De proefversie**: de spelleider met zijn pot, en vier gebeurtenissen: **Muntenstorm, Aardschok, Koorts en de Reuzenmunt**, met de aankondigingen, het geluid, slow motion, "Bijna!" en het nieuwe begin. Ruben speelt hem op zijn telefoon en laptop (met het beheermenu om elke gebeurtenis meteen te zien).
+3. **De rest**: de andere gebeurtenissen, de tovermunten, de eigen gebeurtenis per kast, het niveau, de dagreeks, de kermispas, "Terwijl je weg was", de verzameling, de feestdagen, Instellingen, en "PROEF" weg.
+4. **Testen** met de robots (hierboven), elke gebeurtenis in elke kast, bewaren en laden midden in een gebeurtenis, de feestdagen op de juiste data, oude voortgang; en in een echte browser op telefoon- en computerformaat, met de metingen, zonder fouten of overtredingen van het veiligheidsbeleid.
+5. **Commit en push** volgens de afspraken; Ruben ziet eerst wat erin gaat.
+
+### 11. Vragen voor Ruben
+
+1. **Het doel van 45 tot 60 minuten per dag** (voor wie speelt tot de munten op zijn; een kwartiertje blijft ook leuk): goed, of liever korter of langer?
+2. **De pot van de spelleider** (ongeveer 1 van elke 30 munten, en de spelleider kan nooit meer weggeven dan erin zit): akkoord? Dan kan de economie niet ontsporen.
+3. **De gebeurtenissen**: zo goed, of wil je er een paar anders of weg?
+4. **Het Wonder** eens per twee à drie dagen spelen: zeldzaam genoeg?
+5. **De kermispas per maand**, met een medaille van de maand: goed?
+6. **De schuifjes in het beheermenu** eerst alleen op jouw apparaat, en daarna zet ik jouw keuze vast voor iedereen: goed?

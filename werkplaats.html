@@ -1372,6 +1372,56 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     return uit;
   }
   const fhLijst = l => (l.length > 1 ? l.slice(0, -1).join(', ') + ' en ' + l[l.length - 1] : l.join(''));
+  // ---------------- een gemiste dag in een reeks (de dagspellen): de dag telt toch mee voor de reeks, maar niet als gespeeld of opgelost
+  // Elk spel kent zijn eigen merkje (zie CLAUDE.md, "Een gemiste dag in een reeks"): de woordspellen '0' (dat bestond al: "telt mee voor
+  // de reeks", en een echte uitslag gaat er bij het koppelen altijd boven), Rommelgroepjes 'w4' zonder pogingen, Rommelkroon
+  // [null, 0, 1, '', 'h'] en Op Gevoel de datum in reeks.h. Alleen de laatste 14 dagen (niet vandaag), en alleen een dag vlak na een dag
+  // die meetelde, of vlak na zo'n gemiste dag (hooguit 3 op rij). Dagen in Nederlandse tijd (fhDagNr: dagen sinds 1970).
+  const RH_DAGEN = 14, RH_RIJ = 3;
+  const rhVandaag = () => fhDagNr(FH_NL.format(new Date()));
+  const rhIso = n => new Date(n * 864e5).toISOString().slice(0, 10);
+  const rhObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+  function rhGemist(T, telt, mist, min) {
+    const uit = []; let rij = 0;
+    for (let k = T - RH_DAGEN; k <= T - 1; k++) { if (k >= min && mist(k) && (telt(k - 1) || (rij > 0 && rij < RH_RIJ))) { uit.push(k); rij++; } else rij = 0; }
+    return uit;
+  }
+  function rhRecept(spel, kies, doe) {
+    return { naam: 'Gemiste dag in je reeks', reeks: true, kies, doe,
+      uitleg: 'Een gemiste dag (in de laatste twee weken, vlak na een dag die meetelde) telt toch mee voor de reeks. Hij telt niet als gespeeld of opgelost, en een echte uitslag gaat er altijd boven. Vandaag kan niet: die speelt de speler zelf.',
+      leeg: 'Er is geen gemiste dag om in te halen (in de laatste twee weken, vlak na een dag die meetelde).',
+      bericht: g => (g.length ? `Ruben heeft je reeks in ${spel} vastgehouden: ${fhLijst(g.map(x => x.kort))} telt mee, ook al speelde je toen niet.` : `Ruben heeft je reeks in ${spel} vastgehouden.`) };
+  }
+  // de woordspellen: één teken per dag, dag 0 is 8 oktober 2026; de eerste dag van de nieuwe spellen is dag 30
+  const WS_NUL = fhDagNr('2026-10-08'), WS_EERSTE = 30;
+  const wsTeken = (d, i) => (typeof d === 'string' && d[i]) || '.';
+  const wsZet = (d, i, x) => { d = typeof d === 'string' ? d : ''; while (d.length < i) d += '.'; return d.slice(0, i) + x + d.slice(i + 1); };
+  const wsOpties = (d, n) => rhGemist(rhVandaag() - WS_NUL, k => /[0-9A-I]/.test(wsTeken(d, k)), k => wsTeken(d, k) === '.', WS_EERSTE)
+    .map(k => ({ waarde: (n ? n + ':' : '') + k, i: k, n, label: (n ? n + ' letters · ' : '') + fhDatum(WS_NUL + k, true), kort: fhDatum(WS_NUL + k) }));
+  const wsRecept = spel => rhRecept(spel, s => wsOpties(s.d), (s, g) => { for (const x of g || []) s.d = wsZet(s.d, x.i, '0'); return s; });
+  // Rommelgroepjes: puzzel n hoort bij dag n, puzzel 1 is 29 oktober 2026; 'w' = op de dag zelf opgelost, 'a' later uit het archief
+  const RG_NUL = fhDagNr('2026-10-29') - 1;
+  const rgRecept = rhRecept('Rommelgroepjes', s => { const p = rhObj(s.p) ? s.p : {}, x = n => String(p[n] || '');
+    return rhGemist(rhVandaag() - RG_NUL, n => x(n)[0] === 'w', n => !x(n) || /^[ba]/.test(x(n)), 1)
+      .map(n => ({ waarde: String(n), n, label: fhDatum(RG_NUL + n, true) + (x(n)[0] === 'a' ? ' · later opgelost' : ''), kort: fhDatum(RG_NUL + n) })); },
+    (s, g) => { if (!rhObj(s.p)) s.p = {}; for (const x of g || []) { const o = String(s.p[x.n] || ''); s.p[x.n] = o[0] === 'a' ? 'w' + o.slice(1) : 'w4'; } return s; });
+  // Rommelkroon: de puzzel van de dag per dagnummer, { dag: [tijd, hints, op de dag zelf 1/0, spoor] }; de eerste eigen dagpuzzel is 26 oktober 2026
+  const rkRecept = rhRecept('Rommelkroon', s => { const d = rhObj(s.dag) ? s.dag : {}, op = k => Array.isArray(d[k]) && !!d[k][2];
+    return rhGemist(rhVandaag(), op, k => !op(k), 20752).map(k => ({ waarde: String(k), k, label: fhDatum(k, true) + (Array.isArray(d[k]) ? ' · later opgelost' : ''), kort: fhDatum(k) })); },
+    (s, g) => { if (!rhObj(s.dag)) s.dag = {}; for (const x of g || []) { const e = s.dag[x.k]; if (Array.isArray(e)) { const n = e.slice(); n[2] = 1; n[4] = 'h'; s.dag[x.k] = n; } else s.dag[x.k] = [null, 0, 1, '', 'h']; } return s; });
+  // Op Gevoel: de reeks is { laatste: datum, lengte, beste }; de gespeelde dagrondes staan in dagen (per datum). Een herstelde dag gaat in reeks.h.
+  const gvRecept = rhRecept('Op Gevoel', s => { const dg = rhObj(s.dagen) ? s.dagen : {}, h = rhObj(s.reeks) && Array.isArray(s.reeks.h) ? s.reeks.h : [], telt = k => !!dg[rhIso(k)] || h.includes(rhIso(k));
+    return rhGemist(rhVandaag(), telt, k => !telt(k), fhDagNr('2026-10-21')).map(k => ({ waarde: rhIso(k), k, iso: rhIso(k), label: fhDatum(k, true), kort: fhDatum(k) })); },
+    (s, g) => {
+      if (!rhObj(s.reeks)) s.reeks = { laatste: '', lengte: 0, beste: 0 };
+      const r = s.reeks, h = new Set(Array.isArray(r.h) ? r.h : []); for (const x of g || []) h.add(x.iso);
+      const D = new Set(Object.keys(rhObj(s.dagen) ? s.dagen : {}).concat([...h], r.laatste ? [r.laatste] : []));
+      const e = fhDagNr([...D].sort().pop() || rhIso(rhVandaag())), L = r.laatste ? fhDagNr(r.laatste) : -1; let k = e, n = 0;
+      while (D.has(rhIso(k))) { n++; k--; }
+      if (L > k && L <= e) n = (e - L) + Math.max(L - k, +r.lengte || 0);   // tot en met de laatste dag weet het spel het soms beter
+      r.laatste = rhIso(e); r.lengte = n; r.beste = Math.max(+r.beste || 0, n); r.h = [...h].sort().slice(-30);
+      return s;
+    });
   const SPELINFO = {
     'vlaaienbakker-v1': { naam: 'Vlaaienbakker', pagina: 'vlaaienbakker.html', icoon: 'vlaai', spel: 'vlaai', kort: s => [vbKort(s, vbGetal(s, 'alles')[0] >= vbGetal(s, 'ooit')[0] ? 'alles' : 'ooit') + ' vlaaien ooit gebakken', vbKort(s, 'vlaaien') + ' vlaaien nu', som(s.bakkers) + ' bakkers', (s.gilde && s.gilde.verdiend ? vbKort(s, 'gilde.verdiend') + ' gildesterren' : ''), (s.oer && s.oer.n > 0 ? s.oer.n + (s.oer.n === 1 ? ' Oerknal, ' : ' Oerknallen, ') + vbKort(s, 'oer.ooit') + ' oerdeeg verdiend' : ''), (s.mijl ? s.mijl + ' van 200 mijlpalen' : '')], cadeau: [{ pad: 'vlaaien', label: 'Vlaaien erbij', std: 1000 }] },
     'vlaaienbakker-week-v1': { naam: 'Bakwedstrijd van de week', pagina: 'vlaaienbakker.html#wedstrijd', icoon: 'vlaai', kort: s => ['Week ' + (s.week || '?') + ': ' + vlaaiKort(s.totaal) + ' vlaaien', Math.round(n0(s.tijdOver) / 60) + ' minuten baktijd over'] },
@@ -1387,7 +1437,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     'rommelblok-taal': { naam: 'Rommelblok (taal)', overig: true },
     'vouwvlieger-v1': { naam: 'Vouwvlieger', pagina: 'vouwvlieger.html', icoon: 'vlieger', spel: 'vlieger', kort: s => ['Record: ' + n0(s.best) + ' punten', n0(s.sterren) + ' sterren gevangen, ' + n0(s.spaar) + ' in de spaarpot', n0(s.gespeeld) + ' keer gespeeld' + (s.rakelings ? ', ' + n0(s.rakelings) + ' keer rakelings' : '')], cadeau: [{ pad: 'spaar', label: 'Sterren in de spaarpot', std: 50 }] },
     'rommelritme-v1': { naam: 'Rommelritme', pagina: 'rommelritme.html', icoon: 'ritme', spel: 'ritme', kort: s => [aantal(s.gehaald) + ' van ' + tot(s, 6) + ' levels gehaald', 'Samen ' + Math.round(som(s.best)) + '% (beste per level)', som(s.pogingen) + ' pogingen'].concat(s.ritme && typeof s.ritme === 'object' && Object.keys(s.ritme).length ? ['Beste ritmescore ' + Math.max(...Object.values(s.ritme).map(Number).filter(isFinite)) + ', langste combo ' + Math.max(0, ...Object.values(s.combo || {}).map(Number).filter(isFinite))] : []) },
-    'rommelkroon-v1': { naam: 'Rommelkroon', pagina: 'rommelkroon.html', icoon: 'rommelkroon', spel: 'kroon', kort: s => [aantal(s.opgelost) + ' van ' + tot(s, 620) + ' puzzels', aantal(s.dag) + ' puzzels van de dag', aantal(s.week) + ' kronen van de week', 'Tegen de klok: record ' + ((s.klok && s.klok.b) || 0), aantal(s.bezig) + ' puzzels bezig'] },
+    'rommelkroon-v1': { naam: 'Rommelkroon', pagina: 'rommelkroon.html', icoon: 'rommelkroon', spel: 'kroon', kort: s => [aantal(s.opgelost) + ' van ' + tot(s, 620) + ' puzzels', Object.values(rhObj(s.dag) ? s.dag : {}).filter(e => Array.isArray(e) && !(e[4] === 'h' && typeof e[0] !== 'number')).length + ' puzzels van de dag', aantal(s.week) + ' kronen van de week', 'Tegen de klok: record ' + ((s.klok && s.klok.b) || 0), aantal(s.bezig) + ' puzzels bezig'], herstel: [rkRecept] },
     'rommelarend-v1': { naam: 'Rommelarend', pagina: 'rommelarend.html', icoon: 'arend', spel: 'arend', kort: s => [(s.ontdekt || []).length + ' van ' + tot(s, 18) + ' plekken (alle steden)', (s.veren || []).length + ' gouden veren', aantal(s.races) + ' wedstrijden gevlogen'] },
     'rommelrob-v1': { naam: 'Rob 👍', pagina: 'rob.html', icoon: 'rob', spel: 'rob', kort: s => ['Record: ' + n0(s.best) + ' duimpjes', 'Duimspam: ' + n0(s.bestSpam), getal(n0(s.totaal)) + ' duimpjes ooit'] },
     'rommelbel-v1': { naam: 'Rommelbel', pagina: 'rommelbel.html', icoon: 'bel', spel: 'bel', kort: s => [som(s.sterren) + ' van ' + tot(s, 90) + ' sterren', 'Level ' + n0(s.open) + ' open', 'Eindeloos: ' + getal(n0(s.eindeloos))] },
@@ -1396,16 +1446,18 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     'steiger-v1': { naam: 'Steigerstress', pagina: 'steigerstress.html', icoon: 'steiger', spel: 'steiger', kort: s => [som(s.sterren) + ' van 36 sterren'] },
     'rommelwheels-v1': { naam: 'Rommelwheels', pagina: 'rommelwheels.html', icoon: 'wheels', spel: 'wheels', kort: s => { let st = 0, p = 0; for (const r of Object.values(s.levels || {})) { st += (r.gehaald ? 1 : 0) + (r.alle ? 1 : 0) + (r.heel ? 1 : 0); p += n0(r.punten); } return [st + ' van ' + tot(s, 39) + ' sterren', getal(p) + ' punten']; } },
     'mengelmoes-v1': { naam: 'Mengelmoes', pagina: 'mengelmoes.html', icoon: 'mengelmoes', kort: s => [(Array.isArray(s.el) ? s.el.length : 0) + ' stickers', (Array.isArray(s.el) ? s.el.filter(x => x && x[4]).length : 0) + '× 1e druk'] },
-    'opgevoel-v1': { naam: 'Op Gevoel', pagina: 'opgevoel.html', icoon: 'opgevoel', spel: 'gevoel', kort: s => ['Beste dagronde: ' + n0(((s.stat || {}).dag || {}).best) + ' van 500', aantal(s.dagen) + ' dagrondes gespeeld', 'Reeks: ' + n0((s.reeks || {}).lengte) + ' dagen'] },
+    'opgevoel-v1': { naam: 'Op Gevoel', pagina: 'opgevoel.html', icoon: 'opgevoel', spel: 'gevoel', kort: s => ['Beste dagronde: ' + n0(((s.stat || {}).dag || {}).best) + ' van 500', aantal(s.dagen) + ' dagrondes gespeeld', 'Reeks: ' + n0((s.reeks || {}).lengte) + ' dagen'], herstel: [gvRecept] },
     'coulissenkoor-v1': { naam: 'Coulissenkoor', pagina: 'coulissenkoor.html', icoon: 'koor', kort: s => [aantal(s.gezongen) + ' van ' + tot(s, 11) + ' liedjes meegezongen', aantal(s.liedjes) + ' opnames', 'Koor: ' + Object.values(s.koor || {}).join(', ')] },
     'helpdesk-v1': { naam: 'Helpdesk Hopeloos', pagina: 'helpdesk.html', icoon: 'helpdesk', spel: 'helpdesk', kort: s => { const lv = Object.entries(s.lv || {}), st = lv.reduce((a, [, r]) => a + ((r && r.s) || []).filter(Boolean).length, 0); return [st + ' van ' + tot(s, 30) + ' sterren, ' + lv.filter(([, r]) => r && r.s && r.s[0]).length + ' van 10 gesprekken bijna gelukt', (s.eind || []).length + ' eindes en ' + (s.grap || []).length + ' grappige antwoorden gevonden', s.bezig ? 'Bezig met het gesprek met ' + s.bezig.lv : '']; }, herstel: [{ naam: 'Lopend gesprek stoppen', uitleg: 'Haalt een gesprek weg dat nog liep (het veld "bezig"). Gebruik dit als een gesprek steeds blijft hangen. Sterren en eindes blijven staan.', doe: s => { s.bezig = null; return s; } }] },
     'rommelschuiver-v1': { naam: 'Rommelschuiver', pagina: 'rommelschuiver.html', icoon: 'schuiver', kort: s => { const st = s.st || {}; return [getal(n0(s.m)) + ' speelmunten, ' + getal(n0(s.k)) + ' kaartjes, ' + n0(s.pot) + ' in de spaarpot', (s.vz || []).length + ' van ' + tot(s, 24) + ' voorwerpen' + ((s.goud || []).length ? ', ' + s.goud.length + ' van goud' : ''), (s.open || []).length + (((s.open || []).length === 1) ? ' kast' : ' kasten') + ' open: ' + (s.open || []).join(', '), getal(n0(st.n)) + ' munten ingegooid, ' + getal(n0(st.uit)) + ' in de trechter']; }, cadeau: [{ pad: 'm', label: 'Speelmunten erbij', std: 200 }, { pad: 'k', label: 'Kaartjes erbij', std: 500 }] },
     'rommelcasino-v1': { naam: 'Casino Rommelroyaal', pagina: 'rommelcasino.html', icoon: 'casino', spel: 'casino', kort: s => { const d = Object.values(s.dag || {}); return [getal(n0(s.f)) + ' speelfiches, ' + n0(s.ster) + ' van ' + tot(s, 122) + ' sterren', getal(n0(s.n)) + ' rondes gespeeld, ' + aantal(s.u) + ' uitdagingen gehaald', d.length ? 'Hand van de dag: ' + d.length + ' keer, samen ' + d.reduce((a, x) => a + n0(x[0]), 0) + ' punten' : 'Nog geen hand van de dag', s.bezig ? 'Er loopt nog een ronde (' + ((s.bezig && s.bezig.s) || '?') + ')' : '']; }, cadeau: [{ pad: 'f', label: 'Speelfiches erbij', std: 500 }], herstel: [{ naam: 'Lopende ronde stoppen (inzet terug)', uitleg: 'Haalt een ronde weg die nog liep (het veld "bezig") en geeft de inzet terug. Gebruik dit als een hand steeds blijft hangen.', doe: s => { if (s.bezig && s.bezig.i > 0) s.f = Math.floor((+s.f || 0) + Math.min(5000, Math.floor(+s.bezig.i))); delete s.bezig; return s; } }] },
-    'rommelwoord-extra-v1': { naam: 'Rommelwoord (4 tot 8 letters)', pagina: 'rommelwoord.html', icoon: 'woord', kort: s => { const d = s.d || {}, g = n => String(d[n] || '').replace(/\./g, '').length, w = n => (String(d[n] || '').match(/[1-6A-F]/g) || []).length; return [[4, 6, 7, 8].map(n => n + ' letters: ' + w(n) + ' van ' + g(n)).join(', '), 'Moeilijke stand: ' + (s.inst && s.inst.moeilijk ? 'aan' : 'uit')]; } },
-    'cryptisch-v1': { naam: 'Cryptisch', pagina: 'cryptisch.html', icoon: 'cryptisch', spel: 'cryptisch', kort: s => { const d = String(s.d || ''); return [(d.match(/[1-9]/g) || []).length + ' opgelost, ' + (d.match(/1/g) || []).length + ' zonder fout', (d.match(/x/g) || []).length + ' keer opgegeven']; } },
-    'letterval-v1': { naam: 'Letterval', pagina: 'letterval.html', icoon: 'letterval', spel: 'letterval', kort: s => { const d = String(s.d || ''); return [(d.match(/[1-9]/g) || []).length + ' kisten leeggemaakt, ' + (d.match(/1/g) || []).length + ' zonder hints']; } },
-    'klinkermijnen-v1': { naam: 'Klinkermijnen', pagina: 'klinkermijnen.html', icoon: 'klinker', spel: 'klinker', kort: s => { const d = String(s.d || ''); return [(d.match(/1/g) || []).length + ' velden af, ' + (d.match(/x/g) || []).length + ' keer boem']; } },
-    'rommelgroepjes-v1': { naam: 'Rommelgroepjes', pagina: 'rommelgroepjes.html', icoon: 'groepjes', spel: 'groepjes', kort: s => { const v = Object.values(s.p || {}).map(String), op = v.filter(x => x[0] === 'w' || x[0] === 'a'); return [op.length + ' van ' + tot(s, v.length) + ' puzzels opgelost (' + v.filter(x => x[0] === 'w').length + ' op de dag zelf)', op.filter(x => x[1] === '0').length + ' zonder fouten, ' + v.filter(x => x[0] === 'v' || x[0] === 'x').length + ' niet gelukt', 'Laatst gespeeld: puzzel ' + n0(s.laatst)]; } },
+    'rommelwoord-extra-v1': { naam: 'Rommelwoord (4 tot 8 letters)', pagina: 'rommelwoord.html', icoon: 'woord', kort: s => { const d = s.d || {}, g = n => String(d[n] || '').replace(/[.0]/g, '').length, w = n => (String(d[n] || '').match(/[1-6A-F]/g) || []).length; return [[4, 6, 7, 8].map(n => n + ' letters: ' + w(n) + ' van ' + g(n)).join(', '), 'Moeilijke stand: ' + (s.inst && s.inst.moeilijk ? 'aan' : 'uit')]; },
+      herstel: [rhRecept('Rommelwoord', s => [4, 5, 6, 7, 8].reduce((a, n) => a.concat(wsOpties((rhObj(s.d) ? s.d : {})[n], n)), []),
+        (s, g) => { if (!rhObj(s.d)) s.d = {}; for (const x of g || []) s.d[x.n] = wsZet(s.d[x.n], x.i, '0'); return s; })] },
+    'cryptisch-v1': { naam: 'Cryptisch', pagina: 'cryptisch.html', icoon: 'cryptisch', spel: 'cryptisch', kort: s => { const d = String(s.d || ''); return [(d.match(/[1-9]/g) || []).length + ' opgelost, ' + (d.match(/1/g) || []).length + ' zonder fout', (d.match(/x/g) || []).length + ' keer opgegeven']; }, herstel: [wsRecept('Cryptisch')] },
+    'letterval-v1': { naam: 'Letterval', pagina: 'letterval.html', icoon: 'letterval', spel: 'letterval', kort: s => { const d = String(s.d || ''); return [(d.match(/[1-9]/g) || []).length + ' kisten leeggemaakt, ' + (d.match(/1/g) || []).length + ' zonder hints']; }, herstel: [wsRecept('Letterval')] },
+    'klinkermijnen-v1': { naam: 'Klinkermijnen', pagina: 'klinkermijnen.html', icoon: 'klinker', spel: 'klinker', kort: s => { const d = String(s.d || ''); return [(d.match(/1/g) || []).length + ' velden af, ' + (d.match(/x/g) || []).length + ' keer boem']; }, herstel: [wsRecept('Klinkermijnen')] },
+    'rommelgroepjes-v1': { naam: 'Rommelgroepjes', pagina: 'rommelgroepjes.html', icoon: 'groepjes', spel: 'groepjes', kort: s => { const v = Object.values(s.p || {}).map(String).filter(x => x !== 'w4'), op = v.filter(x => x[0] === 'w' || x[0] === 'a'); return [op.length + ' van ' + tot(s, v.length) + ' puzzels opgelost (' + v.filter(x => x[0] === 'w').length + ' op de dag zelf)', op.filter(x => x[1] === '0').length + ' zonder fouten, ' + v.filter(x => x[0] === 'v' || x[0] === 'x').length + ' niet gelukt', 'Laatst gespeeld: puzzel ' + n0(s.laatst)]; }, herstel: [rgRecept] },
     'rommelrecht-v1': { naam: 'Rommelrecht', pagina: 'rommelrecht.html', icoon: 'recht', kort: s => [Object.keys(s.gehaald || {}).filter(k => !k.startsWith('dag-')).length + ' van ' + tot(s, 139) + ' puzzels netjes', aantal(s.manieren) + ' manieren gevonden'] },
     'reclame-v1': { naam: 'Zoals in de reclame', pagina: 'reclame.html', icoon: 'reclame', spel: 'reclame', kort: s => { const NAAM = { pin: 'Trek de pin', sap: 'Sapjes sorteren', ren: 'Dopjesrace', park: 'Parkeerchaos', touw: 'Touwtrektoren', friet: 'Red het frietje' }, st = v => String(v || '').split('').reduce((a, c) => a + Math.min(3, +c || 0), 0), per = Object.keys(NAAM).map(k => [NAAM[k], st((s.s || {})[k])]), d = s.dag || {}; return [per.reduce((a, x) => a + x[1], 0) + ' van ' + tot(s, 540) + ' sterren', per.filter(x => x[1]).map(x => x[0] + ' ' + x[1]).join(', ') || 'Nog geen sterren', 'Reclame van de dag ' + n0(d.n) + ' keer gehaald, langste reeks ' + n0(d.b) + ' dagen']; } },
     'huisopstelten-v1': { naam: 'Huis op stelten', pagina: 'huisopstelten.html', icoon: 'huis', spel: 'huis', kort: s => [Object.values(s.k || {}).reduce((a, k) => a + ((k && k.s) || []).filter(Boolean).length, 0) + ' van ' + tot(s, 9) + ' sterren', 'Beste uitdaging: ' + getal(n0(s.besteDag)) + ' chaospunten', n0(s.dagen) + ' uitdagingen gespeeld', aantal(s.album) + ' foto\'s in het album'] },
@@ -1587,7 +1639,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
     const passkeys = (p.passkeys || []).map(k => `<li><span class="groei">🔑 Passkey op <b>${esc(k.naam || 'een apparaat')}</b> <small>${esc(k.kort)}</small></span><small>gemaakt ${esc(datum(k.gemaakt))} · ${k.laatst ? 'laatst gebruikt ' + esc(geleden(k.laatst)) : 'nog nooit gebruikt'}</small><button class="mini rood" type="button" data-pk-weg="${esc(k.cred)}">Weghalen</button></li>`).join('');
     const koppelKaart = koppelM.length || apparaten || passkeys ? `<div class="kaart" style="margin-top:1rem"><h2>🔀 Koppelen</h2>${apparaten ? `<h3>Apparaten <span class="rechts zacht">laatste 60 dagen</span></h3><ul class="regels">${apparaten}</ul>` : ''}${passkeys ? `<h3>Passkeys <span class="rechts zacht">daarmee haalt de speler het account terug</span></h3><ul class="regels">${passkeys}</ul>` : ''}${koppelM.length ? `<h3>Meldingen</h3><p class="hint" style="margin-top:0">Wat er gebeurde toen deze speler op meer apparaten speelde. De andere versie staat bij ⚖️ Versies.</p><ul class="regels">${koppelM.slice(0, 12).map(m => koppelRegel(Object.assign({ id: p.account }, m), false)).join('')}</ul>` : ''}</div>` : '';
     $('s-profiel').innerHTML = `<div class="kaart"><h2>👤 ${esc(naam)}</h2><p style="margin:.2rem 0 .4rem">${chips}</p><p class="zacht" style="margin:0">Laatst gespeeld: <b>${esc(geleden(laatst))}</b>${laatst ? ' (' + esc(tijd(laatst)) + ')' : ''}</p>
-      <div class="rij-knoppen">${p.score ? `<button class="mini" type="button" data-p="naam">Naam veranderen</button><button class="mini" type="button" data-p="scores-weg">Scores weghalen</button><button class="mini ${p.geblokkeerd ? '' : 'rood'}" type="button" data-p="blok">${p.geblokkeerd ? 'Deblokkeren' : 'Blokkeren'}</button>` : ''}<button class="mini rood" type="button" data-p="alles-weg">Gegevens wissen (op verzoek)</button></div></div>
+      <div class="rij-knoppen">${p.score ? `<button class="mini" type="button" data-p="naam">Naam veranderen</button><button class="mini" type="button" data-p="scores-weg">Scores weghalen</button><button class="mini ${p.geblokkeerd ? '' : 'rood'}" type="button" data-p="blok">${p.geblokkeerd ? 'Deblokkeren' : 'Blokkeren'}</button>` : ''}${p.account ? '<button class="mini" type="button" data-p="reeks">🔥 Gemiste dag in een reeks</button>' : ''}<button class="mini rood" type="button" data-p="alles-weg">Gegevens wissen (op verzoek)</button></div></div>
       <div class="raster twee"><div class="kaart"><h2>🏆 Scores en plekken</h2>${plekken}</div><div class="kaart"><h2>🛠️ Hulp</h2>${hulp}${rb ? '<h3>🃏 Rommelbeesten</h3>' + rb : ''}</div></div>
       ${koppelKaart}
       <div class="kaart" style="margin-top:1rem"><h2>💾 Voortgang per spel</h2>${voortgang}${overig.length ? `<details class="klap"><summary>Overige opslag (${overig.length})</summary><ul class="regels">${overig.map(r => `<li><span class="groei"><b>${esc(spelNaam(r.sleutel))}</b> <small>${esc(r.sleutel)} · ${kb(r.data.length)}</small></span><button class="mini" type="button" data-ruw="${esc(r.sleutel)}">Bekijk</button></li>`).join('')}</ul></details>` : ''}</div>`;
@@ -1608,6 +1660,7 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
   async function profielActie(wat) {
     try {
       if (wat === 'naam') return naamVenster(P.score, P.naam, P.account);
+      if (wat === 'reeks') return reeksVenster();
       if (wat === 'scores-weg') { if (!confirm('Alle scores van ' + P.naam + ' van het scorebord halen?')) return; await scorePost('/beheer/score-weg', { spel: '*', id: P.score }); toast('Scores weggehaald.'); }
       if (wat === 'blok') { const aan = !P.geblokkeerd; const reden = aan ? prompt('Waarom blokkeer je ' + P.naam + '? (alleen voor jezelf)') : ''; if (aan && reden === null) return; await scorePost('/beheer/blokkeer', { id: P.score, aan, reden }); toast(aan ? 'Geblokkeerd.' : 'Weer vrijgegeven.'); }
       if (wat === 'alles-weg') {
@@ -1790,6 +1843,46 @@ html[data-thema="donker"] body[data-pagina="rommelrecht"] { --rm-potlood: rgba(5
       d.querySelector('#h-stuur').disabled = true;
       try { await scorePost('/beheer/hulp', b); d.close(); toast('Verstuurd. ' + naam + ' ziet het bij het volgende bezoek.'); toonSpeler(P.score || '', P.account || ''); }
       catch (x) { toonFout(x.message); d.querySelector('#h-stuur').disabled = false; }
+    };
+  }
+  // ---------------- een gemiste dag in een reeks, bij alle dagspellen tegelijk (de recepten met reeks: true in SPELINFO), met één bericht.
+  // Per spel gaat er hulp 'zet' naar de speler, gemaakt van de versie op de server (zoals bij Helpen); de speler ziet de berichten samen.
+  async function reeksVenster() {
+    const naam = P.naam || 'de speler', account = P.account;
+    const d = venster(`<div class="venster-in"><h2>🔥 Gemiste dag in een reeks</h2><p class="zacht" style="margin-top:0">Voor ${esc(naam)}. Een gemiste dag telt toch mee voor de reeks, maar niet als gespeeld of opgelost. Alleen de laatste twee weken, en alleen vlak na een dag die meetelde. Vandaag speelt de speler zelf.</p>
+      <div id="rh-lijst"><p class="zacht">Even kijken welke reeksen een gemiste dag hebben…</p></div>
+      <label class="veld">Bericht voor ${esc(naam)}<span>Verplicht: de speler ziet altijd wat je deed.</span><textarea id="rh-bericht" maxlength="300"></textarea></label>
+      <p class="melding fout" id="rh-fout" hidden></p></div>
+      <div class="venster-voet"><button class="knop" type="button" data-dicht>Annuleren</button><button class="knop hoofd" type="button" id="rh-stuur" disabled>Stuur</button></div>`);
+    const lijst = d.querySelector('#rh-lijst'), bericht = d.querySelector('#rh-bericht'), fout = d.querySelector('#rh-fout'), stuur = d.querySelector('#rh-stuur');
+    const sleutels = Object.keys(SPELINFO).filter(k => (SPELINFO[k].herstel || []).some(h => h.reeks));
+    const per = (await Promise.all(sleutels.map(async k => {
+      let data = (P.opslag.find(x => x.sleutel === k) || {}).data;
+      try { const v = await score('/beheer/versies?account=' + account + '&sleutel=' + encodeURIComponent(k)); if (v && v.nu && v.nu.data) data = v.nu.data; } catch (e) {}
+      if (!data) return null; let st; try { st = JSON.parse(data); } catch (e) { return null; }
+      const h = SPELINFO[k].herstel.find(x => x.reeks), opties = h.kies(st);
+      return opties.length ? { k, I: SPELINFO[k], h, st, opties } : null;
+    }))).filter(Boolean);
+    if (!per.length) { lijst.innerHTML = '<p class="melding let">Er is geen reeks met een gemiste dag om in te halen (in de laatste twee weken, vlak na een dag die meetelde).</p>'; return; }
+    lijst.innerHTML = per.map((x, i) => `<h3 style="margin:.8rem 0 .2rem">${esc(x.I.naam)}</h3><div class="keuzes">${x.opties.map(o => `<label class="keuze"><input type="checkbox" name="rh" data-i="${i}" value="${esc(o.waarde)}" checked><span><b>${esc(o.label)}</b></span></label>`).join('')}</div>`).join('');
+    let zelf = false; bericht.addEventListener('input', () => { zelf = true; });
+    const gekozen = () => per.map((x, i) => { const w = [...lijst.querySelectorAll(`input[name="rh"][data-i="${i}"]:checked`)].map(e => e.value); return Object.assign({}, x, { g: x.opties.filter(o => w.includes(o.waarde)) }); }).filter(x => x.g.length);
+    const zetBericht = () => { if (zelf) return; const g = gekozen(), dagen = [...new Set([].concat(...g.map(x => x.g.map(o => o.kort))))];
+      bericht.value = g.length ? `Ruben heeft je reeks vastgehouden bij ${fhLijst(g.map(x => x.I.naam))}: ${fhLijst(dagen)} telt mee, ook al speelde je toen niet.` : ''; };
+    lijst.addEventListener('change', zetBericht); zetBericht(); stuur.disabled = false;
+    const verstuurd = new Set();   // bij nog een keer proberen niet twee keer dezelfde hulp
+    stuur.onclick = async () => {
+      const g = gekozen(), b = bericht.value.trim(); fout.hidden = true;
+      if (!g.length) { fout.hidden = false; fout.textContent = 'Vink minstens één dag aan.'; return; }
+      if (b.length < 5) { fout.hidden = false; fout.textContent = 'Schrijf een bericht voor de speler (minstens 5 tekens).'; return; }
+      stuur.disabled = true; const mis = [];
+      for (const x of g) {
+        if (verstuurd.has(x.k)) continue;
+        try { await scorePost('/beheer/hulp', { account, sleutel: x.k, soort: 'zet', titel: x.I.naam, bericht: b, data: JSON.stringify(x.h.doe(JSON.parse(JSON.stringify(x.st)), x.g)) }); verstuurd.add(x.k); }
+        catch (e) { mis.push(x.I.naam + ': ' + e.message); }
+      }
+      if (mis.length) { fout.hidden = false; fout.textContent = 'Niet gelukt bij ' + mis.join('; ') + (mis.length < g.length ? '. De rest is verstuurd.' : ''); stuur.disabled = false; if (mis.length < g.length) toonSpeler(P.score || '', P.account || ''); return; }
+      d.close(); toast('Verstuurd. ' + naam + ' ziet het bij het volgende bezoek.'); toonSpeler(P.score || '', P.account || '');
     };
   }
   // ---------------- Rommelbeesten: een cadeautje (zoals in het beheer van het spel zelf)

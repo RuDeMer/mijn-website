@@ -1750,11 +1750,13 @@ const WS = (() => {
   ];
   function mijlpalen() {
     const { u, xd, s5 } = gespeeld(), r = woordreeks(), d = id => String(lees(id + '-v1', {}).d || ''), c = d('cryptisch'), l = d('letterval'), k = d('klinkermijnen');
-    const woordOp = j => u[j] && ([4, 5, 6, 7, 8].some(n => teken(xd[n], j) !== '.') || s5.dag === j);
-    const allen = j => [4, 6, 7, 8].every(n => teken(xd[n], j) !== '.') && (teken(xd[5], j) !== '.' || (s5.dag === j && s5.klaar));
+    // echt gespeeld: niet '.', en ook niet '0' (een dag die alleen meetelt voor de reeks, zoals een dag die Ruben in de werkplaats herstelde)
+    const sp = (x, j) => !/[.0]/.test(teken(x, j));
+    const woordOp = j => u[j] && ([4, 5, 6, 7, 8].some(n => sp(xd[n], j)) || s5.dag === j);
+    const allen = j => [4, 6, 7, 8].every(n => sp(xd[n], j)) && (sp(xd[5], j) || (s5.dag === j && s5.klaar));
     const w = [4, 5, 6, 7, 8].map(n => String(xd[n] || '')).join('|');
     let vier = false, vijf = false;
-    for (let j = 0; j < Math.max(c.length, l.length, k.length, u.length); j++) { if (teken(c, j) !== '.' && teken(l, j) !== '.' && teken(k, j) !== '.' && woordOp(j)) vier = true; if (allen(j)) vijf = true; }
+    for (let j = 0; j < Math.max(c.length, l.length, k.length, u.length); j++) { if (sp(c, j) && sp(l, j) && sp(k, j) && woordOp(j)) vier = true; if (allen(j)) vijf = true; }
     return [vier, r.beste >= 7, r.beste >= 30, r.beste >= 100, r.beste >= 365, /1/.test(c), tel(c, x => /[1-9]/.test(x)) >= 10, /1/.test(l), tel(k, x => x === '1') >= 10,
       vijf, /[12AB]/.test(w) || (!!s5.gewonnen && (s5.pogingen || []).length <= 2), /[A-F]/.test(w)];
   }
@@ -2217,7 +2219,7 @@ const WS = (() => {
   const bewaar = () => WS.schrijf(SLEUTEL, S);
   // het hintpotje: 3, plus de dagen dat je het rooster oploste, min alle hints die je gebruikte (hooguit één erbij per dag)
   const hintsVandaag = () => +(S.h[dag] || 0);
-  const potje = () => Math.max(0, 3 + WS.tel(S.d, WS.gelukt) - [...S.h].reduce((a, x) => a + (+x || 0), 0));
+  const potje = () => Math.max(0, 3 + WS.tel(S.d, x => WS.gelukt(x) && x !== '0') - [...S.h].reduce((a, x) => a + (+x || 0), 0));   // '0' (alleen voor de reeks) geeft geen hint
   // ---------- de regels: kolommen van onder naar boven; een blok is { id, l }
   const woordVan = (kol, pd) => pd.map(([k, r]) => kol[k][r].l).join('');
   function paden(kol, w) {
@@ -2343,7 +2345,7 @@ const WS = (() => {
     teken();
   }
   function einde(nieuw) {
-    const rs = WS.reeks(S.d, dag), gespeeld = WS.tel(S.d, x => x !== '.'), zonder = WS.tel(S.d, x => x === '1'), h = Math.max(0, +WS.teken(S.d, dag) - 1);
+    const rs = WS.reeks(S.d, dag), gespeeld = WS.tel(S.d, x => x !== '.' && x !== '0'), zonder = WS.tel(S.d, x => x === '1'), h = Math.max(0, +WS.teken(S.d, dag) - 1);
     $('mld').textContent = 'De kist is leeg! ' + (h ? 'Met ' + h + (h === 1 ? ' hint' : ' hints') : 'Zonder hints') + ', in ' + WS.mmss(tijd) + '. Je hintpotje kreeg er een hint bij.';
     $('uitslag').innerHTML = `<section class="paneel" aria-labelledby="u-t"><h2 id="u-t" tabindex="-1">De kist is leeg</h2>
       <p>${esc(P.t)}: <b>${P.w.map(x => x.toUpperCase()).join(' · ')}</b></p>

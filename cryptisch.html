@@ -1791,11 +1791,13 @@ const WS = (() => {
   ];
   function mijlpalen() {
     const { u, xd, s5 } = gespeeld(), r = woordreeks(), d = id => String(lees(id + '-v1', {}).d || ''), c = d('cryptisch'), l = d('letterval'), k = d('klinkermijnen');
-    const woordOp = j => u[j] && ([4, 5, 6, 7, 8].some(n => teken(xd[n], j) !== '.') || s5.dag === j);
-    const allen = j => [4, 6, 7, 8].every(n => teken(xd[n], j) !== '.') && (teken(xd[5], j) !== '.' || (s5.dag === j && s5.klaar));
+    // echt gespeeld: niet '.', en ook niet '0' (een dag die alleen meetelt voor de reeks, zoals een dag die Ruben in de werkplaats herstelde)
+    const sp = (x, j) => !/[.0]/.test(teken(x, j));
+    const woordOp = j => u[j] && ([4, 5, 6, 7, 8].some(n => sp(xd[n], j)) || s5.dag === j);
+    const allen = j => [4, 6, 7, 8].every(n => sp(xd[n], j)) && (sp(xd[5], j) || (s5.dag === j && s5.klaar));
     const w = [4, 5, 6, 7, 8].map(n => String(xd[n] || '')).join('|');
     let vier = false, vijf = false;
-    for (let j = 0; j < Math.max(c.length, l.length, k.length, u.length); j++) { if (teken(c, j) !== '.' && teken(l, j) !== '.' && teken(k, j) !== '.' && woordOp(j)) vier = true; if (allen(j)) vijf = true; }
+    for (let j = 0; j < Math.max(c.length, l.length, k.length, u.length); j++) { if (sp(c, j) && sp(l, j) && sp(k, j) && woordOp(j)) vier = true; if (allen(j)) vijf = true; }
     return [vier, r.beste >= 7, r.beste >= 30, r.beste >= 100, r.beste >= 365, /1/.test(c), tel(c, x => /[1-9]/.test(x)) >= 10, /1/.test(l), tel(k, x => x === '1') >= 10,
       vijf, /[12AB]/.test(w) || (!!s5.gewonnen && (s5.pogingen || []).length <= 2), /[A-F]/.test(w)];
   }
@@ -2340,7 +2342,7 @@ const WS = (() => {
     teken();
   }
   function cijfers() {
-    const r = WS.reeks(S.d, dag), gespeeld = WS.tel(S.d, x => x !== '.'), goed = WS.tel(S.d, WS.gelukt), een = WS.tel(S.d, x => x === '1');
+    const r = WS.reeks(S.d, dag), gespeeld = WS.tel(S.d, x => x !== '.' && x !== '0'), goed = WS.tel(S.d, x => WS.gelukt(x) && x !== '0'), een = WS.tel(S.d, x => x === '1');   // '0': telt alleen mee voor de reeks
     return { r, gespeeld, goed, een };
   }
   function afgelopen(nieuw) {
@@ -2378,7 +2380,7 @@ const WS = (() => {
     for (let i = van; i >= tot; i--) {
       let x; try { x = await haal(nrVan(i)); } catch (e) { continue; }
       if (d0 !== dag) return;
-      const u = WS.teken(S.d, i), wat = u === '.' ? 'niet gespeeld' : u === 'x' ? 'opgegeven' : u === '1' ? 'in één keer goed' : 'opgelost, ' + (+u - 1) + ' keer mis';
+      const u = WS.teken(S.d, i), wat = u === '.' ? 'niet gespeeld' : u === '0' ? 'telt mee voor je reeks' : u === 'x' ? 'opgegeven' : u === '1' ? 'in één keer goed' : 'opgelost, ' + (+u - 1) + ' keer mis';
       $('tb').insertAdjacentHTML('beforeend', `<div class="dag"><small>Nr. ${i - EERSTE + 1}, ${WS.datum(i, true)} · ${wat}</small><p class="oms">${omsHtml(x, true)}</p><p><b>${x.a.toUpperCase()}</b>. ${esc(x.u)}</p></div>`);
     }
     tbTot = dag - tot; $('tb-meer').hidden = tot <= EERSTE;

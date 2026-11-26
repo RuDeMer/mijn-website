@@ -1762,11 +1762,13 @@ const WS = (() => {
   ];
   function mijlpalen() {
     const { u, xd, s5 } = gespeeld(), r = woordreeks(), d = id => String(lees(id + '-v1', {}).d || ''), c = d('cryptisch'), l = d('letterval'), k = d('klinkermijnen');
-    const woordOp = j => u[j] && ([4, 5, 6, 7, 8].some(n => teken(xd[n], j) !== '.') || s5.dag === j);
-    const allen = j => [4, 6, 7, 8].every(n => teken(xd[n], j) !== '.') && (teken(xd[5], j) !== '.' || (s5.dag === j && s5.klaar));
+    // echt gespeeld: niet '.', en ook niet '0' (een dag die alleen meetelt voor de reeks, zoals een dag die Ruben in de werkplaats herstelde)
+    const sp = (x, j) => !/[.0]/.test(teken(x, j));
+    const woordOp = j => u[j] && ([4, 5, 6, 7, 8].some(n => sp(xd[n], j)) || s5.dag === j);
+    const allen = j => [4, 6, 7, 8].every(n => sp(xd[n], j)) && (sp(xd[5], j) || (s5.dag === j && s5.klaar));
     const w = [4, 5, 6, 7, 8].map(n => String(xd[n] || '')).join('|');
     let vier = false, vijf = false;
-    for (let j = 0; j < Math.max(c.length, l.length, k.length, u.length); j++) { if (teken(c, j) !== '.' && teken(l, j) !== '.' && teken(k, j) !== '.' && woordOp(j)) vier = true; if (allen(j)) vijf = true; }
+    for (let j = 0; j < Math.max(c.length, l.length, k.length, u.length); j++) { if (sp(c, j) && sp(l, j) && sp(k, j) && woordOp(j)) vier = true; if (allen(j)) vijf = true; }
     return [vier, r.beste >= 7, r.beste >= 30, r.beste >= 100, r.beste >= 365, /1/.test(c), tel(c, x => /[1-9]/.test(x)) >= 10, /1/.test(l), tel(k, x => x === '1') >= 10,
       vijf, /[12AB]/.test(w) || (!!s5.gewonnen && (s5.pogingen || []).length <= 2), /[A-F]/.test(w)];
   }
@@ -1885,6 +1887,18 @@ const WS = (() => {
     X.d[5] = d; schrijf(XKEY, X);
   }
   const teken = (gewonnen, n) => (gewonnen ? (moeilijk() ? 'ABCDEF' : '123456')[n - 1] : moeilijk() ? 'X' : 'x');
+  // een dag die alleen meetelt voor de reeks ('0' in de geschiedenis van vijf letters, zoals een dag die Ruben in de werkplaats herstelde)
+  // houdt ook de reeks van vijf letters vast. Die staat in de oude telling (STKEY): hier alleen ophogen, nooit lager.
+  function reeksVijf() {
+    const d5 = String(X.d[5] || ''); let e = -1, n = 0;
+    for (let k = Math.min(dag, d5.length - 1); k >= Math.max(0, dag - 1); k--) if (WS.gelukt(d5[k])) { e = k; break; }
+    if (e < 0 || e < stats.laatsteWinst) return;
+    let k = e; while (k >= 0 && WS.gelukt(d5[k])) { n++; k--; }
+    const L = stats.laatsteWinst;
+    if (L > k && L <= e) n = (e - L) + Math.max(L - k, +stats.reeks || 0);   // tot en met de laatste winst weet de oude telling het soms beter
+    if (/[xX]/.test(d5[dag] || '')) { if (n > (stats.besteReeks || 0)) { stats.besteReeks = n; schrijf(STKEY, stats); } return; }   // vandaag niet geraden: de reeks is voorbij
+    if (e > L || n > (+stats.reeks || 0)) { stats.reeks = n; stats.laatsteWinst = e; stats.besteReeks = Math.max(stats.besteReeks || 0, n); schrijf(STKEY, stats); }
+  }
 
   async function laadDag() {
     const mijn = ++laadNr;
@@ -1894,6 +1908,7 @@ const WS = (() => {
     $('dag').innerHTML = `<b>Woord ${dag + 1}${LENGTE !== 5 ? ' · ' + LENGTE + ' letters' : ''}</b><br>${d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}`;
     $('bericht').textContent = ''; $('bord').style.setProperty('--n', LENGTE);
     stats = lees(STKEY, { gespeeld: 0, gewonnen: 0, reeks: 0, besteReeks: 0, verdeling: [0, 0, 0, 0, 0, 0], laatsteWinst: -2 });
+    reeksVijf();
     if (LENGTE === 5) {
       woord = woordVan(dag); geldig = GELDIG;
       staat = lees(SKEY, { dag: -1, pogingen: [], klaar: false, gewonnen: false });
@@ -2047,7 +2062,7 @@ const WS = (() => {
     if (n === 5) return { gespeeld: stats.gespeeld, gewonnen: stats.gewonnen, reeks: stats.laatsteWinst >= dag - 1 ? stats.reeks : 0, beste: stats.besteReeks, verdeling: stats.verdeling };
     const d = X.d[n] || '', r = WS.reeks(d, dag), v = [0, 0, 0, 0, 0, 0];
     for (const x of d) { const i = '123456'.indexOf(x) >= 0 ? '123456'.indexOf(x) : 'ABCDEF'.indexOf(x); if (i >= 0) v[i]++; }
-    return { gespeeld: WS.tel(d, x => x !== '.'), gewonnen: WS.tel(d, x => /[1-6A-F]/.test(x)), reeks: r.nu, beste: r.beste, verdeling: v };
+    return { gespeeld: WS.tel(d, x => x !== '.' && x !== '0'), gewonnen: WS.tel(d, x => /[1-6A-F]/.test(x)), reeks: r.nu, beste: r.beste, verdeling: v };
   }
 
   // ---------- uitslag
@@ -2117,7 +2132,7 @@ const WS = (() => {
       let w, u;
       try { if (LENGTE === 5) { w = woordVan(i); u = await uitleg5(w); } else { const x = (await dagWoorden(i))[LENGTE]; w = x[0]; u = x[1]; } } catch (e) { continue; }
       if (tbVoor !== sleutel) return;
-      const t = WS.teken(X.d[LENGTE], i), wat = t === '.' ? 'niet gespeeld' : /[1-6A-F]/.test(t) ? 'geraden' : 'niet geraden';
+      const t = WS.teken(X.d[LENGTE], i), wat = t === '.' ? 'niet gespeeld' : t === '0' ? 'telt mee voor je reeks' : /[1-6A-F]/.test(t) ? 'geraden' : 'niet geraden';
       el.insertAdjacentHTML('beforeend', `<li><b class="antwoord">${w}</b> <small>${WS.datum(i, true)} · ${wat}</small><br>${String(u || '').replace(/[&<>]/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[x])}</li>`);
     }
     if (!el.children.length) el.innerHTML = '<li>Nog geen eerdere woorden.</li>';

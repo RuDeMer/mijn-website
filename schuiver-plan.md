@@ -764,9 +764,12 @@ Ruben: "Akkoord met alles, bouw maar de proefversie." Gebouwd: de spelleider en 
   | De Flipperkast | 93,6 | zo'n 92,7 | 16, 9, 4, 2 | 170, en 59 |
   | De Schatkamer | 93,4 | zo'n 91 | 16, 10, 4, 2 | 180, en 54 |
   | De Ruitenwisser | 85,9 (zonder het lichtjesrad, dat de robot niet speelt) | zo'n 83 | 15, 11, 3, 2 | 170, en 57 |
+  | De Halvemaan | 96,0 | zo'n 92,0 | 17, 12, 6, 3 | 255, en 10 |
+  | De Draaimolen | 95,4 | zo'n 91,8 | 15, 9, 4, 3 | 185, en 92 |
+  | De Fichebank | 89,9 (zonder de fiches uit het rad) | zo'n 87 | 13, 8, 4, 3 | 175, en 114 |
   | Een nieuwe speler (20 minuten, de gewone kast) | 88,8 (de nieuwe stapel loopt nog vol) | | het welkom op 30, 120, 180 en 240 seconden, daarna 1 storm, 1 Aardschok | 188 (het welkom bijna op) |
 
-  De Halvemaan, de Draaimolen en de Fichebank worden nog gemeten. Nergens munten die wegschieten; de traagste rekenstap zonder andere programma's ernaast 71 ms (5 stappen boven 25 ms in 12 minuten).
+  Een deel van wat er meer uitkomt, komt door de Aardschok: die laat munten vallen die er anders later uit vielen, dus over langere tijd is het verschil wat kleiner. Overal blijft het onder de 100 van de 100. Nergens munten die wegschieten; de traagste rekenstap zonder andere programma's ernaast 71 ms (5 stappen boven 25 ms in 12 minuten).
 
 - *De spelleider in Node* (13 tests): het welkom op 30, 120, 180 en 240 seconden; nooit twee momenten binnen 20 seconden; nooit twee keer hetzelfde achter elkaar; nooit meer weggegeven dan er in de pot kwam; welkom terug en redding één keer per dag; niet spelen is niets; de schuifjes werken.
 - *In Chromium* (computer 1280 en telefoon iPhone 13, Zuinig en Normaal, minder beweging): een nieuwe speler krijgt het welkom na 30 seconden spelen; elke gebeurtenis met de knop; oude voortgang van de versie die online staat laadt met dezelfde munten en dezelfde stapel; herladen midden in een storm, met de Reuzenmunt in de kast (hij ligt er daarna nog) en midden in Koorts (je munten blijven, de koorts is weg); het beheermenu; nergens fouten of overtredingen van het veiligheidsbeleid; de gedeelde blokken overal gelijk. **Niet getest: een echte iPhone, Android-telefoon en MacBook.**

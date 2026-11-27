@@ -832,3 +832,44 @@ Ruben, na het testen van de proefversie: "Bouw nu de rest maar. Geef de interfac
 - *Oude opslag*: een speler van de proefversie komt met al zijn munten, zijn stapel en zijn pot over, en begint op het niveau van de munten die hij al gooide, met één zakje (in de test 20.000 munten gegooid: niveau 9, +240 munten en +1.400 kaartjes). Speelt hij daarna even met een oude pagina uit de opslag van de browser (die kent de niveaus niet), dan geeft de nieuwe pagina het zakje niet nog een keer (`zak` in `rommelschuiver-apparaat`).
 - *Hoe zwaar*: de traagste rekenstap van de natuurkunde zonder andere programma's ernaast 62 tot 126 ms, en in een kwartier spelen maar 6 van de 54.000 stappen boven 25 ms (bij een bom of een storm). De natuurkunde draait apart (in een Web Worker), dus het beeld loopt dan gewoon door.
 - *In Chromium* (computer 1280 en 1440, telefoon iPhone 13 in donker, Zuinig, Normaal en Mooi, minder beweging): het beginscherm met Okke, spelen, alle gebeurtenissen en tovermunten met de knoppen van het beheermenu, Het Wonder, een nieuw niveau, de kraam met de Kermispas en Okke's gids, de lampjes van wat er loopt (ook twee tegelijk), en op de telefoon de kast tussen de tellers en Okke; nergens iets opzij te scrollen, geen fouten en geen overtredingen van het veiligheidsbeleid. **Niet getest: Safari en het geluid op een echte iPhone.**
+
+## 34. Niet meer haperen, en De Treinbaan (27 november 2026)
+
+Ruben: "Hij hapert some. Komt dat wellicht door de confetti linksboven? Daarnaast wil ik dat je een leuke, unieke, mooie, spannende, met veel beweging, nieuwe kast maakt." Uit drie ideeën koos hij **De Treinbaan**.
+
+### 1. Het haperen
+
+- **De confetti linksboven**: klopt. Het doekje voor de confetti lag verstopt en was 0 bij 0 groot, dus begon elke bui in de hoek linksboven, en het doekje werd bij elke bui opnieuw op maat gemaakt (dat geeft een hikje). Nu tekent de confetti in WebGL op het speelveld zelf (`CF` in `spannend.js`: één InstancedMesh met 420 snippers, getekend na de kast met `tekenOver()`), op de goede plek en zonder nieuw doekje.
+- **De glazen panelen**: de balk met je munten, Okke, de meldingen en de vensters hadden een waas (`backdrop-filter`). Boven een bewegend 3D-beeld moet de browser die waas elk beeld opnieuw uitrekenen; dat kostte het meest. Ze zijn nu donker en een beetje doorzichtig, zonder waas.
+- Gemeten: de natuurkunde en het tekenen van de lampjes waren het niet (zie de metingen per gebeurtenis in de kladmap).
+
+### 2. De Treinbaan: wat het is
+
+Een modelbaan op de onderste vloer: een stoomtreintje (een groene locomotief met messing banden, een rode voetplaat en rode wielen, en twee kiepwagens, een rode met kolen en een blauwe met goud) rijdt rondjes over een spoor in de vorm van een stadion en duwt de munten mee. Eigen tekeningen, geen bestaande trein of merk.
+
+- **De vloer** is een modelbaan: gras, grind met houten bielzen en twee rails, een weg met een overweg (planken en haaientanden), een vijvertje met riet en waterlelies, bloemen, en langs de voorrand een perron met tegels, een gele streep en pijltjes.
+- **De achterwand**: een zonsondergang achter de bergen, een stenen viaduct met een stoomtrein, huisjes met licht, en een stenen tunnel om het rad.
+- **Bovenop**: een stenen viaduct met zes bogen tussen twee groene heuvels met een tunnel en een boompje, voor een geschilderd decor (lucht, wolken, een dorpje met een kerktoren en een molen). Een klein treintje rijdt van tunnel naar tunnel, wacht even in de tunnel en komt dan weer; twee seinen zetten hun arm omhoog en worden groen als het komt.
+- **Beweging**: de wielen draaien met de afstand die de trein rijdt, de koppelstangen gaan rond, uit de schoorsteen komen wolkjes rook (sneller als hij hard rijdt), de wagens kiepen.
+- **Geluid** (zelf gemaakt): tsjoeken zo snel als hij rijdt, het tikken van de rails (ta-dam), een fluitje (als hij na rust weer gaat rijden, en af en toe) en een sis van stoom.
+- **Rust**: de trein rijdt zolang de schuiver loopt. Speel je even niet, dan remt hij zacht af en wacht hij; gooi je weer, dan trekt hij zacht op.
+
+### 3. In de natuurkunde
+
+- Elk rijtuig is een blok van soort `trein` (een rechthoek met ronde hoeken, zoals de arm van de Ruitenwisser). De voorkant en de achterkant liggen op het spoor (`V.spoorOp`), het rijtuig ligt daar recht tussen, ook in de bocht. Munten die het raakt, worden meegeduwd; wat erop ligt, rijdt mee.
+- Het spoor (`KASTEN.trein.spoor`): rechte stukken van 160 mm, bochten met een straal van 53 mm, midden op 118 mm van de voorrand, 75 mm per seconde. De zijgoten zijn 4 mm (`XF` 236). Afgesteld met proeven: met een groter spoor dichter bij de rand duwde de trein te veel munten de zijgoten in (80 van de 100 terug, 17% in de zijgoten); zo is het 7%.
+- Waar de trein staat, gaat mee in het bewaren van de stapel (in de kop, 4 bytes meer). Een stapel van een andere kast past er niet in.
+- Zwaar? Nee: in een proef van 6 minuten gemiddeld 3,2 ms per stap (de Draaimolen 3,8 ms), en de traagste stap 51 ms (de Draaimolen 85 ms).
+
+### 4. De gebeurtenissen van de Treinbaan (achteraan `GEB`)
+
+- **De sneltrein**: een lang fluitje en stoom, en 15 seconden rijdt de trein 2,6 keer zo snel (`sneltrein`); hij trekt zacht op en remt zacht af. Het kleine treintje bovenop rijdt ook harder.
+- **De goederentrein** (16 munten uit de pot): de wagens worden zichtbaar volgeladen met een berg munten; rijden ze langs de voorrand, dan kiepen ze naar je toe en storten de munten over de rand (`stort` in de natuurkunde, `treinKiep` in beeld). In een proef gingen er 9 van de 16 binnen 6 seconden de trechter in, de rest ligt aan de rand.
+- **Turbo** heet hier **Volle stoom**, en maakt de trein ook sneller.
+- De achtste kast kost 90.000 kaartjes (`KAST_PRIJS`), zoals elke kast: wat je als tweede, derde, ... opent, kost steeds meer.
+
+### 5. Gemeten
+
+- *Een uur spelen met de hele spelleider* (de robot met de echte natuurkunde, economie en spelleider): met de goederentrein die zijn munten stort zoals hij nu is **93,6 en 94,0 van de 100 terug** (twee verschillende zaadjes; met een eerdere goederentrein, waarvan de munten van de wagens gleden, 93,1 en 92,7). Net als de andere kasten (93 tot 95) onder de 100: wat de spelleider extra geeft, komt uit zijn pot. Per uur twee keer de sneltrein en één keer de goederentrein, en verder alles zoals in de andere kasten.
+- *In Chromium*: alle acht kasten laden en spelen hun eigen gebeurtenissen zonder fouten of overtredingen van het veiligheidsbeleid; De Treinbaan op een computer (Zuinig, Normaal, Mooi), een telefoon (iPhone 13) en met minder beweging (dan geen rook, en het kiepen en de seinen zonder overgang); een stapel bewaren en terugladen (waar de trein stond); de opslag van de live-versie in de nieuwe pagina en terug.
+- **Niet getest**: Safari en het geluid op een echte iPhone.

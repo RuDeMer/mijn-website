@@ -773,3 +773,62 @@ Ruben: "Akkoord met alles, bouw maar de proefversie." Gebouwd: de spelleider en 
 
 - *De spelleider in Node* (13 tests): het welkom op 30, 120, 180 en 240 seconden; nooit twee momenten binnen 20 seconden; nooit twee keer hetzelfde achter elkaar; nooit meer weggegeven dan er in de pot kwam; welkom terug en redding één keer per dag; niet spelen is niets; de schuifjes werken.
 - *In Chromium* (computer 1280 en telefoon iPhone 13, Zuinig en Normaal, minder beweging): een nieuwe speler krijgt het welkom na 30 seconden spelen; elke gebeurtenis met de knop; oude voortgang van de versie die online staat laadt met dezelfde munten en dezelfde stapel; herladen midden in een storm, met de Reuzenmunt in de kast (hij ligt er daarna nog) en midden in Koorts (je munten blijven, de koorts is weg); het beheermenu; nergens fouten of overtredingen van het veiligheidsbeleid; de gedeelde blokken overal gelijk. **Niet getest: een echte iPhone, Android-telefoon en MacBook.**
+
+### 13. De rest, gebouwd (26 november 2026)
+
+Ruben, na het testen van de proefversie: "Bouw nu de rest maar. Geef de interface wel een overzichtelijkere look, en de spelleider mag duidelijk. Daarnaast mag alles wat mooier, behalve de muntjes, die zijn al goed. Het moet er allemaal gelikt uitzien. Alsof je echt in zo'n arcadehal staat." "PROEF" is weg.
+
+**De spelleider is nu duidelijk: Okke de omroeper.** Een eigen figuur (een omroeper van de kermis met een strohoed, een snor en een gestreept jasje; eigen tekening). Hij staat linksonder (op een telefoon onderin) met een tekstballon: hij kondigt elke gebeurtenis aan, plaagt als er iets aankomt ("Ik voel iets aankomen…"), juicht bij een plens, zucht als iets de zijgoot in gaat, en verklapt het als je volgende munt een tovermunt is. Hij praat met een paar vrolijke klankjes (geen echte woorden). Bij Okke:
+- de **verrassingsmeter**: vijf lampjes die oplichten naarmate het volgende moment dichterbij komt; vol: ze knipperen;
+- de **koortsmeter**;
+- wat er nu loopt, met de tijd die nog over is ("Zijgoten dicht 20 s", "Ballon 2/3 raak", "Jackpottoren 7/12 lagen").
+
+**Het scherm is overzichtelijker.** Eén glazen balk linksboven met je munten, kaartjes en spaarpot (en de superduwknop als je die hebt); je niveau rechtsboven (tik erop voor de kermispas); Okke linksonder; meldingen rechtsonder; een grote aankondiging als een lichtbord van de kermis, met lampjes langs de rand. Een nieuw niveau, een trap van de kermispas, je dagreeks en "Terwijl je weg was" komen als een kaart in het midden (tik om weg te halen). Op een staande telefoon staan de tellers bovenin en Okke onderin, en de kast schuift er precies tussen (de camera houdt er rekening mee). De vensters (start, kraam, kasten, instellingen, pauze, beheer) zijn donker glas met neon, in een tweede lettertype voor de koppen (Bungee, Google Fonts). De balk bovenin blijft de huisstijl van de site.
+
+**De arcadehal** (`hal.js` in de bouw, `HAL` in de pagina): naast je kast staan andere muntenschuivers (eigen namen: Goudkoorts, Muntenmeer, Superschuif, Kermiskoers) met lichtjes die rondlopen, een lichtbord en munten achter het glas; achterin een rij speelkasten met schermen en lichtborden; een grijpkraan met knuffels; een prijzenkraam; neonborden; lampen in het plafond; het tapijt; onscherpe lichtjes in de verte en nevel. Alles wat stilstaat is per materiaal samengevoegd (zo'n 40 tekenopdrachten erbij), de lichtjes zijn puntjes.
+
+**De gebeurtenissen** (alle uit het voorstel; in de natuurkunde `hek`, `turbo`, `schop`, `gekte`, `arm`, `veld`, `wip`, `ontplof`, `zetSoort`, `schiet` en `instort` in `MUNTFYSICA`):
+- *Zijgoten dicht*: twee lichtgevende hekjes schuiven uit de vloer; 30 seconden gaat er niets in de zijgoten (in de natuurkunde echte wanden, ook in 3D). Gemeten: 0 munten in de zijgoot.
+- *De magneet*: een rode hoefijzermagneet zakt aan een kabel en schuift links, midden, rechts boven de voorrand; daar trekt hij de munten naar voren.
+- *Het muntenkanon*: een koperen loop schuift uit de linker zijwand en schiet 12 munten in een boog over de onderste vloer.
+- *De vlaai* (in de Draaimolen een suikerspin): valt op de kast en spat uiteen in 15 munten, met kruimels.
+- *De ballon*: zweeft voor de gleuf heen en weer; gooi je recht onder hem, dan raak je hem. Drie keer raak: hij knapt, en uit het luikje komt een edelsteen die je nog niet hebt, een gouden munt of drie kaartjes van 50.
+- *De Jackpottoren*: een toren van gouden schijven op de schuiver (hij rijdt mee); elke 15 munten een laag, bij 12 lagen valt hij om en regent het munten en twee gouden munten (uit de pot).
+- *Turbo*: een sirene; 12 seconden schuift de schuiver sneller (1,3 keer) en verder. (Alleen sneller duwde de stapel in elkaar: dan viel er juist minder.)
+- *Het Wonder*: alles wordt donker op één lichtbundel na, dan stort de voorrand in, in slow motion, met een fanfare en vier gouden munten. Het komt met de datum bij Herinneringen in je verzameling. Hooguit eens per anderhalf uur spelen.
+- *Per kast*: Kermisknaller (de Rommelschuiver: de kroonmunt draait en er vallen drie gouden munten), Volle maan (de Halvemaan: vijf slagen springtij), Multibal (de Flipperkast: de bumpers vaker, en 15 seconden duwt alles naar de rand; alleen harder schieten duwde de munten juist terug), Kermisgekte (de Draaimolen: de schijf draait een halve minuut hard rond), Stormwind (de Ruitenwisser: de arm veegt 15 seconden 1,45 keer zo ver), De klok slaat dertien (de Schatkamer: drie superduwen, en 1 op 5 de gouden sleutel), Hoge inzet (de Fichebank: 20 seconden telt elk fiche dubbel, uit de pot).
+- *De feestdagen* (via `Scorebord.feest`): met Sinterklaas is een storm een Pepernotenregen met chocolademunten, met kerst een Sneeuwstorm met kerstballen, met oud en nieuw een Vuurwerkregen met vuurwerkmunten die knallen; en er komen feestmunten bij de tovermunten.
+
+**De tovermunten** (soort 20 tot en met 29, achter de Reuzenmunt; in `TOVER` van de economie, elk met een eigen tekening en kleur): de ?-munt (een verrassing als hij landt), de bommunt (telt af 3, 2, 1 en blaast de munten weg), de magneetmunt (trekt de munten om zich heen 6 seconden naar zich toe), de kloonmunt (worden er drie), de stuitermunt (stuitert drie keer flink), de regenboogmunt (in de trechter: meteen Koorts), de gouden munt (10 munten waard), en de chocolademunt, kerstbalmunt en vuurwerkmunt in de feesttijd. Een derde tot de helft van de momenten van Okke is een tovermunt (zo'n 15 tot 28 per uur). Een tovermunt met een eenmalig kunstje die nog in de stapel ligt als je de pagina opnieuw opent, is een gewone munt geworden: zijn kunstje is voorbij.
+
+**Je niveau, je dagreeks en de kermispas** (in `rommelschuiver-v1`: `xp`, `nv`, `rk`, `pas`, `glim`, `med`, `hr`, `zk`; de REGELS zijn niet veranderd, de scoreserver hoeft niet opnieuw):
+- *Niveau*: 1 ervaring per munt die je erin gooit, 10 per gebeurtenis, 50 per prijs; nodig voor niveau L: 500 × (L − 1)^1,7. De titels en voordelen zoals in het voorstel (5 De magneet komt vaker, 8 Tovermunten vaker, 12 Gouden munten vaker, 16 Muntenstorm vaker, 20 Koorts duurt 25 seconden, 25 De Jackpottoren vaker, 30 Het Wonder vaker). Wie al speelde, begint op het niveau van de munten die hij al gooide, met een zakje met de beloningen die hij zo oversloeg (hooguit 600 munten en 6.000 kaartjes).
+- *Dagreeks*: bovenop de 100 van die dag 5 munten per dag van je reeks in je spaarpot (hooguit 50); eens per week een vrijkaartje; bij 7 dagen een zakje met 5 tovermunten, bij 14 een glimmende munt, bij 30 een edelsteen (uit het luikje).
+- *De kermispas* (per maand): 1 punt per munt, 20 per gebeurtenis, 50 per opdrachtje, 100 per prijs; **elke 1.500 punten een trap** (in het voorstel 3.000: het rekenmodel liet zien dat je dan pas na een maand bij trap 30 komt). Om en om 30 munten en 300 kaartjes, elke vijfde trap een zakje tovermunten, trap 15 een glimmende munt, trap 30 de medaille van de maand (elke maand een andere kleur en een ander teken).
+- *Terwijl je weg was* (3 uur of langer weg): een kaartje van 50 of 100, of een gouden munt, bij de rand, met een kaart van Okke. Eén keer per keer dat je weg was: opnieuw laden geeft er niet nog een.
+- *De verzameling*: een voorwerp dat je al hebt, is 1 op 5 keer glimmend (✦) in plaats van 25 kaartjes; Herinneringen (Het Wonder, met de dag) en de medailles van de kermispas.
+- *Het rad*: draaide het rad 20 keer geen prijs, dan wordt de kans steeds groter; na 40 keer is het zeker een prijs.
+
+**In de kraam** twee nieuwe tabbladen: **Kermispas** (je niveau en de titels, je dagreeks, de 30 trappen van deze maand) en **Okke's gids** (alle gebeurtenissen en tovermunten, en dat alles uit de pot van Okke komt). Het geheime beheermenu heeft een knop voor elke gebeurtenis (ook die van de kast) en elke tovermunt, en: een niveau omhoog, een trap van de kermispas, een zakje tovermunten, en "Terwijl je weg was".
+
+**Geluid** (zelf gemaakt): een sirene (Turbo), een zoem die aanzwelt (de magneet), poef (het kanon), splets (de vlaai), boink en een knal (de ballon en de bom), tik-tak (de bom telt af), de hekjes, boing (de stuitermunt), een trillertje (een verrassing), het stemmetje van Okke, en een grote fanfare met klokken (Het Wonder).
+
+**Gemeten** (26 en 27 november 2026):
+- *Een uur spelen met alles erin* (de robot, een munt per halve seconde, met de echte natuurkunde, economie en spelleider, alle gebeurtenissen en tovermunten):
+
+  | Kast | Terug van de 100 | Met de proefversie |
+  |---|---|---|
+  | De Rommelschuiver | 95,2 | 95,1 |
+  | De Flipperkast | 94,8 | 93,6 |
+  | De Schatkamer | 94,2 | 93,4 |
+  | De Ruitenwisser | 85,7 (zonder het lichtjesrad, dat de robot niet speelt) | 85,9 |
+  | De Halvemaan | 95,5 | 96,0 |
+  | De Draaimolen | 94,3 | 95,4 |
+  | De Fichebank | 90,4 (zonder de fiches uit het rad) | 89,9 |
+
+  Overal onder de 100 van de 100: alles wat de spelleider extra geeft, komt uit zijn pot. Per uur zo'n 42 tot 54 momenten, waarvan een derde tot de helft een tovermunt.
+- *Het rekenmodel van 60 dagen* (de economie met de echte regels): wie elke dag een uur speelt, is na twee maanden niveau 31 en haalt elke maand trap 30 van de kermispas; wie elke dag een kwartiertje speelt niveau 14 en trap 13. Met 3.000 punten per trap (zoals eerst voorgesteld) haalde ook de dagelijkse speler trap 30 bijna nooit; daarom 1.500.
+- *Valsspelen* (8 tests): "Terwijl je weg was" één keer per keer weg (ook niet door opnieuw te laden), welkom terug één keer per dag, het welkom nooit meer dan 150, de pot nooit meer dan erin kwam, de dagreeks één keer per dag, geen dubbele beloningen, en rare opslag wordt rechtgezet.
+- *Oude opslag*: een speler van de proefversie komt met al zijn munten, zijn stapel en zijn pot over, en begint op het niveau van de munten die hij al gooide, met één zakje (in de test 20.000 munten gegooid: niveau 9, +240 munten en +1.400 kaartjes). Speelt hij daarna even met een oude pagina uit de opslag van de browser (die kent de niveaus niet), dan geeft de nieuwe pagina het zakje niet nog een keer (`zak` in `rommelschuiver-apparaat`).
+- *Hoe zwaar*: de traagste rekenstap van de natuurkunde zonder andere programma's ernaast 62 tot 126 ms, en in een kwartier spelen maar 6 van de 54.000 stappen boven 25 ms (bij een bom of een storm). De natuurkunde draait apart (in een Web Worker), dus het beeld loopt dan gewoon door.
+- *In Chromium* (computer 1280 en 1440, telefoon iPhone 13 in donker, Zuinig, Normaal en Mooi, minder beweging): het beginscherm met Okke, spelen, alle gebeurtenissen en tovermunten met de knoppen van het beheermenu, Het Wonder, een nieuw niveau, de kraam met de Kermispas en Okke's gids, de lampjes van wat er loopt (ook twee tegelijk), en op de telefoon de kast tussen de tellers en Okke; nergens iets opzij te scrollen, geen fouten en geen overtredingen van het veiligheidsbeleid. **Niet getest: Safari en het geluid op een echte iPhone.**

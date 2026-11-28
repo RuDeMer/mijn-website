@@ -873,3 +873,68 @@ Een modelbaan op de onderste vloer: een stoomtreintje (een groene locomotief met
 - *Een uur spelen met de hele spelleider* (de robot met de echte natuurkunde, economie en spelleider): met de goederentrein die zijn munten stort zoals hij nu is **93,6 en 94,0 van de 100 terug** (twee verschillende zaadjes; met een eerdere goederentrein, waarvan de munten van de wagens gleden, 93,1 en 92,7). Net als de andere kasten (93 tot 95) onder de 100: wat de spelleider extra geeft, komt uit zijn pot. Per uur twee keer de sneltrein en één keer de goederentrein, en verder alles zoals in de andere kasten.
 - *In Chromium*: alle acht kasten laden en spelen hun eigen gebeurtenissen zonder fouten of overtredingen van het veiligheidsbeleid; De Treinbaan op een computer (Zuinig, Normaal, Mooi), een telefoon (iPhone 13) en met minder beweging (dan geen rook, en het kiepen en de seinen zonder overgang); een stapel bewaren en terugladen (waar de trein stond); de opslag van de live-versie in de nieuwe pagina en terug.
 - **Niet getest**: Safari en het geluid op een echte iPhone.
+
+## 35. Eigen vormen, een eigen ring en schoonheidsfoutjes (28 november 2026, Rubens reactie)
+
+Ruben: "De treinbaan rijdt niet over het spoor. Daarnaast wil ik dat je elke kast unieke vormen geeft, dus dat het niet allemaal recht is. Er zijn ook nog wat schoonheidsfoutjes, zoals de munt bovenin de kast, of de interface die soms in elkaar overloopt." En daarna: "Ik bedoelde met de vormen ook vooral in de kast, waar alle munten liggen. Daarnaast mag de ring ook een ander uiterlijk krijgen."
+
+### 1. De trein op het spoor
+
+De tekening van de vloer lag gespiegeld: de bovenkant van het plaatje ligt aan de voorrand (zo legt three.js een plaatje op de vloer), maar `vloerTrein` tekende de voorrand onderaan. De rails en het perron lagen daardoor achterin (een deel onder de schuiver), en de trein reed ervoor. Nu rekent `vloerTrein` met de as de goede kant op, en ligt de trein precies op de rails, ook in de bochten.
+
+### 2. Vormen in de kast (waar de munten liggen)
+
+Elke kast heeft een eigen **voorrand** en de meeste ook een eigen **voorkant van de schuiver** (`VORM` in de natuurkunde; z als functie van t = x / 240):
+
+| Kast | Voorrand | Schuiver |
+|---|---|---|
+| De Rommelschuiver | twee bogen met een kuiltje ertussen (`hart`) | recht |
+| De Halvemaan | de boog zoals hij was (niet veranderd) | de boog zoals hij was |
+| De Flipperkast | een punt naar voren met rechte kanten (`punt`) | ook een punt (`schuifPunt`) |
+| De Draaimolen | vijf schulpen, zoals de rand van een draaimolen (`schulp`) | hol, om de draaischijf heen (`schuifHol`) |
+| De Ruitenwisser | een golf: rechts naar voren, links naar achteren (`golf`) | recht |
+| De Schatkamer | twee treden, als een trap naar de schatkist (`trap`) | met een trede in het midden (`schuifTrap`) |
+| De Fichebank | een speeltafel met schuine hoeken (`achthoek`) | recht |
+| De Treinbaan | recht met ronde einden, zoals een perron (`perron`) | recht |
+
+- *In de natuurkunde*: alle kasten gebruiken nu de manier van de Halvemaan (`boog`: de rand in stukjes, `bak`: tot waar de trechter loopt, daarbuiten de zijgoten), met een eigen functie (`boog.vorm`). De schuiver kan een eigen vorm hebben (`schuif`), met de helling uitgerekend (`schuifDZ`). Nieuw in `kastVorm`: `SB`, `randMax`, `schuifMax` en `schuifMin`.
+- *Afgesteld met de robot*: met een gebogen rand vallen er veel minder munten in de zijgoten (de Flipperkast zou 100 van de 100 teruggeven). Ik heb daarom per kast onthouden waar elke vallende munt valt (een half uur, een munt per seconde, de trechter over de hele breedte) en daarmee voor elke breedte van de trechter uitgerekend hoeveel er in de zijgoten valt. Per kast heb ik de breedte gekozen waarbij de nieuwe vorm hetzelfde teruggeeft als de oude, rechte rand (op dezelfde manier gemeten): de Rommelschuiver 226,5 mm (was 234), de Flipperkast 228, de Draaimolen 229, de Ruitenwisser 222, de Schatkamer 224,5, de Fichebank 231 en de Treinbaan 242 (bij de Treinbaan vliegen munten bij de zijkanten over de rand naar buiten; die vallen altijd in de zijgoot, en dat was met de oude rand ook zo).
+- *Een nieuwe stapel*: in een kast met een nieuwe vorm past de oude stapel niet meer. Het kenmerk van de stapel telt daarom de versie van de vorm mee (`vv`, `KENMERK`): zo'n kast begint met een nieuwe, volle stapel. Je munten, kaartjes en alles in de verzameling blijven gewoon staan. De Halvemaan is niet veranderd en houdt zijn stapel.
+- *Het tekenen* volgt dezelfde vorm: de vloer, de chromen rand, de glijplaat, de schuiver (een dak, een band en een lip langs de bocht; bij een holle schuiver ligt het blok achter het diepste punt) en de hekjes. De print op de vloer ligt in vaste millimeters (`PRINT_VOOR`, de bovenkant 40 mm voor de rechte rand), behalve bij de Halvemaan: daar volgt hij de boog. Het perron van de Treinbaan volgt de ronde rand.
+
+### 3. De ring (de trechter)
+
+Elke kast heeft een eigen trechter (`TRECHTER`, `trechterKast`) en een eigen ring om het gat (`trechterRing`): de Rommelschuiver een circustent van bovenaf met lampjes om het gat, de Halvemaan een sterrenhemel met een stralenkrans, de Flipperkast bliksems en een bumper van chroom, de Draaimolen het dak van een draaimolen met een gouden ring met parels, de Ruitenwisser een draaikolk met schuim, de Schatkamer een molensteen met goud en een gouden ring met edelstenen, de Fichebank een roulettewiel met een gouden rand en ruitjes, en de Treinbaan een rood treinwiel met spaken en een koperen naaf. Wat oplicht als er een munt in valt (`G.keelMat`), doet dat nog steeds. De gouden trechter uit de kraam blijft geborsteld goud.
+
+### 4. Vormen aan de buitenkant
+
+- *De zijkanten* (`ZIJVORM`: hoeveel mm de buitenkant uitsteekt op elke hoogte): de Rommelschuiver een uitlopende voet en brede, ronde schouders, de Halvemaan een sikkel (één grote boog), de Flipperkast hoekig (een smallere voet en bovenin schuin naar buiten), de Draaimolen gedraaide zuilen met een kapiteel, de Ruitenwisser een druppel (onderin dik), de Schatkamer een zuil met treden en een kapiteel, de Fichebank art deco in treden, en de Treinbaan een brede onderkant met bovenin een uitlopende schoorsteen. De zijwanden, de onderkast, de plint, de chromen buizen, de neonbuizen en de lampjes volgen die vorm. De camera kijkt zo ver terug dat de hele kast past.
+- *Het neonbord* (`bordOmtrek`): een kermisbord met schulpen, een ovaal, een achthoek, een koepeltje met schulpen, een wolk, een stenen plaat met holle hoeken, art-deco-hoeken met treden en een stationsbord met ronde einden, met een chromen rand en lampjes langs de vorm (`langsOmtrek`).
+
+### 5. De schoonheidsfoutjes
+
+- *De munt bovenin*: bij de Rommelschuiver (en de Halvemaan, de Draaimolen en de Treinbaan) viel de bovenkant van de kast net buiten beeld, met de munt erin. De camera kijkt nu zo dat de hele kop past.
+- *De interface*: de tip bij het begin ("Klik om een munt te laten vallen") stond onderin en schoof onder 1.100 punten breed over het paneel van Okke; op een telefoon viel hij deels buiten beeld. Hij staat nu bovenin het midden en mag over twee regels. Gecontroleerd met een script dat bij 18 schermmaten (van 1600 × 900 tot 360 × 640 en liggende telefoons) kijkt of panelen elkaar raken, ook tijdens een muntenstorm: nergens meer.
+- *Een oude fout erbij gevonden*: als het hulpje (de natuurkunde in een Web Worker) niet binnen 4 seconden antwoordde, nam de pagina het over, maar de opgeslagen stapel was dan al aan het hulpje gegeven, en de kast liep vast. Dat kon op een trage telefoon gebeuren. Nu zegt het hulpje meteen hallo als het een bericht krijgt, en geeft de pagina tot dat moment niets weg.
+
+### 6. Gemeten
+
+- *De kast zelf* (een munt per seconde, een half uur, van wat eruit valt het deel in de trechter; oud en nieuw op dezelfde manier): zie boven bij 2.
+- *Een uur spelen met de hele spelleider* (de robot met de echte natuurkunde, economie en spelleider):
+
+  | Kast | Terug van de 100 | Daarvoor (hoofdstuk 33 en 34) |
+  |---|---|---|
+  | De Rommelschuiver | 94,1 | 95,2 |
+  | De Flipperkast | 92,8 | 94,8 |
+  | De Draaimolen | 95,0 | 94,3 |
+  | De Ruitenwisser | 84,8 (zonder het lichtjesrad) | 85,7 |
+  | De Schatkamer | 94,1 | 94,2 |
+  | De Fichebank | 89,6 (zonder de fiches uit het rad) | 90,4 |
+  | De Treinbaan | 92,3 | 93,6 en 94,0 |
+  | De Halvemaan (niet veranderd) | 95,5 | 95,5 |
+
+  Overal onder de 100 van de 100, en dicht bij hoe het was. De traagste rekenstap was in deze metingen hoog (tot 1,9 s), omdat er vier robots en een browser tegelijk draaiden; dat zegt niets over het spel.
+
+- *In Node*: alle kasten spelen en komen tot rust zonder fouten, munten tellen precies, niets door de vloer.
+- *In Chromium*: alle acht kasten op een computer en een telefoon (Zuinig, Normaal en Mooi), met hun eigen gebeurtenissen; de nieuwe vormen van boven en van voren; de trechters van dichtbij; oude opslag van de versie die online staat in de nieuwe pagina en terug (de munten en kaartjes blijven, de Halvemaan houdt zijn stapel, de andere kasten krijgen een nieuwe); nergens fouten of overtredingen van het veiligheidsbeleid; de gedeelde blokken overal gelijk.
+- **Niet getest**: Safari en het geluid op een echte iPhone.

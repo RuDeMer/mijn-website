@@ -88,7 +88,7 @@ html[data-thema="donker"] .rs-hoofd { color: #231A26; }
 .rs-teller.plop b { animation: rs-plop .35s ease-out; }
 @keyframes rs-plop { 0% { transform: scale(1.35); color: #fff; } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .rs-teller.plop b { animation: none; } }
-#rs-hint { position: absolute; left: 50%; bottom: calc(.8rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 3; margin: 0; background: rgba(20,14,30,.78); color: #FFF1C9; border-radius: 999px; padding: .4rem .9rem; font-size: .86rem; font-weight: 700; pointer-events: none; white-space: nowrap; box-shadow: inset 0 0 0 1.5px rgba(255,231,106,.4); transition: opacity .6s; }
+#rs-hint { position: absolute; left: 50%; top: 4.4rem; transform: translateX(-50%); z-index: 3; margin: 0; background: rgba(20,14,30,.78); color: #FFF1C9; border-radius: 999px; padding: .4rem .9rem; font-size: .86rem; font-weight: 700; pointer-events: none; width: max-content; max-width: calc(100% - 1.2rem); text-align: center; text-wrap: balance; box-shadow: inset 0 0 0 1.5px rgba(255,231,106,.4); transition: opacity .6s; }
 #rs-hint.weg { opacity: 0; }
 #rs-meet { position: absolute; right: .6rem; top: .6rem; z-index: 4; margin: 0; background: rgba(0,0,0,.72); color: #9FF0B0; font: 600 .72rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.45; padding: .45rem .6rem; border-radius: 8px; white-space: pre; pointer-events: none; }
 #rs-slaap { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); z-index: 3; margin: 0; background: rgba(20,14,30,.82); color: #FFF1C9; border-radius: 14px; padding: .6rem 1rem; font-weight: 700; pointer-events: none; text-align: center; box-shadow: inset 0 0 0 1.5px rgba(255,231,106,.4); }
@@ -338,7 +338,7 @@ html[data-thema="donker"] .rs-ding.mis img { filter: brightness(0) invert(1) opa
   .ok-ballon { font-size: .8rem; min-height: 0; padding: .34rem .5rem; }
   #rs-toast { right: .4rem; left: .4rem; width: auto; bottom: calc(8.4rem + env(safe-area-inset-bottom, 0px)); justify-items: center; }
   .rs-melding { font-size: .82rem; }
-  #rs-hint { bottom: auto; top: 3.7rem; font-size: .76rem; padding: .3rem .7rem; }
+  #rs-hint { top: 3.7rem; font-size: .76rem; padding: .3rem .7rem; border-radius: 14px; }
 }
 @media (max-width: 380px) { #rs-hud .rs-teller small { display: none; } #rs-hud .rs-teller b { grid-row: 1 / 3; } }
 @media (max-height: 520px) and (min-width: 600px) { #rs-okke { width: 17rem; } .ok-portret { width: 3.2rem; height: 3.2rem; } .ok-naam { display: none; } }
@@ -1993,40 +1993,72 @@ function MUNTFYSICA() {
   //   bij de zijwanden terugbuigt, bak = tot waar de bak loopt; daarbuiten de zijgoten);
   // schuifBoog: zoveel steekt de voorkant van de schuiver in het midden naar voren;
   // palen: ronde paaltjes op de onderste verdieping [x, z]; schijf: een draaischijf { x, z, r, w (radialen per seconde) }
+  // De vorm van de voorrand en van de voorkant van de schuiver, per kast: z in mm als functie van t = x / XW (van -1 tot 1).
+  // De voorrand komt aan beide zijkanten uit op -zij (daar houden de zijwanden op); de schuiver op 0.
+  const glad = (t, e) => Math.sqrt(t * t + e * e) - e;          // |t|, met een afgeronde punt
+  const trede = (u, c, w) => 1 / (1 + Math.exp((u - c) / w));  // 1 voor u < c, 0 erna, met een zachte overgang
+  const knik = (s, e) => 0.5 * (s + Math.sqrt(s * s + e * e)); // 0 voor s < 0, s erna, met een afgeronde knik
+  const VORM = {
+    // twee bogen met een kuiltje ertussen (de Rommelschuiver)
+    hart: (t) => -6.75 + 17.5 * Math.cos(Math.PI * t) - 20.75 * Math.cos(2 * Math.PI * t),
+    // een punt naar voren, met rechte kanten (de Flipperkast)
+    punt: (t) => 22 - 67 * glad(t, 0.05) / glad(1, 0.05),
+    // vijf schulpen, zoals de rand van een draaimolen (de Draaimolen)
+    schulp: (t) => 8 - 53 * t * t + 13 * (1 - t * t) * Math.cos(5 * Math.PI * t),
+    // een golf: rechts naar voren, links naar achteren (de Ruitenwisser)
+    golf: (t) => 5 - 50 * t * t + 28 * Math.sin(Math.PI * t) * (1 - t * t),
+    // twee treden, zoals een trap naar de schatkist (de Schatkamer)
+    trap: (t) => { const f = (u) => 30 * trede(u, 0.8, 0.025) + 25 * trede(u, 0.45, 0.025); return -45 + f(Math.abs(t)) - f(1); },
+    // een speeltafel met schuine hoeken (de Fichebank)
+    achthoek: (t) => { const g = (u) => knik((u - 0.7) / 0.3, 0.12); return 14 - 59 * (g(Math.abs(t)) - g(0)) / (g(1) - g(0)); },
+    // recht met ronde einden, zoals een perron langs het spoor (de Treinbaan)
+    perron: (t) => -45 + 55 * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(t), 5)), 0.2),
+    // de schuivers
+    schuifPunt: (t) => 22 * (1 - glad(t, 0.06) / glad(1, 0.06)),
+    schuifHol: (t) => -20 * (1 - t * t),
+    schuifTrap: (t) => { const f = (u) => 16 * trede(u, 0.45, 0.03); return f(Math.abs(t)) - f(1); },
+  };
   const KASTEN = {
-    klassiek: { naam: 'De Rommelschuiver' },
+    // boog: de vorm van de voorrand (vorm uit VORM, of de parabool van de Halvemaan), bak: tot waar de trechter loopt (daarbuiten de zijgoten),
+    // n: in hoeveel stukjes de rand voor de natuurkunde; schuif: de vorm van de voorkant van de schuiver.
+    // De breedte van de trechter is per kast afgesteld met een robot, zodat de kast evenveel teruggeeft als met de oude, rechte rand (november 2026).
+    // vv: de versie van de vorm; komt er een andere vorm, dan begint de kast met een nieuwe stapel (zie KENMERK)
+    klassiek: { naam: 'De Rommelschuiver', boog: { vorm: 'hart', bak: 226.5, n: 64 }, vv: 1 },
     // getij: elke zoveelste slag is springtij (de schuiver gaat dan 'keer' zo ver)
     maan: { naam: 'De Halvemaan', boog: { voor: 34, zij: 40, bak: 233.5 }, schuifBoog: 24, getij: { elke: 6, keer: 1.9 } },
     // schop: een bumper die geraakt wordt, schiet de munt weg (mm/s), en kan dat weer na 'rust' beelden
-    flipper: { naam: 'De Flipperkast', palen: [[-150, -118], [0, -150], [150, -118], [-76, -66], [76, -66]], paalR: 10, paalH: 30, schop: 150, schopRust: 20 },
+    flipper: { naam: 'De Flipperkast', boog: { vorm: 'punt', bak: 228, n: 64 }, schuif: 'schuifPunt', vv: 1, palen: [[-150, -118], [0, -150], [150, -118], [-76, -66], [76, -66]], paalR: 10, paalH: 30, schop: 150, schopRust: 20 },
     // de schijf draait heen en weer: w is de hoogste hoeksnelheid, periode de tijd van een hele heen-en-weer (seconden)
-    // XF: de zijgoten van de Draaimolen zijn iets breder (afgesteld op ongeveer 92 van de 100, zoals de andere kasten)
-    molen: { naam: 'De Draaimolen', XF: 231.5, schijf: { x: 0, z: -102, r: 84, w: 0.65, periode: 24 } },
+    molen: { naam: 'De Draaimolen', boog: { vorm: 'schulp', bak: 229, n: 80 }, schuif: 'schuifHol', vv: 1, schijf: { x: 0, z: -102, r: 84, w: 0.65, periode: 24 } },
     // de Ruitenwisser: een arm die vanaf een spil op de voorrand heen en weer over de onderste vloer veegt
-    ruitenwisser: { naam: 'De Ruitenwisser', blokken: [
+    ruitenwisser: { naam: 'De Ruitenwisser', boog: { vorm: 'golf', bak: 222, n: 64 }, vv: 1, blokken: [
       { soort: 'arm', x: 0, z: -8, lengte: 168, dik: 5, h: 11, hoek: 0.95, periode: 7 },
       { soort: 'vast', x: 0, z: -8, b: 10, d: 10, r: 10, h: 16 },
     ] },
-    // de Schatkamer: een schatkist midden op de onderste vloer (staat vast; de munten moeten eromheen); de zijgoten iets breder (afgesteld op ongeveer 91)
-    // de Fichebank: een tweede schuiver op de onderste vloer (een lage balk), die met de bovenste meeduwt (tegen de bovenste in werden munten ertussen samengeperst); de zijgoten iets breder (afgesteld op ongeveer 87, met de fiches uit het rad ongeveer 91)
-    fichebank: { naam: 'De Fichebank', XF: 228, blokken: [{ soort: 'schuif', x: 0, z: -140, b: 88, d: 10, r: 4, h: 10, slag: 48, periode: 4.2, fase: 0 }] },
-    schatkamer: { naam: 'De Schatkamer', XF: 229, blokken: [{ soort: 'vast', x: 0, z: -115, b: 26, d: 18, r: 3, h: 32, kist: true }] },
+    // de Schatkamer: een schatkist midden op de onderste vloer (staat vast; de munten moeten eromheen)
+    // de Fichebank: een tweede schuiver op de onderste vloer (een lage balk), die met de bovenste meeduwt (tegen de bovenste in werden munten ertussen samengeperst)
+    fichebank: { naam: 'De Fichebank', boog: { vorm: 'achthoek', bak: 231, n: 64 }, vv: 1, blokken: [{ soort: 'schuif', x: 0, z: -140, b: 88, d: 10, r: 4, h: 10, slag: 48, periode: 4.2, fase: 0 }] },
+    schatkamer: { naam: 'De Schatkamer', boog: { vorm: 'trap', bak: 224.5, n: 80 }, schuif: 'schuifTrap', vv: 1, blokken: [{ soort: 'vast', x: 0, z: -115, b: 26, d: 18, r: 3, h: 32, kist: true }] },
     // de Treinbaan: een treintje (een locomotief en twee open wagons) rijdt rondjes over de onderste vloer, over een spoor
     // in de vorm van een stadion (twee rechte stukken van 2c lang en twee halve cirkels met straal R, om (cx, cz)); v in mm/s.
     // Elk rijtuig is een blok (lengte, halve breedte b, hoekstraal r, hoogte h); de wagons dragen munten mee op hun lading.
-    trein: { naam: 'De Treinbaan', XF: 236, spoor: { cx: 0, cz: -118, c: 80, R: 53, v: 75 },
+    trein: { naam: 'De Treinbaan', boog: { vorm: 'perron', bak: 242, n: 64 }, vv: 1, spoor: { cx: 0, cz: -118, c: 80, R: 53, v: 75 },
       rijtuigen: [{ lengte: 60, b: 12, r: 10, h: 26, loc: true }, { lengte: 44, b: 11, r: 4, h: 14 }, { lengte: 44, b: 11, r: 4, h: 14 }], tussen: 6 },
   };
   // de vorm van een kast, gedeeld met het tekenen (zo liggen de munten altijd op wat je ziet)
   function kastVorm(naam, extra) {
     const K = extra ? Object.assign({}, KASTEN[naam] || KASTEN.klassiek, extra) : KASTEN[naam] || KASTEN.klassiek, XW = MK.XW, B = K.boog, SB = K.schuifBoog || 0;
+    // een eigen vorm (VORM) of de boog van de Halvemaan (een parabool)
+    const BF = B && B.vorm ? VORM[B.vorm] : null, SF = K.schuif ? VORM[K.schuif] : null, kl = (x) => Math.max(-1, Math.min(1, x / XW));
+    const zij = B ? (BF ? -BF(1) : B.zij) : 0;
     const V = {
       naam: KASTEN[naam] ? naam : 'klassiek', K,
       XF: B ? XW : (K.XF || MK.XF),
-      ZS: B ? -B.zij : MK.ZS,
-      randZ: B ? (x) => B.voor - (B.voor + B.zij) * (x / XW) * (x / XW) : () => 0,
-      schuifZ: SB ? (x) => SB * (1 - (x / XW) * (x / XW)) : () => 0,
-      schuifDZ: SB ? (x) => -2 * SB * x / (XW * XW) : () => 0,
+      ZS: B ? -zij : MK.ZS,
+      randZ: BF ? (x) => BF(kl(x)) : B ? (x) => B.voor - (B.voor + B.zij) * (x / XW) * (x / XW) : () => 0,
+      SB: !!(SB || SF),
+      schuifZ: SF ? (x) => SF(kl(x)) : SB ? (x) => SB * (1 - (x / XW) * (x / XW)) : () => 0,
+      schuifDZ: SF ? (x) => (SF(kl(x + 0.25)) - SF(kl(x - 0.25))) / 0.5 : SB ? (x) => -2 * SB * x / (XW * XW) : () => 0,
       palen: K.palen || [], paalR: K.paalR || 0, paalH: K.paalH || 0,
       schijf: K.schijf || null,
       blokken: (K.blokken || []).slice(),
@@ -2075,15 +2107,19 @@ function MUNTFYSICA() {
     };
     V.blokBeweegt = V.blokken.some((b) => b.soort !== 'vast');
     // de randen van de onderste verdieping (lijnstukjes x0, z0, x1, z1)
+    // het verste punt naar voren van de voorrand, en het verste en minst verre punt van de schuiver
+    V.randMax = 0; V.schuifMax = 0; V.schuifMin = 0;
+    for (let k = 0; k <= 400; k++) { const x = -XW + 2 * XW * k / 400; if (B) V.randMax = Math.max(V.randMax, V.randZ(x)); V.schuifMax = Math.max(V.schuifMax, V.schuifZ(x)); V.schuifMin = Math.min(V.schuifMin, V.schuifZ(x)); }
+    if (!B) V.randMax = 0;
     V.rand = [];
-    if (B) { const n = 20; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.rand.push([x0, V.randZ(x0), x1, V.randZ(x1)]); } }
+    if (B) { const n = B.n || 20; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.rand.push([x0, V.randZ(x0), x1, V.randZ(x1)]); } }
     else V.rand.push([-V.XF, 0, V.XF, 0], [-V.XF, MK.ZS, -V.XF, 0], [V.XF, MK.ZS, V.XF, 0], [-XW, MK.ZS, -V.XF, MK.ZS], [V.XF, MK.ZS, XW, MK.ZS]);
     V.vloerOp = B ? (X, Z) => X >= -XW - 0.01 && X <= XW + 0.01 && Z >= MK.ZB && Z <= V.randZ(X) + 0.01
       : (X, Z) => (X >= -XW - 0.01 && X <= XW + 0.01 && Z >= MK.ZB && Z <= MK.ZS + 0.01) || (X >= -V.XF - 0.01 && X <= V.XF + 0.01 && Z >= MK.ZS - 0.01 && Z <= 0.01);
     V.inBak = B ? (x, z) => Math.abs(x) < B.bak && z > V.randZ(x) - 8 : (x, z) => z > -2 && Math.abs(x) < V.XF + 6;
     // de voorkant van de schuiver (z ten opzichte van de stand van de schuiver)
     V.schuifRand = [];
-    if (SB) { const n = 16; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.schuifRand.push([x0, V.schuifZ(x0), x1, V.schuifZ(x1)]); } }
+    if (V.SB) { const n = SF ? 48 : 16; for (let k = 0; k < n; k++) { const x0 = -XW + 2 * XW * k / n, x1 = -XW + 2 * XW * (k + 1) / n; V.schuifRand.push([x0, V.schuifZ(x0), x1, V.schuifZ(x1)]); } }
     else V.schuifRand.push([-XW, 0, XW, 0]);
     const S = V.schijf;
     V.opSchijf = S ? (X, Z) => { const dx = X - S.x, dz = Z - S.z; return dx * dx + dz * dz <= S.r * S.r; } : () => false;
@@ -2453,7 +2489,7 @@ function MUNTFYSICA() {
       const r = rr[i], x0 = px[i], z0 = pz[i];
       if (lvl[i] === 0) {
         // de voorkant van de schuiver (een ronde schuiver: loodrecht op de bocht)
-        if (KV.K.schuifBoog) {
+        if (KV.SB) {
           const s = KV.schuifDZ(px[i]), L = Math.sqrt(1 + s * s), tekort = r - (pz[i] - zf - KV.schuifZ(px[i])) / L;
           if (tekort > 0) { px[i] -= s / L * tekort; pz[i] += tekort / L; }
         } else if (pz[i] < zf + r) pz[i] = zf + r;
@@ -2829,7 +2865,7 @@ function MUNTFYSICA() {
     let PIN0 = 0;         // vanaf hier zijn de randen pinnetjes
     const RANDEN = [];    // [ax, ay, az, bx, by, bz, straal, beweegt, n1 (3), n2 (3)]: n1 en n2 zijn de normalen van de twee vlakken van een buitenhoek (of 0)
     {
-      const { XW, ZB, HP, ZW, KD, KY } = MK, XF = KV.XF, ZS = KV.ZS, B = KV.K.boog, SB = KV.K.schuifBoog;
+      const { XW, ZB, HP, ZW, KD, KY } = MK, XF = KV.XF, ZS = KV.ZS, B = KV.K.boog, SB = KV.SB;
       const V = (o, n, u, eu, v, ev, b, k, srt) => VLAKKEN.push([...o, ...n, ...u, eu, ...v, ev, b ? 1 : 0, k ? 1 : 0, srt || 0]);
       const Rd = (a, b, r, m, n1, n2) => RANDEN.push([...a, ...b, r, m ? 1 : 0, ...(n1 || [0, 0, 0]), ...(n2 || [0, 0, 0])]);
       const OP = [0, 1, 0], ONDER = [0, -1, 0], VOOR = [0, 0, 1], ACHTER = [0, 0, -1], LI = [-1, 0, 0], RE = [1, 0, 0];
@@ -2843,7 +2879,7 @@ function MUNTFYSICA() {
       };
       if (B) {
         // de Halvemaan: één vloer in de vorm van de boog, met een gebogen rand ervoor
-        V([0, 0, (ZB + B.voor) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (B.voor - ZB) / 2, false, false, 1);
+        V([0, 0, (ZB + KV.randMax) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (KV.randMax - ZB) / 2, false, false, 1);
         bocht(KV.rand, -30, 0, false);
       } else {
         V([0, 0, (ZB + ZS) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (ZS - ZB) / 2, false, false, 1);
@@ -2856,7 +2892,7 @@ function MUNTFYSICA() {
       }
       if (SB) {
         // een ronde schuiver: de bovenkant volgt de bocht, de voorkant in stukjes
-        V([0, HP, -MK.LP / 2 + SB / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2 + SB / 2, true, false, 2);
+        V([0, HP, (KV.schuifMax - MK.LP) / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], (MK.LP + KV.schuifMax) / 2, true, false, 2);
         bocht(KV.schuifRand, 0, HP, true);
       } else {
         V([0, HP, -MK.LP / 2], [0, 1, 0], [1, 0, 0], XW, [0, 0, 1], MK.LP / 2, true, true);    // schuiver boven (z t.o.v. zf)
@@ -2964,7 +3000,7 @@ function MUNTFYSICA() {
       if (afst > r + hd || afst < -r - 4) return;
       // ligt het midden van de munt al voorbij een buitenhoek van dit vlak, dan raakt hij de hoek (RANDEN), niet dit vlak
       if (V[15] && (px[i] - ox_) * V[10] + (py[i] - oy_) * V[11] + (pz[i] - oz_) * V[12] > V[13]) return;
-      const vorm = (V[16] === 1 && KV.K.boog) ? 1 : (V[16] === 2 && KV.K.schuifBoog) ? 2 : 0;
+      const vorm = (V[16] === 1 && KV.K.boog) ? 1 : (V[16] === 2 && KV.SB) ? 2 : 0;
       if (vorm === 1 && !KV.vloerOp(px[i], pz[i])) return;
       if (vorm === 2 && pz[i] > zf + KV.schuifZ(px[i])) return;
       as3(i);
@@ -3726,7 +3762,7 @@ function MUNTFYSICA() {
       const R = R0, stap_ = 2 * R + 0.6, rij = stap_ * Math.sqrt(3) / 2;
       const leg = (aantal, laag) => {
         if (aantal <= 0) return;
-        const z0 = laag ? MK.ZW + R + 1 : zf + R + 1, z1 = laag ? zf - R - 6 : (KV.K.boog ? KV.K.boog.voor : 0) - R - 4 - marge;
+        const z0 = laag ? MK.ZW + R + 1 : zf + R + 1, z1 = laag ? zf - R - 6 : KV.randMax - R - 4 - marge;
         const breed = (z) => laag ? MK.XW - R - 1 : (z > KV.ZS - R ? KV.XF - R - 3 : MK.XW - R - 1);
         // past een munt hier? (binnen de vorm, niet in een paaltje, niet in de schuiver)
         const past = (x, z) => {
@@ -3772,7 +3808,7 @@ function MUNTFYSICA() {
     // ======================================================================================
     // BEWAREN: per munt 10 bytes (plek, schuinte, draai, soort)
     // ======================================================================================
-    const KENMERK = 0x52533101 + Object.keys(KASTEN).indexOf(KV.naam) * 0x100;   // de gewone kast houdt het oude kenmerk
+    const KENMERK = 0x52533101 + Object.keys(KASTEN).indexOf(KV.naam) * 0x100 + (KV.K.vv || 0) * 0x10000;   // een kast met een nieuwe vorm (vv) begint met een nieuwe stapel
     function bewaar() {
       let n = 0; for (let i = 0; i < hoogsteIndex; i++) if (md[i] !== WEG) n++;
       // (de Treinbaan bewaart ook waar de trein staat: 4 bytes meer in de kop)
@@ -3909,6 +3945,8 @@ function HULPJE(self, MF) {
     const d = e.data;
     try {
       if (d.doe === 'maak') {
+        // meteen laten weten dat het hulpje werkt (het maken kan op een trage telefoon even duren)
+        stuur({ doe: 'hallo' });
         sim = F.maak({ max: d.max, zaad: d.zaad, kast: d.kast });
         let geladen = false;
         if (d.laad) geladen = sim.laad(new Uint8Array(d.laad));
@@ -4955,6 +4993,8 @@ function geborsteld(w, h) {
   for (let k = 0; k < h * 3; k++) { const y = rnd() * h, a = 0.05 + rnd() * 0.12, v = rnd() < 0.5 ? 150 : 255; g.fillStyle = `rgba(255,${v},255,${a})`; g.fillRect(0, y, w, 1 + rnd() * 1.5); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
 }
+// de bovenkant van de vloerprint ligt 40 mm voor de rechte voorrand (z = 0): zo past hij ook onder een voorrand die naar voren steekt
+const PRINT_VOOR = 40;
 function vloerPrint(w, h) {
   // de vloer onder: geborsteld staal met gele pijltjes naar de rand (en per kast een eigen print)
   if (KAST === 'maan') return vloerMaan(w, h);
@@ -5289,8 +5329,9 @@ function vloerTrein(w, h) {
   const c = maakDoek(w, h), g = c.getContext('2d'), sx = w / 480, sz = h / 330, SP = KV.spoor, Q = new Float64Array(4);
   const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#3C7432'); gr.addColorStop(1, '#5B993F'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
   for (let k = 0; k < w * h / 50; k++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '215,245,150' : '18,48,14'},${0.05 + rnd() * 0.1})`; g.fillRect(rnd() * w, rnd() * h, 1.3, 2 + rnd() * 3); }
-  // vanaf hier in millimeters (x naar rechts, z naar de speler; z = 0 is de voorrand)
-  g.save(); g.scale(sx, sz); g.translate(240, 330);
+  // vanaf hier in millimeters (x naar rechts, z naar de speler; z = 0 is de voorrand).
+  // Let op: de bovenkant van dit plaatje ligt PRINT_VOOR mm voor de rechte voorrand (v = 1), dus de as van z loopt omgekeerd.
+  g.save(); g.scale(sx, sz); g.translate(240, PRINT_VOOR); g.scale(1, -1);
   const baan = (R) => { g.beginPath(); g.moveTo(-SP.c, SP.cz - R); g.lineTo(SP.c, SP.cz - R); g.arc(SP.c, SP.cz, R, -Math.PI / 2, Math.PI / 2); g.lineTo(-SP.c, SP.cz + R); g.arc(-SP.c, SP.cz, R, Math.PI / 2, Math.PI * 1.5); g.closePath(); };
   const op = (s) => { KV.spoorOp(s, Q, 0); KV.spoorOp(s + 0.5, Q, 2); const dx = Q[2] - Q[0], dz = Q[3] - Q[1], l = Math.hypot(dx, dz) || 1; return [Q[0], Q[1], dx / l, dz / l]; };
   const WX0 = 58, WX1 = 86;   // de weg
@@ -5308,9 +5349,9 @@ function vloerTrein(w, h) {
   // achter de baan, tot de schuiver: struikjes en bloemen
   for (let k = 0; k < 40; k++) { const x = -230 + rnd() * 460, z = -330 + rnd() * (SP.cz - SP.R - 28 + 330); if (x > WX0 - 4 && x < WX1 + 4) continue; g.fillStyle = ['#FFFFFF', '#FFE14D', '#FF8FB8'][k % 3]; g.beginPath(); g.arc(x, z, 1 + rnd(), 0, Math.PI * 2); g.fill(); }
   // de weg: asfalt met een witte streep, van achteren tot aan het perron
-  g.fillStyle = '#55585E'; g.fillRect(WX0, -330, WX1 - WX0, 330 - 26);
+  const wegEind = KV.randZ(72) - 26; g.fillStyle = '#55585E'; g.fillRect(WX0, -330, WX1 - WX0, 330 + wegEind);
   for (let k = 0; k < 400; k++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '255,255,255' : '0,0,0'},${0.06 + rnd() * 0.08})`; g.fillRect(WX0 + rnd() * (WX1 - WX0), -330 + rnd() * 304, 0.8, 0.8); }
-  g.fillStyle = 'rgba(245,245,235,.85)'; for (let z = -326; z < -30; z += 14) g.fillRect((WX0 + WX1) / 2 - 0.6, z, 1.2, 7);
+  g.fillStyle = 'rgba(245,245,235,.85)'; for (let z = -326; z < wegEind - 4; z += 14) g.fillRect((WX0 + WX1) / 2 - 0.6, z, 1.2, 7);
   g.fillStyle = '#BFC2C6'; g.fillRect(WX0 - 1.2, -330, 1.2, 304); g.fillRect(WX1, -330, 1.2, 304);
   // het spoor: eerst het grind (met een donkere rand), dan de bielzen, dan de rails
   g.lineJoin = 'round';
@@ -5334,16 +5375,19 @@ function vloerTrein(w, h) {
     g.fillStyle = 'rgba(250,250,245,.9)'; for (const dz of [-24, 24]) for (let x = WX0 + 2; x < WX1 - 2; x += 6) { g.beginPath(); g.moveTo(x, z0 + dz - 2); g.lineTo(x + 4, z0 + dz - 2); g.lineTo(x + 2, z0 + dz + 2 * Math.sign(dz)); g.closePath(); g.fill(); }
   }
   for (const R of [SP.R + 9, SP.R - 9]) { baan(R); g.strokeStyle = '#3C4047'; g.lineWidth = 2.8; g.stroke(); baan(R); g.strokeStyle = '#D9DDE3'; g.lineWidth = 1.1; g.stroke(); }
-  // het perron langs de voorrand: tegels, een gele streep en pijltjes naar de rand
-  const PZ = -26;
-  g.fillStyle = '#B9B4AA'; g.fillRect(-240, PZ, 480, -PZ);
+  // het perron langs de voorrand (die met ronde einden): tegels, een gele streep en pijltjes naar de rand.
+  // Alles volgt de rand: r(x) is waar de rand ligt, en het perron is 26 mm diep.
+  const PZ = 26, r = (x) => KV.randZ(Math.max(-239.5, Math.min(239.5, x))), strook = (d0, d1) => { g.beginPath(); for (let x = -241; x <= 241; x += 2) g.lineTo(x, r(x) - d0); for (let x = 241; x >= -241; x -= 2) g.lineTo(x, r(x) - d1); g.closePath(); };
+  strook(-PRINT_VOOR, PZ); g.fillStyle = '#B9B4AA'; g.fill();
+  g.save(); strook(0, PZ); g.clip();
   g.strokeStyle = 'rgba(70,64,56,.35)'; g.lineWidth = 0.6;
-  for (let x = -240; x <= 240; x += 12) { g.beginPath(); g.moveTo(x, PZ); g.lineTo(x, 0); g.stroke(); }
-  for (let z = PZ; z <= 0; z += 8.7) { g.beginPath(); g.moveTo(-240, z); g.lineTo(240, z); g.stroke(); }
-  g.fillStyle = '#E8E2D2'; g.fillRect(-240, PZ, 480, 2.2);
-  g.fillStyle = '#F2C230'; g.fillRect(-240, PZ + 5, 480, 2.4);
-  g.fillStyle = 'rgba(255,214,74,.95)'; for (let x = -205; x <= 205; x += 68.5) { g.beginPath(); g.moveTo(x - 5, -15); g.lineTo(x + 5, -15); g.lineTo(x, -7); g.closePath(); g.fill(); }
-  g.fillStyle = '#E9E5DA'; g.fillRect(-240, -3.2, 480, 3.2);
+  for (let x = -240; x <= 240; x += 12) { g.beginPath(); g.moveTo(x, r(x) + 2); g.lineTo(x, r(x) - PZ); g.stroke(); }
+  for (let d = 0; d <= PZ; d += 8.7) { g.beginPath(); for (let x = -241; x <= 241; x += 2) g.lineTo(x, r(x) - d); g.stroke(); }
+  g.restore();
+  strook(PZ - 2.2, PZ); g.fillStyle = '#E8E2D2'; g.fill();
+  strook(PZ - 7.4, PZ - 5); g.fillStyle = '#F2C230'; g.fill();
+  g.fillStyle = 'rgba(255,214,74,.95)'; for (let x = -205; x <= 205; x += 68.5) { const z = r(x); g.beginPath(); g.moveTo(x - 5, z - 15); g.lineTo(x + 5, z - 15); g.lineTo(x, z - 7); g.closePath(); g.fill(); }
+  strook(0, 3.2); g.fillStyle = '#E9E5DA'; g.fill();
   g.restore();
   return tex(c);
 }
@@ -5752,6 +5796,90 @@ function trechterPrint(n) {
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4;
   return t;
 }
+// per kast een eigen trechter: wat erop staat (rep: hoe vaak het plaatje rondgaat) en de ring om het gat.
+// Het plaatje: x loopt rond (een stuk van 1/rep), y van de rand (boven) naar het gat (onder).
+const TRECHTER = {
+  klassiek: { rep: 12, ring: 'lampjes' },    // een circustent van bovenaf: rood en wit, met lampjes om het gat
+  maan: { rep: 6, ring: 'halo' },            // een nachthemel met sterren en een stralenkrans
+  flipper: { rep: 8, ring: 'bumper' },       // groen met gele bliksems en een bumper van chroom en rubber
+  molen: { rep: 16, ring: 'parels' },        // het dak van een draaimolen, met een gouden ring met parels
+  ruitenwisser: { rep: 5, ring: 'schuim' },  // een draaikolk met schuim om het gat
+  schatkamer: { rep: 10, ring: 'stenen' },   // een molensteen met goud, en een gouden ring met edelstenen
+  fichebank: { rep: 1, ring: 'ruiten' },     // een roulettewiel met een gouden rand en ruitjes
+  trein: { rep: 1, ring: 'naaf' },           // een groot rood treinwiel met spaken en een koperen naaf
+};
+function trechterKast(n) {
+  const c = maakDoek(n, n), g = c.getContext('2d'), W = n, H = n;
+  let z = 7654321; const r = () => ((z = (Math.imul(z, 1103515245) + 12345) >>> 0) / 4294967296);
+  const naarGat = (a) => { const gr = g.createLinearGradient(0, H * 0.55, 0, H); gr.addColorStop(0, 'rgba(10,8,16,0)'); gr.addColorStop(1, `rgba(10,8,16,${a})`); g.fillStyle = gr; g.fillRect(0, H * 0.55, W, H * 0.45); };
+  const randBand = (kl, glans) => { g.fillStyle = kl; g.fillRect(0, 0, W, H * 0.06); g.fillStyle = glans || 'rgba(255,255,255,.45)'; g.fillRect(0, H * 0.06, W, H * 0.01); };
+  if (KAST === 'klassiek') {
+    g.fillStyle = '#F6E9C6'; g.fillRect(0, 0, W, H); g.fillStyle = '#C8323C'; g.fillRect(0, 0, W / 2, H);
+    for (let y = 0; y < H; y += 2) { g.fillStyle = `rgba(255,255,255,${0.04 + r() * 0.05})`; g.fillRect(0, y, W, 1); }
+    randBand('#E9B949'); for (let k = 0; k < 2; k++) { g.fillStyle = '#FFF4CC'; g.beginPath(); g.arc(W * (0.25 + k * 0.5), H * 0.03, H * 0.016, 0, Math.PI * 2); g.fill(); }
+    naarGat(0.7);
+  } else if (KAST === 'maan') {
+    const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#2C3F8E'); gr.addColorStop(1, '#0B1236'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    for (let k = 0; k < 70; k++) { const x = r() * W, y = r() * H * 0.85, s = 0.6 + r() * 1.8; g.fillStyle = `rgba(230,238,255,${0.4 + r() * 0.6})`; g.beginPath(); g.arc(x, y, s, 0, Math.PI * 2); g.fill(); }
+    randBand('#C9D6F5'); naarGat(0.6);
+  } else if (KAST === 'flipper') {
+    g.fillStyle = '#167A3C'; g.fillRect(0, 0, W, H);
+    for (let y = 0; y < H; y += 3) { g.fillStyle = `rgba(0,0,0,${0.03 + r() * 0.04})`; g.fillRect(0, y, W, 1); }
+    g.fillStyle = '#FFD23E'; g.beginPath(); g.moveTo(W * 0.42, H * 0.1); g.lineTo(W * 0.62, H * 0.1); g.lineTo(W * 0.5, H * 0.38); g.lineTo(W * 0.6, H * 0.38); g.lineTo(W * 0.38, H * 0.78); g.lineTo(W * 0.46, H * 0.46); g.lineTo(W * 0.36, H * 0.46); g.closePath(); g.fill();
+    g.strokeStyle = '#B07A10'; g.lineWidth = n * 0.008; g.stroke();
+    randBand('#FFE14D'); naarGat(0.65);
+  } else if (KAST === 'molen') {
+    g.fillStyle = '#F6E7C4'; g.fillRect(0, 0, W, H); g.fillStyle = '#7A2E92'; g.fillRect(0, 0, W / 2, H);
+    g.fillStyle = '#E9B949'; g.fillRect(W / 2 - n * 0.012, 0, n * 0.024, H); g.fillRect(W - n * 0.012, 0, n * 0.012, H); g.fillRect(0, 0, n * 0.012, H);
+    // de schulpen langs de rand
+    for (const x0 of [0, W / 2]) { g.fillStyle = x0 ? '#7A2E92' : '#F6E7C4'; g.beginPath(); g.ellipse(x0 + W / 4, H * 0.09, W / 4, H * 0.05, 0, 0, Math.PI); g.fill(); }
+    randBand('#D8343F'); naarGat(0.6);
+  } else if (KAST === 'ruitenwisser') {
+    const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#6FD6F2'); gr.addColorStop(1, '#0A4C78'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    // de draaikolk: schuine strepen (rond en naar binnen worden het spiralen)
+    g.lineCap = 'round';
+    for (let k = 0; k < 7; k++) for (const dx of [-W, 0, W]) { const x0 = (k / 7) * W + dx; g.strokeStyle = `rgba(255,255,255,${0.18 + (k % 2) * 0.16})`; g.lineWidth = n * (0.02 + (k % 3) * 0.012); g.beginPath(); g.moveTo(x0, 0); g.bezierCurveTo(x0 + W * 0.35, H * 0.3, x0 + W * 0.7, H * 0.6, x0 + W, H); g.stroke(); }
+    randBand('#E6FBFF', 'rgba(255,255,255,.7)'); naarGat(0.7);
+  } else if (KAST === 'schatkamer') {
+    g.fillStyle = '#8E7A62'; g.fillRect(0, 0, W, H);
+    for (let k = 0; k < 900; k++) { const v = 90 + Math.floor(r() * 70); g.fillStyle = `rgba(${v},${v - 12},${v - 28},.35)`; g.fillRect(r() * W, r() * H, 2, 2); }
+    g.strokeStyle = 'rgba(40,28,18,.55)'; g.lineWidth = n * 0.01; for (const x of [0, W / 2]) { g.beginPath(); g.moveTo(x, H * 0.07); g.lineTo(x + W * 0.08, H); g.stroke(); }
+    g.strokeStyle = '#E9B949'; g.lineWidth = n * 0.018; g.beginPath(); g.moveTo(W * 0.25, H * 0.08); g.lineTo(W * 0.3, H * 0.5); g.lineTo(W * 0.27, H * 0.95); g.stroke();
+    randBand('#E9B949'); naarGat(0.7);
+  } else if (KAST === 'fichebank') {
+    // het roulettewiel: 37 vakjes (rood en zwart, en een groene nul), met een gouden rand en witte vakjes voor de getallen
+    const nv = 37;
+    for (let k = 0; k < nv; k++) { g.fillStyle = k === 0 ? '#1E8A4C' : k % 2 ? '#C8323C' : '#16121E'; g.fillRect(k * W / nv, 0, W / nv + 1, H); }
+    g.fillStyle = 'rgba(255,255,255,.85)'; for (let k = 0; k < nv; k++) g.fillRect(k * W / nv + W / nv * 0.3, H * 0.13, W / nv * 0.4, H * 0.08);
+    for (let k = 0; k < nv; k++) { g.fillStyle = '#C9A24A'; g.fillRect(k * W / nv - 0.6, 0, 1.2, H); }
+    g.fillStyle = 'rgba(233,185,73,.9)'; g.fillRect(0, H * 0.5, W, H * 0.025);
+    randBand('#E9B949', 'rgba(255,245,210,.8)'); naarGat(0.75);
+  } else if (KAST === 'trein') {
+    // een treinwiel: rood met twaalf spaken, een stalen band langs de rand
+    g.fillStyle = '#8E1F26'; g.fillRect(0, 0, W, H);
+    for (let k = 0; k < 12; k++) { const x = (k + 0.5) * W / 12; g.fillStyle = '#B3262E'; g.fillRect(x - W / 48, H * 0.1, W / 24, H * 0.9); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x - W / 48, H * 0.1, W / 120, H * 0.9); }
+    g.fillStyle = '#4A4F57'; g.fillRect(0, 0, W, H * 0.1); g.fillStyle = '#9AA3AE'; g.fillRect(0, H * 0.02, W, H * 0.02);
+    naarGat(0.55);
+  } else return null;
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4;
+  return t;
+}
+// de ring om het gat (per kast), met G.keelMat voor wat oplicht als er een munt in valt
+function trechterRing(kast, TR, soort) {
+  const y = TR.yKeel + 0.9, R = TR.rt, op = (m, dy) => { m.position.set(TR.cx, y + (dy || 0), TR.cz); kast.add(m); return m; };
+  const torus = (r, dik, mat, dy) => { const m = new THREE.Mesh(new THREE.TorusGeometry(r, dik, 12, 64), mat); m.rotation.x = Math.PI / 2; return op(m, dy); };
+  const rond = (n, r, geo, mat, dy, draai) => { const im = new THREE.InstancedMesh(geo, mat, n); im.frustumCulled = false; const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(); for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2; e.set(0, -a, draai ? Math.PI / 4 : 0); q.setFromEuler(e); m4.compose(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r), q, new THREE.Vector3(1, 1, 1)); im.setMatrixAt(k, m4); } return op(im, dy); };
+  const goud = new THREE.MeshStandardMaterial({ color: lin('#E9B949'), metalness: 0.95, roughness: 0.25 });
+  if (soort === 'lampjes') { torus(R + 2.5, 1.6, goud); rond(14, R + 2.5, new THREE.SphereGeometry(1.9, 10, 8), G.keelMat, 1.6); }
+  else if (soort === 'halo') { torus(R + 1, 1.2, G.keelMat); torus(R + 4.5, 0.6, new THREE.MeshBasicMaterial({ color: lin('#DCE6FF').multiplyScalar(1.2) })); rond(8, R + 7.5, new THREE.OctahedronGeometry(1.6, 0), G.keelMat, 0.5); }
+  else if (soort === 'bumper') { torus(R + 3.2, 3.2, MAT.chroom); torus(R + 3.2, 1.3, G.keelMat, 3); }
+  else if (soort === 'parels') { torus(R + 2.2, 1.5, goud); rond(18, R + 2.2, new THREE.SphereGeometry(1.5, 10, 8), new THREE.MeshStandardMaterial({ color: lin('#FFF6EA'), metalness: 0.2, roughness: 0.25 }), 1.4); torus(R + 0.5, 0.8, G.keelMat, 0.5); }
+  else if (soort === 'schuim') { rond(16, R + 2.6, new THREE.SphereGeometry(2.6, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 })); rond(12, R + 5.4, new THREE.SphereGeometry(1.7, 8, 6), new THREE.MeshStandardMaterial({ color: lin('#E6FBFF'), roughness: 0.9, metalness: 0 }), -0.5); torus(R + 0.6, 0.9, G.keelMat, 0.4); }
+  else if (soort === 'stenen') { torus(R + 2.4, 1.8, goud); const kl = ['#D8343F', '#2DBE6C', '#3C7BE0', '#B04CE0']; for (let k = 0; k < 4; k++) { const im = rond(3, R + 2.4, new THREE.OctahedronGeometry(2, 0), new THREE.MeshStandardMaterial({ color: lin(kl[k]), metalness: 0.3, roughness: 0.15 }), 1.8); im.rotation.y = k * Math.PI / 6; } torus(R + 0.4, 0.8, G.keelMat, 0.5); }
+  else if (soort === 'ruiten') { torus(R + 2.6, 2.2, goud); rond(8, R + 2.6, new THREE.OctahedronGeometry(1.9, 0), G.keelMat, 2, true); }
+  else if (soort === 'naaf') { torus(R + 2.8, 2.6, new THREE.MeshStandardMaterial({ color: lin('#C98A3A'), metalness: 0.95, roughness: 0.3 })); rond(12, R + 2.8, new THREE.CylinderGeometry(0.9, 0.9, 1.6, 8), MAT.chroom, 2.6); torus(R + 0.6, 0.9, G.keelMat, 0.5); }
+  else torus(R + 0.8, 1.4, G.keelMat);
+}
 function bouwTrechter(kast, TR) {
   const NA = 96, NR = 14, pos = [], uv = [], idx = [];
   for (let j = 0; j <= NR; j++) {
@@ -5759,7 +5887,7 @@ function bouwTrechter(kast, TR) {
     for (let k = 0; k <= NA; k++) {
       const th = k / NA * Math.PI * 2, r = TR.rt + (trRand(TR, th) - TR.rt) * u;
       pos.push(TR.cx + Math.cos(th) * r, TR.yKeel + (TR.yRand - TR.yKeel) * trH(u), TR.cz + Math.sin(th) * r);
-      uv.push(k / NA * 10, u);
+      uv.push(k / NA * TR.rep, u);
     }
   }
   for (let j = 0; j < NR; j++) for (let k = 0; k < NA; k++) { const a = j * (NA + 1) + k, b = a + NA + 1; idx.push(a, a + 1, b, b, a + 1, b + 1); }
@@ -5767,8 +5895,9 @@ function bouwTrechter(kast, TR) {
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   geo.setIndex(idx); geo.computeVertexNormals();
-  const goud = eco.kies.trechter === 'gouden';
-  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: trechterPrint(KW.tex >= 1024 ? 512 : 256), color: goud ? lin('#F4C95A') : 0xffffff, metalness: goud ? 0.95 : 0.75, roughness: goud ? 0.3 : 0.42 }));
+  // de gouden trechter (een mooi ding uit de kraam) is geborsteld goud; anders heeft elke kast zijn eigen trechter
+  const goud = eco.kies.trechter === 'gouden', eigen = goud ? null : trechterKast(KW.tex >= 1024 ? 512 : 256);
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: eigen || trechterPrint(KW.tex >= 1024 ? 512 : 256), color: goud ? lin('#F4C95A') : 0xffffff, metalness: goud ? 0.95 : eigen ? 0.25 : 0.75, roughness: goud ? 0.3 : eigen ? 0.5 : 0.42 }));
   m.receiveShadow = true; kast.add(m);
   // het gat: een donkere buis naar beneden
   const KH = 70, kg = new THREE.CylinderGeometry(TR.rt, TR.rt * 0.94, KH, 40, 1, true), kp = kg.attributes.position, kc = [];
@@ -5781,10 +5910,82 @@ function bouwTrechter(kast, TR) {
   // een neonring om het gat, die oplicht als er iets in valt
   G.keelKleur = new THREE.Color(TH.neon[0] / 255, TH.neon[1] / 255, TH.neon[2] / 255).convertSRGBToLinear();
   G.keelMat = new THREE.MeshBasicMaterial({ color: G.keelKleur.clone().multiplyScalar(0.8) });
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(TR.rt + 0.8, 1.4, 8, 48), G.keelMat);
-  ring.rotation.x = Math.PI / 2; ring.position.set(TR.cx, TR.yKeel + 0.9, TR.cz); kast.add(ring);
+  trechterRing(kast, TR, (TRECHTER[KAST] || {}).ring);
   G.keelFlits = 0;
 }
+
+// de omtrek van het neonbord per kast: punten [x, y] rond het midden van het bord (ongeveer 524 bij 252 mm)
+function bordOmtrek(kast) {
+  const pts = [], A = 262, B = 126;
+  // een veelhoek (hoekpunten) in kleine stukjes, of een functie langs een omtrek
+  const veelhoek = (hp) => { for (let k = 0; k < hp.length; k++) { const [x0, y0] = hp[k], [x1, y1] = hp[(k + 1) % hp.length], n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / 5)); for (let q = 0; q < n; q++) pts.push([x0 + (x1 - x0) * q / n, y0 + (y1 - y0) * q / n]); } };
+  const rondRecht = (a, b, r) => { const hp = []; for (const [cx, cy, a0] of [[a - r, b - r, 0], [-a + r, b - r, 90], [-a + r, -b + r, 180], [a - r, -b + r, 270]]) for (let k = 0; k <= 8; k++) { const t = (a0 + k * 90 / 8) * Math.PI / 180; hp.push([cx + Math.cos(t) * r, cy + Math.sin(t) * r]); } return hp; };
+  // naar buiten bollen langs de omtrek (s = de afstand langs de omtrek)
+  const bollen = (hp, f) => { veelhoek(hp); const L = []; let s = 0; for (let k = 0; k < pts.length; k++) { L.push(s); const [x0, y0] = pts[k], [x1, y1] = pts[(k + 1) % pts.length]; s += Math.hypot(x1 - x0, y1 - y0); } const uit = pts.map(([x, y], k) => { const [xa, ya] = pts[(k + pts.length - 1) % pts.length], [xb, yb] = pts[(k + 1) % pts.length], tx = xb - xa, ty = yb - ya, l = Math.hypot(tx, ty) || 1, o = f(L[k], s); return [x + ty / l * o, y - tx / l * o]; }); pts.length = 0; pts.push(...uit); };
+  if (kast === 'klassiek') bollen(rondRecht(A - 12, B - 12, 34), (s, L) => { const n = Math.round(L / 46); return 11 * Math.abs(Math.sin(Math.PI * s * n / L)); });   // een kermisbord met schulpen
+  else if (kast === 'maan') { for (let k = 0; k < 180; k++) { const t = -k / 180 * Math.PI * 2; pts.push([Math.cos(t) * (A + 10), Math.sin(t) * (B + 12)]); } }   // ovaal
+  else if (kast === 'flipper') { const c = 58; veelhoek([[A, B - c], [A, -B + c], [A - c, -B], [-A + c, -B], [-A, -B + c], [-A, B - c], [-A + c, B], [A - c, B]].reverse()); }   // achthoek
+  else if (kast === 'molen') {
+    // een koepeltje bovenop en schulpen onderaan, zoals het dak van een draaimolen
+    for (let k = 0; k <= 60; k++) { const x = A - 2 * A * k / 60; pts.push([x, B - 8 + 34 * (1 - (x / A) * (x / A))]); }
+    for (let k = 1; k < 20; k++) pts.push([-A, B - 8 - (2 * B - 8) * k / 20]);
+    for (let k = 0; k <= 140; k++) { const x = -A + 2 * A * k / 140; pts.push([x, -B - 14 * Math.abs(Math.sin(Math.PI * 7 * (x + A) / (2 * A)))]); }
+    for (let k = 1; k < 20; k++) pts.push([A, -B + (2 * B - 8) * k / 20]);
+    pts.reverse();
+  } else if (kast === 'ruitenwisser') bollen(rondRecht(A - 24, B - 26, 60), (s, L) => { const n = Math.round(L / 82); return 22 * Math.sqrt(Math.abs(Math.sin(Math.PI * s * n / L))); });   // een wolk
+  else if (kast === 'schatkamer') {
+    // een stenen plaat met holle hoeken
+    const r = 36, hp = [];
+    for (const [cx, cy, a0] of [[A, B, 270], [-A, B, 0], [-A, -B, 90], [A, -B, 180]]) for (let k = 0; k <= 10; k++) { const t = (a0 - k * 9) * Math.PI / 180; hp.push([cx + Math.cos(t) * r, cy + Math.sin(t) * r]); }
+    veelhoek(hp.reverse().reverse());
+  } else if (kast === 'fichebank') {
+    // art deco: drie treden in elke hoek
+    const t = 17, hp = [];
+    for (const [sx, sy] of [[1, 1], [-1, 1], [-1, -1], [1, -1]]) {
+      const q = [[A, B - 3 * t], [A - t, B - 3 * t], [A - t, B - 2 * t], [A - 2 * t, B - 2 * t], [A - 2 * t, B - t], [A - 3 * t, B - t], [A - 3 * t, B]].map(([x, y]) => [sx * x, sy * y]);
+      hp.push(...(sx * sy > 0 ? q : q.reverse()));
+    }
+    veelhoek(hp);
+  } else if (kast === 'trein') {
+    // een stationsbord met ronde einden
+    const r = B, c = A - r; for (let k = 0; k < 200; k++) { const t = k / 200; if (t < 0.25) { const a = -Math.PI / 2 + t * 4 * Math.PI; pts.push([c + Math.cos(a) * r, Math.sin(a) * r]); } else if (t < 0.5) { const f = (t - 0.25) * 4; pts.push([c - 2 * c * f, r]); } else if (t < 0.75) { const a = Math.PI / 2 + (t - 0.5) * 4 * Math.PI; pts.push([-c + Math.cos(a) * r, Math.sin(a) * r]); } else { const f = (t - 0.75) * 4; pts.push([-c + 2 * c * f, -r]); } }
+  } else veelhoek([[A, B], [-A, B], [-A, -B], [A, -B]]);
+  // tegen de klok in (voor de vorm van three.js)
+  let o = 0; for (let k = 0; k < pts.length; k++) { const [x0, y0] = pts[k], [x1, y1] = pts[(k + 1) % pts.length]; o += x0 * y1 - x1 * y0; }
+  return o < 0 ? pts.reverse() : pts;
+}
+// punten langs een omtrek, 'in' mm naar binnen, om de 'stap' mm (voor de lampjes)
+function langsOmtrek(pts, inw, stap) {
+  const uit = [], n = pts.length; let rest = 0;
+  for (let k = 0; k < n; k++) {
+    const [x0, y0] = pts[k], [x1, y1] = pts[(k + 1) % n], l = Math.hypot(x1 - x0, y1 - y0); if (l < 1e-6) continue;
+    const nx = -(y1 - y0) / l, ny = (x1 - x0) / l;   // naar binnen (de omtrek loopt tegen de klok in)
+    let d = rest; while (d < l) { const f = d / l; uit.push([x0 + (x1 - x0) * f + nx * inw, y0 + (y1 - y0) * f + ny * inw]); d += stap; } rest = d - l;
+  }
+  return uit;
+}
+// de buitenkant van de zijkanten per kast: hoeveel mm hij naar buiten steekt op hoogte y (van de vloer van de hal, -700, tot de bovenkant, 884)
+const gs = (a, b, y) => { const t = Math.max(0, Math.min(1, (y - a) / (b - a))); return t * t * (3 - 2 * t); };
+const ZIJVORM = {
+  // een uitlopende voet en brede, ronde schouders bovenin (zoals een kermiskraam)
+  klassiek: (y) => 22 * (1 - gs(-700, -540, y)) + 44 * gs(420, 770, y) - 16 * gs(800, 884, y),
+  // een sikkel: van onder naar boven één grote boog naar buiten
+  maan: (y) => 46 * Math.pow(Math.sin(Math.PI * Math.max(0, Math.min(1, (y + 660) / 1544))), 1.3),
+  // recht en hoekig: een smallere voet, en bovenin schuin naar buiten
+  flipper: (y) => (y < -320 ? -14 * (-320 - y) / 380 : 0) + (y > 470 ? 40 * (y - 470) / 414 : 0),
+  // gedraaide zuilen, zoals bij een draaimolen, met een brede voet en een kapiteel
+  molen: (y) => { const z = 13 + 9 * Math.sin((y + 560) / 34); return z + (30 - z) * (1 - gs(-590, -540, y)) + (34 - z) * gs(800, 830, y); },
+  // een druppel: onderin dik, naar boven toe smal
+  ruitenwisser: (y) => 44 * Math.exp(-Math.pow((y + 250) / 330, 2)),
+  // een zuil: een voet met treden, een licht bolle schacht en een kapiteel
+  schatkamer: (y) => 40 - 12 * gs(-655, -645, y) - 14 * gs(-615, -605, y) - 10 * gs(-575, -565, y) + 5 * Math.sin(Math.PI * Math.max(0, Math.min(1, (y + 570) / 1380))) + 18 * gs(805, 815, y) + 14 * gs(840, 850, y),
+  // art deco: naar boven toe in treden smaller
+  fichebank: (y) => 48 - 15 * gs(-320, -300, y) - 15 * gs(180, 200, y) - 15 * gs(540, 560, y),
+  // een locomotief: een brede onderkant (het chassis) en bovenin een schoorsteen die uitloopt
+  trein: (y) => 30 * (1 - gs(-470, -430, y)) + 38 * Math.pow(gs(700, 884, y), 2),
+};
+
+let ZV_MAX = 0; for (let y = -700; y <= 884; y += 4) ZV_MAX = Math.max(ZV_MAX, (ZIJVORM[KAST] || (() => 0))(y));
 
 // alles wat stilstaat (de kast), plus de schuiver
 const G = {};
@@ -5814,7 +6015,7 @@ function bouwKast() {
   const vorm = new THREE.Shape();
   if (BOOG) {
     vorm.moveTo(-XW, 330); vorm.lineTo(XW, 330);
-    for (let k = 0; k <= 40; k++) { const x = XW - 2 * XW * k / 40; vorm.lineTo(x, -KV.randZ(x)); }
+    for (let k = 0; k <= 160; k++) { const x = XW - 2 * XW * k / 160; vorm.lineTo(x, -KV.randZ(x)); }
     vorm.closePath();
   } else {
     vorm.moveTo(-XW, 330); vorm.lineTo(XW, 330); vorm.lineTo(XW, -ZS); vorm.lineTo(XF, -ZS); vorm.lineTo(XF, 0); vorm.lineTo(-XF, 0); vorm.lineTo(-XF, -ZS); vorm.lineTo(-XW, -ZS); vorm.closePath();
@@ -5823,7 +6024,7 @@ function bouwKast() {
   vg.rotateX(Math.PI / 2);   // (x, y) wordt (x, 0, y): y van de vorm = -z
   const vp_ = vg.attributes.position, vuv = vg.attributes.uv;
   // de print ligt langs de rand (bij de Halvemaan volgen de pijltjes de boog)
-  for (let k = 0; k < vp_.count; k++) { vp_.setZ(k, -vp_.getZ(k)); vuv.setXY(k, (vp_.getX(k) + XW) / (2 * XW), 1 + (vp_.getZ(k) - KV.randZ(vp_.getX(k))) / 330); }
+  for (let k = 0; k < vp_.count; k++) { vp_.setZ(k, -vp_.getZ(k)); vuv.setXY(k, (vp_.getX(k) + XW) / (2 * XW), 1 + (vp_.getZ(k) - (KAST === 'maan' ? KV.randZ(vp_.getX(k)) : PRINT_VOOR)) / 330); }
   vg.computeVertexNormals();
   for (let k = 0; k < vp_.count; k++) vg.attributes.normal.setXYZ(k, 0, 1, 0);
   const vloer = new THREE.Mesh(vg, MAT.vloer);
@@ -5832,10 +6033,10 @@ function bouwKast() {
   const BX = BOOG ? BOOG.bak : XW + 10;
   if (BOOG) {
     // de rand als boog: een chromen buis, een strook eronder en een gebogen glijplaat naar de bak
-    const rp = boogPts(KV.randZ, -XW, XW, 48);
-    kast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp.map(([x, z]) => new THREE.Vector3(x, -2.2, z + 0.6))), 96, 2.2, 10), MAT.chroom));
+    const rp = boogPts(KV.randZ, -XW, XW, 160);
+    kast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp.map(([x, z]) => new THREE.Vector3(x, -2.2, z + 0.6)), false, 'centripetal'), 320, 2.2, 10), MAT.chroom));
     strook(rp.map(([x, z]) => [x, z - 1.2]), -4, -30, 0, MAT.chroom);
-    const gp = boogPts(KV.randZ, -BX, BX, 40);
+    const gp = boogPts(KV.randZ, -BX, BX, 120);
     strook(gp.map(([x, z]) => [x, z + 2]), -30, -100, 14, MAT.glij);
   } else {
     // de voorrand: een chromen strip
@@ -5878,7 +6079,7 @@ function bouwKast() {
     }
   }
   // de trechter, in een chromen trog met een opgerolde lip en afgeronde zijkanten
-  G.tr = { cx: 0, cz: 62, rt: 16, yRand: MK.UIT - 92, yKeel: MK.UIT - 150, x0: -BX + 1, x1: BX - 1, z0: 4, z1: 123 };
+  G.tr = { cx: 0, cz: 62, rt: 16, yRand: MK.UIT - 92, yKeel: MK.UIT - 150, x0: -BX + 1, x1: BX - 1, z0: 4, z1: 123, rep: eco.kies.trechter === 'gouden' ? 10 : (TRECHTER[KAST] || { rep: 10 }).rep };
   bouwTrechter(kast, G.tr);
   // de voorkant van de trog is van doorzichtig plexiglas: zo zie je de munten in de trechter verdwijnen
   const plexi = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 0.06, transparent: true, opacity: 0.16, depthWrite: false });
@@ -5982,34 +6183,53 @@ function bouwKast() {
   // de zijwanden van de kast: een profiel met een holle 'wang' boven de bak, afgeronde randen en een bedrukte buitenkant
   // (het profiel staat in (a, y) met a = -z; de voorkant volgt voorZ(y))
   const voorZ = (y) => { if (y >= 70) return 46; const f = Math.max(0, Math.min(1, (y + 110) / 180)), ph = Math.acos(1 - f); return 140 - 94 * Math.sin(ph); };
+  // het profiel met veel punten langs de voor- en achterkant: zo kan de buitenkant per kast een eigen vorm krijgen (ZIJVORM)
   const profiel = new THREE.Shape();
   profiel.moveTo(720, -110); profiel.lineTo(-140, -110);
   for (let k = 1; k <= 24; k++) { const y = -110 + k / 24 * 180; profiel.lineTo(-voorZ(y), y); }
-  profiel.lineTo(-46, 850); profiel.quadraticCurveTo(-46, 884, -12, 884); profiel.lineTo(720, 884); profiel.closePath();
-  const wandG = new THREE.ExtrudeGeometry(profiel, { depth: 34, bevelEnabled: true, bevelThickness: 6, bevelSize: 6, bevelSegments: 3, curveSegments: 12 });
-  wandG.rotateY(Math.PI / 2);   // vorm-x (a) wordt -z, de dikte wordt +x
+  for (let y = 90; y < 850; y += 20) profiel.lineTo(-46, y);
+  profiel.lineTo(-46, 850); profiel.quadraticCurveTo(-46, 884, -12, 884); profiel.lineTo(720, 884);
+  for (let y = 864; y > -110; y -= 20) profiel.lineTo(720, y);
+  profiel.closePath();
+  const ZV = ZIJVORM[KAST] || (() => 0);
   for (const s of [-1, 1]) {
+    // de buitenkant schuift naar buiten met ZV(y); de binnenkant blijft staan (de dikte loopt van -6 tot 40)
+    const wandG = new THREE.ExtrudeGeometry(profiel, { depth: 34, bevelEnabled: true, bevelThickness: 6, bevelSize: 6, bevelSegments: 3, curveSegments: 12 });
+    wandG.rotateY(Math.PI / 2);   // vorm-x (a) wordt -z, de dikte wordt +x
+    const wp = wandG.attributes.position;
+    for (let k = 0; k < wp.count; k++) { const lx = wp.getX(k), t = Math.max(0, Math.min(1, s > 0 ? (lx + 6) / 46 : (40 - lx) / 46)); wp.setX(k, lx + s * ZV(wp.getY(k)) * t); }
+    wandG.computeVertexNormals();
     const w = new THREE.Mesh(wandG, [MAT.zijKunst, MAT.lak]);
     w.position.set(s > 0 ? XW + 29 : -XW - 63, 0, 0); kast.add(w);
   }
-  // langs de voorkant van elke zijwand: een chromen buis, een rij lampjes (hieronder) en een neonbuis
-  const langsVoor = (x, dz, y0, y1) => { const pts = []; for (let k = 0; k <= 40; k++) { const y = y0 + (y1 - y0) * k / 40; pts.push(new THREE.Vector3(x, y, voorZ(y) + dz)); } return new THREE.CatmullRomCurve3(pts); };
+  // langs de voorkant van elke zijwand: een chromen buis, een rij lampjes (hieronder) en een neonbuis (die de vorm volgt)
+  const langsVoor = (x, dz, y0, y1) => { const pts = []; for (let k = 0; k <= 120; k++) { const y = y0 + (y1 - y0) * k / 120; pts.push(new THREE.Vector3(typeof x === 'function' ? x(y) : x, y, voorZ(y) + dz)); } return new THREE.CatmullRomCurve3(pts); };
   G.neonBuis = [];
   for (const s of [-1, 1]) {
+    const nx = (y) => s * (XW + 62 + ZV(y));
     const chroomBuis = new THREE.Mesh(new THREE.TubeGeometry(langsVoor(s * (XW + 26), 8, -100, 868), 90, 3.6, 8), MAT.chroom); kast.add(chroomBuis);
-    const kern = new THREE.Mesh(new THREE.TubeGeometry(langsVoor(s * (XW + 62), 9, -100, 868), 90, 3.2, 8), MAT.neonKern); kast.add(kern);
-    if (KW.gloed) { const gl = new THREE.Mesh(new THREE.TubeGeometry(langsVoor(s * (XW + 62), 9, -100, 868), 60, 11, 8), MAT.neonGloed); gl.renderOrder = 5; kast.add(gl); }
+    const kern = new THREE.Mesh(new THREE.TubeGeometry(langsVoor(nx, 9, -100, 868), 240, 3.2, 8), MAT.neonKern); kast.add(kern);
+    if (KW.gloed) { const gl = new THREE.Mesh(new THREE.TubeGeometry(langsVoor(nx, 9, -100, 868), 160, 11, 8), MAT.neonGloed); gl.renderOrder = 5; kast.add(gl); }
   }
   // onderkast met chromen hoeken, een zwarte plint en een gloed op het tapijt eronder
-  // (bovenin hol: daar zit de trechter; zijkanten, voor- en achterkant tot onder het gat, dan het blok eronder)
-  { const BXk = G.tr.x1 + 1, B = XW + 70, yb = -250, hb = yb + 110;
-    for (const s of [-1, 1]) doos(B - BXk, -hb, 160, MAT.lak, s * (B + BXk) / 2, (-110 + yb) / 2, 60, false);
+  // (bovenin hol: daar zit de trechter; de buitenkant volgt de vorm van de kast; dan het blok eronder)
+  { const BXk = G.tr.x1 + 1, B = (y) => XW + 70 + ZV(y), yb = -250, hb = yb + 110;
+    const v = new THREE.Shape(); v.moveTo(BXk, -110); v.lineTo(BXk, yb); v.lineTo(-BXk, yb); v.lineTo(-BXk, -110);
+    for (let y = -110; y >= -530; y -= 10) v.lineTo(-B(y), y);
+    for (let y = -530; y <= -110; y += 10) v.lineTo(B(y), y);
+    v.closePath();
+    const vg = new THREE.ExtrudeGeometry(v, { depth: 160, bevelEnabled: false }); vg.translate(0, 0, -20);
+    kast.add(new THREE.Mesh(vg, MAT.lak));
     doos(2 * BXk, -hb, 16, MAT.lak, 0, (-110 + yb) / 2, 132, false);
     doos(2 * BXk, -hb, 24, MAT.lak, 0, (-110 + yb) / 2, -8, false);
-    doos(2 * B, yb + 530, 160, MAT.lak, 0, (yb - 530) / 2, 60, false); }
-  for (const s of [-1, 1]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 420, 12, 1), MAT.chroom); h.position.set(s * (XW + 70), -320, 140); kast.add(h); }
-  doos(2 * XW + 110, 170, 140, MAT.zwart, 0, -615, 50, false);
-  doos(2 * XW + 142, 8, 10, MAT.chroom, 0, -532, 140, false);
+    for (const s of [-1, 1]) { const pts = []; for (let y = -530; y <= -110; y += 10) pts.push(new THREE.Vector3(s * B(y), y, 140)); kast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 5, 10), MAT.chroom)); }
+    const p = new THREE.Shape(); p.moveTo(-B(-700) + 15, -700);
+    for (let y = -690; y <= -530; y += 10) p.lineTo(-B(y) + 15, y);
+    for (let y = -530; y >= -700; y -= 10) p.lineTo(B(y) - 15, y);
+    p.closePath();
+    const pg = new THREE.ExtrudeGeometry(p, { depth: 140, bevelEnabled: false }); pg.translate(0, 0, -20);
+    kast.add(new THREE.Mesh(pg, MAT.zwart));
+    doos(2 * B(-532) + 2, 8, 10, MAT.chroom, 0, -532, 140, false); }
   if (KW.gloed) {
     const onder = new THREE.Mesh(new THREE.PlaneGeometry(1300, 560), new THREE.MeshBasicMaterial({ map: gloedVlek(), color: new THREE.Color(1.1, 0.25, 0.75), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.55 }));
     onder.rotation.x = -Math.PI / 2; onder.position.set(0, -698, 120); kast.add(onder); G.onderGloed = onder;
@@ -6081,28 +6301,34 @@ function bouwKast() {
   }
   // de schuiver: een blok met een geborsteld dak (de bovenste verdieping) en een gekleurde band aan de voorkant
   G.schuiver = new THREE.Group(); kast.add(G.schuiver);
-  const blok = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, HP, MK.LP), [MAT.staal, MAT.staal, MAT.staal, MAT.staal, MAT.schuiverBand, MAT.staal]);
-  blok.position.set(0, HP / 2, -MK.LP / 2); blok.receiveShadow = true; blok.castShadow = KW.schaduw > 0; G.schuiver.add(blok);
-  if (KV.K.schuifBoog) {
+  // (bij een holle schuiver ligt het blok achter het diepste punt van de voorkant; de rest doen het dak en de band)
+  const blokD = MK.LP + Math.min(0, KV.schuifMin - 1);
+  const blok = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, HP, blokD), [MAT.staal, MAT.staal, MAT.staal, MAT.staal, MAT.schuiverBand, MAT.staal]);
+  blok.position.set(0, HP / 2, -MK.LP + blokD / 2); blok.receiveShadow = true; blok.castShadow = KW.schaduw > 0; G.schuiver.add(blok);
+  if (KV.SB) {
     // een ronde voorkant: een dak in de vorm van de bocht, een gebogen band en een gebogen lip
     const dak = new THREE.Shape();
-    dak.moveTo(-XW, MK.LP); for (let k = 0; k <= 32; k++) { const x = -XW + 2 * XW * k / 32; dak.lineTo(x, -KV.schuifZ(x)); } dak.lineTo(XW, MK.LP); dak.closePath();
+    dak.moveTo(-XW, MK.LP); for (let k = 0; k <= 96; k++) { const x = -XW + 2 * XW * k / 96; dak.lineTo(x, -KV.schuifZ(x)); } dak.lineTo(XW, MK.LP); dak.closePath();
     const dg = new THREE.ShapeGeometry(dak); dg.rotateX(Math.PI / 2);
     const dp = dg.attributes.position; for (let k = 0; k < dp.count; k++) { dp.setY(k, HP + 0.05); dp.setZ(k, -dp.getZ(k)); }
     dg.computeVertexNormals(); for (let k = 0; k < dp.count; k++) dg.attributes.normal.setXYZ(k, 0, 1, 0);
     const dm = new THREE.Mesh(dg, MAT.staal); dm.receiveShadow = true; G.schuiver.add(dm);
-    const bp = boogPts(KV.schuifZ, -XW, XW, 40);
+    const bp = boogPts(KV.schuifZ, -XW, XW, 120);
     const band = strook(bp, HP, 0, 0, MAT.schuiverBand, G.schuiver);
     band.material.map.wrapS = THREE.RepeatWrapping;
-    G.schuiver.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp.map(([x, z]) => new THREE.Vector3(x, HP - 1.5, z + 0.4))), 64, 2, 8), MAT.chroom));
+    G.schuiver.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp.map(([x, z]) => new THREE.Vector3(x, HP - 1.5, z + 0.4)), false, 'centripetal'), 240, 2, 8), MAT.chroom));
   } else {
     const lip = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, 3, 4), MAT.chroom); lip.position.set(0, HP - 1.5, -1.6); G.schuiver.add(lip);
   }
   // het bord bovenop met de neonletters
   const nb = neonBord(1024, 256, TH.naam);
-  const bordAchter = doos(2 * XW + 40, 250, 16, MAT.zwart, 0, 690, 48, false);
-  bordAchter.material = [MAT.zwart, MAT.zwart, MAT.zwart, MAT.zwart, MAT.bord, MAT.zwart];
-  doos(2 * XW + 50, 10, 22, MAT.chroom, 0, 562, 48, false); doos(2 * XW + 50, 10, 22, MAT.chroom, 0, 818, 48, false);
+  // per kast een eigen vorm (bordOmtrek), met een chromen rand eromheen
+  const omtrek = bordOmtrek(KAST);
+  let bax = 0, bay = 0; for (const [x, y] of omtrek) { bax = Math.max(bax, Math.abs(x)); bay = Math.max(bay, Math.abs(y)); }
+  const bordG = new THREE.ExtrudeGeometry(new THREE.Shape(omtrek.map(([x, y]) => new THREE.Vector2(x, y))), { depth: 16, bevelEnabled: false });
+  { const p = bordG.attributes.position, u = bordG.attributes.uv; for (let k = 0; k < p.count; k++) u.setXY(k, (p.getX(k) + bax) / (2 * bax), (p.getY(k) + bay) / (2 * bay)); }
+  const bordM = new THREE.Mesh(bordG, [MAT.bord, MAT.zwart]); bordM.position.set(0, 690, 40); kast.add(bordM);
+  kast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(omtrek.map(([x, y]) => new THREE.Vector3(x, 690 + y, 56.5)), true, 'centripetal'), omtrek.length * 2, 4.2, 8, true), MAT.chroom));
   G.neon = new THREE.Mesh(new THREE.PlaneGeometry(2 * XW, 120), new THREE.MeshBasicMaterial({ map: nb.buis, transparent: true, color: new THREE.Color(1.6, 1.6, 1.6) }));
   G.neon.position.set(0, 700, 57); kast.add(G.neon);
   if (KW.gloed) {
@@ -6111,9 +6337,8 @@ function bouwKast() {
   }
   // de ledlampjes: om het bord, langs de zijkanten en om het pinnenbord
   const lampPos = [];
-  for (let x = -XW + 6; x <= XW - 6; x += 21) { lampPos.push([x, 578, 58], [x, 802, 58]); }
-  for (let y = 599; y <= 790; y += 21) { lampPos.push([-XW - 4, y, 58], [XW + 4, y, 58]); }
-  for (let y = -90; y <= 860; y += 24) { const z = voorZ(y) + 10; lampPos.push([-XW - 44, y, z], [XW + 44, y, z]); }
+  for (const [x, y] of langsOmtrek(omtrek, 13, 21)) lampPos.push([x, 690 + y, 58]);
+  for (let y = -90; y <= 860; y += 24) { const z = voorZ(y) + 10, x = XW + 44 + ZV(y) / 2; lampPos.push([-x, y, z], [x, y, z]); }
   for (let x = -XW + 10; x <= XW - 10; x += 24) lampPos.push([x, 362, ZW + 4]);
   // bovenop: per kast een eigen kop
   const KB = 320, KH = 40, KS = 128, KR = (KB * KB + KS * KS) / (2 * KS), KC = KH + KS - KR, ka = Math.atan2(KH - KC, KB);
@@ -6871,10 +7096,10 @@ function zetCamera() {
   const a = camera.aspect, z = kijk.zoom;
   const t = Math.max(0, Math.min(1, (1.25 - a) / 0.75));            // 0 liggend, 1 staand
   // de hele kast (zoom 0) of dichter op het speelveld (zoom 1)
-  const extra = { klassiek: 0, maan: 0, flipper: 45, molen: 60, ruitenwisser: 70, schatkamer: 55, fichebank: 70, trein: 62 }[KAST] * (1 - t);   // de kop van de Flipperkast en de Draaimolen is hoger
+  const extra = { klassiek: 62, maan: 70, flipper: 45, molen: 88, ruitenwisser: 70, schatkamer: 60, fichebank: 75, trein: 84 }[KAST] * (1 - t);   // de kop bovenop past er zo helemaal op
   const doel = new THREE.Vector3(0, (360 + extra - t * 170) * (1 - z) + 25 * z, (-150 - t * 10) * (1 - z) - 160 * z);
   const richting = new THREE.Vector3(kijk.x * 0.12, 0.47 + z * 0.43 + kijk.y * 0.05, 1).normalize();
-  const W = (660 - t * 100) * (1 - z) + (470 - t * 170) * z, Hh = (1260 + 2 * extra) * (1 - z) + 430 * z;
+  const W = (660 + 2 * Math.max(0, ZV_MAX - 16) * (1 - t) - t * 100) * (1 - z) + (470 - t * 170) * z, Hh = (1260 + 2 * extra) * (1 - z) + 430 * z;
   const f = Math.tan(camera.fov * Math.PI / 360);
   // op een staande telefoon liggen de tellers bovenin en Okke onderin over het beeld: de kast past ertussen (iets kleiner, en iets verschoven)
   const [vb, vo] = vrijeRuimte(), vrij = Math.max(0.55, (hoog - vb - vo) / hoog);
@@ -6895,7 +7120,7 @@ function maakHulpje(bij) {
   try {
     const url = URL.createObjectURL(new Blob([bron], { type: 'text/javascript' }));
     const w = new Worker(url);
-    w.onmessage = (e) => bij(e.data);
+    w.onmessage = (e) => { if (e.data && e.data.doe === 'hallo') { clearTimeout(tijd); return; } bij(e.data); };
     w.onerror = (e) => { e.preventDefault && e.preventDefault(); naarPagina(); };
     let gestart = false;
     const naarPagina = () => { if (gestart) return; gestart = true; try { w.terminate(); } catch (x) {} hulp = opDePagina(bij); if (wachtrij) { for (const [d, o] of wachtrij) hulp.stuur(d, o); wachtrij = null; } };
@@ -6904,7 +7129,8 @@ function maakHulpje(bij) {
     const tijd = setTimeout(naarPagina, 4000);
     return {
       soort: 'worker',
-      stuur(d, over) { if (wachtrij && !gestart) { wachtrij.push([d, over]); w.postMessage(d, over || []); return; } if (gestart) { hulp.stuur(d, over); return; } w.postMessage(d, over || []); },
+      // (zolang het hulpje nog niet heeft geantwoord, geven we niets weg: anders heeft de pagina het zelf niet meer als hij het moet overnemen)
+      stuur(d, over) { if (wachtrij && !gestart) { wachtrij.push([d, over]); w.postMessage(d); return; } if (gestart) { hulp.stuur(d, over); return; } w.postMessage(d, over || []); },
       bevestig() { clearTimeout(tijd); wachtrij = null; },
     };
   } catch (e) {
@@ -8104,6 +8330,7 @@ tekenopdrachten ${info.calls} · driehoeken ${(info.triangles / 1000).toFixed(0)
 // berichten van het hulpje
 // ---------------------------------------------------------------------------------------------
 function vanHulpje(d) {
+  if (d.doe === 'hallo') return;
   if (d.doe === 'fout') { console.error('Rommelschuiver: fout in de natuurkunde', d.bericht); if (window.reportError) window.reportError(new Error(d.bericht)); return; }
   if (d.doe === 'klaar') {
     hulp.bevestig();
@@ -9552,13 +9779,14 @@ const SP = (() => {
     later(30000, () => { H.doel = -32; geluid.hekje(); });
     st.bezig = nu() + 3000;
   }
-  const randVoor = () => (KV.K.boog ? KV.K.boog.voor - 40 : -30);
+  // waar de magneet hangt: wat achter de voorrand (bij een rand met bochten ook achter het stuk rand onder hem)
+  const randVoor = (x) => (KV.K.boog ? Math.min(KV.randMax - 40, KV.randZ(x || 0) - 22) : -30);
   function magneet() {
     const M_ = magneetDing();
     aankondig('De magneet!', 'Hij trekt de munten naar de rand', 'magneet', 2600); zeg(VERHAAL.magneet);
     M_.grp.visible = true; M_.y = 520; M_.doel = 92; M_.x = M_.doelX = -110; geluid.zoem(8.5);
     // drie keer een stukje opschuiven: links, midden, rechts (de munten bij de rand schuiven telkens mee naar voren)
-    [-110, 0, 110].forEach((x, k) => later(500 + k * 2700, () => { M_.doelX = x; S.doe2.push(['veld', x, randVoor(), 95, 55, 2.7, -1, 0, 0]); }));
+    [-110, 0, 110].forEach((x, k) => later(500 + k * 2700, () => { M_.doelX = x; S.doe2.push(['veld', x, randVoor(x), 95, 55, 2.7, -1, 0, 0]); }));
     later(8600, () => { M_.doel = 520; });
     actief('magneet', 'Magneet', 8.6);
     st.bezig = nu() + 9500;
@@ -10004,7 +10232,7 @@ const SP = (() => {
     if (TEST) return;
     const w = RG.wegGeschenk(regie, Date.now());
     if (!w) return;
-    const x = (Math.random() - 0.5) * 200, z = KV.K.boog ? KV.K.boog.voor - 30 : -18;
+    const x = (Math.random() - 0.5) * 200, z = KV.K.boog ? Math.min(KV.randMax - 30, KV.randZ(x) - 18) : -18;
     const so = w.wat === 'tover' ? w.soort : ECO.SOORT_KAARTJE + ECO.KAARTJES.indexOf(w.waarde);
     S.gooiLijst.push([x, so, 2, z, 10]); wek();
     const wat = w.wat === 'tover' ? 'een gouden munt' : 'een kaartje van ' + w.waarde;
@@ -10054,7 +10282,7 @@ const SP = (() => {
     // de dingen in de kast bewegen
     const glad = (a, b, k) => a + (b - a) * (MINDER ? 1 : Math.min(1, dt * k));
     if (D.hek && D.hek.grp.visible) { D.hek.y = glad(D.hek.y, D.hek.doel, 5); D.hek.grp.position.y = D.hek.y; D.hek.mat.emissiveIntensity = 0.8 + (MINDER ? 0 : 0.5 * Math.sin(t / 160)); if (D.hek.doel < 0 && D.hek.y < -30) D.hek.grp.visible = false; }
-    if (D.mag && D.mag.grp.visible) { const M_ = D.mag; M_.y = glad(M_.y, M_.doel, 2.2); M_.x = glad(M_.x, M_.doelX, 2.5); M_.grp.position.set(M_.x, M_.y + (MINDER ? 0 : 3 * Math.sin(t / 300)), randVoor()); M_.gloed.material.opacity = MINDER ? 0.5 : 0.35 + 0.35 * Math.sin(t / 120); if (M_.doel > 400 && M_.y > 480) M_.grp.visible = false; }
+    if (D.mag && D.mag.grp.visible) { const M_ = D.mag; M_.y = glad(M_.y, M_.doel, 2.2); M_.x = glad(M_.x, M_.doelX, 2.5); M_.grp.position.set(M_.x, M_.y + (MINDER ? 0 : 3 * Math.sin(t / 300)), randVoor(M_.x)); M_.gloed.material.opacity = MINDER ? 0.5 : 0.35 + 0.35 * Math.sin(t / 120); if (M_.doel > 400 && M_.y > 480) M_.grp.visible = false; }
     if (D.kanon && D.kanon.grp.visible) { const K = D.kanon; K.x = glad(K.x, K.doel, 6); K.grp.position.x = K.x - (K.terug > nu() - 60 && !MINDER ? 5 : 0); K.vuur.visible = K.vuurTot > nu() && !MINDER; if (K.doel < -MK.XW - 20 && K.x < -MK.XW - 26) K.grp.visible = false; }
     if (D.vlaai && D.vlaai.grp.visible) {
       const V = D.vlaai, f = (nu() - V.t0) / 700;

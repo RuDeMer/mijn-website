@@ -9006,16 +9006,174 @@ function updateLicht(t) {
   }
   G.licht.instanceColor.needsUpdate = true;
 }
+// ---- de Prijzenpoort per kast: elke kast een eigen vorm om dezelfde opening (een munt telt binnen POORT.half van het midden)
+// (alles blijft tussen de achterwand en het glas: z van -5,5 tot +6 rond het midden van de gleuf, en hooguit zo'n 21 mm onder het midden, boven het rad)
+const POORT_LAMP = {   // de kleur van de lampjes als de poort open is (fel); per lampje om de beurt een kleur uit de lijst
+  klassiek: [[2.4, 1.9, 0.6]], maan: [[1.8, 2.1, 2.8]], flipper: [[2.7, 0.5, 0.4], [2.6, 2.1, 0.3], [0.5, 2.5, 0.8], [0.6, 1.2, 2.9]],
+  molen: [[2.6, 2.2, 1.3]], ruitenwisser: [[1.1, 2.3, 2.8]], schatkamer: [[2.6, 1.9, 0.5]], fichebank: [[2.8, 0.45, 0.45], [2.6, 2.0, 0.6]], trein: [[2.6, 1.8, 0.8]],
+};
+function poortMetaal(goud) {
+  if (KAST === 'trein') return new THREE.MeshStandardMaterial({ color: lin('#C98A3A'), metalness: 0.95, roughness: 0.3 });
+  return KAST === 'maan' || KAST === 'flipper' || KAST === 'ruitenwisser' ? MAT.chroom : goud;
+}
+function poortVorm(goud) {
+  const P = G.poort, H = Math.PI / 180;
+  const zet = (m, x, y, z) => { m.position.set(x || 0, y || 0, z || 0); P.add(m); return m; };
+  const std = (kl, met, ruw, extra) => new THREE.MeshStandardMaterial(Object.assign({ color: lin(kl), metalness: met, roughness: ruw }, extra || {}));
+  // een vlakke vorm van d dik, met het midden op z (bev: een afgeronde rand)
+  const plaat = (vorm, d, mat, z, bev) => {
+    const g = new THREE.ExtrudeGeometry(vorm, { depth: d, bevelEnabled: !!bev, bevelThickness: bev || 0, bevelSize: bev || 0, bevelSegments: 2, curveSegments: 28 });
+    g.translate(0, 0, (z || 0) - d / 2); return zet(new THREE.Mesh(g, mat));
+  };
+  const rond = (r, cx, cy) => { const v = new THREE.Shape(); v.absarc(cx || 0, cy || 0, r, 0, Math.PI * 2, false); return v; };
+  const gat = (r, cx, cy) => { const v = new THREE.Path(); v.absarc(cx || 0, cy || 0, r, 0, Math.PI * 2, true); return v; };
+  const veel = (pts, v) => { v = v || new THREE.Shape(); pts.forEach(([x, y], k) => (k ? v.lineTo(x, y) : v.moveTo(x, y))); v.closePath(); return v; };
+  const satijn = std('#D9DEE6', 0.72, 0.3);
+  const ster = (cx, cy, R, r) => { const pts = []; for (let k = 0; k < 10; k++) { const a = Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r : R; pts.push([cx + Math.cos(a) * q, cy + Math.sin(a) * q]); } return veel(pts); };
+  const langs = (vorm, n, in_, z) => vorm.getSpacedPoints(n).slice(0, n).map((p) => { const l = Math.hypot(p.x, p.y) || 1; return [p.x * (1 - in_ / l), p.y * (1 - in_ / l), z]; });
+  const opRing = (n, r, z, a0, a1) => { const uit = []; for (let k = 0; k < n; k++) { const a = (a0 === undefined ? 90 - k * 360 / n : a0 + (a1 - a0) * k / (n - 1)) * H; uit.push([Math.cos(a) * r, Math.sin(a) * r, z]); } return uit; };
+  if (KAST === 'maan') {
+    // een halvemaan om een parelmoeren ringetje, met sterretjes aan de andere kant
+    const parel = std('#EEF2FF', 0.65, 0.18);
+    zet(new THREE.Mesh(new THREE.TorusGeometry(15.6, 1.1, 10, 56), parel));
+    const c1 = -3, r1 = 20.2, c2 = 3.4, r2 = 18.2, d = c2 - c1, a = (r1 * r1 - r2 * r2 + d * d) / (2 * d), h = Math.sqrt(r1 * r1 - a * a), px = c1 + a;
+    const maan = new THREE.Shape(); maan.moveTo(px, h);
+    maan.absarc(c1, 0, r1, Math.atan2(h, px - c1), Math.atan2(-h, px - c1) + Math.PI * 2, false);
+    maan.absarc(c2, 0, r2, Math.atan2(-h, px - c2) + Math.PI * 2, Math.atan2(h, px - c2), true);
+    plaat(maan, 3.4, std('#F3E6AE', 0.05, 0.55, { emissive: lin('#4A3E14') }), 0, 0.5);
+    const krater = std('#D9C88A', 0.05, 0.8, { emissive: lin('#2E2610') });
+    for (const [x, y, r] of [[-17.5, 4, 1.6], [-16, -7, 1.1], [-12.5, 13.5, 1.0], [-18.6, -1.8, 0.7]]) zet(new THREE.Mesh(new THREE.CircleGeometry(r, 16), krater), x, y, 2.25);
+    const sterMat = std('#FFE9A0', 0.4, 0.3, { emissive: lin('#8A6A1A') });
+    for (const [x, y, R] of [[18.6, 9.5, 3.4], [21.5, -3.5, 2.4], [16.8, -13.2, 2.0]]) plaat(ster(x, y, R, R * 0.45), 1.6, sterMat, 1.2, 0.3);
+    return { lr: 1.15, lampen: opRing(10, r1 - 1.9, 2.4, 70, 290).map(([x, y, z]) => [x + c1, y, z]) };
+  }
+  if (KAST === 'flipper') {
+    // een achthoekige bumper van chroom met een rode rubberen rand, ronde lampjes en een gele pijl
+    const acht = (R, v, a0) => veel(Array.from({ length: 8 }, (_, k) => [Math.cos((a0 + k * 45) * H) * R, Math.sin((a0 + k * 45) * H) * R]), v);
+    const lijst = acht(21.6, null, 22.5); lijst.holes.push(acht(16.4, new THREE.Path(), 22.5));
+    plaat(lijst, 4, satijn, 0, 0.6);
+    zet(new THREE.Mesh(new THREE.TorusGeometry(15.3, 1.15, 8, 40), std('#C42430', 0, 0.75)), 0, 0, 1.2);
+    const pijl = veel([[-5.5, 30.5], [5.5, 30.5], [5.5, 28], [2.2, 28], [2.2, 26.5], [5.2, 26.5], [0, 21.8], [-5.2, 26.5], [-2.2, 26.5], [-2.2, 28], [-5.5, 28]]);
+    plaat(pijl, 1.4, std('#FFD23C', 0.1, 0.35, { emissive: lin('#7A5A00') }), 0.8, 0.3);
+    zet(new THREE.Mesh(new THREE.BoxGeometry(1.6, 3, 1.6), satijn), 0, 21.2, 0);
+    for (const s_ of [-1, 1]) {
+      zet(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 6, 10).rotateX(Math.PI / 2), satijn), s_ * 24.4, 0, 0);
+      zet(new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.75, 6, 18), std('#C42430', 0, 0.75)), s_ * 24.4, 0, 2.2);
+      zet(new THREE.Mesh(new THREE.BoxGeometry(3, 1.4, 1.6), satijn), s_ * 21.6, 0, 0);
+    }
+    return { lr: 1.5, platte: true, lampen: opRing(8, 18.3, 2.75) };
+  }
+  if (KAST === 'molen') {
+    // het dak van een draaimolen: een gouden schulprand met parels, een rood randje en een dakje met een vlaggetje
+    const n = 12, pts = [];
+    for (let k = 0; k < 240; k++) { const a = k / 240 * Math.PI * 2, r = 17 + 3.1 * Math.pow(0.5 + 0.5 * Math.cos(n * (a - Math.PI / 2)), 0.7); pts.push([Math.cos(a) * r, Math.sin(a) * r]); }
+    const lijst = veel(pts); lijst.holes.push(gat(14.6));
+    plaat(lijst, 3.6, goud, 0, 0.5);
+    const band = rond(16.5); band.holes.push(gat(15.0)); plaat(band, 0.8, std('#C8323C', 0.15, 0.3), 2.3);
+    const dak = new THREE.ConeGeometry(9, 7.5, 12, 1).toNonIndexed(), kl = [];
+    const rood = lin('#C8323C'), wit = lin('#FBF6E9');
+    for (let k = 0; k < dak.attributes.position.count; k++) { const f = Math.floor(k / 3), c = (Math.floor(f / 2) % 12) % 2 ? wit : rood; kl.push(c.r, c.g, c.b); }
+    dak.setAttribute('color', new THREE.Float32BufferAttribute(kl, 3)); dak.computeVertexNormals();
+    const dm = zet(new THREE.Mesh(dak, new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.1, roughness: 0.4 })), 0, 24.8, 0); dm.scale.z = 0.3;
+    const rand = zet(new THREE.Mesh(new THREE.CylinderGeometry(9.6, 9.6, 1.2, 24), goud), 0, 21, 0); rand.scale.z = 0.3;
+    zet(new THREE.Mesh(new THREE.SphereGeometry(1.3, 12, 8), goud), 0, 29.2, 0);
+    zet(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 6), goud), 0, 31.2, 0);
+    plaat(veel([[0.3, 33.2], [5.2, 32.1], [0.3, 31.0]]), 0.5, std('#2EA05A', 0.1, 0.4), 0);
+    return { lr: 1.45, lampen: opRing(12, 18.3, 1.9) };
+  }
+  if (KAST === 'ruitenwisser') {
+    // een waterdruppel van blauw glas met een chromen randje, schuimbelletjes en een glimmertje
+    const R = 19.5, tip = 33, a = Math.acos(R / tip), tr = Math.PI / 2 - a, tl = Math.PI / 2 + a;
+    const drup = new THREE.Shape(); drup.moveTo(0, tip);
+    drup.quadraticCurveTo(Math.cos(tr) * R * 0.55, (tip + Math.sin(tr) * R) / 2 + 2, Math.cos(tr) * R, Math.sin(tr) * R);
+    drup.absarc(0, 0, R, tr, tl, true);
+    drup.quadraticCurveTo(-Math.cos(tr) * R * 0.55, (tip + Math.sin(tr) * R) / 2 + 2, 0, tip);
+    const lamp = langs(drup, 10, 2.4, 2.1);
+    drup.holes.push(gat(14.8));
+    const glas = plaat(drup, 3.2, std('#3FB4E6', 0.15, 0.06, { transparent: true, opacity: 0.8, emissive: lin('#0B4566'), depthWrite: false }), 0, 0.5);
+    glas.renderOrder = 3;
+    zet(new THREE.Mesh(new THREE.TorusGeometry(15.0, 0.8, 8, 48), MAT.chroom), 0, 0, 1.4);
+    const glim = new THREE.Mesh(new THREE.CircleGeometry(1, 20), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
+    glim.scale.set(1.6, 4.6, 1); glim.rotation.z = -0.5; zet(glim, -6.5, 21, 2.3).renderOrder = 4;
+    const schuim = std('#FFFFFF', 0, 0.9);
+    [[200, 2.4], [215, 1.5], [232, 2.6], [252, 1.7], [270, 2.2], [288, 1.4], [305, 2.5], [322, 1.6], [338, 2.1]].forEach(([g, r]) => zet(new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), schuim), Math.cos(g * H) * (R + 0.6), Math.sin(g * H) * (R + 0.6) * 0.92, 0.8));
+    return { lr: 1.2, lampen: lamp };
+  }
+  if (KAST === 'schatkamer') {
+    // een gouden sleutelschild met een sleutelgat als opening, en edelstenen
+    const cy = 2, R = 19.5, a0 = -32 * H, a1 = Math.PI - a0;
+    const schild = new THREE.Shape(); schild.moveTo(Math.cos(a0) * R, cy + Math.sin(a0) * R);
+    schild.absarc(0, cy, R, a0, a1, false); schild.lineTo(-8.5, -20.5); schild.lineTo(8.5, -20.5); schild.closePath();
+    const lamp = langs(schild, 10, 2.1, 2.3);
+    const rg = 14, sx = 5, sy = -Math.sqrt(rg * rg - sx * sx), gt = new THREE.Path();
+    gt.moveTo(sx, sy); gt.absarc(0, 0, rg, Math.atan2(sy, sx), Math.atan2(sy, -sx) + Math.PI * 2, false); gt.lineTo(-7.2, -17); gt.lineTo(7.2, -17); gt.closePath();
+    schild.holes.push(gt);
+    plaat(schild, 3.6, std('#D9A93A', 0.95, 0.32), 0, 0.6);
+    const rand = new THREE.Shape(); rand.moveTo(sx + 1.6, sy - 0.3); rand.absarc(0, 0, rg + 1.4, Math.atan2(sy, sx + 1.6), Math.atan2(sy, -sx - 1.6) + Math.PI * 2, false); rand.lineTo(-8.8, -18.4); rand.lineTo(8.8, -18.4); rand.closePath(); rand.holes.push(gt);
+    plaat(rand, 0.8, std('#3A2A1A', 0.3, 0.6), 2.0);
+    [['#2E6CE0', 0, 17.6, 2.3], ['#D8343F', -12.8, 12.2, 1.7], ['#2DBE6C', 12.8, 12.2, 1.7], ['#B04CE0', 0, -19.0, 1.2]].forEach(([kl, x, y, r]) => {
+      const st = zet(new THREE.Mesh(new THREE.OctahedronGeometry(r, 0), std(kl, 0.3, 0.12, { emissive: lin(kl).multiplyScalar(0.25) })), x, y, 2.6); st.scale.set(1, 1.2, 0.6);
+    });
+    return { lr: 1.05, lampen: lamp.filter(([x, y]) => !(y > 14 && Math.abs(x) < 4.5) && Math.hypot(Math.abs(x) - 12.8, y - 12.2) > 3.2) };
+  }
+  if (KAST === 'fichebank') {
+    // art deco: een zwart gelakte plaat met getrapte hoeken en een gouden rand, met daarboven een gouden waaier
+    const trap = (A, B, t) => { const hp = []; for (const [sx, sy] of [[1, 1], [-1, 1], [-1, -1], [1, -1]]) { const q = [[A, B - 3 * t], [A - t, B - 3 * t], [A - t, B - 2 * t], [A - 2 * t, B - 2 * t], [A - 2 * t, B - t], [A - 3 * t, B - t], [A - 3 * t, B]].map(([x, y]) => [sx * x, sy * y]); hp.push(...(sx * sy > 0 ? q : q.reverse())); } return hp; };
+    const achter = veel(trap(22.4, 18.4, 2.5)); achter.holes.push(gat(14.8)); plaat(achter, 2.4, goud, -0.9);
+    const voor = veel(trap(21, 17, 2.5)); voor.holes.push(gat(14.8)); plaat(voor, 2.6, std('#15121A', 0.25, 0.22), 0.7);
+    zet(new THREE.Mesh(new THREE.TorusGeometry(15.4, 0.95, 8, 48), goud), 0, 0, 2.1);
+    for (let k = 0; k < 5; k++) {
+      const a = (28 + k * 31) * H, b = a + 22 * H, w = new THREE.Shape(); w.moveTo(Math.cos(a) * 3, 17.4 + Math.sin(a) * 3);
+      w.absarc(0, 17.4, 11.5, a, b, false); w.absarc(0, 17.4, 3, b, a, true);
+      plaat(w, 1.4, goud, -0.2, 0.2);
+    }
+    zet(new THREE.Mesh(new THREE.SphereGeometry(2.2, 14, 10), goud), 0, 17.6, 0).scale.z = 0.5;
+    const lamp = [[15, 11], [-15, 11], [-15, -11], [15, -11], [18.4, 0], [-18.4, 0]].map(([x, y]) => [x, y, 2.35]);
+    return { lr: 1.5, ruit: true, lampen: lamp };
+  }
+  if (KAST === 'trein') {
+    // de voorkant van een stoomlocomotiefje: de rookkast met klinknagels om de opening, een schoorsteen, een rode buffer met lantaarns
+    const ijzer = std('#2E2C33', 0.6, 0.45), koper = new THREE.MeshStandardMaterial({ color: lin('#C98A3A'), metalness: 0.95, roughness: 0.3 });
+    const kast_ = rond(17.6); kast_.holes.push(gat(14.6)); plaat(kast_, 4, ijzer, 0, 0.5);
+    zet(new THREE.Mesh(new THREE.TorusGeometry(15.2, 0.85, 8, 48), koper), 0, 0, 2.0);
+    const pijp = zet(new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.9, 12.5, 18), ijzer), 0, 23.4, 0); pijp.scale.z = 0.7;
+    const kap = zet(new THREE.Mesh(new THREE.CylinderGeometry(5, 4.2, 2.4, 18), koper), 0, 30.5, 0); kap.scale.z = 0.7;
+    zet(new THREE.Mesh(new THREE.BoxGeometry(52, 4.6, 3.4), std('#C8323C', 0.15, 0.35)), 0, -17.8, -0.6);
+    for (const s_ of [-1, 1]) {
+      zet(new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 3.4, 10).rotateX(Math.PI / 2), satijn), s_ * 21.5, -17.8, 2.5);
+      zet(new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.8, 18).rotateX(Math.PI / 2), satijn), s_ * 21.5, -17.8, 4.4);
+      zet(new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.8, 2.6), ijzer), s_ * 10.5, -17.8, 1.6);
+      zet(new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.35, 6, 16), koper), s_ * 10.5, -17.8, 2.95);
+    }
+    return { lr: 0.9, lampen: opRing(10, 16.4, 2.3).concat([[-10.5, -17.8, 3.1], [10.5, -17.8, 3.1]]) };
+  }
+  // de klassieke kast: een circushoepel met rood-witte strepen, lampjes en een vlaggetje
+  const W = 256, Hd = 32, c = maakDoek(W, Hd), g = c.getContext('2d'), N = 12, w = W / (2 * N);
+  g.fillStyle = '#FBF6E9'; g.fillRect(0, 0, W, Hd); g.fillStyle = '#C8323C';
+  for (let k = -2; k < 2 * N + 4; k += 2) { g.beginPath(); g.moveTo(k * w, 0); g.lineTo((k + 1) * w, 0); g.lineTo((k - 1) * w, Hd); g.lineTo((k - 2) * w, Hd); g.closePath(); g.fill(); }
+  const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding; tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.anisotropy = 4;
+  zet(new THREE.Mesh(new THREE.TorusGeometry(17, 2.3, 14, 72), new THREE.MeshStandardMaterial({ map: tex, metalness: 0.05, roughness: 0.32 })));
+  zet(new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 9.5, 8), goud), 0, 23.6, 0);
+  zet(new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 8), goud), 0, 28.8, 0);
+  plaat(veel([[0.4, 28.2], [8.6, 26.0], [0.4, 23.6]]), 0.6, std('#C8323C', 0.1, 0.4), 0);
+  plaat(veel([[-0.4, 28.2], [-7.4, 26.2], [-0.4, 24.4]]), 0.6, std('#E9B949', 0.3, 0.4), 0);
+  return { lr: 1.45, lampen: opRing(12, 17, 2.0) };
+}
 function bouwPoortEnRad() {
   const { XW, ZW, KD } = MK;
   const goud = new THREE.MeshStandardMaterial({ color: lin('#E9B949'), metalness: 0.95, roughness: 0.25 });
-  // de rail en het poortje (in de gleuf, achter het glas)
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, 2.4, 2), MAT.chroomDonker); rail.position.set(0, POORT.y, ZW + 1.2); scene.add(rail);
+  // de rail en het poortje (in de gleuf, achter het glas); elke kast heeft een eigen poortje (poortVorm)
+  const metaal = poortMetaal(goud);
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(2 * XW, 2.4, 2), KAST === 'klassiek' ? MAT.chroomDonker : metaal); rail.position.set(0, POORT.y, ZW + 1.2); scene.add(rail);
   G.poort = new THREE.Group(); G.poort.position.set(0, POORT.y, ZW + KD / 2); scene.add(G.poort);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(POORT.half + 3, 1.9, 10, 36), goud); G.poort.add(ring);
-  const voet = new THREE.Mesh(new THREE.BoxGeometry(10, 5, 6), goud); voet.position.set(0, 0, -4); G.poort.add(voet);
-  G.poortLampen = new THREE.InstancedMesh(new THREE.SphereGeometry(1.5, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), 10);
-  for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; G.poortLampen.setMatrixAt(k, new THREE.Matrix4().makeTranslation(Math.cos(a) * (POORT.half + 3), Math.sin(a) * (POORT.half + 3), 1.8)); G.poortLampen.setColorAt(k, new THREE.Color(1, 0.8, 0.3)); }
+  // twee sledes achter de lijst, op de rail (niet midden in de opening)
+  const smal = KAST === 'maan';   // de halvemaan heeft rechts alleen een dun ringetje: daar een smallere slede
+  for (const s_ of [-1, 1]) { const voet = new THREE.Mesh(new THREE.BoxGeometry(smal ? 2 : 4, 5, 5), metaal); voet.position.set(s_ * (smal ? 15.6 : 16.5), 0, -3.6); G.poort.add(voet); }
+  const vorm = poortVorm(goud);
+  const lampGeo = vorm.platte ? new THREE.CylinderGeometry(vorm.lr, vorm.lr, 0.9, 14).rotateX(Math.PI / 2) : vorm.ruit ? new THREE.OctahedronGeometry(vorm.lr, 0).scale(1, 1.35, 0.5) : new THREE.SphereGeometry(vorm.lr, 8, 6);
+  G.poortLampen = new THREE.InstancedMesh(lampGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), vorm.lampen.length);
+  vorm.lampen.forEach(([x, y, z], k) => { G.poortLampen.setMatrixAt(k, new THREE.Matrix4().makeTranslation(x, y, z)); G.poortLampen.setColorAt(k, new THREE.Color(1, 0.8, 0.3)); });
+  G.poortLampen.frustumCulled = false;
   G.poort.add(G.poortLampen);
   // bij de Ruitenwisser: het lichtjesrad in plaats van het rad
   if (KAST === 'ruitenwisser') { bouwLichtjes(goud); return; }
@@ -9105,10 +9263,11 @@ function updatePoort(t) {
   G.poort.position.x = poortX(S.stappen * MF.DT);
   const open = poortOpen(), stap = Math.PI * 2;
   // de lampjes van het poortje: open = rondlopend goud, na een draai lopen ze langzaam vol (rood), tijdens het draaien uit
-  for (let k = 0; k < 10; k++) {
-    if (open) { const aan = MINDER || (Math.floor(t / 90) + k) % 4 === 0; ptKleur.setRGB(aan ? 2.4 : 1.3, aan ? 1.9 : 0.95, aan ? 0.6 : 0.25); }
+  const pl = POORT_LAMP[KAST] || POORT_LAMP.klassiek, nl = G.poortLampen.count;
+  for (let k = 0; k < nl; k++) {
+    if (open) { const aan = MINDER || (Math.floor(t / 90) + k) % 4 === 0, c = pl[k % pl.length], f = aan ? 1 : 0.5; ptKleur.setRGB(c[0] * f, c[1] * f, c[2] * f); }
     else if (PT.draait) ptKleur.setRGB(0.25, 0.2, 0.15);
-    else { const vol = (t - PT.rustVan) / POORT.rust; ptKleur.setRGB(k / 10 < vol ? 1.6 : 0.3, k / 10 < vol ? 0.35 : 0.15, 0.15); }
+    else { const vol = (t - PT.rustVan) / POORT.rust; ptKleur.setRGB(k / nl < vol ? 1.6 : 0.3, k / nl < vol ? 0.35 : 0.15, 0.15); }
     G.poortLampen.setColorAt(k, ptKleur);
   }
   G.poortLampen.instanceColor.needsUpdate = true;

@@ -938,3 +938,24 @@ Elke kast heeft een eigen trechter (`TRECHTER`, `trechterKast`) en een eigen rin
 - *In Node*: alle kasten spelen en komen tot rust zonder fouten, munten tellen precies, niets door de vloer.
 - *In Chromium*: alle acht kasten op een computer en een telefoon (Zuinig, Normaal en Mooi), met hun eigen gebeurtenissen; de nieuwe vormen van boven en van voren; de trechters van dichtbij; oude opslag van de versie die online staat in de nieuwe pagina en terug (de munten en kaartjes blijven, de Halvemaan houdt zijn stapel, de andere kasten krijgen een nieuwe); nergens fouten of overtredingen van het veiligheidsbeleid; de gedeelde blokken overal gelijk.
 - **Niet getest**: Safari en het geluid op een echte iPhone.
+
+## 36. Een eigen Prijzenpoort per kast (28 november 2026, Rubens reactie)
+
+Ruben: "Ik bedoelde ook meer de poort die verbonden staat met het rad." Hoofdstuk 35 gaf elke kast een eigen ring om het gat van de trechter; nu krijgt ook het poortje dat boven het rad heen en weer schuift (de Prijzenpoort) per kast een eigen uiterlijk. Wat er gebeurt als je munt erdoorheen valt, en hoe breed de opening is, is precies hetzelfde gebleven.
+
+| Kast | De poort |
+|---|---|
+| De Rommelschuiver | een circushoepel met rood-witte strepen, lampjes en een rood en een geel vlaggetje |
+| De Halvemaan | een halvemaan met kratertjes om een parelmoeren ringetje, met drie sterretjes |
+| De Flipperkast | een achthoekige bumper van satijnen metaal met een rode rubberen rand, gekleurde ronde lampjes, twee paaltjes met rubber en een gele pijl erboven |
+| De Draaimolen | een gouden schulprand met parels, een rood randje, en een rood-wit dakje met een vlaggetje |
+| De Ruitenwisser | een druppel van blauw glas met een chromen randje, een glimmertje en schuimbelletjes |
+| De Schatkamer | een gouden sleutelschild met een sleutelgat als opening, en vier edelstenen |
+| De Fichebank | een zwart gelakte art-deco-plaat met getrapte hoeken, een gouden rand, ruitvormige lampjes en een gouden waaier erboven |
+| De Treinbaan | de voorkant van een stoomlocje: de rookkast met klinknagels, een schoorsteen met een koperen kap, een rode bufferbalk met buffers en twee lantaarns |
+
+- *Hoe*: `poortVorm` in `poort.js` (vlakke vormen met een gat, uitgetrokken met een afgeronde rand, plus wat bolletjes, kegels en cilinders). De poort rijdt op twee sledes achter de lijst (niet meer met een blokje midden in de opening), en de rail heeft de kleur van de poort (goud, chroom of koper). De lampjes volgen de vorm (6 tot 12), met per kast een eigen kleur als de poort open is (`POORT_LAMP`); dicht lopen ze rood vol en tijdens het draaien zijn ze uit, zoals altijd.
+- *Grenzen*: de opening is rond het midden minstens 14 mm breed (een munt telt binnen 13 mm), alles blijft tussen de achterwand en het glas, en hooguit zo'n 21 mm onder het midden, zodat de poort niet over het rad hangt. Vlak chroom spiegelde de donkere hal (dan werd hij zwart); daarom zijn de vlakke delen van de flipper en de buffers van de loc van satijnen metaal.
+- *Getest* (Chromium): alle acht kasten van dichtbij, schuin van opzij en met het rad (Mooi), op een computer en een telefoon (Normaal), en per kast munten door de poort gemikt tot het rad draaide (Zuinig): overal draaide het rad en ging de poort daarna dicht, zonder fouten.
+- **Niet getest**: Safari op een echte iPhone.
+
